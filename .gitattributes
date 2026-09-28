@@ -1,0 +1,10 @@
+# One line ending everywhere, so a checkout on Windows and on CI is byte-identical.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+*.woff2 binary

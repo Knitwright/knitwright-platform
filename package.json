@@ -1,0 +1,17 @@
+{
+  "name": "knitwright-platform",
+  "private": true,
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "typecheck": "pnpm --filter web typecheck",
+    "lint": "pnpm --filter web lint",
+    "test": "pnpm --filter web test",
+    "test:cov": "pnpm --filter web test:cov",
+    "e2e": "pnpm --filter web e2e"
+  }
+}

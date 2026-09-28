@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens, taken from knitwright.com. See plans/design-reference.md.
+ * Light theme only. Cobalt is the single accent.
+ * Tailwind owns the radius, spacing, font and color namespaces, so our own
+ * names never start with those prefixes outside the @theme block.
+ */
+:root {
+  --canvas: #f4f4f5;
+  --surface: #fff;
+  --shell: #ededee;
+  --ink: #0f1012;
+  --ink-2: #2a2c31;
+  --muted: #62656d;
+  --faint: #a3a6ad;
+  --hairline: #0f101217;
+  --tile: #17181b;
+  --tile-2: #222429;
+  --chalk: #e9eaee;
+  --chalk-muted: #9a9ea8;
+  --cobalt: #2b46f0;
+  --cobalt-soft: #8296ff;
+  --cobalt-wash: #eef1ff;
+  --ok: #0f7b59;
+  --ok-wash: #e7f4ee;
+  --warn: #9a5a08;
+  --warn-wash: #f8efdf;
+  --thread: linear-gradient(
+    95deg,
+    #b9c4ff 0%,
+    #fff1c2 28%,
+    #ffd3e6 52%,
+    #c7f0e4 74%,
+    #9fb0ff 100%
+  );
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-shell: var(--shell);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-hairline: var(--hairline);
+  --color-tile: var(--tile);
+  --color-tile-2: var(--tile-2);
+  --color-chalk: var(--chalk);
+  --color-chalk-muted: var(--chalk-muted);
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-soft: var(--cobalt-soft);
+  --color-cobalt-wash: var(--cobalt-wash);
+  --color-ok: var(--ok);
+  --color-ok-wash: var(--ok-wash);
+  --color-warn: var(--warn);
+  --color-warn-wash: var(--warn-wash);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 2px;
+}
+
+.thread-line {
+  height: 2px;
+  background: var(--thread);
+}
+
+.tile-dots {
+  background-color: var(--tile);
+  background-image: radial-gradient(#ffffff17 1px, #0000 1.2px);
+  background-size: 14px 14px;
+  box-shadow:
+    inset 0 2px 30px #0009,
+    inset 0 -1px #ffffff0f;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
