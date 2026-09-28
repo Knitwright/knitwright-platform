@@ -86,6 +86,33 @@ describe("checkWrappers, route handlers", () => {
     );
   });
 
+  it("rejects a handler exported by taking an object apart", () => {
+    const text = `export const { GET } = { GET: async () => new Response("open") };`;
+    expect(rules([route(text)])).toEqual(["route-not-wrapped"]);
+  });
+
+  it("rejects a handler exported by taking an array apart", () => {
+    const text = `export const [GET] = [async () => new Response("open")];`;
+    expect(rules([route(text)])).toEqual(["route-not-wrapped"]);
+  });
+
+  it("rejects a handler that can be replaced after it was made", () => {
+    const text = `
+      import { defineRoute } from "@/lib/server/define-route";
+      export let GET = defineRoute({ auth: "user", rateLimit: R, schema: {}, handler: h });
+      GET = async () => new Response("open");
+    `;
+    expect(rules([route(text)])).toEqual(["route-not-wrapped"]);
+  });
+
+  it("also checks route files written as JavaScript", () => {
+    for (const name of ["route.js", "route.mjs", "route.cjs", "route.jsx", "route.mts"]) {
+      expect(rules([route(`export async function GET() {}`, `app/api/x/${name}`)])).toEqual([
+        "route-not-wrapped",
+      ]);
+    }
+  });
+
   it("also checks route files written as tsx", () => {
     expect(
       rules([route(`export async function GET() {}`, "app/og/[id]/route.tsx")]),
@@ -110,6 +137,19 @@ describe("checkWrappers, server actions", () => {
 
   it("rejects a re-export in a server file", () => {
     const text = `"use server";\nexport { rename } from "./elsewhere";`;
+    expect(rules([actions(text)])).toEqual(["action-not-wrapped"]);
+  });
+
+  it("rejects an action exported by taking an object apart", () => {
+    const text = `"use server";
+export const { rename } = { rename: async () => {} };`;
+    expect(rules([actions(text)])).toEqual(["action-not-wrapped"]);
+  });
+
+  it("rejects an action that can be replaced after it was made", () => {
+    const text = `"use server";
+      import { defineAction } from "@/lib/server/define-action";
+      export let rename = defineAction({ auth: "user", rateLimit: R, schema: S, handler: h });`;
     expect(rules([actions(text)])).toEqual(["action-not-wrapped"]);
   });
 

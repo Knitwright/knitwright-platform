@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/Logo";
@@ -26,10 +27,10 @@ export function AuthCard({ title, lead, children, footer }: AuthCardProps) {
   );
 }
 
-export function TextLink({ href, children }: Readonly<{ href: string; children: ReactNode }>) {
+export function TextLink({ href, children }: Readonly<{ href: Route; children: ReactNode }>) {
   return (
     <Link
-      href={href as never}
+      href={href}
       className="font-medium text-cobalt underline-offset-4 hover:underline"
     >
       {children}

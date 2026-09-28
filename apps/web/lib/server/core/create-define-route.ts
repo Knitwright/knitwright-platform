@@ -59,6 +59,30 @@ const queryOf = (request: Request): Record<string, string | string[]> => {
   );
 };
 
+/**
+ * Reads the body as text, piece by piece, and gives up as soon as it passes the limit.
+ * A body that declares no length, or lies about it, is never held in memory whole.
+ * Returns null when the body is over the limit.
+ */
+const readTextUpTo = async (request: Request, maxBytes: number): Promise<string | null> => {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let received = 0;
+
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    received += value.byteLength;
+    if (received > maxBytes) {
+      await reader.cancel();
+      return null;
+    }
+    text += decoder.decode(value, { stream: true });
+  }
+};
+
 type BodyRead =
   | Readonly<{ ok: true; value: unknown }>
   | Readonly<{ ok: false; failure: Failure }>;
@@ -70,8 +94,8 @@ const readBody = async (request: Request, maxBytes: number): Promise<BodyRead> =
   };
   // The declared length lets an oversized body be refused before it is read.
   if (Number(request.headers.get("content-length") ?? 0) > maxBytes) return tooLarge;
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > maxBytes) return tooLarge;
+  const text = await readTextUpTo(request, maxBytes);
+  if (text === null) return tooLarge;
   try {
     return { ok: true, value: JSON.parse(text) };
   } catch {

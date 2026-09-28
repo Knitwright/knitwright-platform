@@ -1,8 +1,9 @@
 "use server";
 
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { HOME_AFTER_SIGN_IN, SIGN_IN_PATH } from "@/lib/server/core/paths";
+import { CHOOSE_PASSWORD_PATH, HOME_AFTER_SIGN_IN, SIGN_IN_PATH } from "@/lib/server/core/paths";
 import { defineAction } from "@/lib/server/define-action";
 import { authContext } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -70,8 +71,8 @@ export const confirmLinkAction = defineAction({
   rateLimit: LIMITS.confirmLink,
   schema: confirmLinkSchema,
   handler: async ({ input }) => {
-    const kind = await confirmLink(await authContext(), input);
-    redirect(kind === "recovery" ? "/reset-password" : HOME_AFTER_SIGN_IN);
+    const next = await confirmLink(await authContext(), input);
+    redirect(next === "choose-password" ? CHOOSE_PASSWORD_PATH : HOME_AFTER_SIGN_IN);
   },
 });
 
@@ -87,10 +88,11 @@ export const updatePasswordAction = defineAction({
 
 export const startGoogleSignInAction = defineAction({
   auth: "public",
-  rateLimit: LIMITS.oauth,
+  rateLimit: LIMITS.oauthStart,
   schema: nothing,
   handler: async () => {
-    // The address comes from the sign-in service, so it is safe to follow.
-    redirect((await startGoogleSignIn(await authContext())) as never);
+    // The address is on another site, which the route types do not describe. It comes
+    // from the sign-in service, not from the request, so it is safe to follow.
+    redirect((await startGoogleSignIn(await authContext())) as Route);
   },
 });

@@ -63,8 +63,14 @@ describe("sign-in with Google", () => {
   });
 
   it("refuses a code it did not issue", async () => {
-    await expect(finishGoogleSignIn(visitor(), "not-a-real-code")).rejects.toBeInstanceOf(
-      AppError,
+    const refusal = await finishGoogleSignIn(visitor(), "not-a-real-code").catch(
+      (error: unknown) => error,
     );
+
+    expect(refusal).toBeInstanceOf(AppError);
+    expect(refusal).toMatchObject({
+      code: "invalid_input",
+      message: "Sign-in with Google did not finish. Start again.",
+    });
   });
 });

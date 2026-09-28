@@ -118,6 +118,79 @@ describe("defineRoute", () => {
     expect((await response.json()).error.code).toBe("too_large");
   });
 
+  it("stops reading a body of unknown length once it passes the limit", async () => {
+    const { deps } = makeDeps();
+    const route = createDefineRoute(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      maxBodyBytes: 32,
+      schema: { body: z.object({ name: z.string() }) },
+      handler: async () => ({}),
+    });
+    let chunksRead = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        chunksRead += 1;
+        controller.enqueue(new TextEncoder().encode("x".repeat(16)));
+      },
+    });
+    const request = new Request("http://localhost/api/thing", {
+      method: "POST",
+      body: endless,
+      // Node needs this to send a stream. No content-length is set.
+      duplex: "half",
+    } as RequestInit);
+
+    const response = await route(request, noParams);
+
+    expect(response.status).toBe(413);
+    expect(chunksRead).toBeLessThan(10);
+  });
+
+  it("reads a body sent in several pieces", async () => {
+    const { deps } = makeDeps();
+    const route = createDefineRoute(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema: { body: z.object({ name: z.string() }) },
+      handler: async ({ input }) => input.body.name,
+    });
+    const pieces = ['{"name":"Cr', 'ew tee é', '"}'];
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const piece of pieces) controller.enqueue(new TextEncoder().encode(piece));
+        controller.close();
+      },
+    });
+    const request = new Request("http://localhost/api/thing", {
+      method: "POST",
+      body,
+      duplex: "half",
+    } as RequestInit);
+
+    expect(await (await route(request, noParams)).json()).toEqual({
+      success: true,
+      data: "Crew tee é",
+    });
+  });
+
+  it("treats a request with no body as invalid input when a body is expected", async () => {
+    const { deps } = makeDeps();
+    const route = createDefineRoute(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema: { body: z.object({ name: z.string() }) },
+      handler: async () => ({}),
+    });
+
+    const response = await route(
+      new Request("http://localhost/api/thing", { method: "POST" }),
+      noParams,
+    );
+
+    expect(response.status).toBe(400);
+  });
+
   it("parses query and path parameters", async () => {
     const { deps } = makeDeps();
     const route = createDefineRoute(deps)({

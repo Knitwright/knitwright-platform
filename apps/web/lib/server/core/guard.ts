@@ -85,7 +85,8 @@ export const invalidInput = (fields: FieldErrors): Failure => ({
 /** Turns anything a handler threw into a failure that is safe to show. */
 export const failureFrom = (deps: GuardDeps, error: unknown, where: string): Failure => {
   deps.rethrowControlFlow(error);
-  if (error instanceof AppError) return toFailure(error);
+  if (error instanceof AppError && error.code !== "internal") return toFailure(error);
+  // The user sees a general message. The log is the only record of what happened.
   deps.log({ level: "error", message: "Unexpected failure in a handler", where, error });
   return { code: "internal", message: MESSAGES.internal };
 };

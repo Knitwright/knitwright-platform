@@ -17,7 +17,7 @@ export default async function SignUpPage() {
   return (
     <AuthCard
       title="Create your account"
-      lead="Free during the beta. No card needed."
+      lead="Enter your email and we will send you a link. Free during the beta, no card needed."
       footer={
         <>
           Already have an account? <TextLink href="/sign-in">Sign in</TextLink>

@@ -5,7 +5,9 @@ export const CAPTCHA_FIELD = "cf-turnstile-response";
 
 export const PASSWORD_MIN = 10;
 /** Passwords are hashed with bcrypt, which ignores everything after 72 bytes. */
-export const PASSWORD_MAX = 72;
+export const PASSWORD_MAX_BYTES = 72;
+
+const byteLength = (text: string): number => new TextEncoder().encode(text).byteLength;
 
 const email = z
   .string()
@@ -16,22 +18,28 @@ const email = z
 const newPassword = z
   .string()
   .min(PASSWORD_MIN, `Use at least ${PASSWORD_MIN} characters.`)
-  .max(PASSWORD_MAX, `Use at most ${PASSWORD_MAX} characters.`);
+  .refine(
+    (value) => byteLength(value) <= PASSWORD_MAX_BYTES,
+    "That password is too long. Use a shorter one.",
+  );
 
 const captcha = z
   .string("Complete the check to show you are a person.")
   .min(1, "Complete the check to show you are a person.")
   .max(4096);
 
+/**
+ * Registration takes an address only. The password is chosen after the address is
+ * confirmed, so nobody can attach a password to an address they do not own.
+ */
 export const registrationSchema = z.object({
   email,
-  password: newPassword,
   [CAPTCHA_FIELD]: captcha,
 });
 
 export const credentialsSchema = z.object({
   email,
-  password: z.string().min(1, "Enter your password.").max(PASSWORD_MAX),
+  password: z.string().min(1, "Enter your password.").max(1024),
   [CAPTCHA_FIELD]: captcha,
 });
 

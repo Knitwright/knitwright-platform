@@ -23,7 +23,7 @@ export type Rule =
 export type Violation = Readonly<{ file: string; rule: Rule; detail: string }>;
 
 const HTTP_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
-const ROUTE_FILE = /(^|\/)route\.tsx?$/;
+const ROUTE_FILE = /(^|\/)route\.[cm]?[jt]sx?$/;
 const DIRECTIVE = "use server";
 
 const ROUTE_WRAPPER = { module: "@/lib/server/define-route", name: "defineRoute" } as const;
@@ -34,14 +34,32 @@ type Wrapper = typeof ROUTE_WRAPPER | typeof ACTION_WRAPPER;
 /** One value a file exports. `initializer` is missing when it cannot be a wrapper call. */
 type ValueExport = Readonly<{ name: string; initializer?: ts.Expression }>;
 
+const scriptKindOf = (path: string): ts.ScriptKind => {
+  if (/\.tsx$/.test(path)) return ts.ScriptKind.TSX;
+  if (/\.jsx$/.test(path)) return ts.ScriptKind.JSX;
+  if (/\.[cm]?js$/.test(path)) return ts.ScriptKind.JS;
+  return ts.ScriptKind.TS;
+};
+
 const parse = ({ path, text }: SourceText): ts.SourceFile =>
-  ts.createSourceFile(
-    path,
-    text,
-    ts.ScriptTarget.Latest,
-    true,
-    path.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
+  ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, scriptKindOf(path));
+
+/** Every name a declaration binds, including names taken out of an object or array. */
+const boundNamesOf = (name: ts.BindingName): string[] =>
+  ts.isIdentifier(name)
+    ? [name.text]
+    : name.elements.flatMap((element) =>
+        ts.isOmittedExpression(element) ? [] : boundNamesOf(element.name),
+      );
+
+const exportsOfDeclaration = (
+  declaration: ts.VariableDeclaration,
+  isConst: boolean,
+): ValueExport[] =>
+  // Only a plain `const name = ...` can be trusted to stay what its initializer made.
+  ts.isIdentifier(declaration.name) && isConst
+    ? [{ name: declaration.name.text, initializer: declaration.initializer }]
+    : boundNamesOf(declaration.name).map((name) => ({ name }));
 
 const hasDirective = (statements: ts.NodeArray<ts.Statement>): boolean => {
   for (const statement of statements) {
@@ -106,10 +124,10 @@ const exportsOfStatement = (statement: ts.Statement): ValueExport[] => {
   if (!isExported(statement)) return [];
 
   if (ts.isVariableStatement(statement)) {
-    return statement.declarationList.declarations.map((declaration) => ({
-      name: declaration.name.getText(),
-      initializer: declaration.initializer,
-    }));
+    const isConst = (statement.declarationList.flags & ts.NodeFlags.Const) !== 0;
+    return statement.declarationList.declarations.flatMap((declaration) =>
+      exportsOfDeclaration(declaration, isConst),
+    );
   }
   if (ts.isFunctionDeclaration(statement) || ts.isClassDeclaration(statement)) {
     return [{ name: isDefault(statement) ? "default" : (statement.name?.text ?? "default") }];

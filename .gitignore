@@ -28,6 +28,9 @@ supabase/.temp/
 # hosting
 .vercel/
 
+# working notes of the coding assistant
+.superpowers/
+
 # misc
 .DS_Store
 Thumbs.db

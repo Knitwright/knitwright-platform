@@ -16,6 +16,7 @@ import {
   adminClient,
   CAPTCHA_TOKEN,
   cookieJar,
+  createConfirmedUser,
   linkFromMail,
   mailFor,
   must,
@@ -58,29 +59,18 @@ const failureOf = async (work: Promise<unknown>): Promise<AppError> => {
   throw new Error("Expected the call to fail.");
 };
 
-/** Registers, confirms by mail and signs out again. */
-const confirmedUser = async (label: string): Promise<string> => {
-  const email = uniqueEmail(label);
-  await allow(email);
-  const { context } = visitor();
-  await signUp(context, { email, password: PASSWORD, ...captcha });
-  await confirmLink(context, tokenOf(await linkFromMail(email, /confirm/i)));
-  await signOut(context);
-  return email;
-};
-
 describe("auth service", () => {
   beforeAll(async () => {
     must(await adminClient().rpc("set_signup_open", { p_open: false }));
   });
 
   describe("signUp", () => {
-    it("creates the account and sends a link to the app's own confirm page", async () => {
+    it("sends a link to the app's own confirm page and signs nobody in", async () => {
       const email = uniqueEmail("new");
       await allow(email);
       const { context, session } = visitor();
 
-      await signUp(context, { email, password: PASSWORD, ...captcha });
+      await signUp(context, { email, ...captcha });
       const link = await linkFromMail(email, /confirm/i);
 
       expect(`${link.origin}${link.pathname}`).toBe(`${SITE}/auth/confirm`);
@@ -88,68 +78,90 @@ describe("auth service", () => {
       expect(await session()).toBeNull();
     });
 
-    it("refuses a new address while sign-up is closed", async () => {
+    it("creates no account for a new address while sign-up is closed, and answers the same", async () => {
       const email = uniqueEmail("closed");
-      const { context } = visitor();
 
-      const failure = await failureOf(signUp(context, { email, password: PASSWORD, ...captcha }));
+      await expect(signUp(visitor().context, { email, ...captcha })).resolves.toBeUndefined();
 
-      expect(failure.code).toBe("forbidden");
-      expect(failure.message).toMatch(/sign-up is closed/i);
       expect(await userExists(email)).toBe(false);
+      expect(await mailFor(email)).toHaveLength(0);
     });
 
     it("lets the owner's address register while sign-up is closed", async () => {
       const email = uniqueEmail("owner");
-      const { context } = visitor(email);
 
-      await signUp(context, { email, password: PASSWORD, ...captcha });
+      await signUp(visitor(email).context, { email, ...captcha });
 
       expect(await userExists(email)).toBe(true);
     });
 
     it("does not open the door to anyone else because an owner is configured", async () => {
-      const { context } = visitor(uniqueEmail("owner"));
       const stranger = uniqueEmail("stranger");
 
-      const failure = await failureOf(
-        signUp(context, { email: stranger, password: PASSWORD, ...captcha }),
-      );
+      await signUp(visitor(uniqueEmail("owner")).context, { email: stranger, ...captcha });
 
-      expect(failure.code).toBe("forbidden");
+      expect(await userExists(stranger)).toBe(false);
     });
 
-    it("answers the same for an address that already has an account, and sends no second link", async () => {
-      const email = await confirmedUser("existing");
-      const before = (await mailFor(email)).length;
+    it("answers the same for an address that already has an account, and sends a sign-in link", async () => {
+      const email = await createConfirmedUser("existing");
+
+      await expect(signUp(visitor().context, { email, ...captcha })).resolves.toBeUndefined();
+
+      const link = await linkFromMail(email, /sign in/i);
+      expect(`${link.origin}${link.pathname}`).toBe(`${SITE}/auth/confirm`);
+    });
+
+    it("answers the same when asked twice in a row", async () => {
+      const email = uniqueEmail("twice");
+      await allow(email);
       const { context } = visitor();
 
-      await expect(
-        signUp(context, { email, password: "another-long-password", ...captcha }),
-      ).resolves.toBeUndefined();
+      await signUp(context, { email, ...captcha });
 
-      expect((await mailFor(email)).length).toBe(before);
+      await expect(signUp(context, { email, ...captcha })).resolves.toBeUndefined();
     });
   });
 
   describe("confirmLink", () => {
-    it("signs the visitor in", async () => {
+    it("signs a new person in and asks them to choose a password", async () => {
       const email = uniqueEmail("confirm");
       await allow(email);
       const { context, session } = visitor();
-      await signUp(context, { email, password: PASSWORD, ...captcha });
+      await signUp(context, { email, ...captcha });
 
-      const kind = await confirmLink(context, tokenOf(await linkFromMail(email, /confirm/i)));
+      const next = await confirmLink(context, tokenOf(await linkFromMail(email, /confirm/i)));
 
-      expect(kind).toBe("email");
+      expect(next).toBe("choose-password");
       expect(await session()).toMatchObject({ email });
+    });
+
+    it("takes someone who already has a password straight in", async () => {
+      const email = uniqueEmail("returning");
+      await allow(email);
+      const first = visitor();
+      await signUp(first.context, { email, ...captcha });
+      await confirmLink(first.context, tokenOf(await linkFromMail(email, /confirm/i)));
+      await updatePassword(first.context, { password: PASSWORD });
+      await signOut(first.context);
+
+      const second = visitor();
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      await signUp(second.context, { email, ...captcha });
+      const next = await confirmLink(
+        second.context,
+        tokenOf(await linkFromMail(email, /sign in/i)),
+      );
+
+      expect(next).toBe("signed-in");
+      expect(await second.session()).toMatchObject({ email });
     });
 
     it("works once", async () => {
       const email = uniqueEmail("once");
       await allow(email);
       const { context } = visitor();
-      await signUp(context, { email, password: PASSWORD, ...captcha });
+      await signUp(context, { email, ...captcha });
       const token = tokenOf(await linkFromMail(email, /confirm/i));
       await confirmLink(context, token);
 
@@ -169,7 +181,7 @@ describe("auth service", () => {
 
   describe("signIn", () => {
     it("signs in with the right password", async () => {
-      const email = await confirmedUser("signin");
+      const email = await createConfirmedUser("signin");
       const { context, session } = visitor();
 
       await signIn(context, { email, password: PASSWORD, ...captcha });
@@ -178,7 +190,7 @@ describe("auth service", () => {
     });
 
     it("refuses the wrong password and an unknown address with the same words", async () => {
-      const email = await confirmedUser("wrong");
+      const email = await createConfirmedUser("wrong");
 
       const wrongPassword = await failureOf(
         signIn(visitor().context, { email, password: "not-the-password", ...captcha }),
@@ -195,22 +207,41 @@ describe("auth service", () => {
       expect(unknownAddress.message).toBe(wrongPassword.message);
     });
 
-    it("refuses an account whose address is not confirmed", async () => {
-      const email = uniqueEmail("unconfirmed");
+    it("refuses an account that has not chosen a password yet, with the same words", async () => {
+      const email = uniqueEmail("no-password");
       await allow(email);
       const { context, session } = visitor();
-      await signUp(context, { email, password: PASSWORD, ...captcha });
+      await signUp(context, { email, ...captcha });
 
       const failure = await failureOf(signIn(context, { email, password: PASSWORD, ...captcha }));
 
-      expect(failure.message).toMatch(/confirm your email/i);
+      expect(failure.message).toBe("That email and password do not match.");
       expect(await session()).toBeNull();
+    });
+  });
+
+  describe("session cookies", () => {
+    it("are hidden from scripts, and sent over https only on an https site", async () => {
+      const email = await createConfirmedUser("cookies");
+      const jar = cookieJar();
+      const context: AuthContext = {
+        supabase: createSessionClient(settings("https://app.knitwright.test"), jar),
+        admin: createAdminClient(settings()),
+        siteUrl: "https://app.knitwright.test",
+      };
+
+      await signIn(context, { email, password: PASSWORD, ...captcha });
+
+      expect(jar.size()).toBeGreaterThan(0);
+      for (const options of jar.options()) {
+        expect(options).toMatchObject({ httpOnly: true, secure: true, sameSite: "lax" });
+      }
     });
   });
 
   describe("signOut", () => {
     it("ends the session and clears its cookies", async () => {
-      const email = await confirmedUser("signout");
+      const email = await createConfirmedUser("signout");
       const { context, session, jar } = visitor();
       await signIn(context, { email, password: PASSWORD, ...captcha });
 
@@ -223,17 +254,17 @@ describe("auth service", () => {
 
   describe("password reset", () => {
     it("sends a link, and the new password then works while the old one does not", async () => {
-      const email = await confirmedUser("reset");
+      const email = await createConfirmedUser("reset");
       const { context, session } = visitor();
 
       await requestPasswordReset(context, { email, ...captcha });
       const link = await linkFromMail(email, /reset/i);
-      const kind = await confirmLink(context, tokenOf(link));
+      const next = await confirmLink(context, tokenOf(link));
       await updatePassword(context, { password: "a-brand-new-password" });
       await signOut(context);
 
       expect(`${link.origin}${link.pathname}`).toBe(`${SITE}/auth/confirm`);
-      expect(kind).toBe("recovery");
+      expect(next).toBe("choose-password");
       const old = await failureOf(
         signIn(visitor().context, { email, password: PASSWORD, ...captcha }),
       );
@@ -250,6 +281,16 @@ describe("auth service", () => {
       ).resolves.toBeUndefined();
 
       expect(await mailFor(email)).toHaveLength(0);
+    });
+
+    it("answers the same when asked twice in a row, so it cannot be used to find accounts", async () => {
+      const known = await createConfirmedUser("known");
+      const unknown = uniqueEmail("unknown");
+      const { context } = visitor();
+
+      for (const email of [known, known, unknown, unknown]) {
+        await expect(requestPasswordReset(context, { email, ...captcha })).resolves.toBeUndefined();
+      }
     });
 
     it("refuses to change a password when nobody is signed in", async () => {

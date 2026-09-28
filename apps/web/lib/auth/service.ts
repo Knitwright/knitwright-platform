@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
-import { authFailure } from "./failures";
+import { answersTheSameOnEmailPaths, authFailure } from "./failures";
 import {
   CAPTCHA_FIELD,
   type ConfirmLink,
@@ -14,16 +14,27 @@ import {
  * Sign-up, sign-in and password reset. Each function takes what it needs as arguments
  * and throws an AppError in words the user can read. The server actions in actions.ts
  * call these with the request's own clients.
+ *
+ * Two rules shape this file:
+ * 1. A password is chosen only after the address is confirmed. Registration takes an
+ *    address alone, so nobody can attach a password to an address they do not own.
+ * 2. The paths that send email answer the same whether or not the address has an
+ *    account, so they cannot be used to find out who is registered.
  */
 
 export type AuthContext = Readonly<{
   /** Acts as the visitor. Holds the request's session cookies. */
   supabase: SupabaseClient;
-  /** Full access. Used only to put the owner's address on the allowed list. */
+  /** Full access. Used for the allowed list and to record that a password was chosen. */
   admin: SupabaseClient;
   siteUrl: string;
   ownerEmail?: string;
 }>;
+
+/** Where a confirmed link leads next. */
+export type AfterConfirm = "choose-password" | "signed-in";
+
+const LINK_UNUSABLE = "That link has expired or was already used. Ask for a new one.";
 
 /** Every link in an email leads here. The page decides what happens next by its type. */
 const confirmUrl = (siteUrl: string): string => new URL("/auth/confirm", siteUrl).toString();
@@ -38,20 +49,23 @@ export const ensureOwnerAllowed = async (context: AuthContext): Promise<void> =>
   if (error) throw new Error("Could not allow the owner's address.", { cause: error });
 };
 
+/**
+ * Sends a link to the address. A new address gets a link that confirms it. An address
+ * that already has an account gets a link that signs it in. An address that may not
+ * register gets nothing. The caller is told the same in all three cases.
+ */
 export const signUp = async (context: AuthContext, input: Registration): Promise<void> => {
   if (input.email === context.ownerEmail) await ensureOwnerAllowed(context);
 
-  const { error } = await context.supabase.auth.signUp({
+  const { error } = await context.supabase.auth.signInWithOtp({
     email: input.email,
-    password: input.password,
     options: {
+      shouldCreateUser: true,
       captchaToken: input[CAPTCHA_FIELD],
       emailRedirectTo: confirmUrl(context.siteUrl),
     },
   });
-  // An address that already has an account gets the same answer as a new one, so the
-  // form cannot be used to find out who is registered.
-  if (error && error.code !== "user_already_exists") throw authFailure(error);
+  if (error && !answersTheSameOnEmailPaths(error)) throw authFailure(error);
 };
 
 export const signIn = async (context: AuthContext, input: Credentials): Promise<void> => {
@@ -77,33 +91,42 @@ export const requestPasswordReset = async (
     captchaToken: input[CAPTCHA_FIELD],
     redirectTo: confirmUrl(context.siteUrl),
   });
-  if (error) throw authFailure(error);
+  if (error && !answersTheSameOnEmailPaths(error)) throw authFailure(error);
 };
 
-/** Exchanges the token from an emailed link for a session. Returns the kind of link. */
+/** Exchanges the token from an emailed link for a session. */
 export const confirmLink = async (
   context: AuthContext,
   input: ConfirmLink,
-): Promise<ConfirmLink["type"]> => {
-  const { error } = await context.supabase.auth.verifyOtp({
+): Promise<AfterConfirm> => {
+  const { data, error } = await context.supabase.auth.verifyOtp({
     type: input.type,
     token_hash: input.token_hash,
   });
-  if (!error) return input.type;
 
-  const failure = authFailure(error);
-  // Any refusal of a token means the same to the user: the link cannot be used.
-  throw failure.code === "internal"
-    ? failure
-    : new AppError("invalid_input", "That link has expired or was already used. Ask for a new one.");
+  if (error) {
+    const failure = authFailure(error);
+    // Any refusal of a token means the same to the user: the link cannot be used.
+    throw failure.code === "internal" ? failure : new AppError("invalid_input", LINK_UNUSABLE);
+  }
+
+  const hasPassword = data.user?.app_metadata?.password_set === true;
+  return input.type === "email" && hasPassword ? "signed-in" : "choose-password";
 };
 
 export const updatePassword = async (context: AuthContext, input: NewPassword): Promise<void> => {
   const { data } = await context.supabase.auth.getClaims();
-  if (!data?.claims) throw new AppError("unauthenticated", MESSAGES.unauthenticated);
+  const userId = data?.claims?.sub;
+  if (!userId) throw new AppError("unauthenticated", MESSAGES.unauthenticated);
 
   const { error } = await context.supabase.auth.updateUser({ password: input.password });
   if (error) throw authFailure(error);
+
+  // Only the server can write this note, so a user cannot claim a password they lack.
+  const noted = await context.admin.auth.admin.updateUserById(userId, {
+    app_metadata: { password_set: true },
+  });
+  if (noted.error) throw authFailure(noted.error);
 };
 
 /** Starts sign-in with Google. Returns the address to send the browser to. */

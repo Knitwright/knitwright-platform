@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { AppError } from "@/lib/server/core/errors";
-import { authFailure } from "./failures";
+import { authFailure, answersTheSameOnEmailPaths } from "./failures";
 
 const supabaseError = (code: string | undefined, message: string, status = 400) =>
   Object.assign(new Error(message), { code, status, name: "AuthApiError" });
@@ -16,10 +16,8 @@ describe("authFailure", () => {
     expect(result.message).toBe("That email and password do not match.");
   });
 
-  it("asks for confirmation when the address is not confirmed yet", () => {
-    expect(failure("email_not_confirmed").message).toBe(
-      "Confirm your email first. We sent you a link when you signed up.",
-    );
+  it("says the same for an address that is not confirmed, so its state is not revealed", () => {
+    expect(failure("email_not_confirmed").message).toBe("That email and password do not match.");
   });
 
   it("explains a closed sign-up in the hook's own words", () => {
@@ -62,6 +60,21 @@ describe("authFailure", () => {
     );
   });
 
+  it("asks the user to start again when sign-in with Google cannot be finished", () => {
+    for (const code of [
+      "pkce_code_verifier_not_found",
+      "flow_state_not_found",
+      "flow_state_expired",
+      "bad_code_verifier",
+      "bad_oauth_callback",
+      "bad_oauth_state",
+    ]) {
+      const result = failure(code, "PKCE code verifier not found in storage.");
+      expect(result.code).toBe("invalid_input");
+      expect(result.message).toBe("Sign-in with Google did not finish. Start again.");
+    }
+  });
+
   it("passes on a rate limit from the sign-in service", () => {
     expect(failure("over_request_rate_limit", "rate limited", 429).code).toBe("rate_limited");
     expect(failure("over_email_send_rate_limit", "rate limited", 429).code).toBe("rate_limited");
@@ -76,5 +89,36 @@ describe("authFailure", () => {
   it("treats something that is not an error object as unknown", () => {
     expect(authFailure("boom").code).toBe("internal");
     expect(authFailure(null).code).toBe("internal");
+  });
+
+  it("keeps the original error as the cause of one it does not know, so it can be logged", () => {
+    const original = supabaseError("unexpected_failure", "pq: relation does not exist", 500);
+    expect(authFailure(original).cause).toBe(original);
+  });
+});
+
+describe("answersTheSameOnEmailPaths", () => {
+  it("is true for answers that would reveal whether an address has an account", () => {
+    expect(answersTheSameOnEmailPaths(supabaseError("user_already_exists", "x", 422))).toBe(true);
+    expect(answersTheSameOnEmailPaths(supabaseError("over_email_send_rate_limit", "x", 429))).toBe(
+      true,
+    );
+    expect(
+      answersTheSameOnEmailPaths(
+        supabaseError("unknown", "Sign-up is closed. Knitwright is not open yet.", 403),
+      ),
+    ).toBe(true);
+  });
+
+  it("is false for a failed bot check, which the user can fix", () => {
+    expect(answersTheSameOnEmailPaths(supabaseError("captcha_failed", "x"))).toBe(false);
+  });
+
+  it("is false for a failure of the service itself, which must not look like success", () => {
+    expect(answersTheSameOnEmailPaths(supabaseError("unexpected_failure", "x", 500))).toBe(false);
+    expect(answersTheSameOnEmailPaths(supabaseError("over_request_rate_limit", "x", 429))).toBe(
+      false,
+    );
+    expect(answersTheSameOnEmailPaths(null)).toBe(false);
   });
 });

@@ -61,6 +61,21 @@ export const userExists = async (email: string): Promise<boolean> => {
   return data.users.some((user) => user.email === email);
 };
 
+/**
+ * Creates a confirmed account with PASSWORD, as the server may. The password is set in
+ * a second step: confirmation removes any password an account already carried.
+ */
+export const createConfirmedUser = async (label: string): Promise<string> => {
+  const email = uniqueEmail(label);
+  const created = await adminClient().auth.admin.createUser({ email, email_confirm: true });
+  if (created.error) throw new Error(created.error.message);
+  const updated = await adminClient().auth.admin.updateUserById(created.data.user.id, {
+    password: PASSWORD,
+  });
+  if (updated.error) throw new Error(updated.error.message);
+  return email;
+};
+
 const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
 
 type MailSummary = Readonly<{ ID: string; Subject: string }>;
@@ -91,22 +106,29 @@ export const linkFromMail = async (email: string, subject: RegExp): Promise<URL>
   throw new Error(`No message matching ${subject} arrived for ${email}.`);
 };
 
+type StoredCookie = Readonly<{ value: string; options: Readonly<Record<string, unknown>> }>;
+
 /** Keeps a session in memory, as a browser's cookies would. */
 export const cookieJar = () => {
-  const jar = new Map<string, string>();
+  const jar = new Map<string, StoredCookie>();
   return {
-    getAll: () => [...jar].map(([name, value]) => ({ name, value })),
-    setAll: (cookies: readonly { name: string; value: string }[]) => {
-      for (const { name, value } of cookies) {
-        if (value) jar.set(name, value);
+    getAll: () => [...jar].map(([name, { value }]) => ({ name, value })),
+    setAll: (
+      cookies: readonly { name: string; value: string; options?: Record<string, unknown> }[],
+    ) => {
+      for (const { name, value, options = {} } of cookies) {
+        if (value) jar.set(name, { value, options });
         else jar.delete(name);
       }
     },
     size: () => jar.size,
+    /** How each cookie was set: whether scripts can read it, and so on. */
+    options: () => [...jar.values()].map((cookie) => cookie.options),
   };
 };
 
-export const settings = () => ({
+export const settings = (siteUrl = "http://localhost:3000") => ({
+  NEXT_PUBLIC_SITE_URL: siteUrl,
   NEXT_PUBLIC_SUPABASE_URL: required("NEXT_PUBLIC_SUPABASE_URL"),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: required("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
   SUPABASE_SECRET_KEY: required("SUPABASE_SECRET_KEY"),

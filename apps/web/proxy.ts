@@ -2,6 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/lib/config/env";
 import { redirectFor } from "@/lib/server/core/paths";
+import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
+
+const NEVER_STORED = "private, no-cache, no-store, must-revalidate, max-age=0";
 
 /**
  * Keeps the session cookies fresh and redirects early when a page plainly needs a
@@ -16,6 +19,7 @@ export async function proxy(request: NextRequest) {
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: sessionCookieOptions(env.NEXT_PUBLIC_SITE_URL),
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (toSet, headers) => {
@@ -36,6 +40,8 @@ export async function proxy(request: NextRequest) {
 
   const redirect = NextResponse.redirect(new URL(target, request.url));
   for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
+  // The redirect may carry refreshed session cookies, so it must not be stored either.
+  redirect.headers.set("cache-control", NEVER_STORED);
   return redirect;
 }
 

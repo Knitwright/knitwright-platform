@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const COPY = {
   email: {
     title: "Confirm your email",
-    lead: "Press the button to confirm your address and open your studio.",
+    lead: "Press the button to continue to your studio.",
   },
   recovery: {
     title: "Reset your password",

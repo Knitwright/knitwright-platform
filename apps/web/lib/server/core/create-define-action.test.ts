@@ -181,6 +181,58 @@ describe("defineAction", () => {
     expect(recorded.logs).toHaveLength(1);
   });
 
+  it("logs a failure marked as internal, even when it was raised on purpose", async () => {
+    const { deps, recorded } = makeDeps();
+    const cause = new Error("sign-in service answered 500");
+    const action = createDefineAction(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema,
+      handler: async () => {
+        throw new AppError("internal", "Something went wrong on our side. Try again.", undefined, {
+          cause,
+        });
+      },
+    });
+
+    const result = await action({ name: "Polo" });
+
+    expect(result).toMatchObject({ success: false, error: { code: "internal" } });
+    expect(recorded.logs).toHaveLength(1);
+    expect(recorded.logs[0]).toMatchObject({ error: { cause } });
+  });
+
+  it("does not log a failure the user caused", async () => {
+    const { deps, recorded } = makeDeps();
+    const action = createDefineAction(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema,
+      handler: async () => {
+        throw new AppError("forbidden", "Not yours.");
+      },
+    });
+
+    await action({ name: "Polo" });
+
+    expect(recorded.logs).toHaveLength(0);
+  });
+
+  it("limits before it validates, so invalid input cannot be sent for free", async () => {
+    const { deps } = makeDeps({ allow: () => false });
+    const action = createDefineAction(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema,
+      handler: async () => "ran",
+    });
+
+    expect(await action({ name: "" })).toMatchObject({
+      success: false,
+      error: { code: "rate_limited" },
+    });
+  });
+
   it("lets framework control flow, such as a redirect, pass through", async () => {
     const { deps } = makeDeps();
     const action = createDefineAction(deps)({

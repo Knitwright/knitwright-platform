@@ -5,8 +5,9 @@
 
 export const SIGN_IN_PATH = "/sign-in";
 export const HOME_AFTER_SIGN_IN = "/studio";
+export const CHOOSE_PASSWORD_PATH = "/reset-password";
 
-const NEEDS_SESSION = ["/studio", "/reset-password"] as const;
+const NEEDS_SESSION = [HOME_AFTER_SIGN_IN, CHOOSE_PASSWORD_PATH] as const;
 const FOR_VISITORS = ["/sign-in", "/sign-up", "/forgot-password"] as const;
 
 const isUnder = (pathname: string, prefixes: readonly string[]): boolean =>

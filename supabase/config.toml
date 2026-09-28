@@ -88,6 +88,11 @@ otp_expiry = 3600
 subject = "Confirm your email for Knitwright"
 content_path = "./supabase/templates/confirmation.html"
 
+# Sent when an address that already has an account asks to sign up again.
+[auth.email.template.magic_link]
+subject = "Sign in to Knitwright"
+content_path = "./supabase/templates/magic_link.html"
+
 [auth.email.template.recovery]
 subject = "Reset your Knitwright password"
 content_path = "./supabase/templates/recovery.html"

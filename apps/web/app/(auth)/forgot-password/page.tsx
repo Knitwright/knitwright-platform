@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { AuthCard, TextLink } from "@/components/auth/AuthCard";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { getEnv } from "@/lib/config/env";
 
 export const metadata: Metadata = { title: "Reset your password" };
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  // Settings are read when the page is asked for, never when the app is built.
+  await connection();
+
   return (
     <AuthCard
       title="Reset your password"

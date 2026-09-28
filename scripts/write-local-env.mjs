@@ -42,6 +42,8 @@ const defaults = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
   // Cloudflare's published test key. It always passes.
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+  // Locally no host writes the caller's address, so tests send this header themselves.
+  CLIENT_ADDRESS_HEADER: "x-real-ip",
 };
 
 const existing = existsSync(target) ? readFileSync(target, "utf8").split(/\r?\n/) : [];

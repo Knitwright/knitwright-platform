@@ -6,12 +6,20 @@ type ClaimsResult = Readonly<{
   error: unknown;
 }>;
 
-/** True when the sign-in service could not answer, as opposed to answering "no". */
-const isOutage = (error: unknown): boolean => {
-  if (typeof error !== "object" || error === null) return true;
-  const name = "name" in error ? String(error.name) : "";
+/** Errors that mean "there is no valid session here", whatever status they carry. */
+const SIGNED_OUT_ERRORS = new Set(["AuthSessionMissingError", "AuthInvalidJwtError"]);
+
+const TOO_MANY_REQUESTS = 429;
+
+/**
+ * True when the sign-in service answered "no": the session is missing, or the token was
+ * refused. Anything else (no answer, too busy, an error with no status) is an outage.
+ */
+const isRefusal = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null) return false;
+  if ("name" in error && SIGNED_OUT_ERRORS.has(String(error.name))) return true;
   const status = "status" in error && typeof error.status === "number" ? error.status : 0;
-  return name === "AuthRetryableFetchError" || status >= 500;
+  return status >= 400 && status < 500 && status !== TOO_MANY_REQUESTS;
 };
 
 /**
@@ -21,10 +29,8 @@ const isOutage = (error: unknown): boolean => {
  */
 export const sessionFromClaims = ({ data, error }: ClaimsResult): Session | null => {
   if (error) {
-    if (isOutage(error)) {
-      throw new Error("The sign-in service could not be reached.", { cause: error });
-    }
-    return null;
+    if (isRefusal(error)) return null;
+    throw new Error("The sign-in service could not be reached.", { cause: error });
   }
 
   const claims = data?.claims;

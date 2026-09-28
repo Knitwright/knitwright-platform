@@ -11,10 +11,15 @@ import {
 const captcha = { [CAPTCHA_FIELD]: "token" };
 
 describe("registrationSchema", () => {
-  const valid = { email: "maker@example.com", password: "correct-horse-battery", ...captcha };
+  const valid = { email: "maker@example.com", ...captcha };
 
-  it("accepts an address, a long password and a completed check", () => {
+  it("accepts an address and a completed check", () => {
     expect(registrationSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("takes no password: one is chosen after the address is confirmed", () => {
+    const parsed = registrationSchema.parse({ ...valid, password: "correct-horse-battery" });
+    expect(parsed).not.toHaveProperty("password");
   });
 
   it("trims the address and lowers its case", () => {
@@ -26,25 +31,8 @@ describe("registrationSchema", () => {
     expect(registrationSchema.safeParse({ ...valid, email: "maker" }).success).toBe(false);
   });
 
-  it("rejects a password shorter than 10 characters, in plain words", () => {
-    const result = registrationSchema.safeParse({ ...valid, password: "short" });
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0].message).toBe("Use at least 10 characters.");
-  });
-
-  it("rejects a password longer than 72 characters, which would be cut short when stored", () => {
-    expect(registrationSchema.safeParse({ ...valid, password: "x".repeat(73) }).success).toBe(
-      false,
-    );
-  });
-
-  it("does not trim a password, since spaces may be part of it", () => {
-    const parsed = registrationSchema.parse({ ...valid, password: "  spaced password  " });
-    expect(parsed.password).toBe("  spaced password  ");
-  });
-
   it("requires the bot check", () => {
-    const result = registrationSchema.safeParse({ email: valid.email, password: valid.password });
+    const result = registrationSchema.safeParse({ email: valid.email });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].path).toEqual([CAPTCHA_FIELD]);
   });
@@ -74,9 +62,31 @@ describe("emailOnlySchema", () => {
 });
 
 describe("newPasswordSchema", () => {
-  it("applies the same length rule as registration", () => {
-    expect(newPasswordSchema.safeParse({ password: "short" }).success).toBe(false);
+  it("accepts a long password", () => {
     expect(newPasswordSchema.safeParse({ password: "correct-horse-battery" }).success).toBe(true);
+  });
+
+  it("rejects a password shorter than 10 characters, in plain words", () => {
+    const result = newPasswordSchema.safeParse({ password: "short" });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe("Use at least 10 characters.");
+  });
+
+  it("accepts a password of exactly 72 bytes and rejects one of 73", () => {
+    expect(newPasswordSchema.safeParse({ password: "x".repeat(72) }).success).toBe(true);
+    expect(newPasswordSchema.safeParse({ password: "x".repeat(73) }).success).toBe(false);
+  });
+
+  it("counts bytes, not characters, because that is what is cut short when stored", () => {
+    // 30 characters, 90 bytes.
+    const result = newPasswordSchema.safeParse({ password: "密".repeat(30) });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe("That password is too long. Use a shorter one.");
+  });
+
+  it("does not trim a password, since spaces may be part of it", () => {
+    const parsed = newPasswordSchema.parse({ password: "  spaced password  " });
+    expect(parsed.password).toBe("  spaced password  ");
   });
 });
 

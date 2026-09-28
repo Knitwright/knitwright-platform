@@ -35,8 +35,9 @@ export class AppError extends Error {
     readonly code: FailureCode,
     message: string,
     readonly fields?: FieldErrors,
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
     this.name = "AppError";
   }
 }

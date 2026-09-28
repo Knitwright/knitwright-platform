@@ -49,6 +49,16 @@ describe("sessionFromClaims", () => {
     ).toThrow();
   });
 
+  it("throws when the service is too busy or gives an error it cannot name", () => {
+    expect(() =>
+      sessionFromClaims({ data: null, error: authError("AuthApiError", 429) }),
+    ).toThrow();
+    expect(() =>
+      sessionFromClaims({ data: null, error: authError("AuthUnknownError") }),
+    ).toThrow();
+    expect(() => sessionFromClaims({ data: null, error: "boom" })).toThrow();
+  });
+
   it("never treats an anonymous visitor as a user", () => {
     expect(
       sessionFromClaims({

@@ -1,8 +1,10 @@
 import "server-only";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { sessionCookieOptions } from "./cookie-options";
 
 export type SupabaseSettings = Readonly<{
+  NEXT_PUBLIC_SITE_URL: string;
   NEXT_PUBLIC_SUPABASE_URL: string;
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: string;
   SUPABASE_SECRET_KEY: string;
@@ -28,6 +30,7 @@ export const createSessionClient = (
     settings.NEXT_PUBLIC_SUPABASE_URL,
     settings.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
+      cookieOptions: sessionCookieOptions(settings.NEXT_PUBLIC_SITE_URL),
       cookies: {
         getAll: () => cookies.getAll(),
         setAll: (toSet) => cookies.setAll(toSet),

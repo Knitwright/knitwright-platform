@@ -64,14 +64,18 @@ test("a page that needs a session sends a visitor to sign-in", async ({ page }) 
 });
 
 test("a session cookie that was made up is not accepted", async ({ page, context, baseURL }) => {
+  // The cookie is named after the first part of the Supabase host.
+  const host = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").hostname;
+  const name = `sb-${host.split(".")[0]}-auth-token`;
   await context.addCookies([
     {
-      name: "sb-127-auth-token",
+      name,
       value: `base64-${Buffer.from(JSON.stringify({ access_token: "made.up.token", refresh_token: "x" })).toString("base64")}`,
       url: baseURL,
     },
   ]);
 
+  expect((await context.cookies()).map((cookie) => cookie.name)).toContain(name);
   const response = await page.request.get("/api/me");
   expect(response.status()).toBe(401);
 

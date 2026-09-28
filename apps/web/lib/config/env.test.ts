@@ -79,4 +79,17 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "true" }).GOOGLE_SIGN_IN).toBe(true);
     expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "1" }).GOOGLE_SIGN_IN).toBe(false);
   });
+
+  it("reads the caller's address from the header Vercel writes, unless told otherwise", () => {
+    expect(parseEnv(valid).CLIENT_ADDRESS_HEADER).toBe("x-vercel-forwarded-for");
+    expect(parseEnv({ ...valid, CLIENT_ADDRESS_HEADER: "X-Real-IP" }).CLIENT_ADDRESS_HEADER).toBe(
+      "x-real-ip",
+    );
+  });
+
+  it("rejects a header name that could not be a header", () => {
+    expect(() => parseEnv({ ...valid, CLIENT_ADDRESS_HEADER: "x real ip" })).toThrow(
+      /CLIENT_ADDRESS_HEADER is not valid/,
+    );
+  });
 });

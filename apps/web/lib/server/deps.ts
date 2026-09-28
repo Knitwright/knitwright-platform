@@ -60,7 +60,7 @@ export const authContext = async (): Promise<AuthContext> => {
 
 export const productionDeps: GuardDeps = {
   getSession: currentSession,
-  getClientAddress: async () => clientAddress(await headers()),
+  getClientAddress: async () => clientAddress(await headers(), getEnv().CLIENT_ADDRESS_HEADER),
   hitRateLimit: (key, rule) => createRateLimiter(adminClient())(key, rule),
   log,
   rethrowControlFlow: unstable_rethrow,

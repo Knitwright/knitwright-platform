@@ -1,27 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { FormSummary } from "@/components/forms/FormSummary";
+import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { Notice } from "@/components/ui/Notice";
 import { signInAction } from "@/lib/auth/actions";
 import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
-import { BotCheck } from "./BotCheck";
-import { useFormAction } from "./useFormAction";
+import { BotCheck, useBotCheck } from "./BotCheck";
 
 export function SignInForm({ siteKey }: Readonly<{ siteKey: string }>) {
-  const { state, submit, pending, fieldErrors, formError } = useFormAction(signInAction);
-  // A check counts only for the attempt it was made for. A token works once.
-  const [passedAttempt, setPassedAttempt] = useState<number | null>(null);
-  const checked = passedAttempt === state.attempt;
+  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(signInAction);
+  const { guard, widget } = useBotCheck(state.attempt);
 
   return (
-    <form action={submit} className="flex flex-col gap-4" noValidate>
-      {formError ? (
-        <Notice tone="warn" role="alert">
-          {formError}
-        </Notice>
-      ) : null}
+    <form ref={form} action={submit} onSubmit={guard} className="flex flex-col gap-4" noValidate>
+      <FormSummary message={summary} />
       <Field
         name="email"
         label="Email"
@@ -39,13 +32,8 @@ export function SignInForm({ siteKey }: Readonly<{ siteKey: string }>) {
         required
         errors={fieldErrors("password")}
       />
-      <BotCheck
-        siteKey={siteKey}
-        attempt={state.attempt}
-        onPassed={setPassedAttempt}
-        errors={fieldErrors(CAPTCHA_FIELD)}
-      />
-      <Button type="submit" pending={pending} disabled={!checked}>
+      <BotCheck siteKey={siteKey} widget={widget} errors={fieldErrors(CAPTCHA_FIELD)} />
+      <Button type="submit" pending={pending}>
         {pending ? "Signing in" : "Sign in"}
       </Button>
     </form>

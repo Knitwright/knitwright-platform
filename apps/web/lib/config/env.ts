@@ -17,6 +17,13 @@ const envSchema = z.object({
     .email()
     .transform((value) => value.toLowerCase())
     .optional(),
+  // The header in which the host writes the caller's address. No other header is
+  // trusted. The default is right for Vercel. Locally it is x-real-ip.
+  CLIENT_ADDRESS_HEADER: z
+    .string()
+    .regex(/^[A-Za-z0-9-]+$/)
+    .transform((value) => value.toLowerCase())
+    .default("x-vercel-forwarded-for"),
   // The button is shown only when this is exactly "true".
   GOOGLE_SIGN_IN: z
     .string()

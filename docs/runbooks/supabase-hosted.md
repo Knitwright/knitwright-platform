@@ -28,6 +28,7 @@ A11 and A12 were added in step 2. They are not in the plan's first list of owner
 | `NEXT_PUBLIC_SITE_URL` | The app's public address |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | From step 4 below |
 | `OWNER_EMAIL` | Your own address, so you can register while sign-up is closed |
+| `CLIENT_ADDRESS_HEADER` | Leave unset on Vercel. On another host, the header that host writes the caller's address into. |
 | `GOOGLE_SIGN_IN` | `true` only after step 5 below |
 
 ## 2. Database
@@ -51,7 +52,7 @@ pnpm exec supabase db push
 | Anonymous sign-ins | Off | |
 | Hook: before user created | Postgres function `public.hook_before_user_created` | **The sign-up switch. Without it anyone can register.** |
 | SMTP | Resend's SMTP settings | Supabase's built-in mail allows about 2 messages an hour |
-| Email templates | Copy `supabase/templates/confirmation.html` and `recovery.html` | The links must lead to `/auth/confirm` with `token_hash` |
+| Email templates: Confirm signup, Magic Link, Reset Password | Copy `supabase/templates/confirmation.html`, `magic_link.html` and `recovery.html`, with the subjects in `supabase/config.toml` | The links must lead to `/auth/confirm` with `token_hash` |
 | Rate limits | Raise "sign-ups and sign-ins" well above the default | All requests reach Supabase from the server's address |
 
 ## 4. Bot check
@@ -73,10 +74,22 @@ keys. They always pass. Never use them on the hosted project.
 
 ## 6. Check it
 
+First, from your own machine:
+
+```
+node scripts/check-auth-settings.mjs <project url> <publishable key>
+```
+
+Every line must say `ok`. A line that says `FAIL` names the setting to change.
+
+Then, in the browser:
+
 1. Open `/sign-up`. The notice says sign-up is not open yet.
-2. Register with a made-up address. It is refused with "Sign-up is closed".
-3. Register with `OWNER_EMAIL`. A confirmation email arrives.
-4. Press the button in the email. You land in the studio.
+2. Ask for a link with a made-up address. The page says "Check your email", as it does
+   for every address. In the Supabase dashboard, under Authentication, Users, confirm
+   that **no user with that address exists**. If one does, the hook is not set.
+3. Ask for a link with `OWNER_EMAIL`. A confirmation email arrives.
+4. Press the button in the email, then choose a password. You land in the studio.
 
 ## Opening and closing sign-up
 

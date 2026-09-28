@@ -1,12 +1,5 @@
 import { isIPv4, isIPv6 } from "node:net";
 
-/**
- * Headers that carry the caller's address, most trusted first. The first is written by
- * Vercel and cannot be set by the caller. The others depend on the host overwriting
- * what the caller sent, which Vercel does. On another host, check this order again.
- */
-const ADDRESS_HEADERS = ["x-vercel-forwarded-for", "x-real-ip", "x-forwarded-for"] as const;
-
 const UNKNOWN = "unknown";
 const MAPPED_IPV4 = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;
 
@@ -27,14 +20,18 @@ const normalise = (candidate: string): string | undefined => {
 };
 
 /**
- * The caller's address as a rate-limit key. Anything that is not an address becomes
- * "unknown", so header text can never forge another caller's key.
+ * The caller's address as a rate-limit key.
+ *
+ * Only one header is read: the one the host is known to write itself, named by the
+ * CLIENT_ADDRESS_HEADER setting. Any other header could have been written by the
+ * caller, who would then get a fresh rate limit with every request. When the trusted
+ * header is missing, every caller shares the "unknown" key, so a wrong setting shows up
+ * as a tight limit rather than as no limit.
+ *
+ * Anything that is not an address also becomes "unknown", so header text can never
+ * forge another caller's key.
  */
-export const clientAddress = (headers: Headers): string => {
-  for (const name of ADDRESS_HEADERS) {
-    const first = headers.get(name)?.split(",")[0]?.trim();
-    if (!first) continue;
-    return normalise(first) ?? UNKNOWN;
-  }
-  return UNKNOWN;
+export const clientAddress = (headers: Headers, trustedHeader: string): string => {
+  const first = headers.get(trustedHeader)?.split(",")[0]?.trim();
+  return (first && normalise(first)) || UNKNOWN;
 };

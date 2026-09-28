@@ -1,20 +1,16 @@
 "use client";
 
+import { FormSummary } from "@/components/forms/FormSummary";
+import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
-import { Notice } from "@/components/ui/Notice";
 import { startGoogleSignInAction } from "@/lib/auth/actions";
-import { useFormAction } from "./useFormAction";
 
 export function GoogleButton() {
-  const { submit, pending, failure } = useFormAction(startGoogleSignInAction);
+  const { form, submit, pending, summary } = useFormAction(startGoogleSignInAction);
 
   return (
-    <form action={submit} className="flex flex-col gap-3">
-      {failure ? (
-        <Notice tone="warn" role="alert">
-          {failure.message}
-        </Notice>
-      ) : null}
+    <form ref={form} action={submit} className="flex flex-col gap-3">
+      <FormSummary message={summary} />
       <Button type="submit" variant="secondary" pending={pending}>
         Continue with Google
       </Button>
