@@ -1,0 +1,36 @@
+# reference folders: separate repositories, never modified, never committed here
+/kitwright/
+/Sportswear/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# dependencies and build output
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# tests
+test-results/
+playwright-report/
+blob-report/
+
+# local supabase
+supabase/.branches/
+supabase/.temp/
+
+# hosting
+.vercel/
+
+# misc
+.DS_Store
+Thumbs.db
+*.pem
+npm-debug.log*
+.pnpm-debug.log*
