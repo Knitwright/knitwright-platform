@@ -7,8 +7,18 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.url(),
-  // Registration stays closed unless this is exactly "true".
-  SIGNUP_OPEN: z
+  NEXT_PUBLIC_SUPABASE_URL: z.url(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
+  // Full database access. Read on the server only, never sent to a browser.
+  SUPABASE_SECRET_KEY: z.string().min(1),
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+  // May register while sign-up is closed. The switch itself lives in the database.
+  OWNER_EMAIL: z
+    .email()
+    .transform((value) => value.toLowerCase())
+    .optional(),
+  // The button is shown only when this is exactly "true".
+  GOOGLE_SIGN_IN: z
     .string()
     .optional()
     .transform((value) => value === "true"),

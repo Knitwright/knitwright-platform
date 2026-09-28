@@ -3,40 +3,52 @@ import { EnvError, parseEnv } from "./env";
 
 const valid = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+  NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key",
+  SUPABASE_SECRET_KEY: "secret-key",
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site-key",
 };
+
+const without = (name: keyof typeof valid) =>
+  Object.fromEntries(Object.entries(valid).filter(([key]) => key !== name));
 
 describe("parseEnv", () => {
   it("returns typed values when every required variable is present", () => {
     const env = parseEnv(valid);
     expect(env.NEXT_PUBLIC_SITE_URL).toBe("http://localhost:3000");
+    expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("http://127.0.0.1:54321");
+    expect(env.SUPABASE_SECRET_KEY).toBe("secret-key");
   });
 
-  it("defaults the sign-up switch to closed", () => {
-    expect(parseEnv(valid).SIGNUP_OPEN).toBe(false);
-  });
-
-  it("opens sign-up only for the exact value true", () => {
-    expect(parseEnv({ ...valid, SIGNUP_OPEN: "true" }).SIGNUP_OPEN).toBe(true);
-    expect(parseEnv({ ...valid, SIGNUP_OPEN: "1" }).SIGNUP_OPEN).toBe(false);
-    expect(parseEnv({ ...valid, SIGNUP_OPEN: "yes" }).SIGNUP_OPEN).toBe(false);
+  it.each(Object.keys(valid) as (keyof typeof valid)[])("requires %s", (name) => {
+    expect(() => parseEnv(without(name))).toThrow(new RegExp(`${name} is missing`));
   });
 
   it("names every missing variable in one message", () => {
     expect(() => parseEnv({})).toThrow(EnvError);
-    expect(() => parseEnv({})).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    try {
+      parseEnv({});
+      expect.unreachable();
+    } catch (error) {
+      expect((error as EnvError).problems).toHaveLength(Object.keys(valid).length);
+    }
   });
 
   it("rejects a site URL that is not a URL", () => {
-    expect(() => parseEnv({ NEXT_PUBLIC_SITE_URL: "not a url" })).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "not a url" })).toThrow(
+      /NEXT_PUBLIC_SITE_URL is not valid/,
+    );
   });
 
   it("treats an empty string as missing", () => {
-    expect(() => parseEnv({ NEXT_PUBLIC_SITE_URL: "" })).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "" })).toThrow(
+      /NEXT_PUBLIC_SITE_URL is missing/,
+    );
   });
 
   it("never echoes a variable's value in the error", () => {
     try {
-      parseEnv({ NEXT_PUBLIC_SITE_URL: "secret-looking-value" });
+      parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "secret-looking-value" });
       expect.unreachable();
     } catch (error) {
       expect(String(error)).not.toContain("secret-looking-value");
@@ -46,5 +58,25 @@ describe("parseEnv", () => {
   it("does not mutate its input", () => {
     const source = Object.freeze({ ...valid });
     expect(() => parseEnv(source)).not.toThrow();
+  });
+
+  it("has no owner address unless one is given", () => {
+    expect(parseEnv(valid).OWNER_EMAIL).toBeUndefined();
+  });
+
+  it("stores the owner address in lower case, as the allowed list compares it", () => {
+    expect(parseEnv({ ...valid, OWNER_EMAIL: "Owner@Example.COM" }).OWNER_EMAIL).toBe(
+      "owner@example.com",
+    );
+  });
+
+  it("rejects an owner address that is not an email address", () => {
+    expect(() => parseEnv({ ...valid, OWNER_EMAIL: "owner" })).toThrow(/OWNER_EMAIL is not valid/);
+  });
+
+  it("offers sign-in with Google only for the exact value true", () => {
+    expect(parseEnv(valid).GOOGLE_SIGN_IN).toBe(false);
+    expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "true" }).GOOGLE_SIGN_IN).toBe(true);
+    expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "1" }).GOOGLE_SIGN_IN).toBe(false);
   });
 });

@@ -3,7 +3,7 @@
   "private": true,
   "packageManager": "pnpm@10.20.0",
   "engines": {
-    "node": ">=20.9"
+    "node": ">=20.12"
   },
   "scripts": {
     "dev": "pnpm --filter web dev",
@@ -12,6 +12,13 @@
     "lint": "pnpm --filter web lint",
     "test": "pnpm --filter web test",
     "test:cov": "pnpm --filter web test:cov",
-    "e2e": "pnpm --filter web e2e"
+    "e2e": "pnpm --filter web e2e",
+    "db:start": "supabase start && node scripts/write-local-env.mjs",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:env": "node scripts/write-local-env.mjs"
+  },
+  "devDependencies": {
+    "supabase": "2.118.0"
   }
 }

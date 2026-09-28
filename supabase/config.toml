@@ -1,0 +1,105 @@
+# Local Supabase for development and CI. The hosted project is configured in its
+# dashboard; docs/runbooks/supabase-hosted.md lists the settings that must match.
+# Reference: https://supabase.com/docs/guides/local-development/cli/config
+project_id = "knitwright-platform"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = false
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+# Catches every email the local stack sends. Web view on this port.
+[local_smtp]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[storage.s3_protocol]
+enabled = false
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/**", "http://localhost:3100/**"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Registration is decided by the before-user-created hook, which reads the sign-up
+# switch in the database. It is closed by default.
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+minimum_password_length = 10
+
+[auth.rate_limit]
+# Local mail is caught by the local SMTP server, so this limit only has to be high
+# enough for the test suite.
+email_sent = 1000
+sign_in_sign_ups = 1000
+token_verifications = 1000
+token_refresh = 1000
+
+# Cloudflare Turnstile. Locally TURNSTILE_SECRET_KEY is Cloudflare's published test
+# secret, which accepts any token. See supabase/.env.example.
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "env(TURNSTILE_SECRET_KEY)"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = true
+max_frequency = "1s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.email.template.confirmation]
+subject = "Confirm your email for Knitwright"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your Knitwright password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
+
+# Sign-in with Google is off locally. The hosted project enables it with the owner's
+# own client id and secret.
+[auth.external.google]
+enabled = false
+client_id = ""
+secret = "env(GOOGLE_CLIENT_SECRET)"
+skip_nonce_check = false

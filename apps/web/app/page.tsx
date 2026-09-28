@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { PRODUCT } from "@/lib/config/product";
 
@@ -22,12 +23,20 @@ export default function HomePage() {
       <header className="border-b border-hairline bg-surface">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-5">
           <Logo />
-          <a
-            href={`mailto:${PRODUCT.contactEmail}`}
-            className="text-sm text-muted transition-colors hover:text-ink"
-          >
-            Contact
-          </a>
+          <nav aria-label="Account" className="flex items-center gap-5">
+            <a
+              href={`mailto:${PRODUCT.contactEmail}`}
+              className="text-sm text-muted transition-colors hover:text-ink"
+            >
+              Contact
+            </a>
+            <Link
+              href="/sign-in"
+              className="text-sm font-medium text-ink underline-offset-4 hover:underline"
+            >
+              Sign in
+            </Link>
+          </nav>
         </div>
       </header>
 

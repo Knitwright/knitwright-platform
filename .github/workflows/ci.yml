@@ -12,11 +12,6 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Placeholders. Real values live in the host's settings, never in the repository.
-  NEXT_PUBLIC_SITE_URL: http://localhost:3100
-  SIGNUP_OPEN: "false"
-
 jobs:
   secrets:
     name: Secret scan and invariants
@@ -37,7 +32,7 @@ jobs:
   gate:
     name: Standard gate
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -46,6 +41,15 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
+      # The database tests and the end-to-end tests run against local Supabase. Its
+      # address and keys are the CLI's public defaults, written to apps/web/.env.local.
+      - name: Start local Supabase
+        run: |
+          cp supabase/.env.example supabase/.env
+          pnpm exec supabase start -x studio,imgproxy,logflare,vector,realtime,edge-runtime,supavisor
+          node scripts/write-local-env.mjs
+
       - run: pnpm --filter web typecheck
       - run: pnpm --filter web lint
       - run: pnpm --filter web test:cov
