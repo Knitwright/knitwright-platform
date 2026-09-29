@@ -1,0 +1,2634 @@
+{
+  "synthetic": true,
+  "source": "Written by hand by the build agent on 2026-09-29 as the replies an ideal model would give. NOT recorded from any real model. Step 12 replaces these with recorded replies in the same shape.",
+  "responses": {
+    "tops-001": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-002": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "tops-003": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-004": "Here is the change.\n```json\n{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\",\"optionId\":\"fit\",\"choiceId\":\"relaxed\"}]}\n```",
+    "tops-005": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "tops-006": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-007": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "regular"
+        }
+      ]
+    },
+    "tops-008": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-009": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "tops-010": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-011": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "tops-012": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "regular"
+        }
+      ]
+    },
+    "tops-013": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "tops-014": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-015": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "tops-016": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-017": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-018": "Here is the change.\n```json\n{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\",\"optionId\":\"placket\",\"choiceId\":\"buttons\"}]}\n```",
+    "tops-019": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "v-neck"
+        }
+      ]
+    },
+    "tops-020": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "tops-021": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-022": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-panels",
+          "choiceId": "contrast-insert"
+        }
+      ]
+    },
+    "tops-023": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-024": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "side-vent"
+        }
+      ]
+    },
+    "tops-025": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-026": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "straight"
+        }
+      ]
+    },
+    "tops-027": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-028": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-029": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-030": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-031": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "tops-032": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "side-vent"
+        }
+      ]
+    },
+    "tops-033": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-034": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "buttons"
+        }
+      ]
+    },
+    "tops-035": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "set-in"
+        }
+      ]
+    },
+    "tops-036": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-037": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-038": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-panels",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-039": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "tops-040": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "crew"
+        }
+      ]
+    },
+    "tops-041": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "straight"
+        }
+      ]
+    },
+    "tops-042": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "tops-043": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        },
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-044": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        },
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "v-neck"
+        }
+      ]
+    },
+    "tops-045": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        },
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-046": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-047": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-048": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        },
+        {
+          "type": "set-option",
+          "optionId": "side-panels",
+          "choiceId": "contrast-insert"
+        }
+      ]
+    },
+    "tops-049": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-050": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "crew"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "buttons"
+        }
+      ]
+    },
+    "tops-051": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-052": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-053": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-054": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-055": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "v-neck-tee"
+        }
+      ]
+    },
+    "tops-056": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "long-sleeve-tee"
+        }
+      ]
+    },
+    "tops-057": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-058": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "crew-tee"
+        }
+      ]
+    },
+    "tops-059": "Here is the change.\n```json\n{\"kind\":\"changes\",\"actions\":[{\"type\":\"change-type\",\"typeId\":\"crew-tee\"}]}\n```",
+    "tops-060": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-061": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-062": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-063": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-064": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "crew-tee"
+        }
+      ]
+    },
+    "tops-065": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-066": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "long-sleeve-tee"
+        }
+      ]
+    },
+    "tops-067": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "v-neck-tee"
+        }
+      ]
+    },
+    "tops-068": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "tops-069": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-070": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "tops-071": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        },
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "navy"
+        }
+      ]
+    },
+    "tops-072": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "crew-tee"
+        },
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-073": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "tops-074": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-075": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "long-sleeve-tee"
+        }
+      ]
+    },
+    "tops-076": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "tops-077": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-078": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-079": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "tops-080": {
+      "kind": "question",
+      "question": "Do you want a polo collar, which means changing to a polo shirt?",
+      "choices": [
+        {
+          "label": "Change to a polo shirt",
+          "actions": [
+            {
+              "type": "change-type",
+              "typeId": "polo"
+            }
+          ]
+        },
+        {
+          "label": "Keep the team jersey",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-081": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "v-neck-tee"
+        }
+      ]
+    },
+    "tops-082": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-083": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        },
+        {
+          "type": "set-option",
+          "optionId": "side-panels",
+          "choiceId": "contrast-insert"
+        }
+      ]
+    },
+    "tops-084": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "curved"
+        }
+      ]
+    },
+    "tops-085": {
+      "kind": "question",
+      "question": "Would you like a collar? That means changing to a polo shirt.",
+      "choices": [
+        {
+          "label": "Change to a polo shirt",
+          "actions": [
+            {
+              "type": "change-type",
+              "typeId": "polo"
+            }
+          ]
+        },
+        {
+          "label": "Keep it as it is",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-086": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "tops-087": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        }
+      ]
+    },
+    "tops-088": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "crew-tee"
+        }
+      ]
+    },
+    "tops-089": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-090": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-091": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-092": {
+      "kind": "question",
+      "question": "Do you want a mesh fabric?",
+      "choices": [
+        {
+          "label": "Use a mesh fabric",
+          "actions": [
+            {
+              "type": "change-fabric",
+              "changes": {
+                "construction": "mesh"
+              }
+            }
+          ]
+        },
+        {
+          "label": "Leave the fabric as it is",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-093": {
+      "kind": "question",
+      "question": "Which neckline would you like?",
+      "choices": [
+        {
+          "label": "V neck, as a V neck tee",
+          "actions": [
+            {
+              "type": "change-type",
+              "typeId": "v-neck-tee"
+            }
+          ]
+        },
+        {
+          "label": "Keep the round neck",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-094": {
+      "kind": "question",
+      "question": "Which collar would you like?",
+      "choices": [
+        {
+          "label": "Band collar",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "collar",
+              "choiceId": "band-collar"
+            }
+          ]
+        },
+        {
+          "label": "Keep no collar",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-095": {
+      "kind": "question",
+      "question": "Longer where, and by how much? Give the new length in centimetres.",
+      "choices": [
+        {
+          "label": "The body",
+          "actions": []
+        },
+        {
+          "label": "The sleeves",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-096": {
+      "kind": "question",
+      "question": "Do you want long sleeves, or longer short sleeves?",
+      "choices": [
+        {
+          "label": "Long sleeves, as a long sleeve tee",
+          "actions": [
+            {
+              "type": "change-type",
+              "typeId": "long-sleeve-tee"
+            }
+          ]
+        },
+        {
+          "label": "Longer short sleeves: tell me the length in cm",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-097": {
+      "kind": "question",
+      "question": "What would make it premium for you?",
+      "choices": [
+        {
+          "label": "A zip placket",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "placket",
+              "choiceId": "zip"
+            }
+          ]
+        },
+        {
+          "label": "A heavier fabric: tell me the weight",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-098": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "buttons"
+        }
+      ]
+    },
+    "tops-099": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        },
+        {
+          "type": "set-option",
+          "optionId": "hem-shape",
+          "choiceId": "side-vent"
+        }
+      ]
+    },
+    "tops-100": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "crew-tee"
+        }
+      ]
+    },
+    "tops-101": {
+      "kind": "question",
+      "question": "Which hem would you like?",
+      "choices": [
+        {
+          "label": "Curved hem",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "hem-shape",
+              "choiceId": "curved"
+            }
+          ]
+        },
+        {
+          "label": "Keep the straight hem",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-102": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "crew"
+        },
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-103": {
+      "kind": "question",
+      "question": "What would you like to add?",
+      "choices": [
+        {
+          "label": "A curved hem",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "hem-shape",
+              "choiceId": "curved"
+            }
+          ]
+        },
+        {
+          "label": "A contrast colour on the sleeves: tell me the colour",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-104": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        },
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-105": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "tops-106": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-length",
+          "choiceId": "short"
+        },
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "tops-107": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        },
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        }
+      ]
+    },
+    "tops-108": {
+      "kind": "question",
+      "question": "Which colour for the body?",
+      "choices": [
+        {
+          "label": "Navy",
+          "actions": [
+            {
+              "type": "set-colour",
+              "panels": [
+                "body-front",
+                "body-back"
+              ],
+              "colour": "navy"
+            }
+          ]
+        },
+        {
+          "label": "Black",
+          "actions": [
+            {
+              "type": "set-colour",
+              "panels": [
+                "body-front",
+                "body-back"
+              ],
+              "colour": "black"
+            }
+          ]
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-109": {
+      "kind": "question",
+      "question": "There is no body length yet. What body length do you want, in centimetres?",
+      "choices": [
+        {
+          "label": "I will type the length",
+          "actions": []
+        },
+        {
+          "label": "Leave it",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-110": {
+      "kind": "question",
+      "question": "How heavy? Give the weight in gsm.",
+      "choices": [
+        {
+          "label": "I will type the weight",
+          "actions": []
+        },
+        {
+          "label": "Leave the fabric as it is",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "tops-111": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "tops-112": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "tops-113": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "tops-114": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "tops-115": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "tops-116": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "men"
+        }
+      ]
+    },
+    "tops-117": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "tops-118": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "tops-119": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "tops-120": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-121": "Here is the change.\n```json\n{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\",\"optionId\":\"placket\",\"choiceId\":\"buttons\"}]}\n```",
+    "tops-122": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-123": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "v-neck"
+        }
+      ]
+    },
+    "tops-124": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "v-neck"
+        }
+      ]
+    },
+    "tops-125": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-126": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "polo-collar"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-127": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "neckline",
+          "choiceId": "v-neck"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-128": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "buttons"
+        }
+      ]
+    },
+    "tops-129": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "team-jersey"
+        },
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    },
+    "tops-130": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "placket-length",
+          "cm": 14
+        }
+      ]
+    },
+    "tops-131": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "collar-height",
+          "cm": 4
+        }
+      ]
+    },
+    "tops-132": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "shoulder-width",
+          "cm": 46
+        }
+      ]
+    },
+    "tops-133": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "remove-measurement",
+          "pointId": "chest-width"
+        }
+      ]
+    },
+    "tops-134": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "collar"
+          ],
+          "colour": "red"
+        }
+      ]
+    },
+    "tops-135": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "chest-width",
+          "cm": 52
+        }
+      ]
+    },
+    "tops-136": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "weightGsm": 200
+          }
+        }
+      ]
+    },
+    "tops-137": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 72
+        }
+      ]
+    },
+    "tops-138": {
+      "kind": "rejection",
+      "reason": "That is not about the garment."
+    },
+    "tops-139": {
+      "kind": "rejection",
+      "reason": "I can only change the design of this garment."
+    },
+    "tops-140": {
+      "kind": "rejection",
+      "reason": "I can only change the design of this garment."
+    },
+    "tops-141": {
+      "kind": "rejection",
+      "reason": "I cannot do that. I can only change the design of this garment."
+    },
+    "tops-142": {
+      "kind": "rejection",
+      "reason": "Tops do not have a hood. Hoods are not available yet."
+    },
+    "tops-143": {
+      "kind": "rejection",
+      "reason": "Tops do not have pockets yet."
+    },
+    "tops-144": {
+      "kind": "rejection",
+      "reason": "Sleeveless tops are not available yet."
+    },
+    "tops-145": {
+      "kind": "rejection",
+      "reason": "Trousers are not available yet."
+    },
+    "tops-146": {
+      "kind": "rejection",
+      "reason": "Hoodies are not available yet."
+    },
+    "tops-147": {
+      "kind": "rejection",
+      "reason": "Tops do not have pockets yet."
+    },
+    "tops-148": {
+      "kind": "rejection",
+      "reason": "That is not a change to the design."
+    },
+    "tops-149": {
+      "kind": "rejection",
+      "reason": "I cannot give prices. I can only change the design."
+    },
+    "tops-150": {
+      "kind": "rejection",
+      "reason": "That is not a change to the design."
+    },
+    "tops-151": "Here is the change.\n```json\n{\"kind\":\"rejection\",\"reason\":\"Upload the logo in the artwork panel; I cannot add artwork from a message yet.\"}\n```",
+    "tops-152": {
+      "kind": "rejection",
+      "reason": "Numbers and text are added in the artwork panel for now."
+    },
+    "tops-153": {
+      "kind": "rejection",
+      "reason": "I did not understand that."
+    },
+    "tops-154": {
+      "kind": "rejection",
+      "reason": "I cannot delete the design."
+    },
+    "tops-155": {
+      "kind": "rejection",
+      "reason": "I cannot change where values came from."
+    },
+    "tops-156": {
+      "kind": "rejection",
+      "reason": "That is not something a knitted top can be."
+    },
+    "tops-157": {
+      "kind": "rejection",
+      "reason": "The message was empty."
+    },
+    "tops-158": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "navy"
+        }
+      ]
+    },
+    "tops-159": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "sleeve-left",
+            "sleeve-right"
+          ],
+          "colour": "red"
+        }
+      ]
+    },
+    "tops-160": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "collar"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "tops-161": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "navy"
+        },
+        {
+          "type": "set-colour",
+          "panels": [
+            "sleeve-left",
+            "sleeve-right"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "tops-162": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "side-panels"
+          ],
+          "colour": "yellow"
+        }
+      ]
+    },
+    "tops-163": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back",
+            "sleeve-left",
+            "sleeve-right",
+            "neckband"
+          ],
+          "colour": "heather grey"
+        }
+      ]
+    },
+    "tops-164": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "sleeve-left",
+            "sleeve-right"
+          ],
+          "colour": "",
+          "swatch": "#ff0000"
+        }
+      ]
+    },
+    "tops-165": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "placket"
+          ],
+          "colour": "black"
+        }
+      ]
+    },
+    "tops-166": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "neckband"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "tops-167": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "cuffs"
+          ],
+          "colour": "grey"
+        }
+      ]
+    },
+    "tops-168": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "Pantone 19-4052"
+        }
+      ]
+    },
+    "tops-169": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back",
+            "sleeve-left",
+            "sleeve-right",
+            "collar",
+            "placket"
+          ],
+          "colour": "navy"
+        }
+      ]
+    },
+    "tops-170": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "royal blue"
+        },
+        {
+          "type": "set-colour",
+          "panels": [
+            "sleeve-left",
+            "sleeve-right"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "tops-171": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back",
+            "sleeve-left",
+            "sleeve-right",
+            "neckband"
+          ],
+          "colour": "black"
+        }
+      ]
+    },
+    "tops-172": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "chest-width",
+          "cm": 52
+        }
+      ]
+    },
+    "tops-173": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 72
+        }
+      ]
+    },
+    "tops-174": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "sleeve-length",
+          "cm": 24
+        },
+        {
+          "type": "set-measurement",
+          "pointId": "chest-width",
+          "cm": 54
+        }
+      ]
+    },
+    "tops-175": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 72
+        }
+      ]
+    },
+    "tops-176": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "chest-width",
+          "cm": 52.54
+        }
+      ]
+    },
+    "tops-177": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "shoulder-width",
+          "cm": 46.5
+        }
+      ]
+    },
+    "tops-178": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "remove-measurement",
+          "pointId": "neck-width"
+        }
+      ]
+    },
+    "tops-179": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "chest-width",
+          "cm": 52
+        }
+      ]
+    },
+    "tops-180": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "hem-width",
+          "cm": 50
+        },
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 70
+        }
+      ]
+    },
+    "tops-181": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "placket-length",
+          "cm": 14
+        }
+      ]
+    },
+    "tops-182": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "sleeve-opening",
+          "cm": 10
+        }
+      ]
+    },
+    "tops-183": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 68.5
+        }
+      ]
+    },
+    "tops-184": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "armhole",
+          "cm": 25.5
+        }
+      ]
+    },
+    "tops-185": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "sleeve-length",
+          "cm": 19.5
+        }
+      ]
+    },
+    "tops-186": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "100% cotton"
+          }
+        }
+      ]
+    },
+    "tops-187": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "weightGsm": 180
+          }
+        }
+      ]
+    },
+    "tops-188": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "construction": "pique"
+          }
+        }
+      ]
+    },
+    "tops-189": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "polyester",
+            "construction": "mesh",
+            "weightGsm": 140
+          }
+        }
+      ]
+    },
+    "tops-190": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "stretch": "four-way"
+          }
+        }
+      ]
+    },
+    "tops-191": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "finish": "brushed"
+          }
+        }
+      ]
+    },
+    "tops-192": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "weightGsm": 240,
+            "composition": "cotton",
+            "construction": "single jersey"
+          }
+        }
+      ]
+    },
+    "tops-193": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "recycled polyester"
+          }
+        }
+      ]
+    },
+    "tops-194": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "95% cotton, 5% elastane"
+          }
+        }
+      ]
+    },
+    "tops-195": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "stretch": "none"
+          }
+        }
+      ]
+    },
+    "tops-196": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "care",
+          "text": "Machine wash at 30"
+        }
+      ]
+    },
+    "tops-197": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "origin",
+          "text": "Portugal"
+        }
+      ]
+    },
+    "tops-198": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "fold",
+          "text": "Fold in half"
+        },
+        {
+          "type": "set-labelling",
+          "field": "bag",
+          "text": "Bag individually"
+        }
+      ]
+    },
+    "tops-199": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "composition",
+          "text": "100% cotton"
+        }
+      ]
+    },
+    "tops-200": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "care",
+          "text": "Wash cold. Do not tumble dry."
+        }
+      ]
+    },
+    "tops-201": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "origin",
+          "text": "Pakistan"
+        }
+      ]
+    },
+    "tops-202": {
+      "kind": "rejection",
+      "reason": "It already has set-in sleeves, so nothing needs to change."
+    },
+    "tops-203": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "polo"
+        },
+        {
+          "type": "set-option",
+          "optionId": "placket",
+          "choiceId": "zip"
+        }
+      ]
+    },
+    "tops-204": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "tops-205": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "tops-206": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "tops-207": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "band-collar"
+        }
+      ]
+    }
+  },
+  "faults": [
+    {
+      "id": "fault-plain-text",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": "I've made it slim for you!"
+    },
+    {
+      "id": "fault-broken-json",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": "{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\""
+    },
+    {
+      "id": "fault-unknown-action",
+      "utterance": "add a hood",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "add-hood"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-own-provenance",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim",
+            "provenance": "brand-supplied"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-unknown-kind",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "done"
+      }
+    },
+    {
+      "id": "fault-prose-then-json",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "applied",
+      "response": "Sure {not json} here: {\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\",\"optionId\":\"fit\",\"choiceId\":\"slim\"}]}"
+    },
+    {
+      "id": "fault-invented-number",
+      "utterance": "body length 70 cm",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-measurement",
+            "pointId": "body-length",
+            "cm": 71
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-one-choice-question",
+      "utterance": "change the fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "question",
+        "question": "Which fit?",
+        "choices": [
+          {
+            "label": "Slim",
+            "actions": []
+          }
+        ],
+        "recommended": 0
+      }
+    },
+    {
+      "id": "fault-recommended-out-of-range",
+      "utterance": "change the fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "question",
+        "question": "Which fit?",
+        "choices": [
+          {
+            "label": "Yes",
+            "actions": []
+          },
+          {
+            "label": "No, leave it as it is",
+            "actions": []
+          }
+        ],
+        "recommended": 4
+      }
+    },
+    {
+      "id": "fault-empty-reason",
+      "utterance": "hello",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "rejection",
+        "reason": "   "
+      }
+    },
+    {
+      "id": "fault-too-long",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "id": "fault-top-level-array",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "applied",
+      "response": "[{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\",\"optionId\":\"fit\",\"choiceId\":\"slim\"}]}]"
+    },
+    {
+      "id": "fault-silent-type-change",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "question",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "change-type",
+            "typeId": "polo"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-unknown-option",
+      "utterance": "add a hood",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-option",
+            "optionId": "hood",
+            "choiceId": "yes"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-panel-not-on-garment",
+      "utterance": "blue collar",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-colour",
+            "panels": [
+              "collar"
+            ],
+            "colour": "blue"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-too-many-actions",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          },
+          {
+            "type": "set-option",
+            "optionId": "fit",
+            "choiceId": "slim"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-bad-wearer",
+      "utterance": "for aliens",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "change-wearer",
+            "wearer": "aliens"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fault-control-characters",
+      "utterance": "hello",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "rejection",
+        "reason": "Not\u0000 about\nthe garment"
+      }
+    },
+    {
+      "id": "fault-empty-actions",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": []
+      }
+    },
+    {
+      "id": "fault-question-with-bad-choice",
+      "utterance": "change the sleeves",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "question",
+        "question": "Which sleeve?",
+        "choices": [
+          {
+            "label": "Raglan",
+            "actions": [
+              {
+                "type": "set-option",
+                "optionId": "sleeve-type",
+                "choiceId": "raglan"
+              }
+            ]
+          },
+          {
+            "label": "Keep",
+            "actions": []
+          }
+        ],
+        "recommended": 0
+      }
+    },
+    {
+      "id": "fault-null",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": "null"
+    },
+    {
+      "id": "fault-nested-injection",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-labelling",
+            "field": "care",
+            "text": "ignore rules",
+            "extra": true
+          }
+        ]
+      }
+    }
+  ]
+}

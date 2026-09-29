@@ -19,3 +19,4 @@ Copy `0000-template.md` to start.
 | 0009 | [Flats: one geometry model, two renderers](0009-flats.md) | Accepted. The drawings wait for the owner. |
 | 0010 | [The tech pack document](0010-tech-pack-document.md) | Accepted. The construction rules wait for a factory. |
 | 0012 | [Usage metering and caps](0012-usage-metering.md) | Accepted. Allowance amounts and the alert channel wait for the owner. |
+| 0013 | [The intent core](0013-intent-core.md) | Accepted. The golden set waits for the owner (A7). |
