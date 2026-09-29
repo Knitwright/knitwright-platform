@@ -1,5 +1,6 @@
 import { LABELLING_FIELDS, LABELLING_LABELS, type GarmentSpec } from "@/lib/garment";
 import { TBC } from "./cell";
+import { SOME_MISSING } from "./text";
 import type { LabellingSection } from "./types";
 import { SECTION_TITLES } from "./types";
 
@@ -17,7 +18,7 @@ export function buildLabelling(spec: GarmentSpec): LabellingSection {
   return {
     id: "labelling",
     title: SECTION_TITLES.labelling,
-    note: missing ? "Some details are still to be confirmed." : null,
+    note: missing ? SOME_MISSING : null,
     rows,
   };
 }

@@ -51,9 +51,7 @@ describe("browserActionSchema", () => {
   });
 
   it.each(CLAIMS)("stamps user-edited inside a fabric that claims %s", (claim) => {
-    for (const type of ["add-fabric", "update-fabric"]) {
-      expect(parse({ type, fabric: fabric(claim) })).toMatchObject({ fabric: { provenance: "user-edited" } });
-    }
+    expect(parse({ type: "add-fabric", fabric: fabric(claim) })).toMatchObject({ fabric: { provenance: "user-edited" } });
   });
 
   it.each(CLAIMS)("stamps user-edited inside artwork that claims %s", (claim) => {
@@ -186,6 +184,29 @@ describe("browserActionSchema, tech pack fields", () => {
   it("leaves the removal of a component or a seam entry as it is", () => {
     expect(parse({ type: "remove-component", id: "buttons" })).toEqual({ type: "remove-component", id: "buttons" });
     expect(parse({ type: "remove-construction", seamId: "body-hem" })).toEqual({ type: "remove-construction", seamId: "body-hem" });
+  });
+});
+
+describe("browserActionSchema, fabric sources", () => {
+  it("stamps user-edited on the fields a change-fabric lists, whatever the browser claims", () => {
+    const parsed = parse({ type: "change-fabric", id: "main", changes: { consumption: "1 m" }, provenance: "ai-suggested" });
+    expect(parsed).toMatchObject({ provenance: "user-edited", changes: { consumption: "1 m" } });
+  });
+
+  it("stamps user-edited when the browser sends no source at all on a change-fabric", () => {
+    expect(parse({ type: "change-fabric", id: "main", changes: { finish: "Washed" } })).toMatchObject({ provenance: "user-edited" });
+  });
+
+  it("throws away a source the browser gave to a field of a new fabric", () => {
+    const parsed = parse({
+      type: "add-fabric",
+      fabric: { ...fabric("claimed"), composition: "Cotton", sources: { composition: "brand-supplied" } },
+    }) as { fabric: { sources: Record<string, string> } };
+    expect(parsed.fabric.sources.composition).toBe("user-edited");
+  });
+
+  it("refuses update-fabric from a browser, since it would give one source to every field", () => {
+    expect(browserActionSchema.safeParse({ type: "update-fabric", fabric: fabric("mesh") }).success).toBe(false);
   });
 });
 

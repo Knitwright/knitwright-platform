@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { FlatModel } from "@/lib/flat/model";
 import { buildFlat } from "@/lib/flat/build";
 import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
+import { applyAction } from "@/lib/garment";
+import { CHARTS } from "./fixtures/charts";
 import { start } from "@/lib/garment/fixtures/specs";
-import { resolveMeasurements } from "@/lib/sizing";
-import { buildFlatsSection, flatsForTechPack, withCalloutCodes } from "./flats";
+import { resolveAllSizes, resolveMeasurements } from "@/lib/sizing";
+import { buildFlatsSection, calloutValues, flatsForTechPack, withCalloutCodes } from "./flats";
 import { calloutCodes } from "./codes";
 
 const scaled = () => designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
@@ -51,7 +54,7 @@ describe("withCalloutCodes", () => {
     if (!model) throw new Error("no drawing");
     const before = measurementTexts(model);
     expect(before.some((text) => text.startsWith("Chest width "))).toBe(true);
-    const after = measurementTexts(withCalloutCodes(model, calloutCodes(spec)));
+    const after = measurementTexts(withCalloutCodes(model, calloutCodes(spec), calloutValues(spec)));
     expect(after).toContain("A 52.0 cm");
     for (const text of after) expect(text).toMatch(/^[A-Z]+ \d+\.\d cm$/);
   });
@@ -61,21 +64,77 @@ describe("withCalloutCodes", () => {
     const model = flatsForTechPack(spec).front;
     if (!model) throw new Error("no drawing");
     const copy = JSON.stringify(model);
-    withCalloutCodes(model, calloutCodes(spec));
+    withCalloutCodes(model, calloutCodes(spec), calloutValues(spec));
     expect(JSON.stringify(model)).toBe(copy);
   });
 
   it("leaves a drawing with no callout layer as it is", () => {
     const model = flatsForTechPack(start("crew-tee")).front;
     if (!model) throw new Error("no drawing");
-    expect(withCalloutCodes(model, [])).toEqual(model);
+    expect(withCalloutCodes(model, [], new Map())).toEqual(model);
+  });
+});
+
+describe("callout codes, matched by point", () => {
+  const text = (value: string) =>
+    ({ kind: "text", text: value, at: { x: 0, y: 0 }, size: 1, anchor: "start", colour: "#000000", rotation: 0 }) as const;
+  const model = {
+    layers: [{ id: "measurements", label: "Measurements", elements: [text("Neck 1.0 cm"), text("Neck width 2.0 cm")] }],
+  } as unknown as FlatModel;
+  const codes = [
+    { pointId: "neck", code: "A", label: "Neck" },
+    { pointId: "neck-width", code: "B", label: "Neck width" },
+  ];
+
+  it("gives each callout the code of its own point, even when one label starts with another", () => {
+    const coded = withCalloutCodes(model, codes, new Map([["neck", 100], ["neck-width", 200]]));
+    expect(coded.layers[0]?.elements.map((element) => (element.kind === "text" ? element.text : ""))).toEqual([
+      "A 1.0 cm",
+      "B 2.0 cm",
+    ]);
+  });
+
+  it("leaves a callout alone when its value is not the one drawn for the point", () => {
+    const coded = withCalloutCodes(model, codes, new Map([["neck", 999], ["neck-width", 200]]));
+    expect(coded.layers[0]?.elements.map((element) => (element.kind === "text" ? element.text : ""))).toEqual([
+      "Neck 1.0 cm",
+      "B 2.0 cm",
+    ]);
+  });
+});
+
+describe("the drawing is made for the base size and the colourway asked for", () => {
+  it("draws the callouts with the values of the base size, which are the values of the table", () => {
+    const spec = scaled();
+    const texts = measurementTexts(flatsForTechPack(spec, CHARTS).front as NonNullable<FlatModel>);
+    const table = resolveAllSizes(spec, CHARTS);
+    const rowAt = (isBase: boolean) =>
+      table.entries.find((entry) => entry.isBase === isBase)?.resolution.rows.find((row) => row.pointId === "chest-width");
+    const base = rowAt(true);
+    const other = rowAt(false);
+    if (base?.status !== "set" || other?.status !== "set") throw new Error("no chest width");
+    expect(base.value).not.toBe(other.value);
+    expect(texts).toContain(`Chest width ${(base.value / 100).toFixed(1)} cm`);
+    expect(texts).not.toContain(`Chest width ${(other.value / 100).toFixed(1)} cm`);
+  });
+
+  it("draws the colourway that was asked for", () => {
+    const withAway = applyAction(start("crew-tee"), {
+      type: "add-colourway",
+      colourway: { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "White", swatch: "#ffffff", provenance: "user-edited" }] },
+    });
+    if (!withAway.ok) throw new Error(withAway.reason);
+    expect(flatsForTechPack(withAway.spec, undefined, "away").front?.colourwayId).toBe("away");
+    expect(flatsForTechPack(withAway.spec, undefined, "main").front?.colourwayId).toBe("main");
+    expect(flatsForTechPack(withAway.spec).front?.colourwayId).toBe("main");
+    expect(flatsForTechPack(withAway.spec, undefined, "nope").front?.colourwayId).toBe("main");
   });
 });
 
 describe("the flats section", () => {
   it("carries both views, with codes in the callouts and a legend that matches the table", () => {
     const spec = scaled();
-    const section = buildFlatsSection(spec, flatsForTechPack(spec));
+    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
     expect(section.id).toBe("flats");
     expect(section.title).toBe("Flats with callouts");
     expect(section.views.map((view) => view.label)).toEqual(["Front", "Back"]);
@@ -91,7 +150,7 @@ describe("the flats section", () => {
 
   it("says when the drawing is not to scale, and carries no callout values", () => {
     const spec = start("crew-tee");
-    const section = buildFlatsSection(spec, flatsForTechPack(spec));
+    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
     expect(section.callouts).toEqual([]);
     expect(section.note).toBe("Not to scale. Some measurements are missing. The drawing carries no measurement values.");
     for (const view of section.views) {
@@ -119,7 +178,7 @@ describe("the flats section", () => {
 
   it("describes each view in words", () => {
     const spec = start("crew-tee");
-    const section = buildFlatsSection(spec, flatsForTechPack(spec));
+    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
     expect(section.views[0]?.description).toMatch(/^Front view\. Crew neck tee/);
     expect(section.views[1]?.description).toMatch(/^Back view\./);
   });

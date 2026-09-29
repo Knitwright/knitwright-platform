@@ -48,6 +48,12 @@ export function ComponentsView({ section, forms }: ComponentsProps) {
             <RowHead>
               {line.label}
               <span className="mt-1 block max-w-64 text-xs font-normal text-muted">{line.help}</span>
+              {line.note ? <span className="mt-1 block max-w-64 text-xs font-normal text-muted">{line.note}</span> : null}
+              {line.proposalNote ? (
+                <span className="mt-1 block max-w-64 rounded-md bg-warn-wash px-2 py-0.5 text-xs font-normal text-warn">
+                  {line.proposalNote.value}
+                </span>
+              ) : null}
             </RowHead>
             <Cellular>{line.kindLabel}</Cellular>
             <Cellular>
@@ -85,6 +91,9 @@ export function ConstructionView({ section, forms }: ConstructionProps) {
             </Cellular>
             <Cellular>
               <ClassText cell={seam.stitchClass} />
+              {seam.caveat ? (
+                <span className="mt-1 block max-w-64 rounded-md bg-warn-wash px-2 py-0.5 text-xs text-warn">{seam.caveat}</span>
+              ) : null}
             </Cellular>
             <Cellular>
               <CellText cell={seam.stitchDensity} />

@@ -1,5 +1,13 @@
 import { PROVENANCE_LABELS } from "@/lib/garment";
-import { TO_BE_CONFIRMED, type Cell, type ClassCell, type LengthValue, type SectionId } from "@/lib/techpack";
+import {
+  PROPOSAL_WORDS,
+  TO_BE_CONFIRMED,
+  type Cell,
+  type ClassCell,
+  type CompletenessReport,
+  type LengthValue,
+  type SectionId,
+} from "@/lib/techpack";
 import { toneOf, type Tone } from "./provenance-tone";
 
 /**
@@ -34,15 +42,29 @@ export interface ClassView extends CellView {
   readonly explanation: string;
 }
 
+/** A class the platform proposes says so, in the attention style. It never reads as a specification. */
 export function classView(cell: ClassCell): ClassView {
   return {
     text: cell.value,
     iso: `ISO ${cell.iso}`,
     explanation: cell.explanation,
-    source: PROVENANCE_LABELS[cell.provenance],
-    tone: toneOf(cell.provenance),
+    source: cell.proposal ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance],
+    tone: cell.proposal ? "suggested" : toneOf(cell.provenance),
   };
 }
 
+/**
+ * The style of the notice at the top of the page. It is the attention style while anything is
+ * empty, suggested or proposed. The green style is kept for values signed by a named person,
+ * which nothing on this page is, so this never gives it.
+ */
+export const summaryTone = (report: Pick<CompletenessReport, "total" | "suggested" | "proposed">): "warn" | "info" =>
+  report.total + report.suggested + report.proposed > 0 ? "warn" : "info";
+
 /** The address of a section on the tech pack page. */
 export const sectionLink = (id: SectionId): string => `#${id}`;
+
+const SECTIONS_WITH_FORMS: readonly SectionId[] = ["components", "construction", "labelling"];
+
+/** True when the section keeps a form closed until it is asked for. A link to it opens the form. */
+export const sectionHasForms = (id: SectionId): boolean => SECTIONS_WITH_FORMS.includes(id);

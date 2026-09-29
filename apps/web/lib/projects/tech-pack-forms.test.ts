@@ -5,6 +5,7 @@ import {
   SEAM_CLASS_CHOICES,
   STITCH_CLASS_CHOICES,
   STRETCH_CHOICES,
+  USED_CHOICES,
   componentAction,
   componentRows,
   constructionAction,
@@ -47,7 +48,7 @@ describe("fabricRows", () => {
   it("writes the weight as a number of grams and lets a second fabric be removed", () => {
     const spec = apply(start("crew-tee"), {
       type: "add-fabric",
-      fabric: { id: "mesh", name: "Mesh", composition: "", construction: "", weightGsm: 120, finish: "", consumption: "", stretch: "none", provenance: "user-edited" },
+      fabric: { id: "mesh", name: "Mesh", composition: "", construction: "", weightGsm: 120, finish: "", consumption: "", stretch: "none", provenance: "user-edited", sources: {} },
     });
     const rows = fabricRows(spec);
     expect(rows.map((row) => row.canRemove)).toEqual([true, true]);
@@ -66,7 +67,7 @@ describe("panelFabricRows", () => {
   it("shows the fabric a panel was given", () => {
     const withMesh = apply(start("crew-tee"), {
       type: "add-fabric",
-      fabric: { id: "mesh", name: "Mesh", composition: "", construction: "", weightGsm: null, finish: "", consumption: "", stretch: "not-set", provenance: "user-edited" },
+      fabric: { id: "mesh", name: "Mesh", composition: "", construction: "", weightGsm: null, finish: "", consumption: "", stretch: "not-set", provenance: "user-edited", sources: {} },
     });
     const spec = apply(withMesh, { type: "assign-fabric", panelId: "body-back", fabricId: "mesh" });
     expect(panelFabricRows(spec).map((row) => row.fabricId)).toEqual(["main", "mesh", "main", "main", "main"]);
@@ -74,67 +75,62 @@ describe("panelFabricRows", () => {
 });
 
 describe("fabricAction", () => {
-  it("builds an update for a fabric that exists, with the weight as a whole number", () => {
-    const result = fabricAction("main", values(), false);
+  const before = values({ name: "Interlock", composition: "Cotton", weight: "180", stretch: "two-way" });
+
+  it("sends only the fields that changed, as a change of the fabric", () => {
+    const result = fabricAction("main", { ...before, consumption: "1.2 m" }, before);
     expect(result).toEqual({
       ok: true,
-      action: {
-        type: "update-fabric",
-        fabric: {
-          id: "main",
-          name: "Interlock",
-          composition: "Cotton",
-          construction: "",
-          weightGsm: 180,
-          finish: "",
-          consumption: "",
-          stretch: "two-way",
-          provenance: "user-edited",
-        },
-      },
+      action: { type: "change-fabric", id: "main", changes: { consumption: "1.2 m" }, provenance: "user-edited" },
     });
   });
 
-  it("builds an add for a new fabric", () => {
-    const result = fabricAction("new-id", values(), true);
-    expect(result.ok && result.action.type).toBe("add-fabric");
+  it("sends nothing at all when nothing changed", () => {
+    expect(fabricAction("main", before, before)).toEqual({ ok: true, action: null });
   });
 
-  it("leaves the weight empty rather than zero when nothing is typed", () => {
-    const result = fabricAction("main", values({ weight: "  " }), false);
-    expect(result.ok && result.action.type === "update-fabric" && result.action.fabric.weightGsm).toBe(null);
+  it("sends the weight as a whole number, and null when it is emptied", () => {
+    const heavier = fabricAction("main", { ...before, weight: "200 gsm" }, before);
+    expect(heavier.ok && heavier.action?.type === "change-fabric" && heavier.action.changes).toEqual({ weightGsm: 200 });
+    const emptied = fabricAction("main", { ...before, weight: "  " }, before);
+    expect(emptied.ok && emptied.action?.type === "change-fabric" && emptied.action.changes).toEqual({ weightGsm: null });
   });
 
-  it("accepts a weight with the unit written after it", () => {
-    const result = fabricAction("main", values({ weight: "180 gsm" }), false);
-    expect(result.ok && result.action.type === "update-fabric" && result.action.fabric.weightGsm).toBe(180);
+  it("builds an add for a new fabric, with every field it was given", () => {
+    const result = fabricAction("new-id", values(), null);
+    expect(result.ok && result.action?.type).toBe("add-fabric");
+    expect(result.ok && result.action?.type === "add-fabric" && result.action.fabric).toMatchObject({
+      id: "new-id",
+      name: "Interlock",
+      weightGsm: 180,
+      provenance: "user-edited",
+    });
   });
 
   it("refuses a weight that is not a whole number of grams, beside the weight field", () => {
     for (const weight of ["heavy", "18.5", "-3", "0", "2001"]) {
-      const result = fabricAction("main", values({ weight }), false);
+      const result = fabricAction("main", values({ weight }), null);
       expect(result.ok).toBe(false);
       expect(!result.ok && Object.keys(result.errors)).toEqual(["weight"]);
     }
-    const bad = fabricAction("main", values({ weight: "heavy" }), false);
+    const bad = fabricAction("main", values({ weight: "heavy" }), null);
     expect(!bad.ok && bad.errors.weight).toBe("Enter the weight as a whole number of grams per square metre, such as 180.");
   });
 
   it("refuses a fabric with no name, beside the name field", () => {
-    const result = fabricAction("main", values({ name: " " }), false);
+    const result = fabricAction("main", values({ name: " " }), before);
     expect(!result.ok && result.errors).toEqual({ name: "Give the fabric a name." });
   });
 
   it("refuses text that is too long or has a line break, beside its field", () => {
-    const long = fabricAction("main", values({ composition: "x".repeat(300) }), false);
+    const long = fabricAction("main", { ...before, composition: "x".repeat(300) }, before);
     expect(!long.ok && long.errors.composition).toBe("Use 200 characters or fewer.");
-    const broken = fabricAction("main", values({ finish: "a\nb" }), false);
+    const broken = fabricAction("main", { ...before, finish: "a\nb" }, before);
     expect(!broken.ok && broken.errors.finish).toBe("Remove line breaks and hidden characters.");
   });
 
   it("refuses a stretch it does not know", () => {
-    const result = fabricAction("main", values({ stretch: "very" }), false);
-    expect(result.ok).toBe(false);
+    expect(fabricAction("main", { ...before, stretch: "very" }, before).ok).toBe(false);
   });
 
   it("offers every stretch choice in plain words", () => {
@@ -146,7 +142,7 @@ describe("componentRows and componentAction", () => {
   it("has a row for each thing the design implies, with the details empty", () => {
     const rows = componentRows(start("polo"));
     expect(rows.map((row) => row.slotId)).toContain("buttons");
-    expect(rows[0]).toMatchObject({ slotId: "main-thread", label: "Main thread", values: { name: "", details: "", quantity: "" }, hasEntry: false });
+    expect(rows[0]).toMatchObject({ slotId: "main-thread", label: "Main thread", values: { name: "", details: "", quantity: "", used: "used" }, hasEntry: false });
   });
 
   it("shows what the user wrote", () => {
@@ -155,11 +151,11 @@ describe("componentRows and componentAction", () => {
       component: { id: "buttons", name: "Shell", details: "4 hole", quantity: "4 per garment", provenance: "user-edited" },
     });
     const row = componentRows(spec).find((entry) => entry.slotId === "buttons");
-    expect(row).toMatchObject({ values: { name: "Shell", details: "4 hole", quantity: "4 per garment" }, hasEntry: true });
+    expect(row).toMatchObject({ values: { name: "Shell", details: "4 hole", quantity: "4 per garment", used: "used" }, hasEntry: true });
   });
 
   it("builds a set-component action with the quantity as the free text typed", () => {
-    expect(componentAction("buttons", { name: "Shell", details: "", quantity: "4 per garment" }, false)).toEqual({
+    expect(componentAction("buttons", { name: "Shell", details: "", quantity: "4 per garment", used: "used" }, false)).toEqual({
       ok: true,
       action: {
         type: "set-component",
@@ -169,14 +165,49 @@ describe("componentRows and componentAction", () => {
   });
 
   it("removes the entry when every field is emptied, and does nothing when there was none", () => {
-    const empty = { name: "", details: "", quantity: "" };
+    const empty = { name: "", details: "", quantity: "", used: "used" };
     expect(componentAction("buttons", empty, true)).toEqual({ ok: true, action: { type: "remove-component", id: "buttons" } });
     expect(componentAction("buttons", empty, false)).toEqual({ ok: true, action: null });
   });
 
   it("refuses text that is too long, beside its field", () => {
-    const result = componentAction("buttons", { name: "x".repeat(100), details: "", quantity: "" }, false);
+    const result = componentAction("buttons", { name: "x".repeat(100), details: "", quantity: "", used: "used" }, false);
     expect(!result.ok && result.errors.name).toBe("Use 60 characters or fewer.");
+  });
+});
+
+describe("marking a part as not used", () => {
+  it("offers used and not used", () => {
+    expect(USED_CHOICES.map((choice) => choice.label)).toEqual(["Used", "Not used"]);
+  });
+
+  it("shows a part the brand marked as not used", () => {
+    const spec = apply(start("crew-tee"), {
+      type: "set-component",
+      component: { id: "brand-label", name: "", details: "", quantity: "", notUsed: true, provenance: "user-edited" },
+    });
+    const row = componentRows(spec).find((entry) => entry.slotId === "brand-label");
+    expect(row).toMatchObject({ values: { used: "not-used", name: "" }, hasEntry: true });
+  });
+
+  it("builds a not used entry with no details, whatever was typed beside it", () => {
+    const result = componentAction("brand-label", { name: "Woven", details: "x", quantity: "9", used: "not-used" }, false);
+    expect(result).toEqual({
+      ok: true,
+      action: {
+        type: "set-component",
+        component: { id: "brand-label", name: "", details: "", quantity: "", notUsed: true, provenance: "user-edited" },
+      },
+    });
+  });
+
+  it("goes back to used when the choice is changed and something is typed", () => {
+    const result = componentAction("brand-label", { name: "Woven", details: "", quantity: "", used: "used" }, true);
+    expect(result.ok && result.action?.type === "set-component" && result.action.component.notUsed).toBeFalsy();
+  });
+
+  it("refuses a choice it does not know", () => {
+    expect(componentAction("brand-label", { name: "", details: "", quantity: "", used: "maybe" }, false).ok).toBe(false);
   });
 });
 

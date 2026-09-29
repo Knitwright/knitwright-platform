@@ -20,7 +20,9 @@ export const inputFor = (spec: GarmentSpec, extra: Partial<TechPackInput> = {}):
     project: PROJECT,
     version: 1,
     versionDate: "29 Sep 2026",
+    versionDateIso: "2026-09-29",
     printedOn: "30 Sep 2026",
+    printedOnIso: "2026-09-30",
     history: [],
     spec,
     flats: flatsForTechPack(spec, charts),
@@ -55,7 +57,7 @@ export function fullDesign(typeId: string): GarmentSpec {
         finish: "Enzyme washed",
         consumption: "1.2 m",
         stretch: "two-way",
-        provenance: "user-edited",
+        provenance: "user-edited", sources: {}
       },
     },
     { type: "add-colourway", colourway: { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "White", provenance: "user-edited" }] } },

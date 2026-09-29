@@ -1,5 +1,5 @@
 import { formatCm, getType, TECHNIQUES, type Artwork, type GarmentSpec } from "@/lib/garment";
-import { textCell, type LengthCell } from "./cell";
+import { numberCell, textCell, type LengthCell } from "./cell";
 import { panelLabelOf } from "./labels";
 import type { ArtworkItem, ArtworkSection } from "./types";
 import { SECTION_TITLES } from "./types";
@@ -23,7 +23,7 @@ function itemOf(spec: GarmentSpec, art: Artwork): ArtworkItem {
   const anchor = getType(spec.typeId)
     ?.panels.find((panel) => panel.id === art.panelId)
     ?.anchors.find((place) => place.id === art.anchor)?.label;
-  const degrees = art.rotationDegrees === 1 ? "1 degree" : `${art.rotationDegrees} degrees`;
+  const turn = numberCell(art.rotationDegrees, "degrees", art.rotationDegrees === 1 ? "degree" : "degrees", art.provenance);
   return {
     id: art.id,
     name: from(art.name),
@@ -33,11 +33,11 @@ function itemOf(spec: GarmentSpec, art: Artwork): ArtworkItem {
     down: length(art.offsetY, art),
     width: length(art.width, art),
     height: length(art.height, art),
-    rotation: from(degrees),
+    rotation: turn,
     technique: from(TECHNIQUE_LABELS[art.technique]),
     content:
       art.source.kind === "file"
-        ? { kind: "file", reference: from(art.source.fileId) }
+        ? { kind: "file", fileId: art.source.fileId, description: from(`Picture: ${art.name}`) }
         : { kind: "text", text: from(art.source.text) },
   };
 }

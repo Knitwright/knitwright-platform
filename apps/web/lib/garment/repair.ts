@@ -1,4 +1,5 @@
 import type { ActionResult } from "./apply-action";
+import { fabricSchema } from "./parts";
 import { retype } from "./reconcile";
 import { getType } from "./registry";
 import { validateSpec, type GarmentSpec } from "./spec";
@@ -47,15 +48,28 @@ function addTechPackFields(input: Record<string, unknown>): Record<string, unkno
   };
 }
 
+/** Version 5 becomes 6: the old source of a fabric is copied onto each field that has a value. */
+function addFabricSources(input: Record<string, unknown>): Record<string, unknown> {
+  const fabrics = Array.isArray(input.fabrics)
+    ? input.fabrics.map((fabric: unknown) => {
+        if (typeof fabric !== "object" || fabric === null) return fabric;
+        const parsed = fabricSchema.safeParse(fabric);
+        return parsed.success ? parsed.data : fabric;
+      })
+    : input.fabrics;
+  return { ...input, fabrics };
+}
+
 /**
  * One entry per old version, keyed by the version it upgrades from. Versions before 3
  * were never stored. Version 3 becomes 4 by adding the optional colour swatch, which needs
- * nothing written into a stored design. Version 4 becomes 5 with the tech pack fields.
+ * nothing written into a stored design. Version 4 becomes 5 with the tech pack fields, and 5 becomes 6 with a source for each fabric field.
  * The next version bump adds its upgrade here.
  */
 export const UPGRADES: Readonly<Record<number, Upgrade>> = {
   3: (input) => ({ ...input }),
   4: addTechPackFields,
+  5: addFabricSources,
 };
 
 const NOT_A_DESIGN = "This is not a saved design.";

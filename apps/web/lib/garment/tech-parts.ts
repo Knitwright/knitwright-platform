@@ -25,12 +25,18 @@ export const componentSchema = z
     name: freeText(NAME_MAX_LENGTH),
     details: freeText(COMPONENT_TEXT_MAX_LENGTH),
     quantity: freeText(QUANTITY_MAX_LENGTH),
+    /** True when the brand says this part is not used. It then has no name, details or quantity. */
+    notUsed: z.boolean().optional(),
     provenance: provenanceSchema,
   })
   .readonly()
-  .refine((entry) => entry.name !== "" || entry.details !== "" || entry.quantity !== "", {
+  .refine((entry) => entry.notUsed === true || entry.name !== "" || entry.details !== "" || entry.quantity !== "", {
     message: "Enter a name, details or a quantity.",
     path: ["name"],
+  })
+  .refine((entry) => entry.notUsed !== true || (entry.name === "" && entry.details === "" && entry.quantity === ""), {
+    message: "A part that is not used has no details.",
+    path: ["notUsed"],
   });
 export type ComponentEntry = z.output<typeof componentSchema>;
 
@@ -52,6 +58,9 @@ export const constructionEntrySchema = z
     path: ["stitchDensity"],
   });
 export type ConstructionEntry = z.output<typeof constructionEntrySchema>;
+
+/** Plain names for the kinds of component. */
+export const COMPONENT_KIND_LABELS = { rib: "Rib", thread: "Thread", label: "Label", trim: "Trim" } as const;
 
 export const LABELLING_FIELDS = ["care", "composition", "origin", "fold", "bag"] as const;
 export const labellingFieldSchema = z.enum(LABELLING_FIELDS);

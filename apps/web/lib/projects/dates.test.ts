@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime } from "./dates";
+import { formatDate, formatDateTime, isoDay } from "./dates";
 
 describe("formatDate", () => {
   it("writes the day, the month by name and the year", () => {
@@ -22,5 +22,16 @@ describe("formatDateTime", () => {
 
   it("says nothing for a date it cannot read", () => {
     expect(formatDateTime("")).toBe("");
+  });
+});
+
+describe("isoDay", () => {
+  it("writes the day as year, month and day, in UTC", () => {
+    expect(isoDay("2026-09-29T23:59:00+00:00")).toBe("2026-09-29");
+    expect(isoDay("2026-01-05T00:00:00Z")).toBe("2026-01-05");
+  });
+
+  it("says nothing for a date it cannot read", () => {
+    expect(isoDay("not a date")).toBe("");
   });
 });

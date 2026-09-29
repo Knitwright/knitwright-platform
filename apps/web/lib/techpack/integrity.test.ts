@@ -12,12 +12,12 @@ const MODELS = /^flats\.views\[\d+\]\.model/;
 
 /** Paths of text and numbers that are not values: names of things, ids, codes, notes and sentences. */
 const NOT_VALUES: readonly RegExp[] = [
-  /^(title|printedOn)$/,
+  /^(title|printedOn|printedOnIso)$/,
   /^sections\[\d+\]\.(id|title|note)$/,
   /^[a-zA-Z]+\.(id|title|note)$/,
-  /^cover\.(version|date|olderRevisionsNote)$/,
+  /^cover\.(version|date|dateIso|olderRevisionsNote)$/,
   /^cover\.options\[\d+\]\.(id|label)$/,
-  /^cover\.revisions\[\d+\]\.(version|date|note|by)$/,
+  /^cover\.revisions\[\d+\]\.(version|date|dateIso|note|by)$/,
   /^flats\.views\[\d+\]\.(view|label|notice|description)$/,
   /^flats\.callouts\[\d+\]\.(code|pointId|label)$/,
   /^measurements\.(sizesFrom)$/,
@@ -28,16 +28,17 @@ const NOT_VALUES: readonly RegExp[] = [
   /^howToMeasure\.rows\[\d+\]\.(pointId|code|label|howToMeasure)$/,
   /^components\.fabrics\[\d+\]\.fabricId$/,
   /^components\.fabrics\[\d+\]\.panels\[\d+\]\.(id|label)$/,
-  /^components\.others\[\d+\]\.(slotId|label|kind|kindLabel|help)$/,
+  /^components\.others\[\d+\]\.(slotId|label|kind|kindLabel|help|note|notUsed)$/,
   /^components\.others\[\d+\]\.panels\[\d+\]\.(id|label)$/,
-  /^construction\.seams\[\d+\]\.(seamId|label)$/,
+  /^construction\.seams\[\d+\]\.(seamId|label|caveat)$/,
   /^construction\.seams\[\d+\]\.panels\[\d+\]\.(id|label)$/,
   /^colourways\.colourways\[\d+\]\.(id|name)$/,
   /^colourways\.colourways\[\d+\]\.rows\[\d+\]\.(panelId|label)$/,
   /^artwork\.items\[\d+\]\.(id)$/,
-  /^artwork\.items\[\d+\]\.content\.kind$/,
+  /^artwork\.items\[\d+\]\.content\.(kind|fileId)$/,
   /^labelling\.rows\[\d+\]\.(field|label)$/,
-  /^suggested\.items\[\d+\]\.(sectionId|sectionTitle|label|provenance)$/,
+  /^suggested\.(items|proposals)\[\d+\]\.(sectionId|sectionTitle|label|provenance|cells)$/,
+  /^suggested\.proposalsNote$/,
   /^signOff\.statement$/,
 ];
 
@@ -45,6 +46,14 @@ const withoutModels = (pack: TechPack): unknown => ({
   ...pack,
   flats: { ...pack.flats, views: pack.flats.views.map((view) => ({ ...view, model: null })) },
 });
+
+/** True when the path is a cell or sits inside one. It looks up each shorter path in a set. */
+function insideACell(path: string, cellPaths: ReadonlySet<string>): boolean {
+  for (let end = path.length; end > 0; end = Math.max(path.lastIndexOf(".", end - 1), path.lastIndexOf("[", end - 1))) {
+    if (cellPaths.has(path.slice(0, end))) return true;
+  }
+  return false;
+}
 
 /** Checks the rules that make it impossible to hold a value without its source. */
 function expectEveryValueHasASource(pack: TechPack): void {
@@ -61,15 +70,15 @@ function expectEveryValueHasASource(pack: TechPack): void {
       expect(Object.keys(cell), path).toEqual(["status"]);
     }
   }
-  const cellPaths = cells.map((entry) => entry.path);
+  const cellPaths = new Set(cells.map((entry) => entry.path));
   // Every string and number is inside a cell, or is on the list of things that are not values.
   for (const { path } of leaves(document, MODELS)) {
-    const inCell = cellPaths.some((cellPath) => path === cellPath || path.startsWith(`${cellPath}.`) || path.startsWith(`${cellPath}[`));
+    const inCell = insideACell(path, cellPaths);
     if (!inCell) expect(NOT_VALUES.some((allowed) => allowed.test(path)), `${path} is a value outside a cell`).toBe(true);
   }
   // No object outside a cell carries a source, so a source is never held without its value.
   expect(JSON.stringify(document).match(/"provenance"/g)?.length ?? 0).toBe(
-    cells.filter((entry) => entry.cell.status === "set").length + (pack.suggested.items.length),
+    cells.filter((entry) => entry.cell.status === "set").length + pack.suggested.items.length + pack.suggested.proposals.length,
   );
 }
 
@@ -80,7 +89,7 @@ describe("every value has a source (invariant I5)", () => {
       expectEveryValueHasASource(packFor(fullDesign(typeId), { history: revisions(3) }));
       expectEveryValueHasASource(packFor(fullDesign(typeId), { charts: CHARTS }));
     }
-  }, 30_000);
+  });
 
   it("holds for documents built from designs made by random changes", () => {
     let built = 0;
@@ -97,7 +106,7 @@ describe("every value has a source (invariant I5)", () => {
       { numRuns: 60 },
     );
     expect(built).toBe(60);
-  }, 60_000);
+  });
 
   it("fails when a value is held without its source", () => {
     const pack = packFor(start("crew-tee"));
@@ -115,11 +124,13 @@ describe("every value has a source (invariant I5)", () => {
 const DIGIT = /\d/;
 
 const DIGITS_ALLOWED: readonly RegExp[] = [
-  /^printedOn$/,
-  /^cover\.(version|date)$/,
+  /^printedOn(Iso)?$/,
+  /^cover\.(version|date|dateIso)$/,
   // A history note is the change log: it repeats what the user typed, such as a length.
-  /^cover\.revisions\[\d+\]\.(version|date|note)$/,
+  /^cover\.revisions\[\d+\]\.(version|date|dateIso|note)$/,
   /\.iso$/,
+  // How many cells an item on the suggested page stands for.
+  /^suggested\.(items|proposals)\[\d+\]\.cells$/,
 ];
 
 const SHOULD_BE_TBC: readonly RegExp[] = [

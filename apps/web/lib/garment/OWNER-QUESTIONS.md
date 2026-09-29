@@ -55,6 +55,12 @@ Each sentence is a plain draft. These need a factory's eye most:
 
 ## Construction rules (added in step 8): a factory must confirm every one
 
+**None of these numbers has been checked against the standards.** Nobody who wrote or reviewed
+them could read ISO 4915 (stitch types) or ISO 4916 (seam classes). They come from general
+knowledge of knitwear. A factory, or a copy of both standards, must check every number and every
+explanation before anyone relies on them. The document shows each one as "Proposed by Knitwright.
+Not confirmed by anyone." until the user chooses one.
+
 These are a STARTING PROPOSAL from general knitwear practice. They are not a factory's method.
 Each rule names a seam class (ISO 4916) and a stitch class (ISO 4915). These are the names of
 kinds of seam and stitch, not quantities. A design shows each as "worked out from other values"
@@ -70,16 +76,19 @@ until the user changes it, and then as typed in by the user. The rules are data 
 | Sleeve underarm seam | both sleeves | always | 1 superimposed | 514 four thread overedge |
 | Side seam | body front, body back | no side panels | 1 superimposed | 514 four thread overedge |
 | Side panel seam | body front, body back, side panels | contrast strips | 1 superimposed | 514 four thread overedge |
-| Sleeve hem | both sleeves | no ribbed cuffs | 6 edge finish | 602 two needle cover stitch |
+| Sleeve hem | both sleeves | no ribbed cuffs | 6 edge finish | 406 two needle bottom cover stitch |
 | Cuff seam | both sleeves, cuffs | ribbed cuffs | 1 superimposed | 514 four thread overedge |
-| Body hem | body front, body back | always | 6 edge finish | 602 two needle cover stitch |
+| Body hem | body front, body back | always | 6 edge finish | 406 two needle bottom cover stitch |
 | Side vent finish | body front, body back | side vents | 6 edge finish | 301 lockstitch |
 | Neckband seam | neckband, body front, body back | no collar | 1 superimposed | 514 four thread overedge |
 | Collar seam | collar, body front, body back | polo or band collar | 1 superimposed | 514 four thread overedge |
-| Placket seam | placket, body front | buttons or zip | 2 lapped | 301 lockstitch |
-| Zip seam | placket | zip | 2 lapped | 301 lockstitch |
+| Placket seam | placket, body front | buttons | 2 lapped | 301 lockstitch |
+| Zip seam | placket, body front | zip (one seam, not two) | 2 lapped | 301 lockstitch |
+| V neck point (mitre) | neckband, body front | V neck, no collar | 1 superimposed | 301 lockstitch |
 
-- Are these the right seam classes and stitch classes for knitted tops? In particular: is 514 right for every joining seam, or do some factories use 504 or 401? Are hems 602, or 406 or 605?
+- Are these the right seam classes and stitch classes for knitted tops? In particular: is 514 right for every joining seam, or do some factories use 504 or 401? Hems now use 406, the usual hem of a tee. A reviewer doubted whether 406 or 602 is right for a tee hem, and whether 301 lockstitch is right for a placket on knitted fabric.
+- The explanation of 602 was corrected after review: the cover thread lies on top and the looper thread underneath. 406 was added to the catalogue with the covering thread on the underside. Both explanations need a factory's eye.
+- Proposals added after review, each shown as a proposal: shoulder tape (a part, to be confirmed, with a shoulder seam), the mitre at the point of a V neck (a seam, stitched with 301), and buttonholes with buttons on a buttoned placket. Is that the right list? Is a mitre a seam, or only a way of sewing the neckband?
 - The catalogue also offers 401 double chain stitch, 504 three thread overedge, 605 three needle cover stitch and seam class 3 (bound), so a user can pick them. Is that the right list? Are stitch classes missing that a factory would expect, such as 406 or 304?
 - The explanations of each class are plain drafts. Are they right?
 - Is the neckband a bound seam (class 3), with a cover stitch, on your tees? Today it is class 1 with 514.

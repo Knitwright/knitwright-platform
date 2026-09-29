@@ -12,7 +12,7 @@ import { kebabId, wearerSchema } from "./primitives";
 import { LIST_LIMITS, specProblems } from "./spec-checks";
 import { componentSchema, constructionEntrySchema, labellingSchema } from "./tech-parts";
 
-export const SPEC_SCHEMA_VERSION = 5;
+export const SPEC_SCHEMA_VERSION = 6;
 
 /** Sanity limits on list sizes, so one spec cannot grow without bound. */
 export const MAX_MEASUREMENTS = 64;

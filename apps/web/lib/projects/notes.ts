@@ -67,6 +67,8 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Fabric ${action.fabric.name} added.`);
     case "update-fabric":
       return clipNote(`Fabric ${action.fabric.name} changed.`);
+    case "change-fabric":
+      return clipNote(sentence("Fabric", nameOf(spec.fabrics, action.id), "changed", "A fabric was changed."));
     case "remove-fabric":
       return clipNote(sentence("Fabric", nameOf(spec.fabrics, action.id), "removed", "A fabric was removed."));
     case "assign-fabric": {

@@ -25,3 +25,9 @@ export const formatDateTime = (iso: string): string => {
   if (!date) return "";
   return `${dayOf(date)}, ${twoDigits(date.getUTCHours())}:${twoDigits(date.getUTCMinutes())} UTC`;
 };
+
+/** The day as year, month and day, such as 2026-09-29, in UTC. A spreadsheet reads this form. */
+export const isoDay = (iso: string): string => {
+  const date = readable(iso);
+  return date ? `${date.getUTCFullYear()}-${twoDigits(date.getUTCMonth() + 1)}-${twoDigits(date.getUTCDate())}` : "";
+};

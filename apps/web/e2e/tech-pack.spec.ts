@@ -65,6 +65,31 @@ test.describe("the tech pack page", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Tech pack test" })).toBeVisible();
   });
 
+  test("shows every seam class as a proposal, and never says that nothing is left to confirm", async ({ page }) => {
+    await signedIn(page, "pack-proposal");
+    await startDesign(page, "Crew neck tee");
+    await openTechPack(page);
+
+    for (const row of await page.locator("tr[data-seam]").all()) {
+      await expect(row).toContainText("Proposed by Knitwright. Not confirmed by anyone.");
+    }
+    await expect(page.getByTestId("unconfirmed-counts")).toContainText("proposals by Knitwright");
+    await expect(page.locator("#suggested")).toContainText("Proposed by Knitwright");
+    await expect(page.getByText("Nothing is left to confirm")).toHaveCount(0);
+    await expect(page.locator('[class*="bg-ok"], [class*="text-ok"]')).toHaveCount(0);
+  });
+
+  test("opens the closed form when a link to what is left to confirm is followed", async ({ page }) => {
+    await signedIn(page, "pack-open");
+    await startDesign(page, "Crew neck tee");
+    await openTechPack(page);
+
+    await page.getByTestId("confirm-list").getByRole("link", { name: "Component list" }).click();
+
+    await expect(page.locator("#components details")).toHaveAttribute("open", "");
+    await expect(page.locator("#components details").locator("input, select").first()).toBeFocused();
+  });
+
   test("shows the drawings of a new design as not to scale, with no measurement values", async ({ page }) => {
     await signedIn(page, "pack-flats");
     await startDesign(page, "Crew neck tee");
@@ -154,7 +179,7 @@ test.describe("the tech pack page", () => {
     await expect(seam).toContainText("Lockstitch");
     await expect(seam).toContainText("ISO 301");
     await expect(seam).toContainText("Dense");
-    await expect(page.locator('tr[data-seam="shoulder-seam"]')).toContainText("Worked out from other values");
+    await expect(page.locator('tr[data-seam="shoulder-seam"]')).toContainText("Proposed by Knitwright. Not confirmed by anyone.");
 
     await page.getByText("Fill in labels and packing").click();
     const origin = page.getByRole("form", { name: "Country of origin" });

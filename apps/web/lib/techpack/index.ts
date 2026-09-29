@@ -12,6 +12,7 @@ export {
   type ConfirmItem,
   type ConfirmSection,
 } from "./completeness";
+export { PROPOSAL_WORDS, listOf } from "./text";
 export { flatsForTechPack, withCalloutCodes } from "./flats";
 export { REVISIONS_SHOWN, type RevisionInput, type TechPackInput } from "./input";
 export { SUGGESTION_SOURCES } from "./suggested";

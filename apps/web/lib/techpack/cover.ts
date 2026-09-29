@@ -2,11 +2,11 @@ import { getType, type GarmentSpec, type Wearer, type Provenance } from "@/lib/g
 import { resolveAllSizes, type ChartSet } from "@/lib/sizing";
 import { TBC, textCell, type Cell } from "./cell";
 import { REVISIONS_SHOWN, type RevisionInput, type TechPackInput } from "./input";
+import { SOME_MISSING } from "./text";
 import type { CoverSection, Revision } from "./types";
 import { SECTION_TITLES } from "./types";
 
 const NOT_RECORDED = "Not recorded";
-const SOME_MISSING = "Some details are still to be confirmed.";
 const OLDER_NOT_SHOWN = "Older revisions are not shown.";
 
 const wearerLabel = (wearer: Wearer): string => `${wearer.charAt(0).toUpperCase()}${wearer.slice(1)}`;
@@ -36,6 +36,7 @@ function revisionsOf(history: readonly RevisionInput[]): { shown: readonly Revis
   const shown = newestFirst.slice(0, REVISIONS_SHOWN).map((entry) => ({
     version: entry.version,
     date: entry.date,
+    dateIso: entry.dateIso,
     note: entry.note,
     by: entry.by ?? NOT_RECORDED,
   }));
@@ -68,6 +69,7 @@ export function buildCover(input: TechPackInput): CoverSection {
     ...cells,
     version: input.version,
     date: input.versionDate,
+    dateIso: input.versionDateIso,
     options: optionCells(spec),
     revisions: history.shown,
     olderRevisionsNote: history.older,

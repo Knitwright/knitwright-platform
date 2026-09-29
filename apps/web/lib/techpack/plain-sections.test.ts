@@ -63,6 +63,16 @@ describe("the colourways section", () => {
     expect(back?.screenColour).toEqual(set("#aa0000"));
   });
 
+  it("gives the screen colour its own source, apart from the code", () => {
+    const spec = apply(start("crew-tee"), {
+      type: "update-colourway",
+      colourway: { id: "main", name: "Home", colours: [{ panelId: "body-front", colour: "", swatch: "#1b2a49", provenance: "ai-suggested" }] },
+    });
+    const front = buildColourways(spec).colourways[0]?.rows[0];
+    expect(front?.screenColour).toEqual(set("#1b2a49", "ai-suggested"));
+    expect(front?.code).toEqual(TBC);
+  });
+
   it("carries the source of a colour that was suggested", () => {
     const spec = apply(start("crew-tee"), {
       type: "update-colourway",
@@ -121,10 +131,27 @@ describe("the artwork section", () => {
     });
   });
 
-  it("shows the file reference for a picture", () => {
+  it("shows a picture by the name of the artwork, and keeps the file only as a key, never as a value", () => {
     const fileId = "3f0c2c9e-6f0a-4d0e-9a51-0d6c1c1f7a11";
     const item = buildArtwork(apply(start("crew-tee"), art({ source: { kind: "file", fileId } }))).items[0];
-    expect(item?.content).toEqual({ kind: "file", reference: set(fileId) });
+    expect(item?.content).toEqual({ kind: "file", fileId, description: set("Picture: Club crest") });
+    expect(JSON.stringify(item?.name) + JSON.stringify(item?.panel)).not.toContain(fileId);
+    const cells = Object.values(item?.content ?? {}).filter((entry) => typeof entry === "object");
+    expect(JSON.stringify(cells)).not.toContain(fileId);
+  });
+
+  it("keeps the turn as a number of degrees beside the words", () => {
+    const item = buildArtwork(apply(start("crew-tee"), art())).items[0];
+    expect(item?.rotation).toEqual({ status: "set", value: "10 degrees", provenance: "user-edited", number: 10, unit: "degrees" });
+    const flat = buildArtwork(apply(start("crew-tee"), art({ rotationDegrees: 0 }))).items[0];
+    expect(flat?.rotation).toMatchObject({ number: 0, value: "0 degrees" });
+  });
+
+  it("gives every part of a piece of artwork the source of the artwork: position and size too", () => {
+    const item = buildArtwork(apply(start("crew-tee"), art({ provenance: "read-from-image" }))).items[0];
+    for (const cell of [item?.across, item?.down, item?.width, item?.height, item?.rotation, item?.technique, item?.anchor, item?.panel]) {
+      expect(cell).toMatchObject({ status: "set", provenance: "read-from-image" });
+    }
   });
 
   it("names every technique in plain words", () => {
@@ -145,7 +172,7 @@ describe("the artwork section", () => {
 
   it("says a turn of one degree in the singular", () => {
     const item = buildArtwork(apply(start("crew-tee"), art({ rotationDegrees: 1 }))).items[0];
-    expect(item?.rotation).toEqual(set("1 degree"));
+    expect(item?.rotation).toMatchObject(set("1 degree"));
   });
 });
 
@@ -167,6 +194,11 @@ describe("the labels and packing section", () => {
   it("shows what the user wrote with its source", () => {
     const spec = apply(start("crew-tee"), { type: "set-labelling", field: "origin", text: "Portugal", provenance: "user-edited" });
     expect(buildLabelling(spec).rows[2]?.value).toEqual(set("Portugal"));
+  });
+
+  it("carries the source of a label field, so a suggestion stays a suggestion", () => {
+    const spec = apply(start("crew-tee"), { type: "set-labelling", field: "care", text: "Wash cold", provenance: "ai-suggested" });
+    expect(buildLabelling(spec).rows[0]?.value).toEqual(set("Wash cold", "ai-suggested"));
   });
 
   it("has no note once every field is filled in", () => {

@@ -1,22 +1,17 @@
 import {
+  COMPONENT_KIND_LABELS,
   componentSlotsFor,
   fabricFor,
   panelsFor,
-  type ComponentKind,
+  type FabricField,
   type FabricSpec,
   type GarmentSpec,
 } from "@/lib/garment";
-import { TBC, textCell, type Cell } from "./cell";
+import { TBC, numberCell, textCell, type Cell } from "./cell";
 import { panelLabelOf } from "./labels";
+import { PROPOSAL_WORDS, SOME_MISSING } from "./text";
 import type { ComponentLine, ComponentsSection, FabricLine, PanelName } from "./types";
 import { SECTION_TITLES } from "./types";
-
-const KIND_LABELS: Readonly<Record<ComponentKind, string>> = {
-  rib: "Rib",
-  thread: "Thread",
-  label: "Label",
-  trim: "Trim",
-};
 
 const STRETCH_LABELS: Readonly<Record<Exclude<FabricSpec["stretch"], "not-set">, string>> = {
   none: "No stretch",
@@ -24,21 +19,23 @@ const STRETCH_LABELS: Readonly<Record<Exclude<FabricSpec["stretch"], "not-set">,
   "four-way": "Four-way stretch",
 };
 
-const SOME_MISSING = "Some details are still to be confirmed.";
-
-/** Every detail of a fabric carries the source of the fabric. A detail nobody filled in is to be confirmed. */
+/**
+ * Every described field of a fabric carries its own source, so a field a person changed is theirs
+ * and one that was suggested stays a suggestion. The name has the source of the fabric. A field
+ * nobody filled in is to be confirmed.
+ */
 function fabricLine(fabric: FabricSpec, panels: readonly PanelName[]): FabricLine {
-  const from = (text: string): Cell => textCell(text, fabric.provenance);
+  const field = (text: string, name: FabricField): Cell => textCell(text, fabric.sources[name] ?? fabric.provenance);
   return {
     fabricId: fabric.id,
     panels,
-    name: from(fabric.name),
-    composition: from(fabric.composition),
-    construction: from(fabric.construction),
-    weight: from(fabric.weightGsm === null ? "" : `${fabric.weightGsm} gsm`),
-    finish: from(fabric.finish),
-    stretch: from(fabric.stretch === "not-set" ? "" : STRETCH_LABELS[fabric.stretch]),
-    consumption: from(fabric.consumption),
+    name: textCell(fabric.name, fabric.provenance),
+    composition: field(fabric.composition, "composition"),
+    construction: field(fabric.construction, "construction"),
+    weight: numberCell(fabric.weightGsm, "grams per square metre", "gsm", fabric.sources.weightGsm ?? fabric.provenance),
+    finish: field(fabric.finish, "finish"),
+    stretch: field(fabric.stretch === "not-set" ? "" : STRETCH_LABELS[fabric.stretch], "stretch"),
+    consumption: field(fabric.consumption, "consumption"),
   };
 }
 
@@ -53,17 +50,28 @@ function fabricLines(spec: GarmentSpec): readonly FabricLine[] {
   return [...byFabric.values()].map((group) => fabricLine(group.fabric, group.panels));
 }
 
+const RIB_NOTE =
+  "The fabric of this part is set in the fabric table above. This line is for the details of the rib itself.";
+const NOT_USED = "Not used";
+
 function otherLines(spec: GarmentSpec): readonly ComponentLine[] {
   return componentSlotsFor(spec).map((slot) => {
     const entry = spec.components.find((candidate) => candidate.id === slot.id);
-    const say = (text: string | undefined): Cell => (entry ? textCell(text ?? "", entry.provenance) : TBC);
+    const notUsed = entry?.notUsed === true;
+    const say = (text: string | undefined): Cell => {
+      if (!entry) return TBC;
+      return notUsed ? textCell(NOT_USED, entry.provenance) : textCell(text ?? "", entry.provenance);
+    };
     return {
       slotId: slot.id,
       label: slot.label,
       kind: slot.kind,
-      kindLabel: KIND_LABELS[slot.kind],
+      kindLabel: COMPONENT_KIND_LABELS[slot.kind],
       help: slot.help,
+      note: slot.kind === "rib" ? RIB_NOTE : null,
       panels: slot.panels.map((id) => ({ id, label: panelLabelOf(spec, id) })),
+      notUsed,
+      proposalNote: slot.proposal && !entry ? { status: "set", value: PROPOSAL_WORDS, provenance: "derived", proposal: true } : null,
       name: say(entry?.name),
       details: say(entry?.details),
       quantity: say(entry?.quantity),

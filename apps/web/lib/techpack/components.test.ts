@@ -21,6 +21,7 @@ const fabric = (id: string, patch: object = {}): SpecAction => ({
     consumption: "",
     stretch: "not-set",
     provenance: "user-edited",
+    sources: {},
     ...patch,
   },
 });
@@ -64,7 +65,7 @@ describe("the component list, fabric", () => {
         finish: "Enzyme washed",
         consumption: "1.2 m",
         stretch: "two-way",
-        provenance: "brand-supplied",
+        provenance: "brand-supplied", sources: {}
       },
     });
     const line = buildComponents(spec).fabrics[0];
@@ -73,11 +74,23 @@ describe("the component list, fabric", () => {
       name: from("Interlock"),
       composition: from("Cotton"),
       construction: from("Interlock knit"),
-      weight: from("180 gsm"),
+      weight: { ...from("180 gsm"), number: 180, unit: "grams per square metre" },
       finish: from("Enzyme washed"),
       consumption: from("1.2 m"),
       stretch: from("Two-way stretch"),
     });
+  });
+
+  it("shows each field with its own source, not the source of the fabric", () => {
+    const suggested = apply(start("crew-tee"), {
+      type: "update-fabric",
+      fabric: { ...start("crew-tee").fabrics[0], name: "Jersey", composition: "Cotton", provenance: "ai-suggested", sources: {} },
+    });
+    const spec = apply(suggested, { type: "change-fabric", id: "main", changes: { consumption: "1.2 m" }, provenance: "user-edited" });
+    const line = buildComponents(spec).fabrics[0];
+    expect(line?.composition).toEqual({ status: "set", value: "Cotton", provenance: "ai-suggested" });
+    expect(line?.consumption).toEqual({ status: "set", value: "1.2 m", provenance: "user-edited" });
+    expect(line?.name).toEqual({ status: "set", value: "Jersey", provenance: "ai-suggested" });
   });
 
   it("says a fabric with no stretch has none, and a fabric with stretch not set is to be confirmed", () => {
@@ -119,9 +132,11 @@ describe("the component list, rib, thread, labels and trims", () => {
       "brand-label",
       "care-label",
       "size-label",
+      "shoulder-tape",
       "rib-neckband",
     ]);
     for (const line of others) {
+      expect(line.notUsed).toBe(false);
       expect(line.name).toEqual(TBC);
       expect(line.details).toEqual(TBC);
       expect(line.quantity).toEqual(TBC);
@@ -130,7 +145,7 @@ describe("the component list, rib, thread, labels and trims", () => {
 
   it("groups them by kind and names the panels a rib is used on", () => {
     const others = buildComponents(start("crew-tee")).others;
-    expect(others.map((line) => line.kindLabel)).toEqual(["Thread", "Label", "Label", "Label", "Rib"]);
+    expect(others.map((line) => line.kindLabel)).toEqual(["Thread", "Label", "Label", "Label", "Trim", "Rib"]);
     expect(others.find((line) => line.slotId === "rib-neckband")?.panels.map((panel) => panel.label)).toEqual(["Neckband"]);
   });
 
@@ -171,5 +186,39 @@ describe("the component list, rib, thread, labels and trims", () => {
 
   it("gives every line a plain sentence that says what it is", () => {
     for (const line of buildComponents(start("polo")).others) expect(line.help.endsWith(".")).toBe(true);
+  });
+
+  it("says, in one sentence on a rib line, that the fabric is set in the fabric table and this line is for the rib itself", () => {
+    const rib = buildComponents(start("crew-tee")).others.find((line) => line.slotId === "rib-neckband");
+    expect(rib?.note).toBe(
+      "The fabric of this part is set in the fabric table above. This line is for the details of the rib itself.",
+    );
+    expect(buildComponents(start("crew-tee")).others.find((line) => line.slotId === "main-thread")?.note).toBeNull();
+  });
+
+  it("marks a part that only Knitwright proposes, until the user has described it or marked it not used", () => {
+    const tape = (spec: GarmentSpec) => buildComponents(spec).others.find((line) => line.slotId === "shoulder-tape");
+    expect(tape(start("crew-tee"))?.proposalNote).toEqual({
+      status: "set",
+      value: "Proposed by Knitwright. Not confirmed by anyone.",
+      provenance: "derived",
+      proposal: true,
+    });
+    const described = apply(start("crew-tee"), {
+      type: "set-component",
+      component: { id: "shoulder-tape", name: "Twill tape", details: "", quantity: "", provenance: "user-edited" },
+    });
+    expect(tape(described)?.proposalNote).toBeNull();
+    expect(buildComponents(start("crew-tee")).others.find((line) => line.slotId === "main-thread")?.proposalNote).toBeNull();
+  });
+
+  it("lets a brand mark a part as not used, which removes it from what is still to be confirmed", () => {
+    const spec = apply(start("crew-tee"), {
+      type: "set-component",
+      component: { id: "brand-label", name: "", details: "", quantity: "", notUsed: true, provenance: "user-edited" },
+    });
+    const line = buildComponents(spec).others.find((entry) => entry.slotId === "brand-label");
+    const notUsed = { status: "set", value: "Not used", provenance: "user-edited" };
+    expect(line).toMatchObject({ notUsed: true, name: notUsed, details: notUsed, quantity: notUsed });
   });
 });

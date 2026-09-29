@@ -5,6 +5,7 @@ export const revisions = (count: number): RevisionInput[] =>
   Array.from({ length: count }, (_, index) => ({
     version: index + 1,
     date: `${index + 1} Sep 2026`,
+    dateIso: `2026-09-0${index + 1}`,
     note: `Change ${index + 1}.`,
     by: index % 2 === 0 ? "Sam Test" : null,
   }));

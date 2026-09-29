@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createSettler } from "@/lib/projects/debounce";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import {
@@ -70,7 +72,7 @@ function FabricRow({ row }: Readonly<{ row: FabricFormRow }>) {
         title={`Fabric ${row.values.name}`}
         fields={fieldsFor(row.values)}
         submitLabel={`Save ${row.values.name}`}
-        build={(typed) => fabricAction(row.id, valuesFrom(typed), false)}
+        build={(typed) => fabricAction(row.id, valuesFrom(typed), row.values)}
         extra={remove}
       />
     </li>
@@ -97,15 +99,26 @@ function AddFabric() {
         fields={fieldsFor(NEW_FABRIC)}
         submitLabel="Add fabric"
         // Each fabric added gets an id of its own, chosen when the form is sent.
-        build={(typed) => fabricAction(crypto.randomUUID(), valuesFrom(typed), true)}
+        build={(typed) => fabricAction(crypto.randomUUID(), valuesFrom(typed), null)}
         clearAfterSave
       />
     </div>
   );
 }
 
+type Assignment = Readonly<{ panelId: string; fabricId: string }>;
+
+/**
+ * Which fabric a panel uses. It follows the rule of the choices in the editor: stepping through
+ * the list with the keys sends only the fabric the person settles on, and leaving it sends at once.
+ */
 function PanelFabric({ row }: Readonly<{ row: PanelFabricRow }>) {
   const edit = useTechPackEdit();
+  const key = `panel-fabric:${row.panelId}`;
+  const [settler] = useState(() =>
+    createSettler<Assignment>((name, pick) => edit.save(name, { type: "assign-fabric", ...pick })),
+  );
+  useEffect(() => () => settler.cancel(), [settler]);
   return (
     <li>
       <SelectField
@@ -113,13 +126,8 @@ function PanelFabric({ row }: Readonly<{ row: PanelFabricRow }>) {
         label={`Fabric for ${row.label}`}
         options={row.choices}
         defaultValue={row.fabricId}
-        onChange={(event) =>
-          edit.save(`panel-fabric:${row.panelId}`, {
-            type: "assign-fabric",
-            panelId: row.panelId,
-            fabricId: event.target.value,
-          })
-        }
+        onChange={(event) => settler.change(key, { panelId: row.panelId, fabricId: event.target.value })}
+        onBlur={() => settler.flush(key, false)}
       />
     </li>
   );

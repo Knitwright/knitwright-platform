@@ -1,5 +1,7 @@
 import {
+  COMPONENT_KIND_LABELS,
   LABELLING_FIELDS,
+  FABRIC_WEIGHT_MAX_GSM,
   LABELLING_LABELS,
   STRETCH_VALUES,
   componentSlotsFor,
@@ -15,6 +17,7 @@ import {
   type LabellingField,
   type SpecAction,
 } from "@/lib/garment";
+import { listOf } from "@/lib/techpack/text";
 
 /**
  * The logic of the forms on the tech pack page, as plain functions: what each form shows
@@ -28,7 +31,6 @@ export type FormResult<T = SpecAction> =
   | Readonly<{ ok: false; errors: FormErrors }>;
 
 const USER = "user-edited" as const;
-const MAX_GSM = 2000;
 const WEIGHT_TEXT = /^(\d+)(?:\s*gsm)?$/i;
 const WEIGHT_HELP = "Enter the weight as a whole number of grams per square metre, such as 180.";
 
@@ -51,9 +53,6 @@ export const STITCH_CLASS_CHOICES: readonly Choice[] = listStitchClasses().map((
   label: `${entry.name}, ISO ${entry.iso}`,
 }));
 
-const joinNames = (names: readonly string[]): string =>
-  names.length <= 1 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.slice(-1).join("")}`;
-
 /** Turns what the schema found wrong into one message for each field, using the last step of the path that names a field. */
 function errorsFrom(issues: readonly { path: PropertyKey[]; message: string }[], depth: number, rename: FormErrors = {}): FormErrors {
   const found: Record<string, string> = {};
@@ -65,8 +64,8 @@ function errorsFrom(issues: readonly { path: PropertyKey[]; message: string }[],
   return found;
 }
 
-/** Checks a change with the design contract's own rules. */
-function checked(action: SpecAction, depth: number, rename?: FormErrors): FormResult {
+/** Reads a change with the design contract's own rules. */
+function validated(action: unknown, depth: number, rename?: FormErrors): FormResult {
   const parsed = specActionSchema.safeParse(action);
   return parsed.success ? { ok: true, action: parsed.data } : { ok: false, errors: errorsFrom(parsed.error.issues, depth, rename) };
 }
@@ -136,28 +135,44 @@ function weightFrom(text: string): number | null | "bad" {
   return found ? Number(found[1]) : "bad";
 }
 
-/** The change for a fabric form. Saving replaces all of the fabric's details at once. */
-export function fabricAction(id: string, values: FabricValues, isNew: boolean): FormResult {
+type FabricFieldName = Exclude<keyof FabricValues, "weight">;
+const FABRIC_TEXT_FIELDS: readonly FabricFieldName[] = ["name", "composition", "construction", "finish", "consumption", "stretch"];
+
+/**
+ * The change for a fabric form. A new fabric is added with every field it was given. For a
+ * fabric that exists, only the fields that differ from what it holds are sent, so a field that
+ * was not touched keeps its source. Nothing is sent when nothing changed.
+ */
+export function fabricAction(id: string, values: FabricValues, current: FabricValues | null): FormAction {
   const weight = weightFrom(values.weight);
-  if (weight === "bad" || (weight !== null && (weight < 1 || weight > MAX_GSM))) {
-    return { ok: false, errors: { weight: weight === "bad" ? WEIGHT_HELP : `The weight must be between 1 and ${MAX_GSM}.` } };
+  if (weight === "bad" || (weight !== null && (weight < 1 || weight > FABRIC_WEIGHT_MAX_GSM))) {
+    return { ok: false, errors: { weight: weight === "bad" ? WEIGHT_HELP : `The weight must be between 1 and ${FABRIC_WEIGHT_MAX_GSM}.` } };
   }
   if (!(STRETCH_VALUES as readonly string[]).includes(values.stretch)) {
     return { ok: false, errors: { stretch: "Choose a stretch from the list." } };
   }
-  const fabric = {
-    id,
-    name: values.name,
-    composition: values.composition,
-    construction: values.construction,
-    weightGsm: weight,
-    finish: values.finish,
-    consumption: values.consumption,
-    stretch: values.stretch,
-    provenance: USER,
+  if (current === null) {
+    const fabric = { ...textOf(values), id, weightGsm: weight, provenance: USER };
+    return validated({ type: "add-fabric", fabric }, 1);
+  }
+  const changed = FABRIC_TEXT_FIELDS.filter((field) => values[field].trim() !== current[field]);
+  const weightChanged = weight !== weightFrom(current.weight);
+  const changes = {
+    ...Object.fromEntries(changed.map((field) => [field, values[field]])),
+    ...(weightChanged ? { weightGsm: weight } : {}),
   };
-  return checked({ type: isNew ? "add-fabric" : "update-fabric", fabric } as SpecAction, 1);
+  if (Object.keys(changes).length === 0) return { ok: true, action: null };
+  return validated({ type: "change-fabric", id, changes, provenance: USER }, 2);
 }
+
+const textOf = (values: FabricValues) => ({
+  name: values.name,
+  composition: values.composition,
+  construction: values.construction,
+  finish: values.finish,
+  consumption: values.consumption,
+  stretch: values.stretch,
+});
 
 // Components
 
@@ -165,7 +180,14 @@ export interface ComponentValues {
   readonly name: string;
   readonly details: string;
   readonly quantity: string;
+  /** "used", or "not-used" when the brand does not use this part. */
+  readonly used: string;
 }
+
+export const USED_CHOICES: readonly Choice[] = [
+  { id: "used", label: "Used" },
+  { id: "not-used", label: "Not used" },
+];
 
 export interface ComponentRow {
   readonly slotId: string;
@@ -176,17 +198,20 @@ export interface ComponentRow {
   readonly hasEntry: boolean;
 }
 
-const KIND_LABELS = { rib: "Rib", thread: "Thread", label: "Label", trim: "Trim" } as const;
-
 export function componentRows(spec: GarmentSpec): readonly ComponentRow[] {
   return componentSlotsFor(spec).map((slot) => {
     const entry = spec.components.find((candidate) => candidate.id === slot.id);
     return {
       slotId: slot.id,
       label: slot.label,
-      kindLabel: KIND_LABELS[slot.kind],
+      kindLabel: COMPONENT_KIND_LABELS[slot.kind],
       help: slot.help,
-      values: { name: entry?.name ?? "", details: entry?.details ?? "", quantity: entry?.quantity ?? "" },
+      values: {
+        name: entry?.name ?? "",
+        details: entry?.details ?? "",
+        quantity: entry?.quantity ?? "",
+        used: entry?.notUsed === true ? "not-used" : "used",
+      },
       hasEntry: entry !== undefined,
     };
   });
@@ -194,12 +219,20 @@ export function componentRows(spec: GarmentSpec): readonly ComponentRow[] {
 
 const isEmpty = (...texts: readonly string[]): boolean => texts.every((text) => text.trim() === "");
 
-/** The change for a component form. Every field emptied removes what was written. */
+/** The change for a component form. Every field emptied removes what was written. A part marked not used keeps no details. */
 export function componentAction(slotId: string, values: ComponentValues, hasEntry: boolean): FormAction {
+  if (!USED_CHOICES.some((choice) => choice.id === values.used)) {
+    return { ok: false, errors: { used: "Choose used or not used." } };
+  }
+  if (values.used === "not-used") {
+    const entry = { id: slotId, name: "", details: "", quantity: "", notUsed: true, provenance: USER };
+    return validated({ type: "set-component", component: entry }, 1);
+  }
   if (isEmpty(values.name, values.details, values.quantity)) {
     return { ok: true, action: hasEntry ? { type: "remove-component", id: slotId } : null };
   }
-  return checked({ type: "set-component", component: { id: slotId, ...values, provenance: USER } }, 1);
+  const { name, details, quantity } = values;
+  return validated({ type: "set-component", component: { id: slotId, name, details, quantity, provenance: USER } }, 1);
 }
 
 // Construction
@@ -227,7 +260,7 @@ export function seamRows(spec: GarmentSpec): readonly SeamRow[] {
     return {
       seamId: seam.id,
       label: seam.label,
-      panels: joinNames(seam.panels.map((panel) => panel.label)),
+      panels: listOf(seam.panels.map((panel) => panel.label)),
       proposal: { seamClass: seam.seamClass.name, stitchClass: seam.stitchClass.name },
       values: {
         seamClass: entry?.seamClass ?? "",
@@ -257,7 +290,7 @@ export function constructionAction(seamId: string, values: ConstructionValues, h
     stitchDensity: values.stitchDensity,
     provenance: USER,
   };
-  return checked({ type: "set-construction", entry }, 1);
+  return validated({ type: "set-construction", entry }, 1);
 }
 
 // Labels and packing
@@ -274,5 +307,5 @@ export const labellingRows = (spec: GarmentSpec): readonly LabellingFormRow[] =>
 /** The change for a labelling field. Emptied text clears a field that was set. */
 export function labellingAction(field: LabellingField, text: string, hasEntry: boolean): FormAction {
   if (text.trim() === "" && !hasEntry) return { ok: true, action: null };
-  return checked({ type: "set-labelling", field, text, provenance: USER }, 0, { text: "text" });
+  return validated({ type: "set-labelling", field, text, provenance: USER }, 0, { text: "text" });
 }

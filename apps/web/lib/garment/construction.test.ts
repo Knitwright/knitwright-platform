@@ -12,22 +12,36 @@ import { start } from "./fixtures/specs";
 import { checkCombination, listTypes, panelsFor } from "./index";
 import { TOPS } from "./registry/tops";
 
-const seamIds = (typeId: string, choices: Record<string, string> = {}): string[] => {
+const seamList = (typeId: string, choices: Record<string, string> = {}) => {
   const base = start(typeId);
   const options = Object.fromEntries(
     Object.entries(choices).map(([id, choiceId]) => [id, { choiceId, provenance: "user-edited" as const }]),
   );
-  return seamsFor({ typeId, options: { ...base.options, ...options } }).map((seam) => seam.id);
+  return seamsFor({ typeId, options: { ...base.options, ...options } });
 };
+const seamIds = (typeId: string, choices: Record<string, string> = {}): string[] =>
+  seamList(typeId, choices).map((seam) => seam.id);
 
 describe("stitch and seam classes", () => {
   it("names the ISO stitch types a factory reads, each with a plain explanation", () => {
     const stitches = listStitchClasses();
-    expect(stitches.map((stitch) => stitch.iso)).toEqual(["301", "401", "504", "514", "602", "605"]);
+    expect(stitches.map((stitch) => stitch.iso)).toEqual(["301", "401", "406", "504", "514", "602", "605"]);
     for (const stitch of stitches) {
       expect(stitch.name.length).toBeGreaterThan(3);
       expect(stitch.explanation.endsWith(".")).toBe(true);
     }
+  });
+
+  it("explains the cover stitch with the cover thread on top and the looper thread underneath", () => {
+    const text = stitchClassById("two-needle-cover-stitch")?.explanation ?? "";
+    expect(text).toMatch(/cover thread lies on top/);
+    expect(text).toMatch(/looper thread underneath/);
+  });
+
+  it("has the two needle bottom cover stitch, with its own explanation", () => {
+    const stitch = stitchClassById("two-needle-bottom-cover-stitch");
+    expect(stitch?.iso).toBe("406");
+    expect(stitch?.explanation).toMatch(/underside/);
   });
 
   it("names the ISO seam types, each with a plain explanation", () => {
@@ -45,7 +59,7 @@ describe("stitch and seam classes", () => {
 
   it("hands out copies, so a caller cannot change the catalogue", () => {
     (listStitchClasses() as unknown[]).length = 0;
-    expect(listStitchClasses()).toHaveLength(6);
+    expect(listStitchClasses()).toHaveLength(7);
   });
 });
 
@@ -91,7 +105,6 @@ describe("the seams of a top", () => {
     expect(polo).toContain("placket-seam");
     expect(polo).not.toContain("zip-seam");
     expect(polo).not.toContain("neckband-seam");
-    expect(seamIds("polo", { placket: "zip" })).toContain("zip-seam");
   });
 
   it("adds a seam for side vents", () => {
@@ -103,6 +116,28 @@ describe("the seams of a top", () => {
     const shoulder = seamsFor(start("crew-tee")).find((seam) => seam.id === "shoulder-seam");
     expect(shoulder?.label).toBe("Shoulder seam");
     expect(shoulder?.panels.map((panel) => panel.label)).toEqual(["Body front", "Body back"]);
+  });
+
+  it("proposes the two needle bottom cover stitch for both hems, the usual hem of a tee", () => {
+    const seams = seamsFor(start("crew-tee"));
+    expect(seams.find((seam) => seam.id === "body-hem")?.stitchClass.iso).toBe("406");
+    expect(seams.find((seam) => seam.id === "sleeve-hem")?.stitchClass.iso).toBe("406");
+  });
+
+  it("gives a V neck tee a mitre at the point of the V, and no other tee", () => {
+    expect(seamIds("v-neck-tee")).toContain("v-neck-mitre");
+    expect(seamIds("crew-tee")).not.toContain("v-neck-mitre");
+    expect(seamIds("polo")).not.toContain("v-neck-mitre");
+  });
+
+  it("gives a zip one seam, and a buttoned placket its own", () => {
+    const zipped = seamIds("polo", { placket: "zip" });
+    expect(zipped).toContain("zip-seam");
+    expect(zipped).not.toContain("placket-seam");
+    const zip = seamList("polo", { placket: "zip" }).find((seam) => seam.id === "zip-seam");
+    expect(zip?.panels.map((panel) => panel.id)).toEqual(["placket", "body-front"]);
+    expect(seamIds("polo")).toContain("placket-seam");
+    expect(seamIds("polo")).not.toContain("zip-seam");
   });
 
   it("proposes a seam class and a stitch class for each seam, from the registry rule", () => {
@@ -160,7 +195,14 @@ describe("the components a top implies", () => {
   };
 
   it("always implies thread and three labels", () => {
-    expect(slotIds("crew-tee")).toEqual(["main-thread", "brand-label", "care-label", "size-label", "rib-neckband"]);
+    expect(slotIds("crew-tee")).toEqual([
+      "main-thread",
+      "brand-label",
+      "care-label",
+      "size-label",
+      "shoulder-tape",
+      "rib-neckband",
+    ]);
   });
 
   it("implies buttons for a buttoned placket and a zip for a zipped one", () => {
@@ -168,6 +210,17 @@ describe("the components a top implies", () => {
     expect(slotIds("polo")).not.toContain("zip");
     expect(slotIds("polo", { placket: "zip" })).toContain("zip");
     expect(slotIds("polo", { placket: "zip" })).not.toContain("buttons");
+  });
+
+  it("implies buttonholes with buttons, and shoulder tape with a shoulder seam only", () => {
+    expect(slotIds("polo")).toContain("buttonholes");
+    expect(slotIds("polo", { placket: "zip" })).not.toContain("buttonholes");
+    expect(slotIds("team-jersey", { "sleeve-type": "raglan" })).not.toContain("shoulder-tape");
+  });
+
+  it("marks the parts that only Knitwright proposes, and no other", () => {
+    const proposed = componentSlotsFor(start("polo")).filter((slot) => slot.proposal).map((slot) => slot.id);
+    expect(proposed).toEqual(["shoulder-tape", "buttonholes"]);
   });
 
   it("implies rib for the neckband, the cuffs and the collar only where the design has them", () => {

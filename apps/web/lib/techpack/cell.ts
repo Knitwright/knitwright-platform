@@ -36,7 +36,23 @@ export interface ClassCell extends SetCell {
   /** The ISO 4915 stitch type or ISO 4916 seam class number. It names a kind and is not a quantity. */
   readonly iso: string;
   readonly explanation: string;
+  /** True when the platform proposed this and nobody has chosen or confirmed it. */
+  readonly proposal: boolean;
 }
+
+/** Says a thing is only proposed by the platform. It is a value, so it carries its source too. */
+export interface ProposalCell extends SetCell {
+  readonly proposal: true;
+}
+
+/** A cell that holds a number that is not a length: a weight or a turn. It keeps the number and its unit in words. */
+export interface NumberCell extends SetCell {
+  readonly number: number;
+  /** The unit in words, such as "grams per square metre". */
+  readonly unit: string;
+}
+
+export type NumberValue = NumberCell | TbcCell;
 
 export const TBC: TbcCell = Object.freeze({ status: "to-be-confirmed" });
 
@@ -45,3 +61,11 @@ export const textCell = (text: string, provenance: Provenance): Cell =>
   text.trim() === "" ? TBC : { status: "set", value: text.trim(), provenance };
 
 export const isSet = (cell: Cell): cell is SetCell => cell.status === "set";
+
+/** A cell for a number a person entered. Null is to be confirmed. `shortUnit` is what is printed after the number. */
+export const numberCell = (
+  number: number | null,
+  unit: string,
+  shortUnit: string,
+  provenance: Provenance,
+): NumberValue => (number === null ? TBC : { status: "set", value: `${number} ${shortUnit}`, provenance, number, unit });

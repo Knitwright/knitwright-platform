@@ -30,6 +30,48 @@ export type Measurement = z.output<typeof measurementSchema>;
 
 export const STRETCH_VALUES = ["not-set", "none", "two-way", "four-way"] as const;
 
+/** The fields of a fabric that a person describes. Each has its own source. */
+export const FABRIC_FIELDS = ["composition", "construction", "weightGsm", "finish", "consumption", "stretch"] as const;
+export type FabricField = (typeof FABRIC_FIELDS)[number];
+
+const fabricSourcesSchema = z
+  .strictObject({
+    composition: provenanceSchema.optional(),
+    construction: provenanceSchema.optional(),
+    weightGsm: provenanceSchema.optional(),
+    finish: provenanceSchema.optional(),
+    consumption: provenanceSchema.optional(),
+    stretch: provenanceSchema.optional(),
+  })
+  .readonly();
+export type FabricSources = z.output<typeof fabricSourcesSchema>;
+
+type FabricValues = {
+  readonly composition: string;
+  readonly construction: string;
+  readonly weightGsm: number | null;
+  readonly finish: string;
+  readonly consumption: string;
+  readonly stretch: (typeof STRETCH_VALUES)[number];
+};
+
+/** True when the person has described this field. A weight of null and a stretch of "not-set" mean not yet. */
+export function fabricFieldHasValue(fabric: FabricValues, field: FabricField): boolean {
+  if (field === "weightGsm") return fabric.weightGsm !== null;
+  if (field === "stretch") return fabric.stretch !== "not-set";
+  return fabric[field] !== "";
+}
+
+/** Each field that has a value has a source. One that was not given takes the fabric's own. Empty fields have none. */
+function withSources<T extends FabricValues & { readonly provenance: z.output<typeof provenanceSchema>; readonly sources?: FabricSources }>(
+  fabric: T,
+): T & { readonly sources: FabricSources } {
+  const sources = Object.fromEntries(
+    FABRIC_FIELDS.filter((field) => fabricFieldHasValue(fabric, field)).map((field) => [field, fabric.sources?.[field] ?? fabric.provenance]),
+  );
+  return { ...fabric, sources };
+}
+
 export const fabricSchema = z
   .object({
     id: localId,
@@ -42,9 +84,13 @@ export const fabricSchema = z
     /** How much fabric one garment uses, as free text with its unit. Empty until the user enters it. */
     consumption: freeText(QUANTITY_MAX_LENGTH).default(""),
     stretch: z.enum(STRETCH_VALUES),
-    /** Where this fabric's details came from. */
+    /** Where the name of this fabric came from, and the source of a field that is given none. */
     provenance: provenanceSchema,
+    /** Where each described field came from. A field with a value always has one after reading. */
+    sources: fabricSourcesSchema.optional(),
   })
+  .readonly()
+  .transform(withSources)
   .readonly();
 export type FabricSpec = z.output<typeof fabricSchema>;
 

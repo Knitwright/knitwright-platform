@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
 import { applyAction, type GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
-import { buildTechPackPage, printedDate } from "./tech-pack-data";
+import { buildTechPackPage, historyIsNewer, STALE_SENTENCE } from "./tech-pack-data";
 import type { OpenProject, VersionsPage } from "./service";
 
 const project = (spec: GarmentSpec, patch: Partial<OpenProject> = {}): OpenProject => ({
@@ -31,13 +31,8 @@ const history = (count: number): VersionsPage => ({
 });
 
 const page = (spec: GarmentSpec, more: Partial<Parameters<typeof buildTechPackPage>[0]> = {}) =>
-  buildTechPackPage({ project: project(spec), history: history(3), brandName: "Test Brand", images: new Map(), printedOn: "30 Sep 2026", ...more });
+  buildTechPackPage({ project: project(spec), history: history(3), brandName: "Test Brand", images: new Map(), now: new Date("2026-09-30T10:00:00Z"), ...more });
 
-describe("printedDate", () => {
-  it("writes the day the document was printed in words, in UTC", () => {
-    expect(printedDate(new Date("2026-09-30T23:30:00Z"))).toBe("30 Sep 2026");
-  });
-});
 
 describe("buildTechPackPage", () => {
   it("builds the document from the project, the brand and the history", () => {
@@ -50,6 +45,8 @@ describe("buildTechPackPage", () => {
     expect(data.pack.cover.version).toBe(3);
     expect(data.pack.cover.date).toBe("3 Sep 2026");
     expect(data.pack.printedOn).toBe("30 Sep 2026");
+    expect(data.pack.printedOnIso).toBe("2026-09-30");
+    expect(data.pack.cover.dateIso).toBe("2026-09-03");
   });
 
   it("lists the history newest first, with the dates in words and nobody recorded", () => {
@@ -118,5 +115,26 @@ describe("buildTechPackPage", () => {
   it("carries the note about pictures that could not be shown", () => {
     expect(page(start("crew-tee"), { picturesNote: "One picture is not shown." }).picturesNote).toBe("One picture is not shown.");
     expect(page(start("crew-tee")).picturesNote).toBeNull();
+  });
+
+  it("never lists a version newer than the design that was read, so the page shows no mix", () => {
+    const newer: VersionsPage = { versions: [{ version: 4, note: "Newer.", restoredFrom: null, createdAt: "2026-09-04T10:00:00Z" }, ...history(3).versions], hasMore: false };
+    const data = page(start("crew-tee"), { history: newer });
+    expect(data.pack.cover.revisions.map((entry) => entry.version)).toEqual([3, 2, 1]);
+    expect(data.pack.cover.version).toBe(3);
+  });
+
+  it("says so when the history is newer than the design that was read", () => {
+    const newer: VersionsPage = { versions: [{ version: 4, note: "Newer.", restoredFrom: null, createdAt: "2026-09-04T10:00:00Z" }, ...history(3).versions], hasMore: false };
+    expect(page(start("crew-tee"), { history: newer }).staleNote).toBe(STALE_SENTENCE);
+    expect(page(start("crew-tee")).staleNote).toBeNull();
+  });
+});
+
+describe("historyIsNewer", () => {
+  it("is true only when some saved version is newer than the design that was read", () => {
+    expect(historyIsNewer(project(start("crew-tee")), history(3))).toBe(false);
+    expect(historyIsNewer(project(start("crew-tee")), history(4))).toBe(true);
+    expect(historyIsNewer(project(start("crew-tee")), { versions: [], hasMore: false })).toBe(false);
   });
 });

@@ -25,8 +25,9 @@ export function buildTechPack(input: TechPackInput): TechPack {
   const pack = {
     title: "Tech pack",
     printedOn: input.printedOn,
+    printedOnIso: input.printedOnIso,
     cover: buildCover(input),
-    flats: buildFlatsSection(spec, input.flats),
+    flats: buildFlatsSection(spec, input.flats, charts),
     measurements,
     howToMeasure: buildHowToMeasure(spec),
     components: buildComponents(spec),
@@ -34,9 +35,9 @@ export function buildTechPack(input: TechPackInput): TechPack {
     colourways: buildColourways(spec),
     artwork: buildArtwork(spec),
     labelling: buildLabelling(spec),
-    suggested: buildSuggested(spec, charts, measurements),
     signOff: buildSignOff(),
   };
+  const suggested = buildSuggested(pack);
   const sections = [
     pack.cover,
     pack.flats,
@@ -47,8 +48,8 @@ export function buildTechPack(input: TechPackInput): TechPack {
     pack.colourways,
     pack.artwork,
     pack.labelling,
-    pack.suggested,
+    suggested,
     pack.signOff,
   ].map(head);
-  return { ...pack, sections };
+  return { ...pack, suggested, sections };
 }

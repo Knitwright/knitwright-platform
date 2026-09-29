@@ -3,6 +3,7 @@
 import {
   SEAM_CLASS_CHOICES,
   STITCH_CLASS_CHOICES,
+  USED_CHOICES,
   componentAction,
   constructionAction,
   labellingAction,
@@ -26,6 +27,7 @@ export function ComponentForms({ rows }: Readonly<{ rows: readonly ComponentRow[
             title={`Details for ${row.label}`}
             description={row.help}
             fields={[
+              { name: "used", label: `Is ${row.label.toLowerCase()} used`, value: row.values.used, choices: USED_CHOICES },
               { name: "name", label: `Name of ${row.label.toLowerCase()}`, value: row.values.name },
               { name: "details", label: `Details of ${row.label.toLowerCase()}`, value: row.values.details },
               {
@@ -39,7 +41,7 @@ export function ComponentForms({ rows }: Readonly<{ rows: readonly ComponentRow[
             build={(typed) =>
               componentAction(
                 row.slotId,
-                { name: typed.name ?? "", details: typed.details ?? "", quantity: typed.quantity ?? "" },
+                { name: typed.name ?? "", details: typed.details ?? "", quantity: typed.quantity ?? "", used: typed.used ?? "used" },
                 row.hasEntry,
               )
             }

@@ -9,6 +9,8 @@ export const REVISIONS_SHOWN = 8;
 export interface RevisionInput {
   readonly version: number;
   readonly date: string;
+  /** The same day as year, month and day, such as 2026-09-29, for a spreadsheet. */
+  readonly dateIso: string;
   readonly note: string;
   /** Who made the change, or null when it was not recorded. */
   readonly by: string | null;
@@ -28,8 +30,10 @@ export interface TechPackInput {
   /** The version of the design this document is made from, and the date it was saved. */
   readonly version: number;
   readonly versionDate: string;
+  readonly versionDateIso: string;
   /** The date to print on the document. */
   readonly printedOn: string;
+  readonly printedOnIso: string;
   /** The saved versions, in any order. The cover sorts them newest first. */
   readonly history: readonly RevisionInput[];
   readonly spec: GarmentSpec;

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { Notice } from "@/components/ui/Notice";
 import type { TechPackPageData } from "@/lib/projects/tech-pack-data";
-import { sectionLink } from "@/lib/projects/tech-pack-view";
+import { sectionHasForms, sectionLink, summaryTone } from "@/lib/projects/tech-pack-view";
 import { ComponentsView, ConstructionView } from "./ComponentViews";
 import { CoverView, FlatsView } from "./CoverAndFlats";
 import { ComponentForms, LabellingForms, SeamForms } from "./DetailForms";
 import { FabricForms } from "./FabricForms";
+import { FormOpener } from "./FormOpener";
 import { HowToMeasureView, MeasurementsView } from "./MeasurementViews";
 import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView } from "./OtherViews";
 
@@ -16,23 +17,25 @@ import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView 
 function ConfirmSummary({ data }: Readonly<{ data: TechPackPageData }>) {
   const { report } = data;
   return (
-    <Notice tone={report.total === 0 ? "ok" : "warn"}>
+    <Notice tone={summaryTone(report)}>
       <p className="font-medium" data-testid="confirm-count">
         {data.sentence}
       </p>
-      {report.suggested > 0 ? (
-        <p className="mt-1">
-          <a href={sectionLink("suggested")} className="underline underline-offset-4">
-            {report.suggested === 1 ? "1 value is a suggestion" : `${report.suggested} values are suggestions`}
-          </a>{" "}
-          that nobody has confirmed.
-        </p>
-      ) : null}
+      <p className="mt-1" data-testid="unconfirmed-counts">
+        <a href={sectionLink("suggested")} className="underline underline-offset-4">
+          {`${report.suggested} ${report.suggested === 1 ? "suggestion" : "suggestions"} and ${report.proposed} ${report.proposed === 1 ? "proposal" : "proposals"} by Knitwright`}
+        </a>
+        , not confirmed by anyone.
+      </p>
       {report.sections.length > 0 ? (
         <ul className="mt-2 flex flex-col gap-1" data-testid="confirm-list">
           {report.sections.map((section) => (
             <li key={section.id}>
-              <a href={sectionLink(section.id)} className="underline underline-offset-4">
+              <a
+                href={sectionLink(section.id)}
+                className="underline underline-offset-4"
+                {...(sectionHasForms(section.id) ? { "data-opens-forms": "true" } : {})}
+              >
                 {section.title}
               </a>
               : {section.items.length}
@@ -78,6 +81,8 @@ export function TechPackDocument({ data }: Readonly<{ data: TechPackPageData }>)
           Back to the design
         </Link>
       </header>
+      <FormOpener />
+      {data.staleNote ? <Notice tone="warn">{data.staleNote}</Notice> : null}
       <ConfirmSummary data={data} />
       <Contents data={data} />
       <CoverView cover={pack.cover} />
@@ -89,7 +94,7 @@ export function TechPackDocument({ data }: Readonly<{ data: TechPackPageData }>)
         forms={
           <div className="flex flex-col gap-6">
             <FabricForms fabrics={forms.fabrics} panels={forms.panels} />
-            <h3 className="text-sm font-semibold text-ink">Rib, thread, labels and trims</h3>
+            <h3 className="text-sm font-semibold text-ink">Describe rib, thread, labels and trims</h3>
             <ComponentForms rows={forms.components} />
           </div>
         }

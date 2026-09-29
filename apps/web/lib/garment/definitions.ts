@@ -195,6 +195,8 @@ export const componentSlotSchema = z
     appliesWhen: conditionsSchema,
     /** The panels it is used on, for display. May be empty. */
     panels: z.array(kebabId).readonly(),
+    /** True when Knitwright proposes this part from general practice, and nobody has confirmed it. */
+    proposal: z.boolean(),
   })
   .readonly();
 export type ComponentSlot = z.output<typeof componentSlotSchema>;

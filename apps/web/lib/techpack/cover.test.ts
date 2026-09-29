@@ -11,7 +11,9 @@ const base = (overrides: Partial<TechPackInput> = {}): TechPackInput => ({
   project: { name: "Club shirt", styleNumber: "CP-7", season: "SS27", brandName: "Test Brand" },
   version: 4,
   versionDate: "29 Sep 2026",
+  versionDateIso: "2026-09-29",
   printedOn: "30 Sep 2026",
+  printedOnIso: "2026-09-30",
   history: [],
   spec: start("polo", "men"),
   flats: { front: null, back: null },
@@ -46,6 +48,12 @@ describe("the cover", () => {
     const cover = buildCover(base());
     expect(cover.version).toBe(4);
     expect(cover.date).toBe("29 Sep 2026");
+  });
+
+  it("carries the date in the form a spreadsheet reads, beside the words", () => {
+    const cover = buildCover(base({ history: revisions(2) }));
+    expect(cover.dateIso).toBe("2026-09-29");
+    expect(cover.revisions[0]).toMatchObject({ date: "2 Sep 2026", dateIso: "2026-09-02" });
   });
 
   it("shows the base size and the size run of the design as typed by the user", () => {
@@ -87,10 +95,14 @@ describe("the cover", () => {
 });
 
 describe("the revision history", () => {
+  it("lists at most eight revisions", () => {
+    expect(REVISIONS_SHOWN).toBe(8);
+  });
+
   it("lists the newest first, with the date, the note and who made the change", () => {
     const cover = buildCover(base({ history: revisions(3) }));
     expect(cover.revisions.map((entry) => entry.version)).toEqual([3, 2, 1]);
-    expect(cover.revisions[0]).toEqual({ version: 3, date: "3 Sep 2026", note: "Change 3.", by: "Sam Test" });
+    expect(cover.revisions[0]).toEqual({ version: 3, date: "3 Sep 2026", dateIso: "2026-09-03", note: "Change 3.", by: "Sam Test" });
     expect(cover.olderRevisionsNote).toBeNull();
   });
 
@@ -117,6 +129,20 @@ describe("the revision history", () => {
     const cover = buildCover(base({ history: revisions(REVISIONS_SHOWN) }));
     expect(cover.revisions).toHaveLength(REVISIONS_SHOWN);
     expect(cover.olderRevisionsNote).toBeNull();
+  });
+
+  it("shows every revision when there is one fewer than the limit", () => {
+    const cover = buildCover(base({ history: revisions(REVISIONS_SHOWN - 1) }));
+    expect(cover.revisions).toHaveLength(REVISIONS_SHOWN - 1);
+    expect(cover.olderRevisionsNote).toBeNull();
+  });
+
+  it("shows the newest revisions when there is one more than the limit, and leaves out the oldest", () => {
+    const cover = buildCover(base({ history: revisions(REVISIONS_SHOWN + 1) }));
+    expect(cover.revisions.map((entry) => entry.version)).toEqual(
+      Array.from({ length: REVISIONS_SHOWN }, (_, index) => REVISIONS_SHOWN + 1 - index),
+    );
+    expect(cover.olderRevisionsNote).toBe("Older revisions are not shown.");
   });
 
   it("does not change the history it is given", () => {

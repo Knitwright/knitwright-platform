@@ -52,6 +52,44 @@ of them can read, and it must never say more than the design does.
 | The page shows every section, the count, a typed measurement and a fabric against its panels | `e2e/tech-pack.spec.ts` |
 | Coverage of `lib/techpack` is at least 90% | Threshold set in `vitest.config.mts` |
 
+## Review, 2026-09-29
+
+A reviewer found nothing critical and two high problems, both fixed. The page showed a green
+notice, "Nothing is left to confirm", while proposals were still unconfirmed. And the seam and
+stitch classes the platform proposes read like a specification and were not listed as
+unconfirmed.
+
+What changed in the fix pass:
+
+| Change | Test |
+|---|---|
+| The summary is only ever a warning or plain information. No tech pack code holds a tone or colour for "all good". | `lib/projects/tech-pack-view.test.ts` |
+| A class the platform proposes carries `proposal: true` and the words "Proposed by Knitwright. Not confirmed by anyone." in attention colours. Proposals are listed under their own heading and counted apart. A class the user chose is theirs, not a proposal. | `lib/techpack/construction.test.ts`, `lib/techpack/completeness.test.ts` |
+| The suggested page is one pass over every cell, so a suggestion cannot be left off it. | `lib/techpack/suggested.test.ts` |
+| Each fabric field carries its own source, as version 6 of the spec. Saving one field no longer marks the others as typed in by the user. A version 5 design is upgraded by copying the old source onto each field that has a value. | `lib/garment/fabric-sources.test.ts`, `lib/projects/browser-action.test.ts` |
+| A part can be marked "not used", which takes it out of the count of things to confirm. | `lib/techpack/components.test.ts` |
+| Artwork shows the name of its picture. The file id is kept for drawing and is not shown as a value. | `lib/techpack/plain-sections.test.ts` |
+| The scan for words such as "checked" reads every string in the page, the view models, the registry and the document. | `lib/techpack/wording.test.ts` |
+| Only versions up to the one read are listed, and the page reads again when the history is newer. | `lib/projects/tech-pack-data.test.ts` |
+| Weights, turns and dates carry a number or an ISO date beside their words, for step 9. | `lib/techpack/cover.test.ts` |
+
+Class 602 was explained the wrong way round and is corrected. Class 406 was added and is
+proposed for hems. **Nobody has checked any class number against ISO 4915 or ISO 4916.** Both
+question files say so at the top.
+
+## The browser tests
+
+Browser runs of step 8 failed in one to four tests out of 78, different ones each time, always
+a wait that ran out. Measured on the built app: a tech pack page loads in 250 to 400 ms and the
+app's own work for it is about 5 ms. A sign-in takes 2 to 8 seconds, because every test passes
+the real Cloudflare bot check, loaded from the internet. With six workers, six sign-ins at once
+ran past the wait of five seconds.
+
+The local run now uses four workers, waits of 15 seconds, and 60 seconds for a test. There are
+no retries locally. Six runs in a row passed, 80 tests each. The sign-in itself was not made
+faster, and the tests still depend on the network. A stand-in for the bot check in tests, or
+one sign-in shared by each worker, is the real cure and is owed.
+
 ## Alternatives
 
 - A plain string for every value, with the source in a second field. It lets a value exist
@@ -73,5 +111,7 @@ of them can read, and it must never say more than the design does.
   but no name is stored to show.
 - Only components the registry implies can be described. Extra items such as a swing tag are not
   supported yet.
-- The drawings show the first colourway.
+- The drawings show the first colourway, or the one named in the address (`?colourway=`). The
+  page has no control to choose it yet.
+- The upgrade from version 5 to 6 is proven by unit tests only. No stored design was opened.
 - Step 9 renders this document. It should call `allCells` to check every value before it writes.

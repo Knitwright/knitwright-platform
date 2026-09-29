@@ -19,6 +19,17 @@ Object.assign(process.env, env);
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
+  /*
+   * Four workers on a machine with twelve logical cores. Each test signs in through the real
+   * Cloudflare bot check (2 to 8 seconds alone), and the app, the database, the mail catcher and
+   * the browsers share the machine. With six workers the sign-ins slowed each other until waits
+   * of five seconds ran out. In CI the runner decides.
+   */
+  workers: process.env.CI ? undefined : 4,
+  /* A whole test may take a sign-in and several saves. */
+  timeout: 60_000,
+  /* One wait for text, a field or a redirect. A sign-in redirect can follow a bot check that is still finishing. */
+  expect: { timeout: 15_000 },
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",

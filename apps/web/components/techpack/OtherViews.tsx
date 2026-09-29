@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { sectionLink } from "@/lib/projects/tech-pack-view";
 import { PROVENANCE_LABELS } from "@/lib/garment";
+import { PROPOSAL_WORDS } from "@/lib/techpack/text";
 import type {
   ArtworkSection,
   ColourwaysSection,
@@ -90,10 +91,7 @@ export function ArtworkView({ section }: Readonly<{ section: ArtworkSection }>) 
                 {item.content.kind === "text" ? (
                   <CellText cell={item.content.text} />
                 ) : (
-                  <span className="inline-flex flex-col">
-                    <span className="text-xs text-muted">File</span>
-                    <CellText cell={item.content.reference} />
-                  </span>
+                  <CellText cell={item.content.description} />
                 )}
               </Cellular>
             </tr>
@@ -127,15 +125,32 @@ export function LabellingView({ section, forms }: LabellingProps) {
   );
 }
 
-export function SuggestedView({ section }: Readonly<{ section: SuggestedSection }>) {
+type SuggestedProps = Readonly<{ section: SuggestedSection }>;
+
+export function SuggestedView({ section }: SuggestedProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       {section.items.length > 0 ? (
         <ul className="flex flex-col gap-2">
-          {section.items.map((item) => (
-            <li key={`${item.sectionId}-${item.label}-${item.provenance}`} className="text-[15px] text-ink-2">
+          {section.items.map((item, index) => (
+            <li key={`suggestion-${index}`} className="text-[15px] text-ink-2">
               <span className="rounded-md bg-warn-wash px-2 py-0.5 text-warn">{PROVENANCE_LABELS[item.provenance]}</span>{" "}
               {item.label}. Found in{" "}
+              <a href={sectionLink(item.sectionId)} className="text-cobalt underline-offset-4 hover:underline">
+                {item.sectionTitle}
+              </a>
+              .
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <h3 className="text-sm font-semibold text-ink">Proposed by Knitwright</h3>
+      <p className="text-[15px] leading-relaxed text-muted">{section.proposalsNote}</p>
+      {section.proposals.length > 0 ? (
+        <ul className="flex flex-col gap-2">
+          {section.proposals.map((item, index) => (
+            <li key={`proposal-${index}`} className="text-[15px] text-ink-2">
+              <span className="rounded-md bg-warn-wash px-2 py-0.5 text-warn">{PROPOSAL_WORDS}</span> {item.label}. Found in{" "}
               <a href={sectionLink(item.sectionId)} className="text-cobalt underline-offset-4 hover:underline">
                 {item.sectionTitle}
               </a>

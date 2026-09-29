@@ -37,9 +37,10 @@ describe("buildTechPack", () => {
   });
 
   it("carries the title and the date to print as they were passed in", () => {
-    const pack = buildTechPack(inputFor(start("crew-tee"), { printedOn: "1 Jan 2030" }));
+    const pack = buildTechPack(inputFor(start("crew-tee"), { printedOn: "1 Jan 2030", printedOnIso: "2030-01-01" }));
     expect(pack.title).toBe("Tech pack");
     expect(pack.printedOn).toBe("1 Jan 2030");
+    expect(pack.printedOnIso).toBe("2030-01-01");
   });
 
   it("has a cover with the version and the date it was passed", () => {

@@ -7,6 +7,7 @@ import {
   measurementShape,
   sizingSchema,
 } from "./parts";
+import { fabricChangesSchema } from "./fabric-edit";
 import { freeText, kebabId, localId, wearerSchema } from "./primitives";
 import { provenanceSchema } from "./provenance";
 import { componentSchema, constructionEntrySchema, labellingFieldSchema } from "./tech-parts";
@@ -30,6 +31,13 @@ export const specActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("set-sizing"), sizing: sizingSchema.nullable() }),
   z.strictObject({ type: z.literal("add-fabric"), fabric: fabricSchema }),
   z.strictObject({ type: z.literal("update-fabric"), fabric: fabricSchema }),
+  z.strictObject({
+    type: z.literal("change-fabric"),
+    id: localId,
+    changes: fabricChangesSchema,
+    /** The source of the fields listed in `changes`, and of no others. */
+    provenance: provenanceSchema,
+  }),
   z.strictObject({ type: z.literal("remove-fabric"), id: localId }),
   z.strictObject({ type: z.literal("assign-fabric"), panelId: kebabId, fabricId: localId }),
   z.strictObject({ type: z.literal("add-colourway"), colourway: colourwaySchema }),

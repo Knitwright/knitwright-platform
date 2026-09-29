@@ -50,6 +50,7 @@ const family: FamilyData = {
       help: "The thread.",
       appliesWhen: [],
       panels: ["body-front"],
+      proposal: false,
     },
   ],
   types: [

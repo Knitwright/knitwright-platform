@@ -5,10 +5,32 @@ import { completenessReport, confirmSentence } from "./completeness";
 import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor } from "./fixtures/designs";
 
 describe("confirmSentence", () => {
-  it("says nothing is left, one thing, or how many things", () => {
-    expect(confirmSentence(0)).toBe("Nothing is left to confirm.");
-    expect(confirmSentence(1)).toBe("1 thing to confirm.");
-    expect(confirmSentence(12)).toBe("12 things to confirm.");
+  const report = (total: number, suggested = 0, proposed = 0) => ({ total, suggested, proposed });
+
+  it("says one thing, or how many things, while a field is empty", () => {
+    expect(confirmSentence(report(1))).toBe("1 thing to confirm.");
+    expect(confirmSentence(report(12, 3, 4))).toBe("12 things to confirm.");
+  });
+
+  it("never says that nothing is left when suggestions or proposals remain", () => {
+    expect(confirmSentence(report(0, 2, 0))).toBe(
+      "No empty fields. Suggestions and proposed stitching are still not confirmed by anyone.",
+    );
+    expect(confirmSentence(report(0, 0, 5))).toBe(
+      "No empty fields. Suggestions and proposed stitching are still not confirmed by anyone.",
+    );
+  });
+
+  it("says only that no field is empty when there is nothing else to confirm", () => {
+    expect(confirmSentence(report(0))).toBe("No empty fields.");
+  });
+
+  it("never says the design is confirmed, whatever the counts", () => {
+    for (const total of [0, 1, 5]) {
+      for (const other of [0, 3]) {
+        expect(confirmSentence(report(total, other, other))).not.toMatch(/nothing is left|all confirmed|complete/i);
+      }
+    }
   });
 });
 
@@ -16,11 +38,11 @@ describe("completenessReport", () => {
   const report = completenessReport(packFor(start("crew-tee")));
 
   it("counts what is still to be confirmed in a new crew tee, section by section", () => {
-    expect(report.total).toBe(38);
+    expect(report.total).toBe(39);
     expect(report.sections.map((section) => [section.id, section.items.length])).toEqual([
       ["cover", 4],
       ["measurements", 11],
-      ["components", 6],
+      ["components", 7],
       ["construction", 7],
       ["colourways", 5],
       ["labelling", 5],
@@ -91,6 +113,24 @@ describe("completenessReport", () => {
     if (!typed.ok) throw new Error(typed.reason);
     const item = completenessReport(packFor(typed.spec)).sections.find((section) => section.id === "measurements")?.items[0];
     expect(item?.detail).toBe("The value for sizes S and L, and the tolerance");
+  });
+
+  it("counts the proposals by the platform apart from the empty fields and the suggestions", () => {
+    expect(report.proposed).toBe(8);
+    expect(report.suggested).toBe(0);
+    const total = report.total;
+    const overridden = packFor(
+      (() => {
+        const result = applyAction(start("crew-tee"), {
+          type: "set-construction",
+          entry: { seamId: "body-hem", seamClass: "bound", stitchClass: "lockstitch", stitchDensity: "", provenance: "user-edited" },
+        });
+        if (!result.ok) throw new Error(result.reason);
+        return result.spec;
+      })(),
+    );
+    expect(completenessReport(overridden).proposed).toBe(7);
+    expect(completenessReport(overridden).total).toBe(total);
   });
 
   it("counts the values that are suggestions separately", () => {

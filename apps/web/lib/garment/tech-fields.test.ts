@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyAction } from "./apply-action";
 import { accepted, fabric, rejected, setOption, start } from "./fixtures/specs";
 import { migrateSpec, repairSpec } from "./repair";
-import { SPEC_SCHEMA_VERSION } from "./spec-schema";
+import { MAX_COMPONENTS, MAX_CONSTRUCTION, SPEC_SCHEMA_VERSION, garmentSpecStructureSchema } from "./spec-schema";
 import { validateSpec } from "./spec";
 
 const component = (id: string, patch: object = {}) => ({
@@ -28,8 +28,8 @@ const setConstruction = (seamId: string, patch: object = {}) => ({ type: "set-co
 const label = (field: string, text: string) => ({ type: "set-labelling", field, text, provenance: "user-edited" });
 
 describe("the design version", () => {
-  it("is version 5", () => {
-    expect(SPEC_SCHEMA_VERSION).toBe(5);
+  it("is version 6", () => {
+    expect(SPEC_SCHEMA_VERSION).toBe(6);
   });
 
   it("starts with no components, no construction overrides and no labelling", () => {
@@ -58,7 +58,7 @@ describe("migrating a version 4 design", () => {
   it("adds empty components, construction and labelling and an empty consumption for every fabric", () => {
     const result = migrateSpec(version4("polo"));
     if (!result.ok) throw new Error(result.reason);
-    expect(result.spec.schemaVersion).toBe(5);
+    expect(result.spec.schemaVersion).toBe(6);
     expect(result.spec.components).toEqual([]);
     expect(result.spec.construction).toEqual([]);
     expect(result.spec.labelling).toEqual({});
@@ -299,3 +299,47 @@ describe("validating a stored design", () => {
     expect(repaired.spec.components).toEqual([]);
   });
 });
+
+describe("limits", () => {
+  it("are the ones the design contract names: 24 components and 32 construction entries", () => {
+    expect(MAX_COMPONENTS).toBe(24);
+    expect(MAX_CONSTRUCTION).toBe(32);
+  });
+
+  it("accepts a quantity of exactly the longest length and refuses one character more", () => {
+    const at = (length: number) => applyAction(start("crew-tee"), setComponent("main-thread", { quantity: "x".repeat(length) }));
+    expect(at(60).ok).toBe(true);
+    expect(at(61).ok).toBe(false);
+  });
+
+  it("accepts a fabric consumption of exactly the longest length and refuses one character more", () => {
+    const at = (length: number) =>
+      applyAction(start("crew-tee"), { type: "change-fabric", id: "main", changes: { consumption: "x".repeat(length) }, provenance: "user-edited" });
+    expect(at(60).ok).toBe(true);
+    expect(at(61).ok).toBe(false);
+  });
+
+  it("accepts the most components and construction entries a design may hold, and refuses one more", () => {
+    const plain = JSON.parse(JSON.stringify(start("crew-tee"))) as Record<string, unknown>;
+    const many = (count: number) =>
+      Array.from({ length: count }, (_, index) => component(`slot-${index}`));
+    const entries = (count: number) => Array.from({ length: count }, (_, index) => entry(`seam-${index}`));
+    expect(garmentSpecStructureSchema.safeParse({ ...plain, components: many(MAX_COMPONENTS) }).success).toBe(true);
+    expect(garmentSpecStructureSchema.safeParse({ ...plain, components: many(MAX_COMPONENTS + 1) }).success).toBe(false);
+    expect(garmentSpecStructureSchema.safeParse({ ...plain, construction: entries(MAX_CONSTRUCTION) }).success).toBe(true);
+    expect(garmentSpecStructureSchema.safeParse({ ...plain, construction: entries(MAX_CONSTRUCTION + 1) }).success).toBe(false);
+  });
+
+  it("holds the source of each label field, so a suggestion stays a suggestion", () => {
+    const spec = accepted(applyAction(start("crew-tee"), { type: "set-labelling", field: "fold", text: "In three", provenance: "read-from-image" })).spec;
+    expect(spec.labelling.fold?.provenance).toBe("read-from-image");
+  });
+
+  it("marks a part as not used only with no details, and needs details otherwise", () => {
+    const notUsed = (patch: object) => applyAction(start("crew-tee"), setComponent("brand-label", { name: "", details: "", quantity: "", notUsed: true, ...patch }));
+    expect(notUsed({}).ok).toBe(true);
+    expect(notUsed({ name: "Woven" }).ok).toBe(false);
+    expect(applyAction(start("crew-tee"), setComponent("brand-label", { name: "", details: "", quantity: "" })).ok).toBe(false);
+  });
+});
+

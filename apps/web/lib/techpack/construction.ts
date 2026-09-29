@@ -1,5 +1,6 @@
 import { seamClassById, seamsFor, stitchClassById, type GarmentSpec, type Provenance } from "@/lib/garment";
 import { textCell, type ClassCell } from "./cell";
+import { PROPOSAL_WORDS } from "./text";
 import type { ConstructionSection, SeamLine } from "./types";
 import { SECTION_TITLES } from "./types";
 
@@ -7,10 +8,17 @@ const PROPOSAL =
   "The seam classes and stitch classes are a starting proposal from general knitwear practice. Ask your factory to confirm them.";
 const NO_SEAMS = "This garment type has no seams listed yet.";
 
-const classCell = (
-  named: { readonly name: string; readonly iso: string; readonly explanation: string },
-  provenance: Provenance,
-): ClassCell => ({ status: "set", value: named.name, provenance, iso: named.iso, explanation: named.explanation });
+type Named = { readonly name: string; readonly iso: string; readonly explanation: string };
+
+/** A class the user chose has their source. One that comes from the registry rule is a proposal. */
+const classCell = (named: Named, provenance: Provenance, proposal: boolean): ClassCell => ({
+  status: "set",
+  value: named.name,
+  provenance,
+  iso: named.iso,
+  explanation: named.explanation,
+  proposal,
+});
 
 /**
  * The construction section: for each seam of the garment, its seam class and stitch class. They
@@ -22,14 +30,17 @@ export function buildConstruction(spec: GarmentSpec): ConstructionSection {
     const entry = spec.construction.find((candidate) => candidate.seamId === seam.id);
     const seamOverride = entry?.seamClass === undefined ? undefined : seamClassById(entry.seamClass);
     const stitchOverride = entry?.stitchClass === undefined ? undefined : stitchClassById(entry.stitchClass);
+    const seamClass = seamOverride && entry ? classCell(seamOverride, entry.provenance, false) : classCell(seam.seamClass, "derived", true);
+    const stitchClass =
+      stitchOverride && entry ? classCell(stitchOverride, entry.provenance, false) : classCell(seam.stitchClass, "derived", true);
     return {
       seamId: seam.id,
       label: seam.label,
       panels: seam.panels,
-      seamClass: seamOverride && entry ? classCell(seamOverride, entry.provenance) : classCell(seam.seamClass, "derived"),
-      stitchClass:
-        stitchOverride && entry ? classCell(stitchOverride, entry.provenance) : classCell(seam.stitchClass, "derived"),
+      seamClass,
+      stitchClass,
       stitchDensity: entry ? textCell(entry.stitchDensity, entry.provenance) : textCell("", "user-edited"),
+      caveat: seamClass.proposal || stitchClass.proposal ? PROPOSAL_WORDS : null,
     };
   });
   return {

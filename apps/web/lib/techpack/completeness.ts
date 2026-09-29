@@ -1,7 +1,7 @@
 import type { Cell } from "./cell";
 import { listOf, sentenceCase } from "./text";
 import type { SectionId, TechPack } from "./types";
-import { SECTION_TITLES } from "./types";
+import { SECTION_IDS, SECTION_TITLES } from "./types";
 
 export interface ConfirmItem {
   readonly sectionId: SectionId;
@@ -23,14 +23,22 @@ export interface CompletenessReport {
   readonly total: number;
   /** Only the sections that have something to confirm. */
   readonly sections: readonly ConfirmSection[];
-  /** How many values are suggestions the brand has not confirmed. They are not counted in the total. */
+  /** How many things are suggestions that the brand has not confirmed. They are not counted in the total. */
   readonly suggested: number;
+  /** How many things the platform proposes and nobody has confirmed. They are not counted in the total. */
+  readonly proposed: number;
 }
 
-/** "Nothing is left to confirm.", "1 thing to confirm." or "12 things to confirm." */
-export function confirmSentence(total: number): string {
-  if (total === 0) return "Nothing is left to confirm.";
-  return total === 1 ? "1 thing to confirm." : `${total} things to confirm.`;
+/**
+ * One sentence for the top of the page. It counts empty fields only. It never says that
+ * nothing is left, because suggestions and proposals are still not confirmed by anyone.
+ */
+export function confirmSentence(report: Pick<CompletenessReport, "total" | "suggested" | "proposed">): string {
+  if (report.total === 1) return "1 thing to confirm.";
+  if (report.total > 1) return `${report.total} things to confirm.`;
+  return report.suggested + report.proposed === 0
+    ? "No empty fields."
+    : "No empty fields. Suggestions and proposed stitching are still not confirmed by anyone.";
 }
 
 const missing = (cell: Cell): boolean => cell.status !== "set";
@@ -131,9 +139,9 @@ export function completenessReport(pack: TechPack): CompletenessReport {
     ...colourwayItems(pack),
     ...labellingItems(pack),
   ];
-  const sections = (Object.keys(SECTION_TITLES) as SectionId[]).flatMap((id) => {
+  const sections = SECTION_IDS.flatMap((id) => {
     const items = found.filter((entry) => entry.sectionId === id);
     return items.length === 0 ? [] : [{ id, title: SECTION_TITLES[id], items }];
   });
-  return { total: found.length, sections, suggested: pack.suggested.items.length };
+  return { total: found.length, sections, suggested: pack.suggested.items.length, proposed: pack.suggested.proposals.length };
 }

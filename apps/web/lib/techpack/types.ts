@@ -1,8 +1,8 @@
 import type { ComponentKind, LabellingField, PointGroup, Provenance } from "@/lib/garment";
 import type { FlatModel, View } from "@/lib/flat/model";
-import type { Cell, ClassCell, LengthValue, TbcCell } from "./cell";
+import type { Cell, ClassCell, LengthValue, NumberValue, ProposalCell, TbcCell } from "./cell";
 
-export type { Cell, ClassCell, LengthCell, LengthValue, SetCell, TbcCell } from "./cell";
+export type { Cell, ClassCell, LengthCell, LengthValue, NumberCell, NumberValue, ProposalCell, SetCell, TbcCell } from "./cell";
 
 /**
  * The tech pack document: plain data that the screen, the PDF, the Excel file and the SVG
@@ -50,6 +50,7 @@ export interface SectionHead {
 export interface Revision {
   readonly version: number;
   readonly date: string;
+  readonly dateIso: string;
   readonly note: string;
   readonly by: string;
 }
@@ -63,6 +64,7 @@ export interface CoverSection extends SectionHead {
   readonly wearer: Cell;
   readonly version: number;
   readonly date: string;
+  readonly dateIso: string;
   readonly baseSize: Cell;
   readonly sizeRun: Cell;
   /** Each option of the design and the choice made, with who chose it. */
@@ -150,7 +152,7 @@ export interface FabricLine {
   readonly name: Cell;
   readonly composition: Cell;
   readonly construction: Cell;
-  readonly weight: Cell;
+  readonly weight: NumberValue;
   readonly finish: Cell;
   readonly stretch: Cell;
   readonly consumption: Cell;
@@ -163,7 +165,13 @@ export interface ComponentLine {
   readonly kind: ComponentKind;
   readonly kindLabel: string;
   readonly help: string;
+  /** A sentence to read with the line, or null. A rib line says where its fabric is set. */
+  readonly note: string | null;
   readonly panels: readonly PanelName[];
+  /** True when the brand says this part is not used. */
+  readonly notUsed: boolean;
+  /** Says the platform proposes this part and nobody has confirmed it, or null. */
+  readonly proposalNote: ProposalCell | null;
   readonly name: Cell;
   readonly details: Cell;
   readonly quantity: Cell;
@@ -181,6 +189,8 @@ export interface SeamLine {
   readonly seamClass: ClassCell;
   readonly stitchClass: ClassCell;
   readonly stitchDensity: Cell;
+  /** "Proposed by Knitwright. Not confirmed by anyone." while a class is a proposal, else null. It travels with the row. */
+  readonly caveat: string | null;
 }
 
 export interface ConstructionSection extends SectionHead {
@@ -207,7 +217,13 @@ export interface ColourwaysSection extends SectionHead {
 }
 
 export type ArtworkContent =
-  | { readonly kind: "file"; readonly reference: Cell }
+  | {
+      readonly kind: "file";
+      /** The stored file, as a key for step 9 to draw the picture. It is never printed as a value. */
+      readonly fileId: string;
+      /** What is printed for the picture: its name. */
+      readonly description: Cell;
+    }
   | { readonly kind: "text"; readonly text: Cell };
 
 export interface ArtworkItem {
@@ -219,7 +235,7 @@ export interface ArtworkItem {
   readonly down: LengthValue;
   readonly width: LengthValue;
   readonly height: LengthValue;
-  readonly rotation: Cell;
+  readonly rotation: NumberValue;
   readonly technique: Cell;
   readonly content: ArtworkContent;
 }
@@ -244,10 +260,16 @@ export interface SuggestedItem {
   readonly sectionTitle: string;
   readonly label: string;
   readonly provenance: Provenance;
+  /** How many cells of the document this item stands for. */
+  readonly cells: number;
 }
 
 export interface SuggestedSection extends SectionHead {
+  /** Values whose source is a suggestion from a chart, the assistant or a picture. */
   readonly items: readonly SuggestedItem[];
+  /** Seam classes, stitch classes and parts that the platform proposes and nobody has confirmed. */
+  readonly proposals: readonly SuggestedItem[];
+  readonly proposalsNote: string;
 }
 
 /**
@@ -264,6 +286,7 @@ export interface TechPack {
   readonly title: string;
   /** The date this copy was printed, as passed in. */
   readonly printedOn: string;
+  readonly printedOnIso: string;
   /** Every section in reading order, for a contents list. */
   readonly sections: readonly SectionHead[];
   readonly cover: CoverSection;

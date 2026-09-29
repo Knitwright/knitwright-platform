@@ -17,7 +17,9 @@ const input = (spec: GarmentSpec): TechPackInput => ({
   project: { name: "Club shirt", styleNumber: "A", season: "B", brandName: "C" },
   version: 1,
   versionDate: "1 Jan 2030",
+  versionDateIso: "2030-01-01",
   printedOn: "2 Jan 2030",
+  printedOnIso: "2030-01-02",
   history: [],
   spec,
   flats: { front: null, back: null },
@@ -111,7 +113,7 @@ describe("withCalloutCodes", () => {
         },
       ],
     } as unknown as FlatModel;
-    const coded = withCalloutCodes(model, [{ pointId: "chest-width", code: "A", label: "Chest width" }]);
+    const coded = withCalloutCodes(model, [{ pointId: "chest-width", code: "A", label: "Chest width" }], new Map([["chest-width", 100]]));
     expect(coded).toEqual(model);
   });
 
@@ -125,7 +127,7 @@ describe("withCalloutCodes", () => {
         },
       ],
     } as unknown as FlatModel;
-    const coded = withCalloutCodes(model, [{ pointId: "chest-width", code: "A", label: "Chest width" }]);
+    const coded = withCalloutCodes(model, [{ pointId: "chest-width", code: "A", label: "Chest width" }], new Map());
     expect(coded.layers[0]?.elements[0]).toMatchObject({ name: "A line" });
   });
 });

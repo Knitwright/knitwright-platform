@@ -48,6 +48,9 @@ export {
 } from "./definitions";
 export {
   EMPTY_FABRIC_DETAILS,
+  FABRIC_FIELDS,
+  FABRIC_WEIGHT_MAX_GSM,
+  fabricFieldHasValue,
   STRETCH_VALUES,
   SWATCH_PATTERN,
   TECHNIQUES,
@@ -60,6 +63,8 @@ export {
   sizingSchema,
   type Artwork,
   type Colourway,
+  type FabricField,
+  type FabricSources,
   type FabricSpec,
   type Measurement,
   type OptionChoice,
@@ -68,7 +73,9 @@ export {
   type Sizing,
 } from "./parts";
 export { fabricFor } from "./fabric";
+export { fabricChangesSchema, type FabricChanges } from "./fabric-edit";
 export {
+  COMPONENT_KIND_LABELS,
   LABELLING_FIELDS,
   LABELLING_LABELS,
   componentSchema,

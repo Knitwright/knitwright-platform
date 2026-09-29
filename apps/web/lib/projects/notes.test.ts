@@ -16,7 +16,7 @@ const fabric = (id: string, name: string) => ({
   finish: "",
   consumption: "",
   stretch: "not-set",
-  provenance: "user-edited",
+  provenance: "user-edited", sources: {}
 });
 
 const colourway = (id: string, name: string) => ({ id, name, colours: [] });

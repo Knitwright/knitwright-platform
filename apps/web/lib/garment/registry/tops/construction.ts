@@ -46,11 +46,11 @@ export const TOPS_SEAMS: readonly SeamDefinition[] = [
   seam("side-panel-seam", "Side panel seam", [...BODY, "side-panels"], "superimposed", "four-thread-overedge", {
     appliesWhen: [when("side-panels", ["contrast-insert"])],
   }),
-  seam("sleeve-hem", "Sleeve hem", SLEEVES, "edge-finishing", "two-needle-cover-stitch", { unlessWhen: RIB_CUFFS }),
+  seam("sleeve-hem", "Sleeve hem", SLEEVES, "edge-finishing", "two-needle-bottom-cover-stitch", { unlessWhen: RIB_CUFFS }),
   seam("cuff-seam", "Cuff seam", [...SLEEVES, "cuffs"], "superimposed", "four-thread-overedge", {
     appliesWhen: RIB_CUFFS,
   }),
-  seam("body-hem", "Body hem", BODY, "edge-finishing", "two-needle-cover-stitch"),
+  seam("body-hem", "Body hem", BODY, "edge-finishing", "two-needle-bottom-cover-stitch"),
   seam("side-vent-seam", "Side vent finish", BODY, "edge-finishing", "lockstitch", {
     appliesWhen: [when("hem-shape", ["side-vent"])],
   }),
@@ -61,9 +61,14 @@ export const TOPS_SEAMS: readonly SeamDefinition[] = [
     appliesWhen: [when("collar", ["polo-collar", "band-collar"])],
   }),
   seam("placket-seam", "Placket seam", ["placket", "body-front"], "lapped", "lockstitch", {
-    appliesWhen: [when("placket", ["buttons", "zip"])],
+    appliesWhen: [when("placket", ["buttons"])],
   }),
-  seam("zip-seam", "Zip seam", ["placket"], "lapped", "lockstitch", { appliesWhen: [when("placket", ["zip"])] }),
+  seam("zip-seam", "Zip seam", ["placket", "body-front"], "lapped", "lockstitch", {
+    appliesWhen: [when("placket", ["zip"])],
+  }),
+  seam("v-neck-mitre", "V neck point (mitre)", ["neckband", "body-front"], "superimposed", "lockstitch", {
+    appliesWhen: [when("neckline", ["v-neck"]), when("collar", ["none"])],
+  }),
 ];
 
 const slot = (
@@ -73,17 +78,36 @@ const slot = (
   help: string,
   appliesWhen: readonly Condition[] = [],
   panels: readonly string[] = [],
-): ComponentSlot => ({ id, label, kind, help, appliesWhen, panels });
+  proposal = false,
+): ComponentSlot => ({ id, label, kind, help, appliesWhen, panels, proposal });
 
 /** What a top implies beyond its fabric. The user describes each one. Nothing here has a quantity. */
 export const TOPS_COMPONENTS: readonly ComponentSlot[] = [
-  slot("main-thread", "Main thread", "thread", "The thread used to sew the garment. Give its type, colour and brand if you know them."),
-  slot("brand-label", "Brand label", "label", "The label that carries your brand name, usually sewn in at the back of the neck."),
-  slot("care-label", "Care label", "label", "The label that tells the wearer how to wash the garment."),
-  slot("size-label", "Size label", "label", "The label that shows the size."),
+  slot("main-thread", "Main thread", "thread", "The thread used to sew the garment, if used. Give its type, colour and brand if you know them."),
+  slot("brand-label", "Brand label", "label", "The label that carries your brand name, usually sewn in at the back of the neck, if used."),
+  slot("care-label", "Care label", "label", "The label that tells the wearer how to wash the garment, if used."),
+  slot("size-label", "Size label", "label", "The label that shows the size, if used."),
+  slot(
+    "shoulder-tape",
+    "Shoulder tape",
+    "trim",
+    "A narrow tape sewn along the shoulder seam to stop it stretching, if used. Knitwright proposes it from general practice.",
+    SET_IN,
+    ["body-front", "body-back"],
+    true,
+  ),
   slot("rib-neckband", "Neckband rib", "rib", "The stretchy ribbed fabric that finishes the neck opening.", [when("collar", ["none"])], ["neckband"]),
   slot("rib-cuffs", "Cuff rib", "rib", "The stretchy ribbed fabric used for the cuffs.", RIB_CUFFS, ["cuffs"]),
   slot("rib-collar", "Collar rib", "rib", "The ribbed or knitted fabric used for the collar, if it is not the main fabric.", [when("collar", ["polo-collar", "band-collar"])], ["collar"]),
   slot("buttons", "Buttons", "trim", "The buttons that fasten the placket. Give their size, material and how many.", [when("placket", ["buttons"])], ["placket"]),
+  slot(
+    "buttonholes",
+    "Buttonholes",
+    "trim",
+    "The buttonholes that go with the buttons, if used. Knitwright proposes them from general practice.",
+    [when("placket", ["buttons"])],
+    ["placket"],
+    true,
+  ),
   slot("zip", "Zip", "trim", "The zip that fastens the placket. Give its type, length and colour.", [when("placket", ["zip"])], ["placket"]),
 ];

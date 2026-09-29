@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TBC, TO_BE_CONFIRMED, isSet, textCell } from "./cell";
+import { TBC, TO_BE_CONFIRMED, isSet, numberCell, textCell } from "./cell";
 
 describe("cells", () => {
   it("says to be confirmed in the words a factory reads", () => {
@@ -27,5 +27,19 @@ describe("cells", () => {
   it("tells a set cell from a missing one", () => {
     expect(isSet(textCell("Navy", "user-edited"))).toBe(true);
     expect(isSet(TBC)).toBe(false);
+  });
+
+  it("holds a number beside its words and its unit, so a spreadsheet can write the number", () => {
+    expect(numberCell(180, "grams per square metre", "gsm", "user-edited")).toEqual({
+      status: "set",
+      value: "180 gsm",
+      provenance: "user-edited",
+      number: 180,
+      unit: "grams per square metre",
+    });
+  });
+
+  it("gives to be confirmed for a number nobody entered, never a zero", () => {
+    expect(numberCell(null, "degrees", "degrees", "user-edited")).toBe(TBC);
   });
 });

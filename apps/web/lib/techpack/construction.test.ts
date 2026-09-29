@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyAction, seamsFor, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
 import { buildConstruction } from "./construction";
+import { PROPOSAL_WORDS } from "./text";
 
 const apply = (spec: GarmentSpec, action: SpecAction): GarmentSpec => {
   const result = applyAction(spec, action);
@@ -33,12 +34,14 @@ describe("the construction section", () => {
       value: "Superimposed seam",
       iso: "1",
       provenance: "derived",
+      proposal: true,
     });
     expect(shoulder.stitchClass).toMatchObject({
       status: "set",
       value: "Four thread overedge",
       iso: "514",
       provenance: "derived",
+      proposal: true,
     });
     expect(shoulder.stitchClass.explanation.endsWith(".")).toBe(true);
     expect(shoulder.seamClass.explanation.endsWith(".")).toBe(true);
@@ -66,8 +69,8 @@ describe("the construction section", () => {
       },
     });
     const hem = seam(spec, "body-hem");
-    expect(hem.seamClass).toMatchObject({ value: "Bound seam", iso: "3", provenance: "user-edited" });
-    expect(hem.stitchClass).toMatchObject({ value: "Three needle cover stitch", iso: "605", provenance: "user-edited" });
+    expect(hem.seamClass).toMatchObject({ value: "Bound seam", iso: "3", provenance: "user-edited", proposal: false });
+    expect(hem.stitchClass).toMatchObject({ value: "Three needle cover stitch", iso: "605", provenance: "user-edited", proposal: false });
     expect(hem.stitchDensity).toEqual({ status: "set", value: "Dense", provenance: "user-edited" });
   });
 
@@ -78,7 +81,7 @@ describe("the construction section", () => {
     });
     const hem = seam(spec, "body-hem");
     expect(hem.seamClass).toMatchObject({ iso: "6", provenance: "derived" });
-    expect(hem.stitchClass).toMatchObject({ iso: "602", provenance: "derived" });
+    expect(hem.stitchClass).toMatchObject({ iso: "406", provenance: "derived", proposal: true });
     expect(hem.stitchDensity).toMatchObject({ provenance: "user-edited" });
   });
 
@@ -89,6 +92,49 @@ describe("the construction section", () => {
       construction: [{ seamId: "body-hem", seamClass: "gone", stitchDensity: "", provenance: "user-edited" as const }],
     };
     expect(seam(stale, "body-hem").seamClass).toMatchObject({ iso: "6", provenance: "derived" });
+  });
+
+  it("gives the stitch density the source of the entry, and to be confirmed when it is empty", () => {
+    const spec = apply(start("crew-tee"), {
+      type: "set-construction",
+      entry: { seamId: "body-hem", stitchDensity: "Dense", provenance: "read-from-image" },
+    });
+    expect(seam(spec, "body-hem").stitchDensity).toEqual({ status: "set", value: "Dense", provenance: "read-from-image" });
+    const empty = apply(start("crew-tee"), {
+      type: "set-construction",
+      entry: { seamId: "body-hem", seamClass: "bound", stitchDensity: "", provenance: "user-edited" },
+    });
+    expect(seam(empty, "body-hem").stitchDensity).toEqual({ status: "to-be-confirmed" });
+  });
+
+  it("puts the words that say it is only a proposal on every row that holds one", () => {
+    for (const seam of buildConstruction(start("crew-tee")).seams) {
+      expect(seam.caveat).toBe(PROPOSAL_WORDS);
+      expect(seam.seamClass.proposal && seam.stitchClass.proposal).toBe(true);
+    }
+    expect(PROPOSAL_WORDS).toBe("Proposed by Knitwright. Not confirmed by anyone.");
+  });
+
+  it("keeps the words on a row while one of its two classes is still a proposal, and drops them when both were chosen", () => {
+    const one = apply(start("crew-tee"), {
+      type: "set-construction",
+      entry: { seamId: "body-hem", seamClass: "bound", stitchDensity: "", provenance: "user-edited" },
+    });
+    expect(seam(one, "body-hem").caveat).toBe(PROPOSAL_WORDS);
+    const both = apply(start("crew-tee"), {
+      type: "set-construction",
+      entry: { seamId: "body-hem", seamClass: "bound", stitchClass: "lockstitch", stitchDensity: "", provenance: "user-edited" },
+    });
+    expect(seam(both, "body-hem").caveat).toBeNull();
+    expect(seam(both, "body-hem").seamClass.proposal).toBe(false);
+  });
+
+  it("does not call a class a proposal when the user chose the same class the registry proposes", () => {
+    const spec = apply(start("crew-tee"), {
+      type: "set-construction",
+      entry: { seamId: "body-hem", seamClass: "edge-finishing", stitchClass: "two-needle-bottom-cover-stitch", stitchDensity: "", provenance: "user-edited" },
+    });
+    expect(seam(spec, "body-hem").seamClass).toMatchObject({ provenance: "user-edited", proposal: false });
   });
 
   it("gives no seams for an unknown type, and says so", () => {

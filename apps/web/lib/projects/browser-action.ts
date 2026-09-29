@@ -22,7 +22,7 @@ const strip = (value: unknown): unknown => {
   if (!isPlain(value)) return value;
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => key !== "provenance")
+      .filter(([key]) => key !== "provenance" && key !== "sources")
       .map(([key, inner]) => [key, strip(inner)]),
   );
 };
@@ -47,6 +47,8 @@ export const stampUserEdited = (raw: unknown): unknown => {
       return { ...action, component: stamped(action.component) };
     case "set-construction":
       return { ...action, entry: stamped(action.entry) };
+    case "change-fabric":
+      return stamped(action);
     case "add-fabric":
     case "update-fabric":
       return { ...action, fabric: stamped(action.fabric) };
@@ -72,5 +74,8 @@ export const holdsBrokenText = (value: unknown): boolean => {
 
 export const browserActionSchema = z.preprocess(
   stampUserEdited,
-  specActionSchema.refine((action) => !holdsBrokenText(action), { message: "Remove characters that cannot be shown." }),
+  specActionSchema
+    .refine((action) => !holdsBrokenText(action), { message: "Remove characters that cannot be shown." })
+    // A whole-fabric replacement would give one source to every field. A browser lists the fields it changed.
+    .refine((action) => action.type !== "update-fabric", { message: "Change the fields of a fabric one at a time." }),
 );

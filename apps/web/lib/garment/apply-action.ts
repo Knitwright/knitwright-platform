@@ -1,6 +1,7 @@
 import { specActionSchema, type SpecAction } from "./action-schema";
 import type { Dropped } from "./dropped";
 import { fabricChanges } from "./fabric-changes";
+import { changeFabric } from "./fabric-edit";
 import { panelName } from "./labels";
 import { nonEmpty } from "./non-empty";
 import { reconcile, retype } from "./reconcile";
@@ -128,6 +129,8 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return fabricList(spec, { kind: "add", item: action.fabric });
     case "update-fabric":
       return fabricList(spec, { kind: "update", item: action.fabric });
+    case "change-fabric":
+      return changeFabric(spec, action.id, action.changes, action.provenance);
     case "remove-fabric":
       return removeFabric(spec, action.id);
     case "assign-fabric":

@@ -4,7 +4,7 @@ import type { SeamClass, StitchClass } from "../definitions";
  * The kinds of stitch (ISO 4915) and of seam (ISO 4916) that garments in this registry use.
  * The numbers are names of kinds, which a factory reads. They are not quantities, and they
  * are the only numbers the registry may hold. Every explanation is a plain draft for a
- * factory to confirm. See OWNER-QUESTIONS.md.
+ * factory to confirm. They were written from memory and not checked against ISO 4915 and ISO 4916. See OWNER-QUESTIONS.md.
  */
 export const STITCH_CLASSES: readonly StitchClass[] = [
   {
@@ -20,6 +20,13 @@ export const STITCH_CLASSES: readonly StitchClass[] = [
     name: "Double chain stitch",
     explanation:
       "A stitch made with one needle thread and one looper thread, which forms a chain on the underside. It stretches more than a lockstitch.",
+  },
+  {
+    id: "two-needle-bottom-cover-stitch",
+    iso: "406",
+    name: "Two needle bottom cover stitch",
+    explanation:
+      "A stretchy stitch with two parallel lines of needle thread on top and a covering thread on the underside. It is the usual hem stitch of a knitted tee.",
   },
   {
     id: "three-thread-overedge",
@@ -40,7 +47,7 @@ export const STITCH_CLASSES: readonly StitchClass[] = [
     iso: "602",
     name: "Two needle cover stitch",
     explanation:
-      "A stretchy stitch with two parallel lines on top and a covering thread underneath. It is often used on hems and necklines of knitted fabric.",
+      "A stretchy stitch with two parallel lines of needle thread on top. The cover thread lies on top and the looper thread underneath. It is often used on hems and necklines of knitted fabric.",
   },
   {
     id: "three-needle-cover-stitch",
