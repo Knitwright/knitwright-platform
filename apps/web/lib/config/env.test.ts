@@ -87,6 +87,29 @@ describe("parseEnv", () => {
     );
   });
 
+  it("gives every usage allowance and the safety ceiling a default", () => {
+    const env = parseEnv(valid);
+    expect(env.USAGE_USER_DAILY_AI).toBeGreaterThan(0);
+    expect(env.USAGE_BRAND_DAILY_AI).toBeGreaterThanOrEqual(env.USAGE_USER_DAILY_AI);
+    expect(env.USAGE_USER_DAILY_PHOTOREAL).toBeGreaterThan(0);
+    expect(env.USAGE_BRAND_DAILY_PHOTOREAL).toBeGreaterThanOrEqual(
+      env.USAGE_USER_DAILY_PHOTOREAL,
+    );
+    expect(env.USAGE_GLOBAL_DAILY_CEILING).toBeGreaterThan(env.USAGE_BRAND_DAILY_PHOTOREAL);
+  });
+
+  it("lets the owner set an allowance or the ceiling, in microdollars", () => {
+    const env = parseEnv({ ...valid, USAGE_GLOBAL_DAILY_CEILING: "50000000" });
+    expect(env.USAGE_GLOBAL_DAILY_CEILING).toBe(50_000_000);
+    expect(parseEnv({ ...valid, USAGE_USER_DAILY_AI: "0" }).USAGE_USER_DAILY_AI).toBe(0);
+  });
+
+  it.each(["-1", "1.5", "lots"])("rejects an allowance of %s", (value) => {
+    expect(() => parseEnv({ ...valid, USAGE_BRAND_DAILY_AI: value })).toThrow(
+      /USAGE_BRAND_DAILY_AI is not valid/,
+    );
+  });
+
   it("rejects a header name that could not be a header", () => {
     expect(() => parseEnv({ ...valid, CLIENT_ADDRESS_HEADER: "x real ip" })).toThrow(
       /CLIENT_ADDRESS_HEADER is not valid/,

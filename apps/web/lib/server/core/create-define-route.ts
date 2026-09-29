@@ -7,9 +7,11 @@ import {
   invalidInput,
   type Auth,
   type GuardDeps,
+  type MemberSession,
   type RateLimitRule,
   type SessionFor,
 } from "./guard";
+import { costOf, runMetered, type RouteCost } from "./metered";
 import { readForm, readJson, type BodyRead } from "./request-body";
 
 const DEFAULT_MAX_BODY_BYTES = 1_000_000;
@@ -34,6 +36,12 @@ export type RouteConfig<A extends Auth, S extends RouteSchemas, T> = Readonly<{
   schema: S;
   /** Largest body or form accepted, in bytes. */
   maxBodyBytes?: number;
+  /**
+   * The estimated cost of the paid AI call the handler makes. It is reserved against the
+   * user's, the brand's and the day's allowances before the handler runs, and given back
+   * if the handler throws. Only routes for members can have one: a brand pays.
+   */
+  cost?: A extends "member" ? RouteCost<InputOf<S>> : never;
   handler: (context: {
     input: InputOf<S>;
     session: SessionFor<A>;
@@ -110,6 +118,13 @@ const parseInput = async (
     : { ok: true, input: Object.fromEntries(checked.map(({ part, data }) => [part, data])) };
 };
 
+/** Who pays for a metered call. Only a member session carries a brand. */
+const payerOf = (session: unknown): { userId: string; brandId: string } => {
+  const member = session as MemberSession | null;
+  if (!member?.brand) throw new Error("A route with a cost must be for members.");
+  return { userId: member.userId, brandId: member.brand.id };
+};
+
 /**
  * Builds `defineRoute` around a set of dependencies. Every route handler in the app is
  * the output of `defineRoute`, which the architecture test enforces.
@@ -137,11 +152,14 @@ export const createDefineRoute =
         );
         if (!parsed.ok) return refuse(parsed.failure);
 
-        const output = await config.handler({
-          input: parsed.input as InputOf<S>,
-          session: admission.session,
-          request,
-        });
+        const input = parsed.input as InputOf<S>;
+        const run = () => config.handler({ input, session: admission.session, request });
+        const metered = config.cost
+          ? await runMetered(deps, payerOf(admission.session), costOf(config.cost, input), where, run)
+          : { ok: true as const, value: await run() };
+        if (!metered.ok) return refuse(metered.failure);
+
+        const output = metered.value;
         return output instanceof Response ? output : json({ success: true, data: output }, 200);
       } catch (error) {
         return refuse(failureFrom(deps, error, where));

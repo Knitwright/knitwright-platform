@@ -12,6 +12,9 @@ import {
   type CookieAdapter,
 } from "@/lib/supabase/clients";
 import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
+import { loggingAlert } from "@/lib/usage/alert";
+import { allowancesFrom } from "@/lib/usage/cost";
+import { createUsageMeter, type UsageMeter } from "@/lib/usage/meter";
 import { clientAddress } from "./core/client-address";
 import type { Brand, GuardDeps, Session } from "./core/guard";
 import { log } from "./log";
@@ -86,11 +89,28 @@ export const authContext = async (): Promise<AuthContext> => {
   };
 };
 
+let meter: UsageMeter | undefined;
+
+/** The meter for paid AI calls. Allowances come from configuration; see lib/config/env.ts. */
+const usageMeter = (): UsageMeter => {
+  meter ??= createUsageMeter({
+    rpc: (fn, args) => adminClient().rpc(fn, args),
+    allowances: allowancesFrom(getEnv()),
+    // No email provider exists yet. The alert is a warning in the server log.
+    alert: loggingAlert(log),
+  });
+  return meter;
+};
+
 export const productionDeps: GuardDeps = {
   getSession: currentSession,
   getActiveBrand: activeBrand,
   getClientAddress: async () => clientAddress(await headers(), getEnv().CLIENT_ADDRESS_HEADER),
   hitRateLimit: (key, rule) => createRateLimiter(adminClient())(key, rule),
   log,
+  usage: {
+    reserve: (request) => usageMeter().reserve(request),
+    refund: (eventId) => usageMeter().refund(eventId),
+  },
   rethrowControlFlow: unstable_rethrow,
 };

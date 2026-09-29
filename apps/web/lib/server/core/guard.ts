@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { UsageMeter } from "@/lib/usage/meter";
 import { AppError, MESSAGES, toFailure, type Failure, type FieldErrors } from "./errors";
 
 export type Session = Readonly<{ userId: string; email: string | null }>;
@@ -33,6 +34,8 @@ export type GuardDeps = Readonly<{
   /** Counts one request against the key. False when the key is over the limit. */
   hitRateLimit: (key: string, rule: RateLimitRule) => Promise<boolean>;
   log: (event: LogEvent) => void;
+  /** Reserves the cost of paid AI calls, and gives it back when a call fails. */
+  usage: UsageMeter;
   /** Rethrows errors the framework uses for control flow, such as a redirect. */
   rethrowControlFlow: (error: unknown) => void;
 }>;

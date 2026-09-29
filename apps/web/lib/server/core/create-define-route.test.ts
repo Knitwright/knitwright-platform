@@ -509,6 +509,168 @@ describe("defineRoute", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
+  describe("with a cost", () => {
+    const COST = { feature: "ai", microdollars: 500 } as const;
+
+    it("reserves the cost for the user and brand before the handler runs", async () => {
+      const { deps, recorded } = makeDeps();
+      let reservedFirst = false;
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async () => {
+          reservedFirst = recorded.reservations.length === 1;
+          return { done: true };
+        },
+      });
+
+      const response = await route(post({}), noParams);
+
+      expect(response.status).toBe(200);
+      expect(reservedFirst).toBe(true);
+      expect(recorded.reservations).toEqual([
+        { userId: SESSION.userId, brandId: BRAND.id, cost: COST, route: "POST /api/thing" },
+      ]);
+      expect(recorded.refunds).toEqual([]);
+    });
+
+    it("works the cost out from the validated input when given a function", async () => {
+      const { deps, recorded } = makeDeps();
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: { body: z.object({ images: z.number().int() }) },
+        cost: ({ body }) => ({ feature: "photoreal", microdollars: body.images * 11_000 }),
+        handler: async () => ({}),
+      });
+
+      await route(post({ images: 2 }), noParams);
+
+      expect(recorded.reservations[0].cost).toEqual({ feature: "photoreal", microdollars: 22_000 });
+    });
+
+    it("reserves nothing when the input is invalid", async () => {
+      const { deps, recorded } = makeDeps();
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: { body: z.object({ name: z.string() }) },
+        cost: COST,
+        handler: async () => ({}),
+      });
+
+      expect((await route(post({ name: 3 }), noParams)).status).toBe(400);
+      expect(recorded.reservations).toEqual([]);
+    });
+
+    it.each([
+      ["user", 429, "over_allowance"],
+      ["brand", 429, "over_allowance"],
+      ["global", 503, "unavailable"],
+    ] as const)("refuses without running the handler at the %s limit", async (by, status, code) => {
+      const { deps } = makeDeps({ reserve: () => ({ ok: false, refused: by }) });
+      let ran = false;
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async () => {
+          ran = true;
+          return {};
+        },
+      });
+
+      const response = await route(post({}), noParams);
+
+      expect(response.status).toBe(status);
+      expect((await response.json()).error.code).toBe(code);
+      expect(ran).toBe(false);
+    });
+
+    it("refunds the cost when the handler throws, and still answers with the failure", async () => {
+      const { deps, recorded } = makeDeps();
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async () => {
+          throw new AppError("conflict", "The design has moved on.");
+        },
+      });
+
+      const response = await route(post({}), noParams);
+
+      expect(response.status).toBe(409);
+      expect(recorded.refunds).toEqual(["event-1"]);
+    });
+
+    it("logs a refund that fails and answers with the handler's failure", async () => {
+      const { deps, recorded } = makeDeps({ refundError: new Error("database gone") });
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async () => {
+          throw new AppError("conflict", "The design has moved on.");
+        },
+      });
+
+      const response = await route(post({}), noParams);
+
+      expect(response.status).toBe(409);
+      expect(recorded.logs).toEqual([
+        expect.objectContaining({ level: "error", message: "A failed call could not be refunded" }),
+      ]);
+    });
+
+    it("allows a cost only on routes for members, since a brand pays", async () => {
+      const { deps, recorded } = makeDeps();
+      let ran = false;
+      const route = createDefineRoute(deps)({
+        auth: "user",
+        rateLimit: RULE,
+        schema: {},
+        // @ts-expect-error A route without a brand has nobody to pay.
+        cost: COST,
+        handler: async () => {
+          ran = true;
+          return {};
+        },
+      });
+
+      expect((await route(post({}), noParams)).status).toBe(500);
+      expect(ran).toBe(false);
+      expect(recorded.reservations).toEqual([]);
+    });
+
+    it("answers with an error and runs nothing when the meter cannot reserve", async () => {
+      const { deps } = makeDeps({
+        reserve: () => {
+          throw new Error("meter down");
+        },
+      });
+      let ran = false;
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async () => {
+          ran = true;
+          return {};
+        },
+      });
+
+      expect((await route(post({}), noParams)).status).toBe(500);
+      expect(ran).toBe(false);
+    });
+  });
+
   it("lets framework control flow, such as a redirect, pass through", async () => {
     const { deps } = makeDeps();
     const route = createDefineRoute(deps)({

@@ -5,6 +5,9 @@ import { z } from "zod";
  * missing or malformed value stops the server at start-up with one message
  * instead of failing later inside a request.
  */
+/** A whole, non-negative amount of microdollars, written as digits. */
+const microdollars = z.string().regex(/^\d{1,15}$/).transform(Number);
+
 const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
@@ -24,6 +27,15 @@ const envSchema = z.object({
     .regex(/^[A-Za-z0-9-]+$/)
     .transform((value) => value.toLowerCase())
     .default("x-vercel-forwarded-for"),
+  // AI spend allowances for each UTC day, in microdollars (millionths of a US dollar).
+  // A limit stored in usage_limits for one user or brand replaces these. The defaults
+  // are provisional: the owner sets the real ones (see lib/usage/OWNER-QUESTIONS.md).
+  USAGE_USER_DAILY_AI: microdollars.default(250_000),
+  USAGE_BRAND_DAILY_AI: microdollars.default(1_000_000),
+  USAGE_USER_DAILY_PHOTOREAL: microdollars.default(500_000),
+  USAGE_BRAND_DAILY_PHOTOREAL: microdollars.default(2_000_000),
+  // Safety ceiling across every user. The owner is alerted at half and at full.
+  USAGE_GLOBAL_DAILY_CEILING: microdollars.default(25_000_000),
   // The button is shown only when this is exactly "true".
   GOOGLE_SIGN_IN: z
     .string()

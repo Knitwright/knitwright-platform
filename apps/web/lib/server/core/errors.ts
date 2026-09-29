@@ -8,6 +8,7 @@ export const FAILURE_STATUS = {
   conflict: 409,
   too_large: 413,
   rate_limited: 429,
+  over_allowance: 429,
   internal: 500,
   unavailable: 503,
 } as const;

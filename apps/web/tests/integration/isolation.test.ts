@@ -26,6 +26,9 @@ type TableSpec = Readonly<{
   change: Row;
 }>;
 
+/** An allowance no test will reach. */
+const UNLIMITED = 1_000_000_000_000;
+
 const filePath = (brandId: string) => `${brandId}/artwork/${randomUUID()}.png`;
 
 const TABLES: Readonly<Record<string, TableSpec>> = {
@@ -127,6 +130,51 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
       user_id: userId,
     }),
     change: { format: "xlsx" },
+  },
+  // Plan step 10: a member can neither change a limit nor delete a usage event.
+  usage_events: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const reserved = must(
+        await adminClient().rpc("usage_reserve", {
+          p_user_id: ownerId,
+          p_brand_id: brandId,
+          p_feature: "ai",
+          p_cost: 1,
+          p_route: "POST /api/isolation",
+          p_user_allowance: UNLIMITED,
+          p_brand_allowance: UNLIMITED,
+          p_global_ceiling: UNLIMITED,
+        }),
+      ) as { event_id: string };
+      return { id: reserved.event_id };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      user_id: userId,
+      feature: "ai",
+      cost: 1,
+      day: "2026-01-01",
+      route: "made directly",
+    }),
+    change: { cost: 1_000_000, refunded_at: "2026-01-01T00:00:00Z" },
+  },
+  usage_limits: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => ({
+      id: must(
+        await adminClient().rpc("usage_set_limit", {
+          p_subject: "brand",
+          p_subject_id: brandId,
+          p_feature: "photoreal",
+          p_daily_allowance: 5,
+        }),
+      ),
+    }),
+    attempt: (brandId) => ({ brand_id: brandId, feature: "ai", daily_allowance: UNLIMITED }),
+    change: { daily_allowance: UNLIMITED },
   },
 };
 
