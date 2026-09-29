@@ -105,4 +105,16 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
 };
 
 /** The note for a version that was made by going back to an older one. */
+/** Who proposed a change stored as one version: the assistant from a message, or a picture reading. */
+export type ProposalSource = "assistant" | "picture";
+
+const PROPOSAL_PREFIX: Readonly<Record<ProposalSource, string>> = {
+  assistant: "By the assistant",
+  picture: "Read from a picture",
+};
+
+/** The version note for changes the assistant proposed, from the sentences that explain them. */
+export const describeProposal = (source: ProposalSource, explanations: readonly string[]): string =>
+  clipNote(`${PROPOSAL_PREFIX[source]}: ${explanations.join(" ")}`);
+
 export const restoreNote = (version: number): string => `Restored version ${version}.`;

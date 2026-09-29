@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { WEARERS, freeText } from "@/lib/garment";
+import { MAX_UTTERANCE_LENGTH } from "@/lib/intent/text-flow";
 
 /** Limits on the text of a project. The database enforces the same ones. */
 export const PROJECT_NAME_MAX = 80;
@@ -56,3 +57,22 @@ export const restoreVersionSchema = z.object({
 export const designIdSchema = z.object({ projectId });
 
 export const undoDesignSchema = z.object({ projectId, expectedVersion });
+
+/** A proposal the assistant made, handed back to be applied. It is signed by the server. */
+export const PROPOSAL_TOKEN_MAX = 64_000;
+
+export const applyProposalSchema = z.object({
+  projectId,
+  expectedVersion,
+  token: z.string().min(1).max(PROPOSAL_TOKEN_MAX),
+});
+
+/** One message to the assistant, with the version of the design the person is looking at. */
+export const assistantMessageSchema = z.object({
+  utterance: z
+    .string()
+    .trim()
+    .min(1, "Type what you would like to change.")
+    .max(MAX_UTTERANCE_LENGTH, `Keep it to ${MAX_UTTERANCE_LENGTH} characters.`),
+  expectedVersion,
+});

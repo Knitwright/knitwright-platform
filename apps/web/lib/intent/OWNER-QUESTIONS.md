@@ -43,3 +43,29 @@ Each line is a question, with what the code does today beside it.
 9. **Repeating a choice.** When a model asks for a value the design already has, the change is
    skipped, so the person's own choice keeps its source. If nothing else changes, the reply says
    "The design already has that." Is that the right wording?
+
+## Step 12 (text input): what is owed
+
+- **A3, provider keys.** No live call has been made. Until `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`
+  with `INTENT_MODEL` set to an OpenAI model) is set, the chat panel says the assistant is not
+  switched on, and only short requests the rules can read work.
+- **Model selection and the 90% live run** (plan step 12, tasks 2 and 6): owed. The harness is
+  `scripts/eval-text.mts`; how to run it is in `docs/evals/README.md`. It needs A3 and, to mean
+  anything, A7.
+- **Prices** in `lib/providers/catalog.ts` were read on 2026-09-29 through a summarising tool. Check
+  them. Claude Haiku 4.5 is due to retire no sooner than 2026-10-15.
+
+## Step 12 questions
+
+10. **Which words may the rules answer without a model?** Today: a message of at most 16 words made
+    only of phrases in `vocabulary.ts` plus plain joining words ("make it", "please", "with", "and").
+    "Make it roomier" becomes a relaxed fit with no model call. Is that too eager?
+11. **Retry.** The stronger model is tried once when the first answer is a question or unreadable.
+    Should a rejection be retried too? Today it is not.
+12. **Cost per message.** A message that reaches a model reserves the most it can cost (about 1 US
+    cent on Claude Haiku 4.5), and the retry reserves again. With today's provisional allowance of
+    $0.25 a day, a person can send about 25 such messages a day. Is that the right order?
+13. **Text that tries to change the rules** ("ignore previous instructions", "you are now ...") is
+    refused before any model sees it. A message that merely mentions a rule in another sense, such as
+    "follow the brand rules for labels", passes. Is the refusal wording right?
+14. **A signed choice lasts one hour** and only while the design is at the same version. Long enough?

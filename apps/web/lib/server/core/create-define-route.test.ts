@@ -648,6 +648,91 @@ describe("defineRoute", () => {
       expect(recorded.reservations).toEqual([]);
     });
 
+    it("reserves nothing when the cost works out to none, and gives the handler no meter", async () => {
+      const { deps, recorded } = makeDeps();
+      let usage: unknown = "unset";
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: { body: z.object({ free: z.boolean() }) },
+        cost: ({ body }) => (body.free ? null : COST),
+        handler: async (context) => {
+          usage = context.usage;
+          return {};
+        },
+      });
+
+      expect((await route(post({ free: true }), noParams)).status).toBe(200);
+      expect(recorded.reservations).toEqual([]);
+      expect(usage).toBeNull();
+    });
+
+    it("lets the handler give its cost back once, for work that fails after the answer has started", async () => {
+      const { deps, recorded } = makeDeps();
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async ({ usage }) => {
+          await usage?.refund();
+          await usage?.refund();
+          return {};
+        },
+      });
+
+      await route(post({}), noParams);
+
+      expect(recorded.refunds).toEqual(["event-1"]);
+    });
+
+    it("lets the handler reserve a further cost, such as a retry, and give that back on its own", async () => {
+      let count = 0;
+      const { deps, recorded } = makeDeps({
+        reserve: () => {
+          count += 1;
+          return count < 3 ? { ok: true, eventId: `event-${count}` } : { ok: false, refused: "user" };
+        },
+      });
+      const outcomes: unknown[] = [];
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async ({ usage }) => {
+          const extra = await usage?.reserve({ feature: "ai", microdollars: 900 });
+          outcomes.push(extra === null ? "refused" : "reserved");
+          await extra?.refund();
+          outcomes.push((await usage?.reserve(COST)) === null ? "refused" : "reserved");
+          return {};
+        },
+      });
+
+      await route(post({}), noParams);
+
+      expect(outcomes).toEqual(["reserved", "refused"]);
+      expect(recorded.reservations.map((entry) => entry.cost.microdollars)).toEqual([500, 900, 500]);
+      expect(recorded.refunds).toEqual(["event-2"]);
+    });
+
+    it("logs a refund by the handler that fails, without failing the handler", async () => {
+      const { deps, recorded } = makeDeps({ refundError: new Error("database gone") });
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async ({ usage }) => {
+          await usage?.refund();
+          return { fine: true };
+        },
+      });
+
+      expect((await route(post({}), noParams)).status).toBe(200);
+      expect(recorded.logs).toEqual([expect.objectContaining({ message: "A failed call could not be refunded" })]);
+    });
+
     it("answers with an error and runs nothing when the meter cannot reserve", async () => {
       const { deps } = makeDeps({
         reserve: () => {

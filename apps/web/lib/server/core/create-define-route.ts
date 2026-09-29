@@ -11,7 +11,7 @@ import {
   type RateLimitRule,
   type SessionFor,
 } from "./guard";
-import { costOf, runMetered, type RouteCost } from "./metered";
+import { costOf, runMetered, type RouteCost, type RouteUsage } from "./metered";
 import { readForm, readJson, type BodyRead } from "./request-body";
 
 const DEFAULT_MAX_BODY_BYTES = 1_000_000;
@@ -39,13 +39,16 @@ export type RouteConfig<A extends Auth, S extends RouteSchemas, T> = Readonly<{
   /**
    * The estimated cost of the paid AI call the handler makes. It is reserved against the
    * user's, the brand's and the day's allowances before the handler runs, and given back
-   * if the handler throws. Only routes for members can have one: a brand pays.
+   * if the handler throws. Only routes for members can have one: a brand pays. A function
+   * may answer null for a request that makes no paid call.
    */
   cost?: A extends "member" ? RouteCost<InputOf<S>> : never;
   handler: (context: {
     input: InputOf<S>;
     session: SessionFor<A>;
     request: Request;
+    /** The reservation for this request, or null when nothing was reserved. */
+    usage: RouteUsage | null;
   }) => Promise<T | Response>;
 }>;
 
@@ -153,10 +156,14 @@ export const createDefineRoute =
         if (!parsed.ok) return refuse(parsed.failure);
 
         const input = parsed.input as InputOf<S>;
-        const run = () => config.handler({ input, session: admission.session, request });
-        const metered = config.cost
-          ? await runMetered(deps, payerOf(admission.session), costOf(config.cost, input), where, run)
-          : { ok: true as const, value: await run() };
+        const run = (usage: RouteUsage | null) =>
+          config.handler({ input, session: admission.session, request, usage });
+        const payer = config.cost ? payerOf(admission.session) : null;
+        const cost = config.cost ? costOf(config.cost, input) : null;
+        const metered =
+          payer && cost
+            ? await runMetered(deps, payer, cost, where, run)
+            : { ok: true as const, value: await run(null) };
         if (!metered.ok) return refuse(metered.failure);
 
         const output = metered.value;

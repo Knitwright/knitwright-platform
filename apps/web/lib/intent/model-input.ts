@@ -69,7 +69,7 @@ function systemPrompt(type: ResolvedType | undefined): string {
   const rules = [...new Set(types.flatMap((entry) => entry.rules.map((rule) => `- ${rule.reason}`)))].join("\n");
   const panels = type ? type.panels.map((panel) => panel.id).join(", ") : "";
   const points = type ? type.pointsOfMeasure.map((point) => point.id).join(", ") : "";
-  return `You turn a customer's instruction about one garment design into a JSON reply. Reply with one JSON object and nothing else.
+  return `You turn a customer's instruction about one garment design into a JSON reply. Give the reply by calling the reply tool once; if you cannot call it, reply with the one JSON object and nothing else.
 
 The reply is exactly one of:
 {"kind": "changes", "actions": [ ... ]}  with 1 to ${MAX_ACTIONS} actions

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_MODEL, DEFAULT_RETRY_MODEL, MODEL_IDS } from "@/lib/providers/catalog";
 
 /**
  * Environment contract. Every variable the app reads is declared here, so a
@@ -36,6 +37,14 @@ const envSchema = z.object({
   USAGE_BRAND_DAILY_PHOTOREAL: microdollars.default(2_000_000),
   // Safety ceiling across every user. The owner is alerted at half and at full.
   USAGE_GLOBAL_DAILY_CEILING: microdollars.default(25_000_000),
+  // AI provider keys (owner action A3). Both are optional: without the key for the chosen
+  // model the assistant is shown as not available, and requests the rules can answer still work.
+  ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  // The model tried first, and the stronger one tried once before a question is asked.
+  // Chosen by the selection run in docs/evals (owed until the keys exist).
+  INTENT_MODEL: z.enum(MODEL_IDS).default(DEFAULT_MODEL),
+  INTENT_RETRY_MODEL: z.enum(MODEL_IDS).default(DEFAULT_RETRY_MODEL),
   // The button is shown only when this is exactly "true".
   GOOGLE_SIGN_IN: z
     .string()

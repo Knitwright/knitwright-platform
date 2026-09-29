@@ -13,6 +13,8 @@ import {
   restoreVersion,
   saveAction,
   saveTrustedAction,
+  saveTrustedActions,
+  loadCurrentDesign,
   undoDesign,
   type SaveOutcome,
 } from "@/lib/projects/service";
@@ -256,6 +258,52 @@ describe("where a value says it came from", () => {
 
     expect(outcome.spec.measurements[0].provenance).toBe("suggested-chart");
     expect((await listVersions(alice.client, aliceBrand, id)).versions[0].note).toBe("Chest width set to 50 cm.");
+  });
+});
+
+describe("saving the assistant's changes", () => {
+  const batch = (id: string, expectedVersion: number, actions: unknown[]) =>
+    saveTrustedActions(adminClient(), alice.client, {
+      brandId: aliceBrand,
+      userId: alice.userId,
+      projectId: id,
+      expectedVersion,
+      actions: actions as never,
+      source: "assistant",
+      explanations: ["Fit changed from Regular to Slim.", "Sleeve length changed."],
+    });
+
+  it("stores a batch as one version, keeping each source, with one note", async () => {
+    const id = await make();
+    const outcome = saved(
+      await batch(id, 1, [
+        { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "ai-suggested" },
+        { type: "set-measurement", pointId: "chest-width", value: 5000, provenance: "ai-suggested" },
+      ]),
+    );
+    expect(outcome.version).toBe(2);
+    expect(outcome.spec.options.fit.provenance).toBe("ai-suggested");
+    expect((await listVersions(alice.client, aliceBrand, id)).versions[0].note).toBe(
+      "By the assistant: Fit changed from Regular to Slim. Sleeve length changed.",
+    );
+  });
+
+  it("stores nothing when one change in the batch is refused", async () => {
+    const id = await make();
+    const outcome = await batch(id, 1, [
+      { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "ai-suggested" },
+      { type: "set-option", optionId: "collar", choiceId: "no-such-collar", provenance: "ai-suggested" },
+    ]);
+    expect(outcome.ok).toBe(false);
+    expect(await currentVersion(alice.client, aliceBrand, id)).toBe(1);
+  });
+
+  it("refuses a batch made against an older version, and another brand's design", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+    expect((await failureOf(batch(id, 1, [{ type: "set-option", optionId: "fit", choiceId: "relaxed", provenance: "ai-suggested" }]))).code).toBe("conflict");
+    expect((await failureOf(loadCurrentDesign(bob.client, { brandId: bobBrand, projectId: id, expectedVersion: 2 }))).code).toBe("not_found");
+    expect((await loadCurrentDesign(alice.client, { brandId: aliceBrand, projectId: id, expectedVersion: 2 })).options.fit.choiceId).toBe("slim");
   });
 });
 

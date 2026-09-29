@@ -2,6 +2,7 @@
 
 import type { EditorData } from "@/lib/projects/editor-data";
 import { ArtworkControls } from "./ArtworkControls";
+import { ChatPanel } from "./ChatPanel";
 import { ColourControls } from "./ColourControls";
 import { ColourwayChooser } from "./ColourwayChooser";
 import { DetailsForm } from "./DetailsForm";
@@ -21,7 +22,10 @@ import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
 
 type PartProps = Readonly<{ data: EditorData; editor: EditorApi }>;
 
-export function Editor({ data }: Readonly<{ data: EditorData }>) {
+/** What the page knows about the assistant. */
+export type AssistantInfo = Readonly<{ available: boolean }>;
+
+export function Editor({ data, assistant }: Readonly<{ data: EditorData; assistant: AssistantInfo }>) {
   const editor = useEditor(data);
   const { state } = editor;
 
@@ -34,7 +38,7 @@ export function Editor({ data }: Readonly<{ data: EditorData }>) {
       <FlatPreview flat={data.flat} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MainColumn data={data} editor={editor} />
-        <SideColumn data={data} editor={editor} />
+        <SideColumn data={data} editor={editor} assistant={assistant} />
       </div>
     </div>
   );
@@ -138,9 +142,12 @@ function SizesSection({ data, editor }: PartProps) {
   );
 }
 
-function SideColumn({ data, editor }: PartProps) {
+function SideColumn({ data, editor, assistant }: PartProps & Readonly<{ assistant: AssistantInfo }>) {
   return (
     <aside className="flex min-w-0 flex-col gap-6">
+      <Section id="assistant" title="Assistant">
+        <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} />
+      </Section>
       <Section id="history" title="History">
         <History
           versions={data.versions}

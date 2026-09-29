@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { specActionSchema, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
-import { NOTE_MAX_LENGTH, clipNote, describeAction, restoreNote } from "./notes";
+import { NOTE_MAX_LENGTH, clipNote, describeAction, describeProposal, restoreNote } from "./notes";
 
 const jersey = (): GarmentSpec => start("team-jersey", "men");
 
@@ -205,5 +205,18 @@ describe("clipNote", () => {
 describe("restoreNote", () => {
   it("names the version that was restored", () => {
     expect(restoreNote(4)).toBe("Restored version 4.");
+  });
+});
+
+describe("describeProposal", () => {
+  it("names who proposed the change and what it did", () => {
+    expect(describeProposal("assistant", ["Fit changed from Regular to Slim."])).toBe(
+      "By the assistant: Fit changed from Regular to Slim.",
+    );
+    expect(describeProposal("picture", ["A.", "B."])).toBe("Read from a picture: A. B.");
+  });
+
+  it("stays within the database's limit", () => {
+    expect(describeProposal("assistant", ["x".repeat(500)]).length).toBe(NOTE_MAX_LENGTH);
   });
 });

@@ -29,4 +29,8 @@ export const LIMITS = {
   // An export builds a file in memory, which costs a second or two of a small function, so it is
   // limited like an upload: 30 in ten minutes, which is seven downloads of all four files.
   export: { name: "export", limit: 30, windowSeconds: 10 * MINUTE },
+  // Each message may reach a paid model. The allowances cap the spend; this caps the pace.
+  assistant: { name: "assistant", limit: 20, windowSeconds: MINUTE },
+  // Choosing one of the assistant's proposals.
+  applyProposal: { name: "apply-proposal", limit: 60, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

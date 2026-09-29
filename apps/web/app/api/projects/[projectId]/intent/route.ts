@@ -1,0 +1,58 @@
+import { z } from "zod";
+import { signProposal } from "@/lib/intent/proposal-token";
+import { answeredWithoutModel } from "@/lib/intent/text-flow";
+import { MODEL_TIMEOUT_MS, assistantModels, nowSeconds, proposalSigningKey } from "@/lib/projects/assistant";
+import { eventStream, textCost, textRequestEvents } from "@/lib/projects/assistant-request";
+import { assistantMessageSchema } from "@/lib/projects/schemas";
+import { loadCurrentDesign, saveTrustedActions } from "@/lib/projects/service";
+import { defineRoute } from "@/lib/server/define-route";
+import { adminClient, sessionClient } from "@/lib/server/deps";
+import { LIMITS } from "@/lib/server/limits";
+import { log } from "@/lib/server/log";
+
+/** Room for the message and the version around it. The message itself is limited by the schema. */
+const MAX_BODY_BYTES = 8 * 1024;
+
+/**
+ * One message to the assistant about one design (plan step 12, task 4). The current design
+ * is read here and sent with the request. A request the rules or the guard can answer costs
+ * nothing; any other is priced at the most it can use and reserved before it runs. The
+ * answer is a stream of JSON lines: progress, then one outcome. A change is saved here, as
+ * one version marked as suggested by the assistant; a question's choices come back signed.
+ */
+export const POST = defineRoute({
+  auth: "member",
+  rateLimit: LIMITS.assistant,
+  maxBodyBytes: MAX_BODY_BYTES,
+  schema: { params: z.object({ projectId: z.uuid() }), body: assistantMessageSchema },
+  cost: ({ body }) => {
+    const primary = assistantModels().primary;
+    return primary && !answeredWithoutModel(body.utterance) ? textCost(primary.entry) : null;
+  },
+  handler: async ({ input, session, usage }) => {
+    const { projectId } = input.params;
+    const { utterance, expectedVersion } = input.body;
+    const who = { projectId, brandId: session.brand.id, userId: session.userId };
+    const client = await sessionClient();
+    const spec = await loadCurrentDesign(client, { ...who, expectedVersion });
+    const key = proposalSigningKey();
+    const issued = nowSeconds();
+    return eventStream((emit) =>
+      textRequestEvents(
+        utterance,
+        {
+          spec,
+          models: assistantModels(),
+          usage,
+          save: (actions, explanations) =>
+            saveTrustedActions(adminClient(), client, { ...who, expectedVersion, actions, source: "assistant", explanations }),
+          sign: (actions, explanations) =>
+            signProposal({ ...who, version: expectedVersion, actions, source: "assistant", explanations }, key, issued),
+          log,
+          timeoutMs: MODEL_TIMEOUT_MS,
+        },
+        emit,
+      ),
+    );
+  },
+});

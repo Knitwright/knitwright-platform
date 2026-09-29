@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
+import { assistantAvailable } from "@/lib/projects/assistant";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
@@ -32,5 +33,10 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
 
   const pictures = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
 
-  return <Editor data={buildEditorData(project, history, undefined, pictures, colourway)} />;
+  return (
+    <Editor
+      data={buildEditorData(project, history, undefined, pictures, colourway)}
+      assistant={{ available: assistantAvailable() }}
+    />
+  );
 }

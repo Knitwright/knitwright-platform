@@ -12,7 +12,7 @@ import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { refuseUnreadableArtwork, dropUnreadableArtwork } from "./artwork-files";
 import { browserActionSchema } from "./browser-action";
 import { CONFLICT_MESSAGE } from "./database-errors";
-import { describeAction, restoreNote } from "./notes";
+import { describeAction, describeProposal, restoreNote, type ProposalSource } from "./notes";
 import { historyRows, loadRow, loadVersion, readSpec, throwIfFailed, type ReadSpec } from "./project-reads";
 import { sameDesign } from "./same-design";
 import { undoTarget } from "./undo";
@@ -171,6 +171,56 @@ export const saveTrustedAction = async (
   if (!action.success) return { ok: false, reason: NOT_UNDERSTOOD };
   return storeAction(admin, client, input, current, action.data);
 };
+
+export type TrustedBatchInput = Omit<SaveInput, "action"> &
+  Readonly<{
+    actions: readonly SpecAction[];
+    source: ProposalSource;
+    /** The sentences that explain the changes, used for the version note. */
+    explanations: readonly string[];
+  }>;
+
+/**
+ * For the assistant only: applies a batch of changes the server itself proposed, all or
+ * none, and stores the result as ONE version, so one undo takes the whole batch back.
+ * Each change keeps the source it names. Nothing a browser wrote may reach this function;
+ * a browser can only hand back a proposal the server signed (lib/intent/proposal-token.ts).
+ */
+export const saveTrustedActions = async (
+  admin: SupabaseClient,
+  client: SupabaseClient,
+  input: TrustedBatchInput,
+): Promise<SaveOutcome> => {
+  const current = await loadCurrent(client, input);
+  let spec = current.read.spec;
+  const dropped: Dropped[] = [...current.read.dropped];
+  for (const raw of input.actions) {
+    const action = specActionSchema.safeParse(raw);
+    if (!action.success) return { ok: false, reason: NOT_UNDERSTOOD };
+    const refusal = await refuseUnreadableArtwork(client, input.brandId, action.data);
+    if (refusal) return { ok: false, reason: refusal };
+    const applied = applyAction(spec, action.data);
+    if (!applied.ok) return applied;
+    dropped.push(...applied.dropped);
+    spec = applied.spec;
+  }
+  if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
+  const version = await appendVersion(admin, {
+    userId: input.userId,
+    projectId: input.projectId,
+    expectedVersion: input.expectedVersion,
+    spec,
+    note: describeProposal(input.source, input.explanations),
+    restoredFrom: null,
+  });
+  return { ok: true, spec, version, dropped };
+};
+
+/** The design as it is now, for the assistant to read. A person looking at an older version gets a conflict. */
+export const loadCurrentDesign = async (
+  client: SupabaseClient,
+  input: Pick<SaveInput, "brandId" | "projectId" | "expectedVersion">,
+): Promise<GarmentSpec> => (await loadCurrent(client, input)).read.spec;
 
 export type RestoreInput = Readonly<{
   brandId: string;

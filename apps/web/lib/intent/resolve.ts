@@ -10,7 +10,7 @@ import { replySchema, type Reply, type WireAction } from "./reply-schema";
 /** A longer reply is refused unread. A real reply is a few hundred characters. */
 export const MAX_REPLY_LENGTH = 20_000;
 
-const UNREADABLE = `The assistant's reply could not be read. ${NOTHING_CHANGED} Try saying it another way.`;
+export const UNREADABLE = `The assistant's reply could not be read. ${NOTHING_CHANGED} Try saying it another way.`;
 const ALREADY = `The design already has that. ${NOTHING_CHANGED}`;
 
 export interface IntentInput {

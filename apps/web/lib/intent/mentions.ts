@@ -8,12 +8,12 @@ export interface Mention {
   readonly negated: boolean;
 }
 
-const BREAK = "|";
+export const BREAK = "|";
 /** How many words before a phrase are searched for a refusal such as "not" or "instead of". */
 const NEGATION_WINDOW = 4;
 
 /** Lower case words, with a break token wherever punctuation ends a clause. */
-function words(text: string): string[] {
+export function words(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/['‘’`]/g, "")
@@ -42,6 +42,12 @@ function negatedAt(tokens: readonly string[], index: number): boolean {
     if (NEGATORS.includes(tokens[back])) return true;
   }
   return false;
+}
+
+/** The longest phrase that starts at `index`, with how many words it takes, or null. */
+export function phraseAt(tokens: readonly string[], index: number): { readonly target: string; readonly length: number } | null {
+  const phrase = PHRASES.find((candidate) => matchesAt(tokens, index, candidate));
+  return phrase ? { target: phrase.target, length: phrase.words.length } : null;
 }
 
 /**

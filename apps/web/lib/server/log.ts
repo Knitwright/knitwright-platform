@@ -12,6 +12,9 @@ const SECRETS = [
   /sb_(?:secret|publishable)_[A-Za-z0-9_-]+/g,
   /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
   /(?:postgres|postgresql):\/\/[^\s"']+/g,
+  // AI provider keys (Anthropic, OpenAI).
+  /sk-ant-[A-Za-z0-9_-]+/g,
+  /sk-(?:proj-)?[A-Za-z0-9_-]{20,}/g,
 ];
 
 const scrub = (text: string): string =>

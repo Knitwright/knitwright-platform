@@ -115,4 +115,17 @@ describe("parseEnv", () => {
       /CLIENT_ADDRESS_HEADER is not valid/,
     );
   });
+
+  it("needs no AI key, and picks the cheapest Claude with a stronger one for the retry by default", () => {
+    const env = parseEnv(valid);
+    expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.OPENAI_API_KEY).toBeUndefined();
+    expect(env.INTENT_MODEL).toBe("claude-haiku-4-5");
+    expect(env.INTENT_RETRY_MODEL).toBe("claude-sonnet-5-5");
+  });
+
+  it("accepts only models from the catalog", () => {
+    expect(parseEnv({ ...valid, INTENT_MODEL: "gpt-5-nano" }).INTENT_MODEL).toBe("gpt-5-nano");
+    expect(() => parseEnv({ ...valid, INTENT_MODEL: "some-model" })).toThrow(/INTENT_MODEL is not valid/);
+  });
 });

@@ -1,3 +1,6 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { isNeverSilent } from "../outcome";
 import golden from "./tops.json";
@@ -88,5 +91,18 @@ describe("scoring one case", () => {
     expect(score.correct).toBe(false);
     expect(score.problems).toHaveLength(7);
     expect(summarise([score])).toMatchObject({ total: 1, correct: 0, typeCorrect: 0, optionsCorrect: 0 });
+  });
+});
+
+/** Replies recorded from real models by scripts/eval-text.mts. None exist until provider keys do (A3). */
+const HERE = dirname(fileURLToPath(import.meta.url));
+const RECORDED = readdirSync(HERE).filter((name) => /^replay-tops\..+\.json$/.test(name) && name !== "replay-tops.synthetic.json");
+
+describe.skipIf(RECORDED.length === 0)("replaying replies recorded from real models", () => {
+  it.each(RECORDED)("%s is never silent on 100% of the golden set", (name) => {
+    const live = recordingSchema.parse(JSON.parse(readFileSync(join(HERE, name), "utf8")));
+    expect(live.synthetic).toBe(false);
+    const silent = set.cases.filter((entry) => !isNeverSilent(replayCase(entry, live.responses[entry.id]))).map((entry) => entry.id);
+    expect(silent).toEqual([]);
   });
 });

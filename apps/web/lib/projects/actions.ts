@@ -6,8 +6,12 @@ import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { verifyProposal } from "@/lib/intent/proposal-token";
+import { nowSeconds, proposalSigningKey } from "./assistant";
+import { applySignedProposal } from "./assistant-request";
 import {
   applyDesignActionSchema,
+  applyProposalSchema,
   createProjectSchema,
   designIdSchema,
   projectDetailsSchema,
@@ -20,6 +24,7 @@ import {
   renameProject,
   restoreVersion,
   saveAction,
+  saveTrustedActions,
   undoDesign,
   type SaveOutcome,
 } from "./service";
@@ -129,5 +134,28 @@ export const renameProjectAction = defineAction({
     });
     refreshDesign(input.projectId);
     return { name: input.name };
+  },
+});
+
+/**
+ * Applies one of the assistant's proposals: a choice it offered, or a reading of a picture
+ * the person confirmed. Only a proposal the server signed for this person, brand, design
+ * and version is accepted, and its changes keep the source the server gave them.
+ */
+export const applyProposalAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.applyProposal,
+  schema: applyProposalSchema,
+  handler: async ({ input, session }) => {
+    const who = { projectId: input.projectId, brandId: session.brand.id, userId: session.userId };
+    const client = await sessionClient();
+    const outcome = await applySignedProposal({
+      verify: () => verifyProposal(input.token, proposalSigningKey(), who, nowSeconds()),
+      save: (batch) => saveTrustedActions(adminClient(), client, { ...who, ...batch }),
+      expectedVersion: input.expectedVersion,
+    });
+    if (!outcome.ok) throw new AppError("invalid_input", outcome.reason);
+    refreshDesign(input.projectId);
+    return { version: outcome.version };
   },
 });

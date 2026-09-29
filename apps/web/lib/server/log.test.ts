@@ -70,6 +70,19 @@ describe("formatLogEvent", () => {
   });
 });
 
+describe("AI provider keys", () => {
+  it("are removed from a logged error", () => {
+    const line = formatLogEvent({
+      level: "error",
+      message: "Failed",
+      where: "x",
+      error: new Error("keys sk-ant-api03-AbCdEf123456_-xyz and sk-proj-ABCDEFGHIJKLMNOPQRSTUV123"),
+    });
+    expect(line).not.toContain("AbCdEf123456");
+    expect(line).not.toContain("ABCDEFGHIJKLMNOPQRSTUV123");
+  });
+});
+
 describe("log", () => {
   it("writes errors to the error stream and warnings to the output stream", async () => {
     const { log } = await import("./log");
