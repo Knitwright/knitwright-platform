@@ -67,8 +67,8 @@ function inside(point: Point, run: Polyline): boolean {
 }
 
 describe("the families with drawing code", () => {
-  it("include bottoms and outerwear, and every one of their types is sampled", () => {
-    expect(DRAWN_FAMILIES).toEqual(expect.arrayContaining(["bottoms", "outerwear"]));
+  it("include every family other than tops, and every one of their types is sampled", () => {
+    expect([...DRAWN_FAMILIES].sort()).toEqual(["bottoms", "close-fitting", "outerwear"]);
     for (const typeId of familyTypeIds()) expect(pairwise(typeId).length, typeId).toBeGreaterThanOrEqual(1);
     expect(cases.length).toBeGreaterThan(50);
   });

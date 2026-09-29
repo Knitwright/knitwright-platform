@@ -46,6 +46,8 @@ const REVIEW_COLOURS: Readonly<Record<string, string>> = {
   "hood-lining": "#b8c7dc",
   "kangaroo-pocket": "#c9d5e6",
   "hem-band": "#1b2a49",
+  binding: "#1b2a49",
+  underband: "#1b2a49",
 };
 
 interface Variant {
@@ -81,6 +83,13 @@ const FAMILY_VARIANTS: readonly Variant[] = [
   variant("pullover-hoodie-raglan", "pullover-hoodie", { "sleeve-type": "raglan", hood: "single-layer", "hem-finish": "hem", cuffs: "hem" }),
   variant("zip-hoodie-zip-pockets", "zip-hoodie", { pockets: "zip-side", "hood-drawcord": "none" }),
   variant("track-jacket-no-collar", "track-jacket", { collar: "none", "sleeve-type": "raglan", pockets: "side-seam" }),
+  variant("singlet", "singlet"),
+  variant("vest", "vest"),
+  variant("sports-bra", "sports-bra"),
+  variant("compression-top", "compression-top"),
+  variant("singlet-racerback", "singlet", { "back-style": "racerback", "seam-type": "flatlock" }),
+  variant("sports-bra-straight-bound", "sports-bra", { "back-style": "straight", "edge-finish": "bound", underband: "exposed-elastic" }),
+  variant("compression-top-short", "compression-top", { sleeves: "short", "edge-finish": "turned", "seam-type": "overlock" }),
 ];
 
 const VARIANTS: readonly Variant[] = [

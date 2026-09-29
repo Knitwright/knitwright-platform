@@ -113,3 +113,26 @@ code, from the tops ratios with long sleeves. What outerwear adds is in
   is worked out from the other ratios.
 - With a hood, the neck seam is where the hood is sewn. With no hood and no collar, the
   neck is finished with a neckband, drawn as on a tee.
+
+## Close-fitting (added in step 23)
+
+Ratios against the chest width, in `families/close-fitting/proportions.ts`.
+
+- Singlet: body length 1.38, hem 0.98, neck 0.38, front neck drop 0.30, back 0.12, armhole
+  depth 0.52, strap 0.10, back width 0.72. Vest: wider straps (0.16), a shallower neck
+  (0.25) and armhole (0.46).
+- Sports bra: body length 0.62 from the top of the strap, underbust 0.86, neck 0.36, front
+  drop 0.26, back 0.18, armhole depth 0.34, strap 0.12. The underband is drawn 0.14 deep.
+- Racerback: the back narrows to 0.20 between the shoulder blades, half way down the
+  armhole, and the back neck drop is 0.10.
+- On a straight back, the back width is shown by how far the armhole bows out, not by a
+  point the edge passes exactly. Is that acceptable?
+- Binding 0.025 wide, along the neck and both armholes.
+- A compression top is drawn as a tee with a closer body (hem 0.90) and narrower sleeves.
+  Honestly, the drawing reads as an ordinary long sleeve tee: only the flat seam stitching
+  says it is a compression top. Should compression tops have their own shape, such as
+  seam lines for panels or a raglan cut?
+- Flat seams are drawn as two rows of stitching just inside the side seams, because the
+  side seam is the edge of a flat. Other seams do not show the rows.
+- The straps meet the neck binding with a small slanted end. A factory drawing would show
+  how the binding finishes at the shoulder. Which finish do you use?

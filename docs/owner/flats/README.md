@@ -89,6 +89,23 @@ blue inside the hood is the lining, and the kangaroo pocket is a slightly darker
 For outerwear, look especially at the shape of the hood and the face opening, the
 kangaroo pocket, and the stand collar of the track jacket.
 
+## Close-fitting (step 23)
+
+No sizes here either. The navy parts are the edge binding and the underband.
+
+| Garment | Front | Back |
+|---|---|---|
+| Singlet | `singlet-front.png` | `singlet-back.png` |
+| Vest | `vest-front.png` | `vest-back.png` |
+| Sports bra | `sports-bra-front.png` | `sports-bra-back.png` |
+| Compression top | `compression-top-front.png` | `compression-top-back.png` |
+| Singlet with a racerback and flat seams | `singlet-racerback-front.png` | `singlet-racerback-back.png` |
+| Sports bra with a straight back, bound edges and an exposed elastic band | `sports-bra-straight-bound-front.png` | `sports-bra-straight-bound-back.png` |
+| Compression top with short sleeves, a turned neck and overlocked seams | `compression-top-short-front.png` | `compression-top-short-back.png` |
+
+For close-fitting garments, look especially at the armholes and straps, the racerback,
+and whether the compression top looks close-fitting enough.
+
 ## How to answer
 
 Reply to the person who sent you this with one line for each garment. Say **yes** if the

@@ -51,13 +51,25 @@ said "There is no drawing for this garment type yet."
 - The zip length is checked against the front neck in both views, since the zip is on the
   front.
 
+## Close-fitting (step 23)
+
+- A compression top is a close-fitting tee, drawn by the tops code with its binding and
+  flat seam stitching.
+- Singlets, vests and sports bras have their own shape: straps, a deep armhole that meets
+  the underarm level, and on a racerback an edge that runs in to the narrowest point of the
+  back and out to the underarm. A sports bra ends in its underband.
+- Binding along an armhole is made by moving the edge into the body along its normal at
+  every point, and it ends on the side seam, so it is the same width all round, even round
+  the curve of a racerback.
+- Flat seams show as two rows of stitching inside the side seams.
+
 ## Evidence
 
 | Claim | Test |
 |---|---|
 | Every panel closed, not crossing itself, symmetrical; one silhouette holding every panel; one opening; on all pairs of choices, both views, with no sizes and at two made-up sizes | `lib/flat/families.test.ts` |
 | Every point of measure has a callout when to scale, and changing any one changes the drawing (M3) | `lib/flat/families.test.ts` |
-| What each choice adds, and each problem named | `lib/flat/families/bottoms/bottoms.test.ts` |
+| What each choice adds, and each problem named | `lib/flat/families/*/*.test.ts` |
 | A changed drawing is noticed | SVG snapshots in `lib/flat/__snapshots__/families.test.ts.snap` |
 
 ## Open for the owner
