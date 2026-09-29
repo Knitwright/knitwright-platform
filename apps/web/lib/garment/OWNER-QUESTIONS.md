@@ -27,6 +27,12 @@ question, then what the code does today. Changing any answer is a data edit in
 - Artwork anchors: centre chest, left chest, right chest, lower front (front); upper back, centre back, lower back (back); middle of the sleeve. Only body and sleeve panels can carry artwork.
 - Panels that can be coloured: body front, body back, left sleeve, right sleeve, neckband, collar, placket, side panels, cuffs. Is that the right list for a factory?
 
+## Artwork and measurements
+
+- May artwork be placed on collars, cuffs and plackets? Today only body and sleeve panels have places to put it, so artwork on the others is refused.
+- Do cuffs and neckbands need their own measurements, such as cuff height and neckband height? Today they have none.
+- Is 2048 pixels on the longest side enough for sublimation artwork? The upload limit is set in the file storage layer, not here.
+
 ## Fabric and provenance
 
 - Fabric is now a list, and each panel can name its fabric. Panels with no entry use the first fabric. Is one fabric per panel enough, or does a panel ever need two?

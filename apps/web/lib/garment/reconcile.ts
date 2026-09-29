@@ -1,45 +1,49 @@
-import { conditionsHold } from "./applicability";
+import { conditionsHold } from "./conditions";
+import type { Dropped } from "./dropped";
+import { choiceName, panelName, pointName } from "./labels";
+import { nonEmpty } from "./non-empty";
+import type { OptionChoice } from "./parts";
+import type { ResolvedType } from "./registry";
 import { artworkProblem } from "./spec-checks";
 import type { GarmentSpec } from "./spec-schema";
-import type { ResolvedOption, ResolvedType } from "./registry";
 
-type Options = Readonly<Record<string, string>>;
+type Options = Readonly<Record<string, OptionChoice>>;
 
 export interface Reconciled<T> {
   readonly value: T;
-  /** Plain sentences saying what was removed or reset. */
-  readonly dropped: readonly string[];
+  /** What was removed or reset, one entry each. */
+  readonly dropped: readonly Dropped[];
 }
 
-function labelOf(option: ResolvedOption, choiceId: string): string {
-  const found = [...option.choices, ...option.notOffered].find((choice) => choice.id === choiceId);
-  return found?.label ?? choiceId;
-}
+/** A default that was worked out from the garment type, not chosen by anyone. */
+const derivedChoice = (choiceId: string): OptionChoice => ({ choiceId, provenance: "derived" });
 
 /**
- * Moves chosen options onto another type. A choice the new type still offers is kept.
- * A choice it does not offer is reset to its default. Options the new type lacks are
- * removed. Options the old type lacked get their default.
+ * Moves chosen options onto a type. A choice the type still offers is kept, with its
+ * provenance. A choice it does not offer is reset to the default and marked derived.
+ * Options the type lacks are removed. Options the old choices lacked get their default.
  */
 export function carryOptions(previous: Options, type: ResolvedType): Reconciled<Options> {
-  const dropped: string[] = [];
-  const next: Record<string, string> = {};
+  const dropped: Dropped[] = [];
+  const next: Record<string, OptionChoice> = {};
   for (const option of type.options) {
     const before = Object.hasOwn(previous, option.id) ? previous[option.id] : undefined;
-    if (before !== undefined && option.choices.some((choice) => choice.id === before)) {
+    if (before && option.choices.some((choice) => choice.id === before.choiceId)) {
       next[option.id] = before;
       continue;
     }
-    next[option.id] = option.defaultChoice;
-    if (before !== undefined) {
-      dropped.push(
-        `${option.label} was reset to ${labelOf(option, option.defaultChoice)}, because ${type.label} does not offer ${labelOf(option, before)}.`,
-      );
+    next[option.id] = derivedChoice(option.defaultChoice);
+    if (before) {
+      dropped.push({
+        kind: "option",
+        id: option.id,
+        message: `${option.label} was reset to ${choiceName(option, option.defaultChoice)}, because ${type.label} does not offer ${choiceName(option, before.choiceId)}.`,
+      });
     }
   }
   const known = new Set(type.options.map((option) => option.id));
   for (const key of Object.keys(previous).filter((key) => !known.has(key))) {
-    dropped.push(`The option ${key} was removed, because ${type.label} does not have it.`);
+    dropped.push({ kind: "option", id: key, message: `The option ${key} was removed, because ${type.label} does not have it.` });
   }
   return { value: next, dropped };
 }
@@ -49,15 +53,18 @@ export function carryOptions(previous: Options, type: ResolvedType): Reconciled<
  * type's defaults. This lets a change of type succeed where the old choices cannot stay.
  */
 export function repairClashes(options: Options, type: ResolvedType): Reconciled<Options> {
-  const next: Record<string, string> = { ...options };
-  const dropped: string[] = [];
-  const broken = type.rules.filter((rule) => conditionsHold(rule.when, options));
-  for (const rule of broken) {
+  const next: Record<string, OptionChoice> = { ...options };
+  const dropped: Dropped[] = [];
+  for (const rule of type.rules.filter((entry) => conditionsHold(entry.when, options))) {
     for (const condition of rule.when) {
       const option = type.options.find((entry) => entry.id === condition.option);
-      if (!option || next[option.id] === option.defaultChoice) continue;
-      next[option.id] = option.defaultChoice;
-      dropped.push(`${option.label} was reset to ${labelOf(option, option.defaultChoice)}. ${rule.reason}`);
+      if (!option || next[option.id]?.choiceId === option.defaultChoice) continue;
+      next[option.id] = derivedChoice(option.defaultChoice);
+      dropped.push({
+        kind: "option",
+        id: option.id,
+        message: `${option.label} was reset to ${choiceName(option, option.defaultChoice)}. ${rule.reason}`,
+      });
     }
   }
   return { value: next, dropped };
@@ -65,39 +72,61 @@ export function repairClashes(options: Options, type: ResolvedType): Reconciled<
 
 /**
  * Removes anything that no longer fits after the options or type changed: measurements
- * for points that no longer apply, colours for panels that are gone, and artwork whose
- * panel or place is gone. Returns the tidied spec and a sentence for each removal.
+ * for points that no longer apply, colours and fabric assignments for panels that are
+ * gone, and artwork whose panel or place is gone.
  */
 export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<GarmentSpec> {
-  const dropped: string[] = [];
+  const dropped: Dropped[] = [];
   const measurements = spec.measurements.filter((measurement) => {
     const point = type.pointsOfMeasure.find((entry) => entry.id === measurement.pointId);
     if (point && conditionsHold(point.appliesWhen, spec.options)) return true;
-    const label = point?.label ?? measurement.pointId;
-    dropped.push(`The ${label} measurement was removed. ${point?.unavailableReason ?? `${type.label} does not have it.`}`);
+    const reason = point?.unavailableReason ?? `${type.label} does not have it.`;
+    dropped.push({
+      kind: "measurement",
+      id: measurement.pointId,
+      message: `The ${pointName(type, measurement.pointId)} measurement was removed. ${reason}`,
+    });
     return false;
   });
   const panels = new Set(
     type.panels.filter((panel) => conditionsHold(panel.appliesWhen, spec.options)).map((panel) => panel.id),
   );
+  const gone = (panelId: string): string =>
+    `${panelName(type, panelId)} was removed, because this garment no longer has that panel.`;
   const colourways = spec.colourways.map((colourway) => ({
     ...colourway,
     colours: colourway.colours.filter((entry) => {
       if (panels.has(entry.panelId)) return true;
-      dropped.push(`The colour for ${entry.panelId} was removed from ${colourway.name}, because this garment no longer has that panel.`);
+      dropped.push({
+        kind: "colour",
+        id: entry.panelId,
+        parentId: colourway.id,
+        message: `The colour for ${gone(entry.panelId)}`,
+      });
       return false;
     }),
   }));
   const panelFabrics = spec.panelFabrics.filter((entry) => {
     if (panels.has(entry.panelId)) return true;
-    dropped.push(`The fabric for ${entry.panelId} was removed, because this garment no longer has that panel.`);
+    dropped.push({ kind: "fabric-assignment", id: entry.panelId, message: `The fabric for ${gone(entry.panelId)}` });
     return false;
   });
   const artwork = spec.artwork.filter((art) => {
-    const problem = artworkProblem(art, type, spec);
-    if (problem === null) return true;
-    dropped.push(`${problem} It was removed.`);
+    const found = artworkProblem(art, type, spec);
+    if (found === null) return true;
+    dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
     return false;
   });
-  return { value: { ...spec, measurements, colourways, panelFabrics, artwork }, dropped };
+  return { value: { ...spec, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork }, dropped };
+}
+
+/**
+ * Puts a design onto a type: carries the options across, resets any that clash, then
+ * removes what no longer fits. Used when the type changes and when old data is repaired.
+ */
+export function retype(spec: GarmentSpec, type: ResolvedType): Reconciled<GarmentSpec> {
+  const carried = carryOptions(spec.options, type);
+  const repaired = repairClashes(carried.value, type);
+  const tidy = reconcile({ ...spec, typeId: type.id, options: repaired.value }, type);
+  return { value: tidy.value, dropped: [...carried.dropped, ...repaired.dropped, ...tidy.dropped] };
 }

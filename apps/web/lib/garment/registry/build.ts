@@ -8,6 +8,7 @@ import {
   type PointOfMeasure,
   type Rule,
 } from "../definitions";
+import { conditionsHold } from "../conditions";
 import type { FamilyId } from "../primitives";
 
 /** An option as one garment type offers it: choices may be fewer than the family has. */
@@ -62,32 +63,63 @@ function conditionProblems(
   });
 }
 
-function typeProblems(type: GarmentType, family: FamilyData): string[] {
+function twice(owner: string, kind: string, ids: readonly string[]): string[] {
+  return repeatedIds(kind, ids.map((id) => ({ id }))).map(
+    (line) => `${owner} lists the ${kind.toLowerCase()} "${line.split('"')[1]}" twice.`,
+  );
+}
+
+function optionEntryProblems(type: GarmentType, family: FamilyData): string[] {
   const options = byId(family.options);
+  const owner = `Type "${type.id}"`;
+  return type.options.flatMap((entry) => {
+    const option = options.get(entry.option);
+    if (!option) return [`${owner} uses the unknown option "${entry.option}".`];
+    const known = new Set(option.choices.map((choice) => choice.id));
+    const problems = (entry.choices ?? [])
+      .filter((choice) => !known.has(choice))
+      .map((choice) => `${owner} offers "${choice}" for "${option.id}", which is not a choice.`);
+    if (entry.default !== undefined && !known.has(entry.default)) {
+      problems.push(`${owner} sets the default "${entry.default}" for "${option.id}", which is not a choice.`);
+    } else if (entry.choices && entry.default === undefined && !entry.choices.includes(option.defaultChoice)) {
+      const list = entry.choices.map((choice) => `"${choice}"`).join(", ");
+      problems.push(
+        `${owner} offers only ${list} for "${option.id}", but its default "${option.defaultChoice}" is not among them. Set a default.`,
+      );
+    }
+    return problems;
+  });
+}
+
+function startingChoices(type: GarmentType, family: FamilyData): Record<string, string> {
+  const options = byId(family.options);
+  return Object.fromEntries(
+    type.options.flatMap((entry) => {
+      const option = options.get(entry.option);
+      return option ? [[option.id, entry.default ?? option.defaultChoice]] : [];
+    }),
+  );
+}
+
+function typeProblems(type: GarmentType, family: FamilyData): string[] {
   const points = byId(family.pointsOfMeasure);
   const panels = byId(family.panels);
   const owner = `Type "${type.id}"`;
-  const problems: string[] = [];
-  for (const entry of type.options) {
-    const option = options.get(entry.option);
-    if (!option) {
-      problems.push(`${owner} uses the unknown option "${entry.option}".`);
-      continue;
-    }
-    const known = new Set(option.choices.map((choice) => choice.id));
-    for (const choice of entry.choices ?? []) {
-      if (!known.has(choice)) {
-        problems.push(`${owner} offers "${choice}" for "${option.id}", which is not a choice.`);
-      }
-    }
-  }
-  for (const id of type.pointsOfMeasure) {
-    if (!points.has(id)) problems.push(`${owner} uses the unknown point of measure "${id}".`);
-  }
-  for (const id of type.panels) {
-    if (!panels.has(id)) problems.push(`${owner} uses the unknown panel "${id}".`);
-  }
-  return problems;
+  const problems = [
+    ...twice(owner, "Option", type.options.map((entry) => entry.option)),
+    ...twice(owner, "Point of measure", type.pointsOfMeasure),
+    ...twice(owner, "Panel", type.panels),
+    ...optionEntryProblems(type, family),
+    ...type.pointsOfMeasure
+      .filter((id) => !points.has(id))
+      .map((id) => `${owner} uses the unknown point of measure "${id}".`),
+    ...type.panels.filter((id) => !panels.has(id)).map((id) => `${owner} uses the unknown panel "${id}".`),
+  ];
+  if (problems.length > 0) return problems;
+  const start = startingChoices(type, family);
+  return family.rules
+    .filter((rule) => conditionsHold(rule.when, start))
+    .map((rule) => `${owner} starts with a combination that breaks the rule "${rule.id}". ${rule.reason}`);
 }
 
 /** Lists every mistake in one family's data. An empty list means the data is sound. */
@@ -110,34 +142,37 @@ export function checkFamilyData(family: FamilyData): string[] {
   ];
 }
 
+function pick<T>(map: ReadonlyMap<string, T>, ids: readonly string[]): readonly T[] {
+  // Every id was checked by checkFamilyData, so nothing is skipped in practice.
+  return ids.flatMap((id) => {
+    const found = map.get(id);
+    return found ? [found] : [];
+  });
+}
+
 function resolveOptions(type: GarmentType, family: FamilyData): readonly ResolvedOption[] {
   const options = byId(family.options);
-  return type.options.map((entry) => {
-    const option = options.get(entry.option) as OptionDefinition; // checked by checkFamilyData
+  return type.options.flatMap((entry) => {
+    const option = options.get(entry.option);
+    if (!option) return [];
     const choices = entry.choices
       ? option.choices.filter((choice) => entry.choices?.includes(choice.id))
       : option.choices;
-    const wanted = entry.default ?? option.defaultChoice;
-    const defaultChoice = choices.some((choice) => choice.id === wanted)
-      ? wanted
-      : (choices[0]?.id as string); // choices is never empty
+    const defaultChoice = entry.default ?? option.defaultChoice;
     const notOffered = option.choices.filter((choice) => !choices.includes(choice));
-    return Object.freeze({ ...option, choices, defaultChoice, notOffered });
+    return [Object.freeze({ ...option, choices, defaultChoice, notOffered })];
   });
 }
 
 function resolveType(type: GarmentType, family: FamilyData): ResolvedType {
-  const points = byId(family.pointsOfMeasure);
-  const panels = byId(family.panels);
-  // Every id was checked by checkFamilyData, so the lookups below always succeed.
   return Object.freeze({
     id: type.id,
     family: type.family,
     label: type.label,
     wearers: type.wearers,
     options: resolveOptions(type, family),
-    pointsOfMeasure: type.pointsOfMeasure.map((id) => points.get(id) as PointOfMeasure),
-    panels: type.panels.map((id) => panels.get(id) as PanelDefinition),
+    pointsOfMeasure: pick(byId(family.pointsOfMeasure), type.pointsOfMeasure),
+    panels: pick(byId(family.panels), type.panels),
     rules: family.rules,
   });
 }
@@ -157,7 +192,7 @@ export function buildRegistry(families: readonly FamilyData[]): Registry {
   const summaries = parsed.map(({ id, label }) => ({ id, label }));
   return {
     getType: (id) => types.get(id),
-    listTypes: (family) => (family ? resolved.filter((type) => type.family === family) : resolved),
+    listTypes: (family) => resolved.filter((type) => !family || type.family === family),
     listFamilies: () => summaries,
   };
 }

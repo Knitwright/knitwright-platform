@@ -11,6 +11,8 @@ import { MEASUREMENT_MAX_TENTHS_MM } from "./units";
 const FILE_ID = "3f0c2c9e-6f0a-4d0e-9a51-0d6c1c1f7a11";
 const artwork = {
   id: "a1",
+  name: "Crest",
+  provenance: "user-edited",
   source: { kind: "file", fileId: FILE_ID },
   panelId: "body-front",
   anchor: "centre-chest",
@@ -88,7 +90,7 @@ describe("colourway", () => {
     const result = colourwaySchema.safeParse({
       id: "main",
       name: "Home kit",
-      colours: [{ panelId: "body-front", colour: "PANTONE 19-4052 or #1B2A49" }],
+      colours: [{ panelId: "body-front", colour: "PANTONE 19-4052 or #1B2A49", provenance: "user-edited" }],
     });
     expect(result.success).toBe(true);
   });
@@ -97,10 +99,10 @@ describe("colourway", () => {
     const base = { id: "main", name: "Home", colours: [] };
     expect(colourwaySchema.safeParse({ ...base, name: "  " }).success).toBe(false);
     expect(
-      colourwaySchema.safeParse({ ...base, colours: [{ panelId: "body-front", colour: " " }] })
+      colourwaySchema.safeParse({ ...base, colours: [{ panelId: "body-front", colour: " ", provenance: "user-edited" }] })
         .success,
     ).toBe(false);
-    const twice = { panelId: "body-front", colour: "navy" };
+    const twice = { panelId: "body-front", colour: "navy", provenance: "user-edited" };
     expect(colourwaySchema.safeParse({ ...base, colours: [twice, twice] }).success).toBe(false);
   });
 });

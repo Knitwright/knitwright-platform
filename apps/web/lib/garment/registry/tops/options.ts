@@ -14,7 +14,8 @@ export const TOPS_OPTIONS: readonly OptionDefinition[] = [
   },
   {
     id: "neckline",
-    label: "Neckline shape",
+    label: "Neckline",
+    help: "The shape of the opening for the head.",
     choices: [
       { id: "crew", label: "Round neck" },
       { id: "v-neck", label: "V neck" },
@@ -25,15 +26,16 @@ export const TOPS_OPTIONS: readonly OptionDefinition[] = [
     id: "collar",
     label: "Collar",
     choices: [
-      { id: "none", label: "No collar, just a neckband" },
-      { id: "polo-collar", label: "Polo collar that folds over" },
-      { id: "band-collar", label: "Band collar that stands up" },
+      { id: "none", label: "No collar", help: "The neck is finished with a plain band." },
+      { id: "polo-collar", label: "Polo collar", help: "A collar that folds over and opens at the front." },
+      { id: "band-collar", label: "Band collar", help: "A collar that stands up all the way round the neck." },
     ],
     defaultChoice: "none",
   },
   {
     id: "placket",
-    label: "Placket (the strip that fastens the neck opening)",
+    label: "Placket",
+    help: "The strip of fabric that fastens the neck opening.",
     choices: [
       { id: "none", label: "No placket" },
       { id: "buttons", label: "Buttons" },
@@ -45,8 +47,12 @@ export const TOPS_OPTIONS: readonly OptionDefinition[] = [
     id: "sleeve-type",
     label: "Sleeve type",
     choices: [
-      { id: "set-in", label: "Set in, with a seam at the shoulder" },
-      { id: "raglan", label: "Raglan, with a seam running up to the neck" },
+      { id: "set-in", label: "Set in", help: "The sleeve is sewn on at a seam across the shoulder." },
+      {
+        id: "raglan",
+        label: "Raglan",
+        help: "The sleeve runs up to the neck with a diagonal seam, and there is no shoulder seam.",
+      },
     ],
     defaultChoice: "set-in",
   },
@@ -61,11 +67,11 @@ export const TOPS_OPTIONS: readonly OptionDefinition[] = [
   },
   {
     id: "hem-shape",
-    label: "Bottom hem shape",
+    label: "Hem shape",
     choices: [
       { id: "straight", label: "Straight across" },
-      { id: "curved", label: "Curved, longer at the back" },
-      { id: "side-vent", label: "Straight with a small split at each side" },
+      { id: "curved", label: "Curved", help: "The hem curves, and is longer at the back." },
+      { id: "side-vent", label: "Side vents", help: "A straight hem with a small split at each side." },
     ],
     defaultChoice: "straight",
   },
@@ -74,16 +80,16 @@ export const TOPS_OPTIONS: readonly OptionDefinition[] = [
     label: "Side panels",
     choices: [
       { id: "none", label: "No side panels" },
-      { id: "contrast-insert", label: "A strip of a different colour down each side" },
+      { id: "contrast-insert", label: "Contrast strips", help: "A strip of a different colour runs down each side." },
     ],
     defaultChoice: "none",
   },
   {
     id: "cuffs",
-    label: "Sleeve cuffs",
+    label: "Cuffs",
     choices: [
-      { id: "none", label: "No cuffs, plain hemmed sleeves" },
-      { id: "rib-cuff", label: "Stretchy ribbed cuffs" },
+      { id: "none", label: "No cuffs", help: "The sleeves are simply hemmed." },
+      { id: "rib-cuff", label: "Ribbed cuffs", help: "Stretchy ribbed bands at the end of the sleeves." },
     ],
     defaultChoice: "none",
   },

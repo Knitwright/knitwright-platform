@@ -6,7 +6,9 @@ import { familySchema, kebabId, labelText, sentenceText, wearerSchema } from "./
  * panels a garment type has. It holds no measurement values and no quantities.
  */
 
-const choiceSchema = z.object({ id: kebabId, label: labelText }).readonly();
+const choiceSchema = z
+  .object({ id: kebabId, label: labelText, help: sentenceText.optional() })
+  .readonly();
 export type OptionChoice = z.output<typeof choiceSchema>;
 
 const hasUniqueIds = (items: readonly { id: string }[]): boolean =>
@@ -17,6 +19,8 @@ export const optionSchema = z
   .object({
     id: kebabId,
     label: labelText,
+    /** One plain sentence for people who do not know the term. Keep the label short. */
+    help: sentenceText.optional(),
     choices: z.array(choiceSchema).min(1).readonly(),
     defaultChoice: kebabId,
   })
@@ -39,12 +43,27 @@ export type Condition = z.output<typeof conditionSchema>;
 
 const conditionsSchema = z.array(conditionSchema).readonly();
 
+/**
+ * Sections for laying out a measurement table. Tolerances and grade steps do not belong
+ * in the registry. They live in the size chart data, keyed by point of measure id.
+ */
+export const POINT_GROUPS = ["body", "sleeve", "neck", "placket"] as const;
+export const pointGroupSchema = z.enum(POINT_GROUPS);
+export type PointGroup = z.output<typeof pointGroupSchema>;
+export const POINT_GROUP_LABELS: Readonly<Record<PointGroup, string>> = {
+  body: "Body",
+  sleeve: "Sleeve",
+  neck: "Neck and collar",
+  placket: "Placket",
+};
+
 export const pointOfMeasureSchema = z
   .object({
     id: kebabId,
     label: labelText,
     /** One plain sentence: where to lay the garment, and from which point to which. */
     howToMeasure: sentenceText,
+    group: pointGroupSchema,
     /** Every condition must hold for the point to apply. Empty means always. */
     appliesWhen: conditionsSchema,
     /** Says why the point is left out when the conditions do not hold. */

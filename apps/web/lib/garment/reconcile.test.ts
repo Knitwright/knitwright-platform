@@ -21,7 +21,7 @@ const family: FamilyData = {
       defaultChoice: "none",
     },
   ],
-  pointsOfMeasure: [{ id: "span", label: "Span", howToMeasure: "Lay flat.", appliesWhen: [] }],
+  pointsOfMeasure: [{ id: "span", label: "Span", howToMeasure: "Lay flat.", group: "body", appliesWhen: [] }],
   panels: [
     { id: "wing-panel", label: "Wing panel", appliesWhen: [{ option: "wing", in: ["big"] }], anchors: [{ id: "tip", label: "Tip" }] },
   ],
@@ -34,10 +34,11 @@ const type = buildRegistry([family]).getType("test-wing");
 if (!type) throw new Error("fixture type missing");
 
 const spec: GarmentSpec = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   typeId: "test-wing",
   wearer: "men",
-  options: { wing: "none" },
+  options: { wing: { choiceId: "none", provenance: "user-edited" } },
+  sizing: null,
   measurements: [
     { pointId: "span", value: 1000, provenance: "user-edited" },
     { pointId: "gone", value: 1000, provenance: "user-edited" },
@@ -46,10 +47,13 @@ const spec: GarmentSpec = {
     { id: "main", name: "Main", composition: "", construction: "", weightGsm: null, finish: "", stretch: "not-set", provenance: "user-edited" },
   ],
   panelFabrics: [{ panelId: "wing-panel", fabricId: "main" }],
-  colourways: [{ id: "main", name: "Main", colours: [{ panelId: "wing-panel", colour: "red" }] }],
+  colourways: [{ id: "main", name: "Main", colours: [{ panelId: "wing-panel", colour: "red", provenance: "user-edited" }] }],
   artwork: [
     {
       id: "logo",
+      name: "Logo",
+      rotationDegrees: 0,
+      provenance: "user-edited",
       source: { kind: "file", fileId: FILE_ID },
       panelId: "wing-panel",
       anchor: "tip",
@@ -69,16 +73,29 @@ describe("reconcile", () => {
     expect(result.value.colourways[0]?.colours).toEqual([]);
     expect(result.value.measurements.map((entry) => entry.pointId)).toEqual(["span"]);
     expect(result.dropped).toEqual([
-      "The gone measurement was removed. Test wing does not have it.",
-      "The colour for wing-panel was removed from Main, because this garment no longer has that panel.",
-      "The fabric for wing-panel was removed, because this garment no longer has that panel.",
-      "Artwork logo is on wing-panel, which this garment does not have. It was removed.",
+      { kind: "measurement", id: "gone", message: "The gone measurement was removed. Test wing does not have it." },
+      {
+        kind: "colour",
+        id: "wing-panel",
+        parentId: "main",
+        message: "The colour for Wing panel was removed, because this garment no longer has that panel.",
+      },
+      {
+        kind: "fabric-assignment",
+        id: "wing-panel",
+        message: "The fabric for Wing panel was removed, because this garment no longer has that panel.",
+      },
+      {
+        kind: "artwork",
+        id: "logo",
+        message: 'Artwork "Logo" is on Wing panel, which this garment does not have. It was removed.',
+      },
     ]);
     expect(result.value.panelFabrics).toEqual([]);
   });
 
   it("keeps everything that still fits and reports nothing", () => {
-    const big = { ...spec, options: { wing: "big" }, measurements: [spec.measurements[0]!] };
+    const big = { ...spec, options: { wing: { choiceId: "big", provenance: "user-edited" as const } }, measurements: [spec.measurements[0]!] };
     const result = reconcile(big, type);
     expect(result.value).toEqual(big);
     expect(result.dropped).toEqual([]);
@@ -86,25 +103,36 @@ describe("reconcile", () => {
 });
 
 describe("carryOptions", () => {
-  it("names choices in the report, and falls back to the id when it has no label", () => {
-    const carried = carryOptions({ wing: "big", spare: "x" }, type);
-    expect(carried.value).toEqual({ wing: "big" });
-    expect(carried.dropped).toEqual(["The option spare was removed, because Test wing does not have it."]);
-    const odd = carryOptions({ wing: "huge" }, type);
-    expect(odd.value).toEqual({ wing: "none" });
-    expect(odd.dropped[0]).toBe("Wing was reset to No wing, because Test wing does not offer huge.");
+  const chose = (choiceId: string) => ({ choiceId, provenance: "ai-suggested" as const });
+
+  it("keeps a choice with its provenance and removes options the type lacks", () => {
+    const carried = carryOptions({ wing: chose("big"), spare: chose("x") }, type);
+    expect(carried.value).toEqual({ wing: chose("big") });
+    expect(carried.dropped).toEqual([
+      { kind: "option", id: "spare", message: "The option spare was removed, because Test wing does not have it." },
+    ]);
+  });
+
+  it("resets a choice that is not offered to the default, marked derived, naming it by its id if it has no label", () => {
+    const odd = carryOptions({ wing: chose("huge") }, type);
+    expect(odd.value).toEqual({ wing: { choiceId: "none", provenance: "derived" } });
+    expect(odd.dropped[0]?.message).toBe("Wing was reset to No wing, because Test wing does not offer huge.");
   });
 });
 
 describe("repairClashes", () => {
-  it("resets options named by a broken rule, and leaves others alone", () => {
-    const repaired = repairClashes({ wing: "big" }, type);
-    expect(repaired.value).toEqual({ wing: "none" });
-    expect(repaired.dropped).toEqual(["Wing was reset to No wing. Wings are too big."]);
+  const chose = (choiceId: string) => ({ choiceId, provenance: "user-edited" as const });
+
+  it("resets options named by a broken rule to the default, marked derived", () => {
+    const repaired = repairClashes({ wing: chose("big") }, type);
+    expect(repaired.value).toEqual({ wing: { choiceId: "none", provenance: "derived" } });
+    expect(repaired.dropped).toEqual([
+      { kind: "option", id: "wing", message: "Wing was reset to No wing. Wings are too big." },
+    ]);
   });
 
   it("does nothing when no rule is broken", () => {
-    const repaired = repairClashes({ wing: "none" }, type);
-    expect(repaired).toEqual({ value: { wing: "none" }, dropped: [] });
+    const options = { wing: chose("none") };
+    expect(repairClashes(options, type)).toEqual({ value: options, dropped: [] });
   });
 });

@@ -12,6 +12,8 @@ describe("garment public surface", () => {
       value: cm,
       provenance: "user-edited",
     });
+    expect(garment.availableChoices(created.spec, "fit")).toHaveLength(3);
+    expect(garment.provenanceSummary(created.spec)).toEqual([]);
     expect(changed.ok).toBe(true);
     expect(garment.validateSpec(changed.ok ? changed.spec : null).ok).toBe(true);
     expect(garment.pointsOfMeasureFor(created.spec)).toHaveLength(11);

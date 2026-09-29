@@ -21,7 +21,7 @@ export const TOPS_PANELS: readonly PanelDefinition[] = [
     label: "Body back",
     appliesWhen: [],
     anchors: [
-      { id: "upper-back", label: "Upper back, below the neck" },
+      { id: "upper-back", label: "Upper back" },
       { id: "centre-back", label: "Centre back" },
       { id: "lower-back", label: "Lower back" },
     ],

@@ -11,7 +11,7 @@ export const TOPS_RULES: readonly Rule[] = [
       { option: "collar", in: ["polo-collar"] },
       { option: "placket", in: ["none"] },
     ],
-    reason: "A polo collar folds open at the front, so it needs a placket to fasten the opening.",
+    reason: "A polo collar folds open at the front, so it needs a placket to fasten the opening. Choose buttons or a zip.",
   },
   {
     id: "v-neck-has-no-placket",
@@ -19,7 +19,7 @@ export const TOPS_RULES: readonly Rule[] = [
       { option: "neckline", in: ["v-neck"] },
       { option: "placket", in: ["buttons", "zip"] },
     ],
-    reason: "A V neck already opens down the chest, so there is no room for a placket.",
+    reason: "A V neck already opens down the chest, so there is no room for a placket. Choose no placket, or a round neck.",
   },
   {
     id: "v-neck-has-no-band-collar",
@@ -27,6 +27,6 @@ export const TOPS_RULES: readonly Rule[] = [
       { option: "neckline", in: ["v-neck"] },
       { option: "collar", in: ["band-collar"] },
     ],
-    reason: "A band collar stands up all the way round the neck, so it cannot sit on a V shaped opening.",
+    reason: "A band collar stands up all the way round the neck, so it cannot sit on a V shaped opening. Choose no collar, or a round neck.",
   },
 ];

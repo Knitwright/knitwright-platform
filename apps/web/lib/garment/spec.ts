@@ -20,16 +20,33 @@ const FIRST_COLOURWAY_NAME = "Main colourway";
 export const FIRST_FABRIC_ID = "main";
 const FIRST_FABRIC_NAME = "Main fabric";
 
+const EMPTY_LIST_MESSAGES: Readonly<Record<string, string>> = {
+  fabrics: "Keep at least one fabric.",
+  colourways: "Keep at least one colourway.",
+};
+
+/** A list that must not be empty fails as a missing first entry, so say it plainly. */
+function friendlyIssues(input: unknown, issues: readonly { path: readonly PropertyKey[]; message: string }[]): string[] {
+  const record = typeof input === "object" && input !== null ? (input as Record<string, unknown>) : {};
+  return issues.map((issue) => {
+    const [key, index] = issue.path;
+    const emptyMessage = typeof key === "string" ? EMPTY_LIST_MESSAGES[key] : undefined;
+    const list = typeof key === "string" ? record[key] : undefined;
+    return emptyMessage && index === 0 && Array.isArray(list) && list.length === 0 ? emptyMessage : issue.message;
+  });
+}
+
 /** Checks any input against the contract and the registry. Nothing is thrown. */
 export function validateSpec(input: unknown): ValidationResult {
   const parsed = garmentSpecSchema.safeParse(input);
   if (parsed.success) return { ok: true, spec: parsed.data };
-  return { ok: false, issues: parsed.error.issues.map((issue) => issue.message) };
+  return { ok: false, issues: friendlyIssues(input, parsed.error.issues) };
 }
 
 /**
- * A valid starting design for a type: the default choice for every option, no
- * measurements, one empty fabric, one empty colourway and no artwork.
+ * A valid starting design for a type: the default choice for every option, marked
+ * derived because nobody chose it, no measurements, no sizing, one empty fabric, one
+ * empty colourway and no artwork.
  */
 export function createSpec(typeId: string, wearer: Wearer): SpecResult {
   const type = getType(typeId);
@@ -38,16 +55,12 @@ export function createSpec(typeId: string, wearer: Wearer): SpecResult {
     schemaVersion: SPEC_SCHEMA_VERSION,
     typeId,
     wearer,
-    options: Object.fromEntries(type.options.map((option) => [option.id, option.defaultChoice])),
+    options: Object.fromEntries(
+      type.options.map((option) => [option.id, { choiceId: option.defaultChoice, provenance: "derived" }]),
+    ),
+    sizing: null,
     measurements: [],
-    fabrics: [
-      {
-        id: FIRST_FABRIC_ID,
-        name: FIRST_FABRIC_NAME,
-        ...EMPTY_FABRIC_DETAILS,
-        provenance: "user-edited",
-      },
-    ],
+    fabrics: [{ id: FIRST_FABRIC_ID, name: FIRST_FABRIC_NAME, ...EMPTY_FABRIC_DETAILS, provenance: "user-edited" }],
     panelFabrics: [],
     colourways: [{ id: FIRST_COLOURWAY_ID, name: FIRST_COLOURWAY_NAME, colours: [] }],
     artwork: [],

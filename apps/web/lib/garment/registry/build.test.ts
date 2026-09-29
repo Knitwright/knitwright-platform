@@ -17,11 +17,12 @@ const family: FamilyData = {
     },
   ],
   pointsOfMeasure: [
-    { id: "chest-width", label: "Chest width", howToMeasure: "Lay flat.", appliesWhen: [] },
+    { id: "chest-width", label: "Chest width", howToMeasure: "Lay flat.", group: "body", appliesWhen: [] },
     {
       id: "collar-height",
       label: "Collar height",
       howToMeasure: "Measure the collar.",
+      group: "neck",
       appliesWhen: [{ option: "collar", in: ["polo-collar"] }],
       unavailableReason: "There is no collar.",
     },
@@ -64,15 +65,43 @@ describe("registry build", () => {
 
   it("narrows choices and changes the default for one type", () => {
     const narrowed = withType({ options: [{ option: "collar", choices: ["polo-collar"], default: "polo-collar" }] });
-    const option = buildRegistry([narrowed]).getType("test-tee")?.options[0];
+    const option = buildRegistry([{ ...narrowed, rules: [] }]).getType("test-tee")?.options[0];
     expect(option?.choices.map((choice) => choice.id)).toEqual(["polo-collar"]);
     expect(option?.defaultChoice).toBe("polo-collar");
   });
 
-  it("moves the default into the offered choices when only choices are narrowed", () => {
+  it("reports narrowed choices whose default is not among them, instead of guessing", () => {
     const narrowed = withType({ options: [{ option: "collar", choices: ["polo-collar"] }] });
-    const option = buildRegistry([narrowed]).getType("test-tee")?.options[0];
-    expect(option?.defaultChoice).toBe("polo-collar");
+    expect(checkFamilyData(narrowed)).toEqual([
+      'Type "test-tee" offers only "polo-collar" for "collar", but its default "none" is not among them. Set a default.',
+    ]);
+    expect(() => buildRegistry([narrowed])).toThrow(/Set a default/);
+  });
+
+  it("reports a default that is not a choice of the option", () => {
+    const bad = withType({ options: [{ option: "collar", default: "band-collar" }] });
+    expect(checkFamilyData(bad)).toEqual([
+      'Type "test-tee" sets the default "band-collar" for "collar", which is not a choice.',
+    ]);
+  });
+
+  it("reports an option, point of measure or panel listed twice in one type", () => {
+    expect(checkFamilyData(withType({ options: [{ option: "collar" }, { option: "collar" }] }))).toEqual([
+      'Type "test-tee" lists the option "collar" twice.',
+    ]);
+    expect(checkFamilyData(withType({ pointsOfMeasure: ["chest-width", "chest-width"] }))).toEqual([
+      'Type "test-tee" lists the point of measure "chest-width" twice.',
+    ]);
+    expect(checkFamilyData(withType({ panels: ["body-front", "body-front"] }))).toEqual([
+      'Type "test-tee" lists the panel "body-front" twice.',
+    ]);
+  });
+
+  it("reports a type whose starting choices break its own rules", () => {
+    const bad = withType({ options: [{ option: "collar", default: "polo-collar" }] });
+    expect(checkFamilyData(bad)).toEqual([
+      'Type "test-tee" starts with a combination that breaks the rule "no-polo". Not here.',
+    ]);
   });
 
   it("reports a type that names an option, point or panel that does not exist", () => {
@@ -88,7 +117,7 @@ describe("registry build", () => {
   });
 
   it("reports a narrowed choice that the option does not have", () => {
-    const problems = checkFamilyData(withType({ options: [{ option: "collar", choices: ["band-collar"] }] }));
+    const problems = checkFamilyData(withType({ options: [{ option: "collar", choices: ["band-collar"], default: "none" }] }));
     expect(problems).toEqual(['Type "test-tee" offers "band-collar" for "collar", which is not a choice.']);
   });
 

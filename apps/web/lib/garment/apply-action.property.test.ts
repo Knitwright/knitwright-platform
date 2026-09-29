@@ -1,6 +1,8 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import { panelsFor } from "./applicability";
 import { applyAction } from "./apply-action";
+import { fabricFor } from "./fabric";
 import { deepFreeze } from "./fixtures/freeze";
 import { PROVENANCE_VALUES } from "./provenance";
 import { WEARERS } from "./primitives";
@@ -17,11 +19,13 @@ const panelIds = TOPS.panels.map((panel) => panel.id);
 const anchorIds = [...new Set(TOPS.panels.flatMap((panel) => panel.anchors.map((a) => a.id)))];
 const smallIds = ["main", "away", "logo", "crest"];
 
+const provenance = fc.constantFrom(...PROVENANCE_VALUES);
+
 const colourway = fc.record({
   id: fc.constantFrom(...smallIds),
   name: fc.constantFrom("Home", "Away", " Third "),
   colours: fc.uniqueArray(
-    fc.record({ panelId: fc.constantFrom(...panelIds), colour: fc.constantFrom("navy", "red") }),
+    fc.record({ panelId: fc.constantFrom(...panelIds), colour: fc.constantFrom("navy", "red"), provenance: provenance }),
     { selector: (entry) => entry.panelId, maxLength: 4 },
   ),
 });
@@ -40,6 +44,9 @@ const fabric = fc.record({
 
 const artwork = fc.record({
   id: fc.constantFrom(...smallIds),
+  name: fc.constantFrom("Crest", "Logo"),
+  provenance,
+  rotationDegrees: fc.integer({ min: 0, max: 359 }),
   source: fc.constant({ kind: "file", fileId: FILE_ID }),
   panelId: fc.constantFrom(...panelIds),
   anchor: fc.constantFrom(...anchorIds),
@@ -51,7 +58,8 @@ const artwork = fc.record({
 });
 
 const action = fc.oneof(
-  { weight: 6, arbitrary: fc.record({ type: fc.constant("set-option"), optionId: fc.constantFrom(...optionIds), choiceId: fc.constantFrom(...choiceIds) }) },
+  { weight: 6, arbitrary: fc.record({ type: fc.constant("set-option"), optionId: fc.constantFrom(...optionIds), choiceId: fc.constantFrom(...choiceIds), provenance }) },
+  { weight: 1, arbitrary: fc.record({ type: fc.constant("set-sizing"), sizing: fc.constantFrom(null, { sizes: ["S", "M", "L"], baseSize: "M" }, { sizes: ["S"], baseSize: "L" }) }) },
   { weight: 5, arbitrary: fc.record({ type: fc.constant("set-measurement"), pointId: fc.constantFrom(...pointIds), value: fc.integer({ min: 0, max: 31_000 }), provenance: fc.constantFrom(...PROVENANCE_VALUES) }) },
   { weight: 2, arbitrary: fc.record({ type: fc.constant("remove-measurement"), pointId: fc.constantFrom(...pointIds) }) },
   { weight: 2, arbitrary: fc.record({ type: fc.constantFrom("add-fabric", "update-fabric"), fabric }) },
@@ -64,6 +72,20 @@ const action = fc.oneof(
   { weight: 1, arbitrary: fc.record({ type: fc.constant("change-wearer"), wearer: fc.constantFrom(...WEARERS, "kids") }) },
   { weight: 3, arbitrary: fc.record({ type: fc.constant("change-type"), typeId: fc.constantFrom(...typeIds) }) },
 );
+
+type Accepted = Extract<ReturnType<typeof applyAction>, { ok: true }>;
+
+/** Every panel whose fabric changed without being asked for must appear in the report. */
+function expectFabricChangesReported(before: GarmentSpec, result: Accepted, action: { type?: unknown }): void {
+  if (action.type === "assign-fabric") return;
+  const kept = new Set(panelsFor(before).map((panel) => panel.id));
+  const reported = new Set(result.dropped.map((item) => item.id));
+  for (const panel of panelsFor(result.spec).filter((entry) => kept.has(entry.id))) {
+    if (fabricFor(before, panel.id).id !== fabricFor(result.spec, panel.id).id) {
+      expect(reported.has(panel.id)).toBe(true);
+    }
+  }
+}
 
 function start(typeId: string): GarmentSpec {
   const result = createSpec(typeId, "men");
@@ -89,6 +111,7 @@ describe("applyAction on any sequence of changes", () => {
             if (result.ok) {
               accepted += 1;
               expect(validateSpec(result.spec).ok).toBe(true);
+              expectFabricChangesReported(spec, result, next);
               spec = deepFreeze(result.spec);
             } else {
               rejected += 1;

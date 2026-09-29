@@ -9,6 +9,9 @@ export const ARTWORK_TEXT_MAX_LENGTH = 80;
 export const FABRIC_TEXT_MAX_LENGTH = 200;
 /** A sanity limit on fabric weight in grams per square metre, to catch typing slips. */
 export const FABRIC_WEIGHT_MAX_GSM = 2000;
+export const MAX_ROTATION_DEGREES = 359;
+export const SIZE_LABEL_MAX_LENGTH = 12;
+export const MAX_SIZES = 24;
 
 /** One measured value. It always says where it came from. */
 export const measurementShape = {
@@ -60,6 +63,7 @@ const panelColourSchema = z
     panelId: kebabId,
     /** Free text. Colour libraries are licensed, so codes are never looked up. */
     colour: freeText(COLOUR_MAX_LENGTH).min(1, "Enter a colour."),
+    provenance: provenanceSchema,
   })
   .readonly();
 
@@ -99,6 +103,7 @@ const size = z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM);
 export const artworkSchema = z
   .object({
     id: localId,
+    name: freeText(NAME_MAX_LENGTH).min(1, "Give the artwork a name."),
     source: artworkSourceSchema,
     panelId: kebabId,
     anchor: kebabId,
@@ -106,7 +111,36 @@ export const artworkSchema = z
     offsetY: offset,
     width: size,
     height: size,
+    /** Whole degrees, 0 to 359. */
+    rotationDegrees: z.number().int().min(0).max(MAX_ROTATION_DEGREES).default(0),
     technique: z.enum(TECHNIQUES),
+    provenance: provenanceSchema,
   })
   .readonly();
 export type Artwork = z.output<typeof artworkSchema>;
+
+/** One chosen option, and who chose it. A default worked out from the type is `derived`. */
+export const optionChoiceSchema = z.object({ choiceId: kebabId, provenance: provenanceSchema }).readonly();
+export type OptionChoice = z.output<typeof optionChoiceSchema>;
+
+const sizeLabel = freeText(SIZE_LABEL_MAX_LENGTH).min(1, "Enter a size label.");
+
+/**
+ * The size run of a design, smallest first. Measurements in the spec are the values
+ * at the base size. Other sizes are worked out from size chart data, not stored here.
+ */
+export const sizingSchema = z
+  .object({
+    sizes: z.array(sizeLabel).min(1, "Add at least one size.").max(MAX_SIZES).readonly(),
+    baseSize: sizeLabel,
+  })
+  .readonly()
+  .refine((sizing) => new Set(sizing.sizes).size === sizing.sizes.length, {
+    message: "Each size can appear only once.",
+    path: ["sizes"],
+  })
+  .refine((sizing) => sizing.sizes.includes(sizing.baseSize), {
+    message: "The base size must be one of the sizes.",
+    path: ["baseSize"],
+  });
+export type Sizing = z.output<typeof sizingSchema>;

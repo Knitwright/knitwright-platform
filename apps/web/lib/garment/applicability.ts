@@ -1,24 +1,11 @@
-import type { Condition, PanelDefinition, PointOfMeasure } from "./definitions";
+import type { PanelDefinition, PointOfMeasure } from "./definitions";
+import { conditionsHold, type ChoiceMap } from "./conditions";
 import { getType } from "./registry";
 
 /** The part of a spec that decides what applies: the type and the chosen options. */
 export interface SpecShape {
   readonly typeId: string;
-  readonly options: Readonly<Record<string, string>>;
-}
-
-/**
- * True when every condition holds. An option that is not chosen never satisfies a
- * condition, so a garment without a placket option has no placket.
- */
-export function conditionsHold(
-  conditions: readonly Condition[],
-  options: Readonly<Record<string, string>>,
-): boolean {
-  return conditions.every((condition) => {
-    const chosen = Object.hasOwn(options, condition.option) ? options[condition.option] : undefined;
-    return chosen !== undefined && condition.in.includes(chosen);
-  });
+  readonly options: ChoiceMap;
 }
 
 /** The points of measure that apply to this spec. An unknown type has none. */

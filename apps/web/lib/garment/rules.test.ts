@@ -47,7 +47,9 @@ describe("impossible combinations", () => {
     expect(result).toEqual([
       {
         ruleId: "polo-collar-needs-placket",
-        reason: "A polo collar folds open at the front, so it needs a placket to fasten the opening.",
+        reason:
+          "A polo collar folds open at the front, so it needs a placket to fasten the opening. Choose buttons or a zip.",
+        options: ["collar", "placket"],
       },
     ]);
   });
@@ -84,6 +86,7 @@ describe("impossible combinations", () => {
     for (const rule of TOPS_RULES) {
       expect(rule.reason.endsWith(".")).toBe(true);
       expect(rule.reason).not.toMatch(/\d/);
+      expect(rule.reason).toMatch(/\.\s+Choose [^.]+\.$/);
     }
   });
 
@@ -105,12 +108,31 @@ describe("impossible combinations", () => {
     expect(checked).toBeGreaterThan(1000);
   });
 
-  it("can be broken by at least one combination that some type offers, for every rule", () => {
+  it("can be broken by an offered combination for every rule except the polo collar rule", () => {
     const seen = new Set<string>();
     for (const { id } of listTypes("tops")) {
       for (const options of allCombinations(id)) violatedIds(id, options).forEach((rule) => seen.add(rule));
     }
-    expect([...seen].sort()).toEqual(TOPS_RULES.map((rule) => rule.id).sort());
+    expect([...seen].sort()).toEqual(["v-neck-has-no-band-collar", "v-neck-has-no-placket"]);
+  });
+
+  it("still refuses a polo collar with no placket when it comes from stored data", () => {
+    expect(violatedIds("polo", { ...polo, placket: "none" })).toEqual(["polo-collar-needs-placket"]);
+  });
+
+  it("says which options each violated rule involves", () => {
+    const both = { ...jersey, neckline: "v-neck", collar: "band-collar", placket: "buttons" };
+    expect(checkCombination("team-jersey", both).map((violation) => violation.options)).toEqual([
+      ["neckline", "placket"],
+      ["neckline", "collar"],
+    ]);
+  });
+
+  it("accepts the option choices in the stored form with a choice id", () => {
+    const stored = Object.fromEntries(
+      Object.entries({ ...polo, placket: "none" }).map(([key, choiceId]) => [key, { choiceId, provenance: "user-edited" }]),
+    );
+    expect(checkCombination("polo", stored)).toHaveLength(1);
   });
 });
 

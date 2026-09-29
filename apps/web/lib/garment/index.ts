@@ -3,6 +3,11 @@
  * It is pure: no React, no Next.js, no database and no network.
  */
 export { applyAction, type ActionResult } from "./apply-action";
+export { availableChoices, type AvailableChoice } from "./available-choices";
+export { type Dropped, type DroppedKind } from "./dropped";
+export { migrateSpec, repairSpec, type MigrateResult } from "./repair";
+export { provenanceSummary, type ProvenanceItem } from "./provenance-summary";
+export { type ChoiceMap } from "./conditions";
 export { panelsFor, pointsOfMeasureFor, type SpecShape } from "./applicability";
 export { specActionSchema, type SpecAction } from "./action-schema";
 export { checkCombination, type RuleViolation } from "./combinations";
@@ -10,15 +15,18 @@ export {
   conditionSchema,
   familyDataSchema,
   garmentTypeSchema,
+  POINT_GROUPS,
+  POINT_GROUP_LABELS,
   optionSchema,
   panelSchema,
+  pointGroupSchema,
   pointOfMeasureSchema,
   ruleSchema,
   type Condition,
   type FamilyData,
   type GarmentType,
-  type OptionChoice,
   type OptionDefinition,
+  type PointGroup,
   type PanelDefinition,
   type PointOfMeasure,
   type Rule,
@@ -31,12 +39,16 @@ export {
   colourwaySchema,
   fabricSchema,
   measurementSchema,
+  optionChoiceSchema,
   panelFabricSchema,
+  sizingSchema,
   type Artwork,
   type Colourway,
   type FabricSpec,
   type Measurement,
+  type OptionChoice,
   type PanelFabric,
+  type Sizing,
 } from "./parts";
 export { fabricFor } from "./fabric";
 export {
@@ -56,7 +68,7 @@ export {
   type ResolvedOption,
   type ResolvedType,
 } from "./registry";
-export { SPEC_SCHEMA_VERSION, garmentSpecSchema } from "./spec-schema";
+export { SPEC_SCHEMA_VERSION, garmentSpecSchema, garmentSpecStructureSchema } from "./spec-schema";
 export {
   FIRST_COLOURWAY_ID,
   FIRST_FABRIC_ID,

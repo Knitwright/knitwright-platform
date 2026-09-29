@@ -1,17 +1,32 @@
 import { z } from "zod";
-import { artworkSchema, colourwaySchema, fabricSchema, measurementShape } from "./parts";
+import {
+  artworkSchema,
+  colourwaySchema,
+  fabricSchema,
+  measurementShape,
+  sizingSchema,
+} from "./parts";
 import { kebabId, localId, wearerSchema } from "./primitives";
+import { provenanceSchema } from "./provenance";
 
 /**
  * Every change the editor, and later the assistant, may ask for. Anything else is
- * refused before it touches a design. Unknown fields are refused too.
+ * refused before it touches a design. Unknown fields are refused too. Actions that set
+ * a value carry its provenance: the option choice, the measurement, and the fabric,
+ * colourway and artwork objects each hold their own. The wearer and the garment type
+ * carry none, because a person always chooses them.
  */
 export const specActionSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.literal("set-option"), optionId: kebabId, choiceId: kebabId }),
+  z.strictObject({
+    type: z.literal("set-option"),
+    optionId: kebabId,
+    choiceId: kebabId,
+    provenance: provenanceSchema,
+  }),
   z.strictObject({ type: z.literal("set-measurement"), ...measurementShape }),
   z.strictObject({ type: z.literal("remove-measurement"), pointId: kebabId }),
+  z.strictObject({ type: z.literal("set-sizing"), sizing: sizingSchema.nullable() }),
   z.strictObject({ type: z.literal("add-fabric"), fabric: fabricSchema }),
-  /** Carries the new provenance along with the new details. */
   z.strictObject({ type: z.literal("update-fabric"), fabric: fabricSchema }),
   z.strictObject({ type: z.literal("remove-fabric"), id: localId }),
   z.strictObject({ type: z.literal("assign-fabric"), panelId: kebabId, fabricId: localId }),

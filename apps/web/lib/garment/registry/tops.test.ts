@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getType, listFamilies, listTypes } from "./index";
+import { POINT_GROUP_LABELS } from "../definitions";
 import { TOPS } from "./tops";
 
 const ids = (items: readonly { readonly id: string }[]): string[] => items.map((item) => item.id);
@@ -96,5 +97,45 @@ describe("tops registry", () => {
     expect(ids(withAnchors)).toEqual(["body-front", "body-back", "sleeve-left", "sleeve-right"]);
     const front = TOPS.panels.find((panel) => panel.id === "body-front");
     expect(ids(front?.anchors ?? [])).toContain("centre-chest");
+  });
+
+  it("gives the polo only buttons or a zip, so the polo collar rule can never be broken by a choice", () => {
+    expect(offered("polo", "placket")).toEqual(["buttons", "zip"]);
+  });
+
+  it("starts each narrowed type on a choice it offers", () => {
+    const defaultOf = (typeId: string, optionId: string) =>
+      type(typeId).options.find((option) => option.id === optionId)?.defaultChoice;
+    expect(defaultOf("v-neck-tee", "neckline")).toBe("v-neck");
+    expect(defaultOf("long-sleeve-tee", "sleeve-length")).toBe("long");
+  });
+
+  it("puts every point of measure in one of four groups, each with a label", () => {
+    const groupOf = (id: string) => TOPS.pointsOfMeasure.find((point) => point.id === id)?.group;
+    expect(groupOf("chest-width")).toBe("body");
+    expect(groupOf("armhole")).toBe("sleeve");
+    expect(groupOf("front-neck-drop")).toBe("neck");
+    expect(groupOf("placket-width")).toBe("placket");
+    expect(Object.keys(POINT_GROUP_LABELS).sort()).toEqual(["body", "neck", "placket", "sleeve"]);
+  });
+
+  it("keeps labels short and explains the harder ones in a help sentence", () => {
+    for (const option of TOPS.options) expect(option.label.length).toBeLessThanOrEqual(30);
+    const placket = TOPS.options.find((option) => option.id === "placket");
+    expect(placket?.label).toBe("Placket");
+    expect(placket?.help).toMatch(/fasten/);
+    const raglan = TOPS.options.find((o) => o.id === "sleeve-type")?.choices.find((c) => c.id === "raglan");
+    expect(raglan?.help).toMatch(/neck/);
+  });
+
+  it("gives every rule reason a second sentence that says the way out", () => {
+    for (const rule of TOPS.rules) expect(rule.reason).toMatch(/\.\s+Choose [^.]+\.$/);
+  });
+
+  it("returns a copy of the type list, so callers cannot change the registry", () => {
+    const list = listTypes("tops") as unknown[];
+    list.length = 0;
+    expect(listTypes("tops")).toHaveLength(5);
+    expect(listTypes()).not.toBe(listTypes());
   });
 });

@@ -1,10 +1,12 @@
-import { conditionsHold } from "./applicability";
+import { conditionsHold, type ChoiceMap } from "./conditions";
 import { getType } from "./registry";
 
 export interface RuleViolation {
   readonly ruleId: string;
   /** One plain sentence saying why the combination cannot be made. */
   readonly reason: string;
+  /** The ids of the options the rule involves, so a screen can point at them. */
+  readonly options: readonly string[];
 }
 
 /**
@@ -14,11 +16,15 @@ export interface RuleViolation {
  */
 export function checkCombination(
   typeId: string,
-  options: Readonly<Record<string, string>>,
+  options: ChoiceMap,
 ): readonly RuleViolation[] {
   const type = getType(typeId);
   if (!type) return [];
   return type.rules
     .filter((rule) => conditionsHold(rule.when, options))
-    .map((rule) => ({ ruleId: rule.id, reason: rule.reason }));
+    .map((rule) => ({
+      ruleId: rule.id,
+      reason: rule.reason,
+      options: [...new Set(rule.when.map((condition) => condition.option))],
+    }));
 }

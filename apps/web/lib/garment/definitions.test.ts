@@ -33,11 +33,25 @@ describe("option definition", () => {
   });
 });
 
+describe("help text", () => {
+  it("lets an option and its choices carry a short help sentence", () => {
+    const helped = {
+      id: "placket",
+      label: "Placket",
+      help: "The strip that fastens the neck opening.",
+      choices: [{ id: "zip", label: "Zip", help: "A zip runs down the strip." }],
+      defaultChoice: "zip",
+    };
+    expect(optionSchema.parse(helped).help).toBe("The strip that fastens the neck opening.");
+  });
+});
+
 describe("point of measure definition", () => {
   const point = {
     id: "chest-width",
     label: "Chest width",
     howToMeasure: "Lay the garment flat.",
+    group: "body",
     appliesWhen: [],
   };
 
@@ -50,6 +64,12 @@ describe("point of measure definition", () => {
     expect(pointOfMeasureSchema.safeParse(conditional).success).toBe(false);
     const explained = { ...conditional, unavailableReason: "There is no collar." };
     expect(pointOfMeasureSchema.safeParse(explained).success).toBe(true);
+  });
+
+  it("requires a known group", () => {
+    expect(pointOfMeasureSchema.safeParse({ ...point, group: "legs" }).success).toBe(false);
+    const without = Object.fromEntries(Object.entries(point).filter(([key]) => key !== "group"));
+    expect(pointOfMeasureSchema.safeParse(without).success).toBe(false);
   });
 
   it("requires a how to measure sentence", () => {

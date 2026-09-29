@@ -9,6 +9,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "chest-width",
     label: "Chest width",
+    group: "body",
     howToMeasure:
       "Lay the garment flat and smooth it out. Measure straight across the chest, from one side seam to the other, just below where the sleeve joins the body.",
     appliesWhen: [],
@@ -16,6 +17,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "body-length",
     label: "Body length",
+    group: "body",
     howToMeasure:
       "Lay the garment flat with the front facing up. Measure from the highest point of the shoulder, where it meets the neckline, straight down to the bottom edge of the hem.",
     appliesWhen: [],
@@ -23,6 +25,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "shoulder-width",
     label: "Shoulder width",
+    group: "body",
     howToMeasure:
       "Lay the garment flat with the back facing up. Measure straight across from the seam where one sleeve joins the shoulder to the same seam on the other side.",
     appliesWhen: [{ option: "sleeve-type", in: ["set-in"] }],
@@ -32,6 +35,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "sleeve-length",
     label: "Sleeve length",
+    group: "sleeve",
     howToMeasure:
       "Lay the garment flat and spread one sleeve straight out. Measure along the top of the sleeve, from the shoulder seam where the sleeve is joined, or from the neck edge on a raglan, to the edge of the sleeve opening.",
     appliesWhen: [],
@@ -39,6 +43,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "armhole",
     label: "Armhole",
+    group: "sleeve",
     howToMeasure:
       "Lay the garment flat. Measure in a straight line from the top of the armhole seam, where the sleeve meets the shoulder, down to the underarm point where the sleeve meets the side seam.",
     appliesWhen: [],
@@ -46,6 +51,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "upper-arm",
     label: "Upper arm",
+    group: "sleeve",
     howToMeasure:
       "Lay the garment flat and spread one sleeve straight out. Measure straight across the sleeve just below the underarm, at a right angle to the length of the sleeve.",
     appliesWhen: [],
@@ -53,6 +59,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "sleeve-opening",
     label: "Sleeve opening",
+    group: "sleeve",
     howToMeasure:
       "Lay the garment flat and spread one sleeve straight out. Measure straight across the open end of the sleeve, from edge to edge, without stretching it.",
     appliesWhen: [],
@@ -60,6 +67,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "hem-width",
     label: "Hem width",
+    group: "body",
     howToMeasure:
       "Lay the garment flat with the hem straight. Measure straight across the bottom edge from one side seam to the other, without stretching it.",
     appliesWhen: [],
@@ -67,6 +75,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "neck-width",
     label: "Neck width",
+    group: "neck",
     howToMeasure:
       "Lay the garment flat. Measure straight across the neck opening, from the seam on one shoulder where the neckline begins to the same seam on the other shoulder.",
     appliesWhen: [],
@@ -74,6 +83,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "front-neck-drop",
     label: "Front neck drop",
+    group: "neck",
     howToMeasure:
       "Lay the garment flat with the front facing up and lay a ruler across the neck opening from shoulder seam to shoulder seam. Measure straight down from the ruler to the lowest point of the front neckline.",
     appliesWhen: [],
@@ -81,6 +91,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "back-neck-drop",
     label: "Back neck drop",
+    group: "neck",
     howToMeasure:
       "Lay the garment flat with the back facing up and lay a ruler across the neck opening from shoulder seam to shoulder seam. Measure straight down from the ruler to the lowest point of the back neckline.",
     appliesWhen: [],
@@ -88,6 +99,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "collar-height",
     label: "Collar height",
+    group: "neck",
     howToMeasure:
       "Lay the garment flat with the collar folded the way it is worn. Measure at the centre back, from the seam where the collar joins the neckline to the top edge of the collar.",
     appliesWhen: [{ option: "collar", in: ["polo-collar", "band-collar"] }],
@@ -96,6 +108,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "placket-length",
     label: "Placket length",
+    group: "placket",
     howToMeasure:
       "Lay the garment flat and close the placket. Measure down the centre front, from the neckline seam to the bottom end of the placket stitching.",
     appliesWhen: [{ option: "placket", in: ["buttons", "zip"] }],
@@ -104,6 +117,7 @@ export const TOPS_POINTS_OF_MEASURE: readonly PointOfMeasure[] = [
   {
     id: "placket-width",
     label: "Placket width",
+    group: "placket",
     howToMeasure:
       "Lay the garment flat and close the placket. Measure straight across the placket, from one outer edge to the other, about halfway down its length.",
     appliesWhen: [{ option: "placket", in: ["buttons", "zip"] }],
