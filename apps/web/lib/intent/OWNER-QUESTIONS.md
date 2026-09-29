@@ -69,3 +69,20 @@ Each line is a question, with what the code does today beside it.
     refused before any model sees it. A message that merely mentions a rule in another sense, such as
     "follow the brand rules for labels", passes. Is the refusal wording right?
 14. **A signed choice lasts one hour** and only while the design is at the same version. Long enough?
+
+## Step 13 (sketch and photo input): what is owed
+
+- **A8, golden images**: 40 tops pictures, none of a third-party brand, plus a few that are not
+  garments. `golden/images/images.json` is empty on purpose; `golden/images/README.md` says how to
+  add a case.
+- **A7**: approve each image case's expected outcome.
+- **A3**: the live run (80% right garment type, option accuracy beside it) needs a key:
+  `scripts/eval-images.mts`, see `docs/evals/README.md`.
+
+## Step 13 questions
+
+15. **Numbers in a picture** (a sketch with "chest 52" written on it) are not used today, and the
+    person is told. Should they be proposed as `read-from-image` values for the person to confirm?
+16. **What must be confirmed?** Today: the garment type always, the wearer if it changed, and every
+    construction choice the reading changed. Fit and colours are shown but not ticked. Enough?
+17. **A picture that is not a garment** keeps its cost (the model read it). Should it be refunded?

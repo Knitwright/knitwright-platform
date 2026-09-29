@@ -76,3 +76,6 @@ export const assistantMessageSchema = z.object({
     .max(MAX_UTTERANCE_LENGTH, `Keep it to ${MAX_UTTERANCE_LENGTH} characters.`),
   expectedVersion,
 });
+
+/** An uploaded sketch or photo to read, with the version of the design the person is looking at. */
+export const readImageSchema = z.object({ fileId: z.uuid("Upload the picture again."), expectedVersion });

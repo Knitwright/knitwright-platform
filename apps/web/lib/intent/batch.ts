@@ -1,6 +1,6 @@
 import { applyAction, cmToTenthsMm, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { wireActionSchema, WIRE_ACTION_TYPES, type WireAction } from "./reply-schema";
-import { toSpecAction } from "./to-spec-action";
+import { AI_SOURCE, toSpecAction, type ModelSource } from "./to-spec-action";
 
 export const NOTHING_CHANGED = "Nothing was changed.";
 
@@ -66,13 +66,13 @@ function restates(spec: GarmentSpec, wire: WireAction): boolean {
  * Applies every change through the editor's own apply path, or none of them. The first
  * change that cannot be made stops the batch and its reason is returned.
  */
-export function applyBatch(spec: GarmentSpec, actions: readonly WireAction[]): BatchResult {
+export function applyBatch(spec: GarmentSpec, actions: readonly WireAction[], source: ModelSource = AI_SOURCE): BatchResult {
   let current = spec;
   const steps: Step[] = [];
   const notes: string[] = [];
   for (const wire of typeFirst(actions)) {
     if (restates(current, wire)) continue;
-    const converted = toSpecAction(current, wire);
+    const converted = toSpecAction(current, wire, source);
     if (!converted.ok) return { ok: false, reason: `${converted.reason} ${NOTHING_CHANGED}`, failed: { wire, spec: current } };
     const result = applyAction(current, converted.action);
     if (!result.ok) return { ok: false, reason: `${result.reason} ${NOTHING_CHANGED}`, failed: { wire, spec: current } };

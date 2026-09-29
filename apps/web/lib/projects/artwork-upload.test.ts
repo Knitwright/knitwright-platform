@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { checkUploadFile, uploadArtworkFile, UPLOAD_MAX_BYTES } from "./artwork-upload";
+import { checkUploadFile, uploadArtworkFile, uploadImageFile, UPLOAD_MAX_BYTES } from "./artwork-upload";
 
 const FILE_ID = "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11";
 const png = (size = 1000) => new File([new Uint8Array(size)], "logo.png", { type: "image/png" });
@@ -54,5 +54,17 @@ describe("uploadArtworkFile", () => {
       throw new Error("offline");
     };
     expect(await uploadArtworkFile(png(), post)).toEqual({ ok: false, reason: "We could not reach the server. Check your connection and try again." });
+  });
+});
+
+describe("uploadImageFile", () => {
+  it("sends a sketch or a photo through the same upload route, named as such", async () => {
+    let sent: FormData | undefined;
+    const result = await uploadImageFile(png(), "sketch", async (form) => {
+      sent = form;
+      return Response.json({ success: true, data: { id: FILE_ID, width: 10, height: 20 } });
+    });
+    expect(result).toEqual({ ok: true, fileId: FILE_ID, width: 10, height: 20 });
+    expect(sent?.get("kind")).toBe("sketch");
   });
 });

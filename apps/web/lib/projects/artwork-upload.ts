@@ -29,11 +29,19 @@ const answer = z.union([
 ]);
 
 /** Uploads a picture for the design's artwork. `post` sends the form to the upload route. */
-export async function uploadArtworkFile(file: File, post: (form: FormData) => Promise<Response>): Promise<UploadResult> {
+export const uploadArtworkFile = (file: File, post: (form: FormData) => Promise<Response>): Promise<UploadResult> =>
+  uploadImageFile(file, "artwork", post);
+
+/** Uploads a picture through the one upload route (step 3): artwork, or a sketch or photo to read. */
+export async function uploadImageFile(
+  file: File,
+  kind: "artwork" | "sketch" | "photo",
+  post: (form: FormData) => Promise<Response>,
+): Promise<UploadResult> {
   const problem = checkUploadFile(file);
   if (problem) return { ok: false, reason: problem };
   const form = new FormData();
-  form.set("kind", "artwork");
+  form.set("kind", kind);
   form.set("file", file);
   try {
     const response = await post(form);

@@ -35,3 +35,14 @@ retry, so the number is the first model's own.
 | Date | Model | Correct | Type | Options | Cost a request | File |
 |---|---|---|---|---|---|---|
 | (none yet) | | | | | | |
+
+## Sketch and photo input (plan step 13)
+
+Target: right garment type on at least 80% of the golden images, with option accuracy beside it.
+The golden images do not exist yet (owner actions A8 and A7). See
+`apps/web/lib/intent/golden/images/README.md` for how to add them and run
+`scripts/eval-images.mts`.
+
+| Date | Model | Type correct | Options correct | Rejections right | Cost an image | File |
+|---|---|---|---|---|---|---|
+| (none yet) | | | | | | |

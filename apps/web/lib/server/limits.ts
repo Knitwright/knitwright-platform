@@ -33,4 +33,6 @@ export const LIMITS = {
   assistant: { name: "assistant", limit: 20, windowSeconds: MINUTE },
   // Choosing one of the assistant's proposals.
   applyProposal: { name: "apply-proposal", limit: 60, windowSeconds: 10 * MINUTE },
+  // Reading a sketch or photo is the dearest assistant call.
+  readImage: { name: "read-image", limit: 10, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

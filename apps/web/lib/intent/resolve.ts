@@ -22,7 +22,7 @@ export interface IntentInput {
   readonly raw: string;
 }
 
-function readReply(raw: string): Reply | null {
+export function readReply(raw: string): Reply | null {
   if (raw.length > MAX_REPLY_LENGTH) return null;
   const parsed = replySchema.safeParse(extractJsonObject(raw));
   return parsed.success ? parsed.data : null;

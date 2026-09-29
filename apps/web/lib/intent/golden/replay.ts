@@ -15,7 +15,7 @@ import { resolveIntent } from "../resolve";
  * Replaying runs each reply through the same parser the product uses, so no model is called.
  */
 
-const startSchema = z.strictObject({
+export const startSchema = z.strictObject({
   typeId: z.string(),
   wearer: wearerSchema.optional(),
   options: z.record(z.string(), z.string()).optional(),

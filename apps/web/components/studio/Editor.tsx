@@ -9,6 +9,7 @@ import { DetailsForm } from "./DetailsForm";
 import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from "./EditorParts";
 import { FlatPreview } from "./FlatPreview";
 import { History } from "./History";
+import { ImageReview } from "./ImageReview";
 import { BASE_KEY, SIZES_KEY, measurementKey } from "./keys";
 import { MeasurementTables } from "./MeasurementTables";
 import { OptionControls } from "./OptionControls";
@@ -37,16 +38,19 @@ export function Editor({ data, assistant }: Readonly<{ data: EditorData; assista
       <DroppedNotice dropped={state.dropped ?? data.dropped} />
       <FlatPreview flat={data.flat} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <MainColumn data={data} editor={editor} />
+        <MainColumn data={data} editor={editor} assistant={assistant} />
         <SideColumn data={data} editor={editor} assistant={assistant} />
       </div>
     </div>
   );
 }
 
-function MainColumn({ data, editor }: PartProps) {
+function MainColumn({ data, editor, assistant }: PartProps & Readonly<{ assistant: AssistantInfo }>) {
   return (
     <div className="flex min-w-0 flex-col gap-6">
+      <Section id="picture" title="Start from a sketch or photo">
+        <ImageReview projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} />
+      </Section>
       <Section id="options" title="Options">
         <OptionControls
           controls={data.controls}
