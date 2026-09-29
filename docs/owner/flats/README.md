@@ -1,4 +1,4 @@
-# Owner action A6: approve the drawing of each top
+# Owner action A6: approve the drawing of each garment
 
 The platform draws every top as a flat, front and back, the way a tech pack shows it.
 Before this goes to customers, you need to say whether each drawing looks right.
@@ -52,6 +52,26 @@ go wrong:
 | Team jersey with a V neck, raglan sleeves and a curved hem | `team-jersey-v-raglan-front.png` | `team-jersey-v-raglan-back.png` |
 | Polo with a zip, long sleeves, rib cuffs and side vents | `polo-long-zip-front.png` | `polo-long-zip-back.png` |
 
+## Bottoms (step 17)
+
+These pictures have **no sizes at all**. Each says so in its top line. They are drawn
+from the proportions of the template, so judge the shape and not the size. The navy
+parts are the waistband and cuffs, the red strips are side stripes, and the small pale
+diamond between the legs is the gusset.
+
+| Garment | Front | Back |
+|---|---|---|
+| Shorts | `shorts-front.png` | `shorts-back.png` |
+| Joggers | `joggers-front.png` | `joggers-back.png` |
+| Leggings | `leggings-front.png` | `leggings-back.png` |
+| Track pants | `track-pants-front.png` | `track-pants-back.png` |
+| Joggers with side stripes, a gusset and zipped pockets | `joggers-loaded-front.png` | `joggers-loaded-back.png` |
+| Track pants with ankle zips and side stripes | `track-pants-zip-front.png` | `track-pants-zip-back.png` |
+| Cropped leggings with side stripes | `leggings-cropped-front.png` | `leggings-cropped-back.png` |
+
+For bottoms, look especially at the hip curve, where the legs meet, how far apart the
+legs hang, and the waistband shape of the leggings.
+
 ## How to answer
 
 Reply to the person who sent you this with one line for each garment. Say **yes** if the
@@ -74,6 +94,12 @@ this from the `apps/web` folder:
 
 ```
 pnpm exec tsx scripts/render-flat-snapshots.mts
+```
+
+To draw only some families, name them, for example:
+
+```
+pnpm exec tsx scripts/render-flat-snapshots.mts bottoms
 ```
 
 If a drawing changes on purpose, the tests fail until the saved pictures are updated

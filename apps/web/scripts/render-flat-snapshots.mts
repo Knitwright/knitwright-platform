@@ -1,11 +1,13 @@
 /**
  * Writes the snapshot drawings the owner approves (owner action A6): an SVG and a PNG for
- * every tops type, front and back, into docs/owner/flats/. Run it from apps/web:
+ * every garment type, front and back, into docs/owner/flats/. Run it from apps/web:
  *
  *   pnpm --filter web exec tsx scripts/render-flat-snapshots.mts
  *
- * Every drawing uses MADE-UP sizes and made-up colours, and says so in a visible line.
- * The sizes are not real garment data. They only give the drawing a realistic shape.
+ * Tops use MADE-UP sizes and made-up colours, and say so in a visible line. The sizes are
+ * not real garment data. They only give the drawing a realistic shape. The other families
+ * are drawn with no sizes at all, from the proportions of their templates, and say so.
+ * Pass family ids to draw only those families, for example `bottoms outerwear`.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -20,6 +22,7 @@ import type { View } from "@/lib/flat/model";
 
 const OUTPUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "docs", "owner", "flats");
 const NOTE = "Made-up sizes for review of the drawing only";
+const PROPORTIONS_NOTE = "No sizes. Drawn from proportions, not to scale. For review of the drawing only";
 const PNG_WIDTH = 900;
 const VIEWS: readonly View[] = ["front", "back"];
 
@@ -34,13 +37,41 @@ const REVIEW_COLOURS: Readonly<Record<string, string>> = {
   placket: "#b8c7dc",
   "side-panels": "#c0392b",
   cuffs: "#1b2a49",
+  "legs-front": "#dbe4f0",
+  "legs-back": "#dbe4f0",
+  waistband: "#1b2a49",
+  gusset: "#b8c7dc",
+  "side-stripes": "#c0392b",
 };
 
 interface Variant {
   readonly name: string;
   readonly typeId: string;
   readonly choices: Readonly<Record<string, string>>;
+  /** True to draw with no measurements at all, from proportions only. */
+  readonly proportionsOnly?: boolean;
 }
+
+/**
+ * The families other than tops are drawn with NO measurements, from the proportions of their
+ * templates, so no size in these pictures is a measurement of anything.
+ */
+const variant = (name: string, typeId: string, choices: Readonly<Record<string, string>> = {}): Variant => ({
+  name,
+  typeId,
+  choices,
+  proportionsOnly: true,
+});
+
+const FAMILY_VARIANTS: readonly Variant[] = [
+  variant("shorts", "shorts"),
+  variant("joggers", "joggers"),
+  variant("leggings", "leggings"),
+  variant("track-pants", "track-pants"),
+  variant("joggers-loaded", "joggers", { "side-stripe": "contrast-stripe", gusset: "crotch-gusset", pockets: "zip-side" }),
+  variant("track-pants-zip", "track-pants", { "leg-finish": "ankle-zip", "side-stripe": "contrast-stripe", waistband: "elastic" }),
+  variant("leggings-cropped", "leggings", { "leg-length": "cropped", "side-stripe": "contrast-stripe" }),
+];
 
 const VARIANTS: readonly Variant[] = [
   { name: "crew-tee", typeId: "crew-tee", choices: {} },
@@ -63,6 +94,7 @@ const VARIANTS: readonly Variant[] = [
   },
   { name: "team-jersey-v-raglan", typeId: "team-jersey", choices: { neckline: "v-neck", "sleeve-type": "raglan", "hem-shape": "curved" } },
   { name: "polo-long-zip", typeId: "polo", choices: { placket: "zip", "sleeve-length": "long", cuffs: "rib-cuff", "hem-shape": "side-vent" } },
+  ...FAMILY_VARIANTS,
 ];
 
 function coloured(spec: GarmentSpec): GarmentSpec {
@@ -76,12 +108,15 @@ function coloured(spec: GarmentSpec): GarmentSpec {
 
 async function main(): Promise<void> {
   mkdirSync(OUTPUT, { recursive: true });
-  for (const variant of VARIANTS) {
-    const spec = coloured(designWith(variant.typeId, variant.choices, madeUpForType(variant.typeId, variant.choices)));
+  const families = process.argv.slice(2);
+  const chosen = families.length === 0 ? VARIANTS : VARIANTS.filter((variant) => families.includes(getType(variant.typeId)?.family ?? ""));
+  for (const variant of chosen) {
+    const values = variant.proportionsOnly ? undefined : madeUpForType(variant.typeId, variant.choices);
+    const spec = coloured(designWith(variant.typeId, variant.choices, values));
     for (const view of VIEWS) {
       const model = buildFlat({ spec, measurements: typedIn(spec), view, colourwayId: "main" });
       if (!model) throw new Error(`No drawing for ${variant.name}.`);
-      const svg = renderSvg(withReviewNote(model, NOTE));
+      const svg = renderSvg(withReviewNote(model, variant.proportionsOnly ? PROPORTIONS_NOTE : NOTE));
       const base = join(OUTPUT, `${variant.name}-${view}`);
       writeFileSync(`${base}.svg`, svg);
       const png = await sharp(Buffer.from(svg), { density: 96 })

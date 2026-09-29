@@ -1,18 +1,15 @@
 import { getType, type GarmentSpec } from "@/lib/garment";
+import { ARTWORK_SHOWN } from "./artwork";
 import { colourwayFor } from "./colour";
 import { NOT_TO_SCALE_MISFIT, NOT_TO_SCALE_MISSING, type View } from "./model";
 
 const VIEW_WORDS: Readonly<Record<View, string>> = { front: "Front view", back: "Back view" };
 
-const SHOWN_ON: Readonly<Record<View, readonly string[]>> = {
-  front: ["body-front", "sleeve-left", "sleeve-right"],
-  back: ["body-back"],
-};
 
 /** "Artwork: Club badge on Body front, Left chest." for the artwork this view shows. */
 function artworkSentence(spec: GarmentSpec, type: NonNullable<ReturnType<typeof getType>>, view: View): string[] {
   return spec.artwork
-    .filter((item) => SHOWN_ON[view].includes(item.panelId))
+    .filter((item) => ARTWORK_SHOWN[view].includes(item.panelId))
     .map((item) => {
       const panel = type.panels.find((candidate) => candidate.id === item.panelId);
       const place = panel?.anchors.find((anchor) => anchor.id === item.anchor)?.label ?? item.anchor;

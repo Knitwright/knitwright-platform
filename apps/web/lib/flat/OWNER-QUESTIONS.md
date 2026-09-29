@@ -66,3 +66,28 @@ These sizes are fixed shares of the chest width. Nobody can enter them yet.
   its description. The PDF prints no size or scale either.
 - The made-up review sizes now use a narrower neck for polos (15 cm) and band collars (16 cm).
   They are made up for the pictures only and are never loaded as size charts.
+
+## Bottoms (added in step 17)
+
+The drawing of shorts, joggers, leggings and track pants. All ratios are against the hip
+width, and are a starting point written without a garment professional. They are in
+`families/bottoms/proportions.ts` and `families/bottoms/shape.ts`.
+
+- Full length: waist relaxed 0.74, waist stretched 1.06, waistband 0.075 (wide band 0.15),
+  front rise 0.56, back rise 0.70, thigh 0.55, knee 0.40, leg opening 0.30 (0.24 with
+  ribbed cuffs), inside leg 1.50, outside leg 2.02.
+- Shorts: inside leg 0.30, leg opening 0.50, thigh 0.58. Cropped: inside leg 1.12.
+- Leggings: front rise 0.50, back rise 0.64, thigh 0.50, knee 0.33, leg opening 0.20.
+- The front of the leg at the crotch is drawn at 0.92 of the thigh, because the flat thigh
+  measure takes in the back of the leg too. Is that how your flats show it?
+- The crotch sits at 0.93 of the front rise, because the rise is measured along its curve.
+- The knee is drawn halfway down the inside leg, as the how-to-measure sentence says.
+- The legs hang a little apart at the hem (0.025 of the hip between them) so the inside
+  seams can be seen. Real flats differ on this. Is it right?
+- Parts with no point of measure: cuff depth 0.10, side stripe width 0.045, gusset 0.07.
+  Should cuff depth and stripe width be points of measure?
+- The gusset is shown from the front as a small diamond where the legs meet.
+- The drawcord hangs from two eyelets at the centre front of the waistband.
+- Side seam pockets are drawn as a slanted opening line just inside the side seam. Is a
+  slant pocket what your customers mean?
+- The back view has no back pocket and no yoke. Should it offer them?

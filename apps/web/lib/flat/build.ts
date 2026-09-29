@@ -1,4 +1,4 @@
-import { getType, panelsFor, pointsOfMeasureFor, type GarmentSpec } from "@/lib/garment";
+import { getType, panelsFor, pointsOfMeasureFor, type GarmentSpec, type ResolvedType } from "@/lib/garment";
 import type { Resolution } from "@/lib/sizing";
 import { artworkElements } from "./artwork";
 import { colourwayFor, panelFill } from "./colour";
@@ -18,6 +18,7 @@ import {
   type View,
 } from "./model";
 import { tidy } from "./chain";
+import { FAMILY_DRAWERS } from "./families";
 import { basisOf, fitProblems, type Basis } from "./templates/basis";
 import { calloutElements } from "./templates/callouts";
 import { detailLines } from "./templates/details";
@@ -38,10 +39,19 @@ export interface BuildInput {
   readonly callouts?: boolean;
 }
 
-/** The body of the other view, and the placket on the back, are not drawn. */
+/**
+ * Panels that one view does not show: the body or legs of the other side, and parts that sit
+ * only on the front (a placket, a kangaroo pocket, the gusset seen between the legs) or can
+ * be seen only from the front (the lining inside a hood).
+ */
+const HIDDEN: Readonly<Record<View, readonly string[]>> = {
+  front: ["body-back", "legs-back"],
+  back: ["body-front", "placket", "legs-front", "gusset", "kangaroo-pocket", "hood-lining"],
+};
+
+/** The panels of a design that this view draws. */
 export function visiblePanels(view: View, panelIds: readonly string[]): string[] {
-  const hidden = view === "front" ? ["body-back"] : ["body-front", "placket"];
-  return panelIds.filter((id) => !hidden.includes(id));
+  return panelIds.filter((id) => !HIDDEN[view].includes(id));
 }
 
 const layer = (key: LayerKey, elements: readonly FlatElement[]): FlatLayer => ({ ...LAYERS[key], elements });
@@ -83,6 +93,53 @@ function layersOf(spec: GarmentSpec, active: string, frame: Frame, panels: reado
   ];
 }
 
+/** Draws a design of a family other than tops, through that family's drawing code. */
+function buildFamilyFlat(input: BuildInput, type: ResolvedType): FlatModel | null {
+  // A family with no drawing code yet gets no drawing.
+  const drawer = FAMILY_DRAWERS[type.family];
+  if (!drawer) return null;
+  const { spec, view } = input;
+  const wanted = new Set(visiblePanels(view, panelsFor(spec).map((panel) => panel.id)));
+  const active = colourwayFor(spec, input.colourwayId).id;
+  const drawing = drawer({
+    spec,
+    type,
+    view,
+    points: pointsOfMeasureFor(spec),
+    values: measuredValues(input.measurements),
+    wanted: (id) => wanted.has(id),
+    nameOf: (id) => type.panels.find((panel) => panel.id === id)?.label ?? id,
+    fillOf: (id) => panelFill(spec, active, id),
+    callouts: input.callouts === true,
+  });
+  if (!drawing) return null;
+  const { resolved } = drawing;
+  const callouts = input.callouts && resolved.toScale ? drawing.callouts : null;
+  const layers = [
+    layer("panels", drawing.panels),
+    layer("seams", drawing.seams),
+    layer("stitching", drawing.stitching),
+    layer("details", drawing.details),
+    layer("artwork", drawing.artwork),
+    ...(callouts ? [layer("measurements", callouts)] : []),
+  ];
+  const notice = noticeFor(resolved.missing.length, resolved.problems.length);
+  return {
+    view,
+    typeId: spec.typeId,
+    colourwayId: active,
+    layers,
+    bounds: grow(boundsOfPoints(layers.flatMap((entry) => entry.elements).flatMap(extentPoints)), BOUNDS_MARGIN),
+    toScale: resolved.toScale,
+    missing: resolved.missing,
+    problems: resolved.problems,
+    notice,
+    outline: drawing.outline,
+    landmarks: drawing.landmarks,
+    description: describeFlat(spec, view, active, notice),
+  };
+}
+
 /**
  * Draws one side of a design as a geometry model. Nothing here is a pixel: every number is
  * in tenths of a millimetre with one scale for both axes. Measurements that are present
@@ -92,6 +149,7 @@ function layersOf(spec: GarmentSpec, active: string, frame: Frame, panels: reado
 export function buildFlat(input: BuildInput): FlatModel | null {
   const { spec, view } = input;
   const type = getType(spec.typeId);
+  if (type && type.family !== "tops") return buildFamilyFlat(input, type);
   const template = templateFor(spec.typeId);
   if (!type || !template) return null;
   const options = readTopsOptions(spec);
