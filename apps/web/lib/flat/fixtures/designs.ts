@@ -16,19 +16,21 @@ export function madeUpValues(choices: Choices, scale = 1): Readonly<Record<strin
   const raglan = choices["sleeve-type"] === "raglan";
   const long = choices["sleeve-length"] === "long";
   const vNeck = choices.neckline === "v-neck";
+  const polo = choices.collar === "polo-collar";
+  const bandCollar = choices.collar === "band-collar";
   const base: Record<string, number> = {
     "chest-width": 5200,
     "body-length": 7000,
     "shoulder-width": 4600,
     "sleeve-length": raglan ? (long ? 6600 : 2900) : long ? 6100 : 2200,
     armhole: raglan ? 3200 : 2300,
-    "upper-arm": raglan ? (long ? 1300 : 1650) : long ? 1400 : 1900,
+    "upper-arm": raglan ? (long ? 1050 : 1650) : long ? 1400 : 1900,
     "sleeve-opening": long ? 1000 : 1700,
     "hem-width": 5200,
-    "neck-width": 1800,
+    "neck-width": polo ? 1500 : bandCollar ? 1600 : 1800,
     "front-neck-drop": vNeck ? 1500 : 850,
     "back-neck-drop": 200,
-    "collar-height": 600,
+    "collar-height": bandCollar ? 500 : 600,
     "placket-length": 1200,
     "placket-width": 320,
   };

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { panelsFor } from "@/lib/garment";
+import { panelsFor, type GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
 import { buildFlat, visiblePanels } from "./build";
-import { designWith, madeUpValues, typedIn } from "./fixtures/designs";
+import { designWith, madeUpForType, madeUpValues, typedIn } from "./fixtures/designs";
 import { LAYERS, NOT_TO_SCALE_MISFIT, NOT_TO_SCALE_MISSING, type FlatModel, type FlatPath } from "./model";
 
 const build = (
@@ -84,6 +84,16 @@ describe("a design with every measurement", () => {
     expect(names).toContain("Neckband");
   });
 
+  it("names the artwork in the description: what it is, on which part and where", () => {
+    const base = designWith("crew-tee", {}, madeUpValues({}));
+    const spec: GarmentSpec = {
+      ...base,
+      artwork: [{ id: "a", name: "Club badge", source: { kind: "text", text: "HI" }, panelId: "body-front", anchor: "left-chest", offsetX: 0, offsetY: 0, width: 500, height: 200, rotationDegrees: 0, technique: "screen-print", provenance: "user-edited" }],
+    };
+    expect(build(spec).description).toContain("Artwork: Club badge on Body front, Left chest, the wearer's left.");
+    expect(build(spec, "back").description).not.toContain("Club badge");
+  });
+
   it("describes the drawing in words from the registry", () => {
     const model = build(spec);
     expect(model.description).toMatch(/^Front view\. Crew neck tee for women\./);
@@ -116,8 +126,9 @@ describe("which panels a view draws", () => {
     const spec = designWith("team-jersey", { placket: "zip", "side-panels": "contrast-insert", cuffs: "rib-cuff" }, madeUpValues({}));
     for (const view of ["front", "back"] as const) {
       const wanted = visiblePanels(view, panelsFor(spec).map((panel) => panel.id));
-      expect(panelPaths(build(spec, view)).map((path) => path.panelId)).toEqual(expect.arrayContaining(wanted));
-      expect(panelPaths(build(spec, view))).toHaveLength(wanted.length);
+      const drawn = panelPaths(build(spec, view)).filter((path) => path.panelId !== null);
+      expect(drawn.map((path) => path.panelId)).toEqual(expect.arrayContaining(wanted));
+      expect(drawn).toHaveLength(wanted.length);
     }
   });
 });
@@ -144,5 +155,39 @@ describe("a type the drawing does not know", () => {
   it("gives no drawing", () => {
     const spec = { ...start("crew-tee"), typeId: "kilt" };
     expect(buildFlat({ spec, measurements: typedIn(spec), view: "front", colourwayId: "main" })).toBeNull();
+  });
+});
+
+describe("the description and a colour that has no code", () => {
+  it("names a colour by its code, or by its screen colour when there is no code", () => {
+    const base = designWith("crew-tee", {}, madeUpValues({}));
+    const spec = {
+      ...base,
+      colourways: [
+        {
+          ...base.colourways[0],
+          colours: [
+            { panelId: "body-front", colour: "", swatch: "#1b2a49", provenance: "user-edited" as const },
+            { panelId: "body-back", colour: "Navy 19-4052", swatch: "#1b2a49", provenance: "user-edited" as const },
+          ],
+        },
+      ],
+    } as GarmentSpec;
+    expect(build(spec).description).toContain("Colours: Body front #1b2a49, Body back Navy 19-4052.");
+  });
+});
+
+describe("callouts on the back", () => {
+  it("show the measurements the back shows, with the back neck drop and without the front's or the placket's", () => {
+    const choices = { collar: "polo-collar", placket: "buttons" };
+    const spec = designWith("polo", choices, madeUpForType("polo", choices));
+    const model = build(spec, "back", { callouts: true });
+    const labels = (model.layers.find((layer) => layer.id === "measurements")?.elements ?? []).flatMap((e) => (e.kind === "text" ? [e.text] : []));
+    expect(labels).toContain("Back neck drop 2.0 cm");
+    expect(labels).toContain("Chest width 52.0 cm");
+    expect(labels.some((text) => text.startsWith("Front neck drop"))).toBe(false);
+    expect(labels.some((text) => text.startsWith("Placket"))).toBe(false);
+    const paths = model.layers.find((layer) => layer.id === "measurements")?.elements.filter((e) => e.kind === "path") ?? [];
+    expect(paths).toHaveLength(labels.length);
   });
 });

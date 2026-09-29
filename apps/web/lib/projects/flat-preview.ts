@@ -4,6 +4,7 @@ import type { FlatModel, View } from "@/lib/flat/model";
 import { renderSvg, svgDataUri } from "@/lib/flat/render-svg";
 import type { GarmentSpec } from "@/lib/garment";
 import { resolveMeasurements, type ChartSet } from "@/lib/sizing";
+import { activeColourwayId } from "./colour-controls";
 import { tableSize } from "./measurement-table";
 
 export interface FlatPreviewView {
@@ -22,6 +23,8 @@ export interface FlatPreviewData {
   readonly notice: string | null;
   /** A plain sentence saying what to add, or null. */
   readonly missingSentence: string | null;
+  /** One sentence saying some pictures are not shown, or null. */
+  readonly picturesNote: string | null;
 }
 
 const VIEWS: readonly { view: View; label: string }[] = [
@@ -48,12 +51,12 @@ export function missingSentence(labels: readonly string[]): string | null {
  * measurements are the ones the table shows, for the same size. The result is plain
  * strings for the screen to hand to an image tag. Null for a type there is no drawing for.
  */
-export function flatPreview(spec: GarmentSpec, images: ImageMap, charts?: ChartSet): FlatPreviewData | null {
+export function flatPreview(spec: GarmentSpec, images: ImageMap, charts?: ChartSet, picturesNote: string | null = null, colourwayId?: string): FlatPreviewData | null {
   const measurements = resolveMeasurements(spec, tableSize(spec, charts), charts);
-  const colourwayId = spec.colourways[0].id;
+  const shown = activeColourwayId(spec, colourwayId);
   const models: { label: string; model: FlatModel }[] = [];
   for (const { view, label } of VIEWS) {
-    const model = buildFlat({ spec, measurements, view, colourwayId });
+    const model = buildFlat({ spec, measurements, view, colourwayId: shown });
     if (!model) return null;
     models.push({ label, model });
   }
@@ -69,5 +72,6 @@ export function flatPreview(spec: GarmentSpec, images: ImageMap, charts?: ChartS
     toScale: first.toScale,
     notice: first.notice,
     missingSentence: missingSentence(first.missing.map((point) => point.label)),
+    picturesNote,
   };
 }

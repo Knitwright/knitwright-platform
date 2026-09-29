@@ -23,6 +23,13 @@ export interface DimensionInput {
   readonly check: (dims: Dims) => readonly string[];
 }
 
+/** A dimension the drawing needs. A missing one is a broken template and is never read as zero. */
+export function need(dims: Dims, id: string): number {
+  const value = dims[id];
+  if (value === undefined) throw new Error(`The drawing needs "${id}" and the template has no proportion for it.`);
+  return value;
+}
+
 const CHEST = "chest-width";
 
 /** The size that turns ratios into lengths: the chest if known, else any measurement, else a nominal size. */

@@ -108,7 +108,6 @@ describe("extent of an element", () => {
       panelId: null,
       commands: square,
       fill: null,
-      fillRule: "nonzero",
       stroke: { colour: "#000000", width: 4, dash: [] },
     };
     const box = boundsOfPoints(extentPoints(element));

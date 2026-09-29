@@ -22,3 +22,21 @@ export function panelFill(spec: Pick<GarmentSpec, "colourways">, colourwayId: st
   const entry = colourwayFor(spec, colourwayId).colours.find((colour) => colour.panelId === panelId);
   return safeColour(entry?.swatch) ?? NEUTRAL_FILL;
 }
+
+/** A darker tone of a colour, `share` of each channel (0 to 1). A value that is not a colour gives the neutral grey. */
+export function darken(colour: string, share: number): string {
+  const safe = safeColour(colour);
+  if (!safe) return NEUTRAL_FILL;
+  const keep = Math.min(1, Math.max(0, share));
+  const channel = (from: number): string =>
+    Math.round(Number.parseInt(safe.slice(from, from + 2), 16) * keep)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${channel(1)}${channel(3)}${channel(5)}`;
+}
+
+/** The sum of the three colour channels, 0 for black to 765 for white. A value that is not a colour counts as the neutral grey. */
+export function brightness(colour: string): number {
+  const safe = safeColour(colour) ?? NEUTRAL_FILL;
+  return [1, 3, 5].reduce((sum, from) => sum + Number.parseInt(safe.slice(from, from + 2), 16), 0);
+}

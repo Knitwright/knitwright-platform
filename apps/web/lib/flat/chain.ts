@@ -94,3 +94,17 @@ export function circle(centre: Point, radius: number): Chain {
 
 /** Rounds to a tenth of a drawing unit, so output is steady and small. Never minus zero. */
 export const tidy = (value: number): number => Math.round(value * 10) / 10 + 0;
+
+const between = (a: Point, b: Point, t: number): Point => pt(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+
+/** The part of one piece from a share `t` of the way along it to its end. The curve itself is unchanged. */
+export function tailOfCubic(start: Point, piece: Piece, t: number): Chain {
+  if (!piece.c1 || !piece.c2) return { start: between(start, piece.to, t), pieces: [piece] };
+  const ab = between(start, piece.c1, t);
+  const bc = between(piece.c1, piece.c2, t);
+  const cd = between(piece.c2, piece.to, t);
+  const abc = between(ab, bc, t);
+  const bcd = between(bc, cd, t);
+  const at = between(abc, bcd, t);
+  return { start: at, pieces: [curveTo(bcd, cd, piece.to)] };
+}

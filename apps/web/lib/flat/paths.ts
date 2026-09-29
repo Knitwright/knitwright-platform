@@ -29,7 +29,6 @@ export const panelPath = (name: string, panelId: string, commands: readonly Path
   panelId,
   commands: tidyCommands(commands),
   fill,
-  fillRule: "nonzero",
   stroke: stroke(OUTLINE_COLOUR, OUTLINE_WIDTH),
 });
 
@@ -39,7 +38,6 @@ const lineOf = (name: string, commands: readonly PathCommand[], line: Stroke, fi
   panelId: null,
   commands: tidyCommands(commands),
   fill,
-  fillRule: "nonzero",
   stroke: line,
 });
 
@@ -50,5 +48,15 @@ export const seamPath = (name: string, commands: readonly PathCommand[]): FlatPa
 export const stitchPath = (name: string, commands: readonly PathCommand[]): FlatPath =>
   lineOf(name, commands, stroke(STITCH_COLOUR, STITCH_WIDTH, STITCH_DASH));
 
-export const detailPath = (name: string, commands: readonly PathCommand[], fill: string | null = null): FlatPath =>
-  lineOf(name, commands, stroke(DETAIL_COLOUR, DETAIL_WIDTH), fill);
+export const detailPath = (name: string, commands: readonly PathCommand[], fill: string | null = null, colour: string = DETAIL_COLOUR): FlatPath =>
+  lineOf(name, commands, stroke(colour, DETAIL_WIDTH), fill);
+
+/** Part of the garment that is not a panel of its own, such as the inside of the back seen through the neck. */
+export const insidePath = (name: string, commands: readonly PathCommand[], fill: string): FlatPath => ({
+  kind: "path",
+  name,
+  panelId: null,
+  commands: tidyCommands(commands),
+  fill,
+  stroke: stroke(SEAM_COLOUR, SEAM_WIDTH),
+});

@@ -56,4 +56,16 @@ export const stampUserEdited = (raw: unknown): unknown => {
   }
 };
 
-export const browserActionSchema = z.preprocess(stampUserEdited, specActionSchema);
+const HALF_A_PAIR = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+/** True when a string anywhere inside the value holds half of a surrogate pair, which no file can store. */
+export const holdsBrokenText = (value: unknown): boolean => {
+  if (typeof value === "string") return HALF_A_PAIR.test(value);
+  if (Array.isArray(value)) return value.some(holdsBrokenText);
+  return isPlain(value) && Object.values(value).some(holdsBrokenText);
+};
+
+export const browserActionSchema = z.preprocess(
+  stampUserEdited,
+  specActionSchema.refine((action) => !holdsBrokenText(action), { message: "Remove characters that cannot be shown." }),
+);

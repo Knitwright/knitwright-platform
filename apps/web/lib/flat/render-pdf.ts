@@ -1,8 +1,8 @@
 import { Document, G, Image, Page, Path, Svg, Text, View, type DocumentProps } from "@react-pdf/renderer";
 import { createElement as h, type ReactElement } from "react";
 import { safeColour } from "./colour";
-import { drawableImage, type ImageMap } from "./images";
-import type { FlatElement, FlatImage, FlatModel, FlatPath, FlatText } from "./model";
+import { drawableImage, missingImagePath, type ImageBytes, type ImageMap } from "./images";
+import type { FlatElement, FlatImage, FlatLayer, FlatModel, FlatPath, FlatText } from "./model";
 import { num, pathData } from "./path-data";
 import { PDF_FONT_FAMILY, registerPdfFont } from "./pdf-font";
 
@@ -42,14 +42,13 @@ function pathElement(path: FlatPath, key: string): ReactElement {
     key,
     d: pathData(path.commands),
     fill: (path.fill && safeColour(path.fill)) || "none",
-    ...(path.fill && path.fillRule === "evenodd" ? { fillRule: "evenodd" as const } : {}),
     ...(stroke
       ? {
           stroke: safeColour(stroke.colour) ?? FALLBACK,
           strokeWidth: stroke.width,
           ...(stroke.dash.length > 0 ? { strokeDasharray: stroke.dash.map(num).join(" ") } : {}),
-          strokeLinejoin: "round" as const,
-          strokeLinecap: "round" as const,
+          strokeLinejoin: "round",
+          strokeLinecap: "round",
         }
       : {}),
   });
@@ -71,9 +70,9 @@ function textElement(text: FlatText, key: string): ReactElement {
   return h(G, { key: `${key}-turn`, transform: `rotate(${num(text.rotation)} ${num(text.at.x)} ${num(text.at.y)})` }, drawn);
 }
 
-function imageElement(image: FlatImage, model: FlatModel, options: PdfOptions, key: string): ReactElement {
+function imageElement(image: FlatImage, found: ImageBytes, model: FlatModel, widthPoints: number, key: string): ReactElement {
   const { minX, minY } = model.bounds;
-  const scale = pdfPlacement(model, options.widthPoints).pointsPerUnit;
+  const scale = pdfPlacement(model, widthPoints).pointsPerUnit;
   const box = {
     position: "absolute" as const,
     left: (image.at.x - image.width / 2 - minX) * scale,
@@ -82,35 +81,41 @@ function imageElement(image: FlatImage, model: FlatModel, options: PdfOptions, k
     height: image.height * scale,
     transform: `rotate(${num(image.rotation)}deg)`,
   };
-  const found = drawableImage(options.images, image.fileId);
-  if (!found) {
-    return h(View, { key, style: { ...box, borderWidth: 0.5, borderStyle: "dashed", borderColor: "#9ca3af" } });
-  }
   const format = found.contentType === "image/png" ? "png" : "jpg";
   return h(Image, { key, src: { data: Buffer.from(found.bytes), format }, style: box });
 }
 
 type Vector = FlatPath | FlatText;
+type Run = { readonly vectors: readonly Vector[] } | { readonly image: FlatImage; readonly found: ImageBytes };
 
-/** Consecutive paths and text share one Svg. A picture between them splits the run, to keep the order. */
-function runsOf(elements: readonly FlatElement[]): (readonly Vector[] | FlatImage)[] {
-  const runs: (Vector[] | FlatImage)[] = [];
-  for (const element of elements) {
+/**
+ * Consecutive paths and text share one Svg. A picture between them splits the run, to keep
+ * the order. A picture with no bytes becomes the dashed box the SVG draws too.
+ */
+function runsOf(elements: readonly FlatElement[], images: ImageMap): Run[] {
+  const runs: Run[] = [];
+  const add = (vector: Vector): void => {
     const last = runs.at(-1);
-    if (element.kind === "image") runs.push(element);
-    else if (Array.isArray(last)) last.push(element);
-    else runs.push([element]);
+    if (last && "vectors" in last) runs[runs.length - 1] = { vectors: [...last.vectors, vector] };
+    else runs.push({ vectors: [vector] });
+  };
+  for (const element of elements) {
+    if (element.kind !== "image") add(element);
+    else {
+      const found = drawableImage(images, element.fileId);
+      if (found) runs.push({ image: element, found });
+      else add(missingImagePath(element));
+    }
   }
   return runs;
 }
 
-function layerElement(model: FlatModel, layerIndex: number, options: PdfOptions): ReactElement {
-  const layer = model.layers[layerIndex] as FlatModel["layers"][number];
+function layerElement(model: FlatModel, layer: FlatLayer, options: PdfOptions): ReactElement {
   const { widthPoints, heightPoints } = pdfPlacement(model, options.widthPoints);
   const { minX, minY, maxX, maxY } = model.bounds;
-  const parts = runsOf(layer.elements).map((run, index) => {
+  const parts = runsOf(layer.elements, options.images).map((run, index) => {
     const key = `${layer.id}-${index}`;
-    if (!Array.isArray(run)) return imageElement(run as FlatImage, model, options, key);
+    if ("image" in run) return imageElement(run.image, run.found, model, options.widthPoints, key);
     return h(
       Svg,
       {
@@ -120,7 +125,7 @@ function layerElement(model: FlatModel, layerIndex: number, options: PdfOptions)
         viewBox: `${num(minX)} ${num(minY)} ${num(maxX - minX)} ${num(maxY - minY)}`,
         style: { position: "absolute", top: 0, left: 0 },
       },
-      ...run.map((element, position) =>
+      ...run.vectors.map((element, position) =>
         element.kind === "path" ? pathElement(element, `${key}-${position}`) : textElement(element, `${key}-${position}`),
       ),
     );
@@ -135,7 +140,7 @@ export function renderPdf(model: FlatModel, options: PdfOptions): ReactElement {
   return h(
     View,
     { style: { position: "relative", width: widthPoints, height: heightPoints } },
-    ...model.layers.map((_layer, index) => layerElement(model, index, options)),
+    ...model.layers.map((layer) => layerElement(model, layer, options)),
   );
 }
 

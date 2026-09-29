@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveDimensions } from "./dimensions";
+import { need, resolveDimensions } from "./dimensions";
 import { SCHEMATIC_CHEST } from "./model";
 
 const PROPORTIONS = { "chest-width": 1, "body-length": 1.5, "sleeve-length": 0.5 };
@@ -74,5 +74,20 @@ describe("resolveDimensions", () => {
     const values = new Map([["chest-width", 500]]);
     resolveDimensions({ needed: NEEDED, values, proportions: PROPORTIONS, check: fine });
     expect([...values.entries()]).toEqual([["chest-width", 500]]);
+  });
+});
+
+describe("a dimension that is not there", () => {
+  it("is never read as zero: the broken rule is named in an error", () => {
+    expect(need({ "chest-width": 500 }, "chest-width")).toBe(500);
+    expect(() => need({ "chest-width": 500 }, "body-length")).toThrow(
+      'The drawing needs "body-length" and the template has no proportion for it.',
+    );
+  });
+
+  it("makes the drawing of a template with a missing proportion fail loudly", async () => {
+    const { basisOf } = await import("./templates/basis");
+    const options = { raglan: false, neck: "round", collar: "none", placket: "none", longSleeve: false, hem: "straight", sidePanels: false, cuffs: false } as const;
+    expect(() => basisOf({ "chest-width": 5200 }, options)).toThrow(/needs "/);
   });
 });

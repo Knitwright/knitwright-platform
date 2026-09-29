@@ -129,6 +129,14 @@ describe("colour swatch", () => {
     expect(result.success).toBe(true);
   });
 
+  it("lets the colour code be empty when a swatch is set, and still needs a code when there is no swatch", () => {
+    const entry = (patch: object) =>
+      colourwaySchema.safeParse({ id: "main", name: "Home", colours: [{ panelId: "body-front", provenance: "user-edited", ...patch }] });
+    expect(entry({ colour: "", swatch: "#1b2a49" }).success).toBe(true);
+    expect(entry({ colour: "" }).success).toBe(false);
+    expect(entry({ colour: "  " }).success).toBe(false);
+  });
+
   it.each(["#1B2A49", "#123", "1b2a49", "#1b2a4", "#1b2a4900", "red", "url(#x)", "#1b2a4g", " #1b2a49", 7, null])(
     "refuses %j",
     (bad) => {

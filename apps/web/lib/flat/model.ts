@@ -36,7 +36,6 @@ export interface FlatPath {
   readonly commands: readonly PathCommand[];
   /** A colour written `#rrggbb`, or null for no fill. */
   readonly fill: string | null;
-  readonly fillRule: "nonzero" | "evenodd";
   readonly stroke: Stroke | null;
 }
 
@@ -105,6 +104,14 @@ export interface FlatModel {
   readonly problems: readonly string[];
   /** A sentence to show beside the drawing when it is not to scale, otherwise null. */
   readonly notice: string | null;
+  /**
+   * The whole garment as one closed silhouette (body, sleeves and collar together), and the
+   * boundary of the neck opening. A 3D form is made from these. They are not layers.
+   */
+  readonly outline: {
+    readonly silhouette: readonly PathCommand[];
+    readonly neck: readonly PathCommand[];
+  };
   /** Named points, in drawing units, that tests and callouts refer to. */
   readonly landmarks: Readonly<Record<string, Point>>;
   /** The drawing described in words. */

@@ -1,4 +1,4 @@
-import type { Proportions } from "../dimensions";
+import { need, type Proportions } from "../dimensions";
 import type { TopsOptions } from "./options";
 
 /**
@@ -37,7 +37,7 @@ export const BASE_RATIOS = {
 /** Changes to the base ratios that follow from the options, the same for every tops type. */
 export function tuneForOptions(base: Proportions, options: TopsOptions): Proportions {
   const long = options.longSleeve;
-  const at = (id: string): number => base[id] ?? 0;
+  const at = (id: string): number => need(base, id);
   const sleeve: Proportions = options.raglan
     ? { "sleeve-length": long ? 1.28 : 0.55, armhole: 0.62, "upper-arm": long ? 0.24 : 0.32 }
     : { "sleeve-length": long ? 1.15 : at("sleeve-length"), "upper-arm": long ? 0.27 : at("upper-arm") };

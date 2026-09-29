@@ -3,7 +3,7 @@ import type { Resolution } from "@/lib/sizing";
 import { artworkElements } from "./artwork";
 import { colourwayFor, panelFill } from "./colour";
 import { describeFlat } from "./describe";
-import { resolveDimensions } from "./dimensions";
+import { need, resolveDimensions } from "./dimensions";
 import { boundsOfPoints, extentPoints, grow } from "./geometry";
 import {
   BOUNDS_MARGIN,
@@ -24,6 +24,7 @@ import { detailLines } from "./templates/details";
 import { templateFor } from "./templates";
 import { seamLines, stitchLines } from "./templates/lines";
 import { readTopsOptions } from "./templates/options";
+import { outlineOf } from "./templates/outline";
 import { panelPaths } from "./templates/panels";
 import { frameOf, sleeveEnds, type Frame } from "./templates/pieces";
 
@@ -53,7 +54,7 @@ function noticeFor(missing: number, problems: number): string | null {
 const rounded = (point: Point): Point => ({ x: tidy(point.x), y: tidy(point.y) });
 
 /** Named points on the drawing that the tests and the callouts refer to. */
-function landmarksOf(basis: Basis): Readonly<Record<string, Point>> {
+function landmarksOf(basis: Basis, frame: Frame): Readonly<Record<string, Point>> {
   return {
     hps: { x: 0, y: 0 },
     "underarm-right": rounded(basis.underarm),
@@ -61,6 +62,9 @@ function landmarksOf(basis: Basis): Readonly<Record<string, Point>> {
     "sleeve-start-right": rounded(basis.top),
     "sleeve-end-right": rounded(sleeveEnds(basis).topEnd),
     "hem-centre": rounded({ x: 0, y: basis.length }),
+    "neck-bottom": rounded({ x: 0, y: frame.drop }),
+    "neck-seam-start": rounded({ x: basis.seamX, y: 0 }),
+    "sleeve-opening-lower": rounded(sleeveEnds(basis).lowerEnd),
   };
 }
 
@@ -68,12 +72,12 @@ const measuredValues = (resolution: Resolution): ReadonlyMap<string, number> =>
   new Map(resolution.rows.flatMap((row) => (row.status === "set" ? [[row.pointId, row.value] as const] : [])));
 
 /** The layers of a drawing, in drawing order. The callouts layer is there only when callouts were made. */
-function layersOf(spec: GarmentSpec, frame: Frame, panels: readonly FlatElement[], callouts: readonly FlatElement[] | null): FlatLayer[] {
+function layersOf(spec: GarmentSpec, active: string, frame: Frame, panels: readonly FlatElement[], callouts: readonly FlatElement[] | null): FlatLayer[] {
   return [
     layer("panels", panels),
     layer("seams", seamLines(frame)),
     layer("stitching", stitchLines(frame)),
-    layer("details", detailLines(frame)),
+    layer("details", detailLines(frame, panelFill(spec, active, "collar"))),
     layer("artwork", artworkElements(spec.artwork, frame)),
     ...(callouts ? [layer("measurements", callouts)] : []),
   ];
@@ -111,9 +115,9 @@ export function buildFlat(input: BuildInput): FlatModel | null {
     fillOf: (id) => panelFill(spec, active, id),
   });
   const callouts = input.callouts && resolved.toScale
-    ? calloutElements(points.map((point) => ({ id: point.id, label: point.label, value: resolved.dims[point.id] ?? 0 })), frame, resolved.dims)
+    ? calloutElements(points.map((point) => ({ id: point.id, label: point.label, value: need(resolved.dims, point.id) })), frame, resolved.dims)
     : null;
-  const layers = layersOf(spec, frame, panels, callouts);
+  const layers = layersOf(spec, active, frame, panels, callouts);
   const notice = noticeFor(resolved.missing.length, resolved.problems.length);
   return {
     view,
@@ -125,7 +129,8 @@ export function buildFlat(input: BuildInput): FlatModel | null {
     missing: resolved.missing,
     problems: resolved.problems,
     notice,
-    landmarks: landmarksOf(basis),
+    outline: outlineOf(frame),
+    landmarks: landmarksOf(basis, frame),
     description: describeFlat(spec, view, active, notice),
   };
 }

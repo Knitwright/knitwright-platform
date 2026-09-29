@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { readPdf } from "./fixtures/pdf-read";
 import { SPIKE_CALLOUT, SPIKE_FONT_FILE, renderSpikePdf } from "./pdf-spike";
@@ -18,5 +19,12 @@ describe("drawing a flat as PDF primitives", () => {
     expect(facts.text).toContain(SPIKE_CALLOUT);
     expect(Buffer.from(bytes).toString("latin1")).toMatch(/Geist/);
     expect(readFileSync(SPIKE_FONT_FILE).byteLength).toBeGreaterThan(50_000);
+  });
+});
+
+describe("the spike leaves nothing running in the app", () => {
+  it("has no route of its own and no font entry for one; the real export route arrives in step 9", () => {
+    expect(existsSync(join(process.cwd(), "app", "api", "flat-spike"))).toBe(false);
+    expect(readFileSync(join(process.cwd(), "next.config.ts"), "utf8")).not.toContain("flat-spike");
   });
 });

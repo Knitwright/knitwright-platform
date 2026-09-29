@@ -120,3 +120,27 @@ describe("browserActionSchema", () => {
     expect(browserActionSchema.safeParse({ type: "add-colourway", colourway: { colours: "no" } }).success).toBe(false);
   });
 });
+
+describe("text that is not well formed", () => {
+  const withText = (text: string) => ({
+    type: "add-artwork",
+    artwork: { ...artwork(), source: { kind: "text", text } },
+  });
+
+  it("is refused before it is stored: half of a surrogate pair cannot be written into a file", () => {
+    for (const bad of ["a\uD800b", "\uDC00", "ends\uD83D"]) {
+      expect(browserActionSchema.safeParse(withText(bad)).success, JSON.stringify(bad)).toBe(false);
+    }
+  });
+
+  it("is refused wherever it is hidden in the change", () => {
+    const named = { type: "add-artwork", artwork: { ...artwork(), name: "Crest\uD800" } };
+    expect(browserActionSchema.safeParse(named).success).toBe(false);
+    const colourway = { type: "add-colourway", colourway: { id: "away", name: "Away\uDFFF", colours: [] } };
+    expect(browserActionSchema.safeParse(colourway).success).toBe(false);
+  });
+
+  it("lets a whole emoji and ordinary accents through", () => {
+    expect(browserActionSchema.safeParse(withText("FÇ \u{1F600}")).success).toBe(true);
+  });
+});

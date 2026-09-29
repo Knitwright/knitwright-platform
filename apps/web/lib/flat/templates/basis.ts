@@ -1,4 +1,4 @@
-import type { Dims } from "../dimensions";
+import { need, type Dims } from "../dimensions";
 import { pt } from "../chain";
 import type { Point } from "../model";
 import type { TopsOptions } from "./options";
@@ -37,6 +37,8 @@ export interface Basis {
   readonly sleeveLength: number;
   readonly sleeveOpening: number;
   readonly shoulderHalf: number;
+  /** How steeply the shoulder line falls, for each unit it runs outwards. The band ends follow it. */
+  readonly shoulderSlope: number;
 }
 
 export interface BasisResult {
@@ -54,7 +56,7 @@ const HEM_WIDTH = "The hem width is too small compared with the chest.";
 
 /** Draws nothing. Says whether the measurements can be drawn, and works out the basis if so. */
 export function basisOf(dims: Dims, options: TopsOptions): BasisResult {
-  const d = (id: string): number => dims[id] ?? 0;
+  const d = (id: string): number => need(dims, id);
   const chest = d("chest-width");
   const band = options.collar === "none" ? BAND_WIDTH * chest : 0;
   const neckHalf = d("neck-width") / 2;
@@ -93,6 +95,7 @@ export function basisOf(dims: Dims, options: TopsOptions): BasisResult {
       sleeveLength: d("sleeve-length"),
       sleeveOpening: d("sleeve-opening"),
       shoulderHalf,
+      shoulderSlope: options.raglan ? Math.tan(angle) : top.y / (top.x - seamX),
     },
     problems,
   };

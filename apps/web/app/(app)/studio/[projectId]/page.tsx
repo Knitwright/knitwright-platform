@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
+import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
@@ -18,9 +19,10 @@ const orNotFound = (error: unknown): never => {
   throw error;
 };
 
-export default async function DesignPage({ params }: PageProps<"/studio/[projectId]">) {
+export default async function DesignPage({ params, searchParams }: PageProps<"/studio/[projectId]">) {
   const { brand } = await requireMember();
   const { projectId } = await params;
+  const colourway = colourwayParam((await searchParams).colourway);
   const client = await sessionClient();
 
   const [project, history] = await Promise.all([
@@ -28,7 +30,7 @@ export default async function DesignPage({ params }: PageProps<"/studio/[project
     listVersions(client, brand.id, projectId),
   ]).catch(orNotFound);
 
-  const images = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
+  const pictures = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
 
-  return <Editor data={buildEditorData(project, history, undefined, images)} />;
+  return <Editor data={buildEditorData(project, history, undefined, pictures, colourway)} />;
 }

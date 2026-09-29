@@ -96,11 +96,19 @@ describe("renderSvg artwork", () => {
     expect(svg).toContain('transform="rotate(30 ');
   });
 
-  it("marks a picture whose bytes were not given with a dashed box, and gives it no source", () => {
+  it("draws a dashed box where a picture whose bytes were not given belongs, and writes no empty image", () => {
     const svg = renderSvg(modelWith([artwork({})]));
-    expect(count(svg, /<image /g)).toBe(1);
+    expect(count(svg, /<image/g)).toBe(0);
     expect(svg).not.toContain("base64");
-    expect(svg).toContain("data-missing-image");
+    expect(svg).toMatch(/<path [^>]*stroke-dasharray="16 10"[^>]*data-name="Missing picture"/);
+  });
+
+  it("places a picture that is wider than it is tall by its centre, size and turn", () => {
+    const wide = modelWith([artwork({ width: 800, height: 200, rotationDegrees: 0, offsetX: 0, offsetY: 0 })]);
+    const element = wide.layers.find((layer) => layer.id === "artwork")?.elements[0];
+    if (element?.kind !== "image") throw new Error("Expected a picture");
+    const svg = renderSvg(wide, new Map([[FILE_ID, { bytes: PNG_BYTES, contentType: "image/png" as const }]]));
+    expect(svg).toContain(`<image x="${element.at.x - 400}" y="${element.at.y - 100}" width="800" height="200" `);
   });
 
   it("does not embed a type it does not know, even if the caller says it is fine", () => {
@@ -158,5 +166,40 @@ describe("svgDataUri", () => {
     expect(decodeURIComponent(uri.slice("data:image/svg+xml;charset=utf-8,".length))).toBe("<svg>a b #c</svg>");
     expect(uri).not.toContain("<");
     expect(uri).not.toContain("#");
+  });
+});
+
+describe("a drawing that is not to scale", () => {
+  const spec = designWith("crew-tee", {});
+  const bare = buildFlat({ spec, measurements: typedIn(spec), view: "front", colourwayId: "main" }) as FlatModel;
+
+  it("claims no physical size: a viewBox only, and a description that says so", () => {
+    const svg = renderSvg(bare);
+    const root = svg.slice(0, svg.indexOf(">"));
+    expect(root).toContain("viewBox=");
+    expect(root).not.toMatch(/\swidth=/);
+    expect(root).not.toMatch(/\sheight=/);
+    expect(svg).not.toMatch(/\d\s?mm"/);
+    expect(svg).toContain("<desc>Not to scale. Some measurements are missing.</desc>");
+  });
+
+  it("still claims the real size when every measurement is present", () => {
+    const svg = renderSvg(modelWith([]));
+    expect(svg.slice(0, svg.indexOf(">"))).toMatch(/\swidth="[\d.]+mm"/);
+    expect(svg).not.toContain("<desc>");
+  });
+});
+
+describe("text that is not well formed", () => {
+  it("does not stop the address being made, and puts a replacement mark where half a pair was", () => {
+    const model = modelWith([artwork({ source: { kind: "text", text: "a\uD800b\uDC00c" }, rotationDegrees: 0 })]);
+    const svg = renderSvg(model);
+    expect(() => svgDataUri(svg)).not.toThrow();
+    expect(svg).toContain(">a�b�c</text>");
+  });
+
+  it("leaves a well formed pair alone", () => {
+    expect(escapeXml("\u{1F600}")).toBe("\u{1F600}");
+    expect(escapeXml("a\uD800b")).toBe("a�b");
   });
 });

@@ -95,7 +95,7 @@ describe.each(cases.map((item) => [item.label, item] as const))("%s", (_label, i
 
   it("has exactly one closed path for each panel of the design that this view shows", () => {
     const wanted = visiblePanels(item.view, panelsFor(spec).map((panel) => panel.id));
-    expect(paths.map((path) => path.panelId).sort()).toEqual([...wanted].sort());
+    expect(paths.flatMap((path) => (path.panelId ? [path.panelId] : [])).sort()).toEqual([...wanted].sort());
     for (const path of paths) {
       const runs = runsOf(path);
       expect(runs.length).toBeGreaterThan(0);

@@ -92,3 +92,20 @@ describe("flatPreview", () => {
     expect(svg).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
   });
 });
+
+describe("flatPreview and the colourway chosen", () => {
+  it("draws the colourway asked for", () => {
+    const base = designWith("crew-tee", {}, madeUpValues({}));
+    const spec = {
+      ...base,
+      colourways: [
+        base.colourways[0],
+        { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "Red", swatch: "#aa0000", provenance: "user-edited" as const }] },
+      ],
+    } as GarmentSpec;
+    const svg = (id?: string) => decode(flatPreview(spec, new Map(), undefined, null, id)?.views[0]?.src ?? "");
+    expect(svg("away")).toContain('fill="#aa0000"');
+    expect(svg()).not.toContain('fill="#aa0000"');
+    expect(svg("nope")).not.toContain('fill="#aa0000"');
+  });
+});

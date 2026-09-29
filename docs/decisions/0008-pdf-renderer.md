@@ -27,10 +27,11 @@ What was run, on Windows 11 with Node 24.9.0, `@react-pdf/renderer` 4.9.0 (MIT) 
    line, a callout in a registered font and a raster logo (PNG made with `sharp`). The
    result starts with `%PDF-`, has one page of 595.28 by 841.89 points (A4), and text
    extraction finds the callout. The font name is in the file, so it was embedded.
-2. **The built app** (`pnpm build`, then `pnpm start`, `e2e/pdf-spike.spec.ts`). A signed in
-   member asks `GET /api/flat-spike`. The answer is a valid A4 PDF with the callout text.
-   One request: 8,018 bytes, 68 ms to render, 529 ms for the whole request including the
-   first cold load, heap 86 MB, resident memory of the whole Next server 206 MB.
+2. **The built app** (an earlier version of this spike ran a member-only route in the built
+   app with `pnpm start`). One request: 8,018 bytes, 68 ms to render, 529 ms for the whole
+   request including the first cold load, heap 86 MB, resident memory of the whole Next
+   server 206 MB. That route has been removed. It was a spike, and step 9 adds the real
+   export route.
 3. **A real flat** (a team jersey with raglan sleeves, zip, curved hem, side panels, cuffs,
    callouts and a picture, from `renderPdfDocument`). 12,665 bytes. First render 128 ms,
    later renders 14 to 22 ms. Resident memory of the test process about 155 MB.
@@ -40,31 +41,33 @@ What was run, on Windows 11 with Node 24.9.0, `@react-pdf/renderer` 4.9.0 (MIT) 
    comes out as plain text.
 5. **Fonts.** The font is Geist Regular, from the `geist` package. Its licence is the SIL
    Open Font License 1.1, which allows embedding in documents. The file and the licence
-   text are copied to `apps/web/assets/fonts/`. The font is read from disk at run time, so
-   `next.config.ts` lists it under `outputFileTracingIncludes` for the route. The build
-   output for the route lists the font file, which shows the host will ship it.
+   text are copied to `apps/web/assets/fonts/`. The font is read from disk at run time, so the export route
+   must list it under `outputFileTracingIncludes`. The spike did, and the build output showed
+   the font file, which is how we know the host will ship it.
 6. **Under tsx** (the tool that runs `scripts/render-flat-snapshots.mts`) the library
    fails to load, because tsx resolves one of its inner packages differently. That script
    does not use the PDF renderer, and the app and the tests are not affected.
 
-The spike route `GET /api/flat-spike` is kept for now. It is `auth: "member"`, and it is
-the quickest way to run the deployed check. Remove it when step 9 adds the real export
-route, and move its font entry in `next.config.ts` to that route.
+The spike route has been removed, together with its font entry in `next.config.ts`. What
+stays is the test that renders in plain Node (`lib/flat/pdf-spike.test.ts`), and a test that
+the route is gone.
 
-## What must be run again on the first preview deployment
+## What must be checked on the first preview deployment
 
-1. Open the preview, sign in, and request `/api/flat-spike`. It must answer 200 with
-   `content-type: application/pdf`, and the file must open as a one page A4 PDF that
-   shows the callout text in Geist, the dashed line and the red logo square.
-2. Run `e2e/pdf-spike.spec.ts` against the preview address. Do this by setting the base
-   address and keys the spec reads, or by repeating step 1 by hand.
-3. Read the `x-render-milliseconds`, `x-heap-used-mb` and `x-rss-mb` headers. Record them
-   here. The function must finish well inside its time limit (see decision 0002) and stay
-   under the memory limit of the plan the owner chooses.
-4. Check that the font file was shipped with the function. A missing font shows as an
-   error about a missing file in the host log.
-5. If any of this fails, switch step 9 to `pdfkit` and write a new decision that
-   supersedes this one.
+The check is now of the real export route that step 9 will add. Run it on the first preview:
+
+1. Sign in on the preview and download a tech pack PDF for a design with a flat. It must
+   answer 200 with `content-type: application/pdf` and open as an A4 PDF that shows the
+   flat with its dashed stitching, the callout text in Geist and any logo.
+2. The font must be traced for that route. Step 9 must add the export route to
+   `outputFileTracingIncludes` in `next.config.ts` with `./assets/fonts/**`, the way the
+   spike did. A missing font shows as an error about a missing file in the host log. A test
+   in step 9 should fail if the entry is missing.
+3. Record the render time, heap and resident memory of the function here. It must finish
+   well inside its time limit (decision 0002) and inside the memory limit of the plan the
+   owner chooses.
+4. If any of this fails, switch step 9 to `pdfkit` and write a new decision that supersedes
+   this one.
 
 ## Alternatives
 

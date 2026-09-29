@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import { applyAction, type GarmentSpec } from "@/lib/garment";
 import { browserActionSchema } from "./browser-action";
-import { colourAction, colourRows } from "./colour-controls";
+import { activeColourwayId, colourAction, colourRows, colourwayChoices, colourwayParam, normaliseSwatch } from "./colour-controls";
 
 const applied = (spec: GarmentSpec, request: ReturnType<typeof colourAction>): GarmentSpec => {
   if (request.kind !== "action") throw new Error("Expected an action");
@@ -46,9 +46,25 @@ describe("colourRows", () => {
 describe("colourAction", () => {
   const spec = start("crew-tee");
 
-  it("saves a picked colour as a colourway change, with the code left as the colour until one is typed", () => {
+  it("saves a picked colour and leaves the code EMPTY: a screen colour is not a reference for a factory", () => {
     const next = applied(spec, colourAction(spec, "body-front", { swatch: "#1b2a49" }));
-    expect(next.colourways[0].colours).toEqual([{ panelId: "body-front", colour: "#1b2a49", swatch: "#1b2a49", provenance: "user-edited" }]);
+    expect(next.colourways[0].colours).toEqual([{ panelId: "body-front", colour: "", swatch: "#1b2a49", provenance: "user-edited" }]);
+    expect(colourRows(next)[0]).toMatchObject({ colourText: "", swatch: "#1b2a49", hasSwatch: true });
+  });
+
+  it("keeps the code empty when the swatch is changed, and keeps a typed code when it is", () => {
+    const first = applied(spec, colourAction(spec, "body-front", { swatch: "#1b2a49" }));
+    const again = applied(first, colourAction(first, "body-front", { swatch: "#222222" }));
+    expect(again.colourways[0].colours[0]).toMatchObject({ colour: "", swatch: "#222222" });
+    const typed = applied(again, colourAction(again, "body-front", { colourText: "Navy 19-4052" }));
+    const moved = applied(typed, colourAction(typed, "body-front", { swatch: "#333333" }));
+    expect(moved.colourways[0].colours[0]).toMatchObject({ colour: "Navy 19-4052", swatch: "#333333" });
+  });
+
+  it("clears the swatch and keeps the code when only the swatch is cleared", () => {
+    const typed = applied(spec, colourAction(spec, "body-front", { colourText: "Navy", swatch: "#111111" }));
+    const next = applied(typed, colourAction(typed, "body-front", { swatch: null }));
+    expect(next.colourways[0].colours).toEqual([{ panelId: "body-front", colour: "Navy", provenance: "user-edited" }]);
   });
 
   it("saves a typed code and keeps the swatch that was picked", () => {
@@ -93,5 +109,61 @@ describe("colourAction", () => {
     const frozen = JSON.stringify(spec);
     colourAction(spec, "body-front", { swatch: "#111111" });
     expect(JSON.stringify(spec)).toBe(frozen);
+  });
+});
+
+describe("normaliseSwatch", () => {
+  it("turns what a person types into #rrggbb in lower case", () => {
+    expect(normaliseSwatch("#1B2A49")).toBe("#1b2a49");
+    expect(normaliseSwatch(" 1b2a49 ")).toBe("#1b2a49");
+    expect(normaliseSwatch("")).toBeNull();
+  });
+
+  it("hands anything else back as it was, so the refusal names it", () => {
+    expect(normaliseSwatch("#123")).toBe("#123");
+    expect(normaliseSwatch("navy")).toBe("navy");
+    expect(colourAction(start("crew-tee"), "body-front", { swatch: normaliseSwatch("navy") }).kind).toBe("problem");
+  });
+});
+
+describe("more than one colourway", () => {
+  const base = start("crew-tee");
+  const spec = {
+    ...base,
+    colourways: [
+      { ...base.colourways[0], colours: [{ panelId: "body-front", colour: "Navy", swatch: "#111111", provenance: "user-edited" as const }] },
+      { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "White", swatch: "#eeeeee", provenance: "user-edited" as const }] },
+    ],
+  } as GarmentSpec;
+
+  it("lists them, marks the one shown, and falls back to the first for an id that is not there", () => {
+    expect(colourwayChoices(spec, "away")).toEqual([
+      { id: "main", name: "Main colourway", selected: false },
+      { id: "away", name: "Away", selected: true },
+    ]);
+    expect(activeColourwayId(spec, "away")).toBe("away");
+    expect(activeColourwayId(spec, "nope")).toBe("main");
+    expect(activeColourwayId(spec, undefined)).toBe("main");
+  });
+
+  it("shows the colours of the colourway chosen", () => {
+    expect(colourRows(spec, "away")[0]).toMatchObject({ colourText: "White", swatch: "#eeeeee" });
+    expect(colourRows(spec)[0]).toMatchObject({ colourText: "Navy", swatch: "#111111" });
+  });
+
+  it("changes only the colourway chosen", () => {
+    const next = applied(spec, colourAction(spec, "body-front", { swatch: "#abcdef" }, "away"));
+    expect(next.colourways[0].colours[0]?.swatch).toBe("#111111");
+    expect(next.colourways[1]?.colours[0]?.swatch).toBe("#abcdef");
+  });
+});
+
+describe("colourwayParam", () => {
+  it("reads the colourway named in the address, whatever shape the framework hands over", () => {
+    expect(colourwayParam("away")).toBe("away");
+    expect(colourwayParam(["away", "main"])).toBe("away");
+    expect(colourwayParam(undefined)).toBeUndefined();
+    expect(colourwayParam("")).toBeUndefined();
+    expect(colourwayParam([])).toBeUndefined();
   });
 });

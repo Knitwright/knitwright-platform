@@ -1,8 +1,9 @@
 import { chain, lineTo, mirrorChain, openCommands, pt, type Chain } from "../chain";
 import type { FlatPath } from "../model";
 import { seamPath, stitchPath } from "../paths";
-import { CUFF_HEIGHT, HEM_STITCH_GAP, SIDE_PANEL_WIDTH } from "./basis";
+import { CUFF_HEIGHT, HEM_STITCH_GAP } from "./basis";
 import { placketTop } from "./collar";
+import { sidePanelOnRight } from "./side-panels";
 import { armholeChain, bothSides, hemLift, hemSegment, neckOpening, neckSeam, sleeveChains, sleeveEnds, type Frame } from "./pieces";
 
 const both = (name: string, right: Chain, build: (name: string, commands: ReturnType<typeof openCommands>) => FlatPath): FlatPath[] => [
@@ -35,11 +36,7 @@ function cuffSeams(frame: Frame): FlatPath[] {
 }
 
 function sideStripSeams(frame: Frame): FlatPath[] {
-  const { basis } = frame;
-  const inner = basis.halfHem - SIDE_PANEL_WIDTH * basis.chest;
-  const top = pt(basis.underarm.x - SIDE_PANEL_WIDTH * basis.chest, basis.underarm.y);
-  const bottom = hemSegment(frame, inner, inner).start;
-  return both("Side panel seam", chain(top, lineTo(bottom)), seamPath);
+  return both("Side panel seam", sidePanelOnRight(frame).inner, seamPath);
 }
 
 /** The rows of stitching a factory would sew, drawn dashed. */
@@ -63,7 +60,7 @@ function midNeck(frame: Frame): Chain {
   const opening = neckOpening(frame);
   const seam = neckSeam(frame);
   const middle = (a: number, b: number): number => (a + b) / 2;
-  const start = pt(middle(opening.start.x, seam.start.x), 0);
+  const start = pt(middle(opening.start.x, seam.start.x), middle(opening.start.y, seam.start.y));
   const pieces = opening.pieces.map((piece, index) => {
     const other = seam.pieces[index] ?? piece;
     return {

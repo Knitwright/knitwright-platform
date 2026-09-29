@@ -9,6 +9,7 @@ import {
   type Wearer,
 } from "@/lib/garment";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
+import { refuseUnreadableArtwork, dropUnreadableArtwork } from "./artwork-files";
 import { browserActionSchema } from "./browser-action";
 import { CONFLICT_MESSAGE } from "./database-errors";
 import { describeAction, restoreNote } from "./notes";
@@ -106,17 +107,21 @@ const loadCurrent = async (
   const row = await loadRow(client, input.brandId, input.projectId);
   if (row.current_version !== input.expectedVersion) throw new AppError("conflict", CONFLICT_MESSAGE);
   const current = await loadVersion(client, input.brandId, input.projectId, row.current_version);
-  return { version: row.current_version, read: readSpec(current.spec) };
+  const read = await dropUnreadableArtwork(client, input.brandId, readSpec(current.spec));
+  return { version: row.current_version, read };
 };
 
 /** Applies a change that has already been parsed, and stores the result if it changed anything. */
 const storeAction = async (
   admin: SupabaseClient,
+  client: SupabaseClient,
   input: SaveInput,
   current: Current,
   action: SpecAction,
 ): Promise<SaveOutcome> => {
   const { spec: base, dropped: repaired } = current.read;
+  const refusal = await refuseUnreadableArtwork(client, input.brandId, action);
+  if (refusal) return { ok: false, reason: refusal };
   const applied = applyAction(base, action);
   if (!applied.ok) return applied;
 
@@ -148,7 +153,7 @@ export const saveAction = async (
   const current = await loadCurrent(client, input);
   const action = browserActionSchema.safeParse(input.action);
   if (!action.success) return { ok: false, reason: NOT_UNDERSTOOD };
-  return storeAction(admin, input, current, action.data);
+  return storeAction(admin, client, input, current, action.data);
 };
 
 /**
@@ -164,7 +169,7 @@ export const saveTrustedAction = async (
   const current = await loadCurrent(client, input);
   const action = specActionSchema.safeParse(input.action);
   if (!action.success) return { ok: false, reason: NOT_UNDERSTOOD };
-  return storeAction(admin, input, current, action.data);
+  return storeAction(admin, client, input, current, action.data);
 };
 
 export type RestoreInput = Readonly<{
@@ -189,7 +194,7 @@ export const restoreVersion = async (
   if (input.version === current.version) return { ok: false, reason: ALREADY_CURRENT };
 
   const old = await loadVersion(client, input.brandId, input.projectId, input.version);
-  const { spec, dropped } = readSpec(old.spec);
+  const { spec, dropped } = await dropUnreadableArtwork(client, input.brandId, readSpec(old.spec));
   if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
   const version = await appendVersion(admin, {
     userId: input.userId,

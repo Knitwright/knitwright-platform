@@ -9,7 +9,7 @@ import {
   reverseChain,
   type Chain,
 } from "../chain";
-import type { Dims } from "../dimensions";
+import { need, type Dims } from "../dimensions";
 import type { Point, View } from "../model";
 import { V_SEAM_FACTOR, type Basis } from "./basis";
 import type { TopsOptions } from "./options";
@@ -29,6 +29,8 @@ export interface Frame {
   readonly view: View;
   /** How far the neck opening drops at the centre, for this view. */
   readonly drop: number;
+  /** The same for the back neckline, which the front view sees the inside of. */
+  readonly backDrop: number;
   readonly collarHeight: number;
   readonly placketLength: number;
   readonly placketWidth: number;
@@ -42,10 +44,11 @@ export function frameOf(basis: Basis, options: TopsOptions, view: View, dims: Di
     basis,
     options,
     view,
-    drop: dims[front ? "front-neck-drop" : "back-neck-drop"] ?? 0,
-    collarHeight: dims["collar-height"] ?? 0,
-    placketLength: dims["placket-length"] ?? 0,
-    placketWidth: dims["placket-width"] ?? 0,
+    drop: need(dims, front ? "front-neck-drop" : "back-neck-drop"),
+    backDrop: need(dims, "back-neck-drop"),
+    collarHeight: need(dims, "collar-height"),
+    placketLength: need(dims, "placket-length"),
+    placketWidth: need(dims, "placket-width"),
     scoop: (options.raglan ? RAGLAN_BOW : front ? SCOOP_FRONT : SCOOP_BACK) * basis.chest,
     hemRise: options.hem === "curved" ? (front ? RISE_FRONT : RISE_BACK) * basis.length : 0,
   };
@@ -54,10 +57,21 @@ export function frameOf(basis: Basis, options: TopsOptions, view: View, dims: Di
 /** True when the neck opening is a V. Only the front of a V neck top is. The back is always round. */
 export const isV = (frame: Frame): boolean => frame.options.neck === "v" && frame.view === "front";
 
+/**
+ * How far above the high point of the shoulder the neck opening begins. The band ends
+ * follow the shoulder line inwards, so that nothing sticks out above the seams beside it.
+ */
+export const neckEndY = (frame: Frame): number => -frame.basis.shoulderSlope * (frame.basis.seamX - frame.basis.neckHalf);
+
+const KAPPA = 0.5522847498;
+
 /** The edge of the neck opening, from the shoulder to the centre, on the right side. */
 export function neckOpening(frame: Frame): Chain {
   const a = frame.basis.neckHalf;
-  return isV(frame) ? chain(pt(a, 0), lineTo(pt(0, frame.drop))) : chain(pt(a, 0), quarterDown(a, frame.drop));
+  const y0 = neckEndY(frame);
+  const start = pt(a, y0);
+  if (isV(frame)) return chain(start, lineTo(pt(0, frame.drop)));
+  return chain(start, curveTo(pt(a, y0 + (frame.drop - y0) * KAPPA), pt(a * KAPPA, frame.drop), pt(0, frame.drop)));
 }
 
 /** The seam round the neck opening, on the right side. It lies outside the opening by the band. */

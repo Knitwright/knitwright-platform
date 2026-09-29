@@ -76,3 +76,11 @@ export function ArtworkFields({ spec, parts, form, onChange }: FieldsProps) {
     </div>
   );
 }
+
+export function Problem({ id, message }: Readonly<{ id: string; message: string | null }>) {
+  return message ? (
+    <p id={id} role="alert" className="mt-2 text-sm text-warn">
+      {message}
+    </p>
+  ) : null;
+}

@@ -15,7 +15,7 @@ type Problem = (key: string, message: string, focus: boolean) => void;
  * be once the waiting changes are saved, so a second colour does not undo the first. A pick
  * from the colour picker is held until the person stops moving, and the newest one is sent.
  */
-export function useColourEdits(working: GarmentSpec, queue: Queue, problem: Problem) {
+export function useColourEdits(working: GarmentSpec, colourwayId: string, queue: Queue, problem: Problem) {
   const [settler] = useState(() =>
     createSettler<SpecAction>((key, action, asked) => queue(key, { kind: "action", action }, asked)),
   );
@@ -23,12 +23,12 @@ export function useColourEdits(working: GarmentSpec, queue: Queue, problem: Prob
 
   return {
     changeColour: (panelId: string, change: ColourChange, asked: boolean) => {
-      const request = colourAction(working, panelId, change);
+      const request = colourAction(working, panelId, change, colourwayId);
       if (request.kind === "problem") problem(colourKey(panelId), request.reason, asked);
       else queue(colourKey(panelId), request, asked);
     },
     pickSwatch: (panelId: string, swatch: string) => {
-      const request = colourAction(working, panelId, { swatch });
+      const request = colourAction(working, panelId, { swatch }, colourwayId);
       if (request.kind === "problem") problem(colourKey(panelId), request.reason, false);
       else settler.change(colourKey(panelId), request.action);
     },

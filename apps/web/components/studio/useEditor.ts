@@ -54,7 +54,7 @@ export const useEditor = (data: EditorData) => {
     [data.spec, inFlight, waitingQueue],
   );
 
-  const colours = useColourEdits(working, queue, problem);
+  const colours = useColourEdits(working, data.colourwayId, queue, problem);
 
   const editMeasurement = (pointId: string, intent: EditIntent, asked: boolean) => {
     const request = requestForIntent(data.spec, pointId, intent);

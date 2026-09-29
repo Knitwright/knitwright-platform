@@ -64,13 +64,18 @@ export const SWATCH_PATTERN = /^#[0-9a-f]{6}$/;
 const panelColourSchema = z
   .object({
     panelId: kebabId,
-    /** Free text. Colour libraries are licensed, so codes are never looked up. */
-    colour: freeText(COLOUR_MAX_LENGTH).min(1, "Enter a colour."),
+    /**
+     * Free text, such as a Pantone name. Colour libraries are licensed, so codes are never
+     * looked up. It may be empty when a swatch is set: a colour picked for the screen is not
+     * a colour reference for a factory, and must not be stored as one.
+     */
+    colour: freeText(COLOUR_MAX_LENGTH),
     /** The colour to draw, such as `#1b2a49`. Optional: a panel without one is drawn in light grey. */
     swatch: z.string().regex(SWATCH_PATTERN, "Use a colour like #1b2a49.").optional(),
     provenance: provenanceSchema,
   })
-  .readonly();
+  .readonly()
+  .refine((entry) => entry.colour !== "" || entry.swatch !== undefined, { message: "Enter a colour.", path: ["colour"] });
 
 export const colourwaySchema = z
   .object({

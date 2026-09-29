@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getType, migrateSpec, repairSpec, type Dropped, type GarmentSpec } from "@/lib/garment";
 import { AppError } from "@/lib/server/core/errors";
+import { dropUnreadableArtwork } from "./artwork-files";
 import { failureFromDatabase, NOT_FOUND_MESSAGE } from "./database-errors";
 import {
   PROJECT_COLUMNS,
@@ -157,7 +158,7 @@ export const getProject = async (
 ): Promise<OpenProject> => {
   const row = await loadRow(client, brandId, projectId);
   const current = await loadVersion(client, brandId, projectId, row.current_version);
-  return { ...summaryOf(row), ...readSpec(current.spec) };
+  return { ...summaryOf(row), ...(await dropUnreadableArtwork(client, brandId, readSpec(current.spec))) };
 };
 
 export interface VersionsPage {
@@ -221,5 +222,5 @@ export const getVersion = async (
 ): Promise<OpenVersion> => {
   await loadRow(client, brandId, projectId);
   const row = await loadVersion(client, brandId, projectId, version);
-  return { ...versionOf(row), ...readSpec(row.spec) };
+  return { ...versionOf(row), ...(await dropUnreadableArtwork(client, brandId, readSpec(row.spec))) };
 };

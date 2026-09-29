@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import type { GarmentSpec } from "@/lib/garment";
-import { NEUTRAL_FILL, colourwayFor, panelFill, safeColour } from "./colour";
+import { NEUTRAL_FILL, brightness, colourwayFor, darken, panelFill, safeColour } from "./colour";
 
 const withColours = (colours: GarmentSpec["colourways"][number]["colours"]): GarmentSpec => {
   const spec = start("crew-tee");
@@ -37,5 +37,27 @@ describe("panelFill", () => {
     expect(panelFill(spec, "main", "body-back")).toBe(NEUTRAL_FILL);
     expect(panelFill(spec, "main", "body-front")).toBe(NEUTRAL_FILL);
     expect(NEUTRAL_FILL).toMatch(/^#[0-9a-f]{6}$/);
+  });
+});
+
+describe("darken", () => {
+  it("makes a slightly darker tone of a colour, still written #rrggbb", () => {
+    expect(darken("#ffffff", 0.9)).toBe("#e6e6e6");
+    expect(darken("#1b2a49", 0.5)).toBe("#0e1525");
+    expect(darken("#000000", 0.5)).toBe("#000000");
+  });
+
+  it("gives the colour back when it is not a colour or the share is not below one", () => {
+    expect(darken("red", 0.5)).toBe(NEUTRAL_FILL);
+    expect(darken("#abcdef", 1.5)).toBe("#abcdef");
+  });
+});
+
+describe("brightness", () => {
+  it("adds the three channels, and treats a value that is not a colour as the neutral grey", () => {
+    expect(brightness("#000000")).toBe(0);
+    expect(brightness("#ffffff")).toBe(765);
+    expect(brightness("#0a0b0c")).toBe(33);
+    expect(brightness("nonsense")).toBe(brightness(NEUTRAL_FILL));
   });
 });

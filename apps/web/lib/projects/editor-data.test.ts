@@ -114,3 +114,26 @@ describe("buildEditorData", () => {
     expect(buildEditorData(project({ dropped }), page(versions)).dropped).toEqual(dropped);
   });
 });
+
+describe("pictures left out of the drawing", () => {
+  it("says so in the drawing's data when some were skipped, and says nothing otherwise", () => {
+    const skipped = buildEditorData(project(), page(versions), undefined, { images: new Map(), skipped: 2 });
+    expect(skipped.flat?.picturesNote).toBe("2 pictures are not shown, because they are too big or there are too many, so a dashed box marks where each one goes.");
+    expect(buildEditorData(project(), page(versions)).flat?.picturesNote).toBeNull();
+  });
+});
+
+describe("the colourway the editor shows", () => {
+  it("is the one asked for, and the data lists all of them", () => {
+    const base = start("crew-tee", "women");
+    const spec = {
+      ...base,
+      colourways: [base.colourways[0], { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "Red", swatch: "#aa0000", provenance: "user-edited" as const }] }],
+    } as typeof base;
+    const data = buildEditorData(project({ spec }), page(versions), undefined, undefined, "away");
+    expect(data.colourwayId).toBe("away");
+    expect(data.colourways.map((entry) => [entry.id, entry.selected])).toEqual([["main", false], ["away", true]]);
+    expect(data.colours[0]).toMatchObject({ colourText: "Red", swatch: "#aa0000" });
+    expect(buildEditorData(project({ spec }), page(versions)).colourwayId).toBe("main");
+  });
+});

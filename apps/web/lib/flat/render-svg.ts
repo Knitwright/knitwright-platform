@@ -1,12 +1,12 @@
 import { safeColour } from "./colour";
-import { drawableImage, type ImageMap } from "./images";
+import { drawableImage, missingImagePath, type ImageMap } from "./images";
 import { num, pathData, pointText } from "./path-data";
 import type { FlatElement, FlatImage, FlatLayer, FlatModel, FlatPath, FlatText, Point } from "./model";
 
 /**
  * Draws a geometry model as an SVG string. It has one group per layer, named so that
- * drawing tools open it as layers, a viewBox in the model's units and a size in real
- * millimetres. It holds no script, no event handler and no reference to anything outside
+ * drawing tools open it as layers, a viewBox in the model's units and, only when the
+ * drawing is to scale, a size in real millimetres. It holds no script, no event handler and no reference to anything outside
  * the file. Pictures are embedded from bytes the caller already has. Every piece of text
  * that came from a person is escaped, and colours are written only when they are #rrggbb.
  */
@@ -16,8 +16,14 @@ const FONT_STACK = "Geist, Arial, Helvetica, sans-serif";
 const UNITS_PER_MM = 10;
 const FALLBACK_STROKE = "#000000";
 
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+const REPLACEMENT = "�";
+
+/** Text with half of a surrogate pair made whole again with the replacement mark, so it can be encoded. */
+export const wellFormed = (text: string): string => text.replace(LONE_SURROGATE, REPLACEMENT);
+
 export function escapeXml(text: string): string {
-  return text
+  return wellFormed(text)
     .replace(INVALID_XML, "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -34,7 +40,6 @@ function pathElement(path: FlatPath): string {
   const attributes = [
     `d="${pathData(path.commands)}"`,
     `fill="${(path.fill && safeColour(path.fill)) || "none"}"`,
-    ...(path.fill && path.fillRule === "evenodd" ? ['fill-rule="evenodd"'] : []),
     ...(stroke
       ? [
           `stroke="${safeColour(stroke.colour) ?? FALLBACK_STROKE}"`,
@@ -63,10 +68,7 @@ function imageElement(image: FlatImage, images: ImageMap): string {
   const found = drawableImage(images, image.fileId);
   const box = `x="${n(image.at.x - image.width / 2)}" y="${n(image.at.y - image.height / 2)}" width="${n(image.width)}" height="${n(image.height)}"`;
   const turn = rotation(image.rotation, image.at);
-  if (!found) {
-    const placeholder = `<rect ${box} fill="none" stroke="#9ca3af" stroke-width="3" stroke-dasharray="16 10" data-missing-image="true"${turn}/>`;
-    return `<g>${placeholder}<image ${box} preserveAspectRatio="none"${turn}/></g>`;
-  }
+  if (!found) return pathElement(missingImagePath(image));
   const data = Buffer.from(found.bytes).toString("base64");
   return `<image ${box} preserveAspectRatio="none" href="data:${found.contentType};base64,${data}"${turn}/>`;
 }
@@ -87,16 +89,18 @@ export function renderSvg(model: FlatModel, images: ImageMap = new Map()): strin
   const { minX, minY, maxX, maxY } = model.bounds;
   const width = maxX - minX;
   const height = maxY - minY;
+  // A drawing that is not to scale must not claim a real size, so it gets a viewBox only.
+  const size = model.toScale ? [`width="${n(width / UNITS_PER_MM)}mm"`, `height="${n(height / UNITS_PER_MM)}mm"`] : [];
   const head = [
     'xmlns="http://www.w3.org/2000/svg"',
     'xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"',
-    `width="${n(width / UNITS_PER_MM)}mm"`,
-    `height="${n(height / UNITS_PER_MM)}mm"`,
+    ...size,
     `viewBox="${n(minX)} ${n(minY)} ${n(width)} ${n(height)}"`,
     'role="img"',
   ];
+  const desc = model.toScale || !model.notice ? "" : `<desc>${escapeXml(model.notice)}</desc>`;
   const layers = model.layers.map((layer) => layerElement(layer, images)).join("");
-  return `<svg ${head.join(" ")}><title>${escapeXml(model.description)}</title>${layers}</svg>`;
+  return `<svg ${head.join(" ")}><title>${escapeXml(model.description)}</title>${desc}${layers}</svg>`;
 }
 
 const SVG_DATA_PREFIX = "data:image/svg+xml;charset=utf-8,";
@@ -105,4 +109,4 @@ const SVG_DATA_PREFIX = "data:image/svg+xml;charset=utf-8,";
  * An address that an image tag can show. A drawing shown this way is treated as a picture
  * and not as a page, so nothing inside it can run, even if it were hostile.
  */
-export const svgDataUri = (svg: string): string => `${SVG_DATA_PREFIX}${encodeURIComponent(svg)}`;
+export const svgDataUri = (svg: string): string => `${SVG_DATA_PREFIX}${encodeURIComponent(wellFormed(svg))}`;

@@ -23,6 +23,11 @@ export function FlatPreview({ flat }: Readonly<{ flat: FlatPreviewData | null }>
           Drawn to scale from your measurements.
         </p>
       )}
+      {flat.picturesNote ? (
+        <p className="mb-4 text-sm text-muted" data-testid="flat-pictures-note">
+          {flat.picturesNote}
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-4">
         {flat.views.map((view) => (
           <figure key={view.view} className="m-0 rounded-xl border border-hairline bg-white p-2">

@@ -9,7 +9,7 @@ import { AppError } from "@/lib/server/core/errors";
 
 export const LINK_LIFETIME_SECONDS = 60;
 
-const NO_SUCH_FILE = "That file does not exist.";
+export const NO_SUCH_FILE = "That file does not exist.";
 
 export type DownloadLink = Readonly<{ url: string; expiresInSeconds: number }>;
 

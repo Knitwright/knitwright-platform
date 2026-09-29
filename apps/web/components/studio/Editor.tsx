@@ -3,6 +3,7 @@
 import type { EditorData } from "@/lib/projects/editor-data";
 import { ArtworkControls } from "./ArtworkControls";
 import { ColourControls } from "./ColourControls";
+import { ColourwayChooser } from "./ColourwayChooser";
 import { DetailsForm } from "./DetailsForm";
 import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from "./EditorParts";
 import { FlatPreview } from "./FlatPreview";
@@ -78,9 +79,10 @@ function ColoursSection({ data, editor }: PartProps) {
   return (
     <Section id="colours" title="Colours">
       <p className="mb-4 text-[15px] leading-relaxed text-muted">
-        Pick a colour for each part, and type its name or code if you have one. The drawing above uses the colour you
-        pick. A part with no colour is drawn in light grey.
+        The drawn colour only sets how the drawing looks, and a factory needs a colour name or code as well, so type one
+        if you have it. A part with no drawn colour is shown in light grey.
       </p>
+      <ColourwayChooser choices={data.colourways} />
       <ColourControls
         rows={data.colours}
         errorFor={editor.errorFor}

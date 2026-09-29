@@ -30,12 +30,27 @@ export interface ColourChange {
   readonly swatch?: string | null;
 }
 
-/** The colourway the editor changes: the first, which every design has. */
-const activeColourway = (spec: GarmentSpec): Colourway => spec.colourways[0];
+/** The colourway shown: the one asked for, or the first, which every design has. */
+const activeColourway = (spec: GarmentSpec, colourwayId?: string): Colourway =>
+  spec.colourways.find((colourway) => colourway.id === colourwayId) ?? spec.colourways[0];
+
+export const activeColourwayId = (spec: GarmentSpec, colourwayId?: string): string => activeColourway(spec, colourwayId).id;
+
+export interface ColourwayChoice {
+  readonly id: string;
+  readonly name: string;
+  readonly selected: boolean;
+}
+
+/** Every colourway of the design, with the one shown marked. */
+export const colourwayChoices = (spec: GarmentSpec, colourwayId?: string): readonly ColourwayChoice[] => {
+  const shown = activeColourwayId(spec, colourwayId);
+  return spec.colourways.map((colourway) => ({ id: colourway.id, name: colourway.name, selected: colourway.id === shown }));
+};
 
 /** One row for every panel of the design, built from the registry and the options chosen. */
-export function colourRows(spec: GarmentSpec): readonly ColourRow[] {
-  const colours = activeColourway(spec).colours;
+export function colourRows(spec: GarmentSpec, colourwayId?: string): readonly ColourRow[] {
+  const colours = activeColourway(spec, colourwayId).colours;
   return panelsFor(spec).map((panel) => {
     const entry = colours.find((colour) => colour.panelId === panel.id);
     return {
@@ -48,6 +63,18 @@ export function colourRows(spec: GarmentSpec): readonly ColourRow[] {
   });
 }
 
+/**
+ * What a person typed into the field for the drawn colour, as `#rrggbb` in lower case.
+ * Empty text means clear the colour (null). Anything else that is not a colour is handed
+ * back as it was, so that the refusal can name it.
+ */
+export function normaliseSwatch(text: string): string | null {
+  const trimmed = text.trim();
+  if (trimmed === "") return null;
+  const candidate = (trimmed.startsWith("#") ? trimmed : `#${trimmed}`).toLowerCase();
+  return SWATCH_PATTERN.test(candidate) ? candidate : trimmed;
+}
+
 const BAD_SWATCH = "Pick a colour, such as #1b2a49.";
 const NO_SUCH_PANEL = "This design has no such part to colour.";
 
@@ -58,7 +85,7 @@ function changedEntry(existing: PanelColour | undefined, panelId: string, change
   if (typed === "" && swatch === undefined) return null;
   return {
     panelId,
-    colour: typed === "" ? (swatch ?? "") : typed,
+    colour: typed,
     ...(swatch === undefined ? {} : { swatch }),
     provenance: "user-edited",
   };
@@ -69,10 +96,10 @@ function changedEntry(existing: PanelColour | undefined, panelId: string, change
  * plain reason why not. The change is made to the colourway the editor shows, and the
  * colours of the other panels are kept. The design given is not changed.
  */
-export function colourAction(spec: GarmentSpec, panelId: string, change: ColourChange): ColourRequest {
+export function colourAction(spec: GarmentSpec, panelId: string, change: ColourChange, colourwayId?: string): ColourRequest {
   if (!panelsFor(spec).some((panel) => panel.id === panelId)) return { kind: "problem", reason: NO_SUCH_PANEL };
   if (typeof change.swatch === "string" && !SWATCH_PATTERN.test(change.swatch)) return { kind: "problem", reason: BAD_SWATCH };
-  const colourway = activeColourway(spec);
+  const colourway = activeColourway(spec, colourwayId);
   const existing = colourway.colours.find((colour) => colour.panelId === panelId);
   const entry = changedEntry(existing, panelId, change);
   const others = colourway.colours.filter((colour) => colour.panelId !== panelId);
@@ -82,3 +109,9 @@ export function colourAction(spec: GarmentSpec, panelId: string, change: ColourC
   if (!checked.success) return { kind: "problem", reason: checked.error.issues[0]?.message ?? "That colour cannot be used." };
   return { kind: "action", action: { type: "update-colourway", colourway: checked.data } };
 }
+
+/** The colourway named in the address, or undefined when there is none. */
+export const colourwayParam = (value: string | readonly string[] | undefined): string | undefined => {
+  const first = typeof value === "string" ? value : value?.[0];
+  return first ? first : undefined;
+};

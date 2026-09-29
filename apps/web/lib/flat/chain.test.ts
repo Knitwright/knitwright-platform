@@ -13,6 +13,7 @@ import {
   quarterDown,
   reverseChain,
   shiftChain,
+  tailOfCubic,
   tidy,
 } from "./chain";
 
@@ -75,5 +76,27 @@ describe("chains", () => {
   it("round to a tenth and never return minus zero", () => {
     expect(tidy(1.26)).toBe(1.3);
     expect(Object.is(tidy(-0.01), 0)).toBe(true);
+  });
+});
+
+describe("tailOfCubic", () => {
+  const start = pt(0, 0);
+  const curve = curveTo(pt(0, 10), pt(10, 10), pt(10, 0));
+
+  it("is the part of a curve from a share of the way along to its end, on the same curve", () => {
+    const tail = tailOfCubic(start, curve, 0.5);
+    expect(tail.start).toEqual(pt(5, 7.5));
+    expect(endOf(tail)).toEqual(pt(10, 0));
+    expect(tail.pieces).toHaveLength(1);
+  });
+
+  it("is the whole curve at 0 and a point at 1", () => {
+    expect(tailOfCubic(start, curve, 0)).toEqual({ start, pieces: [curve] });
+    expect(tailOfCubic(start, curve, 1).start).toEqual(pt(10, 0));
+  });
+
+  it("gives a straight piece back unchanged from the point reached", () => {
+    const tail = tailOfCubic(pt(0, 0), lineTo(pt(10, 0)), 0.25);
+    expect(tail).toEqual({ start: pt(2.5, 0), pieces: [lineTo(pt(10, 0))] });
   });
 });

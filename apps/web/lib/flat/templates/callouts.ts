@@ -1,5 +1,5 @@
 import { chain, lineTo, openCommands, pt } from "../chain";
-import type { Dims } from "../dimensions";
+import { need, type Dims } from "../dimensions";
 import type { FlatElement, Point } from "../model";
 import { CALLOUT_COLOUR } from "../colour";
 import { formatCm } from "@/lib/garment";
@@ -19,7 +19,7 @@ function endsFor(pointId: string, frame: Frame, dims: Dims): Ends | null {
   const chest = basis.chest;
   const front = view === "front";
   const { topEnd, lowerEnd } = sleeveEnds(basis);
-  const upperArm = dims["upper-arm"] ?? 0;
+  const upperArm = need(dims, "upper-arm");
   const collar = frame.collarHeight;
   const table: Readonly<Record<string, Ends | null>> = {
     "chest-width": [pt(-basis.halfChest, basis.underarm.y), pt(basis.halfChest, basis.underarm.y)],
@@ -73,7 +73,6 @@ export function calloutElements(points: readonly CalloutPoint[], frame: Frame, d
         panelId: null,
         commands: openCommands(chain(from, lineTo(to))),
         fill: null,
-        fillRule: "nonzero",
         stroke: { colour: CALLOUT_COLOUR, width: LINE_WIDTH, dash: [] },
       },
       {

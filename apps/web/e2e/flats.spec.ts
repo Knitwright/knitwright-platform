@@ -104,10 +104,23 @@ test.describe("the drawing", () => {
     await startDesign(page, "Crew neck tee");
     const before = await source(page);
 
-    await page.getByLabel("Body front colour", { exact: true }).fill("#1b2a49");
+    const hex = page.getByLabel("Body front drawn colour as #rrggbb");
+    await hex.fill("1B2A49");
+    await hex.press("Enter");
     await saved(page, 2);
+    await expect(page.getByLabel("Body front colour", { exact: true })).toHaveValue("#1b2a49");
     await page.getByLabel("Body back colour", { exact: true }).fill("#aa0000");
     await saved(page, 3);
+    // A colour picked for the screen is not a colour code for a factory, so the code stays empty.
+    await expect(page.getByLabel("Body back colour code")).toHaveValue("");
+    await expect(page.getByLabel("Body back drawn colour as #rrggbb")).toHaveValue("#aa0000");
+    await hex.fill("navy");
+    await hex.press("Enter");
+    await expect(page.getByText("Pick a colour, such as #1b2a49.")).toBeVisible();
+    await expect(hex).toHaveAttribute("aria-describedby", /.+/);
+    const describedBy = await hex.getAttribute("aria-describedby");
+    await expect(page.locator(`[id="${describedBy}"]`)).toContainText("Pick a colour");
+    await hex.fill("#1b2a49");
     await page.getByLabel("Body front colour code").fill("Navy 19-4052");
     await page.getByLabel("Body front colour code").press("Enter");
     await saved(page, 4);

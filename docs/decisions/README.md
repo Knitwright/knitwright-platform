@@ -16,3 +16,4 @@ Copy `0000-template.md` to start.
 | 0006 | [Size charts and how a measurement is worked out](0006-size-charts.md) | Accepted. No chart data yet: waits for the owner. |
 | 0007 | [Designs, versions and the editor](0007-designs-versions-editor.md) | Accepted |
 | 0008 | [The PDF renderer](0008-pdf-renderer.md) | Accepted locally, deployed check owed |
+| 0009 | [Flats: one geometry model, two renderers](0009-flats.md) | Accepted. The drawings wait for the owner. |

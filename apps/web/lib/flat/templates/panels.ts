@@ -1,9 +1,15 @@
-import { chain, closedCommands, joinChains, lineTo, mirrorChain, pt, type Chain } from "../chain";
+import { closedCommands, mirrorChain, type Chain } from "../chain";
+import { darken } from "../colour";
 import type { FlatPath, View } from "../model";
-import { panelPath } from "../paths";
-import { CUFF_HEIGHT, SIDE_PANEL_WIDTH } from "./basis";
+import { insidePath, panelPath } from "../paths";
+import { CUFF_HEIGHT } from "./basis";
 import { collarChain, neckbandChain, placketChain } from "./collar";
-import { bodyOutline, hemSegment, sleeveChains, type Frame } from "./pieces";
+import { insideBackChain } from "./inside-back";
+import { bodyOutline, sleeveChains, type Frame } from "./pieces";
+import { sidePanelChains } from "./side-panels";
+
+/** How much of the body colour the inside of the garment keeps: a slightly darker tone. */
+const INSIDE_TONE = 0.86;
 
 /** What a template needs from the design to draw its panels. */
 export interface PanelContext {
@@ -12,20 +18,6 @@ export interface PanelContext {
   readonly nameOf: (panelId: string) => string;
   readonly fillOf: (panelId: string) => string;
   readonly wanted: (panelId: string) => boolean;
-}
-
-/** The side strips, one on each side of the body, as a closed shape. */
-export function sidePanelChains(frame: Frame): Chain[] {
-  const { basis } = frame;
-  const width = SIDE_PANEL_WIDTH * basis.chest;
-  const inner = basis.halfHem - width;
-  const hemRun = hemSegment(frame, basis.halfHem, inner);
-  const right = joinChains(
-    chain(basis.underarm, lineTo(hemRun.start)),
-    hemRun,
-    chain(hemRun.pieces.at(-1)?.to ?? hemRun.start, lineTo(pt(basis.underarm.x - width, basis.underarm.y))),
-  );
-  return [right, mirrorChain(right)];
 }
 
 /** The sleeves and the cuffs. In the front view the wearer's left sleeve is on the right of the page. */
@@ -50,13 +42,16 @@ export function panelPaths(context: PanelContext): FlatPath[] {
     ["sleeve-right", [shapes.right]],
     ["side-panels", frame.options.sidePanels ? sidePanelChains(frame) : null],
     ["cuffs", shapes.cuffs.length > 0 ? shapes.cuffs : null],
+    ["placket", view === "front" && frame.options.placket !== "none" ? [placketChain(frame)] : null],
     ["neckband", frame.options.collar === "none" ? [neckbandChain(frame)] : null],
     ["collar", collar ? [collar] : null],
-    ["placket", view === "front" && frame.options.placket !== "none" ? [placketChain(frame)] : null],
   ];
-  return wanted.flatMap(([panelId, chains]) =>
+  const drawn = wanted.flatMap(([panelId, chains]) =>
     chains && context.wanted(panelId)
       ? [panelPath(context.nameOf(panelId), panelId, closedCommands(...chains), context.fillOf(panelId))]
       : [],
   );
+  const inside = insideBackChain(frame);
+  // The inside of the back is under everything else: it is what shows through the neck opening.
+  return inside ? [insidePath("Inside of the neck", closedCommands(inside), darken(context.fillOf(bodyId), INSIDE_TONE)), ...drawn] : drawn;
 }
