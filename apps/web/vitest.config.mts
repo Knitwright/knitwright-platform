@@ -39,6 +39,8 @@ export default defineConfig({
         functions: 80,
         branches: 80,
         statements: 80,
+        // Invariant I4: measurement and tech pack maths are held to a higher mark.
+        "lib/garment/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
       },
     },
     projects: [

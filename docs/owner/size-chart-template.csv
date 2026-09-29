@@ -1,0 +1,12 @@
+wearer,garment_type,fit,point_of_measure,base_size,base_value_cm,grade_cm,tolerance_cm,source
+men,crew-tee,,chest-width,,,,,
+men,crew-tee,,body-length,,,,,
+men,crew-tee,,shoulder-width,,,,,
+men,crew-tee,,sleeve-length,,,,,
+men,crew-tee,,armhole,,,,,
+men,crew-tee,,upper-arm,,,,,
+men,crew-tee,,sleeve-opening,,,,,
+men,crew-tee,,hem-width,,,,,
+men,crew-tee,,neck-width,,,,,
+men,crew-tee,,front-neck-drop,,,,,
+men,crew-tee,,back-neck-drop,,,,,
