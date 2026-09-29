@@ -15,9 +15,10 @@ A5 (base-size measurements and grades for every type) has not been done.
 1. **Each family is data in its own folder** under `lib/garment/registry/`, built from the
    same shapes as tops: options, points of measure, panels, rules, seams, components and
    types. Small builders shared by the new families live in `registry/shared.ts`. The
-   tops data is left as it was.
+   tops data is left as it was. Outerwear reuses the tops body, sleeve and neck points
+   as they are, so a hoodie and a tee are measured the same way.
 2. **New sections of the measurement table are new point groups** (`waist`, `rise`, `leg`
-   for bottoms). Every screen and export already lays the table out from `POINT_GROUPS`, so
+   for bottoms; `hood`, `zip`, `pocket`, `rib` for outerwear). Every screen and export already lays the table out from `POINT_GROUPS`, so
    none of them changed. The spec schema did not change: a design never stores a group.
 3. **No chart numbers.** As in step 5, the default charts stay empty until A5. Every type
    resolves through the same code: with no chart each size a design names comes back as

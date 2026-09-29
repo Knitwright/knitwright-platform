@@ -2,6 +2,7 @@ import type { FamilyData } from "../definitions";
 import { FAMILY_IDS, type FamilyId } from "../primitives";
 import { buildRegistry, type ResolvedType } from "./build";
 import { BOTTOMS } from "./bottoms";
+import { OUTERWEAR } from "./outerwear";
 import { TOPS } from "./tops";
 
 export type { Registry, ResolvedOption, ResolvedType } from "./build";
@@ -33,7 +34,7 @@ const emptyFamily = (id: FamilyId, label: string): FamilyData => ({
 const FAMILIES: Readonly<Record<FamilyId, FamilyData>> = {
   tops: TOPS,
   bottoms: BOTTOMS,
-  outerwear: emptyFamily("outerwear", "Outerwear"),
+  outerwear: OUTERWEAR,
   "close-fitting": emptyFamily("close-fitting", "Close fitting"),
 };
 

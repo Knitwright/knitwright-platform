@@ -162,3 +162,51 @@ owner confirms or changes each one with A5. Changing an answer is a data edit in
 
 - Leggings are often sewn with flat seams (flatlock) so no ridge sits against the skin. Today they get the same overlocked seams as joggers. Should leggings seams be flatlock by default? Close-fitting garments (step 22) offer a choice of seam type.
 - Components: thread and labels, waistband elastic (elastic waistbands), drawcord and drawcord exits (drawcord waistband; the exits are a proposal), cuff rib, ankle zips, pocket zips, pocket bags. Missing ideas: cord stoppers, cord tips, a key loop, reflective trims.
+
+## Outerwear (added in step 19)
+
+A starting proposal, confirmed or changed by the owner with A5. Data in `registry/outerwear/`.
+
+### Types and choices I made up
+
+- Types: pullover hoodie, zip hoodie, track jacket, each for men, women and youth.
+- Hood (hoodies only): single layer with a hemmed opening, or lined. Hood drawcord: none or drawcord. Should a hoodie ever have no hood choice?
+- Front opening: none (pullover) or full zip (zip hoodie, track jacket). Quarter zips are not offered. Should they be?
+- Collar (track jacket only): stand collar, or none with a neckband.
+- Pockets: kangaroo (pullover only), side seam, zipped side pockets, none. Split kangaroo pockets on a zip hoodie are not offered. Should they be?
+- Cuffs: ribbed or hemmed. Hem: ribbed band or plain hem. Both start ribbed.
+- Sleeves: set in or raglan on every type.
+- Panels that can be coloured: body front and back, both sleeves, hood, hood lining, collar, neckband, kangaroo pocket, cuffs, hem band. Artwork on body and sleeves only, as on tops. Should the hood carry artwork?
+
+### Impossible combinations
+
+- A kangaroo pocket with a full zip is refused. No type offers both today. Split kangaroo pockets would need their own choice.
+
+### How to measure sentences a factory should check
+
+- The body, sleeve and neck points are the tops sentences, unchanged. Are they right for a hoodie, where the neck is closed by the hood?
+- Hood height: from the neckline seam at the side of the neck to the top of the hood, folded flat. Some factories measure from the centre front of the neckline.
+- Hood width: across the widest part, from the front edge to the centre back seam.
+- Zip length: the teeth from top stop to bottom stop. Some factories give the whole zip with its tape.
+- Pocket opening, width and height: confirm where each is taken.
+- Cuff height and hem band height: along the rib from the joining seam to the edge.
+
+### Construction and components (a factory must confirm every one)
+
+| Seam | Joins | When | Seam class | Stitch class |
+|---|---|---|---|---|
+| Shoulder, raglan, armhole, underarm and side seams | as on tops | as on tops | 1 superimposed | 514 four thread overedge |
+| Hood centre seam | hood | hood | 1 superimposed | 514 four thread overedge |
+| Hood to neckline seam | hood and body | hood | 1 superimposed | 514 four thread overedge |
+| Hood lining seam | hood and lining | lined hood | 1 superimposed | 514 four thread overedge |
+| Hood opening hem | hood | single layer hood | 6 edge finish | 406 two needle bottom cover stitch |
+| Collar seam | collar and body | stand collar | 1 superimposed | 514 four thread overedge |
+| Neckband seam | neckband and body | no collar | 1 superimposed | 514 four thread overedge |
+| Front zip seam | body front | full zip | 2 lapped | 301 lockstitch |
+| Kangaroo pocket seam | pocket and body front | kangaroo | 2 lapped | 602 two needle cover stitch |
+| Side pocket seam | body | side seam pockets | 1 superimposed | 514 four thread overedge |
+| Zipped pocket seam | body front | zipped pockets | 2 lapped | 301 lockstitch |
+| Cuff seam or sleeve hem | sleeves and cuffs | ribbed or not | 1 with 514, or 6 with 406 | |
+| Hem band seam or body hem | body and band | ribbed or not | 1 with 514, or 6 with 406 | |
+
+- Components: thread and labels, front zip, zip guard (a proposal), hood drawcord, drawcord exits (a proposal), cuff, hem band, collar and neckband rib, pocket zips, pocket bags. Missing ideas: cord stoppers, cord tips, thumb holes, a zip puller.

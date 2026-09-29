@@ -14,7 +14,7 @@ your own sheets in any layout and say which column is which.
 | Column | Meaning | Example |
 |---|---|---|
 | `wearer` | `men`, `women` or `youth` | `men` |
-| `garment_type` | Tops: `crew-tee`, `v-neck-tee`, `long-sleeve-tee`, `polo`, `team-jersey`. Bottoms: `shorts`, `joggers`, `leggings`, `track-pants`. | `crew-tee` |
+| `garment_type` | Tops: `crew-tee`, `v-neck-tee`, `long-sleeve-tee`, `polo`, `team-jersey`. Bottoms: `shorts`, `joggers`, `leggings`, `track-pants`. Outerwear: `pullover-hoodie`, `zip-hoodie`, `track-jacket`. | `crew-tee` |
 | `fit` | Leave empty if you have one fit. Otherwise `slim`, `regular` or `relaxed`. | `regular` |
 | `point_of_measure` | One of the names in the list below | `chest-width` |
 | `base_size` | The size you grade from | `M` |
@@ -67,6 +67,25 @@ empty for them.
 | `leg-opening` | Every pair |
 | `inseam` | Every pair (inside leg) |
 | `outseam` | Every pair (outside leg, from the top of the waistband) |
+
+## Points of measure for outerwear
+
+Pullover hoodie, zip hoodie and track jacket. The body, sleeve and neck points are the
+same as for tops and are measured the same way: `chest-width`, `body-length`,
+`shoulder-width` (set-in sleeves only), `sleeve-length`, `armhole`, `upper-arm`,
+`sleeve-opening`, `hem-width`, `neck-width`, `front-neck-drop`, `back-neck-drop`. Then:
+
+| Name | Needed for |
+|---|---|
+| `hood-height` | Hoodies |
+| `hood-width` | Hoodies |
+| `zip-length` | Zip hoodie and track jacket |
+| `pocket-opening` | Any garment with pockets |
+| `pocket-width` | Kangaroo pocket only |
+| `pocket-height` | Kangaroo pocket only |
+| `cuff-height` | Ribbed cuffs |
+| `hem-band-height` | Ribbed hem band |
+| `collar-height` | Track jacket with a stand collar |
 
 ## What happens to the numbers
 
