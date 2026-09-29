@@ -38,6 +38,9 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+      read-excel-file:
+        specifier: 9.3.10
+        version: 9.3.10
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
@@ -90,9 +93,6 @@ importers:
       pdfjs-dist:
         specifier: ^6.3.289
         version: 6.3.289
-      read-excel-file:
-        specifier: 9.3.10
-        version: 9.3.10
       tailwindcss:
         specifier: ^4
         version: 4.3.3

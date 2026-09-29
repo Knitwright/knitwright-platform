@@ -8,6 +8,7 @@ import {
   type SpecAction,
   type Wearer,
 } from "@/lib/garment";
+import type { ChartSet } from "@/lib/sizing";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { refuseUnreadableArtwork, dropUnreadableArtwork } from "./artwork-files";
 import { browserActionSchema } from "./browser-action";
@@ -42,11 +43,13 @@ export type NewProject = Readonly<{
   season: string;
   typeId: string;
   wearer: Wearer;
+  /** The brand's charts. A new design takes its sizes from the one that applies. */
+  charts?: ChartSet;
 }>;
 
 /** Makes a design and its first version. Returns the design's id. */
 export const createProject = async (admin: SupabaseClient, input: NewProject): Promise<string> => {
-  const started = startingSpec(input.typeId, input.wearer);
+  const started = startingSpec(input.typeId, input.wearer, input.charts);
   if (!started.ok) {
     throw new AppError("invalid_input", MESSAGES.invalid_input, { typeId: [started.reason] });
   }

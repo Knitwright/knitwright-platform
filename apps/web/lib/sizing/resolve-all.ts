@@ -2,7 +2,7 @@ import type { GarmentSpec } from "@/lib/garment";
 import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET } from "./charts";
 import { resolveMeasurements } from "./resolve";
-import type { Resolution, SizesFrom } from "./resolution-types";
+import type { ChartProvenance, Resolution, SizesFrom } from "./resolution-types";
 import { selectChart } from "./select-chart";
 
 export interface SizeEntry {
@@ -17,11 +17,19 @@ export interface AllSizesResolution {
   readonly message: string | null;
   readonly baseSize: string | null;
   readonly sizesFrom: SizesFrom | null;
+  /** Where the chart's values come from, or null when no chart is used. */
+  readonly chartProvenance: ChartProvenance | null;
   /** One entry for every size, smallest first. Empty when there are no sizes at all. */
   readonly entries: readonly SizeEntry[];
 }
 
-const EMPTY = (message: string): AllSizesResolution => ({ message, baseSize: null, sizesFrom: null, entries: [] });
+const EMPTY = (message: string): AllSizesResolution => ({
+  message,
+  baseSize: null,
+  sizesFrom: null,
+  chartProvenance: null,
+  entries: [],
+});
 
 /**
  * The resolution for every size of a design in one call, as the tech pack table needs.
@@ -49,6 +57,7 @@ export function resolveAllSizes(spec: GarmentSpec, chartSet: ChartSet = DEFAULT_
     message: first?.status === "no-chart" ? first.message : null,
     baseSize,
     sizesFrom: spec.sizing ? "design" : "chart",
+    chartProvenance: first?.status === "resolved" ? first.chartProvenance : null,
     entries,
   };
 }

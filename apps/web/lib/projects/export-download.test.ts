@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import { AppError } from "@/lib/server/core/errors";
+import { DEFAULT_CHART_SET, withBrandCharts } from "@/lib/sizing";
+import { madeUpChart } from "@/lib/sizing/fixtures/made-up-charts";
+import { readWorkbook } from "@/lib/techpack/exports/fixtures/xlsx-read";
 import { PICTURE_LEFT_OUT } from "@/lib/techpack/exports/limits";
 import { fullDesign } from "@/lib/techpack/fixtures/designs";
 import { serveExport, type DownloadEntry, type ExportDeps } from "./export-download";
@@ -33,6 +36,7 @@ const source = (patch: Partial<TechPackSource> = {}): TechPackSource => ({
   project: openProject(),
   history,
   pictures: { images: new Map(), skipped: 0 },
+  charts: DEFAULT_CHART_SET,
   ...patch,
 });
 
@@ -215,5 +219,19 @@ describe("serving an export", () => {
     expect(await sent.text()).toContain("<svg");
     const made = deps();
     expect(made.deps.now().toISOString()).toBe("2026-09-30T12:00:00.000Z");
+  });
+
+  it("makes the file from the size charts the loader read, a brand's own chart included, as the page does", async () => {
+    const brandCharts = withBrandCharts(DEFAULT_CHART_SET, [
+      {
+        run: { id: "brand-women-crew-tee-any", wearer: "women", sizes: ["U1", "U2", "U3", "U4"] },
+        chart: { ...madeUpChart("crew-tee", "women"), sizeRunId: "brand-women-crew-tee-any", supplier: "brand" },
+      },
+    ]);
+    const design = openProject({ spec: start("crew-tee", "women") });
+    const made = ask("xlsx", {}, { load: async () => source({ project: design, charts: brandCharts }) });
+    const sheets = await readWorkbook(new Uint8Array(await (await made.response).arrayBuffer()));
+    const cells = sheets.flatMap((sheet) => sheet.data.flat());
+    expect(cells.some((cell) => typeof cell === "string" && cell.includes("U1"))).toBe(true);
   });
 });

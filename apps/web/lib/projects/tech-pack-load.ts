@@ -1,15 +1,21 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { brandChartSet } from "@/lib/charts/service";
 import type { ImageBytes } from "@/lib/flat/images";
+import type { ChartSet } from "@/lib/sizing";
 import { createFileReader, type StoredBytes } from "@/lib/storage/read";
 import { loadArtworkImages, type LoadedPictures } from "./artwork-images";
 import { getProjectAt, listVersions, type OpenProject, type VersionsPage } from "./service";
 import { historyIsNewer } from "./tech-pack-data";
 
-/** What the tech pack page and every export are made from: the design, its history and its pictures. */
+/**
+ * What the tech pack page and every export are made from: the design, its history, its pictures
+ * and the size charts that apply (the platform's, with the brand's own in their place).
+ */
 export interface TechPackSource {
   readonly project: OpenProject;
   readonly history: VersionsPage;
   readonly pictures: LoadedPictures;
+  readonly charts: ChartSet;
 }
 
 export interface LoadOptions {
@@ -40,7 +46,11 @@ export async function loadTechPackSource(
   projectId: string,
   options: LoadOptions,
 ): Promise<TechPackSource> {
-  let [project, history] = await readBoth(client, brandId, projectId, options.version);
+  const [first, charts] = await Promise.all([
+    readBoth(client, brandId, projectId, options.version),
+    brandChartSet(client, brandId),
+  ]);
+  let [project, history] = first;
   if (options.version === undefined && historyIsNewer(project, history)) {
     [project, history] = await readBoth(client, brandId, projectId);
   }
@@ -50,5 +60,5 @@ export async function loadTechPackSource(
     project.spec,
     options.maxEmbeddedBytes === undefined ? {} : { maxEmbeddedBytes: options.maxEmbeddedBytes },
   );
-  return { project, history, pictures };
+  return { project, history, pictures, charts };
 }

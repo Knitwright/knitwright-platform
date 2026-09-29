@@ -8,6 +8,7 @@ import {
 import {
   resolveAllSizes,
   resolveMeasurements,
+  type ChartProvenance,
   type ChartSet,
   type Resolution,
   type ResolutionRow,
@@ -33,11 +34,11 @@ function lengthOf(row: ResolutionRow | undefined): LengthValue {
   return { status: "set", value: formatCm(row.value), tenthsMm: row.value, provenance: row.provenance };
 }
 
-/** The tolerance for a point. It only ever comes from a size chart, so that is its source. */
-function toleranceOf(rows: readonly (ResolutionRow | undefined)[]): LengthValue {
+/** The tolerance for a point. It only ever comes from a size chart, so the chart's source is its source. */
+function toleranceOf(rows: readonly (ResolutionRow | undefined)[], source: ChartProvenance): LengthValue {
   for (const row of rows) {
     if (row?.status === "set" && row.tolerance !== null) {
-      return { status: "set", value: `±${formatCm(row.tolerance)}`, tenthsMm: row.tolerance, provenance: "suggested-chart" };
+      return { status: "set", value: `±${formatCm(row.tolerance)}`, tenthsMm: row.tolerance, provenance: source };
     }
   }
   return TBC;
@@ -52,6 +53,10 @@ const notesOf = (rows: readonly (ResolutionRow | undefined)[]): string[] => {
   return [...new Set(notes)];
 };
 
+const chartSourceOf = (resolutions: readonly Resolution[]): ChartProvenance =>
+  resolutions.flatMap((resolution) => (resolution.status === "resolved" ? [resolution.chartProvenance] : []))[0] ??
+  "suggested-chart";
+
 function rowFor(
   point: PointOfMeasure,
   code: string,
@@ -64,7 +69,7 @@ function rowFor(
     pointId: point.id,
     code,
     label: point.label,
-    tolerance: toleranceOf(columns.some((column) => column.isBase) ? baseFirst : found),
+    tolerance: toleranceOf(columns.some((column) => column.isBase) ? baseFirst : found, chartSourceOf(resolutions)),
     values: found.map(lengthOf),
     notes: notesOf(found),
   };

@@ -22,7 +22,12 @@ export default async function StudioPage() {
           <p className="font-mono text-xs uppercase tracking-wider text-muted">{brand.name}</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Your designs</h1>
         </div>
-        {projects.length > 0 ? <LinkButton href="/studio/new">New design</LinkButton> : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/studio/charts" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
+            Size charts
+          </Link>
+          {projects.length > 0 ? <LinkButton href="/studio/new">New design</LinkButton> : null}
+        </div>
       </header>
       {projects.length === 0 ? <FirstDesign brandName={brand.name} /> : <ProjectsTable brandName={brand.name} projects={projects} />}
       {hasMore ? (

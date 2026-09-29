@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
+import { brandChartSet } from "@/lib/charts/service";
 import { loadIllustrations } from "@/lib/images/illustrations";
 import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
@@ -29,9 +30,10 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   const colourway = colourwayParam((await searchParams).colourway);
   const client = await sessionClient();
 
-  const [project, history] = await Promise.all([
+  const [project, history, charts] = await Promise.all([
     getProject(client, brand.id, projectId),
     listVersions(client, brand.id, projectId),
+    brandChartSet(client, brand.id),
   ]).catch(orNotFound);
 
   const reader = createFileReader(client, brand.id);
@@ -43,7 +45,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   return (
     <div className="flex flex-col gap-10">
       <Editor
-        data={buildEditorData(project, history, undefined, pictures, colourway)}
+        data={buildEditorData(project, history, charts, pictures, colourway)}
         assistant={{ available: assistantAvailable() }}
       />
       <PhotorealPanel

@@ -29,8 +29,9 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   const colourwayId = colourwayParam((await searchParams).colourway);
   const client = await sessionClient();
 
-  // The same loader the export route uses, so the screen and the files are made from the same reads.
-  const [{ project, history, pictures }, illustrations] = await Promise.all([
+  // The same loader the export route uses, so the screen and the files are made from the same
+  // reads, the brand's own size charts included.
+  const [{ project, history, pictures, charts }, illustrations] = await Promise.all([
     loadTechPackSource(client, brand.id, projectId, { shrink: shrinkForDrawing }).catch(orNotFound),
     latestImages(client, brand.id, projectId).then((latest) =>
       loadIllustrations(createFileReader(client, brand.id), latest),
@@ -44,6 +45,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
     now: new Date(),
     picturesNote: picturesNote(pictures.skipped),
     colourwayId,
+    charts,
   });
 
   return (

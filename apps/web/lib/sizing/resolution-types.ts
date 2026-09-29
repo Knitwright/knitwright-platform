@@ -67,9 +67,14 @@ export interface ResolvedResolution {
   /** Says so when a chart with no fit is used for a design that has a fit, otherwise null. */
   readonly fitNote: string | null;
   readonly source: ChartSource;
+  /** Where the chart's values come from: a platform suggestion, or the brand's own chart. */
+  readonly chartProvenance: ChartProvenance;
   /** One row for every point of measure that applies, in the garment type order. */
   readonly rows: readonly ResolutionRow[];
   readonly message: null;
 }
+
+/** The source of a value taken straight from a chart. */
+export type ChartProvenance = "suggested-chart" | "brand-supplied";
 
 export type Resolution = NoChartResolution | UnknownSizeResolution | ResolvedResolution;

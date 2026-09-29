@@ -39,4 +39,6 @@ export const LIMITS = {
   startImages: { name: "start-images", limit: 10, windowSeconds: HOUR },
   // The browser asks every 2 seconds while images are being made.
   pollJob: { name: "poll-job", limit: 90, windowSeconds: MINUTE },
+  // Uploading a chart file and importing it are counted together.
+  importChart: { name: "import-chart", limit: 30, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

@@ -2,6 +2,8 @@
  * The public surface of the sizing library. Other code imports from here only.
  * It is pure: no React, no Next.js, no database, no network and no file access.
  */
+export { pointsAlwaysApplying, pointsThatCanApply } from "./applicable-points";
+export { withBrandCharts, type BrandChart } from "./brand-charts";
 export { chartCompleteness, type CompletenessEntry, type CompletenessReport } from "./completeness";
 export { DEFAULT_CHARTS, DEFAULT_CHART_SET, DEFAULT_SIZE_RUNS } from "./charts";
 export { type ChartSet } from "./chart-set";
@@ -20,6 +22,7 @@ export { resolveMeasurements } from "./resolve";
 export { resolveAllSizes, type AllSizesResolution, type SizeEntry } from "./resolve-all";
 export { sizingFromChart, type SizingFromChartResult } from "./sizing-from-chart";
 export type {
+  ChartProvenance,
   MissingRow,
   NoChartResolution,
   Resolution,
@@ -30,6 +33,7 @@ export type {
   UnknownSizeResolution,
 } from "./resolution-types";
 export {
+  CHART_SUPPLIERS,
   FIT_CHOICES,
   chartPointSchema,
   chartSourceSchema,

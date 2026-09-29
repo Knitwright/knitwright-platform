@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { brandChartSet } from "@/lib/charts/service";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -55,6 +56,7 @@ export const createProjectAction = defineAction({
       brandId: session.brand.id,
       userId: session.userId,
       ...input,
+      charts: await brandChartSet(await sessionClient(), session.brand.id),
     });
     revalidatePath("/studio");
     redirect(`/studio/${id}`);

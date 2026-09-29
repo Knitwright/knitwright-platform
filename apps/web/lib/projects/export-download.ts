@@ -68,6 +68,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     brandName: deps.brandName,
     images: source.pictures.images,
     now: deps.now(),
+    charts: source.charts,
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
   assertEverySetCellHasSource(pack);

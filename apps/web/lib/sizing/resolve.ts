@@ -3,7 +3,8 @@ import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET } from "./charts";
 import { gradeChart } from "./grading";
 import { resolvePoint, userOnlyRow } from "./resolve-point";
-import type { Resolution, ResolutionRow } from "./resolution-types";
+import type { ChartProvenance, Resolution, ResolutionRow } from "./resolution-types";
+import type { SizeChart } from "./schemas";
 import { selectChart } from "./select-chart";
 
 export type {
@@ -13,6 +14,10 @@ export type {
   SetRow,
   SizesFrom,
 } from "./resolution-types";
+
+/** A platform chart only suggests its values. A brand's own chart supplies them. */
+export const chartProvenanceOf = (chart: SizeChart): ChartProvenance =>
+  chart.supplier === "brand" ? "brand-supplied" : "suggested-chart";
 
 function withoutChart(spec: GarmentSpec, size: string, message: string): Resolution {
   const rows: ResolutionRow[] = pointsOfMeasureFor(spec).map((point) =>
@@ -65,7 +70,13 @@ export function resolveMeasurements(
       rows: [],
     };
   }
-  const where = { size, baseSize, sizeIndex: run.sizes.indexOf(size), baseIndex: run.sizes.indexOf(baseSize) };
+  const where = {
+    size,
+    baseSize,
+    sizeIndex: run.sizes.indexOf(size),
+    baseIndex: run.sizes.indexOf(baseSize),
+    chartProvenance: chartProvenanceOf(chart),
+  };
   const rows = pointsOfMeasureFor(spec).map((point) =>
     resolvePoint(
       point,
@@ -84,6 +95,7 @@ export function resolveMeasurements(
     chartFit: chart.fit,
     fitNote: choice.fitNote,
     source: chart.source,
+    chartProvenance: where.chartProvenance,
     rows,
     message: null,
   };

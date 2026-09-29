@@ -15,7 +15,7 @@ const wearerLabel = (wearer: Wearer): string => `${wearer.charAt(0).toUpperCase(
 function sizesCells(spec: GarmentSpec, charts?: ChartSet): { baseSize: Cell; sizeRun: Cell } {
   const all = resolveAllSizes(spec, charts);
   if (all.entries.length === 0 || all.baseSize === null) return { baseSize: TBC, sizeRun: TBC };
-  const source: Provenance = all.sizesFrom === "design" ? "user-edited" : "suggested-chart";
+  const source: Provenance = all.sizesFrom === "design" ? "user-edited" : (all.chartProvenance ?? "suggested-chart");
   return {
     baseSize: textCell(all.baseSize, source),
     sizeRun: textCell(all.entries.map((entry) => entry.size).join(", "), source),

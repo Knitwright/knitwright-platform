@@ -199,6 +199,34 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
   },
+  brand_size_charts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({
+      id: must(
+        await adminClient().rpc("replace_brand_chart", {
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_wearer: "men",
+          p_garment_type: "crew-tee",
+          p_fit: "any",
+          p_chart: { seeded: true },
+          p_run: { seeded: true },
+          p_file_id: null,
+        }),
+      ),
+    }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      wearer: "women",
+      garment_type: "polo",
+      fit: "any",
+      chart: { made: "directly" },
+      run: { made: "directly" },
+      imported_by: userId,
+    }),
+    change: { fit: "slim" },
+  },
 };
 
 /** A project made the way the server makes one. Returns its id. */

@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { sheetKind } from "@/lib/charts/container";
+import { AppError } from "@/lib/server/core/errors";
 import { checkImage } from "./image";
 
 /**
@@ -18,7 +20,8 @@ export type ImageKind = (typeof IMAGE_KINDS)[number];
 export type StoredKind = ImageKind | "render";
 
 /** Uploads and generated pictures are kept apart, as the buckets were made for. */
-const bucketFor = (kind: StoredKind): "uploads" | "images" => (kind === "render" ? "images" : "uploads");
+const bucketFor = (kind: StoredKind | typeof CHART_KIND): "uploads" | "images" =>
+  kind === "render" ? "images" : "uploads";
 
 export type StoreImageInput = Readonly<{
   /** Full access. Used to write the file and its record. */
@@ -41,30 +44,39 @@ export type StoredFile = Readonly<{
   height: number;
 }>;
 
-export const storeImage = async (input: StoreImageInput): Promise<StoredFile> => {
-  const image = await checkImage(input.bytes);
-  const id = randomUUID();
-  const path = `${input.brandId}/${input.kind}/${id}.${image.extension}`;
-  const bucket = bucketFor(input.kind);
-  const files = input.admin.storage.from(bucket);
+type FileRecord = Readonly<{
+  admin: SupabaseClient;
+  brandId: string;
+  userId: string;
+  kind: StoredKind | typeof CHART_KIND;
+  extension: string;
+  contentType: string;
+  bytes: Uint8Array;
+  width: number | null;
+  height: number | null;
+}>;
 
-  const upload = await files.upload(path, image.bytes, {
-    contentType: image.contentType,
-    upsert: false,
-  });
+/** Writes checked bytes and their record. A file whose record fails is removed again. */
+const writeFile = async (file: FileRecord): Promise<string> => {
+  const id = randomUUID();
+  const path = `${file.brandId}/${file.kind}/${id}.${file.extension}`;
+  const bucket = bucketFor(file.kind);
+  const files = file.admin.storage.from(bucket);
+
+  const upload = await files.upload(path, file.bytes, { contentType: file.contentType, upsert: false });
   if (upload.error) throw new Error("The file could not be stored.", { cause: upload.error });
 
-  const record = await input.admin.from("files").insert({
+  const record = await file.admin.from("files").insert({
     id,
-    brand_id: input.brandId,
+    brand_id: file.brandId,
     bucket,
     path,
-    kind: input.kind,
-    content_type: image.contentType,
-    bytes: image.bytes.byteLength,
-    width: image.width,
-    height: image.height,
-    created_by: input.userId,
+    kind: file.kind,
+    content_type: file.contentType,
+    bytes: file.bytes.byteLength,
+    width: file.width,
+    height: file.height,
+    created_by: file.userId,
   });
   if (record.error) {
     // A file with no record could never be found again. Remove it. If that fails too,
@@ -76,6 +88,22 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
     }
     throw new Error("The file's record could not be written.", { cause: record.error });
   }
+  return id;
+};
+
+export const storeImage = async (input: StoreImageInput): Promise<StoredFile> => {
+  const image = await checkImage(input.bytes);
+  const id = await writeFile({
+    admin: input.admin,
+    brandId: input.brandId,
+    userId: input.userId,
+    kind: input.kind,
+    extension: image.extension,
+    contentType: image.contentType,
+    bytes: image.bytes,
+    width: image.width,
+    height: image.height,
+  });
 
   return {
     id,
@@ -86,4 +114,44 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
     width: image.width,
     height: image.height,
   };
+};
+
+export const CHART_KIND = "chart" as const;
+
+const SHEET_TYPES = {
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  csv: "text/csv",
+} as const;
+
+export type StoreChartFileInput = Readonly<{
+  admin: SupabaseClient;
+  brandId: string;
+  userId: string;
+  bytes: Uint8Array;
+}>;
+
+export type StoredChartFile = Readonly<{ id: string; brandId: string; contentType: string; bytes: number }>;
+
+/**
+ * Stores a size chart file a brand sent. Its kind is judged from its bytes, never its
+ * name, and a file that is neither a spreadsheet nor CSV text, or is over the limit, is
+ * refused with a reason before anything is stored. The bytes are kept as they came: a
+ * chart file is only ever read as text on the server, never shown or run.
+ */
+export const storeChartFile = async (input: StoreChartFileInput): Promise<StoredChartFile> => {
+  const kind = sheetKind(input.bytes);
+  if (!kind.ok) throw new AppError("invalid_input", kind.message);
+  const contentType = SHEET_TYPES[kind.kind];
+  const id = await writeFile({
+    admin: input.admin,
+    brandId: input.brandId,
+    userId: input.userId,
+    kind: CHART_KIND,
+    extension: kind.kind,
+    contentType,
+    bytes: input.bytes,
+    width: null,
+    height: null,
+  });
+  return { id, brandId: input.brandId, contentType, bytes: input.bytes.byteLength };
 };

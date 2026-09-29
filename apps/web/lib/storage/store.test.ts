@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import sharp from "sharp";
 import { describe, expect, it, vi } from "vitest";
-import { storeImage } from "./store";
+import { AppError } from "@/lib/server/core/errors";
+import { storeChartFile, storeImage } from "./store";
 
 const recordError = { message: "insert failed", code: "23503" };
 
@@ -99,6 +100,48 @@ describe("storeImage, the type the browser stated", () => {
       });
       expect(uploads).toEqual([]);
     }
+  });
+});
+
+describe("storeChartFile", () => {
+  const recording = () => {
+    const uploads: { path: string; type: string }[] = [];
+    const records: Record<string, unknown>[] = [];
+    const admin = {
+      storage: {
+        from: () => ({
+          upload: async (path: string, _bytes: Uint8Array, options: { contentType: string }) => {
+            uploads.push({ path, type: options.contentType });
+            return { error: null };
+          },
+          remove: async () => ({ error: null }),
+        }),
+      },
+      from: () => ({
+        insert: async (row: Record<string, unknown>) => {
+          records.push(row);
+          return { error: null };
+        },
+      }),
+    } as unknown as SupabaseClient;
+    return { admin, uploads, records };
+  };
+  const brandId = "11111111-1111-4111-8111-111111111111";
+  const userId = "22222222-2222-4222-8222-222222222222";
+
+  it("stores CSV text as a chart file in the brand's folder, judged by its bytes", async () => {
+    const { admin, uploads, records } = recording();
+    const file = await storeChartFile({ admin, brandId, userId, bytes: new TextEncoder().encode("Point,S\nChest,50\n") });
+    expect(file).toMatchObject({ brandId, contentType: "text/csv" });
+    expect(uploads).toEqual([{ path: `${brandId}/chart/${file.id}.csv`, type: "text/csv" }]);
+    expect(records[0]).toMatchObject({ kind: "chart", width: null, height: null, created_by: userId });
+  });
+
+  it("refuses a file that is not a chart, and stores nothing", async () => {
+    const { admin, uploads } = recording();
+    const failure = await storeChartFile({ admin, brandId, userId, bytes: await png() }).catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(AppError);
+    expect(uploads).toEqual([]);
   });
 });
 

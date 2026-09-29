@@ -12,3 +12,17 @@ export function pointsThatCanApply(type: ResolvedType): readonly PointOfMeasure[
     }),
   );
 }
+
+/**
+ * The points of measure every garment of a type has, whatever is chosen. A point that
+ * applies only with some choices, such as a shoulder width that a raglan sleeve does not
+ * have, is left out. A brand's chart must give at least these.
+ */
+export function pointsAlwaysApplying(type: ResolvedType): readonly PointOfMeasure[] {
+  return type.pointsOfMeasure.filter((point) =>
+    point.appliesWhen.every((condition) => {
+      const option = type.options.find((candidate) => candidate.id === condition.option);
+      return option !== undefined && option.choices.every((choice) => condition.in.includes(choice.id));
+    }),
+  );
+}

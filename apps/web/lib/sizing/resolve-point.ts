@@ -7,7 +7,7 @@ import {
 } from "@/lib/garment";
 import type { GradedRow } from "./grading";
 import { must } from "./invariant";
-import type { MissingRow, ResolutionRow, SetRow } from "./resolution-types";
+import type { ChartProvenance, MissingRow, ResolutionRow, SetRow } from "./resolution-types";
 
 /**
  * Where a value is wanted. Sizes are matched by label. The two indexes point into the
@@ -18,6 +18,8 @@ export interface Where {
   readonly baseSize: string;
   readonly sizeIndex: number;
   readonly baseIndex: number;
+  /** Where the chart's own values come from. A platform chart only suggests them. */
+  readonly chartProvenance?: ChartProvenance;
 }
 
 const section = (point: PointOfMeasure): { group: PointOfMeasure["group"]; groupLabel: string } => ({
@@ -135,7 +137,7 @@ export function resolvePoint(
     ...section(point),
     value: entry.value,
     tolerance: chartRow.tolerance,
-    provenance: "suggested-chart",
+    provenance: where.chartProvenance ?? "suggested-chart",
     note: null,
   };
 }

@@ -4,6 +4,7 @@ import { z } from "zod";
 /** The fit choices a chart may be given for. They match the fit option of a top. */
 export const FIT_CHOICES = ["regular", "slim", "relaxed"] as const;
 export const SIZE_LABEL_MAX_LENGTH = 12;
+export const CHART_SUPPLIERS = ["platform", "brand"] as const;
 export const MAX_SIZES_IN_RUN = 30;
 
 const idText = z
@@ -96,6 +97,12 @@ export const sizeChartSchema = z
     baseSize: sizeLabel,
     points: z.array(chartPointSchema).min(1, "A chart needs at least one point of measure.").readonly(),
     source: chartSourceSchema,
+    /**
+     * Who the chart belongs to. A platform chart is a suggestion. A chart the brand
+     * imported is the brand's own, so its values are supplied by the brand. Missing
+     * means the platform.
+     */
+    supplier: z.enum(CHART_SUPPLIERS).optional(),
   })
   .readonly()
   .refine((chart) => new Set(chart.points.map((point) => point.pointId)).size === chart.points.length, {
