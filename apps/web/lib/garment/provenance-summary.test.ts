@@ -24,7 +24,7 @@ describe("provenance on every value", () => {
     const spec = start("polo");
     expect(spec.options.collar).toEqual({ choiceId: "polo-collar", provenance: "derived" });
     expect(spec.sizing).toBeNull();
-    expect(spec.schemaVersion).toBe(3);
+    expect(spec.schemaVersion).toBe(4);
   });
 
   it("stores who chose an option", () => {

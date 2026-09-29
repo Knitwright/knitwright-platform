@@ -34,6 +34,7 @@ export {
 export {
   EMPTY_FABRIC_DETAILS,
   STRETCH_VALUES,
+  SWATCH_PATTERN,
   TECHNIQUES,
   artworkSchema,
   colourwaySchema,
@@ -47,6 +48,7 @@ export {
   type FabricSpec,
   type Measurement,
   type OptionChoice,
+  type PanelColour,
   type PanelFabric,
   type Sizing,
 } from "./parts";

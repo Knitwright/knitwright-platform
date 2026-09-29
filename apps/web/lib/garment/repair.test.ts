@@ -60,6 +60,27 @@ describe("migrateSpec", () => {
     }
   });
 
+  it("upgrades a version 3 design, which needs nothing added, to the current version", () => {
+    const old = { ...plain("polo"), schemaVersion: 3 };
+    const result = migrateSpec(old);
+    expect(result.ok && result.spec.schemaVersion).toBe(4);
+    expect(result.ok && result.stale).toBe(false);
+  });
+
+  it("keeps the colours of a version 3 design as they were", () => {
+    const old = {
+      ...plain("polo"),
+      schemaVersion: 3,
+      colourways: [{ id: "main", name: "Main", colours: [{ panelId: "body-front", colour: "Navy", provenance: "user-edited" }] }],
+    };
+    const result = migrateSpec(old);
+    expect(result.ok && result.spec.colourways[0].colours[0]).toEqual({
+      panelId: "body-front",
+      colour: "Navy",
+      provenance: "user-edited",
+    });
+  });
+
   it("refuses an older version with a plain sentence", () => {
     expect(migrateSpec({ ...plain("polo"), schemaVersion: 2 })).toEqual({
       ok: false,

@@ -58,11 +58,16 @@ export const EMPTY_FABRIC_DETAILS: Pick<
 export const panelFabricSchema = z.object({ panelId: kebabId, fabricId: localId }).readonly();
 export type PanelFabric = z.output<typeof panelFabricSchema>;
 
+/** A colour a screen or a drawing can show: `#`, then six lower case hex digits. */
+export const SWATCH_PATTERN = /^#[0-9a-f]{6}$/;
+
 const panelColourSchema = z
   .object({
     panelId: kebabId,
     /** Free text. Colour libraries are licensed, so codes are never looked up. */
     colour: freeText(COLOUR_MAX_LENGTH).min(1, "Enter a colour."),
+    /** The colour to draw, such as `#1b2a49`. Optional: a panel without one is drawn in light grey. */
+    swatch: z.string().regex(SWATCH_PATTERN, "Use a colour like #1b2a49.").optional(),
     provenance: provenanceSchema,
   })
   .readonly();

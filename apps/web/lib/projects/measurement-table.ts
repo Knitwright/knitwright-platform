@@ -53,7 +53,7 @@ export interface MeasurementTable {
 const TO_BE_CONFIRMED = "To be confirmed";
 
 /** The size a design's values are for: its own base size, else the chart's, else none. */
-const tableSize = (spec: GarmentSpec, charts?: ChartSet): string => {
+export const tableSize = (spec: GarmentSpec, charts?: ChartSet): string => {
   if (spec.sizing) return spec.sizing.baseSize;
   const fromChart = sizingFromChart(spec, charts);
   return fromChart.ok ? (fromChart.action.sizing?.baseSize ?? "") : "";

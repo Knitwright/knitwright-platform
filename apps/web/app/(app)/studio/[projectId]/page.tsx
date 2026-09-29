@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
+import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
+import { createFileReader } from "@/lib/storage/read";
+import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 
 export const metadata: Metadata = { title: "Design" };
 
@@ -25,5 +28,7 @@ export default async function DesignPage({ params }: PageProps<"/studio/[project
     listVersions(client, brand.id, projectId),
   ]).catch(orNotFound);
 
-  return <Editor data={buildEditorData(project, history)} />;
+  const images = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
+
+  return <Editor data={buildEditorData(project, history, undefined, images)} />;
 }

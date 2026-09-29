@@ -80,6 +80,19 @@ describe("browserActionSchema", () => {
     }
   });
 
+  it("passes a colour swatch through and still stamps the source", () => {
+    const colourway = {
+      id: "away",
+      name: "Away",
+      colours: [{ panelId: "body-front", colour: "Navy", swatch: "#1b2a49", provenance: "ai-suggested" }],
+    };
+    expect(parse({ type: "update-colourway", colourway })).toMatchObject({
+      colourway: { colours: [{ swatch: "#1b2a49", provenance: "user-edited" }] },
+    });
+    const bad = { ...colourway, colours: [{ panelId: "body-front", colour: "Navy", swatch: "blue" }] };
+    expect(browserActionSchema.safeParse({ type: "update-colourway", colourway: bad }).success).toBe(false);
+  });
+
   it("strips a source from places that never carry one", () => {
     const stripped = stampUserEdited({ type: "remove-fabric", id: "mesh", provenance: "brand-supplied" });
 

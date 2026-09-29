@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SpecAction } from "@/lib/garment";
 import { createSettler } from "@/lib/projects/debounce";
+import { effectiveSpec, pendingActions } from "@/lib/projects/effective-spec";
 import type { EditorData } from "@/lib/projects/editor-data";
 import { isBusy, shownChoice, type Request } from "@/lib/projects/editor-state";
 import type { EditIntent } from "@/lib/projects/field-text";
 import { requestForIntent } from "@/lib/projects/measurement-request";
 import { measurementKey, optionKey } from "./keys";
+import { useColourEdits } from "./useColourEdits";
 import { useEditorEngine } from "./useEditorEngine";
 
 type Pick = Readonly<{ optionId: string; choiceId: string }>;
@@ -44,6 +46,16 @@ export const useEditor = (data: EditorData) => {
   useEffect(() => () => settler.cancel(), [settler]);
   const problem = (key: string, message: string, focus: boolean) => dispatch({ type: "problem", key, message, focus });
 
+  // The design as it will be once the waiting changes are saved. A colour or a piece of
+  // artwork is worked out from this, so a second change does not undo the first.
+  const { inFlight, queue: waitingQueue } = state;
+  const working = useMemo(
+    () => effectiveSpec(data.spec, pendingActions({ inFlight, queue: waitingQueue })),
+    [data.spec, inFlight, waitingQueue],
+  );
+
+  const colours = useColourEdits(working, queue, problem);
+
   const editMeasurement = (pointId: string, intent: EditIntent, asked: boolean) => {
     const request = requestForIntent(data.spec, pointId, intent);
     if (request?.kind === "problem") problem(measurementKey(pointId), request.reason, asked);
@@ -64,6 +76,10 @@ export const useEditor = (data: EditorData) => {
     resetMeasurement: (pointId: string) => editMeasurement(pointId, { kind: "remove" }, true),
     clearProblem: (key: string) => dispatch({ type: "clearProblem", key }),
     saveSizes: (key: string, action: SpecAction) => queue(key, { kind: "action", action }, true),
+    /** Any change already built and checked, saved under the name of the control it came from. */
+    saveAction: (key: string, action: SpecAction) => queue(key, { kind: "action", action }, true),
+    working,
+    ...colours,
     problem,
     undo: () => queue(HISTORY_KEY, { kind: "undo" }, true),
     restore: (version: number) => queue(HISTORY_KEY, { kind: "restore", version }, true),

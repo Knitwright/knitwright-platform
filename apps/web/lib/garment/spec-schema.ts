@@ -11,7 +11,7 @@ import {
 import { kebabId, wearerSchema } from "./primitives";
 import { LIST_LIMITS, specProblems } from "./spec-checks";
 
-export const SPEC_SCHEMA_VERSION = 3;
+export const SPEC_SCHEMA_VERSION = 4;
 
 /** Sanity limits on list sizes, so one spec cannot grow without bound. */
 export const MAX_MEASUREMENTS = 64;

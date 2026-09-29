@@ -1,8 +1,11 @@
 "use client";
 
 import type { EditorData } from "@/lib/projects/editor-data";
+import { ArtworkControls } from "./ArtworkControls";
+import { ColourControls } from "./ColourControls";
 import { DetailsForm } from "./DetailsForm";
 import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from "./EditorParts";
+import { FlatPreview } from "./FlatPreview";
 import { History } from "./History";
 import { BASE_KEY, SIZES_KEY, measurementKey } from "./keys";
 import { MeasurementTables } from "./MeasurementTables";
@@ -11,8 +14,8 @@ import { SizesForm } from "./SizesForm";
 import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
 
 /*
- * Fabrics, colourways and artwork are part of the design but have no screen yet. They
- * arrive with later steps. The design keeps whatever they hold.
+ * Fabrics are part of the design but have no screen yet. They arrive with a later step.
+ * The design keeps whatever they hold.
  */
 
 type PartProps = Readonly<{ data: EditorData; editor: EditorApi }>;
@@ -27,6 +30,7 @@ export function Editor({ data }: Readonly<{ data: EditorData }>) {
       <SaveStatus busy={editor.busy} status={state.status} />
       <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
       <DroppedNotice dropped={state.dropped ?? data.dropped} />
+      <FlatPreview flat={data.flat} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MainColumn data={data} editor={editor} />
         <SideColumn data={data} editor={editor} />
@@ -47,6 +51,8 @@ function MainColumn({ data, editor }: PartProps) {
           errorFor={editor.errorFor}
         />
       </Section>
+      <ColoursSection data={data} editor={editor} />
+      <ArtworkSection data={data} editor={editor} />
       <Section id="sizes" title="Sizes">
         <SizesSection data={data} editor={editor} />
       </Section>
@@ -65,6 +71,42 @@ function MainColumn({ data, editor }: PartProps) {
         />
       </Section>
     </div>
+  );
+}
+
+function ColoursSection({ data, editor }: PartProps) {
+  return (
+    <Section id="colours" title="Colours">
+      <p className="mb-4 text-[15px] leading-relaxed text-muted">
+        Pick a colour for each part, and type its name or code if you have one. The drawing above uses the colour you
+        pick. A part with no colour is drawn in light grey.
+      </p>
+      <ColourControls
+        rows={data.colours}
+        errorFor={editor.errorFor}
+        onPickSwatch={editor.pickSwatch}
+        onSettleSwatch={editor.settleSwatch}
+        onChangeText={editor.changeColour}
+        onTyping={editor.clearProblem}
+        onDirty={editor.markDirty}
+      />
+    </Section>
+  );
+}
+
+function ArtworkSection({ data, editor }: PartProps) {
+  return (
+    <Section id="artwork" title="Logos and text">
+      <ArtworkControls
+        spec={editor.working}
+        rows={data.artwork}
+        parts={data.parts}
+        errorFor={editor.errorFor}
+        onSave={editor.saveAction}
+        onProblem={(key, message) => editor.problem(key, message, false)}
+        onClearProblem={editor.clearProblem}
+      />
+    </Section>
   );
 }
 

@@ -25,6 +25,8 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
+  // The PDF font is read from disk at run time, so the host must ship it with the function.
+  outputFileTracingIncludes: { "/api/flat-spike": ["./assets/fonts/**"] },
   headers: async () => [{ source: "/:path*", headers: SECURITY_HEADERS }],
 };
 

@@ -48,6 +48,16 @@ describe("buildEditorData", () => {
     expect(data.table.groups.length).toBeGreaterThan(0);
   });
 
+  it("draws the design, lists a colour row for each panel and shows where artwork can go", () => {
+    const data = buildEditorData(project(), page(versions));
+
+    expect(data.flat?.views.map((view) => view.label)).toEqual(["Front", "Back"]);
+    expect(data.flat?.notice).toBe("Not to scale. Some measurements are missing.");
+    expect(data.colours.map((row) => row.label)).toContain("Body front");
+    expect(data.artwork).toEqual([]);
+    expect(data.parts.map((part) => part.panelId)).toEqual(["body-front", "body-back", "sleeve-left", "sleeve-right"]);
+  });
+
   it("marks the current version and writes each date in words", () => {
     const data = buildEditorData(project(), page(versions));
 

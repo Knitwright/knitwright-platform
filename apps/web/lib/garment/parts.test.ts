@@ -107,6 +107,36 @@ describe("colourway", () => {
   });
 });
 
+describe("colour swatch", () => {
+  const withSwatch = (swatch: unknown) =>
+    colourwaySchema.safeParse({
+      id: "main",
+      name: "Home",
+      colours: [{ panelId: "body-front", colour: "Navy 123", swatch, provenance: "user-edited" }],
+    });
+
+  it("accepts a colour written as # and six lower case hex digits, beside the free text code", () => {
+    const result = withSwatch("#1b2a49");
+    expect(result.success && result.data.colours[0]).toMatchObject({ colour: "Navy 123", swatch: "#1b2a49" });
+  });
+
+  it("does not need one", () => {
+    const result = colourwaySchema.safeParse({
+      id: "main",
+      name: "Home",
+      colours: [{ panelId: "body-front", colour: "Navy", provenance: "user-edited" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it.each(["#1B2A49", "#123", "1b2a49", "#1b2a4", "#1b2a4900", "red", "url(#x)", "#1b2a4g", " #1b2a49", 7, null])(
+    "refuses %j",
+    (bad) => {
+      expect(withSwatch(bad).success).toBe(false);
+    },
+  );
+});
+
 describe("artwork", () => {
   it("accepts a file artwork with a technique", () => {
     expect(artworkSchema.safeParse(artwork).success).toBe(true);

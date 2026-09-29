@@ -15,3 +15,4 @@ Copy `0000-template.md` to start.
 | 0005 | [The garment contract and the registry for tops](0005-garment-contract.md) | Accepted, with questions open for the owner |
 | 0006 | [Size charts and how a measurement is worked out](0006-size-charts.md) | Accepted. No chart data yet: waits for the owner. |
 | 0007 | [Designs, versions and the editor](0007-designs-versions-editor.md) | Accepted |
+| 0008 | [The PDF renderer](0008-pdf-renderer.md) | Accepted locally, deployed check owed |

@@ -32,10 +32,13 @@ export type MigrateResult =
 export type Upgrade = (input: Record<string, unknown>) => Record<string, unknown>;
 
 /**
- * One entry per old version, keyed by the version it upgrades from. It is empty because
- * no earlier version was ever stored. The next version bump adds its upgrade here.
+ * One entry per old version, keyed by the version it upgrades from. Versions before 3
+ * were never stored. Version 3 becomes 4 by adding the optional colour swatch, which needs
+ * nothing written into a stored design. The next version bump adds its upgrade here.
  */
-export const UPGRADES: Readonly<Record<number, Upgrade>> = {};
+export const UPGRADES: Readonly<Record<number, Upgrade>> = {
+  3: (input) => ({ ...input }),
+};
 
 const NOT_A_DESIGN = "This is not a saved design.";
 
