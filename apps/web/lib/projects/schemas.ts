@@ -1,0 +1,51 @@
+import { z } from "zod";
+import { WEARERS, freeText } from "@/lib/garment";
+
+/** Limits on the text of a project. The database enforces the same ones. */
+export const PROJECT_NAME_MAX = 80;
+export const PROJECT_TEXT_MAX = 40;
+
+const NAME_RULE = `A design name has 1 to ${PROJECT_NAME_MAX} characters.`;
+
+const CONTROL_CHARACTER = /\p{Cc}/u;
+
+export const projectNameSchema = z
+  .string()
+  .trim()
+  .min(1, NAME_RULE)
+  .max(PROJECT_NAME_MAX, NAME_RULE)
+  .refine((text) => !CONTROL_CHARACTER.test(text), "Remove line breaks and hidden characters.");
+
+/** A style number or a season. It may be empty. */
+export const projectTextSchema = freeText(PROJECT_TEXT_MAX).default("");
+
+const projectId = z.string().min(1);
+const expectedVersion = z.number().int().min(1);
+
+export const createProjectSchema = z.object({
+  typeId: z.string().min(1, "Choose a garment type."),
+  wearer: z.enum(WEARERS, "Choose who it is for."),
+  name: projectNameSchema,
+  styleNumber: projectTextSchema,
+  season: projectTextSchema,
+});
+
+export const projectDetailsSchema = z.object({
+  projectId,
+  name: projectNameSchema,
+  styleNumber: projectTextSchema,
+  season: projectTextSchema,
+});
+
+/** The change itself is checked by the garment library, which refuses what it does not know. */
+export const applyDesignActionSchema = z.object({
+  projectId,
+  expectedVersion,
+  action: z.unknown(),
+});
+
+export const restoreVersionSchema = z.object({
+  projectId,
+  expectedVersion,
+  version: z.number().int().min(1),
+});

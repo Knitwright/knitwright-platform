@@ -21,4 +21,9 @@ export const LIMITS = {
   changeBrand: { name: "change-brand", limit: 30, windowSeconds: 10 * MINUTE },
   upload: { name: "upload", limit: 30, windowSeconds: 10 * MINUTE },
   fileLink: { name: "file-link", limit: 120, windowSeconds: MINUTE },
+  createProject: { name: "create-project", limit: 30, windowSeconds: HOUR },
+  // Every control in the editor is one save, so this is the busiest limit of the four.
+  editDesign: { name: "edit-design", limit: 120, windowSeconds: MINUTE },
+  restoreVersion: { name: "restore-version", limit: 60, windowSeconds: 10 * MINUTE },
+  renameProject: { name: "rename-project", limit: 30, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

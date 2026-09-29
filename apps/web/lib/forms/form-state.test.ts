@@ -51,6 +51,17 @@ describe("nextFormState", () => {
     expect(state.values).toEqual({ name: "Northfield FC" });
   });
 
+  it("keeps the choices made on the new design form", async () => {
+    const state = await nextFormState(
+      start,
+      form({ typeId: "polo", wearer: "men", styleNumber: "P-1", season: "SS27", name: "Home" }),
+      async () => ({ success: false, error: { code: "invalid_input", message: "No." } }),
+      noRethrow,
+    );
+
+    expect(state.values).toEqual({ typeId: "polo", wearer: "men", styleNumber: "P-1", season: "SS27", name: "Home" });
+  });
+
   it("never keeps a password", async () => {
     const state = await nextFormState(
       start,

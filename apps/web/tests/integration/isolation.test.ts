@@ -71,7 +71,54 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { kind: "photo" },
   },
+  projects: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedProject(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      name: "Made directly",
+      garment_type: "crew-tee",
+      created_by: userId,
+    }),
+    change: { name: "Changed by a stranger" },
+  },
+  spec_versions: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      return must(
+        await adminClient().from("spec_versions").select("id").eq("project_id", projectId).single(),
+      );
+    },
+    attempt: (brandId, userId) => ({
+      project_id: randomUUID(),
+      brand_id: brandId,
+      version: 1,
+      spec: { made: "directly" },
+      schema_version: 1,
+      note: "Made directly.",
+      created_by: userId,
+    }),
+    change: { note: "Changed by a stranger." },
+  },
 };
+
+/** A project made the way the server makes one. Returns its id. */
+const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("create_project", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_name: "Seeded design",
+      p_style_number: "",
+      p_season: "",
+      p_garment_type: "crew-tee",
+      p_spec: { seeded: true },
+      p_schema_version: 1,
+    }),
+  );
 
 const BUCKETS = ["exports", "images", "uploads"] as const;
 
