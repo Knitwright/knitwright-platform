@@ -20,6 +20,8 @@ function withoutChart(spec: GarmentSpec, size: string, message: string): Resolut
       point,
       spec.measurements.find((entry) => entry.pointId === point.id),
       message,
+      size,
+      spec.sizing?.baseSize ?? null,
     ),
   );
   return { status: "no-chart", message, size, rows };

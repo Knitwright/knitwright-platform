@@ -29,7 +29,8 @@ export type SizeRun = z.output<typeof sizeRunSchema>;
 
 /** Whole tenths of a millimetre, at least one. */
 const tenthsMm = z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM);
-const stepTenthsMm = z.number().int().min(-MEASUREMENT_MAX_TENTHS_MM).max(MEASUREMENT_MAX_TENTHS_MM);
+/** A grade step is never negative. Zero means the value stays the same. */
+const stepTenthsMm = z.number().int().min(0).max(MEASUREMENT_MAX_TENTHS_MM);
 
 /**
  * How a value changes from one size to the next. "even" uses one step between every

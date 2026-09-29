@@ -60,9 +60,9 @@ export interface ResolvedResolution {
   readonly sizes: readonly string[];
   /** Says whether the sizes came from the design or, when it has none, from the size chart. */
   readonly sizesFrom: SizesFrom;
-  /** The fit the chart was made for, or null when it is used for every fit. */
   /** Sizes of the design that the chart does not have. Their rows are missing. */
   readonly sizesMissingFromChart: readonly string[];
+  /** The fit the chart was made for, or null when it is used for every fit. */
   readonly chartFit: SizeChart["fit"];
   /** Says so when a chart with no fit is used for a design that has a fit, otherwise null. */
   readonly fitNote: string | null;

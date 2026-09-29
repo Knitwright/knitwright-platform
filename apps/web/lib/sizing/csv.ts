@@ -16,9 +16,13 @@ interface Scan {
   inQuotes: boolean;
   /** True once anything has been read into the current cell, even an empty pair of quotes. */
   started: boolean;
+  /** True right after a closing quote, when only a comma, a line break or the end may follow. */
+  closed: boolean;
   recordLine: number;
   line: number;
 }
+
+const CELL_ENDERS = ",\r\n";
 
 const isBlank = (cells: readonly string[]): boolean => cells.length === 1 && cells[0] === "";
 
@@ -30,12 +34,13 @@ const isBlank = (cells: readonly string[]): boolean => cells.length === 1 && cel
 export function parseCsv(input: string): CsvResult {
   const text = input.startsWith(BYTE_ORDER_MARK) ? input.slice(1) : input;
   const records: CsvRecord[] = [];
-  const scan: Scan = { cells: [], cell: "", inQuotes: false, started: false, recordLine: 1, line: 1 };
+  const scan: Scan = { cells: [], cell: "", inQuotes: false, started: false, closed: false, recordLine: 1, line: 1 };
 
   const endCell = (): void => {
     scan.cells.push(scan.cell);
     scan.cell = "";
     scan.started = false;
+    scan.closed = false;
   };
   const endRecord = (): void => {
     endCell();
@@ -51,10 +56,18 @@ export function parseCsv(input: string): CsvResult {
         index += 1;
       } else if (char === '"') {
         scan.inQuotes = false;
+        scan.closed = true;
       } else {
-        if (char === "\n") scan.line += 1;
+        // A Windows line break is counted once, at its line feed. A lone carriage return counts here.
+        if (char === "\n" || (char === "\r" && text.charAt(index + 1) !== "\n")) scan.line += 1;
         scan.cell += char;
       }
+    } else if (scan.closed && !CELL_ENDERS.includes(char)) {
+      return {
+        ok: false,
+        line: scan.line,
+        message: `Line ${scan.line} has text after a closing quote. Put a comma after the closing quote, or remove the extra text.`,
+      };
     } else if (char === '"') {
       if (scan.started) {
         return { ok: false, line: scan.line, message: `Line ${scan.line} has a quote in the middle of a cell. Put the whole cell in quotes, or remove the quote.` };

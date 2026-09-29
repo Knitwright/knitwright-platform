@@ -6,6 +6,7 @@ import {
   type PointOfMeasure,
 } from "@/lib/garment";
 import type { GradedRow } from "./grading";
+import { must } from "./invariant";
 import type { MissingRow, ResolutionRow, SetRow } from "./resolution-types";
 
 /**
@@ -32,9 +33,28 @@ const missing = (point: PointOfMeasure, message: string): MissingRow => ({
   message,
 });
 
-/** A value with no chart behind it. It has no tolerance until someone confirms one. */
-export function userOnlyRow(point: PointOfMeasure, user: Measurement | undefined, reason: string): ResolutionRow {
+/**
+ * A row when no chart can be used. A typed value is the value at the design base size and
+ * nowhere else, because nothing can work it out for another size. When the design has no
+ * sizes yet, there is only one size in play, so the value is shown as it is.
+ * Its tolerance stays empty until someone confirms one.
+ */
+export function userOnlyRow(
+  point: PointOfMeasure,
+  user: Measurement | undefined,
+  reason: string,
+  size: string,
+  baseSize: string | null,
+): ResolutionRow {
   if (!user) return missing(point, `${point.label} has no value. ${reason} Type one in.`);
+  if (baseSize !== null && size !== baseSize) {
+    return missing(
+      point,
+      `${point.label} was typed in for size ${baseSize}. With no size chart it cannot be worked out for size ${size}. Type a value for this size.`,
+    );
+  }
+  const where = baseSize === null ? "and sizes have not been set yet" : "";
+  const which = baseSize === null ? "" : ` for size ${baseSize}`;
   return {
     status: "set",
     pointId: point.id,
@@ -43,7 +63,7 @@ export function userOnlyRow(point: PointOfMeasure, user: Measurement | undefined
     value: user.value,
     tolerance: null,
     provenance: user.provenance,
-    note: "No size chart applies, so this is the value that was typed in, with no tolerance.",
+    note: `No size chart applies${where ? ` ${where}` : ""}, so this is the value that was typed in${which}, with no tolerance.`,
   };
 }
 
@@ -70,8 +90,8 @@ function fromUser(point: PointOfMeasure, user: Measurement, chartRow: GradedRow 
       `${point.label} cannot be worked out for size ${size} because the size chart has no size ${absent}. Type a value for this size.`,
     );
   }
-  const atSize = chartRow.values[where.sizeIndex]?.value ?? 0;
-  const atBase = chartRow.values[where.baseIndex]?.value ?? 0;
+  const atSize = must(chartRow.values[where.sizeIndex], `the chart value at size ${size}`).value;
+  const atBase = must(chartRow.values[where.baseIndex], `the chart value at size ${baseSize}`).value;
   const value = user.value + atSize - atBase;
   if (value < 1 || value > MEASUREMENT_MAX_TENTHS_MM) {
     return missing(

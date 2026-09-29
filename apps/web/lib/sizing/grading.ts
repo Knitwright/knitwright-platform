@@ -1,4 +1,5 @@
 import { MEASUREMENT_MAX_TENTHS_MM, formatCm } from "@/lib/garment";
+import { must } from "./invariant";
 import type { Grade, SizeChart, SizeRun } from "./schemas";
 
 /** A reason a chart cannot be used. It says where to look, in the owner's column names. */
@@ -36,12 +37,15 @@ export function stepsFor(grade: Grade, pairCount: number): readonly number[] | n
  * base. Sizes below take those steps away. Whole numbers all the way, so nothing drifts.
  */
 export function gradeValues(baseValue: number, steps: readonly number[], baseIndex: number): readonly number[] {
+  if (!Number.isInteger(baseIndex) || baseIndex < 0 || baseIndex > steps.length) {
+    throw new Error("Sizing broke a rule it depends on: the base index was outside the size run.");
+  }
   const values = new Array<number>(steps.length + 1).fill(baseValue);
   for (let index = baseIndex + 1; index <= steps.length; index += 1) {
-    values[index] = (values[index - 1] ?? baseValue) + (steps[index - 1] ?? 0);
+    values[index] = must(values[index - 1], "the value before a step") + must(steps[index - 1], "a grade step");
   }
   for (let index = baseIndex - 1; index >= 0; index -= 1) {
-    values[index] = (values[index + 1] ?? baseValue) - (steps[index] ?? 0);
+    values[index] = must(values[index + 1], "the value after a step") - must(steps[index], "a grade step");
   }
   return values;
 }
@@ -55,8 +59,8 @@ const problem = (pointId: string | null, column: string, message: string): Chart
 function outOfRange(pointId: string, run: SizeRun, values: readonly number[]): ChartProblem | null {
   const badIndex = values.findIndex((value) => value < 1 || value > MEASUREMENT_MAX_TENTHS_MM);
   if (badIndex < 0) return null;
-  const size = run.sizes[badIndex] ?? "";
-  const value = values[badIndex] ?? 0;
+  const size = must(run.sizes[badIndex], "a size label");
+  const value = must(values[badIndex], "a graded value");
   const detail =
     value < 1
       ? `would be ${formatCm(value)} cm`
@@ -111,7 +115,7 @@ export function gradeChart(chart: SizeChart, run: SizeRun): GradeResult {
     rows.push({
       pointId: point.pointId,
       tolerance: point.tolerance,
-      values: values.map((value, index) => ({ size: run.sizes[index] ?? "", value })),
+      values: values.map((value, index) => ({ size: must(run.sizes[index], "a size label"), value })),
     });
   }
   return problems.length > 0 ? { ok: false, problems } : { ok: true, rows };

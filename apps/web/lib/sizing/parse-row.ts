@@ -77,6 +77,10 @@ function gradeCell(line: number, cell: string): { grade: Grade } | { problem: Pa
   }
   const steps: number[] = [];
   for (const part of cell.split("/")) {
+    const reading = parseCm(part);
+    if (!reading.ok && reading.reason === "negative") {
+      return { problem: problemAt(line, "grade_cm", "A grade cannot be negative. Use 0 if the value stays the same.") };
+    }
     const step = numberCell(line, "grade_cm", part, 0);
     if (!step.ok) return { problem: step.problem };
     steps.push(step.value);
