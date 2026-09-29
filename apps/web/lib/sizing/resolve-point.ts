@@ -1,0 +1,121 @@
+import {
+  MEASUREMENT_MAX_TENTHS_MM,
+  POINT_GROUP_LABELS,
+  formatCm,
+  type Measurement,
+  type PointOfMeasure,
+} from "@/lib/garment";
+import type { GradedRow } from "./grading";
+import type { MissingRow, ResolutionRow, SetRow } from "./resolution-types";
+
+/**
+ * Where a value is wanted. Sizes are matched by label. The two indexes point into the
+ * size run of the chart, and are minus one when the chart does not have that label.
+ */
+export interface Where {
+  readonly size: string;
+  readonly baseSize: string;
+  readonly sizeIndex: number;
+  readonly baseIndex: number;
+}
+
+const section = (point: PointOfMeasure): { group: PointOfMeasure["group"]; groupLabel: string } => ({
+  group: point.group,
+  groupLabel: POINT_GROUP_LABELS[point.group],
+});
+
+const missing = (point: PointOfMeasure, message: string): MissingRow => ({
+  status: "missing",
+  pointId: point.id,
+  label: point.label,
+  ...section(point),
+  message,
+});
+
+/** A value with no chart behind it. It has no tolerance until someone confirms one. */
+export function userOnlyRow(point: PointOfMeasure, user: Measurement | undefined, reason: string): ResolutionRow {
+  if (!user) return missing(point, `${point.label} has no value. ${reason} Type one in.`);
+  return {
+    status: "set",
+    pointId: point.id,
+    label: point.label,
+    ...section(point),
+    value: user.value,
+    tolerance: null,
+    provenance: user.provenance,
+    note: "No size chart applies, so this is the value that was typed in, with no tolerance.",
+  };
+}
+
+function fromUser(point: PointOfMeasure, user: Measurement, chartRow: GradedRow | undefined, where: Where): ResolutionRow {
+  const base: Omit<SetRow, "value" | "provenance" | "note"> = {
+    status: "set",
+    pointId: point.id,
+    label: point.label,
+    ...section(point),
+    tolerance: chartRow?.tolerance ?? null,
+  };
+  const { size, baseSize } = where;
+  if (size === baseSize) return { ...base, value: user.value, provenance: user.provenance, note: null };
+  if (!chartRow) {
+    return missing(
+      point,
+      `${point.label} was typed in for size ${baseSize}. The chart has no grade for it, so it cannot be worked out for size ${size}. Type a value for this size.`,
+    );
+  }
+  if (where.sizeIndex < 0 || where.baseIndex < 0) {
+    const absent = where.sizeIndex < 0 ? size : baseSize;
+    return missing(
+      point,
+      `${point.label} cannot be worked out for size ${size} because the size chart has no size ${absent}. Type a value for this size.`,
+    );
+  }
+  const atSize = chartRow.values[where.sizeIndex]?.value ?? 0;
+  const atBase = chartRow.values[where.baseIndex]?.value ?? 0;
+  const value = user.value + atSize - atBase;
+  if (value < 1 || value > MEASUREMENT_MAX_TENTHS_MM) {
+    return missing(
+      point,
+      `${point.label} of ${formatCm(user.value)} cm at size ${baseSize} would come to ${formatCm(value)} cm at size ${size}, which is not possible. Type a value for this size.`,
+    );
+  }
+  return {
+    ...base,
+    value,
+    provenance: "derived",
+    note: `Worked out from the ${formatCm(user.value)} cm typed in for size ${baseSize}, using the steps between sizes in the chart.`,
+  };
+}
+
+/**
+ * The value of one point at one size. The order is the chart, then the user. A value the
+ * user set is the value at the design base size, and the other sizes are graded from it.
+ */
+export function resolvePoint(
+  point: PointOfMeasure,
+  user: Measurement | undefined,
+  chartRow: GradedRow | undefined,
+  where: Where,
+): ResolutionRow {
+  if (user) return fromUser(point, user, chartRow, where);
+  if (chartRow && where.sizeIndex < 0) {
+    return missing(
+      point,
+      `The size chart has no size ${where.size}, so ${point.label} is not filled in for it. Type a value for this size.`,
+    );
+  }
+  const entry = chartRow?.values[where.sizeIndex];
+  if (!chartRow || !entry) {
+    return missing(point, `${point.label} is not in the size chart and has no typed value. Type one in.`);
+  }
+  return {
+    status: "set",
+    pointId: point.id,
+    label: point.label,
+    ...section(point),
+    value: entry.value,
+    tolerance: chartRow.tolerance,
+    provenance: "suggested-chart",
+    note: null,
+  };
+}

@@ -13,3 +13,4 @@ Copy `0000-template.md` to start.
 | 0003 | [Accounts, the sign-up switch and request wrappers](0003-accounts-and-request-wrappers.md) | Accepted |
 | 0004 | [Brands, isolation and file storage](0004-brands-isolation-and-files.md) | Accepted |
 | 0005 | [The garment contract and the registry for tops](0005-garment-contract.md) | Accepted, with questions open for the owner |
+| 0006 | [Size charts and how a measurement is worked out](0006-size-charts.md) | Accepted. No chart data yet: waits for the owner. |
