@@ -26,9 +26,10 @@ export default defineConfig({
         "**/*.d.ts",
         "**/fixtures/**",
         "**/test-deps.ts",
-        // These four join the framework's request to the tested code and hold no logic
-        // of their own. They run only inside Next.js, so the end-to-end tests cover them.
+        // These join the framework's request to the tested code and hold no logic of
+        // their own. They run only inside Next.js, so the end-to-end tests cover them.
         "lib/server/deps.ts",
+        "lib/server/page-guards.ts",
         "lib/server/define-route.ts",
         "lib/server/define-action.ts",
         "lib/**/actions.ts",

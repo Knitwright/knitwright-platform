@@ -17,4 +17,8 @@ export const LIMITS = {
   updatePassword: { name: "update-password", limit: 5, windowSeconds: HOUR },
   signOut: { name: "sign-out", limit: 30, windowSeconds: 10 * MINUTE },
   read: { name: "read", limit: 120, windowSeconds: MINUTE },
+  createBrand: { name: "create-brand", limit: 10, windowSeconds: HOUR },
+  changeBrand: { name: "change-brand", limit: 30, windowSeconds: 10 * MINUTE },
+  upload: { name: "upload", limit: 30, windowSeconds: 10 * MINUTE },
+  fileLink: { name: "file-link", limit: 120, windowSeconds: MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

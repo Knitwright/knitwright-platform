@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createDefineAction } from "./create-define-action";
 import { AppError } from "./errors";
-import { makeDeps, RULE, SESSION } from "./test-deps";
+import { BRAND, makeDeps, RULE, SESSION } from "./test-deps";
 
 const schema = z.object({ name: z.string().min(1, "Give the design a name.") });
 
@@ -97,6 +97,37 @@ describe("defineAction", () => {
     const result = await action({ name: "Polo" });
 
     expect(result).toMatchObject({ success: false, error: { code: "unauthenticated" } });
+    expect(ran).toBe(false);
+  });
+
+  it("gives an action for members the brand the caller is working in", async () => {
+    const { deps } = makeDeps();
+    const action = createDefineAction(deps)({
+      auth: "member",
+      rateLimit: RULE,
+      schema,
+      handler: async ({ session }) => session.brand,
+    });
+
+    expect(await action({ name: "Polo" })).toEqual({ success: true, data: BRAND });
+  });
+
+  it("refuses a caller with no brand before the handler runs", async () => {
+    const { deps } = makeDeps({ brand: null });
+    let ran = false;
+    const action = createDefineAction(deps)({
+      auth: "member",
+      rateLimit: RULE,
+      schema,
+      handler: async () => {
+        ran = true;
+      },
+    });
+
+    expect(await action({ name: "Polo" })).toEqual({
+      success: false,
+      error: { code: "no_brand", message: "Create a brand first." },
+    });
     expect(ran).toBe(false);
   });
 

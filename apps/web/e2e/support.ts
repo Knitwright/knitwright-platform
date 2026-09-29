@@ -51,16 +51,39 @@ export const invite = async (email: string): Promise<void> => {
  * The password is set in a second step: confirmation removes any password an account
  * already carried.
  */
-export const createAccount = async (label: string): Promise<string> => {
+export const createAccount = async (
+  label: string,
+  options: { brand?: string | null } = {},
+): Promise<string> => {
   const email = uniqueEmail(label);
   const created = await admin().auth.admin.createUser({ email, email_confirm: true });
   if (created.error) throw new Error(created.error.message);
-  const updated = await admin().auth.admin.updateUserById(created.data.user.id, {
+  const userId = created.data.user.id;
+  const updated = await admin().auth.admin.updateUserById(userId, {
     password: PASSWORD,
     app_metadata: { password_set: true },
   });
   if (updated.error) throw new Error(updated.error.message);
+
+  // Most tests are about someone who is already set up, so they get a brand.
+  const brand = options.brand === undefined ? `${label} brand` : options.brand;
+  if (brand !== null) await createBrandFor(userId, brand);
   return email;
+};
+
+/** Gives a user a brand directly, as the server may. Returns the brand id. */
+export const createBrandFor = async (userId: string, name: string): Promise<string> => {
+  const brand = await admin()
+    .from("brands")
+    .insert({ name, created_by: userId })
+    .select("id")
+    .single();
+  if (brand.error) throw new Error(brand.error.message);
+  const membership = await admin()
+    .from("memberships")
+    .insert({ brand_id: brand.data.id, user_id: userId, role: "owner" });
+  if (membership.error) throw new Error(membership.error.message);
+  return brand.data.id;
 };
 
 export const accountExists = async (email: string): Promise<boolean> => {

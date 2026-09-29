@@ -1,4 +1,8 @@
 import ts from "typescript";
+import { pageGuardViolations } from "./page-guard-check";
+import { localNamesOf, parse, type SourceText } from "./source";
+
+export type { SourceText } from "./source";
 
 /**
  * Reads source files without running them and reports every route handler and server
@@ -6,43 +10,27 @@ import ts from "typescript";
  * I3 in plans/knitwright-mvp-blueprint.md.
  */
 
-export type SourceText = Readonly<{
-  /** Path from the app root, with forward slashes: "app/api/me/route.ts". */
-  path: string;
-  text: string;
-}>;
-
 export type Rule =
   | "route-not-wrapped"
   | "action-not-wrapped"
   | "inline-use-server"
   | "auth-not-literal"
   | "public-not-listed"
-  | "stale-allow-entry";
+  | "stale-allow-entry"
+  | "page-not-guarded";
 
 export type Violation = Readonly<{ file: string; rule: Rule; detail: string }>;
 
 const HTTP_METHODS = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
 const ROUTE_FILE = /(^|\/)route\.[cm]?[jt]sx?$/;
 const DIRECTIVE = "use server";
+const KINDS_OF_AUTH = new Set(["member", "user", "public"]);
 
 const ROUTE_WRAPPER = { module: "@/lib/server/define-route", name: "defineRoute" } as const;
 const ACTION_WRAPPER = { module: "@/lib/server/define-action", name: "defineAction" } as const;
 
-type Wrapper = typeof ROUTE_WRAPPER | typeof ACTION_WRAPPER;
-
 /** One value a file exports. `initializer` is missing when it cannot be a wrapper call. */
 type ValueExport = Readonly<{ name: string; initializer?: ts.Expression }>;
-
-const scriptKindOf = (path: string): ts.ScriptKind => {
-  if (/\.tsx$/.test(path)) return ts.ScriptKind.TSX;
-  if (/\.jsx$/.test(path)) return ts.ScriptKind.JSX;
-  if (/\.[cm]?js$/.test(path)) return ts.ScriptKind.JS;
-  return ts.ScriptKind.TS;
-};
-
-const parse = ({ path, text }: SourceText): ts.SourceFile =>
-  ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, scriptKindOf(path));
 
 /** Every name a declaration binds, including names taken out of an object or array. */
 const boundNamesOf = (name: ts.BindingName): string[] =>
@@ -80,24 +68,6 @@ const countInlineDirectives = (source: ts.SourceFile): number => {
   };
   visit(source);
   return count;
-};
-
-/** The names under which this file imported the wrapper from its one true module. */
-const localNamesOf = (source: ts.SourceFile, wrapper: Wrapper): ReadonlySet<string> => {
-  const names = new Set<string>();
-  for (const statement of source.statements) {
-    if (!ts.isImportDeclaration(statement)) continue;
-    if (!ts.isStringLiteral(statement.moduleSpecifier)) continue;
-    if (statement.moduleSpecifier.text !== wrapper.module) continue;
-    const bindings = statement.importClause?.namedBindings;
-    if (!bindings || !ts.isNamedImports(bindings)) continue;
-    for (const element of bindings.elements) {
-      if ((element.propertyName ?? element.name).text === wrapper.name) {
-        names.add(element.name.text);
-      }
-    }
-  }
-  return names;
 };
 
 const isExported = (node: ts.Node): boolean =>
@@ -186,11 +156,11 @@ const checkExports = (
     }
 
     const auth = literalAuthOf(call);
-    if (auth !== "user" && auth !== "public") {
+    if (!auth || !KINDS_OF_AUTH.has(auth)) {
       violations.push({
         file,
         rule: "auth-not-literal",
-        detail: `Export "${candidate.name}" must write auth as "user" or "public", with no spread.`,
+        detail: `Export "${candidate.name}" must write auth as "member", "user" or "public", with no spread.`,
       });
       continue;
     }
@@ -248,7 +218,11 @@ const checkFile = (file: SourceText, allowList: ReadonlySet<string>): FileReport
   }
 
   return {
-    violations: [...inline, ...reports.flatMap((report) => report.violations)],
+    violations: [
+      ...inline,
+      ...reports.flatMap((report) => report.violations),
+      ...pageGuardViolations(file.path, source),
+    ],
     publicEntries: reports.flatMap((report) => report.publicEntries),
   };
 };

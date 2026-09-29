@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createDefineRoute } from "./create-define-route";
 import { AppError } from "./errors";
-import { makeDeps, RULE, SESSION } from "./test-deps";
+import { BRAND, makeDeps, RULE, SESSION } from "./test-deps";
 
 const noParams = { params: Promise.resolve({}) };
 
@@ -54,6 +54,75 @@ describe("defineRoute", () => {
       error: { code: "unauthenticated" },
     });
     expect(ran).toBe(false);
+  });
+
+  it("gives a route for members the brand the caller is working in", async () => {
+    const { deps } = makeDeps();
+    const route = createDefineRoute(deps)({
+      auth: "member",
+      rateLimit: RULE,
+      schema: {},
+      handler: async ({ session }) => ({ by: session.userId, brand: session.brand }),
+    });
+
+    const response = await route(new Request("http://localhost/api/thing"), noParams);
+
+    expect(await response.json()).toEqual({
+      success: true,
+      data: { by: SESSION.userId, brand: BRAND },
+    });
+  });
+
+  it("refuses a caller with no brand before the handler runs", async () => {
+    const { deps } = makeDeps({ brand: null });
+    let ran = false;
+    const route = createDefineRoute(deps)({
+      auth: "member",
+      rateLimit: RULE,
+      schema: {},
+      handler: async () => {
+        ran = true;
+        return {};
+      },
+    });
+
+    const response = await route(new Request("http://localhost/api/thing"), noParams);
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({
+      success: false,
+      error: { code: "no_brand", message: "Create a brand first." },
+    });
+    expect(ran).toBe(false);
+  });
+
+  it("refuses a caller with no session before it looks for a brand", async () => {
+    const { deps, recorded } = makeDeps({ session: null });
+    const route = createDefineRoute(deps)({
+      auth: "member",
+      rateLimit: RULE,
+      schema: {},
+      handler: async () => ({}),
+    });
+
+    const response = await route(new Request("http://localhost/api/thing"), noParams);
+
+    expect(response.status).toBe(401);
+    expect(recorded.brandLookups).toBe(0);
+  });
+
+  it("does not look for a brand when the route does not need one", async () => {
+    const { deps, recorded } = makeDeps();
+    const route = createDefineRoute(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema: {},
+      handler: async () => ({}),
+    });
+
+    await route(new Request("http://localhost/api/thing"), noParams);
+
+    expect(recorded.brandLookups).toBe(0);
   });
 
   it("lets a public route run without a session", async () => {
@@ -189,6 +258,87 @@ describe("defineRoute", () => {
     );
 
     expect(response.status).toBe(400);
+  });
+
+  describe("a form with a file", () => {
+    const upload = z.object({ kind: z.enum(["artwork", "sketch"]), file: z.instanceof(File) });
+
+    const formRequest = (fields: Record<string, string | File>) => {
+      const form = new FormData();
+      for (const [name, value] of Object.entries(fields)) form.set(name, value);
+      return new Request("http://localhost/api/files", { method: "POST", body: form });
+    };
+
+    const uploadRoute = (maxBodyBytes?: number) => {
+      const { deps } = makeDeps();
+      return createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        maxBodyBytes,
+        schema: { form: upload },
+        handler: async ({ input }) => ({
+          kind: input.form.kind,
+          name: input.form.file.name,
+          type: input.form.file.type,
+          text: await input.form.file.text(),
+        }),
+      });
+    };
+
+    it("passes the file and the other fields to the handler", async () => {
+      const file = new File(["pixels"], "logo.png", { type: "image/png" });
+
+      const response = await uploadRoute()(formRequest({ kind: "artwork", file }), noParams);
+
+      expect(await response.json()).toEqual({
+        success: true,
+        data: { kind: "artwork", name: "logo.png", type: "image/png", text: "pixels" },
+      });
+    });
+
+    it("names the field when the file is missing", async () => {
+      const response = await uploadRoute()(formRequest({ kind: "artwork" }), noParams);
+      const json = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(Object.keys(json.error.fields)).toEqual(["form.file"]);
+    });
+
+    it("refuses a field that should be a file but is text", async () => {
+      const response = await uploadRoute()(
+        formRequest({ kind: "artwork", file: "not a file" }),
+        noParams,
+      );
+
+      expect(response.status).toBe(400);
+    });
+
+    it("refuses a form larger than the limit", async () => {
+      const file = new File(["x".repeat(2000)], "big.png", { type: "image/png" });
+
+      const response = await uploadRoute(1000)(formRequest({ kind: "artwork", file }), noParams);
+
+      expect(response.status).toBe(413);
+    });
+
+    it("refuses a body that is not a form", async () => {
+      const response = await uploadRoute()(post({ kind: "artwork" }), noParams);
+
+      expect(response.status).toBe(400);
+      expect((await response.json()).error.code).toBe("invalid_input");
+    });
+
+    it("refuses a body that claims to be a form but is not", async () => {
+      const request = new Request("http://localhost/api/files", {
+        method: "POST",
+        headers: { "content-type": "multipart/form-data; boundary=xyz" },
+        body: "this is not a form",
+      });
+
+      const response = await uploadRoute()(request, noParams);
+
+      expect(response.status).toBe(400);
+    });
   });
 
   it("parses query and path parameters", async () => {

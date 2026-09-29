@@ -3,6 +3,13 @@ import { AppError, MESSAGES, toFailure, type Failure, type FieldErrors } from ".
 
 export type Session = Readonly<{ userId: string; email: string | null }>;
 
+export type BrandRole = "owner";
+
+/** The brand a member is working in. Every design, file and image belongs to one. */
+export type Brand = Readonly<{ id: string; name: string; role: BrandRole }>;
+
+export type MemberSession = Session & Readonly<{ brand: Brand }>;
+
 export type RateLimitRule = Readonly<{
   /** Names the bucket. Requests under different names never share a count. */
   name: string;
@@ -20,6 +27,8 @@ export type LogEvent = Readonly<{
 /** Everything a wrapper needs from the outside world, so tests can supply their own. */
 export type GuardDeps = Readonly<{
   getSession: () => Promise<Session | null>;
+  /** The brand the user is working in, after confirming they belong to it. */
+  getActiveBrand: (session: Session) => Promise<Brand | null>;
   getClientAddress: () => Promise<string>;
   /** Counts one request against the key. False when the key is over the limit. */
   hitRateLimit: (key: string, rule: RateLimitRule) => Promise<boolean>;
@@ -28,30 +37,40 @@ export type GuardDeps = Readonly<{
   rethrowControlFlow: (error: unknown) => void;
 }>;
 
-export type Auth = "user" | "public";
+/**
+ * "member" needs a session and a brand the user belongs to. "user" needs a session
+ * only, for the few things done before a brand exists. "public" needs neither.
+ */
+export type Auth = "member" | "user" | "public";
 
-export type SessionFor<A extends Auth> = A extends "user" ? Session : null;
+export type SessionFor<A extends Auth> = A extends "member"
+  ? MemberSession
+  : A extends "user"
+    ? Session
+    : null;
 
 type Admission<A extends Auth> =
   | Readonly<{ ok: true; session: SessionFor<A> }>
   | Readonly<{ ok: false; failure: Failure }>;
 
+const refuse = (code: "unauthenticated" | "no_brand" | "rate_limited") =>
+  ({ ok: false, failure: { code, message: MESSAGES[code] } }) as const;
+
 /**
- * Decides whether a request may proceed: session first, then the rate limit. The limit
- * is applied before the input is validated, so invalid requests are counted too.
+ * Decides whether a request may proceed: session first, then the brand, then the rate
+ * limit. The limit is applied before the input is validated, so invalid requests are
+ * counted too.
  */
 export const admit = async <A extends Auth>(
   deps: GuardDeps,
   auth: A,
   rule: RateLimitRule,
 ): Promise<Admission<A>> => {
-  const session = auth === "user" ? await deps.getSession() : null;
-  if (auth === "user" && !session) {
-    return {
-      ok: false,
-      failure: { code: "unauthenticated", message: MESSAGES.unauthenticated },
-    };
-  }
+  const session = auth === "public" ? null : await deps.getSession();
+  if (auth !== "public" && !session) return refuse("unauthenticated");
+
+  const brand = auth === "member" && session ? await deps.getActiveBrand(session) : null;
+  if (auth === "member" && !brand) return refuse("no_brand");
 
   const address = await deps.getClientAddress();
   const keys = [
@@ -59,12 +78,11 @@ export const admit = async <A extends Auth>(
     ...(session ? [`${rule.name}:user:${session.userId}`] : []),
   ];
   for (const key of keys) {
-    if (!(await deps.hitRateLimit(key, rule))) {
-      return { ok: false, failure: { code: "rate_limited", message: MESSAGES.rate_limited } };
-    }
+    if (!(await deps.hitRateLimit(key, rule))) return refuse("rate_limited");
   }
 
-  return { ok: true, session: session as SessionFor<A> };
+  const admitted = session && brand ? { ...session, brand } : session;
+  return { ok: true, session: admitted as SessionFor<A> };
 };
 
 export const fieldErrors = (issues: readonly z.core.$ZodIssue[], prefix = ""): FieldErrors => {

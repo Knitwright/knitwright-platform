@@ -3,6 +3,7 @@ export const FAILURE_STATUS = {
   invalid_input: 400,
   unauthenticated: 401,
   forbidden: 403,
+  no_brand: 403,
   not_found: 404,
   conflict: 409,
   too_large: 413,
@@ -47,6 +48,7 @@ export const MESSAGES = {
   rate_limited: "Too many requests. Wait a moment and try again.",
   invalid_input: "Some fields need another look.",
   too_large: "That request is too large.",
+  no_brand: "Create a brand first.",
   internal: "Something went wrong on our side. Try again.",
 } as const satisfies Partial<Record<FailureCode, string>>;
 

@@ -1,0 +1,348 @@
+import { randomUUID } from "node:crypto";
+import { beforeAll, describe, expect, it } from "vitest";
+import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
+
+/**
+ * The isolation suite. Plan step 3, task 7, and acceptance criterion M5: one brand can
+ * never read another brand's designs, files or images.
+ *
+ * The suite asks the database which tables, buckets and functions exist. A new one
+ * that is not described below makes the suite fail, so nothing can be added without
+ * deciding who may reach it.
+ */
+
+type Row = Record<string, unknown>;
+
+type TableSpec = Readonly<{
+  /** What a browser may do to the table at all, before any policy is considered. */
+  privileges: readonly string[];
+  /** The column that says which brand a row belongs to. */
+  brandColumn: string;
+  /** A row of the given brand, made by the server. Returns the columns that identify it. */
+  seed: (brandId: string, ownerId: string) => Promise<Row>;
+  /** A row someone might try to insert for the given brand. */
+  attempt: (brandId: string, userId: string) => Row;
+  /** A change someone might try to make. */
+  change: Row;
+}>;
+
+const filePath = (brandId: string) => `${brandId}/artwork/${randomUUID()}.png`;
+
+const TABLES: Readonly<Record<string, TableSpec>> = {
+  brands: {
+    privileges: ["SELECT"],
+    brandColumn: "id",
+    seed: async (brandId) => ({ id: brandId }),
+    attempt: (_brandId, userId) => ({ name: "Made directly", created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
+  memberships: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ brand_id: brandId, user_id: ownerId }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, user_id: userId, role: "owner" }),
+    change: { role: "owner" },
+  },
+  files: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const row = {
+        id: randomUUID(),
+        brand_id: brandId,
+        bucket: "uploads",
+        path: filePath(brandId),
+        kind: "artwork",
+        content_type: "image/png",
+        bytes: 10,
+        created_by: ownerId,
+      };
+      must(await adminClient().from("files").insert(row).select("id"));
+      return { id: row.id };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      bucket: "uploads",
+      path: filePath(brandId),
+      kind: "artwork",
+      content_type: "image/png",
+      bytes: 10,
+      created_by: userId,
+    }),
+    change: { kind: "photo" },
+  },
+};
+
+const BUCKETS = ["exports", "images", "uploads"] as const;
+
+/** Functions a browser may call, and who may call them. Everything else is refused. */
+const CALLABLE = {
+  signup_is_open: { anon: true, authenticated: true },
+  create_brand: { anon: false, authenticated: true },
+  rename_brand: { anon: false, authenticated: true },
+} as const;
+
+type Report = Readonly<{
+  tables: { name: string; rls_enabled: boolean; client_privileges: string[] }[];
+  buckets: { id: string; public: boolean }[];
+  storage_policies: { name: string; command: string }[];
+  functions: {
+    name: string;
+    security_definer: boolean;
+    fixed_search_path: boolean;
+    anon: boolean;
+    authenticated: boolean;
+  }[];
+}>;
+
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64",
+);
+
+let report: Report;
+let alice: Person;
+let bob: Person;
+let aliceBrand: string;
+let bobBrand: string;
+
+const rowsAsServer = async (table: string, keys: Row): Promise<Row[]> =>
+  must(await adminClient().from(table).select("*").match(keys));
+
+const rowAsServer = async (table: string, keys: Row): Promise<Row | undefined> =>
+  (await rowsAsServer(table, keys))[0];
+
+beforeAll(async () => {
+  report = must(await adminClient().rpc("security_report")) as Report;
+  [alice, bob] = await Promise.all([person("alice"), person("bob")]);
+  aliceBrand = await brandOf(alice, "Alice Athletic");
+  bobBrand = await brandOf(bob, "Bob's Boots");
+});
+
+describe("what exists", () => {
+  it("has row level security on every table", () => {
+    expect(report.tables.filter((table) => !table.rls_enabled).map((table) => table.name)).toEqual(
+      [],
+    );
+  });
+
+  it("has a test below for every table, and no test for a table that is gone", () => {
+    expect(report.tables.map((table) => table.name).sort()).toEqual(Object.keys(TABLES).sort());
+  });
+
+  it("lets a browser do to each table only what is written down here", () => {
+    for (const table of report.tables) {
+      expect([table.name, table.client_privileges]).toEqual([
+        table.name,
+        [...TABLES[table.name].privileges].sort(),
+      ]);
+    }
+  });
+
+  it("has only private buckets, each with a test below", () => {
+    expect(report.buckets).toEqual(BUCKETS.map((id) => ({ id, public: false })));
+  });
+
+  it("gives browsers no way to write to storage", () => {
+    expect(report.storage_policies.map((policy) => policy.command)).toEqual(["select"]);
+  });
+
+  it("lets a browser call only the functions written down here", () => {
+    const callable = Object.fromEntries(
+      report.functions
+        .filter((fn) => fn.anon || fn.authenticated)
+        .map((fn) => [fn.name, { anon: fn.anon, authenticated: fn.authenticated }]),
+    );
+
+    expect(callable).toEqual(CALLABLE);
+  });
+
+  it("fixes the search path of every function that runs with its owner's rights", () => {
+    expect(
+      report.functions
+        .filter((fn) => fn.security_definer && !fn.fixed_search_path)
+        .map((fn) => fn.name),
+    ).toEqual([]);
+  });
+
+  it("does not show this report to a browser", async () => {
+    expect((await anonClient().rpc("security_report")).error).not.toBeNull();
+    expect((await alice.client.rpc("security_report")).error).not.toBeNull();
+  });
+});
+
+describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
+  let theirs: Row;
+  let before: Row | undefined;
+
+  beforeAll(async () => {
+    theirs = await spec.seed(bobBrand, bob.userId);
+    await spec.seed(aliceBrand, alice.userId);
+    before = await rowAsServer(table, theirs);
+    expect(before).toBeDefined();
+  });
+
+  it("shows a member their own brand's rows", async () => {
+    const rows = must(await alice.client.from(table).select("*"));
+
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => row[spec.brandColumn] === aliceBrand)).toBe(true);
+  });
+
+  it("shows a member nothing of another brand", async () => {
+    const all = must(await alice.client.from(table).select("*"));
+    const asked = must(await alice.client.from(table).select("*").match(theirs));
+
+    expect(all.some((row) => row[spec.brandColumn] === bobBrand)).toBe(false);
+    expect(asked).toEqual([]);
+  });
+
+  it("shows a visitor who is not signed in nothing", async () => {
+    const { data, error } = await anonClient().from(table).select("*");
+
+    expect(error !== null || data?.length === 0).toBe(true);
+  });
+
+  it("lets a member add nothing to another brand", async () => {
+    const { error } = await alice.client.from(table).insert(spec.attempt(bobBrand, alice.userId));
+
+    expect(error).not.toBeNull();
+  });
+
+  it("lets a member add nothing directly, even to their own brand", async () => {
+    const { error } = await alice.client
+      .from(table)
+      .insert(spec.attempt(aliceBrand, alice.userId));
+
+    expect(error).not.toBeNull();
+  });
+
+  it("lets a member change nothing of another brand", async () => {
+    await alice.client.from(table).update(spec.change).match(theirs);
+
+    expect(await rowAsServer(table, theirs)).toEqual(before);
+  });
+
+  it("lets a member delete nothing of another brand", async () => {
+    await alice.client.from(table).delete().match(theirs);
+
+    expect(await rowAsServer(table, theirs)).toEqual(before);
+  });
+
+  it("lets a member change or delete nothing of their own brand directly", async () => {
+    const mine = { [spec.brandColumn]: aliceBrand };
+    const mineBefore = await rowsAsServer(table, mine);
+
+    await alice.client.from(table).update(spec.change).match(mine);
+    await alice.client.from(table).delete().match(mine);
+
+    expect(await rowsAsServer(table, mine)).toEqual(mineBefore);
+  });
+});
+
+describe("memberships", () => {
+  it("does not let a member join another brand", async () => {
+    await alice.client
+      .from("memberships")
+      .insert({ brand_id: bobBrand, user_id: alice.userId, role: "owner" });
+
+    expect(must(await alice.client.from("brands").select("id"))).toEqual([{ id: aliceBrand }]);
+  });
+
+  it("does not let a member change their own role", async () => {
+    await alice.client
+      .from("memberships")
+      .update({ role: "admin" })
+      .eq("brand_id", aliceBrand)
+      .eq("user_id", alice.userId);
+
+    expect(
+      await rowAsServer("memberships", { brand_id: aliceBrand, user_id: alice.userId }),
+    ).toMatchObject({ role: "owner" });
+  });
+
+  it("does not show a member who else belongs to other brands", async () => {
+    const rows = must(await alice.client.from("memberships").select("user_id"));
+
+    expect(rows).toEqual([{ user_id: alice.userId }]);
+  });
+});
+
+describe.each(BUCKETS)("bucket %s", (bucket) => {
+  const type = bucket === "exports" ? "application/pdf" : "image/png";
+  let theirs: string;
+  let mine: string;
+
+  beforeAll(async () => {
+    theirs = `${bobBrand}/test/${randomUUID()}`;
+    mine = `${aliceBrand}/test/${randomUUID()}`;
+    for (const path of [theirs, mine]) {
+      must(await adminClient().storage.from(bucket).upload(path, PNG, { contentType: type }));
+    }
+  });
+
+  it("lets a member read their own brand's file", async () => {
+    const { data, error } = await alice.client.storage.from(bucket).download(mine);
+
+    expect(error).toBeNull();
+    expect(data?.size).toBe(PNG.byteLength);
+  });
+
+  it("does not let a member read another brand's file", async () => {
+    const { data, error } = await alice.client.storage.from(bucket).download(theirs);
+
+    expect(error).not.toBeNull();
+    expect(data).toBeNull();
+  });
+
+  it("does not give a member a link to another brand's file", async () => {
+    const { data, error } = await alice.client.storage.from(bucket).createSignedUrl(theirs, 60);
+
+    expect(error).not.toBeNull();
+    expect(data?.signedUrl).toBeUndefined();
+  });
+
+  it("does not list another brand's files", async () => {
+    const { data } = await alice.client.storage.from(bucket).list(`${bobBrand}/test`);
+
+    expect(data ?? []).toEqual([]);
+  });
+
+  it("serves nothing at a public address", async () => {
+    const { data } = adminClient().storage.from(bucket).getPublicUrl(theirs);
+
+    expect((await fetch(data.publicUrl)).ok).toBe(false);
+  });
+
+  it("lets a browser upload nothing, not even into its own brand's folder", async () => {
+    const into = (brandId: string) =>
+      alice.client.storage
+        .from(bucket)
+        .upload(`${brandId}/test/${randomUUID()}`, PNG, { contentType: type });
+
+    expect((await into(bobBrand)).error).not.toBeNull();
+    expect((await into(aliceBrand)).error).not.toBeNull();
+  });
+
+  it("lets a member replace, move or delete nothing of another brand", async () => {
+    const files = alice.client.storage.from(bucket);
+
+    await files.update(theirs, Buffer.from("replaced"), { contentType: type });
+    await files.move(theirs, `${aliceBrand}/test/stolen-${randomUUID()}`);
+    await files.remove([theirs]);
+
+    const kept = must(await adminClient().storage.from(bucket).download(theirs));
+    expect(Buffer.from(await kept.arrayBuffer())).toEqual(PNG);
+  });
+
+  it("shows a visitor who is not signed in nothing", async () => {
+    expect((await anonClient().storage.from(bucket).download(mine)).error).not.toBeNull();
+  });
+
+  it("treats a path that does not start with a brand id as belonging to nobody", async () => {
+    const stray = `not-a-brand/${randomUUID()}`;
+    must(await adminClient().storage.from(bucket).upload(stray, PNG, { contentType: type }));
+
+    expect((await alice.client.storage.from(bucket).download(stray)).error).not.toBeNull();
+  });
+});

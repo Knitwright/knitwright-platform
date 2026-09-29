@@ -40,6 +40,17 @@ describe("nextFormState", () => {
     expect(state.values).toEqual({ email: "maker@example.com" });
   });
 
+  it("keeps a name that was typed", async () => {
+    const state = await nextFormState(
+      start,
+      form({ name: "Northfield FC" }),
+      async () => ({ success: true, data: "saved" }),
+      noRethrow,
+    );
+
+    expect(state.values).toEqual({ name: "Northfield FC" });
+  });
+
   it("never keeps a password", async () => {
     const state = await nextFormState(
       start,

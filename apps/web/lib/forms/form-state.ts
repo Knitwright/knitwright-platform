@@ -16,7 +16,7 @@ export type FormState<T> = Readonly<{
 }>;
 
 /** Only these are kept. A password is never held in the page's state. */
-const KEPT_FIELDS = ["email"] as const;
+const KEPT_FIELDS = ["email", "name"] as const;
 
 const UNREACHABLE: Failure = {
   code: "unavailable",

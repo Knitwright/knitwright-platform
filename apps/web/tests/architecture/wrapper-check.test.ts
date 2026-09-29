@@ -227,6 +227,22 @@ describe("checkWrappers, public allow list", () => {
     ]);
   });
 
+  it("accepts a route for members of a brand", () => {
+    const text = `
+      import { defineRoute } from "@/lib/server/define-route";
+      export const GET = defineRoute({ auth: "member", rateLimit: R, schema: {}, handler: h });
+    `;
+    expect(rules([route(text)])).toEqual([]);
+  });
+
+  it("rejects a kind of auth that does not exist", () => {
+    const text = `
+      import { defineRoute } from "@/lib/server/define-route";
+      export const GET = defineRoute({ auth: "anyone", rateLimit: R, schema: {}, handler: h });
+    `;
+    expect(rules([route(text)])).toEqual(["auth-not-literal"]);
+  });
+
   it("requires auth to be written out, so it can be read without running the code", () => {
     const computed = `
       import { defineRoute } from "@/lib/server/define-route";
@@ -262,5 +278,84 @@ describe("checkWrappers, report", () => {
       rule: "route-not-wrapped",
     });
     expect(violation.detail).toContain("GET");
+  });
+});
+
+describe("checkWrappers, pages that need a session", () => {
+  const page = (text: string, path = "app/(app)/studio/page.tsx"): SourceText => ({ path, text });
+
+  const GUARDED = `
+    import { requireMember } from "@/lib/server/page-guards";
+    export default async function Page() {
+      const { brand } = await requireMember();
+      return <p>{brand.name}</p>;
+    }
+  `;
+
+  it("accepts a studio page that checks for a member itself", () => {
+    expect(rules([page(GUARDED)])).toEqual([]);
+  });
+
+  it("rejects a studio page that relies on its layout to check", () => {
+    const text = `export default function Page() { return <p>Designs</p>; }`;
+    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("rejects a studio page that imports the check but never calls it", () => {
+    const text = `
+      import { requireMember } from "@/lib/server/page-guards";
+      export default function Page() { return <p>Designs</p>; }
+    `;
+    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("rejects a check that only shares the name", () => {
+    const text = `
+      const requireMember = async () => ({});
+      export default async function Page() { await requireMember(); return null; }
+    `;
+    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("rejects a studio page that checks for a session only, since it also needs a brand", () => {
+    const text = `
+      import { requireSession } from "@/lib/server/page-guards";
+      export default async function Page() { await requireSession(); return null; }
+    `;
+    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("checks layouts in the studio as well as pages", () => {
+    const text = `export default function Layout({ children }) { return children; }`;
+    expect(rules([page(text, "app/(app)/layout.tsx")])).toEqual(["page-not-guarded"]);
+  });
+
+  it("lets a page shown before a brand exists check for a session only", () => {
+    const text = `
+      import { requireSession } from "@/lib/server/page-guards";
+      export default async function Page() { await requireSession(); return null; }
+    `;
+    expect(rules([page(text, "app/(onboarding)/welcome/page.tsx")])).toEqual([]);
+    expect(
+      rules([
+        page(`export default function Page() { return null; }`, "app/(onboarding)/welcome/page.tsx"),
+      ]),
+    ).toEqual(["page-not-guarded"]);
+  });
+
+  it("leaves public pages and pieces of pages alone", () => {
+    const text = `export default function Page() { return null; }`;
+    expect(rules([page(text, "app/page.tsx")])).toEqual([]);
+    expect(rules([page(text, "app/(auth)/sign-in/page.tsx")])).toEqual([]);
+    expect(rules([page(text, "app/(app)/studio/DesignCard.tsx")])).toEqual([]);
+  });
+
+  it("names the file and the check it needs", () => {
+    const [violation] = checkWrappers(
+      [page(`export default function Page() { return null; }`)],
+      [],
+    );
+    expect(violation.file).toBe("app/(app)/studio/page.tsx");
+    expect(violation.detail).toContain("requireMember");
   });
 });

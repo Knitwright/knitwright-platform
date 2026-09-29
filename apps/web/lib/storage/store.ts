@@ -1,0 +1,79 @@
+import { randomUUID } from "node:crypto";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { checkImage } from "./image";
+
+/**
+ * The one way a file enters storage. The image is checked and rewritten first, then
+ * written by the server: browsers have no right to write to storage themselves.
+ *
+ * The caller must already have confirmed that the user belongs to the brand. The
+ * request wrappers do that for every route with `auth: "member"`.
+ */
+
+export const IMAGE_KINDS = ["artwork", "sketch", "photo"] as const;
+
+export type ImageKind = (typeof IMAGE_KINDS)[number];
+
+const BUCKET = "uploads";
+
+export type StoreImageInput = Readonly<{
+  /** Full access. Used to write the file and its record. */
+  admin: SupabaseClient;
+  brandId: string;
+  userId: string;
+  kind: ImageKind;
+  bytes: Uint8Array;
+  /** The type the browser stated. The content decides, this only has to be allowed. */
+  statedType: string;
+}>;
+
+export type StoredFile = Readonly<{
+  id: string;
+  brandId: string;
+  kind: ImageKind;
+  contentType: string;
+  bytes: number;
+  width: number;
+  height: number;
+}>;
+
+export const storeImage = async (input: StoreImageInput): Promise<StoredFile> => {
+  const image = await checkImage(input.bytes, input.statedType);
+  const id = randomUUID();
+  const path = `${input.brandId}/${input.kind}/${id}.${image.extension}`;
+  const files = input.admin.storage.from(BUCKET);
+
+  const upload = await files.upload(path, image.bytes, {
+    contentType: image.contentType,
+    upsert: false,
+  });
+  if (upload.error) throw new Error("The file could not be stored.", { cause: upload.error });
+
+  const record = await input.admin.from("files").insert({
+    id,
+    brand_id: input.brandId,
+    bucket: BUCKET,
+    path,
+    kind: input.kind,
+    content_type: image.contentType,
+    bytes: image.bytes.byteLength,
+    width: image.width,
+    height: image.height,
+    created_by: input.userId,
+  });
+  if (record.error) {
+    // A file with no record could never be found again. Remove it.
+    await files.remove([path]);
+    throw new Error("The file's record could not be written.", { cause: record.error });
+  }
+
+  return {
+    id,
+    brandId: input.brandId,
+    kind: input.kind,
+    contentType: image.contentType,
+    bytes: image.bytes.byteLength,
+    width: image.width,
+    height: image.height,
+  };
+};

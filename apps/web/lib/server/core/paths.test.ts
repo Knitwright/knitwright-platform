@@ -8,6 +8,13 @@ describe("redirectFor", () => {
     expect(redirectFor("/reset-password", false)).toBe(SIGN_IN_PATH);
   });
 
+  it("sends a visitor who is not signed in away from the brand pages", () => {
+    expect(redirectFor("/welcome", false)).toBe(SIGN_IN_PATH);
+    expect(redirectFor("/brands", false)).toBe(SIGN_IN_PATH);
+    expect(redirectFor("/welcome", true)).toBeNull();
+    expect(redirectFor("/brands", true)).toBeNull();
+  });
+
   it("lets a signed-in user into the studio", () => {
     expect(redirectFor("/studio", true)).toBeNull();
     expect(redirectFor("/reset-password", true)).toBeNull();

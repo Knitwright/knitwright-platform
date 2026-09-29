@@ -1,15 +1,19 @@
 import "server-only";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
-import { getEnv } from "@/lib/config/env";
+import { cache } from "react";
 import type { AuthContext } from "@/lib/auth/service";
+import { ACTIVE_BRAND_COOKIE, chooseActiveBrand } from "@/lib/brands/active";
+import { listBrands } from "@/lib/brands/service";
+import { getEnv } from "@/lib/config/env";
 import {
   createAdminClient,
   createSessionClient,
   type CookieAdapter,
 } from "@/lib/supabase/clients";
+import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
 import { clientAddress } from "./core/client-address";
-import type { GuardDeps, Session } from "./core/guard";
+import type { Brand, GuardDeps, Session } from "./core/guard";
 import { log } from "./log";
 import { createRateLimiter } from "./rate-limit";
 import { readSession } from "./session";
@@ -45,8 +49,32 @@ export const adminClient = () => {
   return admin;
 };
 
-export const currentSession = async (): Promise<Session | null> =>
-  readSession(await sessionClient());
+/** The signed-in user, read once for each request. */
+export const currentSession = cache(
+  async (): Promise<Session | null> => readSession(await sessionClient()),
+);
+
+/** Every brand the signed-in user belongs to, read once for each request. */
+export const currentBrands = cache(
+  async (): Promise<Brand[]> => listBrands(await sessionClient()),
+);
+
+/**
+ * The brand the user is working in. The cookie only says which one they prefer. The
+ * database says which ones they belong to, on every request.
+ */
+export const activeBrand = async (): Promise<Brand | null> =>
+  chooseActiveBrand(await currentBrands(), (await cookies()).get(ACTIVE_BRAND_COOKIE)?.value);
+
+const ONE_YEAR_IN_SECONDS = 60 * 60 * 24 * 365;
+
+/** Remembers, in this browser, which brand the user wants to work in. */
+export const rememberActiveBrand = async (brandId: string): Promise<void> => {
+  (await cookies()).set(ACTIVE_BRAND_COOKIE, brandId, {
+    ...sessionCookieOptions(getEnv().NEXT_PUBLIC_SITE_URL),
+    maxAge: ONE_YEAR_IN_SECONDS,
+  });
+};
 
 export const authContext = async (): Promise<AuthContext> => {
   const env = getEnv();
@@ -60,6 +88,7 @@ export const authContext = async (): Promise<AuthContext> => {
 
 export const productionDeps: GuardDeps = {
   getSession: currentSession,
+  getActiveBrand: activeBrand,
   getClientAddress: async () => clientAddress(await headers(), getEnv().CLIENT_ADDRESS_HEADER),
   hitRateLimit: (key, rule) => createRateLimiter(adminClient())(key, rule),
   log,

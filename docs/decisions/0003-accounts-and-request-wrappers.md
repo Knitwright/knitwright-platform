@@ -129,5 +129,4 @@ Found while testing, and worth knowing:
 |---|---|
 | A script policy with a nonce for each request | Step 26, launch hardening |
 | A sign-in limit for each account as well as each address. It stops guessing spread over many addresses, but lets a stranger lock someone out. | Step 26, with alerting |
-| Every page under the studio checking the session itself, not only the layout | Step 3, with `verifySession()` |
 | Tests for the React form components themselves. Their logic is tested in `lib/forms`, their behaviour in the browser tests. | When a component test setup is added |

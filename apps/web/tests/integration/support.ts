@@ -40,9 +40,13 @@ export const uniqueEmail = (label = "user"): string =>
 
 export const uniqueKey = (label = "key"): string => `${label}:${randomUUID()}`;
 
-export const must = <T>(result: { data: T; error: { message: string } | null }): T => {
+/** The data of a call that must not fail. */
+export const must = <T>(result: {
+  data: T;
+  error: { message: string } | null;
+}): NonNullable<T> => {
   if (result.error) throw new Error(result.error.message);
-  return result.data;
+  return result.data as NonNullable<T>;
 };
 
 /** Signs up through the public API, as a browser would. Returns the error message, if any. */
@@ -133,3 +137,27 @@ export const settings = (siteUrl = "http://localhost:3000") => ({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: required("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
   SUPABASE_SECRET_KEY: required("SUPABASE_SECRET_KEY"),
 });
+
+export type Person = Readonly<{
+  email: string;
+  userId: string;
+  /** Acts as this person, as their browser would. Row level security applies. */
+  client: SupabaseClient;
+}>;
+
+/** A confirmed, signed-in person with no brands yet. */
+export const person = async (label: string): Promise<Person> => {
+  const email = await createConfirmedUser(label);
+  const client = anonClient();
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password: PASSWORD,
+    options: { captchaToken: CAPTCHA_TOKEN },
+  });
+  if (error || !data.user) throw new Error(error?.message ?? "Sign-in returned no user.");
+  return { email, userId: data.user.id, client };
+};
+
+/** Creates a brand as this person and returns its id. */
+export const brandOf = async (owner: Person, name: string): Promise<string> =>
+  must(await owner.client.rpc("create_brand", { p_name: name }));

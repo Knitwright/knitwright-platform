@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import { FAILURE_STATUS, MESSAGES, type Failure, type FieldErrors, type Result } from "./errors";
+import { FAILURE_STATUS, type Failure, type FieldErrors, type Result } from "./errors";
 import {
   admit,
   failureFrom,
@@ -10,13 +10,17 @@ import {
   type RateLimitRule,
   type SessionFor,
 } from "./guard";
+import { readForm, readJson, type BodyRead } from "./request-body";
 
 const DEFAULT_MAX_BODY_BYTES = 1_000_000;
 
 export type RouteSchemas = Readonly<{
   params?: z.ZodType;
   query?: z.ZodType;
+  /** A JSON body. */
   body?: z.ZodType;
+  /** A form that may carry files. Used for uploads. */
+  form?: z.ZodType;
 }>;
 
 type InputOf<S extends RouteSchemas> = {
@@ -28,7 +32,7 @@ export type RouteConfig<A extends Auth, S extends RouteSchemas, T> = Readonly<{
   auth: A;
   rateLimit: RateLimitRule;
   schema: S;
-  /** Largest JSON body accepted, in bytes. */
+  /** Largest body or form accepted, in bytes. */
   maxBodyBytes?: number;
   handler: (context: {
     input: InputOf<S>;
@@ -42,6 +46,10 @@ export type RouteContext = Readonly<{
 }>;
 
 export type RouteHandler = (request: Request, context: RouteContext) => Promise<Response>;
+
+const PARTS = ["params", "query", "body", "form"] as const;
+
+type Part = (typeof PARTS)[number];
 
 const json = <T>(result: Result<T>, status: number, headers: Record<string, string> = {}) =>
   Response.json(result, { status, headers: { "cache-control": "no-store", ...headers } });
@@ -59,48 +67,16 @@ const queryOf = (request: Request): Record<string, string | string[]> => {
   );
 };
 
-/**
- * Reads the body as text, piece by piece, and gives up as soon as it passes the limit.
- * A body that declares no length, or lies about it, is never held in memory whole.
- * Returns null when the body is over the limit.
- */
-const readTextUpTo = async (request: Request, maxBytes: number): Promise<string | null> => {
-  if (!request.body) return "";
-  const reader = request.body.getReader();
-  const decoder = new TextDecoder();
-  let text = "";
-  let received = 0;
-
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) return text + decoder.decode();
-    received += value.byteLength;
-    if (received > maxBytes) {
-      await reader.cancel();
-      return null;
-    }
-    text += decoder.decode(value, { stream: true });
-  }
-};
-
-type BodyRead =
-  | Readonly<{ ok: true; value: unknown }>
-  | Readonly<{ ok: false; failure: Failure }>;
-
-const readBody = async (request: Request, maxBytes: number): Promise<BodyRead> => {
-  const tooLarge: BodyRead = {
-    ok: false,
-    failure: { code: "too_large", message: MESSAGES.too_large },
-  };
-  // The declared length lets an oversized body be refused before it is read.
-  if (Number(request.headers.get("content-length") ?? 0) > maxBytes) return tooLarge;
-  const text = await readTextUpTo(request, maxBytes);
-  if (text === null) return tooLarge;
-  try {
-    return { ok: true, value: JSON.parse(text) };
-  } catch {
-    return { ok: false, failure: invalidInput({ body: ["The request body is not valid JSON."] }) };
-  }
+/** What the request carries for one part, before it is checked against the schema. */
+const readPart = async (
+  part: Part,
+  request: Request,
+  context: RouteContext,
+  maxBodyBytes: number,
+): Promise<BodyRead> => {
+  if (part === "params") return { ok: true, value: await context.params };
+  if (part === "query") return { ok: true, value: queryOf(request) };
+  return part === "body" ? readJson(request, maxBodyBytes) : readForm(request, maxBodyBytes);
 };
 
 type Parsed =
@@ -113,28 +89,25 @@ const parseInput = async (
   context: RouteContext,
   maxBodyBytes: number,
 ): Promise<Parsed> => {
-  const raw: Record<string, unknown> = {};
-  if (schemas.params) raw.params = await context.params;
-  if (schemas.query) raw.query = queryOf(request);
-  if (schemas.body) {
-    const body = await readBody(request, maxBodyBytes);
-    if (!body.ok) return body;
-    raw.body = body.value;
-  }
+  const checked: { part: Part; data?: unknown; errors?: FieldErrors }[] = [];
 
-  const input: Record<string, unknown> = {};
-  let errors: FieldErrors = {};
-  for (const part of ["params", "query", "body"] as const) {
+  for (const part of PARTS) {
     const schema = schemas[part];
     if (!schema) continue;
-    const result = schema.safeParse(raw[part]);
-    if (result.success) input[part] = result.data;
-    else errors = { ...errors, ...fieldErrors(result.error.issues, part) };
+    const read = await readPart(part, request, context, maxBodyBytes);
+    if (!read.ok) return read;
+    const result = schema.safeParse(read.value);
+    checked.push(
+      result.success
+        ? { part, data: result.data }
+        : { part, errors: fieldErrors(result.error.issues, part) },
+    );
   }
 
+  const errors = Object.assign({}, ...checked.map((entry) => entry.errors ?? {})) as FieldErrors;
   return Object.keys(errors).length > 0
     ? { ok: false, failure: invalidInput(errors) }
-    : { ok: true, input };
+    : { ok: true, input: Object.fromEntries(checked.map(({ part, data }) => [part, data])) };
 };
 
 /**

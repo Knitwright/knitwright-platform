@@ -37,8 +37,14 @@ test.describe("accounts", () => {
 
     await page.getByLabel("New password").fill(PASSWORD);
     await page.getByRole("button", { name: "Save password" }).click();
+
+    // Someone new has no brand yet, so they are asked to name one first.
+    await expect(page).toHaveURL(/\/welcome$/);
+    await page.getByLabel("Brand name").fill("Northfield FC");
+    await page.getByRole("button", { name: "Create brand" }).click();
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("account-email")).toHaveText(email);
+    await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
