@@ -1,4 +1,4 @@
-# Owner action A5: size charts for tops
+# Owner action A5: size charts for every garment family
 
 The platform needs your numbers before it can show a measurement table. It will not make
 them up. This page says exactly what to send.
@@ -14,7 +14,7 @@ your own sheets in any layout and say which column is which.
 | Column | Meaning | Example |
 |---|---|---|
 | `wearer` | `men`, `women` or `youth` | `men` |
-| `garment_type` | `crew-tee`, `v-neck-tee`, `long-sleeve-tee`, `polo` or `team-jersey` | `crew-tee` |
+| `garment_type` | Tops: `crew-tee`, `v-neck-tee`, `long-sleeve-tee`, `polo`, `team-jersey`. Bottoms: `shorts`, `joggers`, `leggings`, `track-pants`. | `crew-tee` |
 | `fit` | Leave empty if you have one fit. Otherwise `slim`, `regular` or `relaxed`. | `regular` |
 | `point_of_measure` | One of the names in the list below | `chest-width` |
 | `base_size` | The size you grade from | `M` |
@@ -48,6 +48,25 @@ Also send, once for each wearer:
 | `collar-height` | Tops with a collar |
 | `placket-length` | Tops with a placket |
 | `placket-width` | Tops with a placket |
+
+## Points of measure for bottoms
+
+Shorts, joggers, leggings and track pants. Leggings have no fit choice, so leave `fit`
+empty for them.
+
+| Name | Needed for |
+|---|---|
+| `waist-relaxed` | Every pair, measured without stretching |
+| `waist-stretched` | Every pair, measured stretched as far as it goes |
+| `waistband-height` | Every pair |
+| `hip` | Every pair |
+| `front-rise` | Every pair |
+| `back-rise` | Every pair |
+| `thigh` | Every pair |
+| `knee` | Cropped and full length legs. Shorts end above the knee. |
+| `leg-opening` | Every pair |
+| `inseam` | Every pair (inside leg) |
+| `outseam` | Every pair (outside leg, from the top of the waistband) |
 
 ## What happens to the numbers
 

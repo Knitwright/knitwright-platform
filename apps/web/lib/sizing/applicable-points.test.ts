@@ -25,10 +25,23 @@ describe("pointsThatCanApply", () => {
     expect(ids).toContain("placket-width");
   });
 
-  it("gives every type at least the points every top has", () => {
-    for (const type of listTypes()) {
+  it("gives every top at least the points every top has", () => {
+    for (const type of listTypes("tops")) {
       expect(pointsThatCanApply(type).length).toBeGreaterThanOrEqual(11);
     }
+  });
+
+  it("gives every type of every family some points, all of them its own", () => {
+    for (const type of listTypes()) {
+      const ids = pointsThatCanApply(type).map((point) => point.id);
+      expect(ids.length, type.id).toBeGreaterThanOrEqual(8);
+      for (const id of ids) expect(type.pointsOfMeasure.some((point) => point.id === id)).toBe(true);
+    }
+  });
+
+  it("leaves the knee out of shorts, which end above it", () => {
+    expect(idsFor("shorts")).not.toContain("knee");
+    expect(idsFor("joggers")).toContain("knee");
   });
 });
 

@@ -47,7 +47,7 @@ const conditionsSchema = z.array(conditionSchema).readonly();
  * Sections for laying out a measurement table. Tolerances and grade steps do not belong
  * in the registry. They live in the size chart data, keyed by point of measure id.
  */
-export const POINT_GROUPS = ["body", "sleeve", "neck", "placket"] as const;
+export const POINT_GROUPS = ["body", "sleeve", "neck", "placket", "waist", "rise", "leg"] as const;
 export const pointGroupSchema = z.enum(POINT_GROUPS);
 export type PointGroup = z.output<typeof pointGroupSchema>;
 export const POINT_GROUP_LABELS: Readonly<Record<PointGroup, string>> = {
@@ -55,6 +55,9 @@ export const POINT_GROUP_LABELS: Readonly<Record<PointGroup, string>> = {
   sleeve: "Sleeve",
   neck: "Neck and collar",
   placket: "Placket",
+  waist: "Waist and hip",
+  rise: "Rise",
+  leg: "Leg",
 };
 
 export const pointOfMeasureSchema = z

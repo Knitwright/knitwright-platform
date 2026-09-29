@@ -13,7 +13,7 @@ const offered = (typeId: string, optionId: string): string[] =>
   ids(type(typeId).options.find((option) => option.id === optionId)?.choices ?? []);
 
 describe("tops registry", () => {
-  it("has the five tops types and no types in the other families yet", () => {
+  it("has the five tops types", () => {
     expect(ids(listTypes("tops"))).toEqual([
       "crew-tee",
       "v-neck-tee",
@@ -22,9 +22,6 @@ describe("tops registry", () => {
       "team-jersey",
     ]);
     expect(ids(listFamilies())).toEqual(["tops", "bottoms", "outerwear", "close-fitting"]);
-    for (const family of ["bottoms", "outerwear", "close-fitting"] as const) {
-      expect(listTypes(family)).toEqual([]);
-    }
   });
 
   it("applies men, women and youth charts to every tops type", () => {
@@ -110,13 +107,14 @@ describe("tops registry", () => {
     expect(defaultOf("long-sleeve-tee", "sleeve-length")).toBe("long");
   });
 
-  it("puts every point of measure in one of four groups, each with a label", () => {
+  it("puts every tops point of measure in one of four groups, and every group has a label", () => {
     const groupOf = (id: string) => TOPS.pointsOfMeasure.find((point) => point.id === id)?.group;
     expect(groupOf("chest-width")).toBe("body");
     expect(groupOf("armhole")).toBe("sleeve");
     expect(groupOf("front-neck-drop")).toBe("neck");
     expect(groupOf("placket-width")).toBe("placket");
-    expect(Object.keys(POINT_GROUP_LABELS).sort()).toEqual(["body", "neck", "placket", "sleeve"]);
+    expect(new Set(TOPS.pointsOfMeasure.map((point) => point.group))).toEqual(new Set(["body", "neck", "placket", "sleeve"]));
+    for (const label of Object.values(POINT_GROUP_LABELS)) expect(label.length).toBeGreaterThan(0);
   });
 
   it("keeps labels short and explains the harder ones in a help sentence", () => {

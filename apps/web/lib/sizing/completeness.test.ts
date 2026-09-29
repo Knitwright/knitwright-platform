@@ -11,11 +11,11 @@ describe("chartCompleteness", () => {
   it("lists every garment type and wearer and says none has a chart when there are no charts", () => {
     const report = chartCompleteness();
     expect(report.entries).toHaveLength(PAIR_COUNT);
-    expect(PAIR_COUNT).toBe(15);
+    expect(listTypes("tops").reduce((total, type) => total + type.wearers.length, 0)).toBe(15);
     expect(report.entries.every((entry) => !entry.hasChart)).toBe(true);
     expect(report.complete).toBe(false);
     expect(report.withChart).toBe(0);
-    expect(report.summary).toBe("0 of 15 garment and wearer pairs have a size chart. 15 still need one.");
+    expect(report.summary).toBe(`0 of ${PAIR_COUNT} garment and wearer pairs have a size chart. ${PAIR_COUNT} still need one.`);
     expect(report.entries[0]?.message).toContain("No size chart yet");
   });
 
@@ -36,7 +36,7 @@ describe("chartCompleteness", () => {
   it("is complete when every pair has a chart", () => {
     const report = chartCompleteness(MADE_UP_CHART_SET);
     expect(report.complete).toBe(true);
-    expect(report.summary).toBe("15 of 15 garment and wearer pairs have a size chart. 0 still need one.");
+    expect(report.summary).toBe(`${PAIR_COUNT} of ${PAIR_COUNT} garment and wearer pairs have a size chart. 0 still need one.`);
     expect(report.entries[0]?.message).toContain("chart");
   });
 });

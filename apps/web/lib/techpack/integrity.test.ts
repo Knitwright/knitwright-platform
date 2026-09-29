@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { PROVENANCE_VALUES, applyAction, type GarmentSpec } from "@/lib/garment";
+import { PROVENANCE_VALUES, applyAction, listTypes, type GarmentSpec } from "@/lib/garment";
 import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "./fixtures/designs";
@@ -88,6 +88,17 @@ describe("every value has a source (invariant I5)", () => {
       expectEveryValueHasASource(packFor(start(typeId)));
       expectEveryValueHasASource(packFor(fullDesign(typeId), { history: revisions(3) }));
       expectEveryValueHasASource(packFor(fullDesign(typeId), { charts: CHARTS }));
+    }
+  });
+
+  it("holds for every type of every other family, empty and sized, with and without a size chart", () => {
+    const others = listTypes().filter((type) => type.family !== "tops");
+    expect(others.length).toBeGreaterThan(0);
+    for (const { id } of others) {
+      const sized = { ...start(id), sizing: { sizes: ["S", "M", "L"], baseSize: "M" } };
+      expectEveryValueHasASource(packFor(start(id)));
+      expectEveryValueHasASource(packFor(sized));
+      expectEveryValueHasASource(packFor(start(id), { charts: CHARTS }));
     }
   });
 

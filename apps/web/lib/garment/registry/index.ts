@@ -1,6 +1,7 @@
 import type { FamilyData } from "../definitions";
 import { FAMILY_IDS, type FamilyId } from "../primitives";
 import { buildRegistry, type ResolvedType } from "./build";
+import { BOTTOMS } from "./bottoms";
 import { TOPS } from "./tops";
 
 export type { Registry, ResolvedOption, ResolvedType } from "./build";
@@ -31,12 +32,15 @@ const emptyFamily = (id: FamilyId, label: string): FamilyData => ({
 
 const FAMILIES: Readonly<Record<FamilyId, FamilyData>> = {
   tops: TOPS,
-  bottoms: emptyFamily("bottoms", "Bottoms"),
+  bottoms: BOTTOMS,
   outerwear: emptyFamily("outerwear", "Outerwear"),
   "close-fitting": emptyFamily("close-fitting", "Close fitting"),
 };
 
-const REGISTRY = buildRegistry(FAMILY_IDS.map((id) => FAMILIES[id]));
+/** The data of every family, in the order of `FAMILY_IDS`. Tests read it to check each family. */
+export const FAMILY_DATA: readonly FamilyData[] = FAMILY_IDS.map((id) => FAMILIES[id]);
+
+const REGISTRY = buildRegistry(FAMILY_DATA);
 
 export const getType = (id: string): ResolvedType | undefined => REGISTRY.getType(id);
 export const listTypes = (family?: FamilyId): readonly ResolvedType[] => [...REGISTRY.listTypes(family)];

@@ -108,3 +108,57 @@ The design implies these, and the user describes them. No quantity is ever propo
 - Rib appears twice in the document: as the fabric of the neckband and cuffs panels, and as a rib line. Should it appear once?
 - Any user-described extra component (an item the registry does not imply) is not supported yet.
 - Fabric consumption is one free text field on each fabric. Should consumption be for each panel group instead, or for the whole garment?
+
+## Bottoms (added in step 16)
+
+Every entry below is a starting proposal written without a garment professional. The
+owner confirms or changes each one with A5. Changing an answer is a data edit in
+`registry/bottoms/`.
+
+### Types and choices I made up
+
+- Types: shorts, joggers, leggings, track pants. Each is made for men, women and youth.
+- Leg length: short (above the knee), cropped (between knee and ankle), full. Shorts are short only, leggings cropped or full, joggers and track pants full only.
+- Waistband: elastic with drawcord, elastic with no drawcord, wide flat band. Leggings offer the wide band or elastic; the others offer the two elastic bands.
+- Leg opening: plain hem, ribbed cuffs, zip at the ankle. Joggers always have ribbed cuffs. Only track pants offer the ankle zip.
+- Gusset: none or a crotch gusset, offered on every type. Leggings start with one.
+- Side stripe: none or a contrast stripe down the outside of each leg, on every type.
+- Pockets: none, side seam pockets, zipped side pockets. Leggings offer no pockets. Should they offer a waistband or side phone pocket?
+- Leggings have no fit choice, because they are made to fit close. Is that right?
+- Panels that can be coloured: front of the legs, back of the legs (both legs together on each side), waistband, gusset, side stripes, cuffs. Should the left and right leg be separate panels?
+- Artwork anchors: left and right thigh, left and right lower leg (front); centre back below the waistband, back of each thigh (back). The waistband carries no artwork. Should it?
+- The drawcord is a component, not a coloured panel. Its colour is written in its description.
+
+### Impossible combinations
+
+- A zip at the ankle on a short leg is refused. No type offers both today, so the rule only guards a later change of which choices a type offers. Are there other combinations that cannot be made?
+
+### How to measure sentences a factory should check
+
+- Hip: "at the fullest part of the seat, where the front seam starts to curve in towards the legs". Factories usually give a set distance below the waist. Which?
+- Waist, stretched: "as far as it goes without straining the stitches". Confirm how a factory stretches it.
+- Thigh: "just below the point where the legs meet". Factories often give a set distance below the crotch.
+- Knee: "halfway down the inside leg seam". Some factories measure a set distance up from the hem, or down from the crotch.
+- Rise: measured along the curve of the seam, to the top of the waistband. Some factories measure to the waist seam instead.
+- Outside leg: from the top of the waistband. Confirm.
+
+### Construction and components (a factory must confirm every one)
+
+| Seam | Joins | When | Seam class | Stitch class |
+|---|---|---|---|---|
+| Front rise seam | front of the legs | always | 1 superimposed | 514 four thread overedge |
+| Back rise seam | back of the legs | always | 1 superimposed | 514 four thread overedge |
+| Inside leg seam | front and back of the legs | always | 1 superimposed | 514 four thread overedge |
+| Outside leg seam | front and back of the legs | no side stripe | 1 superimposed | 514 four thread overedge |
+| Side stripe seam | legs and side stripes | contrast stripe | 1 superimposed | 514 four thread overedge |
+| Gusset seam | gusset and legs | crotch gusset | 1 superimposed | 514 four thread overedge |
+| Waistband seam | waistband and legs | always | 1 superimposed | 514 four thread overedge |
+| Waistband casing | waistband | elastic waistbands | 6 edge finish | 406 two needle bottom cover stitch |
+| Leg hem | legs | plain hem or ankle zip | 6 edge finish | 406 two needle bottom cover stitch |
+| Cuff seam | legs and cuffs | ribbed cuffs | 1 superimposed | 514 four thread overedge |
+| Ankle zip seam | legs | ankle zip | 2 lapped | 301 lockstitch |
+| Side pocket seam | legs | side seam pockets | 1 superimposed | 514 four thread overedge |
+| Zipped pocket seam | front of the legs | zipped side pockets | 2 lapped | 301 lockstitch |
+
+- Leggings are often sewn with flat seams (flatlock) so no ridge sits against the skin. Today they get the same overlocked seams as joggers. Should leggings seams be flatlock by default? Close-fitting garments (step 22) offer a choice of seam type.
+- Components: thread and labels, waistband elastic (elastic waistbands), drawcord and drawcord exits (drawcord waistband; the exits are a proposal), cuff rib, ankle zips, pocket zips, pocket bags. Missing ideas: cord stoppers, cord tips, a key loop, reflective trims.
