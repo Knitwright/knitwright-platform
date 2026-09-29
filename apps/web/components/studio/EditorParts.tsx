@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
@@ -34,9 +35,17 @@ export function EditorHeader({ data, busy, onUndo }: HeaderProps) {
           {details.length > 0 ? <span>, {details.join(", ")}</span> : null}
         </p>
       </div>
-      <Button type="button" variant="secondary" disabled={data.undoTo === null || busy} onClick={onUndo}>
-        Undo
-      </Button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          href={`/studio/${data.projectId}/tech-pack`}
+          className="inline-flex h-11 items-center justify-center rounded-lg border border-hairline bg-surface px-5 text-[15px] font-semibold text-ink transition-colors hover:bg-shell"
+        >
+          Tech pack
+        </Link>
+        <Button type="button" variant="secondary" disabled={data.undoTo === null || busy} onClick={onUndo}>
+          Undo
+        </Button>
+      </div>
     </header>
   );
 }

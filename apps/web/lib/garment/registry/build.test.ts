@@ -31,6 +31,27 @@ const family: FamilyData = {
   rules: [
     { id: "no-polo", when: [{ option: "collar", in: ["polo-collar"] }], reason: "Not here." },
   ],
+  seams: [
+    {
+      id: "side-seam",
+      label: "Side seam",
+      panels: ["body-front"],
+      appliesWhen: [],
+      unlessWhen: [],
+      seamClass: "superimposed",
+      stitchClass: "lockstitch",
+    },
+  ],
+  components: [
+    {
+      id: "main-thread",
+      label: "Main thread",
+      kind: "thread",
+      help: "The thread.",
+      appliesWhen: [],
+      panels: ["body-front"],
+    },
+  ],
   types: [
     {
       id: "test-tee",
@@ -166,5 +187,50 @@ describe("registry build", () => {
     expect(registry.listTypes().map((entry) => entry.id)).toEqual(["test-tee"]);
     expect(registry.listTypes("bottoms")).toEqual([]);
     expect(registry.listTypes("tops")).toHaveLength(1);
+  });
+
+  describe("seams and components", () => {
+    const seam = family.seams[0] as FamilyData["seams"][number];
+    const slot = family.components[0] as FamilyData["components"][number];
+    const withSeam = (patch: Record<string, unknown>): FamilyData => ({ ...family, seams: [{ ...seam, ...patch }] });
+    const withSlot = (patch: Record<string, unknown>): FamilyData => ({ ...family, components: [{ ...slot, ...patch }] });
+
+    it("resolves the seams and components onto the type", () => {
+      const type = buildRegistry([family]).getType("test-tee");
+      expect(type?.seams.map((entry) => entry.id)).toEqual(["side-seam"]);
+      expect(type?.components.map((entry) => entry.id)).toEqual(["main-thread"]);
+    });
+
+    it("reports a seam that joins an unknown panel", () => {
+      expect(checkFamilyData(withSeam({ panels: ["wing"] }))).toEqual(['Seam "side-seam" uses the unknown panel "wing".']);
+    });
+
+    it("reports a seam that lists a panel twice", () => {
+      expect(checkFamilyData(withSeam({ panels: ["body-front", "body-front"] }))).toHaveLength(1);
+    });
+
+    it("reports a seam with an unknown seam class or stitch class", () => {
+      expect(checkFamilyData(withSeam({ seamClass: "glued" }))).toEqual([
+        'Seam "side-seam" uses the unknown seam class "glued".',
+      ]);
+      expect(checkFamilyData(withSeam({ stitchClass: "glued" }))).toEqual([
+        'Seam "side-seam" uses the unknown stitch class "glued".',
+      ]);
+    });
+
+    it("reports a seam condition or exclusion on an unknown option", () => {
+      expect(checkFamilyData(withSeam({ appliesWhen: [{ option: "hood", in: ["x"] }] }))).toHaveLength(1);
+      expect(checkFamilyData(withSeam({ unlessWhen: [{ option: "hood", in: ["x"] }] }))).toHaveLength(1);
+    });
+
+    it("reports a repeated seam or component id", () => {
+      expect(checkFamilyData({ ...family, seams: [seam, seam] })).toEqual(['Seam id "side-seam" is used twice.']);
+      expect(checkFamilyData({ ...family, components: [slot, slot] })).toEqual(['Component id "main-thread" is used twice.']);
+    });
+
+    it("reports a component with an unknown condition or panel", () => {
+      expect(checkFamilyData(withSlot({ appliesWhen: [{ option: "hood", in: ["x"] }] }))).toHaveLength(1);
+      expect(checkFamilyData(withSlot({ panels: ["wing"] }))).toEqual(['Component "main-thread" uses the unknown panel "wing".']);
+    });
   });
 });

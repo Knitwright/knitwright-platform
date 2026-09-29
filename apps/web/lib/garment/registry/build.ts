@@ -7,7 +7,10 @@ import {
   type PanelDefinition,
   type PointOfMeasure,
   type Rule,
+  type ComponentSlot,
+  type SeamDefinition,
 } from "../definitions";
+import { SEAM_CLASSES, STITCH_CLASSES } from "./construction-classes";
 import { conditionsHold } from "../conditions";
 import type { FamilyId } from "../primitives";
 
@@ -27,6 +30,10 @@ export interface ResolvedType {
   readonly pointsOfMeasure: readonly PointOfMeasure[];
   readonly panels: readonly PanelDefinition[];
   readonly rules: readonly Rule[];
+  /** Every seam the family has. `seamsFor` says which apply to a design. */
+  readonly seams: readonly SeamDefinition[];
+  /** Every component the family implies. `componentSlotsFor` says which apply to a design. */
+  readonly components: readonly ComponentSlot[];
 }
 
 export interface Registry {
@@ -122,10 +129,44 @@ function typeProblems(type: GarmentType, family: FamilyData): string[] {
     .map((rule) => `${owner} starts with a combination that breaks the rule "${rule.id}". ${rule.reason}`);
 }
 
+function seamProblems(family: FamilyData): string[] {
+  const options = byId(family.options);
+  const panels = byId(family.panels);
+  const stitches = byId(STITCH_CLASSES);
+  const classes = byId(SEAM_CLASSES);
+  return family.seams.flatMap((seam) => {
+    const owner = `Seam "${seam.id}"`;
+    return [
+      ...conditionProblems(owner, seam.appliesWhen, options),
+      ...conditionProblems(owner, seam.unlessWhen, options),
+      ...twice(owner, "Panel", seam.panels),
+      ...seam.panels.filter((id) => !panels.has(id)).map((id) => `${owner} uses the unknown panel "${id}".`),
+      ...(classes.has(seam.seamClass) ? [] : [`${owner} uses the unknown seam class "${seam.seamClass}".`]),
+      ...(stitches.has(seam.stitchClass) ? [] : [`${owner} uses the unknown stitch class "${seam.stitchClass}".`]),
+    ];
+  });
+}
+
+function componentProblems(family: FamilyData): string[] {
+  const options = byId(family.options);
+  const panels = byId(family.panels);
+  return family.components.flatMap((slot) => {
+    const owner = `Component "${slot.id}"`;
+    return [
+      ...conditionProblems(owner, slot.appliesWhen, options),
+      ...slot.panels.filter((id) => !panels.has(id)).map((id) => `${owner} uses the unknown panel "${id}".`),
+    ];
+  });
+}
+
 /** Lists every mistake in one family's data. An empty list means the data is sound. */
 export function checkFamilyData(family: FamilyData): string[] {
   const options = byId(family.options);
   return [
+    ...repeatedIds("Seam", family.seams),
+    ...repeatedIds("Component", family.components),
+    ...seamProblems(family),
+    ...componentProblems(family),
     ...repeatedIds("Option", family.options),
     ...repeatedIds("Point of measure", family.pointsOfMeasure),
     ...repeatedIds("Panel", family.panels),
@@ -174,6 +215,8 @@ function resolveType(type: GarmentType, family: FamilyData): ResolvedType {
     pointsOfMeasure: pick(byId(family.pointsOfMeasure), type.pointsOfMeasure),
     panels: pick(byId(family.panels), type.panels),
     rules: family.rules,
+    seams: family.seams,
+    components: family.components,
   });
 }
 

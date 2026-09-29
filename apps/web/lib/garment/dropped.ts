@@ -5,7 +5,9 @@ export type DroppedKind =
   | "colour"
   | "fabric-assignment"
   | "fabric-change"
-  | "artwork";
+  | "artwork"
+  | "component"
+  | "construction";
 
 export interface Dropped {
   readonly kind: DroppedKind;

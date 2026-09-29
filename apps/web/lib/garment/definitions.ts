@@ -133,6 +133,72 @@ export const garmentTypeSchema = z
   });
 export type GarmentType = z.output<typeof garmentTypeSchema>;
 
+/**
+ * A kind of stitch, named by its ISO 4915 number. The number names a kind of stitch that a
+ * factory reads. It is not a quantity. These are the only numbers the registry may hold.
+ */
+export const stitchClassSchema = z
+  .object({
+    id: kebabId,
+    iso: z.string().regex(/^\d{3}$/, "An ISO 4915 stitch type has three digits."),
+    name: labelText,
+    explanation: sentenceText,
+  })
+  .readonly();
+export type StitchClass = z.output<typeof stitchClassSchema>;
+
+/** A kind of seam, named by its ISO 4916 class number. Also a name, not a quantity. */
+export const seamClassSchema = z
+  .object({
+    id: kebabId,
+    iso: z.string().regex(/^\d$/, "An ISO 4916 seam class has one digit."),
+    name: labelText,
+    explanation: sentenceText,
+  })
+  .readonly();
+export type SeamClass = z.output<typeof seamClassSchema>;
+
+/**
+ * A seam of the garment, and the rule that proposes how it is sewn. The classes are a
+ * starting proposal from general knitwear practice. A factory confirms or changes them.
+ */
+export const seamSchema = z
+  .object({
+    id: kebabId,
+    label: labelText,
+    /** The panels the seam joins, or for an edge finish the panels whose edge it finishes. */
+    panels: z.array(kebabId).min(1).readonly(),
+    /** Every condition must hold for the seam to apply. Empty means always. */
+    appliesWhen: conditionsSchema,
+    /** The seam is left out when every one of these holds. Empty means never. */
+    unlessWhen: conditionsSchema,
+    seamClass: kebabId,
+    stitchClass: kebabId,
+  })
+  .readonly();
+export type SeamDefinition = z.output<typeof seamSchema>;
+
+export const COMPONENT_KINDS = ["rib", "thread", "label", "trim"] as const;
+export const componentKindSchema = z.enum(COMPONENT_KINDS);
+export type ComponentKind = z.output<typeof componentKindSchema>;
+
+/**
+ * Something the design implies, such as buttons for a buttoned placket. It names what is
+ * needed and holds no quantity. The user describes it and gives any quantity.
+ */
+export const componentSlotSchema = z
+  .object({
+    id: kebabId,
+    label: labelText,
+    kind: componentKindSchema,
+    help: sentenceText,
+    appliesWhen: conditionsSchema,
+    /** The panels it is used on, for display. May be empty. */
+    panels: z.array(kebabId).readonly(),
+  })
+  .readonly();
+export type ComponentSlot = z.output<typeof componentSlotSchema>;
+
 /** Everything one family contributes to the registry. */
 export const familyDataSchema = z
   .object({
@@ -142,6 +208,8 @@ export const familyDataSchema = z
     pointsOfMeasure: z.array(pointOfMeasureSchema).readonly(),
     panels: z.array(panelSchema).readonly(),
     rules: z.array(ruleSchema).readonly(),
+    seams: z.array(seamSchema).readonly(),
+    components: z.array(componentSlotSchema).readonly(),
     types: z.array(garmentTypeSchema).readonly(),
   })
   .readonly();

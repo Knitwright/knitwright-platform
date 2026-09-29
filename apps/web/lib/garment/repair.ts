@@ -31,13 +31,31 @@ export type MigrateResult =
 /** Turns a stored design of version n into version n + 1. */
 export type Upgrade = (input: Record<string, unknown>) => Record<string, unknown>;
 
+/** Version 4 becomes 5: empty tech pack fields and an empty fabric consumption. Nothing is guessed. */
+function addTechPackFields(input: Record<string, unknown>): Record<string, unknown> {
+  const fabrics = Array.isArray(input.fabrics)
+    ? input.fabrics.map((fabric: unknown) =>
+        typeof fabric === "object" && fabric !== null ? { consumption: "", ...fabric } : fabric,
+      )
+    : input.fabrics;
+  return {
+    ...input,
+    fabrics,
+    components: input.components ?? [],
+    construction: input.construction ?? [],
+    labelling: input.labelling ?? {},
+  };
+}
+
 /**
  * One entry per old version, keyed by the version it upgrades from. Versions before 3
  * were never stored. Version 3 becomes 4 by adding the optional colour swatch, which needs
- * nothing written into a stored design. The next version bump adds its upgrade here.
+ * nothing written into a stored design. Version 4 becomes 5 with the tech pack fields.
+ * The next version bump adds its upgrade here.
  */
 export const UPGRADES: Readonly<Record<number, Upgrade>> = {
   3: (input) => ({ ...input }),
+  4: addTechPackFields,
 };
 
 const NOT_A_DESIGN = "This is not a saved design.";

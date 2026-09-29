@@ -5,6 +5,7 @@ import { TOPS } from "./tops";
 
 export type { Registry, ResolvedOption, ResolvedType } from "./build";
 export { buildRegistry, checkFamilyData } from "./build";
+export { SEAM_CLASSES, STITCH_CLASSES } from "./construction-classes";
 
 /**
  * ADDING A FAMILY (bottoms, outerwear or close-fitting) takes these steps.
@@ -23,6 +24,8 @@ const emptyFamily = (id: FamilyId, label: string): FamilyData => ({
   pointsOfMeasure: [],
   panels: [],
   rules: [],
+  seams: [],
+  components: [],
   types: [],
 });
 

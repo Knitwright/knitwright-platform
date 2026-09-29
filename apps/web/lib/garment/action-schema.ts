@@ -2,12 +2,14 @@ import { z } from "zod";
 import {
   artworkSchema,
   colourwaySchema,
+  COMPONENT_TEXT_MAX_LENGTH,
   fabricSchema,
   measurementShape,
   sizingSchema,
 } from "./parts";
-import { kebabId, localId, wearerSchema } from "./primitives";
+import { freeText, kebabId, localId, wearerSchema } from "./primitives";
 import { provenanceSchema } from "./provenance";
+import { componentSchema, constructionEntrySchema, labellingFieldSchema } from "./tech-parts";
 
 /**
  * Every change the editor, and later the assistant, may ask for. Anything else is
@@ -36,6 +38,17 @@ export const specActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("add-artwork"), artwork: artworkSchema }),
   z.strictObject({ type: z.literal("update-artwork"), artwork: artworkSchema }),
   z.strictObject({ type: z.literal("remove-artwork"), id: localId }),
+  z.strictObject({ type: z.literal("set-component"), component: componentSchema }),
+  z.strictObject({ type: z.literal("remove-component"), id: kebabId }),
+  z.strictObject({ type: z.literal("set-construction"), entry: constructionEntrySchema }),
+  z.strictObject({ type: z.literal("remove-construction"), seamId: kebabId }),
+  z.strictObject({
+    type: z.literal("set-labelling"),
+    field: labellingFieldSchema,
+    /** Empty text removes the field. */
+    text: freeText(COMPONENT_TEXT_MAX_LENGTH),
+    provenance: provenanceSchema,
+  }),
   z.strictObject({ type: z.literal("change-wearer"), wearer: wearerSchema }),
   z.strictObject({ type: z.literal("change-type"), typeId: kebabId }),
 ]);

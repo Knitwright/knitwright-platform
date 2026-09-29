@@ -24,7 +24,7 @@ describe("provenance on every value", () => {
     const spec = start("polo");
     expect(spec.options.collar).toEqual({ choiceId: "polo-collar", provenance: "derived" });
     expect(spec.sizing).toBeNull();
-    expect(spec.schemaVersion).toBe(4);
+    expect(spec.schemaVersion).toBe(5);
   });
 
   it("stores who chose an option", () => {
@@ -121,3 +121,36 @@ describe("provenanceSummary", () => {
     expect(rejected(applyAction(start("polo"), { type: "remove-fabric", id: "main" }))).toBeTruthy();
   });
 });
+
+describe("provenanceSummary, tech pack fields", () => {
+  const withSuggestions = () => {
+    let spec = start("polo");
+    const steps = [
+      { type: "set-component", component: { id: "buttons", name: "Shell buttons", details: "", quantity: "", provenance: "ai-suggested" } },
+      { type: "set-component", component: { id: "main-thread", name: "Thread", details: "", quantity: "", provenance: "user-edited" } },
+      { type: "set-construction", entry: { seamId: "body-hem", stitchDensity: "dense", provenance: "read-from-image" } },
+      { type: "set-labelling", field: "care", text: "Wash cold", provenance: "ai-suggested" },
+      { type: "set-labelling", field: "origin", text: "Portugal", provenance: "user-edited" },
+    ];
+    for (const step of steps) spec = accepted(applyAction(spec, step)).spec;
+    return spec;
+  };
+
+  it("lists suggested components, stitch details and label fields by their plain names", () => {
+    const items = provenanceSummary(withSuggestions()).filter((item) =>
+      ["component", "construction", "labelling"].includes(item.kind),
+    );
+    expect(items.map((item) => [item.kind, item.id, item.label, item.provenance])).toEqual([
+      ["component", "buttons", "Buttons", "ai-suggested"],
+      ["construction", "body-hem", "Body hem", "read-from-image"],
+      ["labelling", "care", "Care instructions", "ai-suggested"],
+    ]);
+  });
+
+  it("leaves out what a person typed", () => {
+    const ids = provenanceSummary(withSuggestions()).map((item) => item.id);
+    expect(ids).not.toContain("main-thread");
+    expect(ids).not.toContain("origin");
+  });
+});
+

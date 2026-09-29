@@ -6,6 +6,7 @@ import { nonEmpty } from "./non-empty";
 import { reconcile, retype } from "./reconcile";
 import { getType } from "./registry";
 import { validateSpec, type GarmentSpec } from "./spec";
+import { removeComponent, removeConstruction, setComponent, setConstruction, setLabelling } from "./tech-changes";
 
 export type ActionResult =
   | { readonly ok: true; readonly spec: GarmentSpec; readonly dropped: readonly Dropped[] }
@@ -143,6 +144,16 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return artworkList(spec, { kind: "update", item: action.artwork });
     case "remove-artwork":
       return artworkList(spec, { kind: "remove", id: action.id });
+    case "set-component":
+      return setComponent(spec, action.component);
+    case "remove-component":
+      return removeComponent(spec, action.id);
+    case "set-construction":
+      return setConstruction(spec, action.entry);
+    case "remove-construction":
+      return removeConstruction(spec, action.seamId);
+    case "set-labelling":
+      return setLabelling(spec, action);
     case "change-wearer":
       return accept({ ...spec, wearer: action.wearer });
     case "change-type":

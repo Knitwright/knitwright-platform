@@ -38,7 +38,7 @@ describe("createSpec", () => {
 
   it("chooses the default for every option, marked derived, and starts empty", () => {
     const spec = start("polo", "men");
-    expect(spec.schemaVersion).toBe(4);
+    expect(spec.schemaVersion).toBe(5);
     expect(spec.typeId).toBe("polo");
     expect(spec.wearer).toBe("men");
     const derived = (choiceId: string) => ({ choiceId, provenance: "derived" });
@@ -65,6 +65,7 @@ describe("createSpec", () => {
         construction: "",
         weightGsm: null,
         finish: "",
+        consumption: "",
         stretch: "not-set",
         provenance: "user-edited",
       },

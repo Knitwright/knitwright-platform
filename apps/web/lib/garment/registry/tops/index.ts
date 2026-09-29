@@ -1,4 +1,5 @@
 import type { FamilyData } from "../../definitions";
+import { TOPS_COMPONENTS, TOPS_SEAMS } from "./construction";
 import { TOPS_OPTIONS } from "./options";
 import { TOPS_PANELS } from "./panels";
 import { TOPS_POINTS_OF_MEASURE } from "./points-of-measure";
@@ -13,5 +14,7 @@ export const TOPS: FamilyData = {
   pointsOfMeasure: TOPS_POINTS_OF_MEASURE,
   panels: TOPS_PANELS,
   rules: TOPS_RULES,
+  seams: TOPS_SEAMS,
+  components: TOPS_COMPONENTS,
   types: TOPS_TYPES,
 };

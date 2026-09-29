@@ -1,0 +1,122 @@
+import { describe, expect, it } from "vitest";
+import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
+import { applyAction, type GarmentSpec } from "@/lib/garment";
+import { start } from "@/lib/garment/fixtures/specs";
+import { buildTechPackPage, printedDate } from "./tech-pack-data";
+import type { OpenProject, VersionsPage } from "./service";
+
+const project = (spec: GarmentSpec, patch: Partial<OpenProject> = {}): OpenProject => ({
+  id: "3f0c2c9e-6f0a-4d0e-9a51-0d6c1c1f7a11",
+  name: "Club shirt",
+  styleNumber: "CP-7",
+  season: "SS27",
+  garmentType: spec.typeId,
+  garmentLabel: "Crew neck tee",
+  currentVersion: 3,
+  createdAt: "2026-09-01T10:00:00Z",
+  updatedAt: "2026-09-03T10:00:00Z",
+  spec,
+  dropped: [],
+  ...patch,
+});
+
+const history = (count: number): VersionsPage => ({
+  versions: Array.from({ length: count }, (_, index) => ({
+    version: count - index,
+    note: `Note ${count - index}.`,
+    restoredFrom: null,
+    createdAt: `2026-09-0${Math.min(9, count - index)}T10:00:00Z`,
+  })),
+  hasMore: false,
+});
+
+const page = (spec: GarmentSpec, more: Partial<Parameters<typeof buildTechPackPage>[0]> = {}) =>
+  buildTechPackPage({ project: project(spec), history: history(3), brandName: "Test Brand", images: new Map(), printedOn: "30 Sep 2026", ...more });
+
+describe("printedDate", () => {
+  it("writes the day the document was printed in words, in UTC", () => {
+    expect(printedDate(new Date("2026-09-30T23:30:00Z"))).toBe("30 Sep 2026");
+  });
+});
+
+describe("buildTechPackPage", () => {
+  it("builds the document from the project, the brand and the history", () => {
+    const data = page(start("crew-tee"));
+    expect(data.projectId).toBe("3f0c2c9e-6f0a-4d0e-9a51-0d6c1c1f7a11");
+    expect(data.name).toBe("Club shirt");
+    expect(data.version).toBe(3);
+    expect(data.pack.cover.brand).toEqual({ status: "set", value: "Test Brand", provenance: "brand-supplied" });
+    expect(data.pack.cover.styleNumber).toEqual({ status: "set", value: "CP-7", provenance: "user-edited" });
+    expect(data.pack.cover.version).toBe(3);
+    expect(data.pack.cover.date).toBe("3 Sep 2026");
+    expect(data.pack.printedOn).toBe("30 Sep 2026");
+  });
+
+  it("lists the history newest first, with the dates in words and nobody recorded", () => {
+    const data = page(start("crew-tee"));
+    expect(data.pack.cover.revisions.map((entry) => [entry.version, entry.date, entry.by])).toEqual([
+      [3, "3 Sep 2026", "Not recorded"],
+      [2, "2 Sep 2026", "Not recorded"],
+      [1, "1 Sep 2026", "Not recorded"],
+    ]);
+  });
+
+  it("falls back to the day the design was last changed when the version is not in the history", () => {
+    const data = page(start("crew-tee"), { history: { versions: [], hasMore: false } });
+    expect(data.pack.cover.date).toBe("3 Sep 2026");
+  });
+
+  it("says how many things are left to confirm, in a sentence", () => {
+    const data = page(start("crew-tee"));
+    expect(data.report.total).toBeGreaterThan(0);
+    expect(data.sentence).toBe(`${data.report.total} things to confirm.`);
+  });
+
+  it("gives the two drawings as pictures with words for those who cannot see them", () => {
+    const data = page(start("crew-tee"));
+    expect(data.flats.map((flat) => flat.label)).toEqual(["Front", "Back"]);
+    for (const flat of data.flats) {
+      expect(flat.src).toMatch(/^data:image\/svg\+xml/);
+      expect(flat.alt.length).toBeGreaterThan(10);
+      expect(flat.toScale).toBe(false);
+    }
+  });
+
+  it("draws the callouts with codes when the design is to scale", () => {
+    const spec = designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
+    const data = page(spec);
+    expect(data.flats.every((flat) => flat.toScale)).toBe(true);
+    const svg = decodeURIComponent(data.flats[0]?.src?.split(",")[1] ?? "");
+    expect(svg).toContain("A 52.0 cm");
+    expect(svg).not.toContain("Chest width 52.0 cm");
+  });
+
+  it("gives no picture when the type has no drawing", () => {
+    const data = page({ ...start("crew-tee"), typeId: "kilt" });
+    expect(data.flats.every((flat) => flat.src === null)).toBe(true);
+  });
+
+  it("gives the forms what each shows, from the design", () => {
+    const data = page(start("polo"));
+    expect(data.forms.fabrics[0]?.id).toBe("main");
+    expect(data.forms.components.map((row) => row.slotId)).toContain("buttons");
+    expect(data.forms.seams[0]?.seamId).toBe("shoulder-seam");
+    expect(data.forms.labelling).toHaveLength(5);
+    expect(data.forms.panels.map((row) => row.panelId)).toContain("collar");
+  });
+
+  it("changes when a measurement changes, from one version of the design", () => {
+    const spec = designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
+    const result = applyAction(spec, { type: "set-measurement", pointId: "chest-width", value: 5600, provenance: "user-edited" });
+    if (!result.ok) throw new Error(result.reason);
+    const before = page(spec);
+    const after = page(result.spec);
+    expect(after.flats[0]?.src).not.toBe(before.flats[0]?.src);
+    expect(JSON.stringify(after.pack.measurements)).not.toBe(JSON.stringify(before.pack.measurements));
+  });
+
+  it("carries the note about pictures that could not be shown", () => {
+    expect(page(start("crew-tee"), { picturesNote: "One picture is not shown." }).picturesNote).toBe("One picture is not shown.");
+    expect(page(start("crew-tee")).picturesNote).toBeNull();
+  });
+});

@@ -9,12 +9,22 @@ export { migrateSpec, repairSpec, type MigrateResult } from "./repair";
 export { provenanceSummary, type ProvenanceItem } from "./provenance-summary";
 export { type ChoiceMap } from "./conditions";
 export { panelsFor, pointsOfMeasureFor, type SpecShape } from "./applicability";
+export {
+  componentSlotsFor,
+  listSeamClasses,
+  listStitchClasses,
+  seamClassById,
+  seamsFor,
+  stitchClassById,
+  type ResolvedSeam,
+} from "./construction";
 export { specActionSchema, type SpecAction } from "./action-schema";
 export { checkCombination, type RuleViolation } from "./combinations";
 export {
   conditionSchema,
   familyDataSchema,
   garmentTypeSchema,
+  COMPONENT_KINDS,
   POINT_GROUPS,
   POINT_GROUP_LABELS,
   optionSchema,
@@ -22,6 +32,8 @@ export {
   pointGroupSchema,
   pointOfMeasureSchema,
   ruleSchema,
+  type ComponentKind,
+  type ComponentSlot,
   type Condition,
   type FamilyData,
   type GarmentType,
@@ -30,6 +42,9 @@ export {
   type PanelDefinition,
   type PointOfMeasure,
   type Rule,
+  type SeamClass,
+  type SeamDefinition,
+  type StitchClass,
 } from "./definitions";
 export {
   EMPTY_FABRIC_DETAILS,
@@ -53,6 +68,19 @@ export {
   type Sizing,
 } from "./parts";
 export { fabricFor } from "./fabric";
+export {
+  LABELLING_FIELDS,
+  LABELLING_LABELS,
+  componentSchema,
+  constructionEntrySchema,
+  labellingFieldSchema,
+  labellingSchema,
+  type ComponentEntry,
+  type ConstructionEntry,
+  type Labelling,
+  type LabellingField,
+  type LabellingValue,
+} from "./tech-parts";
 export {
   FAMILY_IDS,
   WEARERS,

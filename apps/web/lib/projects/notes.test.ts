@@ -14,6 +14,7 @@ const fabric = (id: string, name: string) => ({
   construction: "",
   weightGsm: null,
   finish: "",
+  consumption: "",
   stretch: "not-set",
   provenance: "user-edited",
 });
@@ -150,6 +151,41 @@ describe("describeAction", () => {
     describeAction(before, action({ type: "change-type", typeId: "polo" }));
 
     expect(before).toEqual(copy);
+  });
+});
+
+describe("describeAction, tech pack fields", () => {
+  const polo = (): GarmentSpec => start("polo", "men");
+
+  it("names a component by its label", () => {
+    const note = describeAction(
+      polo(),
+      action({ type: "set-component", component: { id: "buttons", name: "Shell", details: "", quantity: "", provenance: "user-edited" } }),
+    );
+    expect(note).toBe("Details for Buttons saved.");
+    expect(describeAction(polo(), action({ type: "remove-component", id: "buttons" }))).toBe("Details for Buttons removed.");
+  });
+
+  it("names a seam by its label", () => {
+    const entry = { seamId: "body-hem", stitchDensity: "dense", provenance: "user-edited" };
+    expect(describeAction(polo(), action({ type: "set-construction", entry }))).toBe("Stitch details for Body hem saved.");
+    expect(describeAction(polo(), action({ type: "remove-construction", seamId: "body-hem" }))).toBe(
+      "Stitch details for Body hem removed.",
+    );
+  });
+
+  it("names a labelling field, and says removed when the text is empty", () => {
+    const set = action({ type: "set-labelling", field: "care", text: "Wash cold", provenance: "user-edited" });
+    const clear = action({ type: "set-labelling", field: "origin", text: "", provenance: "user-edited" });
+    expect(describeAction(polo(), set)).toBe("Care instructions saved.");
+    expect(describeAction(polo(), clear)).toBe("Country of origin removed.");
+  });
+
+  it("falls back to the id when the component or seam is not known", () => {
+    expect(describeAction(polo(), action({ type: "remove-component", id: "mystery" }))).toBe("Details for mystery removed.");
+    expect(describeAction(polo(), action({ type: "remove-construction", seamId: "mystery" }))).toBe(
+      "Stitch details for mystery removed.",
+    );
   });
 });
 

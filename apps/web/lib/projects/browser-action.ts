@@ -41,7 +41,12 @@ export const stampUserEdited = (raw: unknown): unknown => {
   switch (action.type) {
     case "set-option":
     case "set-measurement":
+    case "set-labelling":
       return stamped(action);
+    case "set-component":
+      return { ...action, component: stamped(action.component) };
+    case "set-construction":
+      return { ...action, entry: stamped(action.entry) };
     case "add-fabric":
     case "update-fabric":
       return { ...action, fabric: stamped(action.fabric) };

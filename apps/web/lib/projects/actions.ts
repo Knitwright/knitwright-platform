@@ -37,6 +37,7 @@ const savedOrRefused = (outcome: SaveOutcome) => {
 
 const refreshDesign = (projectId: string): void => {
   revalidatePath(`/studio/${projectId}`);
+  revalidatePath(`/studio/${projectId}/tech-pack`);
   revalidatePath("/studio");
 };
 

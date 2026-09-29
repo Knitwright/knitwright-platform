@@ -63,7 +63,7 @@ describe("migrateSpec", () => {
   it("upgrades a version 3 design, which needs nothing added, to the current version", () => {
     const old = { ...plain("polo"), schemaVersion: 3 };
     const result = migrateSpec(old);
-    expect(result.ok && result.spec.schemaVersion).toBe(4);
+    expect(result.ok && result.spec.schemaVersion).toBe(5);
     expect(result.ok && result.stale).toBe(false);
   });
 

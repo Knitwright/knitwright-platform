@@ -64,6 +64,9 @@ export function createSpec(typeId: string, wearer: Wearer): SpecResult {
     panelFabrics: [],
     colourways: [{ id: FIRST_COLOURWAY_ID, name: FIRST_COLOURWAY_NAME, colours: [] }],
     artwork: [],
+    components: [],
+    construction: [],
+    labelling: {},
   });
   return checked.ok ? checked : { ok: false, reason: checked.issues[0] ?? "That design is not valid." };
 }

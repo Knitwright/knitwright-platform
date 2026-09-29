@@ -1,4 +1,4 @@
-import { getType, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { LABELLING_LABELS, getType, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { cmText } from "./measurement-input";
 
 /** The most characters a version note may hold. The database enforces the same limit. */
@@ -18,6 +18,12 @@ const panelLabel = (type: Type | undefined, id: string): string =>
 
 const pointLabel = (type: Type | undefined, id: string): string =>
   type?.pointsOfMeasure.find((point) => point.id === id)?.label ?? id;
+
+const componentLabel = (type: Type | undefined, id: string): string =>
+  type?.components.find((slot) => slot.id === id)?.label ?? id;
+
+const seamLabel = (type: Type | undefined, id: string): string =>
+  type?.seams.find((seam) => seam.id === id)?.label ?? id;
 
 const optionNote = (type: Type | undefined, optionId: string, choiceId: string): string => {
   const option = type?.options.find((entry) => entry.id === optionId);
@@ -79,6 +85,16 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Artwork ${action.artwork.name} changed.`);
     case "remove-artwork":
       return clipNote(sentence("Artwork", nameOf(spec.artwork, action.id), "removed", "Artwork was removed."));
+    case "set-component":
+      return clipNote(`Details for ${componentLabel(type, action.component.id)} saved.`);
+    case "remove-component":
+      return clipNote(`Details for ${componentLabel(type, action.id)} removed.`);
+    case "set-construction":
+      return clipNote(`Stitch details for ${seamLabel(type, action.entry.seamId)} saved.`);
+    case "remove-construction":
+      return clipNote(`Stitch details for ${seamLabel(type, action.seamId)} removed.`);
+    case "set-labelling":
+      return `${LABELLING_LABELS[action.field]} ${action.text === "" ? "removed" : "saved"}.`;
     case "change-wearer":
       return `Made for ${action.wearer}.`;
     case "change-type":

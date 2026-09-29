@@ -10,8 +10,9 @@ import {
 } from "./parts";
 import { kebabId, wearerSchema } from "./primitives";
 import { LIST_LIMITS, specProblems } from "./spec-checks";
+import { componentSchema, constructionEntrySchema, labellingSchema } from "./tech-parts";
 
-export const SPEC_SCHEMA_VERSION = 4;
+export const SPEC_SCHEMA_VERSION = 5;
 
 /** Sanity limits on list sizes, so one spec cannot grow without bound. */
 export const MAX_MEASUREMENTS = 64;
@@ -19,6 +20,8 @@ export const MAX_COLOURWAYS = LIST_LIMITS.colourways;
 export const MAX_ARTWORK = 48;
 export const MAX_FABRICS = LIST_LIMITS.fabrics;
 export const MAX_PANEL_FABRICS = 32;
+export const MAX_COMPONENTS = 24;
+export const MAX_CONSTRUCTION = 32;
 
 /**
  * The shape of a design, with no check against the registry. A design saved under
@@ -42,6 +45,12 @@ export const garmentSpecStructureSchema = z
     /** Never empty. */
     colourways: z.tuple([colourwaySchema], colourwaySchema).readonly(),
     artwork: z.array(artworkSchema).max(MAX_ARTWORK).readonly(),
+    /** What the user says about thread, labels, rib and trims. At most one entry for each slot. */
+    components: z.array(componentSchema).max(MAX_COMPONENTS).readonly(),
+    /** Overrides of how a seam is sewn, and stitch densities. At most one entry for each seam. */
+    construction: z.array(constructionEntrySchema).max(MAX_CONSTRUCTION).readonly(),
+    /** Care, composition, origin, fold and bag. Only the fields the user filled in. */
+    labelling: labellingSchema,
   })
   .readonly();
 

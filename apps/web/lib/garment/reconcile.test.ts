@@ -26,6 +26,8 @@ const family: FamilyData = {
     { id: "wing-panel", label: "Wing panel", appliesWhen: [{ option: "wing", in: ["big"] }], anchors: [{ id: "tip", label: "Tip" }] },
   ],
   rules: [{ id: "no-big-wing", when: [{ option: "wing", in: ["big"] }], reason: "Wings are too big." }],
+  seams: [],
+  components: [],
   types: [
     { id: "test-wing", family: "tops", label: "Test wing", wearers: ["men"], options: [{ option: "wing" }], pointsOfMeasure: ["span"], panels: ["wing-panel"] },
   ],
@@ -34,7 +36,7 @@ const type = buildRegistry([family]).getType("test-wing");
 if (!type) throw new Error("fixture type missing");
 
 const spec: GarmentSpec = {
-  schemaVersion: 4,
+  schemaVersion: 5,
   typeId: "test-wing",
   wearer: "men",
   options: { wing: { choiceId: "none", provenance: "user-edited" } },
@@ -44,7 +46,7 @@ const spec: GarmentSpec = {
     { pointId: "gone", value: 1000, provenance: "user-edited" },
   ],
   fabrics: [
-    { id: "main", name: "Main", composition: "", construction: "", weightGsm: null, finish: "", stretch: "not-set", provenance: "user-edited" },
+    { id: "main", name: "Main", composition: "", construction: "", weightGsm: null, finish: "", consumption: "", stretch: "not-set", provenance: "user-edited" },
   ],
   panelFabrics: [{ panelId: "wing-panel", fabricId: "main" }],
   colourways: [{ id: "main", name: "Main", colours: [{ panelId: "wing-panel", colour: "red", provenance: "user-edited" }] }],
@@ -64,6 +66,9 @@ const spec: GarmentSpec = {
       technique: "transfer",
     },
   ],
+  components: [],
+  construction: [],
+  labelling: {},
 };
 
 describe("reconcile", () => {

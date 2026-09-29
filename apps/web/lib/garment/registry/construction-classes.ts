@@ -1,0 +1,79 @@
+import type { SeamClass, StitchClass } from "../definitions";
+
+/**
+ * The kinds of stitch (ISO 4915) and of seam (ISO 4916) that garments in this registry use.
+ * The numbers are names of kinds, which a factory reads. They are not quantities, and they
+ * are the only numbers the registry may hold. Every explanation is a plain draft for a
+ * factory to confirm. See OWNER-QUESTIONS.md.
+ */
+export const STITCH_CLASSES: readonly StitchClass[] = [
+  {
+    id: "lockstitch",
+    iso: "301",
+    name: "Lockstitch",
+    explanation:
+      "A stitch made with one needle thread and one bobbin thread that lock together inside the fabric. It looks the same on both sides and does not stretch much.",
+  },
+  {
+    id: "double-chain-stitch",
+    iso: "401",
+    name: "Double chain stitch",
+    explanation:
+      "A stitch made with one needle thread and one looper thread, which forms a chain on the underside. It stretches more than a lockstitch.",
+  },
+  {
+    id: "three-thread-overedge",
+    iso: "504",
+    name: "Three thread overedge",
+    explanation:
+      "An overlock stitch made with one needle thread and two looper threads. It sews the seam and wraps the raw edge in one pass.",
+  },
+  {
+    id: "four-thread-overedge",
+    iso: "514",
+    name: "Four thread overedge",
+    explanation:
+      "An overlock stitch made with two needle threads and two looper threads. It sews the seam and wraps the raw edge in one pass, and it is stronger than the three thread stitch.",
+  },
+  {
+    id: "two-needle-cover-stitch",
+    iso: "602",
+    name: "Two needle cover stitch",
+    explanation:
+      "A stretchy stitch with two parallel lines on top and a covering thread underneath. It is often used on hems and necklines of knitted fabric.",
+  },
+  {
+    id: "three-needle-cover-stitch",
+    iso: "605",
+    name: "Three needle cover stitch",
+    explanation:
+      "A stretchy stitch with three parallel lines on top and a covering thread underneath. It is wider than the two needle cover stitch and is used where a flat, strong finish is wanted.",
+  },
+];
+
+export const SEAM_CLASSES: readonly SeamClass[] = [
+  {
+    id: "superimposed",
+    iso: "1",
+    name: "Superimposed seam",
+    explanation: "Two pieces of fabric are laid one on top of the other and sewn together near the edge.",
+  },
+  {
+    id: "lapped",
+    iso: "2",
+    name: "Lapped seam",
+    explanation: "Two pieces of fabric overlap, and are sewn together through both layers.",
+  },
+  {
+    id: "bound",
+    iso: "3",
+    name: "Bound seam",
+    explanation: "A strip of fabric is folded over the raw edge of one or more pieces and sewn on to enclose it.",
+  },
+  {
+    id: "edge-finishing",
+    iso: "6",
+    name: "Edge finish",
+    explanation: "The raw edge of a single piece is turned under or covered and sewn, as on a hem.",
+  },
+];

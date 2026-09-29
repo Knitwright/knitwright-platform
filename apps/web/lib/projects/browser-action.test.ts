@@ -144,3 +144,48 @@ describe("text that is not well formed", () => {
     expect(browserActionSchema.safeParse(withText("FÇ \u{1F600}")).success).toBe(true);
   });
 });
+
+describe("browserActionSchema, tech pack fields", () => {
+  const component = (provenance?: string) => ({
+    id: "main-thread",
+    name: "Thread",
+    details: "",
+    quantity: "",
+    ...(provenance ? { provenance } : {}),
+  });
+  const entry = (provenance?: string) => ({
+    seamId: "body-hem",
+    stitchDensity: "dense",
+    ...(provenance ? { provenance } : {}),
+  });
+
+  it.each(CLAIMS)("stamps user-edited inside a component that claims %s", (claim) => {
+    expect(parse({ type: "set-component", component: component(claim) })).toMatchObject({
+      component: { provenance: "user-edited" },
+    });
+  });
+
+  it.each(CLAIMS)("stamps user-edited inside a construction entry that claims %s", (claim) => {
+    expect(parse({ type: "set-construction", entry: entry(claim) })).toMatchObject({
+      entry: { provenance: "user-edited" },
+    });
+  });
+
+  it.each(CLAIMS)("stamps user-edited on a labelling field that claims %s", (claim) => {
+    expect(parse({ type: "set-labelling", field: "care", text: "Wash cold", provenance: claim })).toMatchObject({
+      provenance: "user-edited",
+    });
+  });
+
+  it("stamps user-edited when the browser sends no source at all", () => {
+    expect(parse({ type: "set-component", component: component() })).toMatchObject({ component: { provenance: "user-edited" } });
+    expect(parse({ type: "set-construction", entry: entry() })).toMatchObject({ entry: { provenance: "user-edited" } });
+    expect(parse({ type: "set-labelling", field: "bag", text: "Poly bag" })).toMatchObject({ provenance: "user-edited" });
+  });
+
+  it("leaves the removal of a component or a seam entry as it is", () => {
+    expect(parse({ type: "remove-component", id: "buttons" })).toEqual({ type: "remove-component", id: "buttons" });
+    expect(parse({ type: "remove-construction", seamId: "body-hem" })).toEqual({ type: "remove-construction", seamId: "body-hem" });
+  });
+});
+

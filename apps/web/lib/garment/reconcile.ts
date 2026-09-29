@@ -5,6 +5,7 @@ import { nonEmpty } from "./non-empty";
 import type { OptionChoice } from "./parts";
 import type { ResolvedType } from "./registry";
 import { artworkProblem } from "./spec-checks";
+import { dropStaleTechFields } from "./tech-reconcile";
 import type { GarmentSpec } from "./spec-schema";
 
 type Options = Readonly<Record<string, OptionChoice>>;
@@ -117,7 +118,9 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
     dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
     return false;
   });
-  return { value: { ...spec, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork }, dropped };
+  const kept = { ...spec, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork };
+  const tech = dropStaleTechFields(kept, type);
+  return { value: tech.value, dropped: [...dropped, ...tech.dropped] };
 }
 
 /**

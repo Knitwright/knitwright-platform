@@ -11,6 +11,8 @@ import type {
 } from "./parts";
 import type { Wearer } from "./primitives";
 import { getType, type ResolvedType } from "./registry";
+import { techProblems } from "./tech-checks";
+import type { ComponentEntry, ConstructionEntry } from "./tech-parts";
 
 /** One thing wrong with a spec, in plain words, and where in the spec it is. */
 export interface SpecProblem {
@@ -28,6 +30,8 @@ export interface CheckedSpec {
   readonly panelFabrics: readonly PanelFabric[];
   readonly colourways: readonly Colourway[];
   readonly artwork: readonly Artwork[];
+  readonly components: readonly ComponentEntry[];
+  readonly construction: readonly ConstructionEntry[];
 }
 
 /** The most fabrics and colourways a design may hold. Kept here so the schema stays a plain tuple. */
@@ -180,5 +184,6 @@ export function specProblems(spec: CheckedSpec): SpecProblem[] {
     ...fabricProblems(spec, type, panels),
     ...colourwayProblems(spec, type, panels),
     ...artworkProblems(spec, type),
+    ...techProblems(spec, type),
   ];
 }

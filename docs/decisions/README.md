@@ -17,3 +17,4 @@ Copy `0000-template.md` to start.
 | 0007 | [Designs, versions and the editor](0007-designs-versions-editor.md) | Accepted |
 | 0008 | [The PDF renderer](0008-pdf-renderer.md) | Accepted locally, deployed check owed |
 | 0009 | [Flats: one geometry model, two renderers](0009-flats.md) | Accepted. The drawings wait for the owner. |
+| 0010 | [The tech pack document](0010-tech-pack-document.md) | Accepted. The construction rules wait for a factory. |

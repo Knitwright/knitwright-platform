@@ -44,6 +44,8 @@ export default defineConfig({
         "lib/sizing/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The drawing of a garment feeds the tech pack and the exports, so it is held to the same mark.
         "lib/flat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The tech pack is the product's main output, and the exports are made from it.
+        "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
       },
     },
     projects: [

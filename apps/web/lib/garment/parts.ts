@@ -9,6 +9,10 @@ export const ARTWORK_TEXT_MAX_LENGTH = 80;
 export const FABRIC_TEXT_MAX_LENGTH = 200;
 /** A sanity limit on fabric weight in grams per square metre, to catch typing slips. */
 export const FABRIC_WEIGHT_MAX_GSM = 2000;
+/** The most text a component detail, a stitch density or a label field may hold. */
+export const COMPONENT_TEXT_MAX_LENGTH = 200;
+export const QUANTITY_MAX_LENGTH = 60;
+export const STITCH_DENSITY_MAX_LENGTH = 60;
 export const MAX_ROTATION_DEGREES = 359;
 export const SIZE_LABEL_MAX_LENGTH = 12;
 export const MAX_SIZES = 24;
@@ -35,6 +39,8 @@ export const fabricSchema = z
     /** Grams per square metre, or null while unknown. */
     weightGsm: z.number().int().min(1).max(FABRIC_WEIGHT_MAX_GSM).nullable(),
     finish: freeText(FABRIC_TEXT_MAX_LENGTH),
+    /** How much fabric one garment uses, as free text with its unit. Empty until the user enters it. */
+    consumption: freeText(QUANTITY_MAX_LENGTH).default(""),
     stretch: z.enum(STRETCH_VALUES),
     /** Where this fabric's details came from. */
     provenance: provenanceSchema,
@@ -45,12 +51,13 @@ export type FabricSpec = z.output<typeof fabricSchema>;
 /** The details of a fabric with nothing filled in yet. Adding an id, name and provenance makes it valid. */
 export const EMPTY_FABRIC_DETAILS: Pick<
   FabricSpec,
-  "composition" | "construction" | "weightGsm" | "finish" | "stretch"
+  "composition" | "construction" | "weightGsm" | "finish" | "consumption" | "stretch"
 > = Object.freeze({
   composition: "",
   construction: "",
   weightGsm: null,
   finish: "",
+  consumption: "",
   stretch: "not-set",
 });
 
