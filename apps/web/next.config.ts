@@ -22,10 +22,31 @@ const SECURITY_HEADERS = [
   },
 ];
 
+/**
+ * The export route sends files, and an SVG can hold script. Headers set here win over the headers a
+ * route handler sets, so the sandbox policy of an export must be set here too, after the rule for
+ * every path so that it wins (the later rule wins). It holds SVG_POLICY from
+ * lib/techpack/exports/headers.ts and the framing rules above; a test checks both.
+ */
+const EXPORT_HEADERS = [
+  {
+    key: "Content-Security-Policy",
+    value:
+      "default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'none'",
+  },
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
-  headers: async () => [{ source: "/:path*", headers: SECURITY_HEADERS }],
+  // The PDF font is read from disk when a PDF is made (decision 0008), so the host must ship it with
+  // the export route. The brackets are escaped because the key is a picomatch glob. A test fails
+  // when this entry is missing or names another route.
+  outputFileTracingIncludes: { "/api/projects/\\[projectId\\]/exports/\\[format\\]": ["./assets/fonts/**"] },
+  headers: async () => [
+    { source: "/:path*", headers: SECURITY_HEADERS },
+    { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },
+  ],
 };
 
 export default nextConfig;

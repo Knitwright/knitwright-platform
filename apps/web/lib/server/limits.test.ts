@@ -23,4 +23,9 @@ describe("LIMITS", () => {
   it("keeps guessing a password slower than one try a minute", () => {
     expect(LIMITS.signIn.limit / LIMITS.signIn.windowSeconds).toBeLessThanOrEqual(1 / 60);
   });
+
+  it("lets a person download the four files of a tech pack twice in a window, and no faster than one export every ten seconds", () => {
+    expect(LIMITS.export.limit).toBeGreaterThanOrEqual(8);
+    expect(LIMITS.export.limit / LIMITS.export.windowSeconds).toBeLessThanOrEqual(1 / 10);
+  });
 });

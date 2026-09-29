@@ -11,6 +11,12 @@ export const MAX_EMBEDDED_BYTES = 600 * 1024;
 /** The most files read at the same time. */
 export const MAX_READS_AT_ONCE = 3;
 
+/** Limits that differ between the screen and a print. The count and the reads at once are always the same. */
+export interface PictureLimits {
+  /** The most bytes of pictures in one document, counted after they are shrunk. The screen limit when missing. */
+  readonly maxEmbeddedBytes?: number;
+}
+
 export interface LoadedPictures {
   readonly images: ImageMap;
   /** Pictures left out because they are too big or there are too many. Missing files are not counted. */
@@ -37,7 +43,9 @@ export async function loadArtworkImages(
   reader: FileReader,
   shrink: (file: StoredBytes) => Promise<ImageBytes | null>,
   spec: GarmentSpec,
+  limits: PictureLimits = {},
 ): Promise<LoadedPictures> {
+  const maxEmbedded = limits.maxEmbeddedBytes ?? MAX_EMBEDDED_BYTES;
   const ids = [...new Set(spec.artwork.flatMap((art) => (art.source.kind === "file" ? [art.source.fileId] : [])))];
   const drawn = ids.slice(0, MAX_PICTURES_DRAWN);
   const outcomes = await inBatches(drawn, MAX_READS_AT_ONCE, async (id): Promise<Outcome> => {
@@ -55,7 +63,7 @@ export async function loadArtworkImages(
   let skipped = ids.length - drawn.length;
   for (const outcome of outcomes) {
     if (outcome.kind === "too-big") skipped += 1;
-    else if (outcome.kind === "picture" && embedded + outcome.image.bytes.byteLength > MAX_EMBEDDED_BYTES) skipped += 1;
+    else if (outcome.kind === "picture" && embedded + outcome.image.bytes.byteLength > maxEmbedded) skipped += 1;
     else if (outcome.kind === "picture") {
       embedded += outcome.image.bytes.byteLength;
       images.set(outcome.id, outcome.image);

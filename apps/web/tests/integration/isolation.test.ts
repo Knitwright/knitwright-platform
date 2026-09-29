@@ -103,6 +103,31 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { note: "Changed by a stranger." },
   },
+  export_downloads: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("record_export_download", {
+          p_project_id: projectId,
+          p_user_id: ownerId,
+          p_spec_version: 1,
+          p_format: "pdf",
+          p_view: null,
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      spec_version: 1,
+      format: "pdf",
+      user_id: userId,
+    }),
+    change: { format: "xlsx" },
+  },
 };
 
 /** A project made the way the server makes one. Returns its id. */

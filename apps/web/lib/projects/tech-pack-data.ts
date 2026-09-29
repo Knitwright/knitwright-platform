@@ -95,15 +95,14 @@ const versionMoment = (project: OpenProject, history: VersionsPage): string =>
   history.versions.find((entry) => entry.version === project.currentVersion)?.createdAt ?? project.updatedAt;
 
 /**
- * Everything the tech pack page shows, worked out on the server as plain data: the document,
- * the count of what is left to confirm, the two drawings as pictures, and what each form holds.
- * The document is built from the one version of the design, so the drawings, the table and the
- * document cannot disagree.
+ * The document for one version of a design. The screen and every export are made by this one
+ * function from the same inputs, so they cannot disagree: the drawings, the table and the
+ * document all come from the one version that was read.
  */
-export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
-  const { project, history, images, charts } = input;
+export function buildPackFor(input: TechPackPageInput): TechPack {
+  const { project, history, charts } = input;
   const flats = flatsForTechPack(project.spec, charts, input.colourwayId);
-  const pack = buildTechPack({
+  return buildTechPack({
     project: { name: project.name, styleNumber: project.styleNumber, season: project.season, brandName: input.brandName },
     version: project.currentVersion,
     versionDate: formatDate(versionMoment(project, history)),
@@ -115,6 +114,17 @@ export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
     charts,
     flats,
   });
+}
+
+/**
+ * Everything the tech pack page shows, worked out on the server as plain data: the document,
+ * the count of what is left to confirm, the two drawings as pictures, and what each form holds.
+ * The document is built from the one version of the design, so the drawings, the table and the
+ * document cannot disagree.
+ */
+export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
+  const { project, history, images } = input;
+  const pack = buildPackFor(input);
   const report = completenessReport(pack);
   return {
     projectId: project.id,

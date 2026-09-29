@@ -134,3 +134,21 @@ export const signIn = async (page: Page, email: string, password = PASSWORD): Pr
   await passBotCheck(page);
   await page.getByRole("button", { name: "Sign in" }).click();
 };
+
+export interface DownloadRecord {
+  readonly spec_version: number;
+  readonly format: string;
+  readonly view: string | null;
+  readonly user_id: string;
+}
+
+/** The downloads recorded for a design, oldest first, read with the server's own key. */
+export const downloadRecords = async (projectId: string): Promise<DownloadRecord[]> => {
+  const { data, error } = await admin()
+    .from("export_downloads")
+    .select("spec_version, format, view, user_id")
+    .eq("project_id", projectId)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data as DownloadRecord[];
+};

@@ -26,4 +26,7 @@ export const LIMITS = {
   editDesign: { name: "edit-design", limit: 120, windowSeconds: MINUTE },
   restoreVersion: { name: "restore-version", limit: 60, windowSeconds: 10 * MINUTE },
   renameProject: { name: "rename-project", limit: 30, windowSeconds: 10 * MINUTE },
+  // An export builds a file in memory, which costs a second or two of a small function, so it is
+  // limited like an upload: 30 in ten minutes, which is seven downloads of all four files.
+  export: { name: "export", limit: 30, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

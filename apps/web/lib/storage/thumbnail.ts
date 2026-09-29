@@ -10,14 +10,14 @@ export const DRAWING_EDGE = 320;
 export const MAX_INPUT_PIXELS = IMAGE_LIMITS.maxPixels;
 
 /**
- * A small copy of a stored picture for the screen drawing, so the page stays light. The
- * type is kept. It never makes a picture larger. Bytes that are not a picture give null.
+ * A copy of a stored picture with its longest side no more than `edge` pixels. The type is
+ * kept. It never makes a picture larger. Bytes that are not a picture give null.
  */
-export async function shrinkForDrawing(file: StoredBytes, maxInputPixels: number = MAX_INPUT_PIXELS): Promise<ImageBytes | null> {
+export async function shrinkPicture(file: StoredBytes, edge: number, maxInputPixels: number = MAX_INPUT_PIXELS): Promise<ImageBytes | null> {
   try {
     const image = sharp(file.bytes, { limitInputPixels: maxInputPixels }).rotate().resize({
-      width: DRAWING_EDGE,
-      height: DRAWING_EDGE,
+      width: edge,
+      height: edge,
       fit: "inside",
       withoutEnlargement: true,
     });
@@ -27,3 +27,7 @@ export async function shrinkForDrawing(file: StoredBytes, maxInputPixels: number
     return null;
   }
 }
+
+/** A small copy of a stored picture for the screen drawing, so the page stays light. */
+export const shrinkForDrawing = (file: StoredBytes, maxInputPixels: number = MAX_INPUT_PIXELS): Promise<ImageBytes | null> =>
+  shrinkPicture(file, DRAWING_EDGE, maxInputPixels);

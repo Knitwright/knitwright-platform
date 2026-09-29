@@ -9,6 +9,7 @@ import { FabricForms } from "./FabricForms";
 import { FormOpener } from "./FormOpener";
 import { HowToMeasureView, MeasurementsView } from "./MeasurementViews";
 import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView } from "./OtherViews";
+import { TechPackDownloads } from "./TechPackDownloads";
 
 /**
  * What is still to be confirmed, as a count at the top with a link to each section that has
@@ -63,8 +64,14 @@ function Contents({ data }: Readonly<{ data: TechPackPageData }>) {
   );
 }
 
+type DocumentProps = Readonly<{
+  data: TechPackPageData;
+  /** The colourway named in the address, so a download is the drawing the page shows. */
+  colourwayId?: string | undefined;
+}>;
+
 /** The tech pack on screen: real headings, tables and lists, with the forms to fill in what is missing. */
-export function TechPackDocument({ data }: Readonly<{ data: TechPackPageData }>) {
+export function TechPackDocument({ data, colourwayId }: DocumentProps) {
   const { pack, forms } = data;
   return (
     <div className="flex flex-col gap-6">
@@ -85,6 +92,7 @@ export function TechPackDocument({ data }: Readonly<{ data: TechPackPageData }>)
       {data.staleNote ? <Notice tone="warn">{data.staleNote}</Notice> : null}
       <ConfirmSummary data={data} />
       <Contents data={data} />
+      <TechPackDownloads projectId={data.projectId} version={data.version} colourwayId={colourwayId} />
       <CoverView cover={pack.cover} />
       <FlatsView flats={pack.flats} pictures={data.flats} picturesNote={data.picturesNote} />
       <MeasurementsView table={pack.measurements} />

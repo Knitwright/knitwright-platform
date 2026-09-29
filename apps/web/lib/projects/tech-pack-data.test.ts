@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
 import { applyAction, type GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
-import { buildTechPackPage, historyIsNewer, STALE_SENTENCE } from "./tech-pack-data";
+import { buildPackFor, buildTechPackPage, historyIsNewer, STALE_SENTENCE } from "./tech-pack-data";
 import type { OpenProject, VersionsPage } from "./service";
 
 const project = (spec: GarmentSpec, patch: Partial<OpenProject> = {}): OpenProject => ({
@@ -136,5 +136,41 @@ describe("historyIsNewer", () => {
     expect(historyIsNewer(project(start("crew-tee")), history(3))).toBe(false);
     expect(historyIsNewer(project(start("crew-tee")), history(4))).toBe(true);
     expect(historyIsNewer(project(start("crew-tee")), { versions: [], hasMore: false })).toBe(false);
+  });
+});
+
+describe("buildPackFor", () => {
+  const input = (spec: GarmentSpec, patch: Partial<Parameters<typeof buildPackFor>[0]> = {}) => ({
+    project: project(spec),
+    history: history(3),
+    brandName: "Test Brand",
+    images: new Map(),
+    now: new Date("2026-09-30T10:00:00Z"),
+    ...patch,
+  });
+
+  it("is the document the page shows, so an export made from it cannot disagree with the screen", () => {
+    const spec = designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
+    expect(buildPackFor(input(spec))).toEqual(buildTechPackPage(input(spec)).pack);
+  });
+
+  it("draws the colourway that is named, and the first when none is", () => {
+    const spec = applyAction(designWith("crew-tee", {}, madeUpForType("crew-tee", {})), {
+      type: "add-colourway",
+      colourway: { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "White", swatch: "#ffffff", provenance: "user-edited" }] },
+    });
+    if (!spec.ok) throw new Error(spec.reason);
+    const named = buildPackFor(input(spec.spec, { colourwayId: "away" }));
+    const first = buildPackFor(input(spec.spec));
+    expect(named.flats.views[0]?.model?.colourwayId).toBe("away");
+    expect(first.flats.views[0]?.model?.colourwayId).toBe("main");
+    expect(buildPackFor(input(spec.spec, { colourwayId: "nothing-like-it" })).flats.views[0]?.model?.colourwayId).toBe("main");
+  });
+
+  it("reads the version it was given, whatever is newer in the history", () => {
+    const spec = start("crew-tee");
+    const old = buildPackFor(input(spec, { project: project(spec, { currentVersion: 1 }) }));
+    expect(old.cover.version).toBe(1);
+    expect(old.cover.revisions.map((entry) => entry.version)).toEqual([1]);
   });
 });

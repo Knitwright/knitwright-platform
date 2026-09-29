@@ -150,16 +150,25 @@ export const listProjects = async (
   return { projects: rows.slice(0, limit).map(summaryOf), hasMore: rows.length > limit };
 };
 
-/** A design with its current content. */
-export const getProject = async (
+/**
+ * A design at one of its versions, or at its current version when none is named. The version shown
+ * is the one read: `currentVersion` says which it is. A version the design does not have is not found.
+ */
+export const getProjectAt = async (
   client: SupabaseClient,
   brandId: string,
   projectId: string,
+  version?: number,
 ): Promise<OpenProject> => {
   const row = await loadRow(client, brandId, projectId);
-  const current = await loadVersion(client, brandId, projectId, row.current_version);
-  return { ...summaryOf(row), ...(await dropUnreadableArtwork(client, brandId, readSpec(current.spec))) };
+  const at = version ?? row.current_version;
+  const stored = await loadVersion(client, brandId, projectId, at);
+  return { ...summaryOf(row), currentVersion: at, ...(await dropUnreadableArtwork(client, brandId, readSpec(stored.spec))) };
 };
+
+/** A design with its current content. */
+export const getProject = (client: SupabaseClient, brandId: string, projectId: string): Promise<OpenProject> =>
+  getProjectAt(client, brandId, projectId);
 
 export interface VersionsPage {
   readonly versions: VersionSummary[];

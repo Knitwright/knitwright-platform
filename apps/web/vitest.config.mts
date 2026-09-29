@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 const alias = {
@@ -9,6 +9,13 @@ const alias = {
   // The real package throws outside a React server build. Tests run in plain Node.
   "server-only": fileURLToPath(new URL("./tests/stubs/server-only.ts", import.meta.url)),
 };
+
+/** The tests that make PDF files. They are the slowest in the suite and run alone, after the others. */
+const PDF_TESTS = [
+  "lib/techpack/exports/pdf/**/*.test.ts",
+  "lib/techpack/exports/formats.test.ts",
+  "lib/projects/export-download.test.ts",
+];
 
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
 const localEnvFile = fileURLToPath(new URL("./.env.local", import.meta.url));
@@ -60,6 +67,23 @@ export default defineConfig({
             "app/**/*.test.ts",
             "tests/architecture/**/*.test.ts",
           ],
+          exclude: [...configDefaults.exclude, ...PDF_TESTS],
+          // Ordinary tests run together, and the PDF tests run after them (see the "pdf" project).
+          sequence: { groupOrder: 1 },
+        },
+      },
+      {
+        resolve: { alias },
+        test: {
+          // Making a PDF costs a second of processor time, and the default wait for a test is five
+          // seconds. With every other test file running at once, a PDF test can take five times as
+          // long as it does alone. So these files run one after another, on their own, after the
+          // rest. The wait is not raised: a PDF test that is slow on its own still fails.
+          name: "pdf",
+          environment: "node",
+          include: PDF_TESTS,
+          fileParallelism: false,
+          sequence: { groupOrder: 3 },
         },
       },
       {
@@ -69,6 +93,8 @@ export default defineConfig({
           name: "db",
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
+          // Vitest wants a different order for projects that use different numbers of workers.
+          sequence: { groupOrder: 2 },
           env: { ...localEnv, ...process.env },
           testTimeout: 20_000,
           hookTimeout: 20_000,

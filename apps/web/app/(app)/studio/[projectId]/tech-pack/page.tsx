@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
-import { loadArtworkImages, picturesNote } from "@/lib/projects/artwork-images";
+import { picturesNote } from "@/lib/projects/artwork-images";
 import { colourwayParam } from "@/lib/projects/colour-controls";
-import { getProject, listVersions } from "@/lib/projects/service";
-import { buildTechPackPage, historyIsNewer } from "@/lib/projects/tech-pack-data";
+import { buildTechPackPage } from "@/lib/projects/tech-pack-data";
+import { loadTechPackSource } from "@/lib/projects/tech-pack-load";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 
 export const metadata: Metadata = { title: "Tech pack" };
@@ -26,13 +25,8 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   const colourwayId = colourwayParam((await searchParams).colourway);
   const client = await sessionClient();
 
-  const read = () =>
-    Promise.all([getProject(client, brand.id, projectId), listVersions(client, brand.id, projectId)]).catch(orNotFound);
-  let [project, history] = await read();
-  // A save that landed between the two reads leaves the history ahead of the design. Read again once.
-  if (historyIsNewer(project, history)) [project, history] = await read();
-
-  const pictures = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
+  // The same loader the export route uses, so the screen and the files are made from the same reads.
+  const { project, history, pictures } = await loadTechPackSource(client, brand.id, projectId, { shrink: shrinkForDrawing }).catch(orNotFound);
   const data = buildTechPackPage({
     project,
     history,
@@ -45,7 +39,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
 
   return (
     <TechPackEdit projectId={data.projectId} version={data.version}>
-      <TechPackDocument data={data} />
+      <TechPackDocument data={data} colourwayId={colourwayId} />
     </TechPackEdit>
   );
 }
