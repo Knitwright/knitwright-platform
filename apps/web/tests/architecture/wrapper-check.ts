@@ -1,5 +1,5 @@
 import ts from "typescript";
-import { pageGuardViolations } from "./page-guard-check";
+import { checkPage } from "./page-guard-check";
 import { localNamesOf, parse, type SourceText } from "./source";
 
 export type { SourceText } from "./source";
@@ -132,7 +132,11 @@ const literalAuthOf = (call: ts.CallExpression): string | undefined => {
   return auth.initializer.text;
 };
 
-type FileReport = Readonly<{ violations: Violation[]; publicEntries: string[] }>;
+type FileReport = Readonly<{
+  violations: Violation[];
+  publicEntries: string[];
+  publicPages?: string[];
+}>;
 
 const checkExports = (
   file: string,
@@ -181,7 +185,11 @@ const checkExports = (
   return { violations, publicEntries };
 };
 
-const checkFile = (file: SourceText, allowList: ReadonlySet<string>): FileReport => {
+const checkFile = (
+  file: SourceText,
+  allowList: ReadonlySet<string>,
+  publicPages: ReadonlySet<string>,
+): FileReport => {
   const source = parse(file);
   const inline: Violation[] = Array.from({ length: countInlineDirectives(source) }, () => ({
     file: file.path,
@@ -217,11 +225,14 @@ const checkFile = (file: SourceText, allowList: ReadonlySet<string>): FileReport
     );
   }
 
+  const page = checkPage(file.path, source, publicPages);
+
   return {
+    publicPages: page.isPublicPage ? [file.path] : [],
     violations: [
       ...inline,
       ...reports.flatMap((report) => report.violations),
-      ...pageGuardViolations(file.path, source),
+      ...page.violations,
     ],
     publicEntries: reports.flatMap((report) => report.publicEntries),
   };
@@ -230,10 +241,20 @@ const checkFile = (file: SourceText, allowList: ReadonlySet<string>): FileReport
 export const checkWrappers = (
   files: readonly SourceText[],
   allowList: readonly string[],
+  publicPageList: readonly string[] = [],
 ): Violation[] => {
   const allowed = new Set(allowList);
-  const reports = files.map((file) => checkFile(file, allowed));
+  const reports = files.map((file) => checkFile(file, allowed, new Set(publicPageList)));
   const publicEntries = new Set(reports.flatMap((report) => report.publicEntries));
+  const publicPagesFound = new Set(reports.flatMap((report) => report.publicPages ?? []));
+
+  const stalePages: Violation[] = publicPageList
+    .filter((entry) => !publicPagesFound.has(entry))
+    .map((entry) => ({
+      file: "lib/server/public-pages.ts",
+      rule: "stale-allow-entry" as const,
+      detail: `"${entry}" is on the list of public pages but no public page matches it.`,
+    }));
 
   const stale: Violation[] = allowList
     .filter((entry) => !publicEntries.has(entry))
@@ -243,5 +264,5 @@ export const checkWrappers = (
       detail: `"${entry}" is on the allow list but no public route or action matches it.`,
     }));
 
-  return [...reports.flatMap((report) => report.violations), ...stale];
+  return [...reports.flatMap((report) => report.violations), ...stale, ...stalePages];
 };

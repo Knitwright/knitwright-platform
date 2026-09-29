@@ -9,10 +9,11 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values
   ('uploads', 'uploads', false, 10485760, array['image/png', 'image/jpeg']),
   ('images', 'images', false, 10485760, array['image/png', 'image/jpeg']),
+  -- No SVG here: a browser runs the scripts inside one. Exports are built when they
+  -- are downloaded and are not stored, so nothing writes to this bucket yet.
   ('exports', 'exports', false, 52428800, array[
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'image/svg+xml',
     'application/zip'
   ]);
 

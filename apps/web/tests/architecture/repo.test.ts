@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { PUBLIC_PAGES } from "@/lib/server/public-pages";
 import { PUBLIC_ENTRY_POINTS } from "@/lib/server/public-routes";
 import { checkWrappers, type SourceText } from "./wrapper-check";
 
@@ -52,7 +53,7 @@ describe("the app's routes and actions", () => {
   });
 
   it("are all made with defineRoute or defineAction, and every public one is listed", () => {
-    expect(checkWrappers(files, [...PUBLIC_ENTRY_POINTS])).toEqual([]);
+    expect(checkWrappers(files, [...PUBLIC_ENTRY_POINTS], [...PUBLIC_PAGES])).toEqual([]);
   });
 
   it("has no pages folder, whose API routes the wrappers do not cover", () => {

@@ -72,6 +72,10 @@ exception
 end;
 $$;
 
+-- From here on, a new function in this schema can be run by nobody until it is
+-- granted. Without this, Postgres lets everyone run every new function.
+alter default privileges in schema private revoke execute on functions from public;
+
 grant usage on schema private to authenticated;
 revoke all on function private.is_member(uuid) from public, anon;
 revoke all on function private.brand_id_from(text) from public, anon;
@@ -95,6 +99,8 @@ language sql
 immutable
 set search_path = ''
 as $$ select 3; $$;
+
+revoke all on function private.max_brands_per_user() from public, anon, authenticated;
 
 -- Creates a brand and makes the caller its owner. Refuses when the caller already
 -- belongs to the most brands allowed. Two calls at once from one user are taken in

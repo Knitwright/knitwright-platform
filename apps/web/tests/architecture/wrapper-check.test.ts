@@ -173,7 +173,9 @@ export const { rename } = { rename: async () => {} };`;
         return null;
       }
     `;
-    expect(rules([{ path: "app/page.tsx", text }])).toEqual(["inline-use-server"]);
+    expect(rules([{ path: "app/(auth)/sign-in/Panel.tsx", text }])).toEqual([
+      "inline-use-server",
+    ]);
   });
 
   it("bans the directive inside an arrow function", () => {
@@ -283,30 +285,33 @@ describe("checkWrappers, report", () => {
 
 describe("checkWrappers, pages that need a session", () => {
   const page = (text: string, path = "app/(app)/studio/page.tsx"): SourceText => ({ path, text });
+  const pageRules = (files: SourceText[], publicPages: string[] = []) =>
+    checkWrappers(files, [], publicPages).map((violation) => violation.rule);
 
-  const GUARDED = `
-    import { requireMember } from "@/lib/server/page-guards";
+  const guardedBy = (guard: string, body = `await ${guard}();`) => `
+    import { ${guard} } from "@/lib/server/page-guards";
     export default async function Page() {
-      const { brand } = await requireMember();
-      return <p>{brand.name}</p>;
+      ${body}
+      return null;
     }
   `;
+  const UNGUARDED = `export default function Page() { return null; }`;
 
   it("accepts a studio page that checks for a member itself", () => {
-    expect(rules([page(GUARDED)])).toEqual([]);
+    expect(pageRules([page(guardedBy("requireMember"))])).toEqual([]);
+    expect(
+      pageRules([page(guardedBy("requireMember", "const { brand } = await requireMember();"))]),
+    ).toEqual([]);
   });
 
   it("rejects a studio page that relies on its layout to check", () => {
-    const text = `export default function Page() { return <p>Designs</p>; }`;
-    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(UNGUARDED)])).toEqual(["page-not-guarded"]);
   });
 
   it("rejects a studio page that imports the check but never calls it", () => {
-    const text = `
-      import { requireMember } from "@/lib/server/page-guards";
-      export default function Page() { return <p>Designs</p>; }
-    `;
-    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+    const text = `import { requireMember } from "@/lib/server/page-guards";
+${UNGUARDED}`;
+    expect(pageRules([page(text)])).toEqual(["page-not-guarded"]);
   });
 
   it("rejects a check that only shares the name", () => {
@@ -314,47 +319,73 @@ describe("checkWrappers, pages that need a session", () => {
       const requireMember = async () => ({});
       export default async function Page() { await requireMember(); return null; }
     `;
-    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("rejects a check that is not waited for, since it would stop nothing", () => {
+    expect(pageRules([page(guardedBy("requireMember", "requireMember();"))])).toEqual([
+      "page-not-guarded",
+    ]);
+  });
+
+  it("rejects a check that sits where it may never run", () => {
+    const inCondition = guardedBy("requireMember", "if (false) { await requireMember(); }");
+    const inOtherFunction = `
+      import { requireMember } from "@/lib/server/page-guards";
+      async function unused() { await requireMember(); }
+      export default async function Page() { return null; }
+    `;
+    const afterReturn = `
+      import { requireMember } from "@/lib/server/page-guards";
+      export default async function Page() { return null; await requireMember(); }
+    `;
+    for (const text of [inCondition, inOtherFunction, afterReturn]) {
+      expect(pageRules([page(text)])).toEqual(["page-not-guarded"]);
+    }
   });
 
   it("rejects a studio page that checks for a session only, since it also needs a brand", () => {
-    const text = `
-      import { requireSession } from "@/lib/server/page-guards";
-      export default async function Page() { await requireSession(); return null; }
-    `;
-    expect(rules([page(text)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(guardedBy("requireSession"))])).toEqual(["page-not-guarded"]);
   });
 
-  it("checks layouts in the studio as well as pages", () => {
-    const text = `export default function Layout({ children }) { return children; }`;
-    expect(rules([page(text, "app/(app)/layout.tsx")])).toEqual(["page-not-guarded"]);
+  it("checks layouts, templates and defaults as well as pages", () => {
+    for (const name of ["layout.tsx", "template.tsx", "default.tsx", "page.jsx"]) {
+      expect(pageRules([page(UNGUARDED, `app/(app)/${name}`)])).toEqual(["page-not-guarded"]);
+    }
   });
 
-  it("lets a page shown before a brand exists check for a session only", () => {
-    const text = `
-      import { requireSession } from "@/lib/server/page-guards";
-      export default async function Page() { await requireSession(); return null; }
-    `;
-    expect(rules([page(text, "app/(onboarding)/welcome/page.tsx")])).toEqual([]);
+  it("checks a page in any folder, including one added later", () => {
+    expect(pageRules([page(UNGUARDED, "app/(studio)/x/page.tsx")])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(UNGUARDED, "app/page.tsx")])).toEqual(["page-not-guarded"]);
+  });
+
+  it("lets a page outside the studio check for a session only", () => {
     expect(
-      rules([
-        page(`export default function Page() { return null; }`, "app/(onboarding)/welcome/page.tsx"),
-      ]),
-    ).toEqual(["page-not-guarded"]);
+      pageRules([page(guardedBy("requireSession"), "app/(onboarding)/welcome/page.tsx")]),
+    ).toEqual([]);
   });
 
-  it("leaves public pages and pieces of pages alone", () => {
-    const text = `export default function Page() { return null; }`;
-    expect(rules([page(text, "app/page.tsx")])).toEqual([]);
-    expect(rules([page(text, "app/(auth)/sign-in/page.tsx")])).toEqual([]);
-    expect(rules([page(text, "app/(app)/studio/DesignCard.tsx")])).toEqual([]);
+  it("accepts a page with no check only when it is on the list of public pages", () => {
+    expect(pageRules([page(UNGUARDED, "app/page.tsx")], ["app/page.tsx"])).toEqual([]);
+  });
+
+  it("does not let the list of public pages open the studio", () => {
+    expect(pageRules([page(UNGUARDED)], ["app/(app)/studio/page.tsx"])).toContain(
+      "page-not-guarded",
+    );
+  });
+
+  it("rejects an entry on the list of public pages that matches no page", () => {
+    expect(pageRules([], ["app/gone/page.tsx"])).toEqual(["stale-allow-entry"]);
+  });
+
+  it("leaves pieces of pages alone", () => {
+    expect(pageRules([page(UNGUARDED, "app/(app)/studio/DesignCard.tsx")])).toEqual([]);
+    expect(pageRules([page(UNGUARDED, "components/auth/page.tsx")])).toEqual([]);
   });
 
   it("names the file and the check it needs", () => {
-    const [violation] = checkWrappers(
-      [page(`export default function Page() { return null; }`)],
-      [],
-    );
+    const [violation] = checkWrappers([page(UNGUARDED)], [], []);
     expect(violation.file).toBe("app/(app)/studio/page.tsx");
     expect(violation.detail).toContain("requireMember");
   });

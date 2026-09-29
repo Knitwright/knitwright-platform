@@ -25,9 +25,11 @@ criterion M5: one brand can never read another brand's designs, files or images.
 4. **Three kinds of access**, written on every route and action: `member` (a session
    and a brand), `user` (a session only, for the few things done before a brand
    exists), and `public`.
-5. **Every page in the studio checks the session and the brand itself**, with
-   `requireMember()`. The architecture test fails for a page that leaves it to the
-   layout. The framework does not run a layout again when the user moves between the
+5. **Every page checks the session itself, unless it is on the list of public pages**
+   in `lib/server/public-pages.ts`. Studio pages use `requireMember()` and can never be
+   listed as public. The check must be written as `await requireMember()` directly in
+   the body of the page, before anything is returned, so it is certain to run. The
+   architecture test fails for a page that leaves it to the layout. The framework does not run a layout again when the user moves between the
    pages inside it. `requireMember()` is the plan's `verifySession()`.
 6. **Three private buckets.** Every path starts with the brand's id. Members may read
    their brand's files. **No browser may write to storage.** The server checks every
@@ -56,6 +58,30 @@ criterion M5: one brand can never read another brand's designs, files or images.
 | Uploads are stripped of details and appended data | `lib/storage/image.test.ts`, 21 cases |
 | A studio page that does not check the session fails the build | `tests/architecture/wrapper-check.test.ts` |
 | No session, no access, for the new routes | `e2e/unauthenticated.spec.ts` found them on disk with no change to the test |
+
+## Security review, 2026-09-29
+
+A fresh reviewer attacked the local database, storage and routes as two real users. It
+found nothing critical or high, and no way across brands. Its findings and what was done:
+
+| Finding | Done |
+|---|---|
+| The page check accepted a check that might never run, and did not look at new folders | Fixed. The rule now covers every page and needs the check where it is certain to run. |
+| Two functions with one name counted as one in the isolation suite | Fixed. Functions are named with their arguments. |
+| Rights given on a single column were not counted | Fixed. The suite asks what each role can in fact do. |
+| Functions in the private schema could be run by anyone by default | Fixed. New functions there can be run by nobody until granted. |
+| The exports bucket accepted SVG | Fixed. Removed. |
+| The rate limit is counted after the brand is looked up | Left. See "Left for later". |
+| Many large uploads at once could exhaust a small host | Left. See "Left for later". |
+| A user cannot be deleted while a brand or file names them | Left, as planned, for step 26. |
+
+## Left for later, on purpose
+
+| Item | Where it goes |
+|---|---|
+| A cheap limit for each address before any database lookup | Step 26, with load testing |
+| A limit on how many images are decoded at once | Step 26, with load testing |
+| Deleting an account together with its brands and files | Step 26 |
 
 ## Alternatives
 

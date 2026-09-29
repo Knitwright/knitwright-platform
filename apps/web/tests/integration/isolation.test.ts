@@ -77,17 +77,21 @@ const BUCKETS = ["exports", "images", "uploads"] as const;
 
 /** Functions a browser may call, and who may call them. Everything else is refused. */
 const CALLABLE = {
-  signup_is_open: { anon: true, authenticated: true },
-  create_brand: { anon: false, authenticated: true },
-  rename_brand: { anon: false, authenticated: true },
+  "public.signup_is_open()": { anon: true, authenticated: true },
+  "public.create_brand(p_name text)": { anon: false, authenticated: true },
+  "public.rename_brand(p_brand_id uuid, p_name text)": { anon: false, authenticated: true },
+  // Used inside access rules. They cannot be called through the API.
+  "private.is_member(p_brand_id uuid)": { anon: false, authenticated: true },
+  "private.brand_id_from(p_text text)": { anon: false, authenticated: true },
 } as const;
 
 type Report = Readonly<{
   tables: { name: string; rls_enabled: boolean; client_privileges: string[] }[];
   buckets: { id: string; public: boolean }[];
   storage_policies: { name: string; command: string }[];
+  storage_tables: { name: string; rls_enabled: boolean }[];
   functions: {
-    name: string;
+    signature: string;
     security_definer: boolean;
     fixed_search_path: boolean;
     anon: boolean;
@@ -151,7 +155,7 @@ describe("what exists", () => {
     const callable = Object.fromEntries(
       report.functions
         .filter((fn) => fn.anon || fn.authenticated)
-        .map((fn) => [fn.name, { anon: fn.anon, authenticated: fn.authenticated }]),
+        .map((fn) => [fn.signature, { anon: fn.anon, authenticated: fn.authenticated }]),
     );
 
     expect(callable).toEqual(CALLABLE);
@@ -161,8 +165,28 @@ describe("what exists", () => {
     expect(
       report.functions
         .filter((fn) => fn.security_definer && !fn.fixed_search_path)
-        .map((fn) => fn.name),
+        .map((fn) => fn.signature),
     ).toEqual([]);
+  });
+
+  it("counts two functions with one name as two, so a second cannot hide behind the first", () => {
+    const signatures = report.functions.map((fn) => fn.signature);
+
+    expect(new Set(signatures).size).toBe(signatures.length);
+    expect(signatures.every((signature) => /^\w+\.\w+\(.*\)$/.test(signature))).toBe(true);
+  });
+
+  it("has row level security on every table of the file store", () => {
+    expect(report.storage_tables.length).toBeGreaterThan(0);
+    expect(
+      report.storage_tables.filter((table) => !table.rls_enabled).map((table) => table.name),
+    ).toEqual([]);
+  });
+
+  it("keeps stored exports to formats a browser will not run", async () => {
+    const { data } = await adminClient().storage.getBucket("exports");
+
+    expect(data?.allowed_mime_types).not.toContain("image/svg+xml");
   });
 
   it("does not show this report to a browser", async () => {
