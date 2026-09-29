@@ -190,6 +190,23 @@ describe("registry build", () => {
     expect(registry.listTypes("tops")).toHaveLength(1);
   });
 
+  describe("size systems", () => {
+    it("reports a size system that is not declared, or one for a wearer the type is not made for", () => {
+      expect(checkFamilyData(withType({ sizeSystems: { men: "shoe-sizes" } }))).toEqual([
+        'Type "test-tee" uses the unknown size system "shoe-sizes" for men.',
+      ]);
+      expect(checkFamilyData(withType({ sizeSystems: { women: "sports-bra" } }))).toEqual([
+        'Type "test-tee" names a size system for women, but it is not made for women.',
+      ]);
+    });
+
+    it("gives each wearer its usual size system unless the type names another", () => {
+      expect(buildRegistry([family]).getType("test-tee")?.sizeSystems).toEqual({ men: "adult" });
+      const bra = buildRegistry([withType({ sizeSystems: { men: "sports-bra" } })]).getType("test-tee");
+      expect(bra?.sizeSystems).toEqual({ men: "sports-bra" });
+    });
+  });
+
   describe("seams and components", () => {
     const seam = family.seams[0] as FamilyData["seams"][number];
     const slot = family.components[0] as FamilyData["components"][number];

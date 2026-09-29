@@ -8,6 +8,7 @@
  */
 import { listTypes, type Wearer } from "@/lib/garment";
 import { pointsThatCanApply } from "../applicable-points";
+import { runSuits } from "../run-system";
 import type { ChartSet } from "../chart-set";
 import type { ChartPoint, SizeChart } from "../schemas";
 import { MADE_UP_RUNS } from "./made-up-size-runs";
@@ -35,7 +36,7 @@ export function madeUpChart(
   wearer: Wearer,
   fit: SizeChart["fit"] = null,
 ): SizeChart {
-  const run = MADE_UP_RUNS.find((candidate) => candidate.wearer === wearer);
+  const run = MADE_UP_RUNS.find((candidate) => runSuits(candidate, typeId, wearer));
   const type = listTypes().find((candidate) => candidate.id === typeId);
   if (!run || !type) throw new Error(`No made-up chart can be built for ${typeId} and ${wearer}.`);
   const offset = fit === null ? 0 : FIT_ADJUSTMENT;
@@ -51,7 +52,7 @@ export function madeUpChart(
   };
 }
 
-/** One made-up chart, with no fit, for every tops type and every wearer the type offers. */
+/** One made-up chart, with no fit, for every type of every family and every wearer the type offers. */
 export const MADE_UP_CHARTS: readonly SizeChart[] = listTypes().flatMap((type) =>
   type.wearers.map((wearer) => madeUpChart(type.id, wearer)),
 );

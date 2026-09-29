@@ -11,8 +11,9 @@ import {
   type SeamDefinition,
 } from "../definitions";
 import { SEAM_CLASSES, STITCH_CLASSES } from "./construction-classes";
+import { SIZE_SYSTEMS, USUAL_SIZE_SYSTEM } from "./size-systems";
 import { conditionsHold } from "../conditions";
-import type { FamilyId } from "../primitives";
+import type { FamilyId, Wearer } from "../primitives";
 
 /** An option as one garment type offers it: choices may be fewer than the family has. */
 export interface ResolvedOption extends OptionDefinition {
@@ -26,6 +27,8 @@ export interface ResolvedType {
   readonly family: FamilyId;
   readonly label: string;
   readonly wearers: GarmentType["wearers"];
+  /** The size system of each wearer the type is made for, by id. */
+  readonly sizeSystems: Readonly<Partial<Record<Wearer, string>>>;
   readonly options: readonly ResolvedOption[];
   readonly pointsOfMeasure: readonly PointOfMeasure[];
   readonly panels: readonly PanelDefinition[];
@@ -108,11 +111,22 @@ function startingChoices(type: GarmentType, family: FamilyData): Record<string, 
   );
 }
 
+function sizeSystemProblems(type: GarmentType): string[] {
+  const known = byId(SIZE_SYSTEMS);
+  return Object.entries(type.sizeSystems ?? {}).flatMap(([wearer, system]) => {
+    if (!type.wearers.includes(wearer as Wearer)) {
+      return [`Type "${type.id}" names a size system for ${wearer}, but it is not made for ${wearer}.`];
+    }
+    return known.has(system) ? [] : [`Type "${type.id}" uses the unknown size system "${system}" for ${wearer}.`];
+  });
+}
+
 function typeProblems(type: GarmentType, family: FamilyData): string[] {
   const points = byId(family.pointsOfMeasure);
   const panels = byId(family.panels);
   const owner = `Type "${type.id}"`;
   const problems = [
+    ...sizeSystemProblems(type),
     ...twice(owner, "Option", type.options.map((entry) => entry.option)),
     ...twice(owner, "Point of measure", type.pointsOfMeasure),
     ...twice(owner, "Panel", type.panels),
@@ -211,6 +225,9 @@ function resolveType(type: GarmentType, family: FamilyData): ResolvedType {
     family: type.family,
     label: type.label,
     wearers: type.wearers,
+    sizeSystems: Object.freeze(
+      Object.fromEntries(type.wearers.map((wearer) => [wearer, type.sizeSystems?.[wearer] ?? USUAL_SIZE_SYSTEM[wearer]])),
+    ),
     options: resolveOptions(type, family),
     pointsOfMeasure: pick(byId(family.pointsOfMeasure), type.pointsOfMeasure),
     panels: pick(byId(family.panels), type.panels),

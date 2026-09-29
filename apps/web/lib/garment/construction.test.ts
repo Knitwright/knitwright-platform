@@ -25,7 +25,7 @@ const seamIds = (typeId: string, choices: Record<string, string> = {}): string[]
 describe("stitch and seam classes", () => {
   it("names the ISO stitch types a factory reads, each with a plain explanation", () => {
     const stitches = listStitchClasses();
-    expect(stitches.map((stitch) => stitch.iso)).toEqual(["301", "401", "406", "504", "514", "602", "605"]);
+    expect(stitches.map((stitch) => stitch.iso)).toEqual(["301", "401", "406", "504", "514", "602", "605", "607"]);
     for (const stitch of stitches) {
       expect(stitch.name.length).toBeGreaterThan(3);
       expect(stitch.explanation.endsWith(".")).toBe(true);
@@ -46,7 +46,7 @@ describe("stitch and seam classes", () => {
 
   it("names the ISO seam types, each with a plain explanation", () => {
     const seams = listSeamClasses();
-    expect(seams.map((seam) => seam.iso)).toEqual(["1", "2", "3", "6"]);
+    expect(seams.map((seam) => seam.iso)).toEqual(["1", "2", "3", "4", "6"]);
     for (const seam of seams) expect(seam.explanation.endsWith(".")).toBe(true);
   });
 
@@ -59,7 +59,7 @@ describe("stitch and seam classes", () => {
 
   it("hands out copies, so a caller cannot change the catalogue", () => {
     (listStitchClasses() as unknown[]).length = 0;
-    expect(listStitchClasses()).toHaveLength(7);
+    expect(listStitchClasses()).toHaveLength(8);
   });
 });
 

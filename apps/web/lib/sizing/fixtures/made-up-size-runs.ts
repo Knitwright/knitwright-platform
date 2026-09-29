@@ -27,4 +27,25 @@ export const MADE_UP_YOUTH_RUN: SizeRun = {
   sizes: ["V1", "V2", "V3"],
 };
 
-export const MADE_UP_RUNS: readonly SizeRun[] = [MADE_UP_MEN_RUN, MADE_UP_WOMEN_RUN, MADE_UP_YOUTH_RUN];
+/** Sports bras use their own size system, declared in the garment registry. */
+export const MADE_UP_WOMEN_BRA_RUN: SizeRun = {
+  id: "made-up-women-bra",
+  wearer: "women",
+  system: "sports-bra",
+  sizes: ["W1", "W2", "W3", "W4"],
+};
+
+export const MADE_UP_YOUTH_BRA_RUN: SizeRun = {
+  id: "made-up-youth-bra",
+  wearer: "youth",
+  system: "sports-bra",
+  sizes: ["X1", "X2", "X3"],
+};
+
+export const MADE_UP_RUNS: readonly SizeRun[] = [
+  MADE_UP_MEN_RUN,
+  MADE_UP_WOMEN_RUN,
+  MADE_UP_YOUTH_RUN,
+  MADE_UP_WOMEN_BRA_RUN,
+  MADE_UP_YOUTH_BRA_RUN,
+];

@@ -56,6 +56,13 @@ export const STITCH_CLASSES: readonly StitchClass[] = [
     explanation:
       "A stretchy stitch with three parallel lines on top and a covering thread underneath. It is wider than the two needle cover stitch and is used where a flat, strong finish is wanted.",
   },
+  {
+    id: "flatlock",
+    iso: "607",
+    name: "Four needle flatlock",
+    explanation:
+      "A wide, flat stitch with four needle threads that covers a join where two edges meet, on both sides. It leaves no ridge inside, so it is used on garments worn close to the skin.",
+  },
 ];
 
 export const SEAM_CLASSES: readonly SeamClass[] = [
@@ -76,6 +83,12 @@ export const SEAM_CLASSES: readonly SeamClass[] = [
     iso: "3",
     name: "Bound seam",
     explanation: "A strip of fabric is folded over the raw edge of one or more pieces and sewn on to enclose it.",
+  },
+  {
+    id: "flat",
+    iso: "4",
+    name: "Flat seam",
+    explanation: "Two pieces of fabric meet edge to edge, without overlapping, and a stitch covers the join.",
   },
   {
     id: "edge-finishing",

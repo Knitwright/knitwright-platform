@@ -2,6 +2,7 @@ import { parseCsv, type CsvRecord } from "./csv";
 import { checkChart } from "./validate";
 import { COLUMNS, parseRow, problemAt, type Cells, type Column, type ParsedRow, type ParseProblem } from "./parse-row";
 import type { SizeChart, SizeRun } from "./schemas";
+import { missingRunMessage, runSuits } from "./run-system";
 import { parseSourceNote } from "./source-note";
 
 export type { ParseProblem } from "./parse-row";
@@ -95,10 +96,10 @@ function consistencyProblems(group: readonly ParsedRow[]): { unique: ParsedRow[]
 function buildChart(group: readonly ParsedRow[], runs: readonly SizeRun[]): { chart?: SizeChart; problems: ParseProblem[] } {
   const { unique, problems } = consistencyProblems(group);
   const [first] = unique;
-  const run = first ? runs.find((candidate) => candidate.wearer === first.wearer) : undefined;
+  const run = first ? runs.find((candidate) => runSuits(candidate, first.garmentType, first.wearer)) : undefined;
   if (!first) return { problems };
   if (!run) {
-    problems.push(problemAt(first.line, "wearer", `There is no size run for ${first.wearer}. Send the sizes for ${first.wearer}, smallest first.`));
+    problems.push(problemAt(first.line, "wearer", missingRunMessage(first.garmentType, first.wearer)));
     return { problems };
   }
   const source = parseSourceNote(first.sourceText);

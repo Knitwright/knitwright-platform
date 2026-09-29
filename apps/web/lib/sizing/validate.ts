@@ -2,6 +2,7 @@ import { getType } from "@/lib/garment";
 import { pointsThatCanApply } from "./applicable-points";
 import type { ChartSet } from "./chart-set";
 import { gradeChart, type ChartProblem } from "./grading";
+import { runSystemMismatch } from "./run-system";
 import { sizeChartSchema, sizeRunSchema, type SizeChart, type SizeRun } from "./schemas";
 
 export type ChartSetResult =
@@ -53,7 +54,8 @@ function runProblems(chart: SizeChart, run: SizeRun): readonly ChartProblem[] {
       issue(null, "wearer", `The size run ${run.id} is for ${run.wearer}, but the chart is for ${chart.wearer}.`),
     ];
   }
-  return [];
+  const mismatch = runSystemMismatch(run, chart.garmentType, chart.wearer);
+  return mismatch ? [issue(null, "garment_type", mismatch)] : [];
 }
 
 /**

@@ -19,6 +19,11 @@ export const sizeRunSchema = z
   .object({
     id: idText,
     wearer: wearerSchema,
+    /**
+     * The size system of the run, as the garment registry names them, such as sports bra
+     * sizes. Leave out for the usual sizes of the wearer.
+     */
+    system: idText.optional(),
     sizes: z.array(sizeLabel).min(2, "A size run needs at least two sizes.").max(MAX_SIZES_IN_RUN).readonly(),
   })
   .readonly()

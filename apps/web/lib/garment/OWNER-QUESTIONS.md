@@ -210,3 +210,59 @@ A starting proposal, confirmed or changed by the owner with A5. Data in `registr
 | Hem band seam or body hem | body and band | ribbed or not | 1 with 514, or 6 with 406 | |
 
 - Components: thread and labels, front zip, zip guard (a proposal), hood drawcord, drawcord exits (a proposal), cuff, hem band, collar and neckband rib, pocket zips, pocket bags. Missing ideas: cord stoppers, cord tips, thumb holes, a zip puller.
+
+## Close-fitting (added in step 22)
+
+A starting proposal, confirmed or changed by the owner with A5. Data in `registry/close-fitting/`.
+
+### Types and choices I made up
+
+- Types: singlet, vest, sports bra, compression top. Singlets, vests and compression tops are for men, women and youth. Sports bras are for women and youth. Should there be a youth sports bra at all?
+- What tells a singlet from a vest: the singlet offers a racerback and starts with bound edges; the vest has a straight back only and starts with turned edges. Is that the difference your customers mean?
+- Sleeves: none (singlet, vest, sports bra) or short or long (compression top only).
+- Back: straight or racerback (singlet and sports bra; the sports bra starts with a racerback).
+- Edge finish of the neck and armholes: bound, turned and stitched, or elastic (elastic on sports bras only).
+- Underband (sports bra only): exposed elastic or covered elastic.
+- Seams: overlocked or flat (flatlock). Sports bras and compression tops start with flat seams.
+- Sports bras and compression tops have no fit choice. Is that right?
+- Panels that can be coloured: body front and back, both sleeves, edge binding, underband. Artwork on body and sleeves only.
+- Missing ideas: a sports bra closure (hooks at the back), a lining, mesh panels, a mock neck on compression tops, thumb holes.
+
+### Size systems
+
+- Sports bras are sized in their own size system, named "Sports bra sizes" in the registry, for both women and youth. A sports bra chart must use a size run marked with that system. Should youth sports bras use the youth size run instead?
+- The registry names three systems: adult sizes (men and women), youth sizes, sports bra sizes. The sizes in each run come from the owner.
+
+### Impossible combinations
+
+- A racerback with sleeves is refused. No type offers both today.
+
+### How to measure sentences a factory should check
+
+- Underbust: across the bottom edge of the underband, not stretched. Should it also be given stretched, as for a waistband?
+- Armhole depth: from the top of the strap at the neckline down to the lowest point of the armhole. Some factories measure from the shoulder point.
+- Strap width: across the strap at its narrowest.
+- Back width at the narrowest: across the back between the armhole edges. On a racerback this is the narrowest point of the back straps.
+- The body, neck and sleeve points are the tops sentences, unchanged.
+
+### Construction and components (a factory must confirm every one)
+
+Each joining seam has two forms. With overlocked seams: seam class 1 superimposed, 514 four thread overedge. With flat seams: seam class 4 flat, 607 four needle flatlock. Seam class 4 and stitch type 607 were added to the catalogue in this step, from memory, like the others. A factory must check both numbers.
+
+| Seam | Joins | When |
+|---|---|---|
+| Shoulder seam | body front and back | always |
+| Side seam | body front and back | always |
+| Armhole seam | sleeves and body | sleeves |
+| Sleeve underarm seam | sleeves | sleeves |
+| Underband seam | underband and body | sports bra |
+
+| Seam | Joins | When | Seam class | Stitch class |
+|---|---|---|---|---|
+| Sleeve hem | sleeves | sleeves | 6 edge finish | 406 two needle bottom cover stitch |
+| Body hem | body | no underband | 6 edge finish | 406 two needle bottom cover stitch |
+| Edge binding | binding and body | bound edges | 3 bound | 602 two needle cover stitch |
+| Turned edges | body | turned edges | 6 edge finish | 406 two needle bottom cover stitch |
+| Elastic edges | body | elastic edges | 6 edge finish | 602 two needle cover stitch |
+
+- Components: thread and labels, binding, edge elastic, underband elastic, cup pads (a proposal). Missing ideas: hooks and eyes, a lining, a silicone gripper.

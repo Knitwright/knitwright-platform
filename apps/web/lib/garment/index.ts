@@ -42,6 +42,7 @@ export {
   type PanelDefinition,
   type PointOfMeasure,
   type Rule,
+  type SizeSystem,
   type SeamClass,
   type SeamDefinition,
   type StitchClass,
@@ -99,9 +100,12 @@ export {
 } from "./primitives";
 export { PROVENANCE_LABELS, PROVENANCE_VALUES, provenanceSchema, type Provenance } from "./provenance";
 export {
+  USUAL_SIZE_SYSTEM,
   getType,
   listFamilies,
+  listSizeSystems,
   listTypes,
+  sizeSystemFor,
   type ResolvedOption,
   type ResolvedType,
 } from "./registry";

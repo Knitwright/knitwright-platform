@@ -47,7 +47,7 @@ const conditionsSchema = z.array(conditionSchema).readonly();
  * Sections for laying out a measurement table. Tolerances and grade steps do not belong
  * in the registry. They live in the size chart data, keyed by point of measure id.
  */
-export const POINT_GROUPS = ["body", "sleeve", "neck", "placket", "waist", "rise", "leg", "hood", "zip", "pocket", "rib"] as const;
+export const POINT_GROUPS = ["body", "sleeve", "neck", "placket", "waist", "rise", "leg", "hood", "zip", "pocket", "rib", "strap"] as const;
 export const pointGroupSchema = z.enum(POINT_GROUPS);
 export type PointGroup = z.output<typeof pointGroupSchema>;
 export const POINT_GROUP_LABELS: Readonly<Record<PointGroup, string>> = {
@@ -62,6 +62,7 @@ export const POINT_GROUP_LABELS: Readonly<Record<PointGroup, string>> = {
   zip: "Zip",
   pocket: "Pockets",
   rib: "Cuffs and hem band",
+  strap: "Armholes, straps and back",
 };
 
 export const pointOfMeasureSchema = z
@@ -132,6 +133,11 @@ export const garmentTypeSchema = z
     options: z.array(typeOptionSchema).readonly(),
     pointsOfMeasure: z.array(kebabId).readonly(),
     panels: z.array(kebabId).readonly(),
+    /**
+     * The size system each wearer's size run must use, for wearers that do not use their
+     * usual one. Leave out to use the usual system of every wearer (see `size-systems.ts`).
+     */
+    sizeSystems: z.partialRecord(wearerSchema, kebabId).readonly().optional(),
   })
   .readonly()
   .refine((type) => new Set(type.wearers).size === type.wearers.length, {
@@ -139,6 +145,15 @@ export const garmentTypeSchema = z
     path: ["wearers"],
   });
 export type GarmentType = z.output<typeof garmentTypeSchema>;
+
+/**
+ * A way of naming sizes, such as adult letter sizes or sports bra sizes. The registry names
+ * the systems. The sizes in each run, and every number, come from the size charts.
+ */
+export const sizeSystemSchema = z
+  .object({ id: kebabId, label: labelText, help: sentenceText })
+  .readonly();
+export type SizeSystem = z.output<typeof sizeSystemSchema>;
 
 /**
  * A kind of stitch, named by its ISO 4915 number. The number names a kind of stitch that a

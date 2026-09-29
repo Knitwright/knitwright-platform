@@ -1,5 +1,6 @@
 import { getType } from "@/lib/garment";
 import type { ChartSet } from "./chart-set";
+import { runSystemMismatch } from "./run-system";
 import type { SizeChart, SizeRun } from "./schemas";
 
 export type ChartChoice =
@@ -47,6 +48,8 @@ export function selectChart(set: ChartSet, wanted: Wanted): ChartChoice {
       message: `The size chart for ${type.label} for ${wanted.wearer} names a size run that is missing, so it cannot be used.`,
     };
   }
+  const mismatch = runSystemMismatch(run, wanted.typeId, wanted.wearer);
+  if (mismatch) return { kind: "none", message: `The size chart for ${type.label} for ${wanted.wearer} cannot be used. ${mismatch}` };
   const fitNote =
     chart.fit === null && fit !== undefined
       ? `This chart does not depend on fit, so it is used for the ${fit} fit as well.`
