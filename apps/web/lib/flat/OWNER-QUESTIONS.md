@@ -91,3 +91,25 @@ width, and are a starting point written without a garment professional. They are
 - Side seam pockets are drawn as a slanted opening line just inside the side seam. Is a
   slant pocket what your customers mean?
 - The back view has no back pocket and no yoke. Should it offer them?
+
+## Outerwear (added in step 20)
+
+The body, sleeves, neck and stand collar of a hoodie or track jacket are drawn by the tops
+code, from the tops ratios with long sleeves. What outerwear adds is in
+`families/outerwear/`. All ratios are against the chest width.
+
+- Changed from a top: body length 1.20, shoulder width 0.90, neck width 0.36, front neck
+  drop 0.15.
+- Hood height 0.62 and hood width 0.46. From the front the hood is drawn 0.62 of the hood
+  width wide on each side of the centre, and the face opening 0.62 of that. The hood is
+  always drawn up, as worn. Should the back view show it lying down instead?
+- The face opening of a pullover hood closes in a point at the front neck. Real hoods often
+  cross over there. Is a point acceptable?
+- Kangaroo pocket 0.62 wide and 0.36 high, sitting on the hem band, with its top 0.62 of its
+  bottom width and curved open sides.
+- Side pockets: an opening 0.30 long, slanting a little, just inside the side seam.
+- Cuff and hem band 0.12. Stand collar 0.13.
+- The zip runs from the hem to the neck seam, or to the top of a stand collar. Its length
+  is worked out from the other ratios.
+- With a hood, the neck seam is where the hood is sewn. With no hood and no collar, the
+  neck is finished with a neckband, drawn as on a tee.

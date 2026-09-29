@@ -39,6 +39,18 @@ said "There is no drawing for this garment type yet."
 - The outside leg length is checked against the rise and the inside leg (within 8%), and
   shown by its callout. The hem sits the inside leg below the crotch.
 
+## Outerwear (step 20)
+
+- The body, sleeves, neck and stand collar are the tops shapes, from a tops frame with long
+  sleeves, so a hoodie and a tee are drawn by the same code. Callouts of those points are
+  the tops callouts.
+- The hood is drawn up, as worn, on both views. Its bottom edge is the neck seam of the
+  body, so the two share an edge. From the front the lining, or the inside of a single
+  layer hood, shows through the face opening. The silhouette takes in the hood, and the
+  face opening is the outline's opening.
+- The zip length is checked against the front neck in both views, since the zip is on the
+  front.
+
 ## Evidence
 
 | Claim | Test |

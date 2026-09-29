@@ -72,6 +72,23 @@ diamond between the legs is the gusset.
 For bottoms, look especially at the hip curve, where the legs meet, how far apart the
 legs hang, and the waistband shape of the leggings.
 
+## Outerwear (step 20)
+
+No sizes here either. The navy parts are the cuffs, the hem band and the collar. The pale
+blue inside the hood is the lining, and the kangaroo pocket is a slightly darker blue.
+
+| Garment | Front | Back |
+|---|---|---|
+| Pullover hoodie | `pullover-hoodie-front.png` | `pullover-hoodie-back.png` |
+| Zip hoodie | `zip-hoodie-front.png` | `zip-hoodie-back.png` |
+| Track jacket | `track-jacket-front.png` | `track-jacket-back.png` |
+| Pullover hoodie with raglan sleeves, a single layer hood and plain hems | `pullover-hoodie-raglan-front.png` | `pullover-hoodie-raglan-back.png` |
+| Zip hoodie with zipped pockets and no drawcord | `zip-hoodie-zip-pockets-front.png` | `zip-hoodie-zip-pockets-back.png` |
+| Track jacket with no collar, raglan sleeves and side pockets | `track-jacket-no-collar-front.png` | `track-jacket-no-collar-back.png` |
+
+For outerwear, look especially at the shape of the hood and the face opening, the
+kangaroo pocket, and the stand collar of the track jacket.
+
 ## How to answer
 
 Reply to the person who sent you this with one line for each garment. Say **yes** if the

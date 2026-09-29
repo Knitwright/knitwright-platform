@@ -42,6 +42,10 @@ const REVIEW_COLOURS: Readonly<Record<string, string>> = {
   waistband: "#1b2a49",
   gusset: "#b8c7dc",
   "side-stripes": "#c0392b",
+  hood: "#dbe4f0",
+  "hood-lining": "#b8c7dc",
+  "kangaroo-pocket": "#c9d5e6",
+  "hem-band": "#1b2a49",
 };
 
 interface Variant {
@@ -71,6 +75,12 @@ const FAMILY_VARIANTS: readonly Variant[] = [
   variant("joggers-loaded", "joggers", { "side-stripe": "contrast-stripe", gusset: "crotch-gusset", pockets: "zip-side" }),
   variant("track-pants-zip", "track-pants", { "leg-finish": "ankle-zip", "side-stripe": "contrast-stripe", waistband: "elastic" }),
   variant("leggings-cropped", "leggings", { "leg-length": "cropped", "side-stripe": "contrast-stripe" }),
+  variant("pullover-hoodie", "pullover-hoodie"),
+  variant("zip-hoodie", "zip-hoodie"),
+  variant("track-jacket", "track-jacket"),
+  variant("pullover-hoodie-raglan", "pullover-hoodie", { "sleeve-type": "raglan", hood: "single-layer", "hem-finish": "hem", cuffs: "hem" }),
+  variant("zip-hoodie-zip-pockets", "zip-hoodie", { pockets: "zip-side", "hood-drawcord": "none" }),
+  variant("track-jacket-no-collar", "track-jacket", { collar: "none", "sleeve-type": "raglan", pockets: "side-seam" }),
 ];
 
 const VARIANTS: readonly Variant[] = [

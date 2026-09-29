@@ -67,8 +67,8 @@ function inside(point: Point, run: Polyline): boolean {
 }
 
 describe("the families with drawing code", () => {
-  it("include bottoms, and every one of their types is sampled", () => {
-    expect(DRAWN_FAMILIES).toContain("bottoms");
+  it("include bottoms and outerwear, and every one of their types is sampled", () => {
+    expect(DRAWN_FAMILIES).toEqual(expect.arrayContaining(["bottoms", "outerwear"]));
     for (const typeId of familyTypeIds()) expect(pairwise(typeId).length, typeId).toBeGreaterThanOrEqual(1);
     expect(cases.length).toBeGreaterThan(50);
   });
@@ -110,7 +110,8 @@ describe.each(cases.map((item) => [item.label, item] as const))("%s", (_label, i
     expect(run.closed).toBe(true);
     expect(crossesItself(silhouette)).toBe(false);
     for (const point of run.points) expect(distanceToPolyline({ x: -point.x, y: point.y }, run)).toBeLessThan(MIRROR_TOLERANCE);
-    for (const path of paths) {
+    // As for tops, only the panels are held: the inside of the garment seen through the neck is not a panel.
+    for (const path of paths.filter((entry) => entry.panelId !== null)) {
       for (const point of runsOf(path).flatMap((part) => part.points)) {
         expect(distanceToPolyline(point, run) < 1.5 || inside(point, run), `${path.name} at ${point.x},${point.y}`).toBe(true);
       }
