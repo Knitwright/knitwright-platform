@@ -128,4 +128,14 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, INTENT_MODEL: "gpt-5-nano" }).INTENT_MODEL).toBe("gpt-5-nano");
     expect(() => parseEnv({ ...valid, INTENT_MODEL: "some-model" })).toThrow(/INTENT_MODEL is not valid/);
   });
+
+  it("has no image model key unless one is given, so photoreal images are shown as unavailable", () => {
+    expect(parseEnv(valid).GEMINI_API_KEY).toBeUndefined();
+    expect(parseEnv({ ...valid, GEMINI_API_KEY: "" }).GEMINI_API_KEY).toBeUndefined();
+    expect(parseEnv({ ...valid, GEMINI_API_KEY: "a-key" }).GEMINI_API_KEY).toBe("a-key");
+  });
+
+  it("rejects an image model key with spaces in it", () => {
+    expect(() => parseEnv({ ...valid, GEMINI_API_KEY: "a key" })).toThrow(/GEMINI_API_KEY is not valid/);
+  });
 });

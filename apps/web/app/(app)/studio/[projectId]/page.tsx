@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
+import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
+import { loadIllustrations } from "@/lib/images/illustrations";
+import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
-import { sessionClient } from "@/lib/server/deps";
+import { imageProvider, sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
@@ -31,12 +34,25 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
     listVersions(client, brand.id, projectId),
   ]).catch(orNotFound);
 
-  const pictures = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
+  const reader = createFileReader(client, brand.id);
+  const [pictures, illustrations] = await Promise.all([
+    loadArtworkImages(reader, shrinkForDrawing, project.spec),
+    latestImages(client, brand.id, projectId).then((latest) => loadIllustrations(reader, latest)),
+  ]);
 
   return (
-    <Editor
-      data={buildEditorData(project, history, undefined, pictures, colourway)}
-      assistant={{ available: assistantAvailable() }}
-    />
+    <div className="flex flex-col gap-10">
+      <Editor
+        data={buildEditorData(project, history, undefined, pictures, colourway)}
+        assistant={{ available: assistantAvailable() }}
+      />
+      <PhotorealPanel
+        projectId={projectId}
+        available={imageProvider() !== null}
+        colourwayId={colourway}
+        currentVersion={project.currentVersion}
+        loaded={illustrations}
+      />
+    </div>
   );
 }

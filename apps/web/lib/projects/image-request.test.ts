@@ -21,7 +21,7 @@ function deps(overrides: Partial<ImageRequestDeps> = {}): ImageRequestDeps & { r
   const refunds: string[] = [];
   const reads: [string, number][] = [];
   const logs: unknown[] = [];
-  const usage: RouteUsage = { refund: async () => void refunds.push("refund"), reserve: async () => null };
+  const usage: RouteUsage = { eventId: "event-1", refund: async () => void refunds.push("refund"), reserve: async () => null };
   return {
     refunds,
     reads,

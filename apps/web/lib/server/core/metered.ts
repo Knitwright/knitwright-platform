@@ -19,6 +19,11 @@ export type RouteCost<I> = Cost | ((input: I) => Cost | null);
  * (a streamed response) or that needs a further call (a retry on a stronger model).
  */
 export type RouteUsage = Readonly<{
+  /**
+   * The usage record this reservation wrote. Work carried on after the response (with
+   * `after()`) records it, so it can refund the reservation itself if that work fails.
+   */
+  eventId: string;
   /** Gives this reservation back. Only the first call does anything. Never throws. */
   refund: () => Promise<void>;
   /** Reserves a further cost for the same payer. Null when an allowance refuses it. */
@@ -68,6 +73,7 @@ const giveBack = async (deps: GuardDeps, eventId: string, where: string): Promis
 const usageFor = (deps: GuardDeps, payer: Payer, eventId: string, where: string): RouteUsage => {
   let refunded = false;
   return {
+    eventId,
     refund: async () => {
       if (refunded) return;
       refunded = true;

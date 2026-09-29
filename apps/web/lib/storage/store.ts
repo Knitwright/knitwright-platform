@@ -14,14 +14,18 @@ export const IMAGE_KINDS = ["artwork", "sketch", "photo"] as const;
 
 export type ImageKind = (typeof IMAGE_KINDS)[number];
 
-const BUCKET = "uploads";
+/** What the server may store. "render" is a generated picture (plan step 14); no user uploads one. */
+export type StoredKind = ImageKind | "render";
+
+/** Uploads and generated pictures are kept apart, as the buckets were made for. */
+const bucketFor = (kind: StoredKind): "uploads" | "images" => (kind === "render" ? "images" : "uploads");
 
 export type StoreImageInput = Readonly<{
   /** Full access. Used to write the file and its record. */
   admin: SupabaseClient;
   brandId: string;
   userId: string;
-  kind: ImageKind;
+  kind: StoredKind;
   bytes: Uint8Array;
   /** The type the browser stated. The content decides, so it is not used. */
   statedType: string;
@@ -30,7 +34,7 @@ export type StoreImageInput = Readonly<{
 export type StoredFile = Readonly<{
   id: string;
   brandId: string;
-  kind: ImageKind;
+  kind: StoredKind;
   contentType: string;
   bytes: number;
   width: number;
@@ -41,7 +45,8 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
   const image = await checkImage(input.bytes);
   const id = randomUUID();
   const path = `${input.brandId}/${input.kind}/${id}.${image.extension}`;
-  const files = input.admin.storage.from(BUCKET);
+  const bucket = bucketFor(input.kind);
+  const files = input.admin.storage.from(bucket);
 
   const upload = await files.upload(path, image.bytes, {
     contentType: image.contentType,
@@ -52,7 +57,7 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
   const record = await input.admin.from("files").insert({
     id,
     brand_id: input.brandId,
-    bucket: BUCKET,
+    bucket,
     path,
     kind: input.kind,
     content_type: image.contentType,

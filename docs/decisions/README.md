@@ -20,5 +20,6 @@ Copy `0000-template.md` to start.
 | 0010 | [The tech pack document](0010-tech-pack-document.md) | Accepted. The construction rules wait for a factory. |
 | 0012 | [Usage metering and caps](0012-usage-metering.md) | Accepted. Allowance amounts and the alert channel wait for the owner. |
 | 0013 | [The intent core](0013-intent-core.md) | Accepted. The golden set waits for the owner (A7). |
+| 0018 | [Photoreal images as background jobs](0018-photoreal-images.md) | Accepted. The provider is provisional until the owner judges quality. |
 | 0019 | [Text input](0019-text-input.md) | Accepted. The model choice and live evaluation wait for keys (A3) and the golden set (A7). |
 | 0020 | [Sketch and photo input](0020-image-input.md) | Accepted. The golden images (A8, A7) and the live run (A3) are owed. |

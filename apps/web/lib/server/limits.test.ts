@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { POLL_INTERVAL_MS } from "@/lib/images/panel-state";
 import { LIMITS } from "./limits";
 
 const rules = Object.values(LIMITS);
@@ -27,5 +28,10 @@ describe("LIMITS", () => {
   it("lets a person download the four files of a tech pack twice in a window, and no faster than one export every ten seconds", () => {
     expect(LIMITS.export.limit).toBeGreaterThanOrEqual(8);
     expect(LIMITS.export.limit / LIMITS.export.windowSeconds).toBeLessThanOrEqual(1 / 10);
+  });
+
+  it("lets the photoreal panel poll a job at its pace without being turned away", () => {
+    const pollsInWindow = (LIMITS.pollJob.windowSeconds * 1000) / POLL_INTERVAL_MS;
+    expect(LIMITS.pollJob.limit).toBeGreaterThanOrEqual(pollsInWindow * 2);
   });
 });

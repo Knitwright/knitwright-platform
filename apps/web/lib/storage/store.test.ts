@@ -101,3 +101,31 @@ describe("storeImage, the type the browser stated", () => {
     }
   });
 });
+
+describe("storeImage, for a generated picture", () => {
+  it("keeps it in the images bucket, apart from uploads, under the brand's folder", async () => {
+    const buckets: string[] = [];
+    const rows: Record<string, unknown>[] = [];
+    const admin = {
+      storage: {
+        from: (bucket: string) => {
+          buckets.push(bucket);
+          return { upload: async () => ({ error: null }) };
+        },
+      },
+      from: () => ({
+        insert: async (row: Record<string, unknown>) => {
+          rows.push(row);
+          return { error: null };
+        },
+      }),
+    } as unknown as SupabaseClient;
+
+    const stored = await storeImage({ ...(await input(admin)), kind: "render" });
+
+    expect(buckets).toEqual(["images"]);
+    expect(rows[0]).toMatchObject({ bucket: "images", kind: "render" });
+    expect(String(rows[0].path)).toMatch(/^11111111-1111-4111-8111-111111111111\/render\//);
+    expect(stored.kind).toBe("render");
+  });
+});

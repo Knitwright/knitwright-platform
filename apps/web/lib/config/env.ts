@@ -45,6 +45,10 @@ const envSchema = z.object({
   // Chosen by the selection run in docs/evals (owed until the keys exist).
   INTENT_MODEL: z.enum(MODEL_IDS).default(DEFAULT_MODEL),
   INTENT_RETRY_MODEL: z.enum(MODEL_IDS).default(DEFAULT_RETRY_MODEL),
+  // The image model for photoreal pictures (plan step 14). Optional: without it the
+  // feature is shown as unavailable. Server only. It must belong to a Google project with
+  // billing on: on the free tier Google may train on what is sent. See docs/data-processing.md.
+  GEMINI_API_KEY: z.string().regex(/^\S{1,200}$/).optional(),
   // The button is shown only when this is exactly "true".
   GOOGLE_SIGN_IN: z
     .string()

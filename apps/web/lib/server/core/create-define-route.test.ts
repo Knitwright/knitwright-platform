@@ -536,6 +536,43 @@ describe("defineRoute", () => {
       expect(recorded.refunds).toEqual([]);
     });
 
+    it("tells the handler which reservation paid, so work carried on after the response can refund it", async () => {
+      const { deps } = makeDeps();
+      let seen: unknown = "not called";
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        cost: COST,
+        handler: async ({ usage }) => {
+          seen = usage;
+          return {};
+        },
+      });
+
+      await route(post({}), noParams);
+
+      expect(seen).toMatchObject({ eventId: "event-1" });
+    });
+
+    it("gives a handler without a cost no reservation", async () => {
+      const { deps } = makeDeps();
+      let seen: unknown = "not called";
+      const route = createDefineRoute(deps)({
+        auth: "member",
+        rateLimit: RULE,
+        schema: {},
+        handler: async ({ usage }) => {
+          seen = usage;
+          return {};
+        },
+      });
+
+      await route(post({}), noParams);
+
+      expect(seen).toBeNull();
+    });
+
     it("works the cost out from the validated input when given a function", async () => {
       const { deps, recorded } = makeDeps();
       const route = createDefineRoute(deps)({

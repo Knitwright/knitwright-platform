@@ -11,6 +11,7 @@ import {
   createSessionClient,
   type CookieAdapter,
 } from "@/lib/supabase/clients";
+import { imageProviderFrom, type ImageProvider } from "@/lib/providers";
 import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
 import { loggingAlert } from "@/lib/usage/alert";
 import { allowancesFrom } from "@/lib/usage/cost";
@@ -100,6 +101,14 @@ const usageMeter = (): UsageMeter => {
     alert: loggingAlert(log),
   });
   return meter;
+};
+
+let provider: ImageProvider | null | undefined;
+
+/** The model for photoreal images, or null when no key is set and the feature is unavailable. */
+export const imageProvider = (): ImageProvider | null => {
+  if (provider === undefined) provider = imageProviderFrom(getEnv());
+  return provider;
 };
 
 export const productionDeps: GuardDeps = {

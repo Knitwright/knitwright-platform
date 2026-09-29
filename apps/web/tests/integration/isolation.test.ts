@@ -176,6 +176,29 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, feature: "ai", daily_allowance: UNLIMITED }),
     change: { daily_allowance: UNLIMITED },
   },
+  // Plan step 14: a member reads the brand's jobs; only the server starts or finishes one.
+  jobs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      return must(
+        await adminClient()
+          .from("jobs")
+          .insert({ brand_id: brandId, project_id: projectId, version: 1, kind: "photoreal", created_by: ownerId })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      version: 1,
+      kind: "photoreal",
+      created_by: userId,
+    }),
+    change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
+  },
 };
 
 /** A project made the way the server makes one. Returns its id. */

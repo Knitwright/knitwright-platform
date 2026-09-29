@@ -37,6 +37,7 @@ function models(primaryAnswers: (string | Error)[] | null, retryAnswers: (string
 
 function usage(log: string[], name = "first", refuseExtra = false): RouteUsage {
   return {
+    eventId: `event-${name}`,
     refund: async () => void log.push(`refund ${name}`),
     reserve: async (cost) => {
       log.push(`reserve ${cost.microdollars}`);
