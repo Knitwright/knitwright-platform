@@ -1,6 +1,7 @@
 import { Notice } from "@/components/ui/Notice";
 import type { FlatPreviewData } from "@/lib/projects/flat-preview";
 import { Section } from "./EditorParts";
+import { Preview3D } from "./Preview3D";
 
 /**
  * The drawing of the design, front and back. It is drawn on the server and handed over as
@@ -43,6 +44,7 @@ export function FlatPreview({ flat }: Readonly<{ flat: FlatPreviewData | null }>
           </figure>
         ))}
       </div>
+      <Preview3D flat={flat} />
     </Section>
   );
 }

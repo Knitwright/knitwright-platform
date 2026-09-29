@@ -2,6 +2,7 @@ import { buildFlat } from "@/lib/flat/build";
 import type { ImageMap } from "@/lib/flat/images";
 import type { FlatModel, View } from "@/lib/flat/model";
 import { renderSvg, svgDataUri } from "@/lib/flat/render-svg";
+import { shapeSource, type ShapeSource } from "@/lib/garment3d/shape";
 import type { GarmentSpec } from "@/lib/garment";
 import { resolveMeasurements, type ChartSet } from "@/lib/sizing";
 import { activeColourwayId } from "./colour-controls";
@@ -25,6 +26,8 @@ export interface FlatPreviewData {
   readonly missingSentence: string | null;
   /** One sentence saying some pictures are not shown, or null. */
   readonly picturesNote: string | null;
+  /** The outline of each side, which the 3D view is made from when a person opens it. */
+  readonly shape: { readonly front: ShapeSource; readonly back: ShapeSource };
 }
 
 const VIEWS: readonly { view: View; label: string }[] = [
@@ -61,7 +64,8 @@ export function flatPreview(spec: GarmentSpec, images: ImageMap, charts?: ChartS
     models.push({ label, model });
   }
   const first = models[0]?.model;
-  if (!first) return null;
+  const second = models[1]?.model;
+  if (!first || !second) return null;
   return {
     views: models.map(({ label, model }) => ({
       view: model.view,
@@ -73,5 +77,6 @@ export function flatPreview(spec: GarmentSpec, images: ImageMap, charts?: ChartS
     notice: first.notice,
     missingSentence: missingSentence(first.missing.map((point) => point.label)),
     picturesNote,
+    shape: { front: shapeSource(first), back: shapeSource(second) },
   };
 }

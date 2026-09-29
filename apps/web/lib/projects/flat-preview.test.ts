@@ -35,6 +35,16 @@ describe("flatPreview", () => {
     }
   });
 
+  it("carries the outline and the drawing box of each side, and nothing more, for the 3D view", () => {
+    const preview = flatPreview(start("crew-tee"), new Map());
+    for (const side of ["front", "back"] as const) {
+      const shape = preview?.shape[side];
+      expect(Object.keys(shape ?? {}).sort()).toEqual(["bounds", "outline"]);
+      expect(shape?.outline.silhouette.length).toBeGreaterThan(3);
+    }
+    expect(preview?.shape.front.outline.neck).not.toEqual(preview?.shape.back.outline.neck);
+  });
+
   it("marks a new design not to scale, in plain words, and says what is missing", () => {
     const preview = flatPreview(start("crew-tee"), new Map());
     expect(preview?.toScale).toBe(false);
