@@ -3,8 +3,9 @@ import type { ChartSet } from "@/lib/sizing";
 import { optionControls, type OptionControl } from "./controls";
 import { formatDateTime } from "./dates";
 import { measurementTable, type MeasurementTable } from "./measurement-table";
-import type { OpenProject, VersionSummary } from "./service";
+import type { OpenProject, VersionsPage } from "./service";
 import { sizesText } from "./sizing-form";
+import { undoTarget } from "./undo";
 import { wearerLabel } from "./wearers";
 
 export interface VersionView {
@@ -29,7 +30,9 @@ export interface EditorData {
   readonly table: MeasurementTable;
   readonly sizes: Readonly<{ text: string; baseSize: string; set: boolean }>;
   readonly versions: readonly VersionView[];
-  /** The version an undo goes back to, or null on the first version. */
+  /** True when the design has older versions than the history lists. */
+  readonly olderVersionsHidden: boolean;
+  /** The version an undo goes back to, or null when there is nothing before the current design. */
   readonly undoTo: number | null;
   readonly dropped: readonly Dropped[];
 }
@@ -40,7 +43,7 @@ export interface EditorData {
  */
 export const buildEditorData = (
   project: OpenProject,
-  versions: readonly VersionSummary[],
+  history: VersionsPage,
   charts?: ChartSet,
 ): EditorData => ({
   projectId: project.id,
@@ -58,13 +61,14 @@ export const buildEditorData = (
     baseSize: project.spec.sizing?.baseSize ?? "",
     set: project.spec.sizing !== null,
   },
-  versions: versions.map((entry) => ({
+  olderVersionsHidden: history.hasMore,
+  versions: history.versions.map((entry) => ({
     version: entry.version,
     note: entry.note,
     restoredFrom: entry.restoredFrom,
     when: formatDateTime(entry.createdAt),
     isCurrent: entry.version === project.currentVersion,
   })),
-  undoTo: project.currentVersion > 1 ? project.currentVersion - 1 : null,
+  undoTo: undoTarget(history.versions),
   dropped: project.dropped,
 });

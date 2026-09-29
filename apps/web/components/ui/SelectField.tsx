@@ -1,16 +1,26 @@
 import { useId, type SelectHTMLAttributes } from "react";
 
+type Option = Readonly<{ id: string; label: string }>;
+type Group = Readonly<{ label: string; options: readonly Option[] }>;
+
 type SelectFieldProps = Readonly<
   Omit<SelectHTMLAttributes<HTMLSelectElement>, "id" | "children"> & {
     name: string;
     label: string;
     hint?: string;
     errors?: readonly string[];
-    options: readonly { readonly id: string; readonly label: string }[];
+    /** Plain choices, or choices gathered under headings. */
+    options: readonly Option[] | readonly Group[];
     /** Text of the empty first choice, shown until the person picks one. */
     placeholder?: string;
   }
 >;
+
+const renderOption = (option: Option) => (
+  <option key={option.id} value={option.id}>
+    {option.label}
+  </option>
+);
 
 /** A labelled list of choices. Its hint and errors are tied to it for screen readers. */
 export function SelectField({ name, label, hint, errors = [], options, placeholder, ...rest }: SelectFieldProps) {
@@ -33,11 +43,15 @@ export function SelectField({ name, label, hint, errors = [], options, placehold
         className="h-11 rounded-lg border border-hairline bg-surface px-3 text-[15px] text-ink aria-[invalid]:border-warn"
       >
         {placeholder ? <option value="">{placeholder}</option> : null}
-        {options.map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.label}
-          </option>
-        ))}
+        {options.map((entry) =>
+          "options" in entry ? (
+            <optgroup key={entry.label} label={entry.label}>
+              {entry.options.map(renderOption)}
+            </optgroup>
+          ) : (
+            renderOption(entry)
+          ),
+        )}
       </select>
       {hint ? (
         <p id={hintId} className="text-sm text-muted">

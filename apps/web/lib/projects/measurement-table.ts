@@ -22,6 +22,10 @@ export interface TableRow {
   readonly hasValue: boolean;
   /** Centimetres, ready for a field. Empty when there is no value: never a zero. */
   readonly valueCm: string;
+  /** The same value in whole tenths of a millimetre, or null when there is none. */
+  readonly valueTenths: number | null;
+  /** True when a person typed the value, so they can clear it. */
+  readonly isOwn: boolean;
   readonly tolerance: string;
   /** Where the value came from, in plain words. Null when there is no value. */
   readonly provenanceLabel: string | null;
@@ -81,6 +85,8 @@ const toTableRow = (
       ...shared,
       hasValue: false,
       valueCm: "",
+      valueTenths: null,
+      isOwn: false,
       tolerance: TO_BE_CONFIRMED,
       provenanceLabel: null,
       tone: null,
@@ -93,6 +99,8 @@ const toTableRow = (
     ...shared,
     hasValue: true,
     valueCm: cmText(row.value),
+    valueTenths: row.value,
+    isOwn: isPersons(row),
     tolerance: toleranceText(row.tolerance),
     provenanceLabel: PROVENANCE_LABELS[row.provenance],
     tone: toneOf(row.provenance),

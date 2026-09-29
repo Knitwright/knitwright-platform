@@ -9,10 +9,20 @@ import { LIMITS } from "@/lib/server/limits";
 import {
   applyDesignActionSchema,
   createProjectSchema,
+  designIdSchema,
   projectDetailsSchema,
   restoreVersionSchema,
+  undoDesignSchema,
 } from "./schemas";
-import { createProject, renameProject, restoreVersion, saveAction, type SaveOutcome } from "./service";
+import {
+  createProject,
+  currentVersion,
+  renameProject,
+  restoreVersion,
+  saveAction,
+  undoDesign,
+  type SaveOutcome,
+} from "./service";
 
 /**
  * Every action here takes the brand from the session and never from the form. The
@@ -77,6 +87,33 @@ export const restoreVersionAction = defineAction({
     refreshDesign(input.projectId);
     return answer;
   },
+});
+
+/** Goes back one design. The server works out which, from the version it runs at. */
+export const undoDesignAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.restoreVersion,
+  schema: undoDesignSchema,
+  handler: async ({ input, session }) => {
+    const outcome = await undoDesign(adminClient(), await sessionClient(), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      ...input,
+    });
+    const answer = savedOrRefused(outcome);
+    refreshDesign(input.projectId);
+    return answer;
+  },
+});
+
+/** The version a design is at now. The editor asks after a reply was lost, to see if a save went through. */
+export const readVersionAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.read,
+  schema: designIdSchema,
+  handler: async ({ input, session }) => ({
+    version: await currentVersion(await sessionClient(), session.brand.id, input.projectId),
+  }),
 });
 
 export const renameProjectAction = defineAction({

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { NewDesignForm } from "@/components/studio/NewDesignForm";
-import { listTypes } from "@/lib/garment";
+import { garmentTypeGroups } from "@/lib/projects/type-groups";
 import { WEARER_OPTIONS } from "@/lib/projects/wearers";
 import { requireMember } from "@/lib/server/page-guards";
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "New design" };
 
 export default async function NewDesignPage() {
   const { brand } = await requireMember();
-  const types = listTypes("tops").map((type) => ({ id: type.id, label: type.label }));
+  const types = garmentTypeGroups();
 
   return (
     <div className="max-w-xl">

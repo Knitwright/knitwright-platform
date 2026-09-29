@@ -143,6 +143,45 @@ test.describe("the editor", () => {
     await expect(choice(page, "Neckline", /^Round neck/)).toBeEnabled();
   });
 
+  test("lets the keyboard reach an unavailable choice, so its reason is heard, but not pick it", async ({ page }) => {
+    await signedIn(page, "keyboard-reason");
+    await startDesign(page, "Team jersey");
+    await choice(page, "Collar", /^Band collar/).check();
+    await saved(page, 2);
+
+    const vNeck = choice(page, "Neckline", /^V neck/);
+    await vNeck.focus();
+
+    await expect(vNeck).toBeFocused();
+    await expect(vNeck).toHaveAttribute("aria-disabled", "true");
+    await expect(vNeck).toHaveAccessibleDescription(/Not available\. A band collar stands up/);
+    await vNeck.click({ force: true });
+    await expect(vNeck).not.toBeChecked();
+    await expect(page.getByTestId("version")).toHaveText("Version 2");
+  });
+
+  test("sends only the choice the person settles on when arrow keys step through a group", async ({ page }) => {
+    await signedIn(page, "arrows");
+    await startDesign(page, "Crew neck tee");
+
+    await choice(page, "Fit", /^Regular/).focus();
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowDown");
+
+    await saved(page, 2);
+    await expect(choice(page, "Fit", /^Relaxed/)).toBeChecked();
+    await page.waitForTimeout(700);
+    await expect(page.getByTestId("version")).toHaveText("Version 2");
+    await expect(page.getByText("Fit changed to Slim.")).toHaveCount(0);
+  });
+
+  test("lists every garment type the registry has, under the name of its family", async ({ page }) => {
+    await signedIn(page, "groups");
+    await page.goto("/studio/new");
+
+    await expect(page.locator('optgroup[label="Tops"] option')).toHaveCount(5);
+  });
+
   test("says what a change removed", async ({ page }) => {
     await signedIn(page, "dropped");
     await startDesign(page, "Team jersey");
@@ -201,6 +240,8 @@ test.describe("the editor", () => {
 
     await expect(page.getByText("The details are saved.")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name: "Away shirt" })).toBeVisible();
+    await page.getByLabel("Season (optional)").fill("AW27");
+    await expect(page.getByText("The details are saved.")).toHaveCount(0);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
   });
 
@@ -216,11 +257,99 @@ test.describe("the editor", () => {
 
     const alert = page.getByRole("alert").filter({ hasText: "This design was changed somewhere else. Reload to see the latest version." });
     await expect(alert).toBeVisible();
-    await expect(alert).toBeFocused();
+    // The choice that was not saved is not shown as if it were.
+    await expect(choice(page, "Hem shape", /^Curved/)).not.toBeChecked();
+    await expect(choice(page, "Hem shape", /^Straight across/)).toBeChecked();
+    await expect(page.getByTestId("version")).toHaveText("Version 1");
+
     await alert.getByRole("button", { name: "Reload" }).click();
 
     await expect(page.getByTestId("version")).toHaveText("Version 2");
+    await expect(alert).toHaveCount(0);
     await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
+    await expect(choice(page, "Hem shape", /^Curved/)).not.toBeChecked();
+    await expect(choice(page, "Hem shape", /^Straight across/)).toBeChecked();
+  });
+
+  test("goes back through three undos in a row, then offers no more", async ({ page }) => {
+    await signedIn(page, "undo-chain");
+    await startDesign(page, "Crew neck tee");
+    await choice(page, "Fit", /^Slim/).check();
+    await saved(page, 2);
+    await choice(page, "Hem shape", /^Curved/).check();
+    await saved(page, 3);
+    const undo = page.getByRole("button", { name: "Undo" });
+
+    await undo.click();
+    await saved(page, 4);
+    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
+    await expect(choice(page, "Hem shape", /^Straight across/)).toBeChecked();
+
+    await undo.click();
+    await saved(page, 5);
+    await expect(choice(page, "Fit", /^Regular/)).toBeChecked();
+
+    await expect(undo).toBeDisabled();
+  });
+
+  test("clears a value of your own when its field is emptied", async ({ page }) => {
+    await signedIn(page, "clear");
+    await startDesign(page, "Crew neck tee");
+    await chest(page).fill("52,5");
+    await chest(page).press("Enter");
+    await saved(page, 2);
+    await expect(chest(page)).toHaveValue("52.5");
+
+    await chest(page).fill("");
+    await chest(page).press("Enter");
+
+    await saved(page, 3);
+    await expect(chest(page)).toHaveValue("");
+    await expect(page.getByText("Your value for Chest width was removed.")).toBeVisible();
+  });
+
+  test("saves nothing when the text means the value that is already held", async ({ page }) => {
+    await signedIn(page, "same-value");
+    await startDesign(page, "Crew neck tee");
+    await chest(page).fill("52.5");
+    await chest(page).press("Enter");
+    await saved(page, 2);
+
+    await chest(page).fill(" 52,50 ");
+    await chest(page).press("Enter");
+    await page.waitForTimeout(500);
+
+    await expect(page.getByTestId("version")).toHaveText("Version 2");
+    await expect(chest(page)).toHaveValue(" 52,50 ");
+  });
+
+  test("marks a mistake found when the person leaves the field, without taking focus", async ({ page }) => {
+    await signedIn(page, "blur");
+    await startDesign(page, "Crew neck tee");
+
+    await chest(page).fill("wide");
+    const other = page.getByLabel("Body length in centimetres");
+    await other.click();
+
+    await expect(page.getByText("Enter a length in centimetres, such as 52.5.")).toBeVisible();
+    await expect(chest(page)).toHaveAttribute("aria-invalid", "true");
+    await expect(other).toBeFocused();
+  });
+
+  test("warns before the page is left while text has not been saved", async ({ page }) => {
+    await signedIn(page, "leave");
+    await startDesign(page, "Crew neck tee");
+    await chest(page).click();
+    await page.keyboard.type("47");
+    let warned = false;
+    page.on("dialog", async (dialog) => {
+      warned = dialog.type() === "beforeunload";
+      await dialog.dismiss();
+    });
+
+    await page.close({ runBeforeUnload: true });
+
+    await expect.poll(() => warned).toBe(true);
   });
 });
 

@@ -22,6 +22,7 @@
   --cobalt: #2b46f0;
   --cobalt-soft: #8296ff;
   --cobalt-wash: #eef1ff;
+  --cobalt-hover: #2238c8;
   --ok: #0f7b59;
   --ok-wash: #e7f4ee;
   --warn: #9a5a08;
@@ -55,6 +56,7 @@
   --color-cobalt: var(--cobalt);
   --color-cobalt-soft: var(--cobalt-soft);
   --color-cobalt-wash: var(--cobalt-wash);
+  --color-cobalt-hover: var(--cobalt-hover);
   --color-ok: var(--ok);
   --color-ok-wash: var(--ok-wash);
   --color-warn: var(--warn);

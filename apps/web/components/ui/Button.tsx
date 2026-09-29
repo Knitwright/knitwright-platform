@@ -15,7 +15,7 @@ const BASE =
   "inline-flex h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
 const VARIANTS: Readonly<Record<Variant, string>> = {
-  primary: "bg-cobalt text-white hover:bg-[#2238c8]",
+  primary: "bg-cobalt text-white hover:bg-cobalt-hover",
   secondary: "border border-hairline bg-surface text-ink hover:bg-shell",
   quiet: "text-muted hover:text-ink",
 };

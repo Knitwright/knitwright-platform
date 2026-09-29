@@ -197,6 +197,19 @@ describe("append_spec_version", () => {
     expect((await append(id, alice, 1, overrides)).error?.code).toBe("22023");
   });
 
+  it("refuses a design larger than 256 KB, and stores nothing", async () => {
+    const id = await newProject();
+    const big = { ...SPEC, filler: "x".repeat(262_144) };
+
+    const tooBig = await append(id, alice, 1, { p_spec: big });
+    const atLimit = await append(id, alice, 1, { p_spec: { filler: "x".repeat(262_144 - 14) } });
+
+    expect(tooBig.error?.code).toBe("23514");
+    expect(atLimit.error).toBeNull();
+    expect((await create(aliceBrand, alice, { p_spec: big })).error?.code).toBe("23514");
+    expect(must(await adminClient().from("spec_versions").select("version").eq("project_id", id))).toHaveLength(2);
+  });
+
   it("answers not found for a project of another brand and for one that does not exist", async () => {
     const id = await newProject();
 

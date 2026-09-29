@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  MAX_VERSION,
   applyDesignActionSchema,
   createProjectSchema,
   projectDetailsSchema,
+  designIdSchema,
   restoreVersionSchema,
+  undoDesignSchema,
 } from "./schemas";
 
+const ID = "11111111-1111-4111-8111-111111111111";
 const valid = { typeId: "crew-tee", wearer: "women", name: "Home shirt" };
 
 describe("createProjectSchema", () => {
@@ -43,8 +47,8 @@ describe("createProjectSchema", () => {
 
 describe("projectDetailsSchema", () => {
   it("needs the design's id and its details", () => {
-    expect(projectDetailsSchema.parse({ projectId: "abc", name: "New", styleNumber: "", season: "" })).toEqual({
-      projectId: "abc",
+    expect(projectDetailsSchema.parse({ projectId: ID, name: "New", styleNumber: "", season: "" })).toEqual({
+      projectId: ID,
       name: "New",
       styleNumber: "",
       season: "",
@@ -55,25 +59,49 @@ describe("projectDetailsSchema", () => {
 
 describe("applyDesignActionSchema", () => {
   it("needs the design, the version the person is looking at, and a change", () => {
-    const input = { projectId: "abc", expectedVersion: 3, action: { type: "change-wearer", wearer: "men" } };
+    const input = { projectId: ID, expectedVersion: 3, action: { type: "change-wearer", wearer: "men" } };
 
     expect(applyDesignActionSchema.parse(input)).toEqual(input);
   });
 
-  it.each([0, -1, 1.5, "3"])("refuses the version %j", (expectedVersion) => {
-    expect(
-      applyDesignActionSchema.safeParse({ projectId: "abc", expectedVersion, action: {} }).success,
-    ).toBe(false);
+  it.each([0, -1, 1.5, "3", MAX_VERSION + 1, 1e12, Number.NaN])("refuses the version %j", (expectedVersion) => {
+    expect(applyDesignActionSchema.safeParse({ projectId: ID, expectedVersion, action: {} }).success).toBe(false);
+  });
+
+  it("accepts the largest version the database can hold", () => {
+    expect(applyDesignActionSchema.safeParse({ projectId: ID, expectedVersion: MAX_VERSION, action: {} }).success).toBe(true);
+    expect(MAX_VERSION).toBe(2147483647);
+  });
+
+  it.each(["abc", "", "not-an-id", "11111111-1111-4111-8111-11111111111"])("refuses the design id %j", (projectId) => {
+    expect(applyDesignActionSchema.safeParse({ projectId, expectedVersion: 1, action: {} }).success).toBe(false);
   });
 });
 
 describe("restoreVersionSchema", () => {
   it("needs a version to go back to as well", () => {
-    expect(restoreVersionSchema.parse({ projectId: "abc", expectedVersion: 4, version: 2 })).toEqual({
-      projectId: "abc",
+    expect(restoreVersionSchema.parse({ projectId: ID, expectedVersion: 4, version: 2 })).toEqual({
+      projectId: ID,
       expectedVersion: 4,
       version: 2,
     });
-    expect(restoreVersionSchema.safeParse({ projectId: "abc", expectedVersion: 4, version: 0 }).success).toBe(false);
+    expect(restoreVersionSchema.safeParse({ projectId: ID, expectedVersion: 4, version: 0 }).success).toBe(false);
+    expect(restoreVersionSchema.safeParse({ projectId: ID, expectedVersion: 4, version: MAX_VERSION + 1 }).success).toBe(false);
+  });
+});
+
+describe("designIdSchema", () => {
+  it("needs a design id", () => {
+    expect(designIdSchema.parse({ projectId: ID })).toEqual({ projectId: ID });
+    expect(designIdSchema.safeParse({ projectId: "abc" }).success).toBe(false);
+    expect(designIdSchema.safeParse({}).success).toBe(false);
+  });
+});
+
+describe("undoDesignSchema", () => {
+  it("needs the design and the version the person is looking at", () => {
+    expect(undoDesignSchema.parse({ projectId: ID, expectedVersion: 3 })).toEqual({ projectId: ID, expectedVersion: 3 });
+    expect(undoDesignSchema.safeParse({ projectId: "abc", expectedVersion: 3 }).success).toBe(false);
+    expect(undoDesignSchema.safeParse({ projectId: ID, expectedVersion: MAX_VERSION + 1 }).success).toBe(false);
   });
 });

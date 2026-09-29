@@ -31,7 +31,16 @@ screen a user can work in, and the place designs are kept.
    person chooses.
 9. **A design that no longer fits the registry is repaired when it is opened.** Nothing
    is saved until the next change, which also reports what was dropped.
-10. **Undo is a restore of the version before**, stored as a new version.
+10. **Undo goes back step by step.** A version that restored another holds the same
+    design as the one it restored, so Undo goes to the version before that original.
+    With versions 1, 2, 3: Undo stores 4 as a copy of 2, Undo again stores 5 as a copy
+    of 1, and a third Undo is not offered. The server works the target out.
+11. **The server decides where a value came from.** What a browser sends carries no
+    source. The server marks it as typed by the user. Only writers on the server, such
+    as a chart or the assistant, can give another source.
+12. **The logic of the editor lives in pure functions** under `lib/projects`: the queue
+    of changes, what a control shows while a change is on its way, what is written in a
+    field, and when focus moves. The components hold markup and wiring.
 
 ## Evidence
 
@@ -43,11 +52,34 @@ screen a user can work in, and the place designs are kept.
 | A member of another brand can read and change nothing | `tests/integration/project-service.test.ts`, `e2e/editor.spec.ts` |
 | A refused change stores nothing | `tests/integration/project-service.test.ts` |
 
-## Not covered by a test that runs in CI
+## Reviews, 2026-09-29
 
-The trigger that refuses changes to `spec_versions` was checked by hand as the table
-owner. No test connects as that role. The grants, which are tested, already refuse
-every other role.
+A security reviewer attacked the local database and app as two users in two brands and
+found no way across brands, and nothing critical or high. A code reviewer broke the pure
+modules 106 ways, all caught, and found the real defects in the components, which had
+no unit tests.
+
+| Finding | Done |
+|---|---|
+| A browser could claim any source for a value | Fixed. See decision 11. |
+| Undo only moved between two states | Fixed. See decision 10. |
+| A choice that was not saved could look saved after a conflict | Fixed |
+| The queue kept sending after a conflict, and lost track after a lost reply | Fixed |
+| A success in one field cleared the error on another | Fixed |
+| A typed value could not be cleared, and typed text could be lost | Fixed |
+| Arrow keys saved on every step | Fixed |
+| A choice that cannot be used could not be reached by keyboard | Fixed |
+| The new design page named the tops family in code | Fixed |
+| Version numbers and ids had no bounds | Fixed |
+| No size limit on a stored spec | Fixed. 256 KB. |
+| The append-only rule had no automated test | Fixed. A test connects as the table owner. |
+
+## Known gaps in the tests
+
+- The test that connects as the table owner was not checked to fail with the trigger
+  removed. The rule itself was checked by hand, twice.
+- The browser tests for the radio after a conflict and for the reachable disabled choice
+  were not run against the old code.
 
 ## Consequences
 

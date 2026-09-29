@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
@@ -17,10 +18,18 @@ type DetailsFormProps = Readonly<{
 /** Changes the name, style number and season. These are not part of the design's history. */
 export function DetailsForm({ projectId, name, styleNumber, season }: DetailsFormProps) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(renameProjectAction);
-  const saved = state.result?.success === true;
+  // The message stays only until the person edits again.
+  const [editedAt, setEditedAt] = useState(-1);
+  const saved = state.result?.success === true && editedAt < state.attempt;
 
   return (
-    <form ref={form} action={submit} className="flex flex-col gap-4" noValidate>
+    <form
+      ref={form}
+      action={submit}
+      onChange={() => setEditedAt(state.attempt)}
+      className="flex flex-col gap-4"
+      noValidate
+    >
       <FormSummary message={summary} />
       {saved ? <FormDone>The details are saved.</FormDone> : null}
       <input type="hidden" name="projectId" value={projectId} />

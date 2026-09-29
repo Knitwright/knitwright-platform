@@ -1,4 +1,4 @@
-import { PROVENANCE_LABELS, availableChoices, getType, type GarmentSpec } from "@/lib/garment";
+import { PROVENANCE_LABELS, availableChoices, getType, type GarmentSpec, type Provenance } from "@/lib/garment";
 import { toneOf, type Tone } from "./provenance-tone";
 
 export interface ChoiceView {
@@ -25,6 +25,11 @@ export interface OptionControl {
 }
 
 const NOT_CHOSEN = "Not chosen yet";
+const STARTING_CHOICE = "Starting choice";
+
+/** Who chose an option, in words. A choice nobody made is the garment type's starting choice. */
+const sourceLabel = (provenance: Provenance): string =>
+  provenance === "derived" ? STARTING_CHOICE : PROVENANCE_LABELS[provenance];
 
 /**
  * One control for every option of the design's garment type, built from the registry
@@ -52,7 +57,7 @@ export const optionControls = (spec: GarmentSpec): readonly OptionControl[] => {
       label: option.label,
       help: option.help ?? null,
       choices,
-      provenanceLabel: current ? PROVENANCE_LABELS[current.provenance] : NOT_CHOSEN,
+      provenanceLabel: current ? sourceLabel(current.provenance) : NOT_CHOSEN,
       tone,
       suggestion: unconfirmed
         ? (option.choices.find((choice) => choice.id === current?.choiceId)?.label ?? null)

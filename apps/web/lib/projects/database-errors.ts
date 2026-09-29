@@ -17,6 +17,8 @@ export const failureFromDatabase = (error: DatabaseError): AppError => {
     case "42501": // The caller may not run the function at all.
       return new AppError("unauthenticated", MESSAGES.unauthenticated);
     case "22023": // A value the function refuses. The app checks these first.
+    case "23514": // A design too large to store.
+    case "22003": // A number too large for the database.
       return new AppError("invalid_input", MESSAGES.invalid_input);
     case "P0002": // No such design, or not the caller's.
     case "22P02": // The id is not an id.

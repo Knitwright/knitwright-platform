@@ -24,9 +24,11 @@ const versions: readonly VersionSummary[] = [
   { version: 1, note: "Design created.", restoredFrom: null, createdAt: "2026-09-01T10:00:00Z" },
 ];
 
+const page = (list: readonly VersionSummary[], hasMore = false) => ({ versions: [...list], hasMore });
+
 describe("buildEditorData", () => {
   it("names the design, its type and who it is for", () => {
-    const data = buildEditorData(project(), versions);
+    const data = buildEditorData(project(), page(versions));
 
     expect(data).toMatchObject({
       projectId: "11111111-1111-4111-8111-111111111111",
@@ -40,14 +42,14 @@ describe("buildEditorData", () => {
   });
 
   it("builds a control for every option and a table for the measurements", () => {
-    const data = buildEditorData(project(), versions);
+    const data = buildEditorData(project(), page(versions));
 
     expect(data.controls.length).toBeGreaterThan(0);
     expect(data.table.groups.length).toBeGreaterThan(0);
   });
 
   it("marks the current version and writes each date in words", () => {
-    const data = buildEditorData(project(), versions);
+    const data = buildEditorData(project(), page(versions));
 
     expect(data.versions.map((entry) => [entry.version, entry.isCurrent])).toEqual([
       [3, true],
@@ -59,18 +61,37 @@ describe("buildEditorData", () => {
   });
 
   it("offers no undo for the first version, and undoes to the one before otherwise", () => {
-    expect(buildEditorData(project({ currentVersion: 1 }), versions.slice(2)).undoTo).toBeNull();
-    expect(buildEditorData(project(), versions).undoTo).toBe(2);
+    expect(buildEditorData(project({ currentVersion: 1 }), page(versions.slice(2))).undoTo).toBeNull();
+    expect(buildEditorData(project(), page(versions)).undoTo).toBe(2);
+  });
+
+  it("undoes further back after an undo, and stops at the first design", () => {
+    const made = (version: number, restoredFrom: number | null): VersionSummary => ({
+      version,
+      note: "Note.",
+      restoredFrom,
+      createdAt: "2026-09-29T14:05:00Z",
+    });
+    const afterUndo = [made(4, 2), made(3, null), made(2, null), made(1, null)];
+    const afterTwo = [made(5, 1), ...afterUndo];
+
+    expect(buildEditorData(project({ currentVersion: 4 }), page(afterUndo)).undoTo).toBe(1);
+    expect(buildEditorData(project({ currentVersion: 5 }), page(afterTwo)).undoTo).toBeNull();
+  });
+
+  it("says when older versions exist that are not listed", () => {
+    expect(buildEditorData(project(), page(versions)).olderVersionsHidden).toBe(false);
+    expect(buildEditorData(project(), page(versions, true)).olderVersionsHidden).toBe(true);
   });
 
   it("has an empty sizes form for a design with no sizes", () => {
-    expect(buildEditorData(project(), versions).sizes).toEqual({ text: "", baseSize: "", set: false });
+    expect(buildEditorData(project(), page(versions)).sizes).toEqual({ text: "", baseSize: "", set: false });
   });
 
   it("fills the sizes form from the design's sizes", () => {
     const spec = { ...start("crew-tee", "women"), sizing: { sizes: ["S", "M", "L"], baseSize: "M" } };
 
-    expect(buildEditorData(project({ spec }), versions).sizes).toEqual({
+    expect(buildEditorData(project({ spec }), page(versions)).sizes).toEqual({
       text: "S, M, L",
       baseSize: "M",
       set: true,
@@ -80,6 +101,6 @@ describe("buildEditorData", () => {
   it("carries what a repair removed, so the person can be told", () => {
     const dropped = [{ kind: "option", id: "hem-shape", message: "Hem shape went back to straight." }] as const;
 
-    expect(buildEditorData(project({ dropped }), versions).dropped).toEqual(dropped);
+    expect(buildEditorData(project({ dropped }), page(versions)).dropped).toEqual(dropped);
   });
 });

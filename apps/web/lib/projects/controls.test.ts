@@ -59,7 +59,7 @@ describe("optionControls", () => {
   it("describes a starting choice as worked out, not as a person's", () => {
     const control = optionControls(start("crew-tee"))[0];
 
-    expect(control.provenanceLabel).toBe("Worked out from other values");
+    expect(control.provenanceLabel).toBe("Starting choice");
     expect(control.tone).toBe("derived");
     expect(control.suggestion).toBeNull();
     expect(control.choices.some((choice) => choice.selected)).toBe(true);
@@ -91,6 +91,16 @@ describe("optionControls", () => {
 
     expect(control.choices.some((choice) => choice.selected)).toBe(false);
     expect(control.provenanceLabel).toBe("Not chosen yet");
+  });
+});
+
+describe("a starting choice", () => {
+  it("is called a starting choice, and a person's own choice keeps the usual words", () => {
+    const untouched = optionControls(start("crew-tee")).find((control) => control.optionId === "fit");
+    const chosen = optionControls(change(start("crew-tee"), "fit", "slim")).find((control) => control.optionId === "fit");
+
+    expect(untouched?.provenanceLabel).toBe("Starting choice");
+    expect(chosen?.provenanceLabel).toBe("Typed in by you");
   });
 });
 

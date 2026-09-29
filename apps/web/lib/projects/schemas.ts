@@ -19,8 +19,11 @@ export const projectNameSchema = z
 /** A style number or a season. It may be empty. */
 export const projectTextSchema = freeText(PROJECT_TEXT_MAX).default("");
 
-const projectId = z.string().min(1);
-const expectedVersion = z.number().int().min(1);
+/** The largest whole number the database holds in an integer column. */
+export const MAX_VERSION = 2147483647;
+
+const projectId = z.uuid("That is not a design.");
+const expectedVersion = z.number().int().min(1).max(MAX_VERSION);
 
 export const createProjectSchema = z.object({
   typeId: z.string().min(1, "Choose a garment type."),
@@ -47,5 +50,9 @@ export const applyDesignActionSchema = z.object({
 export const restoreVersionSchema = z.object({
   projectId,
   expectedVersion,
-  version: z.number().int().min(1),
+  version: z.number().int().min(1).max(MAX_VERSION),
 });
+
+export const designIdSchema = z.object({ projectId });
+
+export const undoDesignSchema = z.object({ projectId, expectedVersion });

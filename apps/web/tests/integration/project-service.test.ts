@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createSpec } from "@/lib/garment";
 import {
+  PROJECTS_LISTED,
   createProject,
+  currentVersion,
   getProject,
   getVersion,
   listProjects,
@@ -10,6 +12,8 @@ import {
   renameProject,
   restoreVersion,
   saveAction,
+  saveTrustedAction,
+  undoDesign,
   type SaveOutcome,
 } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
@@ -89,7 +93,7 @@ describe("creating and opening a design", () => {
   it("stores the first version with its note", async () => {
     const id = await make();
 
-    expect(await listVersions(alice.client, aliceBrand, id)).toEqual([
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toEqual([
       { version: 1, note: "Design created.", restoredFrom: null, createdAt: expect.any(String) },
     ]);
   });
@@ -110,7 +114,7 @@ describe("creating and opening a design", () => {
 
     expect(failure.code).toBe("invalid_input");
     expect(failure.fields).toEqual({ typeId: ["There is no garment type called no-such-type."] });
-    expect(await listProjects(owner.client, brand)).toEqual([]);
+    expect((await listProjects(owner.client, brand)).projects).toEqual([]);
   });
 
   it("answers not found when the user does not belong to the brand", async () => {
@@ -126,7 +130,7 @@ describe("creating and opening a design", () => {
       details({ brandId: brand, userId: owner.userId, name: "Second", typeId: "polo" }),
     );
 
-    const listed = await listProjects(owner.client, brand);
+    const listed = (await listProjects(owner.client, brand)).projects;
 
     expect(listed.map((project) => project.id)).toEqual([second, first]);
     expect(listed[0]).toMatchObject({ name: "Second", garmentLabel: "Polo shirt", currentVersion: 1 });
@@ -136,7 +140,7 @@ describe("creating and opening a design", () => {
   it("lists nothing for a brand the caller does not belong to", async () => {
     await make();
 
-    expect(await listProjects(bob.client, aliceBrand)).toEqual([]);
+    expect((await listProjects(bob.client, aliceBrand)).projects).toEqual([]);
   });
 
   it("gives one answer for a design that is missing, one that is another brand's, and an id that is not an id", async () => {
@@ -165,6 +169,96 @@ describe("creating and opening a design", () => {
   });
 });
 
+describe("long lists", () => {
+  it("names the limit, and says when there are more designs than it lists", async () => {
+    const owner = await person("svc-more");
+    const brand = await brandOf(owner, "More FC");
+    for (const name of ["One", "Two", "Three"]) {
+      await createProject(adminClient(), details({ brandId: brand, userId: owner.userId, name }));
+    }
+
+    const all = await listProjects(owner.client, brand);
+    const two = await listProjects(owner.client, brand, 2);
+    const exact = await listProjects(owner.client, brand, 3);
+
+    expect(PROJECTS_LISTED).toBe(100);
+    expect(all).toMatchObject({ hasMore: false });
+    expect(all.projects).toHaveLength(3);
+    expect(two.projects.map((project) => project.name)).toEqual(["Three", "Two"]);
+    expect(two.hasMore).toBe(true);
+    expect(exact.hasMore).toBe(false);
+  });
+
+  it("says when there are older versions than the history lists", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+    saved(await change(id, 2, setOption("fit", "relaxed")));
+
+    const short = await listVersions(alice.client, aliceBrand, id, 2);
+
+    expect(short.versions.map((entry) => entry.version)).toEqual([3, 2]);
+    expect(short.hasMore).toBe(true);
+    expect((await listVersions(alice.client, aliceBrand, id)).hasMore).toBe(false);
+  });
+});
+
+describe("the version a design is at", () => {
+  it("is read on its own, and only for the brand's own designs", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+
+    expect(await currentVersion(alice.client, aliceBrand, id)).toBe(2);
+    expect((await failureOf(currentVersion(bob.client, bobBrand, id))).code).toBe("not_found");
+    expect((await failureOf(currentVersion(alice.client, aliceBrand, "not-an-id"))).code).toBe("not_found");
+  });
+});
+
+describe("where a value says it came from", () => {
+  const CLAIMS = ["brand-supplied", "ai-suggested", "suggested-chart", "derived", "read-from-image"];
+
+  it.each(CLAIMS)("is stored as user-edited when a browser claims %s, at the top and inside nested objects", async (claim) => {
+    const id = await make();
+    const fabric = { id: "mesh", name: "Mesh", composition: "", construction: "", weightGsm: null, finish: "", stretch: "not-set", provenance: claim };
+    const colourway = { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "Navy", provenance: claim }] };
+    const artwork = {
+      id: "logo", name: "Crest", source: { kind: "text", text: "FC" }, panelId: "body-front", anchor: "centre-chest",
+      offsetX: 0, offsetY: 0, width: 1000, height: 500, rotationDegrees: 0, technique: "screen-print", provenance: claim,
+    };
+
+    let version = 1;
+    for (const action of [
+      { type: "set-option", optionId: "fit", choiceId: "slim", provenance: claim },
+      { type: "set-measurement", pointId: "chest-width", value: 5000, provenance: claim },
+      { type: "add-fabric", fabric },
+      { type: "add-colourway", colourway },
+      { type: "add-artwork", artwork },
+    ]) {
+      version = saved(await change(id, version, action)).version;
+    }
+
+    const stored = (await open(id)).spec;
+    expect(stored.options.fit.provenance).toBe("user-edited");
+    expect(stored.measurements[0].provenance).toBe("user-edited");
+    expect(stored.fabrics.find((entry) => entry.id === "mesh")?.provenance).toBe("user-edited");
+    expect(stored.colourways.find((entry) => entry.id === "away")?.colours[0].provenance).toBe("user-edited");
+    expect(stored.artwork[0].provenance).toBe("user-edited");
+  });
+
+  it("can be named by the server's own trusted writers, and only by them", async () => {
+    const id = await make();
+    const trusted = { type: "set-measurement", pointId: "chest-width", value: 5000, provenance: "suggested-chart" } as const;
+
+    const outcome = saved(
+      await saveTrustedAction(adminClient(), alice.client, {
+        brandId: aliceBrand, userId: alice.userId, projectId: id, expectedVersion: 1, action: trusted,
+      }),
+    );
+
+    expect(outcome.spec.measurements[0].provenance).toBe("suggested-chart");
+    expect((await listVersions(alice.client, aliceBrand, id)).versions[0].note).toBe("Chest width set to 50 cm.");
+  });
+});
+
 describe("saving an action", () => {
   it("stores the result as a new version with a note in plain words", async () => {
     const id = await make();
@@ -176,7 +270,7 @@ describe("saving an action", () => {
     expect(outcome.spec.options.fit).toEqual({ choiceId: "slim", provenance: "user-edited" });
     expect(await open(id)).toMatchObject({ currentVersion: 2 });
     expect((await open(id)).spec).toEqual(outcome.spec);
-    expect((await listVersions(alice.client, aliceBrand, id)).map((v) => [v.version, v.note])).toEqual([
+    expect(((await listVersions(alice.client, aliceBrand, id)).versions).map((v) => [v.version, v.note])).toEqual([
       [2, "Fit changed to Slim."],
       [1, "Design created."],
     ]);
@@ -190,7 +284,7 @@ describe("saving an action", () => {
     );
 
     expect(outcome.spec.measurements).toEqual([{ pointId: "chest-width", value: 5250, provenance: "user-edited" }]);
-    expect((await listVersions(alice.client, aliceBrand, id))[0].note).toBe("Chest width set to 52.5 cm.");
+    expect(((await listVersions(alice.client, aliceBrand, id)).versions)[0].note).toBe("Chest width set to 52.5 cm.");
   });
 
   it("keeps the old versions exactly as they were", async () => {
@@ -210,7 +304,7 @@ describe("saving an action", () => {
 
     expect(refused).toEqual({ ok: false, reason: expect.stringContaining("band collar") });
     expect((await open(id)).currentVersion).toBe(2);
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(2);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(2);
   });
 
   it("refuses a change it does not understand, and stores nothing", async () => {
@@ -221,7 +315,7 @@ describe("saving an action", () => {
       reason: "That change is not understood.",
     });
     expect(await change(id, 1, undefined)).toMatchObject({ ok: false });
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(1);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(1);
   });
 
   it("stores no new version when the change leaves the design as it was", async () => {
@@ -231,7 +325,7 @@ describe("saving an action", () => {
     const again = saved(await change(id, 2, setOption("hem-shape", "curved")));
 
     expect(again.version).toBe(2);
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(2);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(2);
   });
 
   it("reports what a change removed", async () => {
@@ -249,7 +343,7 @@ describe("saving an action", () => {
 
     saved(await change(id, 1, { type: "change-type", typeId: "v-neck-tee" }));
 
-    const listed = (await listProjects(alice.client, aliceBrand)).find((project) => project.id === id);
+    const listed = ((await listProjects(alice.client, aliceBrand)).projects).find((project) => project.id === id);
     expect(listed).toMatchObject({ garmentType: "v-neck-tee", garmentLabel: "V neck tee" });
   });
 
@@ -279,7 +373,7 @@ describe("saving an action", () => {
     );
     expect(wins.length).toBe(1);
     expect(conflicts.length).toBe(9);
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(2);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(2);
   });
 
   it("changes nothing for a member of another brand", async () => {
@@ -293,7 +387,37 @@ describe("saving an action", () => {
     ]);
 
     for (const failure of failures) expect(failure.code).toBe("not_found");
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(1);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(1);
+  });
+});
+
+describe("undoing", () => {
+  const undo = (projectId: string, expectedVersion: number, who = alice, brandId = aliceBrand) =>
+    undoDesign(adminClient(), who.client, { brandId, userId: who.userId, projectId, expectedVersion });
+
+  it("goes back through the designs one at a time, three times in a row, and then stops", async () => {
+    const id = await make();
+    const first = (await open(id)).spec;
+    saved(await change(id, 1, setOption("fit", "slim")));
+    const second = (await open(id)).spec;
+    saved(await change(id, 2, setOption("hem-shape", "curved")));
+
+    const one = saved(await undo(id, 3));
+    expect([one.version, one.spec]).toEqual([4, second]);
+    const two = saved(await undo(id, 4));
+    expect([two.version, two.spec]).toEqual([5, first]);
+
+    expect(await undo(id, 5)).toEqual({ ok: false, reason: "There is nothing to undo." });
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(5);
+  });
+
+  it("answers with a conflict when the version is old, and not found for another brand", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+
+    expect((await failureOf(undo(id, 1))).code).toBe("conflict");
+    expect((await failureOf(undo(id, 2, bob, bobBrand))).code).toBe("not_found");
+    expect((await failureOf(undo(id, 2, bob, aliceBrand))).code).toBe("not_found");
   });
 });
 
@@ -311,7 +435,7 @@ describe("restoring a version", () => {
 
     expect(outcome.version).toBe(4);
     expect(outcome.spec).toEqual(original);
-    const versions = await listVersions(alice.client, aliceBrand, id);
+    const versions = (await listVersions(alice.client, aliceBrand, id)).versions;
     expect(versions.map((v) => v.version)).toEqual([4, 3, 2, 1]);
     expect(versions[0]).toMatchObject({ note: "Restored version 1.", restoredFrom: 1 });
     expect((await getVersion(alice.client, aliceBrand, id, 3)).spec.measurements).toHaveLength(1);
@@ -325,11 +449,23 @@ describe("restoring a version", () => {
     expect((await failureOf(restore(id, 1, 1))).code).toBe("conflict");
   });
 
+  it("stores nothing when the design is the same as the current one", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+    saved(await change(id, 2, setOption("fit", "relaxed")));
+    saved(await restore(id, 3, 2));
+
+    const again = saved(await restore(id, 4, 2));
+
+    expect(again.version).toBe(4);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(4);
+  });
+
   it("refuses to restore the version that is already current", async () => {
     const id = await make();
 
     expect(await restore(id, 1, 1)).toEqual({ ok: false, reason: "That is already the current version." });
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(1);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(1);
   });
 
   it("answers not found for a version that does not exist or a design that is not the caller's", async () => {
@@ -339,7 +475,7 @@ describe("restoring a version", () => {
     expect((await failureOf(restore(id, 2, 99))).code).toBe("not_found");
     expect((await failureOf(restore(id, 2, 1, bob, bobBrand))).code).toBe("not_found");
     expect((await failureOf(restore(id, 2, 1, bob, aliceBrand))).code).toBe("not_found");
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(2);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(2);
   });
 });
 
@@ -443,7 +579,7 @@ describe("renaming", () => {
     await rename(id);
 
     expect(await open(id)).toMatchObject({ name: "Renamed", styleNumber: "NEW-1", season: "AW27", currentVersion: 1 });
-    expect(await listVersions(alice.client, aliceBrand, id)).toHaveLength(1);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions).toHaveLength(1);
   });
 
   it("refuses a name that is empty", async () => {

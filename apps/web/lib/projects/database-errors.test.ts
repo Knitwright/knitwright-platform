@@ -30,6 +30,14 @@ describe("failureFromDatabase", () => {
     expect(failure.message).toBe("Some fields need another look.");
   });
 
+  it("treats a design that is too large as a value the database refuses", () => {
+    expect(failureFromDatabase({ code: "23514", message: "new row violates check constraint" }).code).toBe("invalid_input");
+  });
+
+  it("treats a number too large for the database as a value it refuses", () => {
+    expect(failureFromDatabase({ code: "22003", message: "integer out of range" }).code).toBe("invalid_input");
+  });
+
   it("keeps the cause of anything else, and says nothing about it", () => {
     const error = { code: "XX000", message: "secret detail" };
 

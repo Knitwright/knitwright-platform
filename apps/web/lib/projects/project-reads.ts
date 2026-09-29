@@ -10,6 +10,8 @@ import {
   versionRowSchema,
   versionWithSpecRowSchema,
 } from "./rows";
+import { PROJECTS_LISTED, UNDO_SCAN_LIMIT, VERSIONS_LISTED } from "./limits";
+import type { HistoryRow } from "./undo";
 
 /**
  * Designs and their versions. Every function takes the clients it needs. Reads go through
@@ -18,8 +20,7 @@ import {
  * that the user belongs to the brand. The brand always comes from the session.
  */
 
-/** The most versions the history lists. */
-export const VERSIONS_LISTED = 100;
+export { PROJECTS_LISTED, UNDO_SCAN_LIMIT, VERSIONS_LISTED };
 
 export interface ProjectSummary {
   readonly id: string;
@@ -124,15 +125,28 @@ export const loadVersion = async (
   return versionWithSpecRowSchema.parse(data);
 };
 
-export const listProjects = async (client: SupabaseClient, brandId: string): Promise<ProjectSummary[]> => {
+export interface ProjectsPage {
+  readonly projects: ProjectSummary[];
+  /** True when the brand has more designs than were read. */
+  readonly hasMore: boolean;
+}
+
+/** The brand's newest designs, up to the limit. It reads one more, to know if there are others. */
+export const listProjects = async (
+  client: SupabaseClient,
+  brandId: string,
+  limit: number = PROJECTS_LISTED,
+): Promise<ProjectsPage> => {
   const { data, error } = await client
     .from("projects")
     .select(PROJECT_COLUMNS)
     .eq("brand_id", brandId)
     .order("created_at", { ascending: false })
-    .order("id", { ascending: false });
+    .order("id", { ascending: false })
+    .limit(limit + 1);
   throwIfFailed(error);
-  return z.array(projectRowSchema).parse(data).map(summaryOf);
+  const rows = z.array(projectRowSchema).parse(data);
+  return { projects: rows.slice(0, limit).map(summaryOf), hasMore: rows.length > limit };
 };
 
 /** A design with its current content. */
@@ -146,12 +160,19 @@ export const getProject = async (
   return { ...summaryOf(row), ...readSpec(current.spec) };
 };
 
+export interface VersionsPage {
+  readonly versions: VersionSummary[];
+  /** True when the design has older versions than were read. */
+  readonly hasMore: boolean;
+}
+
 /** The newest versions of a design, newest first, without their content. */
 export const listVersions = async (
   client: SupabaseClient,
   brandId: string,
   projectId: string,
-): Promise<VersionSummary[]> => {
+  limit: number = VERSIONS_LISTED,
+): Promise<VersionsPage> => {
   await loadRow(client, brandId, projectId);
   const { data, error } = await client
     .from("spec_versions")
@@ -159,9 +180,37 @@ export const listVersions = async (
     .eq("brand_id", brandId)
     .eq("project_id", projectId)
     .order("version", { ascending: false })
-    .limit(VERSIONS_LISTED);
+    .limit(limit + 1);
   throwIfFailed(error);
-  return z.array(versionRowSchema).parse(data).map(versionOf);
+  const rows = z.array(versionRowSchema).parse(data);
+  return { versions: rows.slice(0, limit).map(versionOf), hasMore: rows.length > limit };
+};
+
+/** The version a design is at now. */
+export const currentVersion = async (
+  client: SupabaseClient,
+  brandId: string,
+  projectId: string,
+): Promise<number> => (await loadRow(client, brandId, projectId)).current_version;
+
+/** Which version each version restored, for working out where an undo goes. */
+export const historyRows = async (
+  client: SupabaseClient,
+  brandId: string,
+  projectId: string,
+): Promise<HistoryRow[]> => {
+  const { data, error } = await client
+    .from("spec_versions")
+    .select("version, restored_from")
+    .eq("brand_id", brandId)
+    .eq("project_id", projectId)
+    .order("version", { ascending: false })
+    .limit(UNDO_SCAN_LIMIT);
+  throwIfFailed(error);
+  return z
+    .array(versionRowSchema.pick({ version: true, restored_from: true }))
+    .parse(data)
+    .map((row) => ({ version: row.version, restoredFrom: row.restored_from }));
 };
 
 export const getVersion = async (

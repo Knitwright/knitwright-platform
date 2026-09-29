@@ -12,7 +12,7 @@ const BASE =
   "inline-flex h-11 items-center justify-center rounded-lg px-5 text-[15px] font-semibold transition-colors";
 
 const VARIANTS = {
-  primary: "bg-cobalt text-white hover:bg-[#2238c8]",
+  primary: "bg-cobalt text-white hover:bg-cobalt-hover",
   secondary: "border border-hairline bg-surface text-ink hover:bg-shell",
 } as const;
 

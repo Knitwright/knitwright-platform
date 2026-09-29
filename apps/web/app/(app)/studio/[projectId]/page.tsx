@@ -20,10 +20,10 @@ export default async function DesignPage({ params }: PageProps<"/studio/[project
   const { projectId } = await params;
   const client = await sessionClient();
 
-  const [project, versions] = await Promise.all([
+  const [project, history] = await Promise.all([
     getProject(client, brand.id, projectId),
     listVersions(client, brand.id, projectId),
   ]).catch(orNotFound);
 
-  return <Editor data={buildEditorData(project, versions)} />;
+  return <Editor data={buildEditorData(project, history)} />;
 }

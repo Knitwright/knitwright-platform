@@ -36,7 +36,7 @@ describe("measurementTable with no size chart", () => {
 
     expect(rowsOf(table).map((entry) => entry.pointId).sort()).toEqual(pointsOfMeasureFor(spec).map((point) => point.id).sort());
     for (const entry of rowsOf(table)) {
-      expect(entry).toMatchObject({ hasValue: false, valueCm: "", provenanceLabel: null, tone: null, canResetToChart: false });
+      expect(entry).toMatchObject({ hasValue: false, valueCm: "", valueTenths: null, isOwn: false, provenanceLabel: null, tone: null, canResetToChart: false });
       expect(entry.message).toBe("No value yet. Type one in.");
       expect(entry.howToMeasure.length).toBeGreaterThan(20);
     }
@@ -72,6 +72,8 @@ describe("measurementTable with no size chart", () => {
     expect(entry).toMatchObject({
       hasValue: true,
       valueCm: "52.5",
+      valueTenths: 5250,
+      isOwn: true,
       provenanceLabel: "Typed in by you",
       tone: "person",
       tolerance: "To be confirmed",
@@ -113,8 +115,10 @@ describe("measurementTable with a size chart", () => {
         tone: "suggested",
         tolerance: "±1 cm",
         canResetToChart: false,
+        isOwn: false,
       });
       expect(Number(entry.valueCm)).toBeGreaterThan(0);
+      expect(entry.valueTenths).toBe(Math.round(Number(entry.valueCm) * 100));
     }
   });
 
@@ -123,7 +127,7 @@ describe("measurementTable with a size chart", () => {
 
     const table = measurementTable(spec, MADE_UP_CHART_SET);
 
-    expect(row(table, "chest-width")).toMatchObject({ valueCm: "52.5", tone: "person", canResetToChart: true });
+    expect(row(table, "chest-width")).toMatchObject({ valueCm: "52.5", tone: "person", canResetToChart: true, isOwn: true });
     expect(row(table, "body-length").canResetToChart).toBe(false);
   });
 
