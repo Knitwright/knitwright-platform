@@ -8,8 +8,8 @@ import type { Violation } from "./wrapper-check";
  * framework does not run a layout again when the user moves between the pages in it.
  *
  * The check must be written where it is certain to run: as `await requireMember()` (or
- * `const x = await requireMember()`) directly in the body of the default export, before
- * anything is returned.
+ * `const x = await requireMember()`) as the first statement in the body of the default
+ * export, so nothing can return before it.
  */
 
 const GUARDS = "@/lib/server/page-guards";
@@ -18,8 +18,11 @@ const REQUIRE_SESSION: Imported = { module: GUARDS, name: "requireSession" };
 
 const RENDERED_FILE = /^app\/(.*\/)?(page|layout|template|default)\.[jt]sx?$/;
 
-/** The studio. Its pages need a brand as well as a session, and are never public. */
+/** The studio. Its pages are never public. */
 const STUDIO = "app/(app)/";
+
+/** Groups where a session is enough. Everywhere else a page needs a brand as well. */
+const SESSION_ONLY_GROUPS = ["app/(auth)/", "app/(onboarding)/"];
 
 const isRenderedFile = (path: string): boolean => RENDERED_FILE.test(path);
 
@@ -50,10 +53,8 @@ const isGuardStatement = (statement: ts.Statement, names: ReadonlySet<string>): 
 
 const runsGuardFirst = (source: ts.SourceFile, accepted: readonly Imported[]): boolean => {
   const names = new Set(accepted.flatMap((guard) => [...localNamesOf(source, guard)]));
-  const statements = defaultExportBody(source)?.statements ?? [];
-  const firstReturn = statements.findIndex(ts.isReturnStatement);
-  const beforeReturn = firstReturn === -1 ? statements : statements.slice(0, firstReturn);
-  return beforeReturn.some((statement) => isGuardStatement(statement, names));
+  const [first] = defaultExportBody(source)?.statements ?? [];
+  return first !== undefined && isGuardStatement(first, names);
 };
 
 export type PageReport = Readonly<{ violations: Violation[]; isPublicPage: boolean }>;
@@ -68,17 +69,18 @@ export const checkPage = (
   const inStudio = path.startsWith(STUDIO);
   if (!inStudio && publicPages.has(path)) return { violations: [], isPublicPage: true };
 
-  const accepted = inStudio ? [REQUIRE_MEMBER] : [REQUIRE_SESSION, REQUIRE_MEMBER];
+  const sessionEnough = SESSION_ONLY_GROUPS.some((group) => path.startsWith(group));
+  const accepted = sessionEnough ? [REQUIRE_SESSION, REQUIRE_MEMBER] : [REQUIRE_MEMBER];
   if (runsGuardFirst(source, accepted)) return { violations: [], isPublicPage: false };
 
-  const needs = inStudio ? "requireMember" : "requireSession";
+  const needs = sessionEnough ? "requireSession" : "requireMember";
   return {
     isPublicPage: false,
     violations: [
       {
         file: path,
         rule: "page-not-guarded",
-        detail: `Write "await ${needs}()" from ${GUARDS} directly in the body of the default export, before anything is returned, or list the page in lib/server/public-pages.ts.`,
+        detail: `Write "await ${needs}()" from ${GUARDS} as the first statement in the body of the default export, or list the page in lib/server/public-pages.ts.`,
       },
     ],
   };

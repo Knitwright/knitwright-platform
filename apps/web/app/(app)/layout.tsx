@@ -21,10 +21,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             </Link>
             <Link
               href="/brands"
-              data-testid="active-brand"
               className="truncate rounded-md border border-hairline px-2.5 py-1 text-sm text-ink-2 transition-colors hover:bg-shell"
             >
-              {brand.name}
+              <span className="sr-only">Brand: {brand.name}. Change brand.</span>
+              <span aria-hidden="true" data-testid="active-brand">
+                {brand.name}
+              </span>
             </Link>
           </div>
           <div className="flex shrink-0 items-center gap-2">

@@ -15,9 +15,7 @@ export const IMAGE_LIMITS = {
   maxEdge: 2048,
 } as const;
 
-const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
-
-type AcceptedType = (typeof ACCEPTED_TYPES)[number];
+type SniffedType = "image/png" | "image/jpeg" | "image/webp";
 
 export type CheckedImage = Readonly<{
   bytes: Buffer;
@@ -37,7 +35,7 @@ const startsWith = (bytes: Uint8Array, signature: readonly number[], offset = 0)
   signature.every((byte, index) => bytes[offset + index] === byte);
 
 /** The type the first bytes say the file is, whatever its name or stated type. */
-const sniff = (bytes: Uint8Array): AcceptedType | null => {
+const sniff = (bytes: Uint8Array): SniffedType | null => {
   if (startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) return "image/png";
   if (startsWith(bytes, [0xff, 0xd8, 0xff])) return "image/jpeg";
   const isRiff = startsWith(bytes, [0x52, 0x49, 0x46, 0x46]);
@@ -45,8 +43,30 @@ const sniff = (bytes: Uint8Array): AcceptedType | null => {
   return null;
 };
 
-const isAccepted = (type: string): type is AcceptedType =>
-  (ACCEPTED_TYPES as readonly string[]).includes(type);
+const fourCharacters = (bytes: Uint8Array, offset: number): string =>
+  String.fromCharCode(...bytes.subarray(offset, offset + 4));
+
+const RIFF_HEADER_BYTES = 12;
+const CHUNK_HEADER_BYTES = 8;
+
+/**
+ * Whether a WebP file holds its picture without loss. The image library does not always
+ * say, so this reads the file: `VP8L` is lossless and `VP8 ` is lossy. In the extended
+ * format (`VP8X`) the picture sits in a later chunk, so the chunks are walked in turn.
+ */
+const isLosslessWebp = (bytes: Uint8Array): boolean => {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = RIFF_HEADER_BYTES;
+  while (offset + CHUNK_HEADER_BYTES <= bytes.byteLength) {
+    const name = fourCharacters(bytes, offset);
+    if (name === "VP8L") return true;
+    if (name === "VP8 ") return false;
+    const size = view.getUint32(offset + 4, true);
+    // Chunks are padded to an even length.
+    offset += CHUNK_HEADER_BYTES + size + (size % 2);
+  }
+  return false;
+};
 
 const readSize = async (bytes: Uint8Array): Promise<Metadata> => {
   try {
@@ -78,10 +98,14 @@ const reencode = async (bytes: Uint8Array, asPng: boolean) => {
   }
 };
 
-export const checkImage = async (bytes: Uint8Array, statedType: string): Promise<CheckedImage> => {
+/**
+ * The content decides the type, never the type the browser stated, because what is stored
+ * is rewritten pixels under a type the server chooses.
+ */
+export const checkImage = async (bytes: Uint8Array): Promise<CheckedImage> => {
   if (bytes.byteLength > IMAGE_LIMITS.maxBytes) throw new AppError("too_large", TOO_MANY_BYTES);
   const type = sniff(bytes);
-  if (!isAccepted(statedType) || !type) throw new AppError("invalid_input", NOT_ACCEPTED);
+  if (!type) throw new AppError("invalid_input", NOT_ACCEPTED);
 
   const size = await readSize(bytes);
   if (!size.width || !size.height) throw new AppError("invalid_input", NOT_READABLE);
@@ -90,8 +114,12 @@ export const checkImage = async (bytes: Uint8Array, statedType: string): Promise
   }
 
   // PNG is kept as PNG: it is exact, which matters for the flat colours of a logo.
-  // Anything see-through must be PNG too. The rest is stored as JPEG.
-  const asPng = type === "image/png" || size.hasAlpha === true;
+  // Anything see-through, and a WebP that lost nothing, must be PNG too. The rest is
+  // stored as JPEG.
+  const asPng =
+    type === "image/png" ||
+    size.hasAlpha === true ||
+    (type === "image/webp" && isLosslessWebp(bytes));
   const { data, info } = await reencode(bytes, asPng);
   return {
     bytes: data,

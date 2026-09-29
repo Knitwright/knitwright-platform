@@ -62,15 +62,32 @@ test.describe("brands", () => {
     await expect(page.getByText("The name is saved.")).toBeVisible();
     await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC");
 
+    // The form draws again while it saves. That must not send focus back to the message.
+    const nameField = page.getByLabel("Brand name");
+    await nameField.click();
+    await page.keyboard.type("!");
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC!");
+    await expect(page.getByRole("button", { name: "Save name" })).toBeEnabled();
+    await expect(nameField).toBeFocused();
+    await expect(nameField).toHaveValue("First Eleven FC!");
+
     await page.getByLabel("Name of the new brand").fill("Second String");
     await page.getByRole("button", { name: "Create brand" }).click();
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Second String");
 
     await page.goto("/brands");
-    await page.getByRole("button", { name: "Work in First Eleven FC" }).click();
+    await page.getByRole("button", { name: "Work in this brand: First Eleven FC!" }).click();
     await expect(page).toHaveURL(/\/studio$/);
-    await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC");
+    await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC!");
+  });
+
+  test("the brand link in the header says what it is and where it goes", async ({ page }) => {
+    await signedIn(page, "link-name", "Harbour Rowing Club");
+
+    await expect(page.getByRole("link", { name: "Brand: Harbour Rowing Club. Change brand." })).toBeVisible();
+    await expect(page.getByTestId("active-brand")).toHaveText("Harbour Rowing Club");
   });
 
   test("a fourth brand is not offered", async ({ page }) => {

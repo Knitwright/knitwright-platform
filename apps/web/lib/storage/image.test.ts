@@ -37,20 +37,20 @@ describe("checkImage, what it accepts", () => {
   it("accepts a PNG, a JPEG and a WebP image", async () => {
     const webp = await solid().webp().toBuffer();
 
-    await expect(checkImage(await png(), "image/png")).resolves.toBeDefined();
-    await expect(checkImage(await jpeg(), "image/jpeg")).resolves.toBeDefined();
-    await expect(checkImage(webp, "image/webp")).resolves.toBeDefined();
+    await expect(checkImage(await png())).resolves.toBeDefined();
+    await expect(checkImage(await jpeg())).resolves.toBeDefined();
+    await expect(checkImage(webp)).resolves.toBeDefined();
   });
 
   it("reports the size of the stored image", async () => {
-    const image = await checkImage(await png({ width: 40, height: 20 }), "image/png");
+    const image = await checkImage(await png({ width: 40, height: 20 }));
 
     expect(image).toMatchObject({ width: 40, height: 20 });
     expect(image.bytes.byteLength).toBeGreaterThan(0);
   });
 
   it("stores a JPEG as JPEG", async () => {
-    const image = await checkImage(await jpeg(), "image/jpeg");
+    const image = await checkImage(await jpeg());
 
     expect(image.contentType).toBe("image/jpeg");
     expect(image.extension).toBe("jpg");
@@ -58,7 +58,7 @@ describe("checkImage, what it accepts", () => {
   });
 
   it("stores a PNG as PNG, so the flat colours of a logo stay exact", async () => {
-    const image = await checkImage(await png(), "image/png");
+    const image = await checkImage(await png());
 
     expect(image.contentType).toBe("image/png");
     expect(image.extension).toBe("png");
@@ -67,7 +67,7 @@ describe("checkImage, what it accepts", () => {
   });
 
   it("keeps the transparency of a PNG", async () => {
-    const image = await checkImage(await png({ channels: 4, alpha: 0.5 }), "image/png");
+    const image = await checkImage(await png({ channels: 4, alpha: 0.5 }));
 
     const stored = await sharp(image.bytes).metadata();
     expect(stored.format).toBe("png");
@@ -78,14 +78,46 @@ describe("checkImage, what it accepts", () => {
     const opaque = await solid().webp().toBuffer();
     const seeThrough = await solid({ channels: 4, alpha: 0.5 }).webp().toBuffer();
 
-    expect((await checkImage(opaque, "image/webp")).contentType).toBe("image/jpeg");
-    expect((await checkImage(seeThrough, "image/webp")).contentType).toBe("image/png");
+    expect((await checkImage(opaque)).contentType).toBe("image/jpeg");
+    expect((await checkImage(seeThrough)).contentType).toBe("image/png");
   });
 
-  it("goes by the content, not by the type the browser stated", async () => {
-    const image = await checkImage(await png({ channels: 4, alpha: 0.5 }), "image/jpeg");
+  it("stores a lossless WebP as PNG, so the pixels stay exactly as they were", async () => {
+    const lossless = await solid().webp({ lossless: true }).toBuffer();
+
+    const image = await checkImage(lossless);
 
     expect(image.contentType).toBe("image/png");
+    expect(image.extension).toBe("png");
+    const { data } = await sharp(image.bytes).raw().toBuffer({ resolveWithObject: true });
+    expect([data[0], data[1], data[2]]).toEqual([200, 30, 30]);
+  });
+
+  it("stores a lossless WebP in the extended format as PNG too", async () => {
+    const extended = await solid()
+      .webp({ lossless: true })
+      .withExif({ IFD0: { Copyright: "Someone" } })
+      .toBuffer();
+    expect(extended.subarray(12, 16).toString("ascii")).toBe("VP8X");
+
+    expect((await checkImage(extended)).contentType).toBe("image/png");
+  });
+
+  it("stores a lossy WebP as JPEG", async () => {
+    const lossy = await solid().webp({ lossless: false }).toBuffer();
+    expect(lossy.subarray(12, 16).toString("ascii")).toBe("VP8 ");
+
+    expect((await checkImage(lossy)).contentType).toBe("image/jpeg");
+  });
+
+  it("stores a lossy WebP in the extended format as JPEG", async () => {
+    const extended = await solid()
+      .webp()
+      .withExif({ IFD0: { Copyright: "Someone" } })
+      .toBuffer();
+    expect(extended.subarray(12, 16).toString("ascii")).toBe("VP8X");
+
+    expect((await checkImage(extended)).contentType).toBe("image/jpeg");
   });
 });
 
@@ -97,7 +129,7 @@ describe("checkImage, what it removes", () => {
       .toBuffer();
     expect((await sharp(withDetails).metadata()).exif).toBeDefined();
 
-    const image = await checkImage(withDetails, "image/jpeg");
+    const image = await checkImage(withDetails);
 
     expect((await sharp(image.bytes).metadata()).exif).toBeUndefined();
     expect(image.bytes.includes(Buffer.from("SecretCam"))).toBe(false);
@@ -107,7 +139,7 @@ describe("checkImage, what it removes", () => {
     const payload = Buffer.from("<script>alert('x')</script>");
     const polyglot = Buffer.concat([await png(), payload]);
 
-    const image = await checkImage(polyglot, "image/png");
+    const image = await checkImage(polyglot);
 
     expect(image.bytes.includes(payload)).toBe(false);
   });
@@ -119,7 +151,7 @@ describe("checkImage, what it removes", () => {
       .withMetadata({ orientation: 6 })
       .toBuffer();
 
-    const image = await checkImage(sideways, "image/jpeg");
+    const image = await checkImage(sideways);
 
     expect(image).toMatchObject({ width: 20, height: 40 });
     expect((await sharp(image.bytes).metadata()).orientation).toBeUndefined();
@@ -128,14 +160,14 @@ describe("checkImage, what it removes", () => {
   it("makes a large image smaller and keeps its proportions", async () => {
     const large = await png({ width: 4000, height: 1000 });
 
-    const image = await checkImage(large, "image/png");
+    const image = await checkImage(large);
 
     expect(image.width).toBe(IMAGE_LIMITS.maxEdge);
     expect(image.height).toBe(IMAGE_LIMITS.maxEdge / 4);
   });
 
   it("does not enlarge a small image", async () => {
-    const image = await checkImage(await png({ width: 10, height: 10 }), "image/png");
+    const image = await checkImage(await png({ width: 10, height: 10 }));
 
     expect(image).toMatchObject({ width: 10, height: 10 });
   });
@@ -147,7 +179,7 @@ describe("checkImage, what it refuses", () => {
       '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
     );
 
-    const failure = await failureOf(checkImage(svg, "image/svg+xml"));
+    const failure = await failureOf(checkImage(svg));
 
     expect(failure.code).toBe("invalid_input");
     expect(failure.message).toBe("Upload a PNG, JPEG or WebP image.");
@@ -156,25 +188,18 @@ describe("checkImage, what it refuses", () => {
   it("refuses an SVG drawing that claims to be a PNG", async () => {
     const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
 
-    expect((await failureOf(checkImage(svg, "image/png"))).code).toBe("invalid_input");
-  });
-
-  it("refuses a real image sent under a type that is not allowed", async () => {
-    expect((await failureOf(checkImage(await png(), "image/svg+xml"))).code).toBe(
-      "invalid_input",
-    );
-    expect((await failureOf(checkImage(await png(), "text/html"))).code).toBe("invalid_input");
+    expect((await failureOf(checkImage(svg))).code).toBe("invalid_input");
   });
 
   it("refuses a GIF, an HTML page and a PDF", async () => {
     const gif = await solid().gif().toBuffer();
 
-    expect((await failureOf(checkImage(gif, "image/gif"))).code).toBe("invalid_input");
+    expect((await failureOf(checkImage(gif))).code).toBe("invalid_input");
     expect(
-      (await failureOf(checkImage(Buffer.from("<html></html>"), "image/png"))).code,
+      (await failureOf(checkImage(Buffer.from("<html></html>")))).code,
     ).toBe("invalid_input");
     expect(
-      (await failureOf(checkImage(Buffer.from("%PDF-1.7 ..."), "image/png"))).code,
+      (await failureOf(checkImage(Buffer.from("%PDF-1.7 ...")))).code,
     ).toBe("invalid_input");
   });
 
@@ -184,14 +209,14 @@ describe("checkImage, what it refuses", () => {
       Buffer.from("not really an image"),
     ]);
 
-    const failure = await failureOf(checkImage(fake, "image/png"));
+    const failure = await failureOf(checkImage(fake));
 
     expect(failure.code).toBe("invalid_input");
     expect(failure.message).toBe("That file could not be read as an image.");
   });
 
   it("refuses an empty file", async () => {
-    expect((await failureOf(checkImage(Buffer.alloc(0), "image/png"))).code).toBe(
+    expect((await failureOf(checkImage(Buffer.alloc(0)))).code).toBe(
       "invalid_input",
     );
   });
@@ -199,7 +224,7 @@ describe("checkImage, what it refuses", () => {
   it("refuses a file over the size limit before trying to read it", async () => {
     const tooBig = Buffer.alloc(IMAGE_LIMITS.maxBytes + 1, 1);
 
-    const failure = await failureOf(checkImage(tooBig, "image/png"));
+    const failure = await failureOf(checkImage(tooBig));
 
     expect(failure.code).toBe("too_large");
     expect(failure.message).toBe("Images can be 8 MB at most.");
@@ -210,7 +235,7 @@ describe("checkImage, what it refuses", () => {
     const bomb = await png({ width: 8000, height: 6000 });
     expect(bomb.byteLength).toBeLessThan(IMAGE_LIMITS.maxBytes);
 
-    const failure = await failureOf(checkImage(bomb, "image/png"));
+    const failure = await failureOf(checkImage(bomb));
 
     expect(failure.code).toBe("too_large");
   });
@@ -218,7 +243,7 @@ describe("checkImage, what it refuses", () => {
   it("does not show the image library's own message", async () => {
     const fake = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff]), Buffer.from("garbage")]);
 
-    const failure = await failureOf(checkImage(fake, "image/jpeg"));
+    const failure = await failureOf(checkImage(fake));
 
     expect(failure.message).not.toMatch(/vips|sharp|jpeg/i);
   });

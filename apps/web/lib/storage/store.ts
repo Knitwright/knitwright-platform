@@ -23,7 +23,7 @@ export type StoreImageInput = Readonly<{
   userId: string;
   kind: ImageKind;
   bytes: Uint8Array;
-  /** The type the browser stated. The content decides, this only has to be allowed. */
+  /** The type the browser stated. The content decides, so it is not used. */
   statedType: string;
 }>;
 
@@ -38,7 +38,7 @@ export type StoredFile = Readonly<{
 }>;
 
 export const storeImage = async (input: StoreImageInput): Promise<StoredFile> => {
-  const image = await checkImage(input.bytes, input.statedType);
+  const image = await checkImage(input.bytes);
   const id = randomUUID();
   const path = `${input.brandId}/${input.kind}/${id}.${image.extension}`;
   const files = input.admin.storage.from(BUCKET);
@@ -62,8 +62,13 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
     created_by: input.userId,
   });
   if (record.error) {
-    // A file with no record could never be found again. Remove it.
-    await files.remove([path]);
+    // A file with no record could never be found again. Remove it. If that fails too,
+    // the record error is still the one to report, so the cleanup error is set aside.
+    try {
+      await files.remove([path]);
+    } catch {
+      // Nothing more can be done here.
+    }
     throw new Error("The file's record could not be written.", { cause: record.error });
   }
 

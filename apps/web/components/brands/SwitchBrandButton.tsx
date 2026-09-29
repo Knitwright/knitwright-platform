@@ -22,7 +22,7 @@ export function SwitchBrandButton({ brandId, brandName }: SwitchBrandButtonProps
         variant="secondary"
         pending={pending}
         className="h-9 px-3 text-sm"
-        aria-label={`Work in ${brandName}`}
+        aria-label={`Work in this brand: ${brandName}`}
       >
         Work in this brand
       </Button>

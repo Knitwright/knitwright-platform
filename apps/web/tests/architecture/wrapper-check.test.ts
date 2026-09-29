@@ -348,6 +348,43 @@ ${UNGUARDED}`;
     expect(pageRules([page(guardedBy("requireSession"))])).toEqual(["page-not-guarded"]);
   });
 
+  it("rejects a page that can return before its check runs", () => {
+    const text = `
+      import { requireMember } from "@/lib/server/page-guards";
+      export default async function Page() {
+        if (x) return null;
+        await requireMember();
+        return null;
+      }
+    `;
+    expect(pageRules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("rejects a page with any other statement before its check", () => {
+    const text = guardedBy("requireMember", "const x = 1;\n      await requireMember();");
+    expect(pageRules([page(text)])).toEqual(["page-not-guarded"]);
+  });
+
+  it("accepts a page whose first statement is the check", () => {
+    const text = guardedBy("requireMember", "await requireMember();\n      const x = 1;");
+    expect(pageRules([page(text)])).toEqual([]);
+  });
+
+  it("needs a member in a folder added later, and accepts one", () => {
+    const path = "app/(studio)/x/page.tsx";
+    expect(pageRules([page(guardedBy("requireSession"), path)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(guardedBy("requireMember"), path)])).toEqual([]);
+  });
+
+  it("lets a page in the sign-in group check for a session only", () => {
+    expect(
+      pageRules([page(guardedBy("requireSession"), "app/(auth)/reset-password/page.tsx")]),
+    ).toEqual([]);
+    expect(
+      pageRules([page(guardedBy("requireMember"), "app/(auth)/reset-password/page.tsx")]),
+    ).toEqual([]);
+  });
+
   it("checks layouts, templates and defaults as well as pages", () => {
     for (const name of ["layout.tsx", "template.tsx", "default.tsx", "page.jsx"]) {
       expect(pageRules([page(UNGUARDED, `app/(app)/${name}`)])).toEqual(["page-not-guarded"]);

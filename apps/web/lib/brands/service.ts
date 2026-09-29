@@ -22,7 +22,7 @@ export const brandNameSchema = z
 type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
 
 /** Postgres error codes the brand functions raise, and what they mean to the user. */
-const failureFrom = (error: DatabaseError): AppError => {
+const brandFailureFrom = (error: DatabaseError): AppError => {
   if (error.hint === "brand_limit") return new AppError("conflict", LIMIT_REACHED);
   switch (error.code) {
     case "28000": // The function found no signed-in user.
@@ -49,7 +49,7 @@ export const listBrands = async (client: SupabaseClient): Promise<Brand[]> => {
     .from("memberships")
     .select("role, created_at, brands (id, name)")
     .order("created_at", { ascending: true });
-  if (error) throw failureFrom(error);
+  if (error) throw brandFailureFrom(error);
 
   return z
     .array(membershipRow)
@@ -59,7 +59,7 @@ export const listBrands = async (client: SupabaseClient): Promise<Brand[]> => {
 
 export const createBrand = async (client: SupabaseClient, name: string): Promise<Brand> => {
   const { data, error } = await client.rpc("create_brand", { p_name: name });
-  if (error) throw failureFrom(error);
+  if (error) throw brandFailureFrom(error);
   return { id: z.uuid().parse(data), name: name.trim(), role: "owner" };
 };
 
@@ -69,5 +69,5 @@ export const renameBrand = async (
   name: string,
 ): Promise<void> => {
   const { error } = await client.rpc("rename_brand", { p_brand_id: brandId, p_name: name });
-  if (error) throw failureFrom(error);
+  if (error) throw brandFailureFrom(error);
 };

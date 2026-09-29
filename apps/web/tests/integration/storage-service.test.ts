@@ -140,6 +140,28 @@ describe("createDownloadLink", () => {
     expect(failure.code).toBe("not_found");
   });
 
+  it("says the file does not exist when its record points at an object that was never stored", async () => {
+    const id = crypto.randomUUID();
+    must(
+      await adminClient()
+        .from("files")
+        .insert({
+          id,
+          brand_id: aliceBrand,
+          bucket: "uploads",
+          path: `${aliceBrand}/artwork/${id}.png`,
+          kind: "artwork",
+          content_type: "image/png",
+          bytes: 10,
+          created_by: alice.userId,
+        }),
+    );
+
+    const failure = await failureOf(createDownloadLink(alice.client, aliceBrand, id));
+
+    expect(failure.code).toBe("not_found");
+  });
+
   it("answers the same for a file that does not exist and an id that is not an id", async () => {
     const missing = await failureOf(
       createDownloadLink(alice.client, aliceBrand, "00000000-0000-4000-8000-000000000000"),
