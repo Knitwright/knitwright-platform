@@ -1,5 +1,6 @@
 "use server";
 
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { brandChartSet } from "@/lib/charts/service";
@@ -7,6 +8,8 @@ import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { guideAddress } from "@/lib/guided/flow";
+import { guidedStartSchema, planGuidedStart } from "@/lib/guided/start";
 import { verifyProposal } from "@/lib/intent/proposal-token";
 import { nowSeconds, proposalSigningKey } from "./assistant";
 import { applySignedProposal } from "./assistant-request";
@@ -60,6 +63,32 @@ export const createProjectAction = defineAction({
     });
     revalidatePath("/studio");
     redirect(`/studio/${id}`);
+  },
+});
+
+/**
+ * Starts a design in the guided flow (plan step 15): from a sentence, a sketch or a picked
+ * garment. The design is made at once and the guide opens at its first step, which sends the
+ * sentence to the assistant or asks for the sketch.
+ */
+export const startGuidedAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.createProject,
+  schema: guidedStartSchema,
+  handler: async ({ input, session }) => {
+    const plan = planGuidedStart(input);
+    const id = await createProject(adminClient(), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      typeId: plan.typeId,
+      wearer: plan.wearer,
+      name: plan.name,
+      styleNumber: "",
+      season: "",
+      charts: await brandChartSet(await sessionClient(), session.brand.id),
+    });
+    revalidatePath("/studio");
+    redirect(guideAddress(id, "start", plan.next) as Route);
   },
 });
 

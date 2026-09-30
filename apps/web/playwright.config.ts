@@ -9,7 +9,9 @@ const baseURL = `http://localhost:${PORT}`;
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
 const localEnvFile = join(__dirname, ".env.local");
 const localEnv = existsSync(localEnvFile) ? parseEnv(readFileSync(localEnvFile, "utf8")) : {};
-const env = { ...localEnv, ...process.env, NEXT_PUBLIC_SITE_URL: baseURL } as Record<
+// AI_PROVIDER_STUB answers the assistant with a stand-in that never reaches the network
+// (lib/providers/stand-in.ts); the environment check refuses it on any deploy.
+const env = { ...localEnv, ...process.env, NEXT_PUBLIC_SITE_URL: baseURL, AI_PROVIDER_STUB: "on" } as Record<
   string,
   string
 >;

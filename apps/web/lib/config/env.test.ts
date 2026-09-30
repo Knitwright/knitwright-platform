@@ -193,4 +193,26 @@ describe("parseEnv", () => {
       ).not.toThrow();
     });
   });
+
+  describe("the stand-in model for browser tests", () => {
+    it("is off unless switched on", () => {
+      expect(parseEnv(valid).AI_PROVIDER_STUB).toBeUndefined();
+      expect(parseEnv({ ...valid, AI_PROVIDER_STUB: "on" }).AI_PROVIDER_STUB).toBe("on");
+    });
+
+    it("is allowed in a production build served on this machine, as the browser tests do", () => {
+      expect(() =>
+        parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "http://localhost:3100", AI_PROVIDER_STUB: "on", NODE_ENV: "production" }),
+      ).not.toThrow();
+    });
+
+    it("is refused wherever real people sign in", () => {
+      expect(() => parseEnv({ ...valid, AI_PROVIDER_STUB: "on", VERCEL_ENV: "production" })).toThrow(
+        /AI_PROVIDER_STUB is for browser tests/,
+      );
+      expect(() =>
+        parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", AI_PROVIDER_STUB: "on", NODE_ENV: "production" }),
+      ).toThrow(/AI_PROVIDER_STUB is for browser tests/);
+    });
+  });
 });

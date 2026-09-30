@@ -49,6 +49,9 @@ const envSchema = z.object({
   // feature is shown as unavailable. Server only. It must belong to a Google project with
   // billing on: on the free tier Google may train on what is sent. See docs/data-processing.md.
   GEMINI_API_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
+  // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
+  AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),
   // The button is shown only when this is exactly "true".
   GOOGLE_SIGN_IN: z
     .string()
@@ -91,6 +94,9 @@ const guardedSchema = envSchema.superRefine((env, context) => {
       message: "test key",
     });
   }
+  if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -114,6 +120,7 @@ const withoutEmptyStrings = (source: EnvSource): EnvSource =>
 /** Values are never included in problems: a malformed secret must not reach a log. */
 const describeIssue = (issue: z.core.$ZodIssue): string => {
   const name = issue.path.join(".") || "(root)";
+  if (issue.code === "custom" && name === "AI_PROVIDER_STUB") return `${name} is for browser tests, which a deploy may not use`;
   if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;
   return missing ? `${name} is missing` : `${name} is not valid`;

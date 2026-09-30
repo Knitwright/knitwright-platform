@@ -26,7 +26,14 @@ export default async function StudioPage() {
           <Link href="/studio/charts" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
             Size charts
           </Link>
-          {projects.length > 0 ? <LinkButton href="/studio/new">New design</LinkButton> : null}
+          {projects.length > 0 ? (
+            <>
+              <LinkButton href="/studio/new" variant="secondary">
+                New design
+              </LinkButton>
+              <LinkButton href="/studio/start">Start a design, step by step</LinkButton>
+            </>
+          ) : null}
         </div>
       </header>
       {projects.length === 0 ? <FirstDesign brandName={brand.name} /> : <ProjectsTable brandName={brand.name} projects={projects} />}
@@ -48,8 +55,11 @@ function FirstDesign({ brandName }: Readonly<{ brandName: string }>) {
       <p className="mt-2 text-[15px] leading-relaxed text-muted">
         Pick a garment, say who it is for, and give it a name. Only members of {brandName} can see your designs.
       </p>
-      <div className="mt-5">
-        <LinkButton href="/studio/new">New design</LinkButton>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <LinkButton href="/studio/start">Start a design, step by step</LinkButton>
+        <LinkButton href="/studio/new" variant="secondary">
+          New design
+        </LinkButton>
       </div>
     </section>
   );

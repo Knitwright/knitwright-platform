@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useReducer, useState, type FormEvent } from "react";
+import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { MAX_UTTERANCE_LENGTH } from "@/lib/intent/text-flow";
@@ -18,23 +18,32 @@ type Props = Readonly<{
   available: boolean;
   /** True while the editor is saving, so the design is not changed from two places at once. */
   busy: boolean;
+  /** A sentence to send once, as soon as the panel opens: the guided flow's first words. */
+  initialUtterance?: string | undefined;
+  /** Called once the first sentence has been sent, so the page can forget it. */
+  onInitialSent?: (() => void) | undefined;
 }>;
 
 /**
  * Talk to the assistant about this design. Every sentence and rule is in lib/projects/chat
  * and lib/intent; this holds the form, the list and the wiring to the server.
  */
-export function ChatPanel({ projectId, version, available, busy }: Props) {
+export function ChatPanel({ projectId, version, available, busy, initialUtterance, onInitialSent }: Props) {
   const router = useRouter();
   const [state, dispatch] = useReducer(chatReducer, initialChat);
   const [text, setText] = useState("");
   const waiting = state.pending !== null;
+  const initialSent = useRef(false);
 
   const send = async (event: FormEvent) => {
     event.preventDefault();
     const utterance = text.trim();
     if (!utterance || waiting || busy) return;
     setText("");
+    await sendText(utterance);
+  };
+
+  const sendText = async (utterance: string) => {
     dispatch({ type: "sent", text: utterance });
     let changed = false;
     try {
@@ -57,6 +66,15 @@ export function ChatPanel({ projectId, version, available, busy }: Props) {
     }
     if (changed) router.refresh();
   };
+
+  useEffect(() => {
+    const utterance = initialUtterance?.trim();
+    if (!utterance || initialSent.current) return;
+    initialSent.current = true;
+    void sendText(utterance).then(() => onInitialSent?.());
+    // Sent once, when the panel first opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const choose = async (message: ChatMessage, index: number) => {
     const choice = message.choices[index];
