@@ -16,4 +16,6 @@ export const PUBLIC_PAGES = [
   "app/(auth)/forgot-password/page.tsx",
   // Opened from a link in an email, before a session exists.
   "app/(auth)/auth/confirm/page.tsx",
+  // The terms, privacy notice and data-processing terms. Anyone must be able to read them before signing up.
+  "app/legal/[document]/page.tsx",
 ] as const;

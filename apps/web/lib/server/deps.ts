@@ -13,11 +13,12 @@ import {
 } from "@/lib/supabase/clients";
 import { imageProviderFrom, type ImageProvider } from "@/lib/providers";
 import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
-import { loggingAlert } from "@/lib/usage/alert";
+import { loggingAlert, withCeilingHook } from "@/lib/usage/alert";
 import { allowancesFrom } from "@/lib/usage/cost";
 import { createUsageMeter, type UsageMeter } from "@/lib/usage/meter";
 import { clientAddress } from "./core/client-address";
 import type { Brand, GuardDeps, Session } from "./core/guard";
+import { alertSpendCeiling, monitoredLog } from "@/lib/monitoring/server";
 import { log } from "./log";
 import { createRateLimiter } from "./rate-limit";
 import { readSession } from "./session";
@@ -97,8 +98,9 @@ const usageMeter = (): UsageMeter => {
   meter ??= createUsageMeter({
     rpc: (fn, args) => adminClient().rpc(fn, args),
     allowances: allowancesFrom(getEnv()),
-    // No email provider exists yet. The alert is a warning in the server log.
-    alert: loggingAlert(log),
+    // No email provider exists yet. The alert is a warning in the server log, and reaching
+    // the ceiling is also reported to monitoring (lib/monitoring).
+    alert: withCeilingHook(loggingAlert(log), alertSpendCeiling),
   });
   return meter;
 };
@@ -116,7 +118,8 @@ export const productionDeps: GuardDeps = {
   getActiveBrand: activeBrand,
   getClientAddress: async () => clientAddress(await headers(), getEnv().CLIENT_ADDRESS_HEADER),
   hitRateLimit: (key, rule) => createRateLimiter(adminClient())(key, rule),
-  log,
+  // Every unexpected failure a wrapper catches is logged here, and reported to monitoring.
+  log: monitoredLog,
   usage: {
     reserve: (request) => usageMeter().reserve(request),
     refund: (eventId) => usageMeter().refund(eventId),

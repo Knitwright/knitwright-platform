@@ -15,6 +15,10 @@ export const NOTICES = {
     tone: "warn",
     text: "That link is incomplete. Open the link from your email again, or ask for a new one.",
   },
+  "account-deleted": {
+    tone: "ok",
+    text: "Your account and everything in it have been deleted.",
+  },
 } as const;
 
 export type NoticeKey = keyof typeof NOTICES;

@@ -68,6 +68,29 @@ describe("formatLogEvent", () => {
     expect(line).not.toContain("eyJhbGciOiJIUzI1NiJ9");
     expect(line).toContain("[removed]");
   });
+
+  it("removes bearer values, emailed-link tokens and session tokens too", () => {
+    const line = formatLogEvent({
+      level: "error",
+      message: "Failed",
+      where: "x",
+      error: new Error(
+        "Authorization: Bearer opaque-token-123 at /auth/confirm?token_hash=pkce_abc123&type=email access_token=at-456 refresh_token=rt-789",
+      ),
+    });
+
+    for (const secret of ["opaque-token-123", "pkce_abc123", "at-456", "rt-789"]) {
+      expect(line).not.toContain(secret);
+    }
+    expect(line).toContain("type=email");
+  });
+});
+
+describe("scrub", () => {
+  it("is the same cleaning, for text that leaves the server another way", async () => {
+    const { scrub } = await import("./log");
+    expect(scrub("key sb_secret_abc and Bearer xyz")).toBe("key [removed] and Bearer [removed]");
+  });
 });
 
 describe("AI provider keys", () => {

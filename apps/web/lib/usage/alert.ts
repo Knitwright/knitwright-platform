@@ -30,3 +30,17 @@ export const loggingAlert =
   async (alert) => {
     log({ level: "warn", where: "usage", message: describe(alert) });
   };
+
+/** What monitoring is told when the day's ceiling is reached (lib/monitoring, plan step 26). */
+export type CeilingHit = Readonly<{ scope: "total"; spentMicros: number; ceilingMicros: number }>;
+
+/**
+ * The usual alert, then, when the ceiling across everyone is reached, the monitoring hook, so
+ * the owner hears of it from monitoring as well as the log. Half the ceiling stays a warning.
+ */
+export const withCeilingHook =
+  (alert: UsageAlert, onCeiling: (hit: CeilingHit) => Promise<void>): UsageAlert =>
+  async (raised) => {
+    await alert(raised);
+    if (raised.level === "full") await onCeiling({ scope: "total", spentMicros: raised.spent, ceilingMicros: raised.ceiling });
+  };

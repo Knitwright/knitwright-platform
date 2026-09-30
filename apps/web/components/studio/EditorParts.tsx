@@ -45,6 +45,9 @@ export function EditorHeader({ data, busy, onUndo }: HeaderProps) {
         <Button type="button" variant="secondary" disabled={data.undoTo === null || busy} onClick={onUndo}>
           Undo
         </Button>
+        <Link href={`/studio/${data.projectId}/delete`} className="text-sm text-muted underline hover:text-ink">
+          Delete design
+        </Link>
       </div>
     </header>
   );

@@ -41,4 +41,7 @@ export const LIMITS = {
   pollJob: { name: "poll-job", limit: 90, windowSeconds: MINUTE },
   // Uploading a chart file and importing it are counted together.
   importChart: { name: "import-chart", limit: 30, windowSeconds: 10 * MINUTE },
+  // Deleting cannot be undone and removes stored files, so a slip or a script can do little harm.
+  deleteDesign: { name: "delete-design", limit: 20, windowSeconds: 10 * MINUTE },
+  deleteAccount: { name: "delete-account", limit: 3, windowSeconds: HOUR },
 } as const satisfies Record<string, RateLimitRule>;

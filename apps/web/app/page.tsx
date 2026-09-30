@@ -66,7 +66,13 @@ export default function HomePage() {
 
       <footer className="border-t border-hairline">
         <div className="mx-auto w-full max-w-5xl px-5 py-6 text-sm text-muted">
-          {PRODUCT.name}. {PRODUCT.tagline}.
+          {PRODUCT.name}. {PRODUCT.tagline}.{" "}
+          <Link href="/legal/terms" className="underline hover:text-ink">
+            Terms
+          </Link>{" "}
+          <Link href="/legal/privacy" className="underline hover:text-ink">
+            Privacy
+          </Link>
         </div>
       </footer>
     </>

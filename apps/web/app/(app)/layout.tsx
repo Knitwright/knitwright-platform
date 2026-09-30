@@ -30,9 +30,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             </Link>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <span className="hidden text-sm text-muted sm:inline" data-testid="account-email">
+            <Link
+              href="/settings"
+              className="hidden text-sm text-muted hover:text-ink sm:inline"
+              data-testid="account-email"
+            >
               {email}
-            </span>
+            </Link>
             <SignOutButton />
           </div>
         </div>

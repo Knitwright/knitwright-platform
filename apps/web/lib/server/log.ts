@@ -1,8 +1,8 @@
 import type { LogEvent } from "./core/guard";
 
 /**
- * Server log. One line of JSON per event, which the host collects. Error monitoring is
- * added in step 26; until then this is the only record of an unexpected failure.
+ * Server log. One line of JSON per event, which the host collects. Errors also go to error
+ * monitoring when MONITORING_DSN is set: see lib/monitoring and `productionDeps`.
  */
 
 const MAX_CAUSES = 5;
@@ -17,8 +17,15 @@ const SECRETS = [
   /sk-(?:proj-)?[A-Za-z0-9_-]{20,}/g,
 ];
 
-const scrub = (text: string): string =>
-  SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text);
+/** Values that follow a telling name. The name stays, so the log still says what was there. */
+const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[^\s&"',;]+/g;
+
+/** Removes keys and tokens from text that leaves the server: the log, and error monitoring. */
+export const scrub = (text: string): string =>
+  SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text).replace(
+    LABELLED,
+    "$1[removed]",
+  );
 
 type Described = Readonly<Record<string, unknown>>;
 

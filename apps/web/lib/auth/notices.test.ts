@@ -6,6 +6,13 @@ describe("noticeFor", () => {
     expect(noticeFor("google-failed")?.text).toMatch(/Google/);
   });
 
+  it("confirms, calmly, that an account was deleted", () => {
+    expect(noticeFor("account-deleted")).toEqual({
+      tone: "ok",
+      text: "Your account and everything in it have been deleted.",
+    });
+  });
+
   it("returns nothing for a key it does not know", () => {
     expect(noticeFor("<script>alert(1)</script>")).toBeNull();
     expect(noticeFor("")).toBeNull();
