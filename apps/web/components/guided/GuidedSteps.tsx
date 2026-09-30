@@ -97,7 +97,7 @@ export function DownloadStep({ data }: Readonly<{ data: EditorData }>) {
         Your {withPlain("tech pack")} as a PDF and a spreadsheet, and the front and back drawings as SVG files. They are
         made from version {data.version}.
       </p>
-      <TechPackDownloads projectId={data.projectId} version={data.version} />
+      <TechPackDownloads projectId={data.projectId} version={data.version} nested />
       <p className="text-sm text-muted">
         <Link href={`/studio/${data.projectId}/tech-pack` as Route} className="font-medium text-ink underline underline-offset-4">
           Read the whole {withPlain("tech pack")} on screen

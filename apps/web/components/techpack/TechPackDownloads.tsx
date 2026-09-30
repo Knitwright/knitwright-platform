@@ -14,7 +14,13 @@ import {
   type DownloadControl,
 } from "@/lib/projects/download-controls";
 
-type DownloadsProps = Readonly<{ projectId: string; version: number; colourwayId?: string | undefined }>;
+type DownloadsProps = Readonly<{
+  projectId: string;
+  version: number;
+  colourwayId?: string | undefined;
+  /** True inside a page section that is already headed "Download", such as the guided flow's last step. */
+  nested?: boolean;
+}>;
 
 const REVOKE_AFTER_MS = 30_000;
 
@@ -35,7 +41,8 @@ function saveBlob(name: string, blob: Blob): void {
  * for, from the version of the design that the page shows. Which address to call, the name of the
  * file, what a failure says and the busy state are worked out in lib/projects/download-controls.
  */
-export function TechPackDownloads({ projectId, version, colourwayId }: DownloadsProps) {
+export function TechPackDownloads({ projectId, version, colourwayId, nested = false }: DownloadsProps) {
+  const Heading = nested ? "h3" : "h2";
   const [busy, setBusy] = useState<Busy>(null);
   const [problem, setProblem] = useState<string | null>(null);
   // The button of the last download. A button that is disabled while it works loses focus, so it is
@@ -63,9 +70,9 @@ export function TechPackDownloads({ projectId, version, colourwayId }: Downloads
 
   return (
     <section id="download" aria-labelledby="download-title" className="scroll-mt-20 rounded-2xl border border-hairline bg-surface p-6">
-      <h2 id="download-title" className="text-lg font-semibold text-ink">
-        Download
-      </h2>
+      <Heading id="download-title" className="text-lg font-semibold text-ink">
+        {nested ? "The files" : "Download"}
+      </Heading>
       <p className="mt-2 text-[15px] leading-relaxed text-muted">
         Each file is made when you ask for it, from version {version} of this design. Nothing is stored.
       </p>
