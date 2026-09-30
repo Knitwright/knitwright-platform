@@ -7,9 +7,12 @@ import { choiceTarget, findMentions, isStated, typeTarget, wearerTarget } from "
  * garment is made, so a model may not change it unless the person named the new choice.
  * A style option may follow from a looser request, such as "make it roomier".
  * An option missing from this list is treated as construction, the careful side.
+ * Fit is the only style option in every family: every other choice adds, removes or
+ * reshapes a part, so it changes the pattern or the sewing.
  */
 export const OPTION_KINDS: Readonly<Record<string, "construction" | "style">> = {
   fit: "style",
+  // Tops, and the options outerwear and close-fitting share with them.
   neckline: "construction",
   collar: "construction",
   placket: "construction",
@@ -18,6 +21,24 @@ export const OPTION_KINDS: Readonly<Record<string, "construction" | "style">> = 
   "hem-shape": "construction",
   "side-panels": "construction",
   cuffs: "construction",
+  // Bottoms.
+  "leg-length": "construction",
+  waistband: "construction",
+  "leg-finish": "construction",
+  gusset: "construction",
+  "side-stripe": "construction",
+  pockets: "construction",
+  // Outerwear.
+  hood: "construction",
+  "hood-drawcord": "construction",
+  "front-opening": "construction",
+  "hem-finish": "construction",
+  // Close-fitting.
+  sleeves: "construction",
+  "back-style": "construction",
+  "edge-finish": "construction",
+  underband: "construction",
+  "seam-type": "construction",
 };
 
 export const isConstruction = (optionId: string): boolean => OPTION_KINDS[optionId] !== "style";

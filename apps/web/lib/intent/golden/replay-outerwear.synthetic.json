@@ -1,0 +1,553 @@
+{
+  "synthetic": true,
+  "source": "Written by hand by the build agent on 2026-09-30 as the replies an ideal model would give. NOT recorded from any real model. Step 12 replaces these with recorded replies in the same shape.",
+  "responses": {
+    "outerwear-001": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "outerwear-002": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "outerwear-003": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "regular"
+        }
+      ]
+    },
+    "outerwear-004": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "outerwear-005": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hood",
+          "choiceId": "single-layer"
+        }
+      ]
+    },
+    "outerwear-006": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hood-drawcord",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "outerwear-007": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "zip-side"
+        }
+      ]
+    },
+    "outerwear-008": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "hem"
+        }
+      ]
+    },
+    "outerwear-009": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-finish",
+          "choiceId": "hem"
+        }
+      ]
+    },
+    "outerwear-010": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "outerwear-011": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "side-seam"
+        }
+      ]
+    },
+    "outerwear-012": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hood",
+          "choiceId": "lined"
+        },
+        {
+          "type": "set-option",
+          "optionId": "hood-drawcord",
+          "choiceId": "drawcord"
+        }
+      ]
+    },
+    "outerwear-013": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "set-in"
+        }
+      ]
+    },
+    "outerwear-014": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hem-finish",
+          "choiceId": "rib-band"
+        },
+        {
+          "type": "set-option",
+          "optionId": "cuffs",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "outerwear-015": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "stand-collar"
+        }
+      ]
+    },
+    "outerwear-016": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "outerwear-017": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "zip-hoodie"
+        }
+      ]
+    },
+    "outerwear-018": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "track-jacket"
+        }
+      ]
+    },
+    "outerwear-019": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "pullover-hoodie"
+        }
+      ]
+    },
+    "outerwear-020": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "track-jacket"
+        }
+      ]
+    },
+    "outerwear-021": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "zip-hoodie"
+        }
+      ]
+    },
+    "outerwear-022": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "zip-hoodie"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "outerwear-023": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "pullover-hoodie"
+        }
+      ]
+    },
+    "outerwear-024": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "zip-hoodie"
+        }
+      ]
+    },
+    "outerwear-025": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "zip-hoodie"
+        }
+      ]
+    },
+    "outerwear-026": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "kangaroo"
+        }
+      ]
+    },
+    "outerwear-027": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "collar",
+          "choiceId": "stand-collar"
+        }
+      ]
+    },
+    "outerwear-028": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "front-opening",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "outerwear-029": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeve-type",
+          "choiceId": "raglan"
+        }
+      ]
+    },
+    "outerwear-030": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hood",
+          "choiceId": "lined"
+        }
+      ]
+    },
+    "outerwear-031": {
+      "kind": "question",
+      "question": "Which pockets would you like?",
+      "choices": [
+        {
+          "label": "Side seam pockets",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "pockets",
+              "choiceId": "side-seam"
+            }
+          ]
+        },
+        {
+          "label": "Keep the zipped pockets",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "outerwear-032": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "collar-height",
+          "cm": 6
+        }
+      ]
+    },
+    "outerwear-033": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "hood-height",
+          "cm": 35
+        }
+      ]
+    },
+    "outerwear-034": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "front-opening",
+          "choiceId": "full-zip"
+        },
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "kangaroo"
+        }
+      ]
+    },
+    "outerwear-035": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "hood-height",
+          "cm": 34
+        }
+      ]
+    },
+    "outerwear-036": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 72
+        }
+      ]
+    },
+    "outerwear-037": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "outerwear-038": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "outerwear-039": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "outerwear-040": {
+      "kind": "rejection",
+      "reason": "I can only change the design of this garment."
+    },
+    "outerwear-041": {
+      "kind": "rejection",
+      "reason": "I cannot do that. I can only change this design."
+    },
+    "outerwear-042": {
+      "kind": "rejection",
+      "reason": "Thumb holes are not available yet."
+    },
+    "outerwear-043": {
+      "kind": "rejection",
+      "reason": "Quarter zips are not offered on outerwear yet."
+    },
+    "outerwear-044": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "body-front",
+            "body-back"
+          ],
+          "colour": "grey"
+        },
+        {
+          "type": "set-colour",
+          "panels": [
+            "hood"
+          ],
+          "colour": "black"
+        }
+      ]
+    },
+    "outerwear-045": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "hood-lining"
+          ],
+          "colour": "navy"
+        }
+      ]
+    },
+    "outerwear-046": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "hood-height",
+          "cm": 34
+        }
+      ]
+    },
+    "outerwear-047": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "zip-length",
+          "cm": 65
+        }
+      ]
+    },
+    "outerwear-048": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "sleeve-length",
+          "cm": 64
+        }
+      ]
+    },
+    "outerwear-049": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "cotton",
+            "construction": "fleece",
+            "weightGsm": 320
+          }
+        }
+      ]
+    },
+    "outerwear-050": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "care",
+          "text": "Machine wash at 30"
+        }
+      ]
+    },
+    "outerwear-051": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "hood",
+          "choiceId": "lined"
+        }
+      ]
+    }
+  },
+  "faults": [
+    {
+      "id": "fault-broken-json",
+      "utterance": "raglan sleeves",
+      "start": {
+        "typeId": "zip-hoodie"
+      },
+      "expectedKind": "rejection",
+      "response": "{\"kind\":\"changes\",\"actions\":[{\"type\":\"set-option\""
+    },
+    {
+      "id": "fault-unknown-action",
+      "utterance": "add ears to the hood",
+      "start": {
+        "typeId": "pullover-hoodie"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "add-ears"
+          }
+        ]
+      }
+    }
+  ]
+}

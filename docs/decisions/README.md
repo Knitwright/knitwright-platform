@@ -24,3 +24,4 @@ Copy `0000-template.md` to start.
 | 0018 | [Photoreal images as background jobs](0018-photoreal-images.md) | Accepted. The provider is provisional until the owner judges quality. |
 | 0019 | [Text input](0019-text-input.md) | Accepted. The model choice and live evaluation wait for keys (A3) and the golden set (A7). |
 | 0020 | [Sketch and photo input](0020-image-input.md) | Accepted. The golden images (A8, A7) and the live run (A3) are owed. |
+| 0021 | [Construction rules, words and golden sets for the other families](0021-family-rules.md) | Accepted. The rules wait for a factory; the golden sets wait for the owner (A7, A8). |

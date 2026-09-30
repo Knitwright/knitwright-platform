@@ -39,6 +39,10 @@ export const BOTTOMS_SEAMS: readonly SeamDefinition[] = [
   seam("zip-pocket-seam", "Zipped pocket seam", ["legs-front"], "lapped", "lockstitch", {
     appliesWhen: [when("pockets", ["zip-side"])],
   }),
+  // Added in step 18: the bag behind each pocket is closed by its own seam.
+  seam("pocket-bag-seam", "Pocket bag seam", LEGS, "superimposed", "four-thread-overedge", {
+    appliesWhen: [when("pockets", ["side-seam", "zip-side"])],
+  }),
 ];
 
 /** What bottoms imply beyond their fabric. The user describes each one. Nothing here has a quantity. */
@@ -58,6 +62,15 @@ export const BOTTOMS_COMPONENTS: readonly ComponentSlot[] = [
     "Drawcord exits",
     "trim",
     "The eyelets or buttonholes the drawcord comes out through, if used. Knitwright proposes them from general practice.",
+    DRAWCORD,
+    ["waistband"],
+    true,
+  ),
+  slot(
+    "cord-ends",
+    "Cord ends",
+    "trim",
+    "The finish on each end of the drawcord, such as tips or knots, if used. Knitwright proposes it from general practice.",
     DRAWCORD,
     ["waistband"],
     true,

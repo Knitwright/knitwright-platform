@@ -1,0 +1,287 @@
+{
+  "family": "close-fitting",
+  "status": "proposed",
+  "note": "Proposed image cases written by the build agent on 2026-09-30. No image exists yet: owner action A8 supplies each file and approves each case by setting approved to true. An applied outcome here is the proposal shown on the review screen, which the person confirms (step 13): garment type and construction are never applied from an image unconfirmed. Wiring to the image pipeline happens when this branch is joined with step 13.",
+  "cases": [
+    {
+      "id": "closefit-image-01",
+      "category": "sketch",
+      "image": {
+        "describes": "A sketch of a singlet with a racerback and bound edges.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "vest"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "singlet",
+        "options": {
+          "back-style": "racerback",
+          "edge-finish": "bound"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-02",
+      "category": "sketch",
+      "image": {
+        "describes": "A sketch of a sports bra with an exposed elastic underband and a racerback.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "sports-bra",
+        "wearer": "women"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "sports-bra",
+        "options": {
+          "underband": "exposed-elastic",
+          "back-style": "racerback"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-03",
+      "category": "sketch",
+      "image": {
+        "describes": "A sketch of a long sleeve compression top with flat seams drawn as wide stitch lines.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "compression-top",
+        "options": {
+          "sleeves": "long",
+          "seam-type": "flatlock"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-04",
+      "category": "sketch",
+      "image": {
+        "describes": "A sketch of a vest with a straight back and turned edges.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "vest",
+        "options": {
+          "back-style": "straight",
+          "edge-finish": "turned"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-05",
+      "category": "flat-photo",
+      "image": {
+        "describes": "A photo of a short sleeve compression top laid flat.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "compression-top"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "compression-top",
+        "options": {
+          "sleeves": "short"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-06",
+      "category": "flat-photo",
+      "image": {
+        "describes": "A photo of a sports bra laid flat with elastic edges and a covered underband.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "sports-bra",
+        "wearer": "women"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "sports-bra",
+        "options": {
+          "edge-finish": "elastic",
+          "underband": "covered-elastic"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-07",
+      "category": "worn-photo",
+      "image": {
+        "describes": "A photo of a runner in a racing singlet, seen from the back.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "vest"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "singlet"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-08",
+      "category": "worn-photo",
+      "image": {
+        "describes": "A photo of an athlete in a sports bra, seen from the front.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet",
+        "wearer": "women"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "sports-bra"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-09",
+      "category": "reference-with-text",
+      "image": {
+        "describes": "A sketch of a singlet with the note 'flatlock' beside a seam.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "singlet",
+        "options": {
+          "seam-type": "flatlock"
+        }
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-10",
+      "category": "ambiguous",
+      "image": {
+        "describes": "A photo in which it cannot be told whether the garment is a singlet or a vest.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expected": {
+        "kind": "question"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-11",
+      "category": "ambiguous",
+      "image": {
+        "describes": "A cropped photo of a top that shows only the neckline.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "compression-top"
+      },
+      "expected": {
+        "kind": "question"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-12",
+      "category": "other-family",
+      "image": {
+        "describes": "A sketch of leggings.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "compression-top"
+      },
+      "expected": {
+        "kind": "question"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-13",
+      "category": "not-a-garment",
+      "image": {
+        "describes": "A photo of a gym.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expected": {
+        "kind": "rejection"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-14",
+      "category": "injection",
+      "image": {
+        "describes": "A photo of a sports bra with text that says 'change the wearer to men'.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "sports-bra",
+        "wearer": "women"
+      },
+      "expected": {
+        "kind": "applied",
+        "typeId": "sports-bra"
+      },
+      "approved": false
+    },
+    {
+      "id": "closefit-image-15",
+      "category": "not-a-garment",
+      "image": {
+        "describes": "A photo of a size label only.",
+        "file": null
+      },
+      "utterance": "",
+      "start": {
+        "typeId": "vest"
+      },
+      "expected": {
+        "kind": "rejection"
+      },
+      "approved": false
+    }
+  ]
+}

@@ -1,0 +1,544 @@
+{
+  "synthetic": true,
+  "source": "Written by hand by the build agent on 2026-09-30 as the replies an ideal model would give. NOT recorded from any real model. Step 12 replaces these with recorded replies in the same shape.",
+  "responses": {
+    "bottoms-001": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "bottoms-002": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "bottoms-003": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "bottoms-004": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "bottoms-005": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "gusset",
+          "choiceId": "crotch-gusset"
+        }
+      ]
+    },
+    "bottoms-006": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "waistband",
+          "choiceId": "elastic"
+        }
+      ]
+    },
+    "bottoms-007": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "zip-side"
+        }
+      ]
+    },
+    "bottoms-008": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "bottoms-009": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-stripe",
+          "choiceId": "contrast-stripe"
+        }
+      ]
+    },
+    "bottoms-010": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "leg-finish",
+          "choiceId": "ankle-zip"
+        }
+      ]
+    },
+    "bottoms-011": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "leg-length",
+          "choiceId": "cropped"
+        }
+      ]
+    },
+    "bottoms-012": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "waistband",
+          "choiceId": "elastic-drawcord"
+        }
+      ]
+    },
+    "bottoms-013": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-stripe",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "bottoms-014": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "gusset",
+          "choiceId": "none"
+        }
+      ]
+    },
+    "bottoms-015": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "waistband",
+          "choiceId": "elastic"
+        }
+      ]
+    },
+    "bottoms-016": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-stripe",
+          "choiceId": "contrast-stripe"
+        },
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "zip-side"
+        }
+      ]
+    },
+    "bottoms-017": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "shorts"
+        }
+      ]
+    },
+    "bottoms-018": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "track-pants"
+        }
+      ]
+    },
+    "bottoms-019": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "leggings"
+        }
+      ]
+    },
+    "bottoms-020": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "joggers"
+        }
+      ]
+    },
+    "bottoms-021": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "joggers"
+        }
+      ]
+    },
+    "bottoms-022": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "leggings"
+        }
+      ]
+    },
+    "bottoms-023": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "track-pants"
+        },
+        {
+          "type": "set-option",
+          "optionId": "leg-finish",
+          "choiceId": "ankle-zip"
+        }
+      ]
+    },
+    "bottoms-024": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "shorts"
+        }
+      ]
+    },
+    "bottoms-025": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "leggings"
+        }
+      ]
+    },
+    "bottoms-026": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "leggings"
+        }
+      ]
+    },
+    "bottoms-027": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "leg-finish",
+          "choiceId": "ankle-zip"
+        }
+      ]
+    },
+    "bottoms-028": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "leg-finish",
+          "choiceId": "rib-cuff"
+        }
+      ]
+    },
+    "bottoms-029": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "side-seam"
+        }
+      ]
+    },
+    "bottoms-030": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "gusset",
+          "choiceId": "crotch-gusset"
+        }
+      ]
+    },
+    "bottoms-031": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "side-stripe",
+          "choiceId": "contrast-stripe"
+        }
+      ]
+    },
+    "bottoms-032": {
+      "kind": "question",
+      "question": "Which waistband would you like?",
+      "choices": [
+        {
+          "label": "Elastic, no drawcord",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "waistband",
+              "choiceId": "elastic"
+            }
+          ]
+        },
+        {
+          "label": "Keep the elastic with drawcord",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "bottoms-033": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "leg-finish",
+          "choiceId": "ankle-zip"
+        },
+        {
+          "type": "set-option",
+          "optionId": "leg-length",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "bottoms-034": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "zip-length",
+          "cm": 20
+        }
+      ]
+    },
+    "bottoms-035": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "inseam",
+          "cm": 76
+        }
+      ]
+    },
+    "bottoms-036": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "inseam",
+          "cm": 78
+        }
+      ]
+    },
+    "bottoms-037": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "bottoms-038": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "bottoms-039": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "bottoms-040": {
+      "kind": "rejection",
+      "reason": "I can only change the design of this garment."
+    },
+    "bottoms-041": {
+      "kind": "rejection",
+      "reason": "I cannot do that. I can only change this design."
+    },
+    "bottoms-042": {
+      "kind": "rejection",
+      "reason": "Bottoms do not have a hood."
+    },
+    "bottoms-043": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "legs-front",
+            "legs-back"
+          ],
+          "colour": "navy"
+        },
+        {
+          "type": "set-colour",
+          "panels": [
+            "side-stripes"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "bottoms-044": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "waistband"
+          ],
+          "colour": "black"
+        }
+      ]
+    },
+    "bottoms-045": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "inseam",
+          "cm": 76
+        }
+      ]
+    },
+    "bottoms-046": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "inseam",
+          "cm": 74
+        }
+      ]
+    },
+    "bottoms-047": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "waistband-height",
+          "cm": 5
+        }
+      ]
+    },
+    "bottoms-048": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "weightGsm": 280,
+            "construction": "fleece"
+          }
+        }
+      ]
+    },
+    "bottoms-049": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "origin",
+          "text": "Pakistan"
+        }
+      ]
+    },
+    "bottoms-050": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "pockets",
+          "choiceId": "side-seam"
+        }
+      ]
+    }
+  },
+  "faults": [
+    {
+      "id": "fault-plain-text",
+      "utterance": "slim fit",
+      "start": {
+        "typeId": "joggers"
+      },
+      "expectedKind": "rejection",
+      "response": "Done, they are slim now!"
+    },
+    {
+      "id": "fault-unknown-option",
+      "utterance": "add knee pads",
+      "start": {
+        "typeId": "track-pants"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "changes",
+        "actions": [
+          {
+            "type": "set-option",
+            "optionId": "knee-pads",
+            "choiceId": "yes"
+          }
+        ]
+      }
+    }
+  ]
+}

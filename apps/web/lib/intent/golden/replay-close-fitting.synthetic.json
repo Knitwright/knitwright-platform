@@ -1,0 +1,552 @@
+{
+  "synthetic": true,
+  "source": "Written by hand by the build agent on 2026-09-30 as the replies an ideal model would give. NOT recorded from any real model. Step 12 replaces these with recorded replies in the same shape.",
+  "responses": {
+    "closefit-001": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "slim"
+        }
+      ]
+    },
+    "closefit-002": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "closefit-003": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "fit",
+          "choiceId": "relaxed"
+        }
+      ]
+    },
+    "closefit-004": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "racerback"
+        }
+      ]
+    },
+    "closefit-005": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "seam-type",
+          "choiceId": "flatlock"
+        }
+      ]
+    },
+    "closefit-006": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "edge-finish",
+          "choiceId": "turned"
+        }
+      ]
+    },
+    "closefit-007": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "edge-finish",
+          "choiceId": "bound"
+        }
+      ]
+    },
+    "closefit-008": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "underband",
+          "choiceId": "exposed-elastic"
+        }
+      ]
+    },
+    "closefit-009": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeves",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "closefit-010": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "straight"
+        }
+      ]
+    },
+    "closefit-011": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "seam-type",
+          "choiceId": "overlock"
+        }
+      ]
+    },
+    "closefit-012": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "edge-finish",
+          "choiceId": "bound"
+        }
+      ]
+    },
+    "closefit-013": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "underband",
+          "choiceId": "covered-elastic"
+        }
+      ]
+    },
+    "closefit-014": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeves",
+          "choiceId": "long"
+        }
+      ]
+    },
+    "closefit-015": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "racerback"
+        },
+        {
+          "type": "set-option",
+          "optionId": "seam-type",
+          "choiceId": "flatlock"
+        }
+      ]
+    },
+    "closefit-016": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "edge-finish",
+          "choiceId": "elastic"
+        }
+      ]
+    },
+    "closefit-017": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "vest"
+        }
+      ]
+    },
+    "closefit-018": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "singlet"
+        }
+      ]
+    },
+    "closefit-019": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "sports-bra"
+        }
+      ]
+    },
+    "closefit-020": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "compression-top"
+        }
+      ]
+    },
+    "closefit-021": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "vest"
+        }
+      ]
+    },
+    "closefit-022": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "compression-top"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeves",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "closefit-023": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "compression-top"
+        }
+      ]
+    },
+    "closefit-024": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-type",
+          "typeId": "sports-bra"
+        }
+      ]
+    },
+    "closefit-025": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "racerback"
+        }
+      ]
+    },
+    "closefit-026": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "edge-finish",
+          "choiceId": "elastic"
+        }
+      ]
+    },
+    "closefit-027": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "sleeves",
+          "choiceId": "sleeveless"
+        }
+      ]
+    },
+    "closefit-028": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "seam-type",
+          "choiceId": "flatlock"
+        }
+      ]
+    },
+    "closefit-029": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "underband",
+          "choiceId": "exposed-elastic"
+        }
+      ]
+    },
+    "closefit-030": {
+      "kind": "question",
+      "question": "How should the straps change?",
+      "choices": [
+        {
+          "label": "Racerback",
+          "actions": [
+            {
+              "type": "set-option",
+              "optionId": "back-style",
+              "choiceId": "racerback"
+            }
+          ]
+        },
+        {
+          "label": "Keep the straight back",
+          "actions": []
+        }
+      ],
+      "recommended": 0
+    },
+    "closefit-031": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "racerback"
+        },
+        {
+          "type": "set-option",
+          "optionId": "sleeves",
+          "choiceId": "short"
+        }
+      ]
+    },
+    "closefit-032": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "underbust",
+          "cm": 70
+        }
+      ]
+    },
+    "closefit-033": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "sleeve-length",
+          "cm": 60
+        }
+      ]
+    },
+    "closefit-034": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "men"
+        }
+      ]
+    },
+    "closefit-035": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "underbust",
+          "cm": 70
+        }
+      ]
+    },
+    "closefit-036": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "strap-width",
+          "cm": 3.5
+        }
+      ]
+    },
+    "closefit-037": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "women"
+        }
+      ]
+    },
+    "closefit-038": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "closefit-039": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-wearer",
+          "wearer": "youth"
+        }
+      ]
+    },
+    "closefit-040": {
+      "kind": "rejection",
+      "reason": "I can only change the design of this garment."
+    },
+    "closefit-041": {
+      "kind": "rejection",
+      "reason": "I cannot do that. I can only change this design."
+    },
+    "closefit-042": {
+      "kind": "rejection",
+      "reason": "Close-fitting garments do not have a hood."
+    },
+    "closefit-043": {
+      "kind": "rejection",
+      "reason": "A back closure is not available yet."
+    },
+    "closefit-044": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "binding"
+          ],
+          "colour": "black"
+        }
+      ]
+    },
+    "closefit-045": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-colour",
+          "panels": [
+            "underband"
+          ],
+          "colour": "white"
+        }
+      ]
+    },
+    "closefit-046": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "underbust",
+          "cm": 72
+        }
+      ]
+    },
+    "closefit-047": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "strap-width",
+          "cm": 2.5
+        }
+      ]
+    },
+    "closefit-048": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-measurement",
+          "pointId": "body-length",
+          "cm": 73
+        }
+      ]
+    },
+    "closefit-049": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "change-fabric",
+          "changes": {
+            "composition": "nylon elastane",
+            "weightGsm": 220
+          }
+        }
+      ]
+    },
+    "closefit-050": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-labelling",
+          "field": "origin",
+          "text": "Portugal"
+        }
+      ]
+    },
+    "closefit-051": {
+      "kind": "changes",
+      "actions": [
+        {
+          "type": "set-option",
+          "optionId": "back-style",
+          "choiceId": "racerback"
+        }
+      ]
+    }
+  },
+  "faults": [
+    {
+      "id": "fault-plain-text",
+      "utterance": "racerback",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expectedKind": "rejection",
+      "response": "Sure, I made it a racerback."
+    },
+    {
+      "id": "fault-bad-question",
+      "utterance": "change the edges",
+      "start": {
+        "typeId": "singlet"
+      },
+      "expectedKind": "rejection",
+      "response": {
+        "kind": "question",
+        "question": "Which edges?",
+        "choices": [
+          {
+            "label": "Elastic",
+            "actions": [
+              {
+                "type": "set-option",
+                "optionId": "edge-finish",
+                "choiceId": "elastic"
+              }
+            ]
+          },
+          {
+            "label": "Keep",
+            "actions": []
+          }
+        ],
+        "recommended": 0
+      }
+    }
+  ]
+}

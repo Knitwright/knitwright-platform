@@ -86,3 +86,39 @@ Each line is a question, with what the code does today beside it.
 16. **What must be confirmed?** Today: the garment type always, the wearer if it changed, and every
     construction choice the reading changed. Fit and colours are shown but not ticked. Enough?
 17. **A picture that is not a garment** keeps its cost (the model read it). Should it be refunded?
+
+## Bottoms, outerwear and close-fitting (steps 18, 21, 24)
+
+### Owner action A7: approve three more golden sets
+
+`golden/bottoms.json` (50 cases), `golden/outerwear.json` (51) and `golden/close-fitting.json` (51)
+hold PROPOSED outcomes written by the build agent, every case `"approved": false`, each file
+`"status": "proposed"`. Approve them as for tops. Their replies in `golden/replay-<family>.synthetic.json`
+are written by hand and NOT recorded from any model.
+
+### Owner action A8: supply and approve 45 images
+
+`golden/images-<family>.json` holds 15 proposed image cases per family. Each says what the image
+should show (`image.describes`); `image.file` is null because no image exists yet. For each case:
+supply an image that matches, or change the description to fit one you have, check the proposed
+outcome, and set `approved` to `true`. An "applied" outcome there is what the review screen should
+propose; the person still confirms type and construction. They are wired to the step 13 image
+replay when the branches are joined.
+
+### Questions
+
+1. **Which words name a choice outright?** See `words-bottoms.ts`, `words-outerwear.ts` and
+   `words-close-fitting.ts`. Choices I made that need your eye:
+   - "Hoodie" alone names no type (pullover or zip?), so "make it a hoodie" becomes a question.
+   - "Sweatpants" and "jogging bottoms" name joggers; "trackies" and "tracksuit bottoms" name track
+     pants; "tights" and "yoga pants" name leggings. Are those right in your market?
+   - "Vest" and "tank top" name the vest, as in British English. In American English "vest" is a
+     sleeveless jacket. Which do your customers mean?
+   - "Base layer" names the compression top. "Bra top" and "crop bra" name the sports bra.
+   - "Cuffs" and "pockets" alone name ribbed cuffs and side seam pockets.
+2. **One phrase, several families.** "Remove the drawcord" names no drawcord on a hoodie and an
+   elastic waistband on joggers; "long sleeves" names long sleeves on a top and on a compression top.
+   The design's own family decides which applies. Is any phrase wrong in one family?
+3. **Every option except fit is construction**, in every family, so the assistant asks before
+   changing a waistband, a hood, a seam type or an underband it was not told to change. Should
+   any of them (for example side stripe, which changes colour as well as sewing) be style instead?

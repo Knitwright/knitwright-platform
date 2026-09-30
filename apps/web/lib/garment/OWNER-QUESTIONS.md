@@ -266,3 +266,26 @@ Each joining seam has two forms. With overlocked seams: seam class 1 superimpose
 | Elastic edges | body | elastic edges | 6 edge finish | 602 two needle cover stitch |
 
 - Components: thread and labels, binding, edge elastic, underband elastic, cup pads (a proposal). Missing ideas: hooks and eyes, a lining, a silicone gripper.
+
+## Rules added in steps 18, 21 and 24 (a factory must confirm every one)
+
+Each rule below is a STARTING PROPOSAL from general practice, not a factory's method. The seam
+and stitch class numbers are the catalogue's, which were written from memory and have not been
+checked against ISO 4915 or ISO 4916. A factory, or a copy of both standards, must check them.
+
+| Family | Rule | When | Seam class | Stitch class |
+|---|---|---|---|---|
+| Bottoms | Pocket bag seam (legs) | side seam or zipped pockets | 1 superimposed | 514 four thread overedge |
+| Outerwear | Pocket bag seam (body) | side seam or zipped pockets | 1 superimposed | 514 four thread overedge |
+| Close-fitting | Underband casing | covered elastic underband | 6 edge finish | 602 two needle cover stitch |
+
+Parts added, each shown as a proposal:
+
+- Cord ends (tips or knots) with a drawcord, on bottoms and on a hood drawcord.
+- A printed label inside close-fitting garments with flat seams, so nothing rubs the skin.
+
+Questions:
+
+- Is a pocket bag closed with its own overlocked seam at your factory, or caught in the side seam?
+- Is a covered underband closed with a cover stitch (602) or a bottom cover stitch (406)?
+- Should a printed label replace the care and size labels on flat seamed garments, or sit beside them?

@@ -48,6 +48,10 @@ export const OUTERWEAR_SEAMS: readonly SeamDefinition[] = [
   seam("zip-pocket-seam", "Zipped pocket seam", ["body-front"], "lapped", "lockstitch", {
     appliesWhen: [when("pockets", ["zip-side"])],
   }),
+  // Added in step 21: the bag behind each side pocket is closed by its own seam.
+  seam("pocket-bag-seam", "Pocket bag seam", BODY, "superimposed", "four-thread-overedge", {
+    appliesWhen: [when("pockets", ["side-seam", "zip-side"])],
+  }),
   seam("cuff-seam", "Cuff seam", [...SLEEVES, "cuffs"], "superimposed", "four-thread-overedge", { appliesWhen: RIB_CUFFS }),
   seam("sleeve-hem", "Sleeve hem", SLEEVES, "edge-finishing", "two-needle-bottom-cover-stitch", { unlessWhen: RIB_CUFFS }),
   seam("hem-band-seam", "Hem band seam", ["hem-band", ...BODY], "superimposed", "four-thread-overedge", { appliesWhen: RIB_HEM }),
@@ -73,6 +77,15 @@ export const OUTERWEAR_COMPONENTS: readonly ComponentSlot[] = [
     "Drawcord exits",
     "trim",
     "The eyelets or buttonholes the hood drawcord comes out through, if used. Knitwright proposes them from general practice.",
+    DRAWCORD,
+    ["hood"],
+    true,
+  ),
+  slot(
+    "cord-ends",
+    "Cord ends",
+    "trim",
+    "The finish on each end of the hood drawcord, such as tips or knots, if used. Knitwright proposes it from general practice.",
     DRAWCORD,
     ["hood"],
     true,

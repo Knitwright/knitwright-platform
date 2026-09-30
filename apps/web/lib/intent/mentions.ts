@@ -25,13 +25,24 @@ export function words(text: string): string[] {
 
 interface Phrase {
   readonly words: readonly string[];
-  readonly target: string;
+  /** Every target this phrase names. A phrase may name a choice in more than one family. */
+  readonly targets: readonly string[];
+}
+
+function groupPhrases(): Phrase[] {
+  const byKey = new Map<string, { words: string[]; targets: string[] }>();
+  for (const entry of VOCABULARY) {
+    const split = words(entry.phrase);
+    const key = split.join(" ");
+    const found = byKey.get(key) ?? { words: split, targets: [] };
+    if (!found.targets.includes(entry.target)) found.targets.push(entry.target);
+    byKey.set(key, found);
+  }
+  return [...byKey.values()];
 }
 
 /** Every phrase, longest first, so the first match at a position is the longest. */
-const PHRASES: readonly Phrase[] = VOCABULARY.map((entry) => ({ words: words(entry.phrase), target: entry.target })).sort(
-  (a, b) => b.words.length - a.words.length,
-);
+const PHRASES: readonly Phrase[] = groupPhrases().sort((a, b) => b.words.length - a.words.length);
 
 const matchesAt = (tokens: readonly string[], index: number, phrase: Phrase): boolean =>
   phrase.words.every((word, offset) => tokens[index + offset] === word);
@@ -64,7 +75,8 @@ export function findMentions(text: string): readonly Mention[] {
       index += 1;
       continue;
     }
-    found.push({ target: phrase.target, negated: negatedAt(tokens, index) });
+    const negated = negatedAt(tokens, index);
+    for (const target of phrase.targets) found.push({ target, negated });
     index += phrase.words.length;
   }
   return found;

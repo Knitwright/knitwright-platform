@@ -5,16 +5,19 @@
  * and punctuation the same way. A longer phrase wins over a shorter one inside it, so
  * "polo collar" names a collar and not a polo shirt.
  *
- * This list is a proposal for tops, to be checked with the golden set (owner action A7).
+ * The tops words are here; each other family has its own file (`words-<family>.ts`). Every
+ * list is a proposal, to be checked with the golden sets (owner action A7).
  */
+import { BOTTOMS_WORDS } from "./words-bottoms";
+import { CLOSE_FITTING_WORDS } from "./words-close-fitting";
+import { OUTERWEAR_WORDS } from "./words-outerwear";
+import type { FamilyWords, Table } from "./words";
 
 export interface VocabularyEntry {
   readonly phrase: string;
   /** A target key made by `typeTarget`, `choiceTarget` or `wearerTarget`. */
   readonly target: string;
 }
-
-type Table = Readonly<Record<string, readonly string[]>>;
 
 const TYPES: Table = {
   "crew-tee": ["crew neck tee", "crew neck t shirt", "crew neck tshirt", "crewneck tee", "crewneck t shirt", "crew tee", "crew t shirt"],
@@ -137,11 +140,17 @@ export const wearerTarget = (wearer: string): string => `wearer:${wearer}`;
 const entries = (table: Table, target: (id: string) => string): VocabularyEntry[] =>
   Object.entries(table).flatMap(([id, phrases]) => phrases.map((phrase) => ({ phrase, target: target(id) })));
 
-export const VOCABULARY: readonly VocabularyEntry[] = [
-  ...entries(TYPES, typeTarget),
-  ...Object.entries(CHOICES).flatMap(([optionId, table]) => entries(table, (choiceId) => choiceTarget(optionId, choiceId))),
-  ...entries(WEARERS, wearerTarget),
+const TOPS_WORDS: FamilyWords = { types: TYPES, choices: CHOICES };
+
+/** The words of every family, tops first. */
+export const FAMILY_WORDS: readonly FamilyWords[] = [TOPS_WORDS, BOTTOMS_WORDS, OUTERWEAR_WORDS, CLOSE_FITTING_WORDS];
+
+const familyEntries = ({ types, choices }: FamilyWords): VocabularyEntry[] => [
+  ...entries(types, typeTarget),
+  ...Object.entries(choices).flatMap(([optionId, table]) => entries(table, (choiceId) => choiceTarget(optionId, choiceId))),
 ];
+
+export const VOCABULARY: readonly VocabularyEntry[] = [...FAMILY_WORDS.flatMap(familyEntries), ...entries(WEARERS, wearerTarget)];
 
 /** Words that, just before a phrase, mean the person does not want it. */
 export const NEGATORS: readonly string[] = ["not", "dont", "no", "never", "without", "instead", "rather", "except", "nor"];

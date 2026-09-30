@@ -111,3 +111,31 @@ describe("bottoms registry", () => {
     expect(ids(BOTTOMS.panels.filter((panel) => panel.anchors.length > 0))).toEqual(["legs-front", "legs-back"]);
   });
 });
+
+describe("bottoms construction rules (step 18)", () => {
+  it("closes the pocket bags with a seam whenever there are pockets", () => {
+    for (const pockets of ["side-seam", "zip-side"]) {
+      const seams = seamsFor({ typeId: "track-pants", options: { ...startChoices("track-pants"), pockets } });
+      expect(ids(seams), pockets).toContain("pocket-bag-seam");
+    }
+    const none = seamsFor({ typeId: "track-pants", options: { ...startChoices("track-pants"), pockets: "none" } });
+    expect(ids(none)).not.toContain("pocket-bag-seam");
+    expect(ids(seamsFor({ typeId: "leggings", options: startChoices("leggings") }))).not.toContain("pocket-bag-seam");
+  });
+
+  it("proposes cord ends with a drawcord, marked as a proposal", () => {
+    const joggers = componentSlotsFor({ typeId: "joggers", options: startChoices("joggers") });
+    const ends = joggers.find((slot) => slot.id === "cord-ends");
+    expect(ends?.proposal).toBe(true);
+    const elastic = componentSlotsFor({ typeId: "joggers", options: { ...startChoices("joggers"), waistband: "elastic" } });
+    expect(ids(elastic)).not.toContain("cord-ends");
+  });
+
+  it("uses only seam and stitch classes already in the catalogue", () => {
+    const seamClasses = new Set(BOTTOMS.seams.map((seam) => seam.seamClass));
+    const stitchClasses = new Set(BOTTOMS.seams.map((seam) => seam.stitchClass));
+    expect([...seamClasses].sort()).toEqual(["edge-finishing", "lapped", "superimposed"]);
+    expect([...stitchClasses].sort()).toEqual(["four-thread-overedge", "lockstitch", "two-needle-bottom-cover-stitch"]);
+  });
+});
+

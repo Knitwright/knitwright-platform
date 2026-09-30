@@ -8,6 +8,12 @@ describe("which options the ambiguity rules guard", () => {
     for (const id of ids) expect(Object.keys(OPTION_KINDS)).toContain(id);
   });
 
+  it("guards every option of every family except fit, which is the only style choice", () => {
+    const ids = new Set(listTypes().flatMap((type) => type.options.map((option) => option.id)));
+    const style = [...ids].filter((id) => !isConstruction(id));
+    expect(style).toEqual(["fit"]);
+  });
+
   it("treats fit as style and an unknown option as construction", () => {
     expect(isConstruction("fit")).toBe(false);
     expect(isConstruction("collar")).toBe(true);

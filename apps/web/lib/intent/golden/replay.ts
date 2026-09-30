@@ -23,7 +23,7 @@ export const startSchema = z.strictObject({
 });
 export type Start = z.output<typeof startSchema>;
 
-const expectedSchema = z.discriminatedUnion("kind", [
+export const expectedSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: z.literal("applied"),
     typeId: z.string().optional(),

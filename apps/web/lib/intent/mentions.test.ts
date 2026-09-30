@@ -56,4 +56,89 @@ describe("what an instruction states outright", () => {
       }
     }
   });
+
+  it("finds every family a phrase names, so one phrase can name the same kind of choice on a top and on joggers", () => {
+    const found = findMentions("ribbed cuffs please");
+    expect(isStated(found, choiceTarget("cuffs", "rib-cuff"))).toBe(true);
+    expect(isStated(found, choiceTarget("leg-finish", "rib-cuff"))).toBe(true);
+    const refused = findMentions("not ribbed cuffs");
+    expect(isStated(refused, choiceTarget("leg-finish", "rib-cuff"))).toBe(false);
+  });
+});
+
+describe("the words for bottoms", () => {
+  it("has a phrase for every bottoms garment type and every choice of every bottoms option", () => {
+    const targets = new Set(VOCABULARY.map((entry) => entry.target));
+    for (const type of listTypes("bottoms")) {
+      expect(targets.has(typeTarget(type.id)), type.id).toBe(true);
+      for (const option of type.options) {
+        for (const choice of option.choices) expect(targets.has(choiceTarget(option.id, choice.id)), `${option.id}:${choice.id}`).toBe(true);
+      }
+    }
+  });
+
+  it("reads the longest phrase, so shorts are not a short leg and a zipped pocket is not a plain pocket", () => {
+    expect(stated("make them shorts", typeTarget("shorts"))).toBe(true);
+    expect(stated("make them shorts", choiceTarget("leg-length", "short"))).toBe(false);
+    expect(stated("zipped pockets", choiceTarget("pockets", "zip-side"))).toBe(true);
+    expect(stated("zipped pockets", choiceTarget("pockets", "side-seam"))).toBe(false);
+    expect(stated("elastic waistband with a drawcord", choiceTarget("waistband", "elastic-drawcord"))).toBe(true);
+    expect(stated("elastic waistband with a drawcord", choiceTarget("waistband", "elastic"))).toBe(false);
+  });
+
+  it("reads a removal as its own choice", () => {
+    expect(stated("remove the drawcord", choiceTarget("waistband", "elastic"))).toBe(true);
+    expect(stated("remove the drawcord", choiceTarget("waistband", "elastic-drawcord"))).toBe(false);
+    expect(stated("no gusset", choiceTarget("gusset", "none"))).toBe(true);
+    expect(stated("no gusset", choiceTarget("gusset", "crotch-gusset"))).toBe(false);
+  });
+
+  it("names no bottoms type from a hint", () => {
+    const found = findMentions("make them for running");
+    expect(found.some((mention) => mention.target.startsWith("type:"))).toBe(false);
+  });
+});
+
+describe.each(["outerwear", "close-fitting"] as const)("the words for %s", (family) => {
+  it("has a phrase for every garment type and every choice of every option", () => {
+    const targets = new Set(VOCABULARY.map((entry) => entry.target));
+    for (const type of listTypes(family)) {
+      expect(targets.has(typeTarget(type.id)), type.id).toBe(true);
+      for (const option of type.options) {
+        for (const choice of option.choices) expect(targets.has(choiceTarget(option.id, choice.id)), `${option.id}:${choice.id}`).toBe(true);
+      }
+    }
+  });
+});
+
+describe("the words for outerwear and close-fitting garments", () => {
+  it("names no hoodie type from the word hoodie alone", () => {
+    const found = findMentions("make it a hoodie");
+    expect(found.some((mention) => mention.target.startsWith("type:"))).toBe(false);
+  });
+
+  it("reads the longest phrase, so a zip hoodie is a type and a lined hood is not an unlined one", () => {
+    expect(stated("make it a zip hoodie", typeTarget("zip-hoodie"))).toBe(true);
+    expect(stated("make it a zip hoodie", choiceTarget("front-opening", "full-zip"))).toBe(false);
+    expect(stated("unlined hood", choiceTarget("hood", "single-layer"))).toBe(true);
+    expect(stated("unlined hood", choiceTarget("hood", "lined"))).toBe(false);
+    expect(stated("kangaroo pocket", choiceTarget("pockets", "kangaroo"))).toBe(true);
+  });
+
+  it("reads one phrase as the same kind of choice in every family that has it", () => {
+    const found = findMentions("remove the drawcord");
+    expect(isStated(found, choiceTarget("hood-drawcord", "none"))).toBe(true);
+    expect(isStated(found, choiceTarget("waistband", "elastic"))).toBe(true);
+    const sleeves = findMentions("long sleeves");
+    expect(isStated(sleeves, choiceTarget("sleeves", "long"))).toBe(true);
+    expect(isStated(sleeves, choiceTarget("sleeve-length", "long"))).toBe(true);
+  });
+
+  it("reads close-fitting choices and refusals", () => {
+    expect(stated("racerback please", choiceTarget("back-style", "racerback"))).toBe(true);
+    expect(stated("not a racerback", choiceTarget("back-style", "racerback"))).toBe(false);
+    expect(stated("flatlock seams", choiceTarget("seam-type", "flatlock"))).toBe(true);
+    expect(stated("covered elastic underband", choiceTarget("underband", "covered-elastic"))).toBe(true);
+    expect(stated("make it a sports bra", typeTarget("sports-bra"))).toBe(true);
+  });
 });

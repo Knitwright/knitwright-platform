@@ -126,3 +126,20 @@ describe("outerwear registry", () => {
     expect(pullover).not.toContain("front-zip");
   });
 });
+
+describe("outerwear construction rules (step 21)", () => {
+  it("closes the bags of side pockets with a seam, but not a kangaroo pocket", () => {
+    for (const pockets of ["side-seam", "zip-side"]) {
+      const seams = seamsFor({ typeId: "zip-hoodie", options: { ...startChoices("zip-hoodie"), pockets } });
+      expect(ids(seams), pockets).toContain("pocket-bag-seam");
+    }
+    expect(ids(seamsFor({ typeId: "pullover-hoodie", options: startChoices("pullover-hoodie") }))).not.toContain("pocket-bag-seam");
+  });
+
+  it("proposes cord ends with a hood drawcord, marked as a proposal", () => {
+    const ends = componentSlotsFor({ typeId: "pullover-hoodie", options: startChoices("pullover-hoodie") }).find((slot) => slot.id === "cord-ends");
+    expect(ends?.proposal).toBe(true);
+    const none = componentSlotsFor({ typeId: "pullover-hoodie", options: { ...startChoices("pullover-hoodie"), "hood-drawcord": "none" } });
+    expect(ids(none)).not.toContain("cord-ends");
+  });
+});

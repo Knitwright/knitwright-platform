@@ -55,3 +55,42 @@ describe("the model input", () => {
     expect(buildModelInput({ utterance: "a", spec: start() })).toEqual(buildModelInput({ utterance: "a", spec: start() }));
   });
 });
+
+/** The families other than tops whose words and golden sets are built (steps 18, 21, 24). */
+const FAMILIES = ["bottoms", "outerwear", "close-fitting"] as const;
+
+describe.each(FAMILIES)("the model input for %s", (family) => {
+  const firstFor = (typeId: string): GarmentSpec => {
+    const type = listTypes(family).find((entry) => entry.id === typeId)!;
+    const made = createSpec(typeId, type.wearers[0]);
+    if (!made.ok) throw new Error(made.reason);
+    return made.spec;
+  };
+
+  it("lists every type of the family with every choice it offers, and every choice of every option", () => {
+    for (const type of listTypes(family)) {
+      const { system } = buildModelInput({ utterance: "x", spec: firstFor(type.id) });
+      for (const other of listTypes(family)) expect(system).toContain(`- ${other.id}: ${other.label}. Options: `);
+      for (const option of type.options) {
+        expect(system).toContain(`${option.id}=${option.choices.map((choice) => choice.id).join("|")}`);
+        for (const choice of [...option.choices, ...option.notOffered]) expect(system).toContain(`${choice.id} (${choice.label})`);
+      }
+    }
+  });
+
+  it("states every combination the family cannot make, and only the family's types", () => {
+    const type = listTypes(family)[0];
+    const { system } = buildModelInput({ utterance: "x", spec: firstFor(type.id) });
+    for (const rule of type.rules) expect(system).toContain(rule.reason);
+    for (const other of listTypes().filter((entry) => entry.family !== family)) expect(system).not.toContain(`- ${other.id}: `);
+  });
+
+  it("lists the panels and points of measure of the design's own type", () => {
+    for (const type of listTypes(family)) {
+      const { system } = buildModelInput({ utterance: "x", spec: firstFor(type.id) });
+      expect(system).toContain(`Panels: ${type.panels.map((panel) => panel.id).join(", ")}`);
+      expect(system).toContain(`Points of measure: ${type.pointsOfMeasure.map((point) => point.id).join(", ")}`);
+    }
+  });
+});
+

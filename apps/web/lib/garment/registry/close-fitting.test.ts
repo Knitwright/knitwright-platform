@@ -107,3 +107,19 @@ describe("size systems declared in the registry", () => {
     expect(type("polo").sizeSystems).toEqual({ men: "adult", women: "adult", youth: "youth" });
   });
 });
+
+describe("close-fitting construction rules (step 24)", () => {
+  it("closes a covered underband with a casing, and leaves exposed elastic without one", () => {
+    const covered = seamsFor({ typeId: "sports-bra", options: { ...startChoices("sports-bra"), underband: "covered-elastic" } });
+    expect(ids(covered)).toContain("underband-casing");
+    const exposed = seamsFor({ typeId: "sports-bra", options: { ...startChoices("sports-bra"), underband: "exposed-elastic" } });
+    expect(ids(exposed)).not.toContain("underband-casing");
+  });
+
+  it("proposes a printed label with flat seams only, marked as a proposal", () => {
+    const flat = componentSlotsFor({ typeId: "compression-top", options: startChoices("compression-top") }).find((slot) => slot.id === "printed-label");
+    expect(flat?.proposal).toBe(true);
+    const overlocked = componentSlotsFor({ typeId: "singlet", options: { ...startChoices("singlet"), "seam-type": "overlock" } });
+    expect(ids(overlocked)).not.toContain("printed-label");
+  });
+});
