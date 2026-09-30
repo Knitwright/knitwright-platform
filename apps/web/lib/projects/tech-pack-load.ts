@@ -11,7 +11,8 @@ import { historyIsNewer } from "./tech-pack-data";
 
 /**
  * What the tech pack page and every export are made from: the design, its history, its pictures,
- * the size charts that apply (the platform's, with the brand's own in their place) and the AI
+ * the size charts that apply (the platform's, with the brand's own in their place, as they were
+ * when an older version was saved) and the AI
  * illustrations, if any were made.
  */
 export interface TechPackSource {
@@ -52,7 +53,7 @@ export async function loadTechPackSource(
   options: LoadOptions,
 ): Promise<TechPackSource> {
   const reader = createFileReader(client, brandId);
-  const [first, charts, illustrations] = await Promise.all([
+  const [first, currentCharts, illustrations] = await Promise.all([
     readBoth(client, brandId, projectId, options.version),
     brandChartSet(client, brandId),
     latestImages(client, brandId, projectId).then((latest) => loadIllustrations(reader, latest)),
@@ -61,6 +62,11 @@ export async function loadTechPackSource(
   if (options.version === undefined && historyIsNewer(project, history)) {
     [project, history] = await readBoth(client, brandId, projectId);
   }
+  // The current version is shown with the charts in use now, as the editor shows it. An older
+  // version keeps the charts that applied when it was saved, so a later import leaves it as it was.
+  const charts = historyIsNewer(project, history)
+    ? await brandChartSet(client, brandId, project.versionSavedAt)
+    : currentCharts;
   const pictures = await loadArtworkImages(
     reader,
     options.shrink,

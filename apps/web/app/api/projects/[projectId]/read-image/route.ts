@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { brandChartSet } from "@/lib/charts/service";
 import { signProposal } from "@/lib/intent/proposal-token";
 import { MODEL_TIMEOUT_MS, assistantModels, nowSeconds, proposalSigningKey } from "@/lib/projects/assistant";
 import { flatPreview } from "@/lib/projects/flat-preview";
@@ -31,7 +32,10 @@ export const POST = defineRoute({
     const { fileId, expectedVersion } = input.body;
     const who = { projectId, brandId: session.brand.id, userId: session.userId };
     const client = await sessionClient();
-    const spec = await loadCurrentDesign(client, { ...who, expectedVersion });
+    const [spec, charts] = await Promise.all([
+      loadCurrentDesign(client, { ...who, expectedVersion }),
+      brandChartSet(client, session.brand.id),
+    ]);
     const key = proposalSigningKey();
     const reader = createFileReader(client, session.brand.id);
     return readImageRequest({
@@ -42,7 +46,8 @@ export const POST = defineRoute({
       usage,
       sign: (actions, explanations) =>
         signProposal({ ...who, version: expectedVersion, actions, source: "picture", explanations }, key, nowSeconds()),
-      preview: (proposed) => flatPreview(proposed, new Map()),
+      // Drawn with the brand's charts, as the editor will draw the design once it is applied.
+      preview: (proposed) => flatPreview(proposed, new Map(), charts),
       log,
       timeoutMs: MODEL_TIMEOUT_MS,
     });

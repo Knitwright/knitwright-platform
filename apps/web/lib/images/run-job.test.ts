@@ -26,6 +26,7 @@ const makeDeps = (provider: ImageProvider, overrides: Partial<RunJobDeps> = {}) 
       markFailed: vi.fn(async (id: string, message: string) => void calls.push(`failed ${id} ${message}`)),
     },
     saveImage: vi.fn(async (view: string) => `${view}-file`),
+    removeImages: vi.fn(async (ids: readonly string[]) => void calls.push(`removed ${ids.join(" ")}`)),
     refund: vi.fn(async (eventId: string) => {
       calls.push(`refund ${eventId}`);
       return true;
@@ -95,6 +96,45 @@ describe("runImageJob", () => {
 
     expect(await runImageJob(deps, work)).toBe("failed");
     expect(deps.refund).toHaveBeenCalledWith("event-1");
+  });
+
+  it("removes the stored pictures when the job cannot be marked done, and gives the cost back", async () => {
+    const { deps, calls } = makeDeps(stubImageProvider());
+    deps.jobs.markSucceeded = async () => {
+      throw new Error("The job had already been stopped.");
+    };
+
+    expect(await runImageJob(deps, work)).toBe("failed");
+    expect(calls).toEqual(["running job-1", "removed front-file back-file", `failed job-1 ${FAILED_MESSAGE}`, "refund event-1"]);
+  });
+
+  it("removes the first picture when the second cannot be stored", async () => {
+    const { deps, calls } = makeDeps(stubImageProvider(), {
+      saveImage: async (view) => {
+        if (view === "back") throw new Error("storage down");
+        return `${view}-file`;
+      },
+    });
+
+    expect(await runImageJob(deps, work)).toBe("failed");
+    expect(calls).toContain("removed front-file");
+    expect(deps.refund).toHaveBeenCalledWith("event-1");
+  });
+
+  it("still marks the job failed and gives the cost back when the pictures cannot be removed", async () => {
+    const { deps } = makeDeps(stubImageProvider(), {
+      removeImages: async () => {
+        throw new Error("storage down");
+      },
+    });
+    deps.jobs.markSucceeded = async () => {
+      throw new Error("The job had already been stopped.");
+    };
+
+    expect(await runImageJob(deps, work)).toBe("failed");
+    expect(deps.jobs.markFailed).toHaveBeenCalled();
+    expect(deps.refund).toHaveBeenCalledWith("event-1");
+    expect(deps.log).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/could not be removed/) }));
   });
 
   it("still gives the cost back when the job row cannot be marked", async () => {

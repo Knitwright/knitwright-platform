@@ -1,4 +1,5 @@
 import { strToU8, zipSync } from "fflate";
+import writeExcelFile from "write-excel-file/node";
 import { describe, expect, it } from "vitest";
 import { sheetKind } from "./container";
 import { CHART_IMPORT_LIMITS } from "./limits";
@@ -83,5 +84,78 @@ describe("sheetKind", () => {
     const bytes = zip(spreadsheetParts(parts));
     expect(bytes.length).toBeLessThan(CHART_IMPORT_LIMITS.maxBytes);
     expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/unpack/) });
+  });
+});
+
+/**
+ * The reader unpacks each part from the header in front of it, not from the table of contents
+ * at the end. These archives have an honest table and a dishonest header.
+ */
+describe("sheetKind reads each part's own header against the table of contents", () => {
+  const END_RECORD_LENGTH = 22;
+  const viewOf = (bytes: Uint8Array): DataView => new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const directoryStart = (bytes: Uint8Array): number => viewOf(bytes).getUint32(bytes.length - END_RECORD_LENGTH + 16, true);
+  const directoryEntries = (bytes: Uint8Array): number[] => {
+    const view = viewOf(bytes);
+    const count = view.getUint16(bytes.length - END_RECORD_LENGTH + 10, true);
+    const found: number[] = [];
+    let at = directoryStart(bytes);
+    for (let index = 0; index < count; index += 1) {
+      found.push(at);
+      at += 46 + view.getUint16(at + 28, true) + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
+    }
+    return found;
+  };
+  const honest = (): Uint8Array => zip(spreadsheetParts({ "xl/worksheets/sheet1.xml": strToU8("<worksheet/>") }));
+
+  it("still takes an archive whose headers agree with its table", () => {
+    expect(sheetKind(honest())).toEqual({ ok: true, kind: "xlsx" });
+  });
+
+  it("refuses a part whose header says it unpacks to more than the table says", () => {
+    const bytes = honest();
+    viewOf(bytes).setUint32(22, 50 * 1024 * 1024, true);
+    expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/not a spreadsheet/) });
+  });
+
+  it("refuses a part whose sizes follow its data, with none in its header", () => {
+    const bytes = honest();
+    const view = viewOf(bytes);
+    view.setUint16(6, view.getUint16(6, true) | 0x08, true);
+    view.setUint32(18, 0, true);
+    view.setUint32(22, 0, true);
+    for (const entry of directoryEntries(bytes)) view.setUint16(entry + 8, view.getUint16(entry + 8, true) | 0x08, true);
+    expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/not a spreadsheet/) });
+  });
+
+  it("takes a workbook whose sizes follow each part's data, as the exports write it", async () => {
+    const bytes = new Uint8Array(await writeExcelFile([[{ value: "Chest" }, { value: 50 }]]).toBuffer());
+    expect(viewOf(bytes).getUint16(6, true) & 0x08).toBe(0x08);
+    expect(sheetKind(bytes)).toEqual({ ok: true, kind: "xlsx" });
+  });
+
+  it("refuses a part that unpacks to more than its header and its table both claim", () => {
+    const bytes = zip(spreadsheetParts({ "xl/worksheets/sheet1.xml": new Uint8Array(40 * 1024 * 1024) }));
+    const view = viewOf(bytes);
+    const entry = directoryEntries(bytes).find((at) => view.getUint32(at + 24, true) === 40 * 1024 * 1024) ?? -1;
+    const local = view.getUint32(entry + 42, true);
+    view.setUint32(entry + 24, 1000, true);
+    view.setUint32(local + 22, 1000, true);
+    expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/unpack/) });
+  });
+
+  it("refuses a part hidden in front of the parts the table lists", () => {
+    const bomb = zip({ "bomb.xml": new Uint8Array(40 * 1024 * 1024) });
+    const hidden = bomb.subarray(0, directoryStart(bomb));
+    const original = honest();
+    const bytes = new Uint8Array(hidden.length + original.length);
+    bytes.set(hidden, 0);
+    bytes.set(original, hidden.length);
+    const view = viewOf(bytes);
+    const shift = (at: number): void => view.setUint32(at, view.getUint32(at, true) + hidden.length, true);
+    shift(bytes.length - END_RECORD_LENGTH + 16);
+    for (const entry of directoryEntries(bytes)) shift(entry + 42);
+    expect(bytes.length).toBeLessThan(CHART_IMPORT_LIMITS.maxBytes);
+    expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/not a spreadsheet/) });
   });
 });

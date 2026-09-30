@@ -1,6 +1,7 @@
 import type { ImageMap } from "@/lib/flat/images";
 import type { GarmentSpec } from "@/lib/garment";
 import { buildImagePrompt, type ImageProvider } from "@/lib/providers";
+import type { ChartSet } from "@/lib/sizing";
 import { AppError } from "@/lib/server/core/errors";
 import { flatModels, renderReference } from "./reference";
 import { runImageJob, type RunJobDeps } from "./run-job";
@@ -17,8 +18,8 @@ export const NO_DRAWING_MESSAGE = "There is no drawing of this garment to make i
 
 export interface StartDeps extends Omit<RunJobDeps, "provider"> {
   readonly provider: ImageProvider | null;
-  /** The design as it is now, and its version. */
-  readonly loadDesign: () => Promise<Readonly<{ spec: GarmentSpec; version: number }>>;
+  /** The design as it is now, its version, and the brand's size charts it is drawn with. */
+  readonly loadDesign: () => Promise<Readonly<{ spec: GarmentSpec; version: number; charts: ChartSet }>>;
   /** The pictures its artwork uses, from the uploaded files. */
   readonly loadPictures: (spec: GarmentSpec) => Promise<ImageMap>;
   /** Records a queued job for the version and returns its id. */
@@ -32,8 +33,8 @@ export async function startImageJob(deps: StartDeps, input: StartInput): Promise
   const provider = deps.provider;
   if (!provider) throw new AppError("unavailable", NOT_SET_UP_MESSAGE);
 
-  const { spec, version } = await deps.loadDesign();
-  const models = flatModels(spec, input.colourwayId);
+  const { spec, version, charts } = await deps.loadDesign();
+  const models = flatModels(spec, charts, input.colourwayId);
   if (!models) throw new AppError("invalid_input", NO_DRAWING_MESSAGE);
 
   const pictures = await deps.loadPictures(spec);

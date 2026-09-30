@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
+import { DEFAULT_CHART_SET } from "@/lib/sizing";
 import { stubImageProvider } from "@/lib/providers/image-stub";
 import { AppError } from "@/lib/server/core/errors";
 import { NO_DRAWING_MESSAGE, NOT_SET_UP_MESSAGE, startImageJob, type StartDeps } from "./start";
@@ -10,7 +11,7 @@ const makeDeps = (patch: Partial<StartDeps> = {}) => {
   const stub = stubImageProvider();
   const deps: StartDeps = {
     provider: stub,
-    loadDesign: async () => ({ spec: start("crew-tee"), version: 4 }),
+    loadDesign: async () => ({ spec: start("crew-tee"), version: 4, charts: DEFAULT_CHART_SET }),
     loadPictures: async () => new Map(),
     createJob: vi.fn(async () => "job-1"),
     schedule: (work) => void scheduled.push(work),
@@ -20,6 +21,7 @@ const makeDeps = (patch: Partial<StartDeps> = {}) => {
       markFailed: vi.fn(async () => {}),
     },
     saveImage: vi.fn(async (view) => `${view}-file`),
+    removeImages: vi.fn(async () => {}),
     refund: vi.fn(async () => true),
     log: vi.fn(),
     ...patch,
@@ -63,7 +65,7 @@ describe("startImageJob", () => {
 
   it("refuses a design with no drawing, since there is nothing to send", async () => {
     const { deps } = makeDeps({
-      loadDesign: async () => ({ spec: { ...start("crew-tee"), typeId: "no-such-type" } as GarmentSpec, version: 1 }),
+      loadDesign: async () => ({ spec: { ...start("crew-tee"), typeId: "no-such-type" } as GarmentSpec, version: 1, charts: DEFAULT_CHART_SET }),
     });
 
     await expect(startImageJob(deps, { eventId: "event-1" })).rejects.toMatchObject({

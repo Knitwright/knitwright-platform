@@ -127,6 +127,77 @@ describe("reading a model reply", () => {
     expectKind(run("change the sleeves", spec, raw), "rejection");
   });
 
+  describe("a question's choices keep the same rules as a change", () => {
+    const question = (choices: object[], recommended = 0) =>
+      JSON.stringify({ kind: "question", question: "How much longer?", choices, recommended });
+    const length = (cm: number) => ({ type: "set-measurement", pointId: "body-length", cm });
+    const measurementsIn = (outcome: IntentOutcome): unknown[] =>
+      outcome.kind === "question" ? outcome.choices.flatMap((choice) => choice.actions).filter((action) => action.type === "set-measurement") : [];
+
+    it("drops a choice holding a number the person did not type, so no such number reaches a proposal", () => {
+      const spec = start("crew-tee");
+      const raw = question([
+        { label: "74 cm", actions: [length(74)] },
+        { label: "80 cm", actions: [length(80)] },
+        { label: "Leave it", actions: [] },
+      ]);
+      const outcome = expectKind(run("make it a bit longer", spec, raw), "rejection");
+      expect(outcome.reason).toMatch(/How much longer\?/);
+      expect(outcome.reason).toMatch(/Nothing was changed/);
+    });
+
+    it("keeps the choices that pass, and moves the recommendation with them", () => {
+      const spec = start("crew-tee");
+      const raw = question(
+        [
+          { label: "74 cm", actions: [length(74)] },
+          { label: "Relaxed", actions: [option("fit", "relaxed")] },
+          { label: "Leave it", actions: [] },
+        ],
+        2,
+      );
+      const outcome = expectKind(run("make it a bit longer", spec, raw), "question");
+      expect(outcome.choices.map((choice) => choice.label)).toEqual(["Relaxed", "Leave it"]);
+      expect(outcome.recommended).toBe(1);
+      expect(measurementsIn(outcome)).toEqual([]);
+    });
+
+    it("recommends the first choice left when the recommended one was dropped", () => {
+      const raw = question(
+        [
+          { label: "Relaxed", actions: [option("fit", "relaxed")] },
+          { label: "Leave it", actions: [] },
+          { label: "74 cm", actions: [length(74)] },
+        ],
+        2,
+      );
+      expect(expectKind(run("make it a bit longer", start("crew-tee"), raw), "question").recommended).toBe(0);
+    });
+
+    it("keeps a number the person typed", () => {
+      const raw = question([
+        { label: "74 cm", actions: [length(74)] },
+        { label: "Leave it", actions: [] },
+      ]);
+      expect(measurementsIn(expectKind(run("body length 74 cm?", start("crew-tee"), raw), "question"))).toHaveLength(1);
+    });
+
+    it("drops a choice that changes the construction without its label naming the change", () => {
+      const raw = question([
+        { label: "Keep it as it is", actions: [option("neckline", "v-neck")] },
+        { label: "Slim", actions: [option("fit", "slim")] },
+        { label: "V neck", actions: [option("neckline", "v-neck")] },
+      ]);
+      const outcome = expectKind(run("change it a little", start("team-jersey"), raw), "question");
+      expect(outcome.choices.map((choice) => choice.label)).toEqual(["Slim", "V neck"]);
+    });
+
+    it("drops a choice the editor cannot read", () => {
+      const raw = question([{ label: "A hood", actions: [{ type: "add-hood" }] }, { label: "Slim", actions: [option("fit", "slim")] }, { label: "Leave it" }]);
+      expect(expectKind(run("change it", start("crew-tee"), raw), "question").choices.map((choice) => choice.label)).toEqual(["Slim", "Leave it"]);
+    });
+  });
+
   it("rejects a question whose recommendation is not one of its choices", () => {
     const raw = JSON.stringify({
       kind: "question",

@@ -100,8 +100,15 @@ describe("importing a chart", () => {
     const charts = await listBrandCharts(alice.client, aliceBrand);
     expect(charts).toHaveLength(1);
     expect(charts[0]?.run.sizes).toEqual(["XS", "S", "M", "L", "XL"]);
-    const rows = must(await adminClient().from("brand_size_charts").select("source_file_id").eq("brand_id", aliceBrand));
+    const rows = must(
+      await adminClient().from("brand_size_charts").select("source_file_id").eq("brand_id", aliceBrand).is("superseded_at", null),
+    );
     expect(rows).toEqual([{ source_file_id: second.fileId }]);
+    // The chart it replaced is kept, so versions saved while it applied keep their sizes.
+    const replaced = must(
+      await adminClient().from("brand_size_charts").select("source_file_id").eq("brand_id", aliceBrand).not("superseded_at", "is", null),
+    );
+    expect(replaced).toEqual([{ source_file_id: first.fileId }]);
 
     const made = createSpec("crew-tee", "men");
     if (!made.ok) throw new Error(made.reason);

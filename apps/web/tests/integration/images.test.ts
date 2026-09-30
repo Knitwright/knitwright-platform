@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { PHOTOREAL_COST } from "@/lib/images/cost";
 import { JOB_STALE_AFTER_MS, type JobRow } from "@/lib/images/job-view";
 import { runImageJob } from "@/lib/images/run-job";
-import { createJob, expireJob, imageSaver, jobStore, latestImages, readJob } from "@/lib/images/service";
+import { createJob, expireJob, imageRemover, imageSaver, jobStore, latestImages, readJob } from "@/lib/images/service";
 import type { ImageProvider } from "@/lib/providers";
 import { failingImageProvider, stubImageProvider } from "@/lib/providers/image-stub";
 import { createUsageMeter, type UsageMeter } from "@/lib/usage/meter";
@@ -58,6 +58,7 @@ const makeImages = async (provider: ImageProvider) => {
       provider,
       jobs: jobStore(adminClient()),
       saveImage: imageSaver(adminClient(), brandId, owner.userId),
+      removeImages: imageRemover(adminClient(), brandId),
       refund: meter.refund,
       log: () => {},
     },
@@ -197,6 +198,40 @@ describe("a job whose server stopped", () => {
 
     expect((await readJob(owner.client, brandId, projectId, row.id))?.status).toBe("failed");
     const event = (await eventsOfBrand()).find((entry) => entry.id === reservation.eventId);
+    expect(event?.refunded_at).not.toBeNull();
+  });
+});
+
+describe("a job stopped while its pictures were being made", () => {
+  it("keeps no picture of it: the stored files and their rows are removed, and the cost given back", async () => {
+    const renders = async () =>
+      must(await adminClient().from("files").select("id, bucket, path").eq("brand_id", brandId).eq("kind", "render"));
+    const before = await renders();
+    const stub = stubImageProvider();
+    // Stops the job as a stale-job sweep would, while the pictures are being made.
+    const stopping: ImageProvider = {
+      name: "stopped-stub",
+      async generate(request, signal) {
+        const stopped = await adminClient()
+          .from("jobs")
+          .update({ status: "failed", error: "stopped", finished_at: new Date().toISOString() })
+          .eq("project_id", projectId)
+          .eq("status", "running");
+        if (stopped.error) throw new Error(stopped.error.message);
+        return stub.generate(request, signal);
+      },
+    };
+
+    const made = await makeImages(stopping);
+
+    expect(made.outcome).toBe("failed");
+    const after = await renders();
+    expect(after.map((row) => row.id).sort()).toEqual(before.map((row) => row.id).sort());
+    const listed = must(await adminClient().storage.from("images").list(`${brandId}/render`, { limit: 1000 }));
+    expect(listed.map((entry) => `${brandId}/render/${entry.name}`).sort()).toEqual(
+      before.filter((row) => row.bucket === "images").map((row) => row.path).sort(),
+    );
+    const event = (await eventsOfBrand()).find((row) => row.id === made.eventId);
     expect(event?.refunded_at).not.toBeNull();
   });
 });

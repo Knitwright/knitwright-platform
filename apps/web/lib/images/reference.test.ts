@@ -2,6 +2,8 @@ import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import type { GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
+import { DEFAULT_CHART_SET, withBrandCharts } from "@/lib/sizing";
+import { madeUpChart } from "@/lib/sizing/fixtures/made-up-charts";
 import type { ImageMap } from "@/lib/flat/images";
 import { REFERENCE_EDGE, flatModels, renderReference } from "./reference";
 
@@ -48,27 +50,40 @@ const countRed = async (png: Uint8Array): Promise<number> => {
 
 describe("flatModels", () => {
   it("draws a front and a back for a type that has a drawing", () => {
-    const models = flatModels(start("crew-tee"));
+    const models = flatModels(start("crew-tee"), DEFAULT_CHART_SET);
 
     expect(models?.front.view).toBe("front");
     expect(models?.back.view).toBe("back");
   });
 
   it("leaves the measurement callouts out, so the model is not asked to draw numbers", () => {
-    const models = flatModels(start("crew-tee"));
+    const models = flatModels(start("crew-tee"), DEFAULT_CHART_SET);
     const measurements = models?.front.layers.find((layer) => layer.id === "measurements");
 
     expect(measurements?.elements ?? []).toEqual([]);
   });
 
+  it("draws the design with the brand's own chart when the brand has one, as the editor does", () => {
+    const brandCharts = withBrandCharts(DEFAULT_CHART_SET, [
+      {
+        run: { id: "brand-women-crew-tee-any", wearer: "women", sizes: ["U1", "U2", "U3", "U4"] },
+        chart: { ...madeUpChart("crew-tee", "women"), sizeRunId: "brand-women-crew-tee-any", supplier: "brand" },
+      },
+    ]);
+    const platform = flatModels(start("crew-tee"), DEFAULT_CHART_SET);
+    const brand = flatModels(start("crew-tee"), brandCharts);
+
+    expect(JSON.stringify(brand?.front)).not.toBe(JSON.stringify(platform?.front));
+  });
+
   it("is null for a type there is no drawing for", () => {
-    expect(flatModels({ ...start("crew-tee"), typeId: "no-such-type" } as GarmentSpec)).toBeNull();
+    expect(flatModels({ ...start("crew-tee"), typeId: "no-such-type" } as GarmentSpec, DEFAULT_CHART_SET)).toBeNull();
   });
 });
 
 describe("renderReference", () => {
   it("is a square PNG of the reference size on white", async () => {
-    const models = flatModels(start("crew-tee"));
+    const models = flatModels(start("crew-tee"), DEFAULT_CHART_SET);
     const png = await renderReference(models!.front);
     const meta = await sharp(png).metadata();
 
@@ -79,7 +94,7 @@ describe("renderReference", () => {
 
   it("composites the uploaded logo's own pixels into the front", async () => {
     const images = await redSquare();
-    const models = flatModels(withLogo());
+    const models = flatModels(withLogo(), DEFAULT_CHART_SET);
 
     expect(await countRed(await renderReference(models!.front, images))).toBeGreaterThan(10_000);
     // Without the file's bytes the logo is a dashed box, never a made-up picture.

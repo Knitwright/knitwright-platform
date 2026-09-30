@@ -76,14 +76,18 @@ export const importChart = async (admin: SupabaseClient, reader: FileReader, inp
   return { garmentType: result.chart.garmentType, wearer: result.chart.wearer, fit: result.chart.fit, sizes: result.run.sizes };
 };
 
-/** The brand's own charts, read with the user's rights. A row that does not check out is left out. */
-export const listBrandCharts = async (client: SupabaseClient, brandId: string): Promise<readonly BrandChart[]> => {
-  const { data, error } = await client
-    .from("brand_size_charts")
-    .select("chart, run")
-    .eq("brand_id", brandId)
-    .order("garment_type")
-    .limit(MOST_CHARTS_READ);
+/**
+ * The brand's own charts, read with the user's rights. A row that does not check out is left out.
+ * With `at`, the charts that applied at that moment: imported by then and not yet replaced. So an
+ * old version of a design keeps the charts it was saved with. Without it, the current charts.
+ */
+export const listBrandCharts = async (client: SupabaseClient, brandId: string, at?: string): Promise<readonly BrandChart[]> => {
+  const rows = client.from("brand_size_charts").select("chart, run").eq("brand_id", brandId);
+  const applying =
+    at === undefined
+      ? rows.is("superseded_at", null)
+      : rows.lte("imported_at", at).or(`superseded_at.is.null,superseded_at.gt.${JSON.stringify(at)}`);
+  const { data, error } = await applying.order("garment_type").limit(MOST_CHARTS_READ);
   if (error) throw new AppError("internal", MESSAGES.internal, undefined, { cause: error });
   return z
     .array(z.unknown())
@@ -94,6 +98,9 @@ export const listBrandCharts = async (client: SupabaseClient, brandId: string): 
     });
 };
 
-/** The charts a brand's designs use: its own, in place of the platform's for the same garment. */
-export const brandChartSet = async (client: SupabaseClient, brandId: string): Promise<ChartSet> =>
-  withBrandCharts(DEFAULT_CHART_SET, await listBrandCharts(client, brandId));
+/**
+ * The charts a brand's designs use: its own, in place of the platform's for the same garment.
+ * With `at`, the ones that applied at that moment, for a version saved then.
+ */
+export const brandChartSet = async (client: SupabaseClient, brandId: string, at?: string): Promise<ChartSet> =>
+  withBrandCharts(DEFAULT_CHART_SET, await listBrandCharts(client, brandId, at));

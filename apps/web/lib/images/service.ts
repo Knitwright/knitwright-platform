@@ -115,6 +115,33 @@ export const imageSaver =
       })
     ).id;
 
+const storedRowSchema = z.object({ id: z.uuid(), bucket: z.string(), path: z.string() });
+
+/**
+ * Removes generated pictures of the brand that a job could not keep: first their objects, then
+ * their rows, so a row never points at nothing. Only the brand's own render files are touched.
+ */
+export const imageRemover =
+  (admin: SupabaseClient, brandId: string) =>
+  async (fileIds: readonly string[]): Promise<void> => {
+    if (fileIds.length === 0) return;
+    const { data, error } = await admin
+      .from("files")
+      .select("id, bucket, path")
+      .eq("brand_id", brandId)
+      .eq("kind", "render")
+      .in("id", [...fileIds]);
+    failIf(error, "The pictures could not be found.");
+    const rows = z.array(storedRowSchema).parse(data ?? []);
+    if (rows.length === 0) return;
+    for (const bucket of new Set(rows.map((row) => row.bucket))) {
+      const removed = await admin.storage.from(bucket).remove(rows.filter((row) => row.bucket === bucket).map((row) => row.path));
+      failIf(removed.error, "The pictures could not be removed.");
+    }
+    const deleted = await admin.from("files").delete().in("id", rows.map((row) => row.id));
+    failIf(deleted.error, "The pictures' records could not be removed.");
+  };
+
 /** One job of one design of the brand, or null. */
 export async function readJob(
   client: SupabaseClient,

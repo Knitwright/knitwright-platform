@@ -6,7 +6,7 @@ import { renderSvg, wellFormed } from "@/lib/flat/render-svg";
 import type { GarmentSpec } from "@/lib/garment";
 import { activeColourwayId } from "@/lib/projects/colour-controls";
 import { tableSize } from "@/lib/projects/measurement-table";
-import { resolveMeasurements } from "@/lib/sizing";
+import { resolveMeasurements, type ChartSet } from "@/lib/sizing";
 
 /**
  * The picture sent to the image model with the prompt: the flat, drawn as the design is,
@@ -20,9 +20,12 @@ export const VIEWS = ["front", "back"] as const satisfies readonly View[];
 
 export type ViewModels = Readonly<Record<(typeof VIEWS)[number], FlatModel>>;
 
-/** Front and back of the design, without measurement callouts. Null for a type with no drawing. */
-export function flatModels(spec: GarmentSpec, colourwayId?: string): ViewModels | null {
-  const measurements = resolveMeasurements(spec, tableSize(spec));
+/**
+ * Front and back of the design, without measurement callouts. Null for a type with no drawing.
+ * The measurements come from the brand's charts, as the editor draws the design.
+ */
+export function flatModels(spec: GarmentSpec, charts: ChartSet, colourwayId?: string): ViewModels | null {
+  const measurements = resolveMeasurements(spec, tableSize(spec, charts), charts);
   const colourway = activeColourwayId(spec, colourwayId);
   const front = buildFlat({ spec, measurements, view: "front", colourwayId: colourway });
   const back = buildFlat({ spec, measurements, view: "back", colourwayId: colourway });

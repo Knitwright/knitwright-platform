@@ -1,7 +1,8 @@
 import { after } from "next/server";
 import { z } from "zod";
+import { brandChartSet } from "@/lib/charts/service";
 import { PHOTOREAL_COST } from "@/lib/images/cost";
-import { createJob, imageSaver, jobStore } from "@/lib/images/service";
+import { createJob, imageRemover, imageSaver, jobStore } from "@/lib/images/service";
 import { startImageJob } from "@/lib/images/start";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { getProject } from "@/lib/projects/service";
@@ -39,8 +40,8 @@ export const POST = defineRoute({
       {
         provider: imageProvider(),
         loadDesign: async () => {
-          const project = await getProject(client, brandId, projectId);
-          return { spec: project.spec, version: project.currentVersion };
+          const [project, charts] = await Promise.all([getProject(client, brandId, projectId), brandChartSet(client, brandId)]);
+          return { spec: project.spec, version: project.currentVersion, charts };
         },
         loadPictures: async (spec) =>
           (await loadArtworkImages(createFileReader(client, brandId), shrinkForDrawing, spec)).images,
@@ -49,6 +50,7 @@ export const POST = defineRoute({
         schedule: (work) => after(work),
         jobs: jobStore(admin),
         saveImage: imageSaver(admin, brandId, session.userId),
+        removeImages: imageRemover(admin, brandId),
         refund: productionDeps.usage.refund,
         log,
       },

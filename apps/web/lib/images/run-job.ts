@@ -5,8 +5,10 @@ import type { LogEvent } from "@/lib/server/core/guard";
 /**
  * The work of one photoreal job, run after the response with `after()`. Plan step 14,
  * tasks 3 and 4. Both views are made, then both are stored, then the job is marked done.
- * On any failure the job is marked failed and the reservation is given back. It never
- * throws: nothing is waiting for it.
+ * On any failure the job is marked failed and the reservation is given back, and any picture
+ * already stored is removed again, so no file is left that no job points at (the design may
+ * have been deleted, or the job stopped as stale, while the pictures were being made). It
+ * never throws: nothing is waiting for it.
  */
 
 /** Within the 60 seconds a request may run (decision record 0002), with room to store. */
@@ -27,6 +29,8 @@ export interface RunJobDeps {
   readonly jobs: JobStore;
   /** Checks and stores one picture. Returns its file id. */
   readonly saveImage: (view: View, image: GeneratedImage) => Promise<string>;
+  /** Removes stored pictures, their objects and their rows, when the job cannot keep them. */
+  readonly removeImages: (fileIds: readonly string[]) => Promise<void>;
   readonly refund: (eventId: string) => Promise<boolean>;
   readonly log: (event: LogEvent) => void;
   readonly timeoutMs?: number;
@@ -56,8 +60,17 @@ async function make(deps: RunJobDeps, work: JobWork): Promise<void> {
     deps.provider.generate(work.requests.front, signal),
     deps.provider.generate(work.requests.back, signal),
   ]);
-  const files = { front: await deps.saveImage("front", front), back: await deps.saveImage("back", back) };
-  await deps.jobs.markSucceeded(work.jobId, files);
+  const saved: string[] = [];
+  try {
+    for (const [view, image] of [["front", front], ["back", back]] as const) saved.push(await deps.saveImage(view, image));
+    const [frontFile = "", backFile = ""] = saved;
+    await deps.jobs.markSucceeded(work.jobId, { front: frontFile, back: backFile });
+  } catch (error) {
+    if (saved.length > 0) {
+      await attempt(deps, "The pictures of a failed photoreal job could not be removed", () => deps.removeImages(saved));
+    }
+    throw error;
+  }
 }
 
 export async function runImageJob(deps: RunJobDeps, work: JobWork): Promise<"succeeded" | "failed"> {

@@ -112,17 +112,34 @@ function resolveChanges(utterance: string, spec: GarmentSpec, raw: readonly unkn
   };
 }
 
-/** Passes on a model's question after checking that every choice it offers can be made. */
-function resolveQuestion(spec: GarmentSpec, reply: Extract<Reply, { kind: "question" }>): IntentOutcome {
-  const choices: QuestionChoice[] = [];
-  for (const choice of reply.choices) {
-    const read = readActions(choice.actions);
-    if (!read.ok) return rejection(read.reason);
-    const batch = applyBatch(spec, read.actions);
-    if (!batch.ok) return rejection(`The assistant offered a choice that cannot be made: ${batch.reason}`);
-    choices.push({ label: choice.label, actions: actionsOf(batch) });
-  }
-  return { kind: "question", question: reply.question, choices, recommended: reply.recommended };
+type ModelChoice = Extract<Reply, { kind: "question" }>["choices"][number];
+
+/**
+ * A model's choice as the person can pick it, or null when it breaks a rule a change must keep:
+ * it cannot be made, it holds a number the person did not type (numbers come only from their
+ * own words, never from the model's label), or it changes the garment type, wearer or
+ * construction without its label naming that change, the words the person agrees to.
+ */
+function checkedChoice(utterance: string, spec: GarmentSpec, choice: ModelChoice): QuestionChoice | null {
+  const read = readActions(choice.actions);
+  if (!read.ok || numberProblem(utterance, spec, read.actions)) return null;
+  const batch = applyBatch(spec, read.actions);
+  if (!batch.ok) return null;
+  if (unstatedChanges(`${utterance}\n${choice.label}`, batch.steps).phrases.length > 0) return null;
+  return { label: choice.label, actions: actionsOf(batch) };
+}
+
+/**
+ * Passes on a model's question with only the choices that pass the same checks as a change.
+ * With fewer than two left it is no longer a choice, so the question is passed on as words
+ * alone, with nothing to apply.
+ */
+function resolveQuestion(utterance: string, spec: GarmentSpec, reply: Extract<Reply, { kind: "question" }>): IntentOutcome {
+  const checked = reply.choices.map((choice) => checkedChoice(utterance, spec, choice));
+  const choices = checked.filter((choice): choice is QuestionChoice => choice !== null);
+  if (choices.length < 2) return rejection(`${reply.question} ${NOTHING_CHANGED}`);
+  const picked = checked[reply.recommended];
+  return { kind: "question", question: reply.question, choices, recommended: picked ? choices.indexOf(picked) : 0 };
 }
 
 /**
@@ -137,7 +154,7 @@ export function resolveIntent({ utterance, spec, raw }: IntentInput): IntentOutc
     case "changes":
       return resolveChanges(utterance, spec, reply.actions);
     case "question":
-      return resolveQuestion(spec, reply);
+      return resolveQuestion(utterance, spec, reply);
     case "rejection":
       return rejection(reply.reason);
   }
