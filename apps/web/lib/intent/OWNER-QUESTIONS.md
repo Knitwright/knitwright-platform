@@ -22,7 +22,8 @@ Each line is a question, with what the code does today beside it.
    sleeve type, sleeve length, hem shape, side panels, cuffs). A model may change fit from a loose
    request such as "make it roomier"; it must ask before changing anything else it was not told.
 2. **Is the wearer guarded like the garment type?** Today: yes. "Make it for my son" becomes a
-   question; "make it for kids" is applied.
+   question; "make it for kids" is applied. **Answered 2026-09-30: a change of wearer asks
+   first, as built.**
 3. **Which words name a choice outright?** Today: the list in `vocabulary.ts`. For example "jersey"
    and "rugby shirt" name a team jersey, "tee" alone names no type, "polo collar" names a collar
    and not a polo shirt. Please add or strike words.
