@@ -35,10 +35,10 @@ describe("panel state", () => {
   it("keeps the old images and shows the reason when the start is refused", () => {
     const state = nextPanel(nextPanel(initialPanel(IMAGES), { type: "start" }), {
       type: "start-failed",
-      message: "You have used today's allowance.",
+      message: "You have used this month's allowance.",
     });
 
-    expect(state).toMatchObject({ phase: "failed", images: IMAGES, message: "You have used today's allowance." });
+    expect(state).toMatchObject({ phase: "failed", images: IMAGES, message: "You have used this month's allowance." });
     expect(canStart(state)).toBe(true);
   });
 

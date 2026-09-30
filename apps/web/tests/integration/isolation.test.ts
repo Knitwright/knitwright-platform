@@ -169,12 +169,12 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
           p_subject: "brand",
           p_subject_id: brandId,
           p_feature: "photoreal",
-          p_daily_allowance: 5,
+          p_monthly_allowance: 5,
         }),
       ),
     }),
-    attempt: (brandId) => ({ brand_id: brandId, feature: "ai", daily_allowance: UNLIMITED }),
-    change: { daily_allowance: UNLIMITED },
+    attempt: (brandId) => ({ brand_id: brandId, feature: "ai", monthly_allowance: UNLIMITED }),
+    change: { monthly_allowance: UNLIMITED },
   },
   // Plan step 14: a member reads the brand's jobs; only the server starts or finishes one.
   jobs: {

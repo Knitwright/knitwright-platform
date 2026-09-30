@@ -55,7 +55,7 @@ export function PhotorealPanel({ projectId, available, colourwayId, currentVersi
           Photoreal images
         </h2>
         <p className="text-sm text-muted">
-          A front and a back, made by AI from the flats. Each request uses your daily image allowance.
+          A front and a back, made by AI from the flats. Each request uses your monthly image allowance.
         </p>
       </div>
 

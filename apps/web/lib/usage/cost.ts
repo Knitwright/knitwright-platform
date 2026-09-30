@@ -18,24 +18,24 @@ export const MICRODOLLARS_PER_DOLLAR = 1_000_000;
 export const microdollars = (dollars: number): number =>
   Math.round(dollars * MICRODOLLARS_PER_DOLLAR);
 
-/** Daily allowances, in microdollars. A limit stored in the database replaces these. */
+/** Allowances a calendar month (UTC), in microdollars. A limit stored in the database replaces these. */
 export type Allowances = Readonly<{
   user: Readonly<Record<UsageFeature, number>>;
   brand: Readonly<Record<UsageFeature, number>>;
-  /** Across every user and both features. */
+  /** Across every user and both features, for each UTC day. */
   globalCeiling: number;
 }>;
 
 export type UsageConfig = Readonly<{
-  USAGE_USER_DAILY_AI: number;
-  USAGE_BRAND_DAILY_AI: number;
-  USAGE_USER_DAILY_PHOTOREAL: number;
-  USAGE_BRAND_DAILY_PHOTOREAL: number;
+  USAGE_USER_MONTHLY_AI: number;
+  USAGE_BRAND_MONTHLY_AI: number;
+  USAGE_USER_MONTHLY_PHOTOREAL: number;
+  USAGE_BRAND_MONTHLY_PHOTOREAL: number;
   USAGE_GLOBAL_DAILY_CEILING: number;
 }>;
 
 export const allowancesFrom = (config: UsageConfig): Allowances => ({
-  user: { ai: config.USAGE_USER_DAILY_AI, photoreal: config.USAGE_USER_DAILY_PHOTOREAL },
-  brand: { ai: config.USAGE_BRAND_DAILY_AI, photoreal: config.USAGE_BRAND_DAILY_PHOTOREAL },
+  user: { ai: config.USAGE_USER_MONTHLY_AI, photoreal: config.USAGE_USER_MONTHLY_PHOTOREAL },
+  brand: { ai: config.USAGE_BRAND_MONTHLY_AI, photoreal: config.USAGE_BRAND_MONTHLY_PHOTOREAL },
   globalCeiling: config.USAGE_GLOBAL_DAILY_CEILING,
 });

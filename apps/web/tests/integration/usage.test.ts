@@ -1,4 +1,6 @@
+import { execFileSync } from "node:child_process";
 import { beforeAll, describe, expect, it } from "vitest";
+import { allowanceMonth } from "@/lib/usage/period";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
 /**
@@ -52,7 +54,7 @@ const setLimit = async (
       p_subject: subject,
       p_subject_id: id,
       p_feature: feature,
-      p_daily_allowance: allowance,
+      p_monthly_allowance: allowance,
     }),
   );
 
@@ -252,7 +254,7 @@ describe("who may call the meter", () => {
         p_subject: "user",
         p_subject_id: who.userId,
         p_feature: "ai",
-        p_daily_allowance: HUGE,
+        p_monthly_allowance: HUGE,
       });
       const refunded = await client.rpc("usage_refund", {
         p_event_id: "00000000-0000-0000-0000-000000000000",
@@ -269,15 +271,107 @@ describe("who may call the meter", () => {
     await setLimit("user", who.userId, "photoreal", 7);
     await setLimit("brand", brand, "photoreal", 9);
 
-    await who.client.from("usage_limits").update({ daily_allowance: HUGE }).eq("brand_id", brand);
+    await who.client.from("usage_limits").update({ monthly_allowance: HUGE }).eq("brand_id", brand);
     await who.client
       .from("usage_limits")
-      .update({ daily_allowance: HUGE })
+      .update({ monthly_allowance: HUGE })
       .eq("user_id", who.userId);
 
     const seen = must(
-      await who.client.from("usage_limits").select("feature, daily_allowance, user_id, brand_id"),
+      await who.client.from("usage_limits").select("feature, monthly_allowance, user_id, brand_id"),
     );
-    expect(seen.map((row) => row.daily_allowance).sort()).toEqual([7, 9]);
+    expect(seen.map((row) => row.monthly_allowance).sort()).toEqual([7, 9]);
+  });
+});
+
+// The running totals live in the private schema, out of the API's reach, so these tests
+// read and set them through the database container, as the deletion tests do.
+const CONTAINER = process.env.SUPABASE_DB_CONTAINER ?? "supabase_db_knitwright-platform";
+
+const psql = (sql: string): string =>
+  execFileSync("docker", ["exec", CONTAINER, "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1", "-tA", "-c", sql], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 15_000,
+  }).trim();
+
+const dockerReachable = (() => {
+  try {
+    psql("select 1");
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+/** Owner decision 2026-09-30: allowances start again each calendar month (UTC). */
+describe("monthly allowances", () => {
+  it("counts a call in the calendar month, and the safety ceiling in the day", async () => {
+    const { who: one, brand: oneBrand } = await newcomer("month");
+    const before = new Date();
+
+    const reserved = await reserve(one, oneBrand, { cost: 2 });
+
+    const [event] = must(
+      await adminClient().from("usage_events").select("day, period").eq("id", reserved.event_id ?? ""),
+    ) as { day: string; period: string }[];
+    expect(event.period).toBe(allowanceMonth(before));
+    expect(event.day).toBe(before.toISOString().slice(0, 10));
+  });
+
+  it.skipIf(!dockerReachable)("keeps what was spent earlier in the month, on another day", async () => {
+    const { who: one, brand: oneBrand } = await newcomer("earlier");
+    // What an earlier day of this month left: 9 of an allowance of 10.
+    psql(
+      `insert into private.usage_counters (scope, day, spent) values ` +
+        `('user:${one.userId}:ai', date_trunc('month', now() at time zone 'utc')::date, 9)`,
+    );
+
+    expect((await reserve(one, oneBrand, { cost: 1, userAllowance: 10 })).ok).toBe(true);
+    expect(await reserve(one, oneBrand, { cost: 1, userAllowance: 10 })).toMatchObject({
+      ok: false,
+      refused: "user",
+    });
+  });
+
+  it.skipIf(!dockerReachable)("does not count what was spent last month", async () => {
+    const { who: one, brand: oneBrand } = await newcomer("lastmonth");
+    psql(
+      `insert into private.usage_counters (scope, day, spent) values ` +
+        `('user:${one.userId}:ai', (date_trunc('month', now() at time zone 'utc') - interval '1 month')::date, 10)`,
+    );
+
+    expect((await reserve(one, oneBrand, { cost: 10, userAllowance: 10 })).ok).toBe(true);
+  });
+
+  it.skipIf(!dockerReachable)("gives back a refund to the month's total", async () => {
+    const { who: one, brand: oneBrand } = await newcomer("refund-month");
+    const first = await reserve(one, oneBrand, { cost: 10, userAllowance: 10 });
+
+    expect(await refund(first.event_id ?? "")).toBe(true);
+
+    expect(
+      psql(
+        `select spent from private.usage_counters where scope = 'user:${one.userId}:ai' ` +
+          `and day = date_trunc('month', now() at time zone 'utc')::date`,
+      ),
+    ).toBe("0");
+    expect((await reserve(one, oneBrand, { cost: 10, userAllowance: 10 })).ok).toBe(true);
+  });
+
+  it.skipIf(!dockerReachable)("refunds an event counted per day, before monthly allowances, from its day", async () => {
+    const { who: one, brand: oneBrand } = await newcomer("old-event");
+    const today = new Date().toISOString().slice(0, 10);
+    psql(
+      `insert into private.usage_counters (scope, day, spent) values ('user:${one.userId}:ai', '${today}', 4) ` +
+        `on conflict (scope, day) do update set spent = 4`,
+    );
+    const eventId = psql(
+      `insert into public.usage_events (brand_id, user_id, feature, cost, day, route) ` +
+        `values ('${oneBrand}', '${one.userId}', 'ai', 4, '${today}', 'POST /api/old') returning id`,
+    ).split(/\s+/)[0];
+
+    expect(await refund(eventId)).toBe(true);
+    expect(psql(`select spent from private.usage_counters where scope = 'user:${one.userId}:ai' and day = '${today}'`)).toBe("0");
   });
 });

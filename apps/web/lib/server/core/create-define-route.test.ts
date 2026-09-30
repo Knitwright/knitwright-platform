@@ -623,7 +623,10 @@ describe("defineRoute", () => {
       const response = await route(post({}), noParams);
 
       expect(response.status).toBe(status);
-      expect((await response.json()).error.code).toBe(code);
+      const { error } = (await response.json()) as { error: { code: string; message: string } };
+      expect(error.code).toBe(code);
+      // Allowances start again each calendar month (owner decision 2026-09-30).
+      expect(error.message).toMatch(by === "global" ? /rest of today/ : /this month's allowance.*starts again on 1 /);
       expect(ran).toBe(false);
     });
 

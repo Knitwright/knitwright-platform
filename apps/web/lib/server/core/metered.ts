@@ -1,5 +1,6 @@
 import type { Cost } from "@/lib/usage/cost";
 import type { RefusedBy } from "@/lib/usage/meter";
+import { allowanceRefusal } from "@/lib/usage/period";
 import type { Failure } from "./errors";
 import type { GuardDeps } from "./guard";
 
@@ -30,20 +31,11 @@ export type RouteUsage = Readonly<{
   reserve: (cost: Cost) => Promise<RouteUsage | null>;
 }>;
 
-const REFUSALS: Readonly<Record<RefusedBy, Failure>> = {
-  user: {
-    code: "over_allowance",
-    message: "You have used today's allowance for this. It starts again at midnight UTC.",
-  },
-  brand: {
-    code: "over_allowance",
-    message: "Your brand has used today's allowance for this. It starts again at midnight UTC.",
-  },
-  global: {
-    code: "unavailable",
-    message: "This is not available for the rest of today. Try again tomorrow.",
-  },
-};
+/** What a refused call answers. The safety ceiling is per UTC day; allowances per UTC month. */
+export const refusalFor = (refused: RefusedBy, now: Date): Failure =>
+  refused === "global"
+    ? { code: "unavailable", message: "This is not available for the rest of today. Try again tomorrow." }
+    : { code: "over_allowance", message: allowanceRefusal(refused, now) };
 
 export type Metered<T> =
   | Readonly<{ ok: true; value: T }>
@@ -95,7 +87,7 @@ export const runMetered = async <T>(
 ): Promise<Metered<T>> => {
   const route = where.slice(0, MAX_ROUTE_LENGTH);
   const reservation = await deps.usage.reserve({ ...payer, cost, route });
-  if (!reservation.ok) return { ok: false, failure: REFUSALS[reservation.refused] };
+  if (!reservation.ok) return { ok: false, failure: refusalFor(reservation.refused, new Date()) };
 
   const usage = usageFor(deps, payer, reservation.eventId, where);
   try {

@@ -19,11 +19,11 @@ describe("requestImages", () => {
 
   it("passes on the server's sentence, such as an allowance used up", async () => {
     const fetcher = async () =>
-      json({ success: false, error: { code: "over_allowance", message: "You have used today's allowance." } }, 429);
+      json({ success: false, error: { code: "over_allowance", message: "You have used this month's allowance." } }, 429);
 
     expect(await requestImages(PROJECT, undefined, fetcher)).toEqual({
       ok: false,
-      reason: "You have used today's allowance.",
+      reason: "You have used this month's allowance.",
     });
   });
 

@@ -63,8 +63,9 @@ Each line is a question, with what the code does today beside it.
 11. **Retry.** The stronger model is tried once when the first answer is a question or unreadable.
     Should a rejection be retried too? Today it is not.
 12. **Cost per message.** A message that reaches a model reserves the most it can cost (about 1 US
-    cent on Claude Haiku 4.5), and the retry reserves again. With today's provisional allowance of
-    $0.25 a day, a person can send about 25 such messages a day. Is that the right order?
+    cent on Claude Haiku 4.5), and the retry reserves again. With the provisional allowance of
+    $7.50 a month (monthly since 2026-09-30), a person can send about 750 such messages a month.
+    Is that the right order?
 13. **Text that tries to change the rules** ("ignore previous instructions", "you are now ...") is
     refused before any model sees it. A message that merely mentions a rule in another sense, such as
     "follow the brand rules for labels", passes. Is the refusal wording right?

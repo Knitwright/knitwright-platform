@@ -13,10 +13,10 @@ describe("allowancesFrom", () => {
   it("groups the configured allowances by who they apply to", () => {
     expect(
       allowancesFrom({
-        USAGE_USER_DAILY_AI: 1,
-        USAGE_BRAND_DAILY_AI: 2,
-        USAGE_USER_DAILY_PHOTOREAL: 3,
-        USAGE_BRAND_DAILY_PHOTOREAL: 4,
+        USAGE_USER_MONTHLY_AI: 1,
+        USAGE_BRAND_MONTHLY_AI: 2,
+        USAGE_USER_MONTHLY_PHOTOREAL: 3,
+        USAGE_BRAND_MONTHLY_PHOTOREAL: 4,
         USAGE_GLOBAL_DAILY_CEILING: 5,
       }),
     ).toEqual({ user: { ai: 1, photoreal: 3 }, brand: { ai: 2, photoreal: 4 }, globalCeiling: 5 });

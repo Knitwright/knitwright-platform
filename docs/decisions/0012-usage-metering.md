@@ -1,6 +1,6 @@
 # 0012: Usage metering and caps
 
-Status: Accepted. The allowance amounts and the alert channel wait for the owner.
+Status: Accepted. Amended 2026-09-30: allowances are monthly (owner decision). The allowance amounts wait for the owner.
 Date: 2026-09-29
 Plan step: 10
 
@@ -16,12 +16,15 @@ under parallel requests.
 1. **Unit of account: the microdollar**, a whole millionth of a US dollar, estimated before
    each call. A cheap text call costs a fraction of a cent, so whole cents would round it to
    nothing. Vendors bill in US dollars.
-2. **Two allowances, each per user and per brand, per UTC day:** `ai` (text and image
+2. **Two allowances, each per user and per brand, per calendar month in UTC** (per UTC day
+   until the owner's decision of 2026-09-30; migration `20260930050000_monthly_allowances.sql`): `ai` (text and image
    reading) and `photoreal` (generated pictures). A call draws from one of them. The safety
    ceiling counts both, across everyone. Defaults come from configuration
    (`USAGE_*` variables in `lib/config/env.ts`); a row in `usage_limits` replaces the default
-   for one user or one brand.
-3. **`usage_reserve` in Postgres** keeps three running totals (user, brand, day) in
+   for one user or one brand. The safety ceiling stays per UTC day: it guards against a runaway
+   spend, and a day limits the damage of a leaked account faster than a month.
+3. **`usage_reserve` in Postgres** keeps three running totals (user and brand for the month,
+   everyone for the day) in
    `private.usage_counters`. It locks the three rows in a fixed order, then makes one
    conditional update that moves all three or none. Refusal names the first limit passed.
    `usage_refund` gives a failed call's cost back once. `usage_set_limit` sets or removes an
@@ -50,8 +53,9 @@ or delete an event). Unit tests cover the meter, the alert and the route option.
 - Three separate conditional updates with a rollback on the first refusal: the same result,
   but harder to read as one step.
 - A counter per brand only: reset by making a new brand. Rejected by the plan.
-- Monthly allowances: closer to billing, but a day limits the damage of a leaked account
-  faster and matches the day ceiling. Revisit when pricing exists.
+- Daily allowances (the first version): a day limits the damage of a leaked account faster,
+  but the owner chose monthly allowances on 2026-09-30, closer to billing. The daily safety
+  ceiling keeps the fast limit on damage.
 - Counting from `usage_events` with `sum()`: needs a lock on a whole range and grows with
   use. Running totals are one row each.
 

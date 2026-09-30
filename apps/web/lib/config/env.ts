@@ -28,14 +28,16 @@ const envSchema = z.object({
     .regex(/^[A-Za-z0-9-]+$/)
     .transform((value) => value.toLowerCase())
     .default("x-vercel-forwarded-for"),
-  // AI spend allowances for each UTC day, in microdollars (millionths of a US dollar).
-  // A limit stored in usage_limits for one user or brand replaces these. The defaults
-  // are provisional: the owner sets the real ones (see lib/usage/OWNER-QUESTIONS.md).
-  USAGE_USER_DAILY_AI: microdollars.default(250_000),
-  USAGE_BRAND_DAILY_AI: microdollars.default(1_000_000),
-  USAGE_USER_DAILY_PHOTOREAL: microdollars.default(500_000),
-  USAGE_BRAND_DAILY_PHOTOREAL: microdollars.default(2_000_000),
-  // Safety ceiling across every user. The owner is alerted at half and at full.
+  // AI spend allowances for each calendar month (UTC), in microdollars (millionths of a US
+  // dollar). A limit stored in usage_limits for one user or brand replaces these. The
+  // defaults are provisional (30 times the earlier daily ones): the owner sets the real
+  // ones (see lib/usage/OWNER-QUESTIONS.md).
+  USAGE_USER_MONTHLY_AI: microdollars.default(7_500_000),
+  USAGE_BRAND_MONTHLY_AI: microdollars.default(30_000_000),
+  USAGE_USER_MONTHLY_PHOTOREAL: microdollars.default(15_000_000),
+  USAGE_BRAND_MONTHLY_PHOTOREAL: microdollars.default(60_000_000),
+  // Safety ceiling across every user for each UTC day (not a month: it guards against a
+  // runaway spend). The owner is alerted at half and at full.
   USAGE_GLOBAL_DAILY_CEILING: microdollars.default(25_000_000),
   // AI provider keys (owner action A3). Both are optional: without the key for the chosen
   // model the assistant is shown as not available, and requests the rules can answer still work.
