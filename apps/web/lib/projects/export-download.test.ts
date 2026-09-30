@@ -37,6 +37,7 @@ const source = (patch: Partial<TechPackSource> = {}): TechPackSource => ({
   history,
   pictures: { images: new Map(), skipped: 0 },
   charts: DEFAULT_CHART_SET,
+  illustrations: null,
   ...patch,
 });
 
@@ -233,5 +234,18 @@ describe("serving an export", () => {
     const sheets = await readWorkbook(new Uint8Array(await (await made.response).arrayBuffer()));
     const cells = sheets.flatMap((sheet) => sheet.data.flat());
     expect(cells.some((cell) => typeof cell === "string" && cell.includes("U1"))).toBe(true);
+  });
+
+  it("carries the AI illustrations of the version exported, and leaves out ones made from a later version", async () => {
+    const illustrations = {
+      version: 3,
+      illustrations: [{ view: "front" as const, label: "Front", src: "data:image/jpeg;base64,AAAA", alt: "AI illustration." }],
+    };
+    const sheetsOf = async (version: number) => {
+      const made = ask("xlsx", {}, { load: async () => source({ project: openProject({ currentVersion: version }), illustrations }) });
+      return (await readWorkbook(new Uint8Array(await (await made.response).arrayBuffer()))).map((sheet) => sheet.sheet);
+    };
+    expect(await sheetsOf(3)).toContain("Illustrations");
+    expect(await sheetsOf(2)).not.toContain("Illustrations");
   });
 });

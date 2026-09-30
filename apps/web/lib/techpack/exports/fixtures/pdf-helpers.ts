@@ -30,7 +30,7 @@ interface Built {
 const made = new Map<string, Promise<Built>>();
 
 const keyOf = (pack: TechPack, images: ImageMap, options: PdfOptions): string =>
-  JSON.stringify([pack, [...images.keys()], options.pictureLeftOut === true]);
+  JSON.stringify([pack, [...images.keys()], options.pictureLeftOut === true, options.illustrations ?? null]);
 
 async function build(pack: TechPack, images: ImageMap, options: PdfOptions): Promise<Built> {
   const warnings: string[] = [];

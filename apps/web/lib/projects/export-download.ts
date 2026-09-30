@@ -8,6 +8,7 @@ import type { ExportFormat } from "@/lib/techpack/exports/formats";
 import { assertEverySetCellHasSource } from "@/lib/techpack/exports/guard";
 import { downloadResponse } from "@/lib/techpack/exports/headers";
 import { buildPdf } from "@/lib/techpack/exports/pdf/document";
+import { illustrationsForExport } from "@/lib/techpack/exports/illustrations";
 import { exportQuerySchema, type ExportQuery } from "@/lib/techpack/exports/request";
 import { buildSvg } from "@/lib/techpack/exports/svg";
 import { buildPackFor } from "./tech-pack-data";
@@ -48,8 +49,9 @@ type Built = Readonly<{ content: Uint8Array | string }>;
 async function buildFile(format: ExportFormat, view: View | null, source: TechPackSource, pack: ReturnType<typeof buildPackFor>): Promise<Built> {
   const { images, skipped } = source.pictures;
   const pictureLeftOut = skipped > 0;
-  if (format === "pdf") return { content: await buildPdf(pack, images, { pictureLeftOut }) };
-  if (format === "xlsx") return { content: await buildWorkbook(pack) };
+  const illustrations = illustrationsForExport(source.illustrations, source.project.currentVersion);
+  if (format === "pdf") return { content: await buildPdf(pack, images, { pictureLeftOut, illustrations }) };
+  if (format === "xlsx") return { content: await buildWorkbook(pack, { illustrations }) };
   return { content: buildSvg(pack, view ?? "front", images, { pictureLeftOut }) };
 }
 

@@ -2,8 +2,9 @@ import writeExcelFile from "write-excel-file/node";
 import type { TechPack } from "../../types";
 import { ExportRefused } from "../errors";
 import { assertEverySetCellHasSource } from "../guard";
+import { illustrationSheetRows, type ExportIllustrations } from "../illustrations";
 import { exportSections } from "../tables";
-import { sheetNameProblem, type SheetCell } from "./cells";
+import { noteCell, sheetNameProblem, type SheetCell } from "./cells";
 import { sheetOf } from "./sheet";
 
 export interface WorkbookSheet {
@@ -51,13 +52,23 @@ export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uin
   return new Uint8Array(written);
 }
 
+export interface WorkbookOptions {
+  /** When AI pictures were made, a last sheet says so. The pictures themselves are only in the PDF. */
+  readonly illustrations?: ExportIllustrations | null;
+}
+
+const illustrationSheet = (illustrations: ExportIllustrations): WorkbookSheet => ({
+  name: "Illustrations",
+  data: illustrationSheetRows(illustrations).map((line) => [noteCell(line)]),
+});
+
 /** The Excel file of a tech pack: one sheet for each section that holds values. */
-export async function buildWorkbook(pack: TechPack): Promise<Uint8Array> {
+export async function buildWorkbook(pack: TechPack, options: WorkbookOptions = {}): Promise<Uint8Array> {
   assertEverySetCellHasSource(pack);
   const sheets = exportSections(pack).flatMap((section) => {
     if (section.sheet === null) return [];
     const layout = sheetOf(section);
     return [{ name: section.sheet, data: layout.rows, columns: columnWidths(layout.measured), frozenRows: layout.frozenRows }];
   });
-  return writeSheets(sheets);
+  return writeSheets(options.illustrations ? [...sheets, illustrationSheet(options.illustrations)] : sheets);
 }

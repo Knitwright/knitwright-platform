@@ -8,6 +8,7 @@ import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../..
 import { PROPOSAL_WORDS } from "../../text";
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
+import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
 import { EXCEL_SHEETS } from "../contents";
 import {
   pairsOf,
@@ -71,6 +72,16 @@ describe("the Excel file equals the document (T2)", () => {
     expect(names).toEqual(Object.values(EXCEL_SHEETS).filter((name): name is string => name !== null));
     expect(names).toEqual(["Cover", "Measurements", "Components", "Construction", "Colourways", "Artwork", "Labels and packing", "Suggested values", "Sign-off"]);
     for (const name of names) expect(name).toMatch(/^[^\\/?*[\]:]{1,31}$/);
+  });
+
+  it("adds a last sheet saying the AI illustrations are in the PDF, only when some were made", async () => {
+    const illustrations = { label: ILLUSTRATION_LABEL, note: null, items: [{ view: "front" as const, caption: "Front.", src: "data:image/jpeg;base64,AAAA" }] };
+    const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee")), { illustrations }));
+    const last = sheets.at(-1);
+    expect(last?.sheet).toBe("Illustrations");
+    expect(last?.data.flat()).toEqual([ILLUSTRATION_LABEL, "The pictures (front) are in the PDF of this tech pack."]);
+    const without = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee")), { illustrations: null }));
+    expect(without.map((sheet) => sheet.sheet)).not.toContain("Illustrations");
   });
 
   it("holds every cell of the document with its value and its source, numbers as numbers, for every tops type", async () => {

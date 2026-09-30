@@ -5,6 +5,7 @@ import { start } from "@/lib/garment/fixtures/specs";
 import { fullDesign, packFor } from "../../fixtures/designs";
 import { allText } from "../fixtures/pdf-pages";
 import { noSpace, readPdfOf } from "../fixtures/pdf-helpers";
+import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
 import { PICTURE_LEFT_OUT } from "../limits";
 
 const FILE = "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11";
@@ -31,6 +32,29 @@ describe("pictures in the PDF", () => {
     const { pages } = await readPdfOf(packFor(withPicture()), new Map(), { pictureLeftOut: true, operations: true });
     expect(noSpace(allText(pages))).toContain(noSpace(PICTURE_LEFT_OUT));
     expect(pages.flatMap((page) => page.operations)).not.toContain("paintImageXObject");
+  });
+});
+
+describe("illustrations in the PDF", () => {
+  it("adds the AI pictures after the specification, each labelled as an illustration", async () => {
+    const jpeg = await sharp({ create: { width: 32, height: 32, channels: 3, background: "#8899aa" } }).jpeg().toBuffer();
+    const src = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
+    const illustrations = {
+      label: ILLUSTRATION_LABEL,
+      note: "Made from version 2. The design has changed since.",
+      items: [{ view: "front" as const, caption: "Front. Illustration, not a specification.", src }],
+    };
+    const { pages } = await readPdfOf(packFor(fullDesign("crew-tee")), new Map(), { illustrations, operations: true });
+    const text = noSpace(allText(pages));
+    expect(text).toContain(noSpace(ILLUSTRATION_LABEL));
+    expect(text).toContain(noSpace("Front. Illustration, not a specification."));
+    expect(text).toContain(noSpace("Made from version 2."));
+    expect(pages.at(-1)?.operations).toContain("paintImageXObject");
+  });
+
+  it("has no illustrations section when none were made", async () => {
+    const { pages } = await readPdfOf(packFor(fullDesign("crew-tee")));
+    expect(noSpace(allText(pages))).not.toContain(noSpace(ILLUSTRATION_LABEL));
   });
 });
 

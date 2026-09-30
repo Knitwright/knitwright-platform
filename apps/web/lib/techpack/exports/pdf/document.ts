@@ -6,7 +6,9 @@ import { TO_BE_CONFIRMED } from "../../cell";
 import type { TechPack } from "../../types";
 import { assertEverySetCellHasSource } from "../guard";
 import { drawable, hasUndrawable } from "../pdf-text";
+import type { ExportIllustrations } from "../illustrations";
 import { exportSections } from "../tables";
+import { illustrationsElement } from "./illustrations";
 import { paragraph } from "./parts";
 import { sectionElement } from "./sections";
 import { COLOURS, MARGIN, SIZES } from "./styles";
@@ -17,6 +19,8 @@ export const CHARACTERS_REPLACED = "Some characters could not be drawn in this f
 export interface PdfOptions {
   /** True when a picture was left out for size, so the document says so in words. */
   readonly pictureLeftOut?: boolean;
+  /** AI pictures of the design, added after the specification and labelled as illustrations. */
+  readonly illustrations?: ExportIllustrations | null;
 }
 
 /** Text made drawable, and a record of whether any character had to be replaced. */
@@ -84,6 +88,7 @@ export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfO
   const context = { pack, images, safe, pictureLeftOut: options.pictureLeftOut === true };
   const sections = exportSections(pack).map((section) => sectionElement(section, context));
   const head = titleBlock(pack, safe);
+  const pictures = options.illustrations ? [illustrationsElement(options.illustrations, safe)] : [];
   const note = replaced() ? [paragraph(CHARACTERS_REPLACED, safe, "replaced")] : [];
   return h(
     Document,
@@ -104,6 +109,7 @@ export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfO
       head,
       ...note,
       ...sections,
+      ...pictures,
       footer(pack, safe),
     ),
   );

@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { brandChartSet } from "@/lib/charts/service";
 import type { ImageBytes } from "@/lib/flat/images";
+import { loadIllustrations, type LoadedIllustrations } from "@/lib/images/illustrations";
+import { latestImages } from "@/lib/images/service";
 import type { ChartSet } from "@/lib/sizing";
 import { createFileReader, type StoredBytes } from "@/lib/storage/read";
 import { loadArtworkImages, type LoadedPictures } from "./artwork-images";
@@ -8,14 +10,17 @@ import { getProjectAt, listVersions, type OpenProject, type VersionsPage } from 
 import { historyIsNewer } from "./tech-pack-data";
 
 /**
- * What the tech pack page and every export are made from: the design, its history, its pictures
- * and the size charts that apply (the platform's, with the brand's own in their place).
+ * What the tech pack page and every export are made from: the design, its history, its pictures,
+ * the size charts that apply (the platform's, with the brand's own in their place) and the AI
+ * illustrations, if any were made.
  */
 export interface TechPackSource {
   readonly project: OpenProject;
   readonly history: VersionsPage;
   readonly pictures: LoadedPictures;
   readonly charts: ChartSet;
+  /** The newest AI pictures of the design, or null when none were made. */
+  readonly illustrations: LoadedIllustrations | null;
 }
 
 export interface LoadOptions {
@@ -46,19 +51,21 @@ export async function loadTechPackSource(
   projectId: string,
   options: LoadOptions,
 ): Promise<TechPackSource> {
-  const [first, charts] = await Promise.all([
+  const reader = createFileReader(client, brandId);
+  const [first, charts, illustrations] = await Promise.all([
     readBoth(client, brandId, projectId, options.version),
     brandChartSet(client, brandId),
+    latestImages(client, brandId, projectId).then((latest) => loadIllustrations(reader, latest)),
   ]);
   let [project, history] = first;
   if (options.version === undefined && historyIsNewer(project, history)) {
     [project, history] = await readBoth(client, brandId, projectId);
   }
   const pictures = await loadArtworkImages(
-    createFileReader(client, brandId),
+    reader,
     options.shrink,
     project.spec,
     options.maxEmbeddedBytes === undefined ? {} : { maxEmbeddedBytes: options.maxEmbeddedBytes },
   );
-  return { project, history, pictures, charts };
+  return { project, history, pictures, charts, illustrations };
 }
