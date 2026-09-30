@@ -28,7 +28,7 @@ export function exportHeaders(format: ExportFormat, name: FileName, length: numb
 }
 
 /** The one response that carries a file. The bytes are in memory and are sent once. */
-export function downloadResponse(format: ExportFormat, name: FileName, content: Uint8Array | string): Response {
+export function downloadResponse(format: ExportFormat, name: FileName, content: Uint8Array<ArrayBuffer> | string): Response {
   const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
-  return new Response(new Uint8Array(bytes), { status: 200, headers: exportHeaders(format, name, bytes.byteLength) });
+  return new Response(bytes, { status: 200, headers: exportHeaders(format, name, bytes.byteLength) });
 }

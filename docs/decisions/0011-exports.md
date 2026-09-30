@@ -103,6 +103,9 @@ document does not hold, and no value may reach a file without its source.
 What had to be added to the rulings:
 
 - `getProjectAt` reads a design at a named version. `getProject` calls it, so the page behaves as before.
+  It also returns when that version was saved (`versionSavedAt`), which dates the document.
+- The name, the style number and the season on a document are the design's current ones, also for an older
+  version: they are not versioned, because a factory needs the style number in use now.
 - The Excel file has stacked tables on each sheet, with the frozen rows counted to the first header row.
 - The tests of the PDF are their own vitest project, run after the others (see the consequences).
 - `record_export_download` has no foreign key to `spec_versions`, because such a key makes emptying that
@@ -131,6 +134,19 @@ What had to be added to the rulings:
 | The page and the route read the same version the same way | `tests/integration/tech-pack-load.test.ts`, `lib/projects/tech-pack-data.test.ts` |
 | A member signs in, makes a design, downloads all four files under the right names, and the first bytes and the design name are right | `e2e/exports.spec.ts` |
 | The four buttons are named, reachable by keyboard, announce that they are busy and say why a download failed | `lib/projects/download-controls.test.ts`, `e2e/exports.spec.ts` |
+
+## Review
+
+The step 9 review found these. Each outcome is in the fix commit that follows the step.
+
+| Finding | Outcome |
+|---|---|
+| M1: a version older than the newest 100 took the day the design last changed as its date | Fixed. `getProjectAt` returns the saved time of the version it read, and the document uses it. Tests: `tech-pack-data.test.ts`, `tests/integration/project-service.test.ts` |
+| M2: the name, style number and season of an older version are today's | Kept, as a ruling: they are not versioned, because a factory needs the current style number. Written under "What had to be added to the rulings" |
+| M3: the exports lack the note that pictures were left out | Not a fault. The page's sentence is not part of the document, so `buildPackFor` does not take it; the PDF prints `PICTURE_LEFT_OUT` in the flats and artwork sections, and the SVG holds it as a comment, whenever a picture was left out. The Excel file holds no pictures, so it has nothing to leave out. A test now checks that the export tells the PDF so (`export-download.test.ts`) |
+| L4: the last guard ran twice for each request | Fixed. The call in `serveExport` is removed. Each writer keeps its own call, since the guard's test (R14) holds every writer to it. A test checks it runs once per request |
+| L5: `downloadResponse` copied the bytes a second time | Fixed. The writers return bytes on their own buffer, so the response takes them as they are |
+| L6: an unreachable `view ?? "front"` and an empty `Built` wrapper in `export-download.ts` | Removed. A drawing with no view is now refused as invalid input rather than drawn as the front |
 
 ## Alternatives
 

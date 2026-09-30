@@ -15,6 +15,7 @@ const project = (spec: GarmentSpec, patch: Partial<OpenProject> = {}): OpenProje
   currentVersion: 3,
   createdAt: "2026-09-01T10:00:00Z",
   updatedAt: "2026-09-03T10:00:00Z",
+  versionSavedAt: "2026-09-03T10:00:00Z",
   spec,
   dropped: [],
   ...patch,
@@ -58,9 +59,17 @@ describe("buildTechPackPage", () => {
     ]);
   });
 
-  it("falls back to the day the design was last changed when the version is not in the history", () => {
-    const data = page(start("crew-tee"), { history: { versions: [], hasMore: false } });
-    expect(data.pack.cover.date).toBe("3 Sep 2026");
+  it("dates a version older than the listed history by the day that version was saved, not the day the design last changed", () => {
+    const old = project(start("crew-tee"), { currentVersion: 3, versionSavedAt: "2026-08-15T10:00:00Z", updatedAt: "2026-09-20T10:00:00Z" });
+    const data = buildTechPackPage({
+      project: old,
+      history: { versions: [], hasMore: true },
+      brandName: "Test Brand",
+      images: new Map(),
+      now: new Date("2026-09-30T10:00:00Z"),
+    });
+    expect(data.pack.cover.date).toBe("15 Aug 2026");
+    expect(data.pack.cover.dateIso).toBe("2026-08-15");
   });
 
   it("says how many things are left to confirm, in a sentence", () => {

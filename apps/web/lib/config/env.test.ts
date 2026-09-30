@@ -138,4 +138,59 @@ describe("parseEnv", () => {
   it("rejects an image model key with spaces in it", () => {
     expect(() => parseEnv({ ...valid, GEMINI_API_KEY: "a key" })).toThrow(/GEMINI_API_KEY is not valid/);
   });
+
+  describe("Cloudflare's test site keys", () => {
+    const testKeys = [
+      "1x00000000000000000000AA",
+      "2x00000000000000000000AB",
+      "1x00000000000000000000BB",
+      "2x00000000000000000000BB",
+      "3x00000000000000000000FF",
+    ];
+    const live = { ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com" };
+
+    it.each(testKeys)("refuses %s on a Vercel production deploy", (key) => {
+      expect(() =>
+        parseEnv({ ...valid, NEXT_PUBLIC_TURNSTILE_SITE_KEY: key, VERCEL_ENV: "production" }),
+      ).toThrow(/NEXT_PUBLIC_TURNSTILE_SITE_KEY is a test key/);
+    });
+
+    it.each(testKeys)("refuses %s in a production build served on a public address", (key) => {
+      expect(() =>
+        parseEnv({ ...live, NEXT_PUBLIC_TURNSTILE_SITE_KEY: key, NODE_ENV: "production" }),
+      ).toThrow(/NEXT_PUBLIC_TURNSTILE_SITE_KEY is a test key/);
+    });
+
+    it("allows a test key in a production build served on this machine, as the browser tests do", () => {
+      for (const site of ["http://localhost:3100", "http://127.0.0.1:3100"]) {
+        expect(() =>
+          parseEnv({
+            ...valid,
+            NEXT_PUBLIC_SITE_URL: site,
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY: testKeys[0],
+            NODE_ENV: "production",
+          }),
+        ).not.toThrow();
+      }
+    });
+
+    it("allows a test key in development and in tests", () => {
+      for (const mode of ["development", "test", undefined]) {
+        expect(() =>
+          parseEnv({ ...live, NEXT_PUBLIC_TURNSTILE_SITE_KEY: testKeys[0], NODE_ENV: mode }),
+        ).not.toThrow();
+      }
+    });
+
+    it("allows a real key in production", () => {
+      expect(() =>
+        parseEnv({
+          ...live,
+          NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAAreal-key",
+          NODE_ENV: "production",
+          VERCEL_ENV: "production",
+        }),
+      ).not.toThrow();
+    });
+  });
 });

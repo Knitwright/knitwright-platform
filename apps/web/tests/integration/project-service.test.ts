@@ -6,6 +6,7 @@ import {
   createProject,
   currentVersion,
   getProject,
+  getProjectAt,
   getVersion,
   listProjects,
   listVersions,
@@ -333,6 +334,15 @@ describe("saving an action", () => {
 
     expect(outcome.spec.measurements).toEqual([{ pointId: "chest-width", value: 5250, provenance: "user-edited" }]);
     expect(((await listVersions(alice.client, aliceBrand, id)).versions)[0].note).toBe("Chest width set to 52.5 cm.");
+  });
+
+  it("says when the version that was read was saved, for an old version as for the current one", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+    const saves = new Map((await listVersions(alice.client, aliceBrand, id)).versions.map((v) => [v.version, v.createdAt]));
+
+    expect((await getProjectAt(alice.client, aliceBrand, id, 1)).versionSavedAt).toBe(saves.get(1));
+    expect((await open(id)).versionSavedAt).toBe(saves.get(2));
   });
 
   it("keeps the old versions exactly as they were", async () => {

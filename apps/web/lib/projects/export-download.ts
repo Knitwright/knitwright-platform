@@ -5,12 +5,12 @@ import { buildWorkbook } from "@/lib/techpack/exports/excel/workbook";
 import { NoDrawing } from "@/lib/techpack/exports/errors";
 import { exportFileName } from "@/lib/techpack/exports/file-names";
 import type { ExportFormat } from "@/lib/techpack/exports/formats";
-import { assertEverySetCellHasSource } from "@/lib/techpack/exports/guard";
 import { downloadResponse } from "@/lib/techpack/exports/headers";
 import { buildPdf } from "@/lib/techpack/exports/pdf/document";
 import { illustrationsForExport } from "@/lib/techpack/exports/illustrations";
 import { exportQuerySchema, type ExportQuery } from "@/lib/techpack/exports/request";
 import { buildSvg } from "@/lib/techpack/exports/svg";
+import type { TechPack } from "@/lib/techpack";
 import { buildPackFor } from "./tech-pack-data";
 import type { TechPackSource } from "./tech-pack-load";
 
@@ -44,22 +44,22 @@ const parseQuery = (format: ExportFormat, query: unknown): ExportQuery => {
   return parsed.data;
 };
 
-type Built = Readonly<{ content: Uint8Array | string }>;
-
-async function buildFile(format: ExportFormat, view: View | null, source: TechPackSource, pack: ReturnType<typeof buildPackFor>): Promise<Built> {
+async function buildFile(format: ExportFormat, view: View | null, source: TechPackSource, pack: TechPack): Promise<Uint8Array<ArrayBuffer> | string> {
   const { images, skipped } = source.pictures;
   const pictureLeftOut = skipped > 0;
   const illustrations = illustrationsForExport(source.illustrations, source.project.currentVersion);
-  if (format === "pdf") return { content: await buildPdf(pack, images, { pictureLeftOut, illustrations }) };
-  if (format === "xlsx") return { content: await buildWorkbook(pack, { illustrations }) };
-  return { content: buildSvg(pack, view ?? "front", images, { pictureLeftOut }) };
+  if (format === "pdf") return buildPdf(pack, images, { pictureLeftOut, illustrations });
+  if (format === "xlsx") return buildWorkbook(pack, { illustrations });
+  // The query of a drawing always names a view: exportQuerySchema requires it.
+  if (view === null) throw new AppError("invalid_input", MESSAGES.invalid_input);
+  return buildSvg(pack, view, images, { pictureLeftOut });
 }
 
 /**
  * Builds one export and sends it. The order is fixed: load the design, build the file in memory,
  * record the download, then send. If the download cannot be recorded, nothing is sent. Nothing is
  * written to disk or to storage. The design is the one the tech pack page shows, made by the same
- * function from the same reads.
+ * function from the same reads. Each format's writer runs assertEverySetCellHasSource itself, once.
  */
 export async function serveExport(deps: ExportDeps, input: ExportInput): Promise<Response> {
   const query = parseQuery(input.format, input.query);
@@ -73,11 +73,10 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     charts: source.charts,
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
-  assertEverySetCellHasSource(pack);
   const view = query.view ?? null;
-  let built: Built;
+  let content: Uint8Array<ArrayBuffer> | string;
   try {
-    built = await buildFile(input.format, view, source, pack);
+    content = await buildFile(input.format, view, source, pack);
   } catch (error) {
     if (error instanceof NoDrawing) throw new AppError("not_found", error.message);
     throw error;
@@ -90,5 +89,5 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     format: input.format,
     view,
   });
-  return downloadResponse(input.format, name, built.content);
+  return downloadResponse(input.format, name, content);
 }

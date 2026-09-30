@@ -1,6 +1,6 @@
 import { expect, type APIResponse, type Page } from "@playwright/test";
 import sharp from "sharp";
-import { createAccount, signIn, summary, test } from "./support";
+import { createAccount, signIn, standInForBotCheck, summary, test } from "./support";
 
 const logo = () =>
   sharp({ create: { width: 64, height: 32, channels: 4, background: "#2b46f0" } })
@@ -147,6 +147,7 @@ test.describe("files", () => {
     const { data: file } = await (await upload(page, await logo())).json();
 
     const other = await browser.newContext();
+    await standInForBotCheck(other);
     try {
       const stranger = await other.newPage();
       await stranger.setExtraHTTPHeaders({ "x-real-ip": "10.99.0.1" });

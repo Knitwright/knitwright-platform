@@ -13,6 +13,7 @@ const project = (overrides: Partial<OpenProject> = {}): OpenProject => ({
   currentVersion: 3,
   createdAt: "2026-09-01T10:00:00Z",
   updatedAt: "2026-09-29T14:05:00Z",
+  versionSavedAt: "2026-09-29T14:05:00Z",
   spec: start("crew-tee", "women"),
   dropped: [],
   ...overrides,

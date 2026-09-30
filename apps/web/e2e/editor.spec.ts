@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, signIn, standInForBotCheck, test } from "./support";
 
 /** Plan step 6: the editor. Sign in, make a design, change it, reload, find it saved. */
 
@@ -361,6 +361,7 @@ test.describe("isolation between brands", () => {
     const other = await browser.newContext({
       extraHTTPHeaders: { "x-real-ip": `10.98.${Math.floor(Math.random() * 250)}.7` },
     });
+    await standInForBotCheck(other);
     try {
       const stranger = await other.newPage();
       await signIn(stranger, await createAccount("stranger"));

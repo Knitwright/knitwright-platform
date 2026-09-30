@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, signIn, standInForBotCheck, test } from "./support";
 
 /**
  * Plan step 8: the tech pack on screen. It is built from the one saved version of the design,
@@ -191,6 +191,23 @@ test.describe("the tech pack page", () => {
     await expect.poll(count).toBeLessThan(before);
   });
 
+  test("answers within two seconds", async ({ page }) => {
+    // The waits in these tests allow 10 seconds each, so a page that slowed down would still
+    // pass them. This holds the page's own time to the budget: the server's whole answer.
+    const BUDGET_MS = 2_000;
+    await signedIn(page, "pack-speed");
+    await startDesign(page, "Crew neck tee");
+    const address = `${new URL(page.url()).pathname}/tech-pack`;
+
+    for (let visit = 0; visit < 3; visit += 1) {
+      const response = await page.goto(address);
+      expect(response?.status()).toBe(200);
+      await response?.finished();
+      const answeredIn = response?.request().timing().responseEnd ?? Number.POSITIVE_INFINITY;
+      expect(answeredIn).toBeLessThan(BUDGET_MS);
+    }
+  });
+
   test("refuses a fabric weight that is not a number, beside the field", async ({ page }) => {
     await signedIn(page, "pack-weight");
     await startDesign(page, "Crew neck tee");
@@ -218,6 +235,7 @@ test.describe("isolation between brands", () => {
     const other = await browser.newContext({
       extraHTTPHeaders: { "x-real-ip": `10.97.${Math.floor(Math.random() * 250)}.9` },
     });
+    await standInForBotCheck(other);
     try {
       const stranger = await other.newPage();
       await signIn(stranger, await createAccount("pack-stranger"));

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import { AppError } from "@/lib/server/core/errors";
 import { DEFAULT_CHART_SET, withBrandCharts } from "@/lib/sizing";
@@ -9,6 +9,36 @@ import { fullDesign } from "@/lib/techpack/fixtures/designs";
 import { serveExport, type DownloadEntry, type ExportDeps } from "./export-download";
 import type { OpenProject, VersionsPage } from "./service";
 import type { TechPackSource } from "./tech-pack-load";
+
+/** Counts the last check before a file is made, and what the PDF is asked to say. */
+const seen = vi.hoisted(() => ({ guards: 0, pdfOptions: [] as unknown[] }));
+
+vi.mock("@/lib/techpack/exports/guard", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/techpack/exports/guard")>();
+  return {
+    ...actual,
+    assertEverySetCellHasSource: (...args: Parameters<typeof actual.assertEverySetCellHasSource>) => {
+      seen.guards += 1;
+      actual.assertEverySetCellHasSource(...args);
+    },
+  };
+});
+
+vi.mock("@/lib/techpack/exports/pdf/document", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/techpack/exports/pdf/document")>();
+  return {
+    ...actual,
+    buildPdf: (...args: Parameters<typeof actual.buildPdf>) => {
+      seen.pdfOptions.push(args[2]);
+      return actual.buildPdf(...args);
+    },
+  };
+});
+
+beforeEach(() => {
+  seen.guards = 0;
+  seen.pdfOptions = [];
+});
 
 const PROJECT_ID = "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11";
 
@@ -22,6 +52,7 @@ const openProject = (patch: Partial<OpenProject> = {}): OpenProject => ({
   currentVersion: 3,
   createdAt: "2026-09-01T10:00:00.000Z",
   updatedAt: "2026-09-29T10:00:00.000Z",
+  versionSavedAt: "2026-09-29T10:00:00.000Z",
   spec: fullDesign("crew-tee"),
   dropped: [],
   ...patch,
@@ -212,6 +243,23 @@ describe("serving an export", () => {
     const sent = await ask("svg", { view: "front" }, { load: async () => left }).response;
 
     expect(await sent.text()).toContain(PICTURE_LEFT_OUT);
+  });
+
+  it("tells the PDF to say a picture was left out when one was, and not otherwise", async () => {
+    const left = source({ pictures: { images: new Map(), skipped: 1 } });
+    await ask("pdf", {}, { load: async () => left }).response;
+    await ask("pdf").response;
+
+    expect(seen.pdfOptions).toEqual([
+      { pictureLeftOut: true, illustrations: null },
+      { pictureLeftOut: false, illustrations: null },
+    ]);
+  });
+
+  it.each(["pdf", "xlsx", "svg"] as const)("checks the document once before a %s is made", async (format) => {
+    await ask(format, format === "svg" ? { view: "front" } : {}).response;
+
+    expect(seen.guards).toBe(1);
   });
 
   it("takes the printed date from the clock it is given", async () => {

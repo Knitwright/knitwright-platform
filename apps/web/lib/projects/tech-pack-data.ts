@@ -90,10 +90,6 @@ const revisionsOf = (history: VersionsPage, current: number): readonly RevisionI
     by: null,
   }));
 
-/** The date the shown version was saved. A version missing from the history takes the day the design last changed. */
-const versionMoment = (project: OpenProject, history: VersionsPage): string =>
-  history.versions.find((entry) => entry.version === project.currentVersion)?.createdAt ?? project.updatedAt;
-
 /**
  * The document for one version of a design. The screen and every export are made by this one
  * function from the same inputs, so they cannot disagree: the drawings, the table and the
@@ -105,8 +101,8 @@ export function buildPackFor(input: TechPackPageInput): TechPack {
   return buildTechPack({
     project: { name: project.name, styleNumber: project.styleNumber, season: project.season, brandName: input.brandName },
     version: project.currentVersion,
-    versionDate: formatDate(versionMoment(project, history)),
-    versionDateIso: isoDay(versionMoment(project, history)),
+    versionDate: formatDate(project.versionSavedAt),
+    versionDateIso: isoDay(project.versionSavedAt),
     printedOn: formatDate(input.now.toISOString()),
     printedOnIso: isoDay(input.now.toISOString()),
     history: revisionsOf(history, project.currentVersion),

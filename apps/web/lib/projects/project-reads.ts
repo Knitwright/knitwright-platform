@@ -37,6 +37,8 @@ export interface ProjectSummary {
 }
 
 export interface OpenProject extends ProjectSummary {
+  /** When the version that was read was saved. */
+  readonly versionSavedAt: string;
   readonly spec: GarmentSpec;
   /** What had to be removed to make an old design fit today's rules. Usually empty. */
   readonly dropped: readonly Dropped[];
@@ -163,7 +165,12 @@ export const getProjectAt = async (
   const row = await loadRow(client, brandId, projectId);
   const at = version ?? row.current_version;
   const stored = await loadVersion(client, brandId, projectId, at);
-  return { ...summaryOf(row), currentVersion: at, ...(await dropUnreadableArtwork(client, brandId, readSpec(stored.spec))) };
+  return {
+    ...summaryOf(row),
+    currentVersion: at,
+    versionSavedAt: stored.created_at,
+    ...(await dropUnreadableArtwork(client, brandId, readSpec(stored.spec))),
+  };
 };
 
 /** A design with its current content. */

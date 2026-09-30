@@ -116,7 +116,7 @@ export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfO
 }
 
 /** The PDF of a tech pack, in memory. Nothing is written to disk. */
-export async function buildPdf(pack: TechPack, images: ImageMap, options: PdfOptions = {}): Promise<Uint8Array> {
+export async function buildPdf(pack: TechPack, images: ImageMap, options: PdfOptions = {}): Promise<Uint8Array<ArrayBuffer>> {
   assertEverySetCellHasSource(pack);
   return new Uint8Array(await renderToBuffer(techPackDocument(pack, images, options)));
 }

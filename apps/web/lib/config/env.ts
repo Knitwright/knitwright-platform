@@ -54,6 +54,43 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === "true"),
+  // Read only to refuse Cloudflare's test keys where real people sign in.
+  NODE_ENV: z.string().optional(),
+  VERCEL_ENV: z.string().optional(),
+});
+
+/**
+ * Cloudflare's published Turnstile test site keys. They pass (or fail) everyone, so
+ * they may never reach a deploy.
+ * https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+ */
+const TURNSTILE_TEST_SITE_KEYS: ReadonlySet<string> = new Set([
+  "1x00000000000000000000AA",
+  "2x00000000000000000000AB",
+  "1x00000000000000000000BB",
+  "2x00000000000000000000BB",
+  "3x00000000000000000000FF",
+]);
+
+const LOOPBACK_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * A Vercel production deploy, or a production build served anywhere but this machine.
+ * `next start` always runs as production, so the browser tests, which serve the build
+ * on localhost, are told apart by their address.
+ */
+const servesRealPeople = (env: z.infer<typeof envSchema>): boolean =>
+  env.VERCEL_ENV === "production" ||
+  (env.NODE_ENV === "production" && !LOOPBACK_HOSTS.has(new URL(env.NEXT_PUBLIC_SITE_URL).hostname));
+
+const guardedSchema = envSchema.superRefine((env, context) => {
+  if (TURNSTILE_TEST_SITE_KEYS.has(env.NEXT_PUBLIC_TURNSTILE_SITE_KEY) && servesRealPeople(env)) {
+    context.addIssue({
+      code: "custom",
+      path: ["NEXT_PUBLIC_TURNSTILE_SITE_KEY"],
+      message: "test key",
+    });
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -77,12 +114,13 @@ const withoutEmptyStrings = (source: EnvSource): EnvSource =>
 /** Values are never included in problems: a malformed secret must not reach a log. */
 const describeIssue = (issue: z.core.$ZodIssue): string => {
   const name = issue.path.join(".") || "(root)";
+  if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;
   return missing ? `${name} is missing` : `${name} is not valid`;
 };
 
 export const parseEnv = (source: EnvSource): Env => {
-  const result = envSchema.safeParse(withoutEmptyStrings(source));
+  const result = guardedSchema.safeParse(withoutEmptyStrings(source));
   if (!result.success) {
     throw new EnvError(result.error.issues.map(describeIssue));
   }

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, type Download, type Page } from "@playwright/test";
 import { readPages } from "../lib/techpack/exports/fixtures/pdf-pages";
-import { createAccount, downloadRecords, signIn, test } from "./support";
+import { createAccount, downloadRecords, signIn, standInForBotCheck, test } from "./support";
 
 /**
  * Plan step 9: the tech pack as a PDF, an Excel file and two SVG drawings. Each is built when it is
@@ -188,6 +188,7 @@ test.describe("downloading the tech pack (T12)", () => {
   test("a member of another brand cannot download it, and nothing is recorded", async ({ page, browser }) => {
     const projectId = await designWithTechPack(page, "dl-owner", "Private design");
     const other = await browser.newContext();
+    await standInForBotCheck(other);
     try {
       const stranger = await other.newPage();
       await stranger.setExtraHTTPHeaders({ "x-real-ip": "10.99.0.7" });

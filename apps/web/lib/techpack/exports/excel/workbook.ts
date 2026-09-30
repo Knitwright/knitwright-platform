@@ -39,7 +39,7 @@ function assertSheetNames(sheets: readonly WorkbookSheet[]): void {
 }
 
 /** Writes the sheets to the bytes of an .xlsx file, in memory. Nothing is written to disk. */
-export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uint8Array> {
+export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uint8Array<ArrayBuffer>> {
   assertSheetNames(sheets);
   const written = await writeExcelFile(
     sheets.map((sheet) => ({
@@ -63,7 +63,7 @@ const illustrationSheet = (illustrations: ExportIllustrations): WorkbookSheet =>
 });
 
 /** The Excel file of a tech pack: one sheet for each section that holds values. */
-export async function buildWorkbook(pack: TechPack, options: WorkbookOptions = {}): Promise<Uint8Array> {
+export async function buildWorkbook(pack: TechPack, options: WorkbookOptions = {}): Promise<Uint8Array<ArrayBuffer>> {
   assertEverySetCellHasSource(pack);
   const sheets = exportSections(pack).flatMap((section) => {
     if (section.sheet === null) return [];

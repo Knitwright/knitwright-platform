@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type BrowserContext, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 /** Helpers for end-to-end tests. They need local Supabase: `pnpm db:start`. */
@@ -19,14 +19,72 @@ const upTo = (max: number): number => Math.floor(Math.random() * max);
 
 const randomAddress = (): string => `10.${upTo(256)}.${upTo(256)}.${1 + upTo(254)}`;
 
+/** Cloudflare's published always-pass test site key and the token its widget produces. */
+const TEST_SITE_KEY = "1x00000000000000000000AA";
+const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+
+/**
+ * Stands in for Cloudflare's widget script in the browser. With the test site key the
+ * real widget only ever hands out the dummy token, but it takes 2 to 8 seconds of round
+ * trips to Cloudflare to do so, and sometimes more than 30. This hands out the same token
+ * at once. The server still sends it to Cloudflare, with the test secret, as it would in
+ * production. Any other site key fails, so a wrong key still shows up in the tests.
+ */
+const WIDGET_STAND_IN = `(() => {
+  const widgets = new Map();
+  let next = 0;
+  window.turnstile = {
+    render(container, options) {
+      const id = "stand-in-" + (next += 1);
+      if (options.sitekey !== ${JSON.stringify(TEST_SITE_KEY)}) {
+        setTimeout(() => options["error-callback"] && options["error-callback"]("110100"), 0);
+        return id;
+      }
+      const field = document.createElement("input");
+      field.type = "hidden";
+      field.name = options["response-field-name"] || "cf-turnstile-response";
+      field.value = ${JSON.stringify(DUMMY_TOKEN)};
+      container.appendChild(field);
+      widgets.set(id, field);
+      setTimeout(() => options.callback && options.callback(field.value), 0);
+      return id;
+    },
+    remove(id) {
+      widgets.get(id)?.remove();
+      widgets.delete(id);
+    },
+  };
+})();`;
+
+/** Serves WIDGET_STAND_IN to every page of a context. A route set on a page wins over it. */
+export const standInForBotCheck = async (context: BrowserContext): Promise<void> => {
+  await context.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", (route) =>
+    route.fulfill({ contentType: "text/javascript", body: WIDGET_STAND_IN }),
+  );
+};
+
+type Fixtures = Readonly<{ ownAddress: void; realBotCheck: boolean; botCheck: void }>;
+
 /**
  * Each test arrives from its own address, so one test cannot use up another's rate
  * limit. Locally the app trusts this header. On the host it is overwritten.
+ *
+ * The bot check's browser script is replaced by WIDGET_STAND_IN unless a test sets
+ * `test.use({ realBotCheck: true })`. A context a test opens itself needs
+ * `standInForBotCheck` too.
  */
-export const test = base.extend<{ ownAddress: void }>({
+export const test = base.extend<Fixtures>({
   ownAddress: [
     async ({ context }, use) => {
       await context.setExtraHTTPHeaders({ "x-real-ip": randomAddress() });
+      await use();
+    },
+    { auto: true },
+  ],
+  realBotCheck: [false, { option: true }],
+  botCheck: [
+    async ({ context, realBotCheck }, use) => {
+      if (!realBotCheck) await standInForBotCheck(context);
       await use();
     },
     { auto: true },
@@ -121,7 +179,7 @@ export const linkFromMail = async (email: string, subject: RegExp): Promise<stri
 
 /** Waits until the bot check for the current attempt has passed. */
 export const passBotCheck = async (page: Page): Promise<void> => {
-  await expect(page.locator('[data-bot-check="ready"]')).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator('[data-bot-check="ready"]')).toBeVisible();
 };
 
 /** The one-sentence problem at the top of a form. */

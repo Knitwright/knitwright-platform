@@ -179,6 +179,21 @@ test.describe("the bot check", () => {
     await expect(page).toHaveURL(/\/sign-in$/);
   });
 
+  test.describe("with Cloudflare's own script", () => {
+    test.use({ realBotCheck: true });
+
+    test("puts Cloudflare's widget on the sign-in page", async ({ page }) => {
+      await page.goto("/sign-in");
+
+      // Every other test uses a stand-in for the widget. This one waits on Cloudflare itself.
+      await expect
+        .poll(() => page.frames().some((frame) => frame.url().includes("challenges.cloudflare.com")), {
+          timeout: 30_000,
+        })
+        .toBe(true);
+    });
+  });
+
   test("says what to do when it cannot load", async ({ page }) => {
     await page.route("**/challenges.cloudflare.com/**", (route) => route.abort());
     await page.goto("/sign-in");
