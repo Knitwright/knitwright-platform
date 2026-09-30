@@ -54,10 +54,10 @@ export const PROCESSORS: readonly Processor[] = [
     location: "United States",
   },
   {
-    name: "[owner: error monitoring provider, if one is chosen]",
+    name: "Functional Software, Inc. (Sentry)",
     purpose: "Recording unexpected errors so they can be fixed",
     data: "Error details, with keys, tokens and email addresses removed before sending",
-    location: "[owner: provider region]",
+    location: "European Union (Frankfurt, Germany): Sentry's EU data region",
   },
 ];
 

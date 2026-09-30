@@ -100,6 +100,19 @@ export const DATA_PROCESSING: LegalDocument = {
       ],
     },
     {
+      heading: "Law",
+      blocks: [
+        {
+          kind: "p",
+          text: "These terms are governed by the law of England and Wales, as the terms of use are, unless data protection law requires the law of another country to apply to them.",
+        },
+        {
+          kind: "p",
+          text: "[lawyer: Knitwright is offered worldwide (owner decision, 2026-09-30). Review this text for the laws of the main markets beyond the UK and the EU, for example the United States (including state privacy laws such as California's), Canada, Australia and Brazil, and for consumer, sanctions and export rules.] [lawyer: also say whether customers outside the UK and the EU need further clauses.]",
+        },
+      ],
+    },
+    {
       heading: "Order of precedence",
       blocks: [
         {

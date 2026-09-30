@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMonitor, parseTarget } from "./monitor";
+import { createMonitor, NOT_EU_REGION, parseTarget, regionWarning } from "./monitor";
 
 type Sent = { url: string; init: RequestInit };
 
@@ -19,6 +19,35 @@ const warnings = () => {
 
 const NOW = new Date("2026-09-30T12:00:00.000Z");
 const SENTRY_DSN = "https://abc123@o42.ingest.example.io/7";
+
+describe("the chosen provider: Sentry, EU region (owner decision 2026-09-30)", () => {
+  const EU_DSN = "https://abc123@o42.ingest.de.sentry.io/7";
+
+  it("sends to the EU ingest host named in the DSN", () => {
+    expect(parseTarget(EU_DSN)).toMatchObject({
+      kind: "sentry",
+      endpoint: "https://o42.ingest.de.sentry.io/api/7/envelope/",
+    });
+    expect(regionWarning(parseTarget(EU_DSN))).toBeNull();
+  });
+
+  it("warns when a sentry.io DSN is outside the EU region, but still sends", () => {
+    const us = parseTarget("https://abc123@o42.ingest.us.sentry.io/7");
+    expect(regionWarning(us)).toBe(NOT_EU_REGION);
+    expect(regionWarning(parseTarget("https://abc123@o42.ingest.sentry.io/7"))).toBe(NOT_EU_REGION);
+
+    const { lines, warn } = warnings();
+    const monitor = createMonitor({ dsn: "https://abc123@o42.ingest.us.sentry.io/7", send: recorder().send, warn });
+    expect(monitor.enabled).toBe(true);
+    expect(lines).toEqual([expect.objectContaining({ level: "warn", message: NOT_EU_REGION })]);
+  });
+
+  it("says nothing about the region of a host that is not sentry.io", () => {
+    expect(regionWarning(parseTarget(SENTRY_DSN))).toBeNull();
+    expect(regionWarning(parseTarget("https://hooks.example.com/knitwright"))).toBeNull();
+    expect(regionWarning(parseTarget("https://k@evil-sentry.io.example.com/1"))).toBeNull();
+  });
+});
 
 describe("parseTarget", () => {
   it("reads a Sentry-style address: key, host and project", () => {

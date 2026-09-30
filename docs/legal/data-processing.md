@@ -61,12 +61,18 @@ The customer gives general authorisation for Knitwright to use the sub-processor
 | Google LLC (Gemini API) | Making photoreal pictures of a design on request (AI features) | A description and drawing of the design | United States |
 | Cloudflare, Inc. (Turnstile) | Telling people from automated sign-ups | Browser and network signals during sign-up, sign-in and password reset | United States, with servers worldwide |
 | Resend, Inc. | Sending sign-up, sign-in and password emails | Email address and the message | United States |
-| [owner: error monitoring provider, if one is chosen] | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | [owner: provider region] |
+| Functional Software, Inc. (Sentry) | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | European Union (Frankfurt, Germany): Sentry's EU data region |
 
 ## 7. International transfers
 
 Where a sub-processor processes personal data outside the UK or the European Economic Area, the transfer relies on an adequacy decision or on the standard contractual clauses and the UK International Data Transfer Addendum in that sub-processor's terms. [lawyer: confirm, and add the clauses between Knitwright and the customer if the customer is outside the UK.]
 
-## 8. Order of precedence
+## 8. Law
+
+These terms are governed by the law of England and Wales, as the terms of use are, unless data protection law requires the law of another country to apply to them.
+
+[lawyer: Knitwright is offered worldwide (owner decision, 2026-09-30). Review this text for the laws of the main markets beyond the UK and the EU, for example the United States (including state privacy laws such as California's), Canada, Australia and Brazil, and for consumer, sanctions and export rules.] [lawyer: also say whether customers outside the UK and the EU need further clauses.]
+
+## 9. Order of precedence
 
 If these terms conflict with the terms of use on the processing of personal data, these terms prevail.

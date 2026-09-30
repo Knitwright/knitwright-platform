@@ -1,6 +1,6 @@
 # 0023: Launch hardening: deletion, monitoring, legal pages
 
-Status: Accepted, with owner actions open (A9 legal review; monitoring destination; storage quota)
+Status: Accepted, with owner actions open (A9 legal review; the Sentry DSN). Amended 2026-09-30: the owner chose Sentry in its EU region, and the storage quota (500 MB a brand) is built.
 Date: 2026-09-30
 Plan step: 26
 
@@ -36,6 +36,10 @@ Docker was down, so no database test could be run.
    unexpected failure, and reports through Next.js `after()` so the response is not delayed.
    `MONITORING_DSN` is read in `lib/monitoring/server.ts`, not in `lib/config/env.ts`, so a bad
    value turns monitoring off with a warning instead of stopping the app.
+   **Chosen provider (owner, 2026-09-30): Sentry, EU data region** (Frankfurt). The DSN of an EU
+   project names an ingest host under `de.sentry.io` (`.env.example` shows the form); a sentry.io
+   DSN outside that region is still used but warned about at start (`regionWarning`), because
+   the privacy notice names the EU region. Sentry is listed as a processor in the legal drafts.
 5. **Spend-ceiling hook.** `alertSpendCeiling` in `lib/monitoring/server.ts` logs at error level
    and reports. The usage meter (`feat/usage`, `lib/usage/alert.ts`) should call it when the
    ceiling is reached; that wiring is done at integration. Where the alert goes after that is set

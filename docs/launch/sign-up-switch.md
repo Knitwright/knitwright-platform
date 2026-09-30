@@ -35,7 +35,8 @@ Every line must be true, and the owner signs the last one.
 - [ ] The load run in `docs/launch/evidence.md` is done against the deployment.
 - [ ] Vercel is on Pro, with Node 22 or 24 (A2). Email sending is set up (A4). AI keys have spend
       limits in each provider's console (A3). Turnstile uses real keys, not the test keys.
-- [ ] `MONITORING_DSN` is set, and one test error was seen to arrive (see ADR 0023).
+- [ ] `MONITORING_DSN` is set to an EU-region Sentry project (ingest host under `de.sentry.io`),
+      and one test error was seen to arrive (see ADR 0023).
 - [ ] The spend alert has a destination the owner watches.
 - [ ] Owner approval to open: [owner: name and date].
 

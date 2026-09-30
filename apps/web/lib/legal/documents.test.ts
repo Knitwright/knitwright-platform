@@ -31,6 +31,35 @@ describe("the legal documents", () => {
     }
   });
 
+  it("say Knitwright is offered worldwide, under the law of England and Wales (owner, 2026-09-30)", () => {
+    const terms = text("terms");
+    expect(terms).toMatch(/offered worldwide/);
+    expect(terms).toContain("governed by the law of England and Wales");
+    expect(terms).toContain("the courts of England and Wales");
+    expect(terms).not.toMatch(/\[owner and lawyer: England and Wales, or another\]/);
+  });
+
+  it("name an EU representative under Article 27, with the name still owed by the owner", () => {
+    const privacy = text("privacy");
+    expect(privacy).toContain("Article 27");
+    expect(privacy).toMatch(/representative in the European Union/);
+    expect(privacy).toMatch(/\[owner: name and address of the EU representative/);
+    expect(privacy).not.toMatch(/if Knitwright offers its service to people in the EU/);
+  });
+
+  it("ask the lawyer to review for a worldwide offering, beyond the UK and the EU", () => {
+    for (const slug of ["terms", "privacy", "data-processing"]) {
+      expect(text(slug)).toMatch(/\[lawyer: Knitwright is offered worldwide/);
+    }
+  });
+
+  it("name Sentry, in its EU region, as the error monitoring provider (owner, 2026-09-30)", () => {
+    const sentry = PROCESSORS.find((processor) => processor.name.includes("Sentry"));
+    expect(sentry?.location).toMatch(/European Union.*Germany/);
+    expect(PROCESSORS.some((processor) => processor.name.includes("[owner: error monitoring"))).toBe(false);
+    expect(text("privacy")).toMatch(/Sentry/);
+  });
+
   it("never call a pattern production-ready, except to say it is not", () => {
     for (const doc of LEGAL_DOCUMENTS) {
       for (const match of toMarkdown(doc).matchAll(/production-ready/g)) {

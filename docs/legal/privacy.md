@@ -8,7 +8,11 @@ This notice explains what personal data Knitwright collects, why, who it is shar
 
 ## 1. Who is responsible
 
-[owner: legal name of the business], [owner: registered address] is the controller of the personal data described here. Contact us about privacy at [owner: privacy contact address, for example privacy@knitwright.com]. [owner: UK ICO registration number, once registered.] [owner and lawyer: an EU representative under Article 27 EU GDPR, if Knitwright offers its service to people in the EU and has no establishment there.]
+[owner: legal name of the business], [owner: registered address] is the controller of the personal data described here. Contact us about privacy at [owner: privacy contact address, for example privacy@knitwright.com]. [owner: UK ICO registration number, once registered.]
+
+Knitwright is offered worldwide, including to people in the European Union, and has no establishment in the EU. Our representative in the European Union under Article 27 of the EU GDPR is [owner: name and address of the EU representative, to be appointed before sign-up opens]. People in the EU, and EU data protection authorities, may contact the representative about anything to do with the processing of personal data, in addition to or instead of us.
+
+[lawyer: Knitwright is offered worldwide (owner decision, 2026-09-30). Review this text for the laws of the main markets beyond the UK and the EU, for example the United States (including state privacy laws such as California's), Canada, Australia and Brazil, and for consumer, sanctions and export rules.]
 
 Where a business uses Knitwright to hold personal data about other people (for example a name in a tech pack), we act for that business as its processor under the data-processing terms.
 
@@ -53,18 +57,18 @@ We share personal data only with the providers below, who process it for us unde
 | Google LLC (Gemini API) | Making photoreal pictures of a design on request (AI features) | A description and drawing of the design | United States |
 | Cloudflare, Inc. (Turnstile) | Telling people from automated sign-ups | Browser and network signals during sign-up, sign-in and password reset | United States, with servers worldwide |
 | Resend, Inc. | Sending sign-up, sign-in and password emails | Email address and the message | United States |
-| [owner: error monitoring provider, if one is chosen] | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | [owner: provider region] |
+| Functional Software, Inc. (Sentry) | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | European Union (Frankfurt, Germany): Sentry's EU data region |
 
 ## 5. International transfers
 
-Some providers are in the United States or process data there. Where personal data leaves the UK or the European Economic Area, the transfer is covered by an adequacy decision (including the UK Extension to the EU-US Data Privacy Framework, where the provider is certified) or by the standard contractual clauses and the UK International Data Transfer Addendum in the provider's data-processing terms. [lawyer: confirm the mechanism for each provider.]
+Knitwright is used from many countries, and its providers are in the places listed above. Some providers are in the United States or process data there. Where personal data leaves the UK or the European Economic Area, the transfer is covered by an adequacy decision (including the UK Extension to the EU-US Data Privacy Framework, where the provider is certified) or by the standard contractual clauses and the UK International Data Transfer Addendum in the provider's data-processing terms. [lawyer: confirm the mechanism for each provider.]
 
 ## 6. How long we keep it
 
 - Account, brands, designs, pictures and download records: until you delete them or your account. Deleting a design or an account removes it from the database and file storage at once.
 - Copies in our providers' backups: until overwritten, [owner: the Supabase backup period for the chosen plan, for example up to 7 days].
 - Rate-limit counters: minutes to an hour.
-- Server and error logs: [owner: the log retention of the Vercel plan and the monitoring provider, for example 1 to 30 days].
+- Server logs: [owner: the log retention of the Vercel plan, for example 1 to 30 days]. Error reports in Sentry: [owner: the event retention of the Sentry plan], then deleted.
 - The address on the early-access list: until you register or ask us to remove it; it is removed when your account is deleted.
 
 ## 7. Cookies

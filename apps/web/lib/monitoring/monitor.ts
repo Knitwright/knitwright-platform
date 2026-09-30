@@ -45,6 +45,25 @@ export const parseTarget = (dsn: string | undefined): Target => {
   return { kind: "webhook", url: url.toString() };
 };
 
+/**
+ * The chosen provider is Sentry in its EU data region (owner decision 2026-09-30): events are
+ * stored in Frankfurt, Germany, and the privacy notice says so. An EU project's DSN names an
+ * ingest host under de.sentry.io, such as o123.ingest.de.sentry.io.
+ */
+export const SENTRY_EU_HOST = "de.sentry.io";
+
+export const NOT_EU_REGION =
+  "MONITORING_DSN is a Sentry project outside the EU region (de.sentry.io). The privacy notice names the EU region: use an EU project's DSN.";
+
+/** A warning when the DSN is a sentry.io project that does not keep its data in the EU region. */
+export const regionWarning = (target: Target): string | null => {
+  if (target.kind !== "sentry") return null;
+  const host = new URL(target.endpoint).hostname;
+  const isSentryCloud = host === "sentry.io" || host.endsWith(".sentry.io");
+  const isEu = host === SENTRY_EU_HOST || host.endsWith(`.${SENTRY_EU_HOST}`);
+  return isSentryCloud && !isEu ? NOT_EU_REGION : null;
+};
+
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
 /** Nothing that identifies a person or unlocks anything leaves the server. */
@@ -164,6 +183,8 @@ export const createMonitor = (options: MonitorOptions): Monitor => {
   if (target.kind === "invalid") {
     options.warn({ level: "warn", message: target.reason, where: "monitoring" });
   }
+  const region = regionWarning(target);
+  if (region) options.warn({ level: "warn", message: region, where: "monitoring" });
   if (target.kind !== "sentry" && target.kind !== "webhook") {
     return { enabled: false, reportError: async () => {} };
   }

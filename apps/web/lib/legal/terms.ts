@@ -18,6 +18,19 @@ export const TERMS: LegalDocument = {
       ],
     },
     {
+      heading: "Where Knitwright is offered",
+      blocks: [
+        {
+          kind: "p",
+          text: "Knitwright is offered worldwide, to businesses in any country where using it is lawful. You are responsible for following the laws that apply to you and your business where you use it, including rules on the products you design and the content you upload.",
+        },
+        {
+          kind: "p",
+          text: "[lawyer: Knitwright is offered worldwide (owner decision, 2026-09-30). Review this text for the laws of the main markets beyond the UK and the EU, for example the United States (including state privacy laws such as California's), Canada, Australia and Brazil, and for consumer, sanctions and export rules.]",
+        },
+      ],
+    },
+    {
       heading: "A public beta",
       blocks: [
         {
@@ -127,7 +140,7 @@ export const TERMS: LegalDocument = {
       blocks: [
         {
           kind: "p",
-          text: "These terms are governed by the law of [owner and lawyer: England and Wales, or another], and its courts have jurisdiction. If you are a consumer in the UK or the EU, you keep the protection of the mandatory law of the country where you live.",
+          text: "These terms, and any dispute or claim arising out of them or your use of Knitwright, are governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction. Nothing in this section takes away protection that the mandatory law of the country where you live gives you and that cannot be excluded by agreement.",
         },
       ],
     },
