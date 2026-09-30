@@ -84,11 +84,10 @@ describe("the Excel file equals the document (T2)", () => {
     expect(without.map((sheet) => sheet.sheet)).not.toContain("Illustrations");
   });
 
-  it("holds every cell of the document with its value and its source, numbers as numbers, for every tops type", async () => {
-    for (const [label, pack] of designs()) {
-      const { pairs } = await readPairs(await buildWorkbook(pack));
-      expect(sorted(pairs), label).toEqual(sorted(expectedPairs(pack)));
-    }
+  // One test per design: each builds and reads back one workbook, so no single test does the work of all of them.
+  it.each(designs())("holds every cell of the document with its value and its source, numbers as numbers: %s", async (label, pack) => {
+    const { pairs } = await readPairs(await buildWorkbook(pack));
+    expect(sorted(pairs), label).toEqual(sorted(expectedPairs(pack)));
   });
 
   it("writes each length as a number of centimetres and each other number as a number", async () => {
