@@ -29,7 +29,8 @@ Every line must be true, and the owner signs the last one.
       `apps/web/lib/legal/` is set to `"approved"` (then run
       `pnpm --filter web exec tsx scripts/write-legal-docs.mts`). Owner action A9.
 - [ ] No Critical or High finding is open in `docs/launch/security-review.md`, including the review
-      of AI prompts at integration, and S-01 (storage quota) is fixed.
+      of AI prompts at integration. (S-01, the storage quota, was closed on 2026-09-30: 500 MB
+      per brand, kept by the database.)
 - [ ] `docs/launch/evidence.md` is complete and the owner has read it.
 - [ ] The load run in `docs/launch/evidence.md` is done against the deployment.
 - [ ] Vercel is on Pro, with Node 22 or 24 (A2). Email sending is set up (A4). AI keys have spend

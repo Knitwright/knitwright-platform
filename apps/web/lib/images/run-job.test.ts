@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { ProviderError, type ImageProvider } from "@/lib/providers";
+import { AppError } from "@/lib/server/core/errors";
+import { STORAGE_FULL_MESSAGE } from "@/lib/storage/quota";
 import { failingImageProvider, stubImageProvider } from "@/lib/providers/image-stub";
 import { FAILED_MESSAGE, UNAVAILABLE_MESSAGE, runImageJob, type RunJobDeps } from "./run-job";
 
@@ -106,6 +108,18 @@ describe("runImageJob", () => {
 
     expect(await runImageJob(deps, work)).toBe("failed");
     expect(calls).toEqual(["running job-1", "removed front-file back-file", `failed job-1 ${FAILED_MESSAGE}`, "refund event-1"]);
+  });
+
+  it("says the brand's storage is full when a picture would pass the quota, and gives the cost back", async () => {
+    const { deps, calls } = makeDeps(stubImageProvider(), {
+      saveImage: async () => {
+        throw new AppError("over_quota", STORAGE_FULL_MESSAGE);
+      },
+    });
+
+    expect(await runImageJob(deps, work)).toBe("failed");
+    expect(calls).toContain(`failed job-1 ${STORAGE_FULL_MESSAGE} The cost has been given back.`);
+    expect(deps.refund).toHaveBeenCalledWith("event-1");
   });
 
   it("removes the first picture when the second cannot be stored", async () => {

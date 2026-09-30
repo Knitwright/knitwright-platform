@@ -26,6 +26,7 @@ Nothing here was invented. Each item needs the owner, and some a lawyer.
     go to the Vercel log only.
 12. Where the spend-ceiling alert should reach you (email, chat), set up in the monitoring service.
 13. Storage quota per brand before sign-up opens (security finding S-01), for example 200 files or
-    500 MB.
+    500 MB. **Answered 2026-09-30: 500 MB per brand.** Built: kept by the database
+    (`supabase/migrations/20260930040000_storage_quota.sql`, `lib/storage/quota.ts`); S-01 closed.
 14. Whether account deletion should ask for a fresh sign-in or an emailed code first (S-08). Needs
     email sending (A4).

@@ -7,6 +7,8 @@ export const FAILURE_STATUS = {
   not_found: 404,
   conflict: 409,
   too_large: 413,
+  /** The brand's storage quota is used up (security finding S-01). */
+  over_quota: 413,
   rate_limited: 429,
   over_allowance: 429,
   internal: 500,

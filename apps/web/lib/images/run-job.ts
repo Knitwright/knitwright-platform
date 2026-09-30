@@ -1,5 +1,6 @@
 import type { View } from "@/lib/flat/model";
 import { ProviderError, type GeneratedImage, type ImageProvider, type ImageRequest } from "@/lib/providers";
+import { AppError } from "@/lib/server/core/errors";
 import type { LogEvent } from "@/lib/server/core/guard";
 
 /**
@@ -44,6 +45,13 @@ export interface JobWork {
 
 const WHERE = "photoreal job";
 
+/** What the person is told. A full brand storage says so, since trying again will not help. */
+const failureMessage = (error: unknown): string => {
+  if (error instanceof ProviderError && error.refused) return UNAVAILABLE_MESSAGE;
+  if (error instanceof AppError && error.code === "over_quota") return `${error.message} The cost has been given back.`;
+  return FAILED_MESSAGE;
+};
+
 const attempt = async (deps: RunJobDeps, what: string, run: () => Promise<unknown>): Promise<void> => {
   try {
     await run();
@@ -79,7 +87,7 @@ export async function runImageJob(deps: RunJobDeps, work: JobWork): Promise<"suc
     return "succeeded";
   } catch (error) {
     deps.log({ level: "error", message: `Photoreal images failed (${deps.provider.name})`, where: WHERE, error });
-    const message = error instanceof ProviderError && error.refused ? UNAVAILABLE_MESSAGE : FAILED_MESSAGE;
+    const message = failureMessage(error);
     await attempt(deps, "A failed photoreal job could not be marked failed", () =>
       deps.jobs.markFailed(work.jobId, message),
     );

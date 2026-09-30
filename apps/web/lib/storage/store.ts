@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sheetKind } from "@/lib/charts/container";
 import { AppError } from "@/lib/server/core/errors";
 import { checkImage } from "./image";
+import { isQuotaRefusal, STORAGE_FULL_MESSAGE, storageRoom } from "./quota";
 
 /**
  * The one way a file enters storage. The image is checked and rewritten first, then
@@ -56,8 +57,21 @@ type FileRecord = Readonly<{
   height: number | null;
 }>;
 
+/**
+ * Refuses, with the reason, when `incomingBytes` more would take the brand past its storage
+ * quota. A courtesy before sending bytes to storage: the database keeps the rule itself, one
+ * upload at a time per brand, when the file's record is written.
+ */
+export const ensureStorageRoom = async (admin: SupabaseClient, brandId: string, incomingBytes: number): Promise<void> => {
+  const { data, error } = await admin.rpc("brand_storage_used", { p_brand_id: brandId });
+  if (error) throw new Error("The brand's storage could not be measured.", { cause: error });
+  const room = storageRoom(Number(data ?? 0), incomingBytes);
+  if (!room.ok) throw new AppError("over_quota", room.message);
+};
+
 /** Writes checked bytes and their record. A file whose record fails is removed again. */
 const writeFile = async (file: FileRecord): Promise<string> => {
+  await ensureStorageRoom(file.admin, file.brandId, file.bytes.byteLength);
   const id = randomUUID();
   const path = `${file.brandId}/${file.kind}/${id}.${file.extension}`;
   const bucket = bucketFor(file.kind);
@@ -86,6 +100,7 @@ const writeFile = async (file: FileRecord): Promise<string> => {
     } catch {
       // Nothing more can be done here.
     }
+    if (isQuotaRefusal(record.error)) throw new AppError("over_quota", STORAGE_FULL_MESSAGE, undefined, { cause: record.error });
     throw new Error("The file's record could not be written.", { cause: record.error });
   }
   return id;

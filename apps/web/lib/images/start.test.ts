@@ -11,6 +11,7 @@ const makeDeps = (patch: Partial<StartDeps> = {}) => {
   const stub = stubImageProvider();
   const deps: StartDeps = {
     provider: stub,
+    ensureStorage: vi.fn(async () => {}),
     loadDesign: async () => ({ spec: start("crew-tee"), version: 4, charts: DEFAULT_CHART_SET }),
     loadPictures: async () => new Map(),
     createJob: vi.fn(async () => "job-1"),
@@ -30,6 +31,19 @@ const makeDeps = (patch: Partial<StartDeps> = {}) => {
 };
 
 describe("startImageJob", () => {
+  it("refuses before any job exists when the brand's storage is full, so the route gives the cost back", async () => {
+    const full = new AppError("over_quota", "full");
+    const { deps, scheduled } = makeDeps({
+      ensureStorage: async () => {
+        throw full;
+      },
+    });
+
+    await expect(startImageJob(deps, { eventId: "event-1" })).rejects.toBe(full);
+    expect(deps.createJob).not.toHaveBeenCalled();
+    expect(scheduled).toEqual([]);
+  });
+
   it("records a job for the design's version and answers before the work is done", async () => {
     const { deps, scheduled, stub } = makeDeps();
 

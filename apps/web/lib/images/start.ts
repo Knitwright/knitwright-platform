@@ -18,6 +18,8 @@ export const NO_DRAWING_MESSAGE = "There is no drawing of this garment to make i
 
 export interface StartDeps extends Omit<RunJobDeps, "provider"> {
   readonly provider: ImageProvider | null;
+  /** Refuses (an AppError) when the brand's storage is already full, before anything is made. */
+  readonly ensureStorage: () => Promise<void>;
   /** The design as it is now, its version, and the brand's size charts it is drawn with. */
   readonly loadDesign: () => Promise<Readonly<{ spec: GarmentSpec; version: number; charts: ChartSet }>>;
   /** The pictures its artwork uses, from the uploaded files. */
@@ -32,6 +34,7 @@ export type StartInput = Readonly<{ eventId: string; colourwayId?: string }>;
 export async function startImageJob(deps: StartDeps, input: StartInput): Promise<{ jobId: string }> {
   const provider = deps.provider;
   if (!provider) throw new AppError("unavailable", NOT_SET_UP_MESSAGE);
+  await deps.ensureStorage();
 
   const { spec, version, charts } = await deps.loadDesign();
   const models = flatModels(spec, charts, input.colourwayId);

@@ -11,6 +11,7 @@ import { adminClient, imageProvider, productionDeps, sessionClient } from "@/lib
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
 import { createFileReader } from "@/lib/storage/read";
+import { ensureStorageRoom } from "@/lib/storage/store";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 
 /** The work carried on by after() must fit the platform's limit (decision record 0002). */
@@ -39,6 +40,9 @@ export const POST = defineRoute({
     return startImageJob(
       {
         provider: imageProvider(),
+        // Any room at all: the pictures' sizes are known only once they are made, and the
+        // database refuses a picture that would pass the quota when it is stored.
+        ensureStorage: () => ensureStorageRoom(admin, brandId, 1),
         loadDesign: async () => {
           const [project, charts] = await Promise.all([getProject(client, brandId, projectId), brandChartSet(client, brandId)]);
           return { spec: project.spec, version: project.currentVersion, charts };

@@ -5,7 +5,7 @@ Plan step 26, task 1. Reviewed 2026-09-30 on branch `release/public-beta`, cut f
 (Docker was down). Scope: accounts, uploads, routes, storage, brand isolation, exports, secrets,
 and the deletion code added in this step.
 
-**Result: no Critical or High finding is open.** One Medium and seven Low findings remain, listed
+**Result: no Critical or High finding is open.** S-01 (Medium) was closed on 2026-09-30; seven Low findings remain, listed
 below with the owner or step that closes each. The acceptance criterion of step 26 ("no critical
 or high security finding is open") holds for this branch.
 
@@ -17,7 +17,7 @@ at integration, before sign-up opens: see "Owed" at the end.
 
 | ID | Severity | Where | Finding | Status |
 |---|---|---|---|---|
-| S-01 | Medium | `app/api/files/route.ts`, `lib/storage/store.ts` | No storage quota per brand or user. Uploads are rate limited (30 per 10 minutes, 8 MB each), and files are never cleaned up, so one account could add about 34 GB a day once sign-up opens. The Supabase free tier holds 1 GB. | Open. Fix before opening sign-up: count and sum `files` per brand in `storeImage` and refuse past a cap (the owner sets it, for example 200 files or 500 MB). Deleting designs and accounts (this step) now removes files. |
+| S-01 | Medium | `app/api/files/route.ts`, `lib/storage/store.ts` | No storage quota per brand or user. Uploads are rate limited (30 per 10 minutes, 8 MB each), and files are never cleaned up, so one account could add about 34 GB a day once sign-up opens. The Supabase free tier holds 1 GB. | **Closed 2026-09-30.** Owner decision: 500 MB per brand (500 x 1024 x 1024 bytes), counting uploads, size chart files and generated pictures. The database keeps the rule: a trigger on `public.files` locks the brand's row, sums its files and refuses (code `KWQ01`) a row that would pass the quota, so parallel uploads take turns and cannot pass it together (migration `20260930040000_storage_quota.sql`; `tests/integration/storage-quota.test.ts`, 20 parallel 30 MB rows: exactly 16 kept). Every path writes through `writeFile` in `lib/storage/store.ts`, which also checks before uploading, so a refused file is never sent to storage, and a file the database refuses is removed again. The person is told "Your brand has used its 500 MB of storage..." (`lib/storage/quota.ts`); photoreal images are refused before a job starts, or the job fails with that message and the cost is given back. |
 | S-02 | Low | `next.config.ts` | The content security policy has no `script-src` or `default-src`, so it gives no defence in depth against script injection. No `dangerouslySetInnerHTML`, `innerHTML` or `eval` was found. | Open. Add a nonce-based policy in `proxy.ts` after integration, when every page's scripts are known. |
 | S-03 | Low | `lib/config/env.ts`, `lib/server/core/client-address.ts` | The rate limit trusts one address header (`x-vercel-forwarded-for` by default). Off Vercel, a client could set it; when it is missing, every caller shares one `unknown` bucket. | Open. Documented as host-specific. Check on the first deployment that the header arrives. |
 | S-04 | Low | `lib/server/core/guard.ts` | Sign-in, sign-up and reset are limited per address, not per email, so many addresses can try one account. Supabase's own limits and Turnstile also apply. | Open. Add an email-keyed bucket (a hash of the address) to `signIn`, `signUp` and `passwordReset`. |
@@ -90,7 +90,6 @@ No licence requires the app's source to be published. See `docs/launch/licences.
   output is parsed and never trusted (M2), that proposals are signed (HMAC) and re-validated on
   apply, that uploaded images cannot carry instructions that bypass the gates, that provider keys
   stay server-side, and that image prompts carry no personal data. Owner: whoever runs integration.
-- **S-01 storage quota** before sign-up opens (cap value owed by the owner).
 - **Load verification** of rate limits and usage ceilings needs a deployment. See
   `docs/launch/evidence.md`.
 - **Hosted settings check** against `docs/runbooks/supabase-hosted.md` on the production project.
