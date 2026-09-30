@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Grid } from "./grid";
 import { CHART_IMPORT_LIMITS } from "./limits";
 import type { MappingSuggestion } from "./mapping";
+import { CHART_UNITS } from "./units";
 
 /**
  * Sending a chart file to the upload route, kept apart from the screen. The server checks
@@ -27,6 +28,8 @@ const answer = z.union([
         pointColumn: z.number().int(),
         sizeColumns: z.array(z.number().int()),
         toleranceColumn: z.number().int().nullable(),
+        units: z.enum(CHART_UNITS),
+        unitsColumn: z.number().int().nullable(),
         baseSize: z.string(),
       }),
     }),

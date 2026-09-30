@@ -75,6 +75,8 @@ charts to reuse.
 
 - Charts can be replaced but not removed yet, and no history of charts is kept beyond the
   stored files.
-- Inches are not read. Values must be centimetres.
+- Inches are read as well as centimetres since 2026-09-30 (owner decision): chosen on the mapping
+  screen or per row in a units column, stored in centimetres to the nearest tenth of a millimetre
+  (`lib/charts/units.ts`). Any other unit is refused.
 - The shared local database also holds tables of other branches, so the isolation suite's
   "every table" checks fail there until the branches are integrated.

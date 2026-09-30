@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { getType } from "@/lib/garment";
 import { pointsAlwaysApplying, sizeChartSchema, sizeRunSchema } from "@/lib/sizing";
 import { gridFromCsv, type Grid } from "./grid";
-import { applyMapping, rowAssignments, suggestMapping, type ChartMapping } from "./mapping";
+import { formatLength } from "@/lib/units/length";
+import { applyMapping, chartMappingSchema, rowAssignments, suggestMapping, type ChartMapping } from "./mapping";
 
 /**
  * MADE-UP NUMBERS FOR TESTS ONLY. They are not garment measurements. Each point's value
@@ -37,6 +38,8 @@ const mapping = (overrides: Partial<ChartMapping> = {}): ChartMapping => ({
   fit: null,
   headerLine: 1,
   pointColumn: 0,
+  units: "cm",
+  unitsColumn: null,
   sizeColumns: [1, 2, 3],
   toleranceColumn: 4,
   baseSize: "M",
@@ -54,8 +57,21 @@ describe("suggestMapping", () => {
       pointColumn: 0,
       sizeColumns: [1, 2, 3],
       toleranceColumn: 4,
+      units: "cm",
+      unitsColumn: null,
       baseSize: "M",
     });
+  });
+
+  it("finds a units column, and keeps it out of the size columns", () => {
+    const suggestion = suggestMapping(gridOf("Point of measure,Units,S,M,Tolerance\nChest width,in,20,21,0.5\n"));
+    expect(suggestion).toMatchObject({ pointColumn: 0, unitsColumn: 1, sizeColumns: [2, 3], toleranceColumn: 4 });
+  });
+
+  it("suggests inches when a heading says so, and centimetres otherwise", () => {
+    expect(suggestMapping(gridOf("Point (in),S,M,Tol\nChest width,20,21,0.5\n")).units).toBe("in");
+    expect(suggestMapping(gridOf("Measurements in inches,S,M,Tol\nChest width,20,21,0.5\n")).units).toBe("in");
+    expect(suggestMapping(gridOf("Point,S,M,Tol\nChest width,50,52,1\n")).units).toBe("cm");
   });
 
   it("suggests nothing for tolerance when no heading says so", () => {
@@ -65,7 +81,15 @@ describe("suggestMapping", () => {
   });
 
   it("gives an empty suggestion for an empty grid", () => {
-    expect(suggestMapping([])).toEqual({ headerLine: 1, pointColumn: 0, sizeColumns: [], toleranceColumn: null, baseSize: "" });
+    expect(suggestMapping([])).toEqual({
+      headerLine: 1,
+      pointColumn: 0,
+      sizeColumns: [],
+      toleranceColumn: null,
+      units: "cm",
+      unitsColumn: null,
+      baseSize: "",
+    });
   });
 });
 
@@ -138,6 +162,96 @@ describe("applyMapping, a valid file", () => {
     const lines = ["Point,S,M,Tol", ...pointsAlwaysApplying(type).map((point) => `${point.label},30,31,1`)];
     const jersey = applyMapping(gridOf(lines.join("\n")), mapping({ garmentType: "team-jersey", sizeColumns: [1, 2], toleranceColumn: 3, baseSize: "S" }), TODAY);
     expect(jersey.ok).toBe(true);
+  });
+});
+
+/** Owner decision 2026-09-30: a chart file may be in centimetres or inches. */
+describe("applyMapping, a file in inches", () => {
+  /** MADE-UP NUMBERS FOR TESTS ONLY: each point grows by half an inch a size. */
+  const inchesCsv = (unitCell?: (index: number) => string): string => {
+    const head = unitCell ? "Point of measure,Units,S,M,L,Tolerance" : "Point of measure,S,M,L,Tolerance";
+    const lines = [head];
+    crewTeePoints().forEach((point, index) => {
+      const base = 10 + index;
+      const values = `${base},${base} 1/2,${base + 1},1/4`;
+      lines.push(unitCell ? `${point.label},${unitCell(index)},${values}` : `${point.label},${values}`);
+    });
+    return lines.join("\n");
+  };
+  const withUnits = { unitsColumn: 1, sizeColumns: [2, 3, 4], toleranceColumn: 5 };
+
+  it("stores the values in centimetres, as tenths of a millimetre", () => {
+    const result = applyMapping(gridOf(inchesCsv()), mapping({ units: "in" }), TODAY);
+    if (!result.ok) throw new Error(result.problems.join("\n"));
+    const chest = result.chart.points.find((point) => point.pointId === "chest-width");
+    const index = crewTeePoints().findIndex((point) => point.id === "chest-width");
+    // M is (10 + index) 1/2 inches; each size is half an inch (127 tenths of a mm) apart.
+    expect(chest).toEqual({
+      pointId: "chest-width",
+      baseValue: Math.round((10 + index + 0.5) * 254),
+      grade: { kind: "steps", steps: [127, 127] },
+      tolerance: Math.round(254 / 4),
+    });
+  });
+
+  it("goes there and back: the stored chart, shown in inches, gives the numbers of the file", () => {
+    const result = applyMapping(gridOf(inchesCsv()), mapping({ units: "in" }), TODAY);
+    if (!result.ok) throw new Error(result.problems.join("\n"));
+    crewTeePoints().forEach((point, index) => {
+      const stored = result.chart.points.find((found) => found.pointId === point.id);
+      if (!stored) throw new Error(`No ${point.id}`);
+      expect(formatLength(stored.baseValue / 100, "in")).toBe(`${10 + index} 1/2 in`);
+      expect(formatLength(stored.tolerance / 100, "in")).toBe("1/4 in");
+    });
+  });
+
+  it("gives the same chart from a file in inches and the same file in centimetres", () => {
+    const cm = "Point,S,M,Tol\n" + crewTeePoints().map((point) => `${point.label},50.8,53.34,1.27`).join("\n");
+    const inches = "Point,S,M,Tol\n" + crewTeePoints().map((point) => `${point.label},20,21,1/2`).join("\n");
+    const two = { sizeColumns: [1, 2], toleranceColumn: 3, baseSize: "S" };
+    const fromCm = applyMapping(gridOf(cm), mapping(two), TODAY);
+    const fromInches = applyMapping(gridOf(inches), mapping({ ...two, units: "in" }), TODAY);
+    if (!fromCm.ok || !fromInches.ok) throw new Error("Expected charts.");
+    expect(fromInches.chart.points).toEqual(fromCm.chart.points);
+  });
+
+  it("reads each row's unit from a units column, an empty cell using the unit chosen on the screen", () => {
+    const text = inchesCsv((index) => (index === 0 ? "" : index % 2 === 0 ? "in" : "Inches"));
+    const result = applyMapping(gridOf(text), mapping({ ...withUnits, units: "in" }), TODAY);
+    expect(result.ok).toBe(true);
+  });
+
+  it("lets the units column overrule the screen for a row", () => {
+    const lines = inchesCsv((index) => (index === 0 ? "cm" : "in")).split("\n");
+    const [first] = crewTeePoints();
+    lines[1] = `${first?.label},cm,50,51,52,1`;
+    const result = applyMapping(gridOf(lines.join("\n")), mapping({ ...withUnits, units: "in" }), TODAY);
+    if (!result.ok) throw new Error(result.problems.join("\n"));
+    expect(result.chart.points.find((point) => point.pointId === first?.id)?.baseValue).toBe(5100);
+  });
+
+  it("refuses a unit it does not know, naming the line and the unit", () => {
+    const text = inchesCsv((index) => (index === 2 ? "mm" : "in"));
+    const result = applyMapping(gridOf(text), mapping(withUnits), TODAY);
+    if (result.ok) throw new Error("Expected a refusal.");
+    expect(result.problems.join("\n")).toMatch(/Line 4: the unit "mm" is not one we read\. Write cm or in/);
+  });
+
+  it("refuses a unit the mapping itself does not know", () => {
+    expect(chartMappingSchema.safeParse({ ...mapping(), units: "mm" }).success).toBe(false);
+  });
+
+  it("refuses a units column that is also another column", () => {
+    const result = applyMapping(gridOf(inchesCsv((index) => (index === 0 ? "in" : "in"))), mapping({ ...withUnits, unitsColumn: 2 }), TODAY);
+    if (result.ok) throw new Error("Expected a refusal.");
+    expect(result.problems.join("\n")).toMatch(/units column is also chosen as a size column/);
+  });
+
+  it("names inches in its messages about a row in inches", () => {
+    const text = inchesCsv().replace(/,1\/4$/m, ",a quarter");
+    const result = applyMapping(gridOf(text), mapping({ units: "in" }), TODAY);
+    if (result.ok) throw new Error("Expected a refusal.");
+    expect(result.problems.join("\n")).toMatch(/tolerance above zero, in inches.*not a number of inches/);
   });
 });
 

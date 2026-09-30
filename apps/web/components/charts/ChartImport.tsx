@@ -69,8 +69,8 @@ export function ChartImport() {
         Import a chart
       </h2>
       <p className="mt-2 text-[15px] leading-relaxed text-muted">
-        Upload a CSV or .xlsx file with one row for each point of measure and one column for each size, in centimetres, and
-        a tolerance column. Only the first sheet is read. Formulas are never worked out: a cell is read as the value it shows.
+        Upload a CSV or .xlsx file with one row for each point of measure and one column for each size, in centimetres or inches, and
+        a tolerance column. Inches may be decimals (20.5) or fractions (20 1/2); the chart is kept in centimetres. Only the first sheet is read. Formulas are never worked out: a cell is read as the value it shows.
       </p>
       <div className="mt-4 flex flex-col gap-1.5">
         <label htmlFor={inputId} className="text-sm font-medium text-ink">

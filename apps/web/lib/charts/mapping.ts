@@ -14,13 +14,15 @@ import {
 import { FIT_CHOICES, MAX_SIZES_IN_RUN, SIZE_LABEL_MAX_LENGTH } from "@/lib/sizing/schemas";
 import type { Grid, GridRow } from "./grid";
 import { CHART_IMPORT_LIMITS } from "./limits";
+import { CHART_UNITS, readChartUnit, type ChartUnit } from "./units";
 import { readRowValues } from "./values";
 
 /**
  * How the columns of a brand's file become a size chart. The person chooses the heading
  * row, the column that names each point of measure, the size columns, smallest first, and
  * the tolerance column. A row whose name is not recognised may be given a point, or left
- * out. Values are in centimetres.
+ * out. Values are in centimetres or inches: the unit chosen on the screen, or the one named
+ * in a units column for each row. The chart is stored in centimetres either way.
  */
 const kebab = z
   .string()
@@ -36,6 +38,10 @@ export const chartMappingSchema = z.strictObject({
   pointColumn: column,
   sizeColumns: z.array(column).min(2, "Choose at least two size columns.").max(MAX_SIZES_IN_RUN),
   toleranceColumn: column,
+  /** The unit of every value, unless a units column names another for its row. */
+  units: z.enum(CHART_UNITS).default("cm"),
+  /** A column naming each row's unit (cm or in). An empty cell uses `units`. */
+  unitsColumn: column.nullable().default(null),
   baseSize: z.string().trim().min(1, "Choose the base size.").max(SIZE_LABEL_MAX_LENGTH),
   person: z
     .string()
@@ -55,6 +61,8 @@ export interface MappingSuggestion {
   readonly pointColumn: number;
   readonly sizeColumns: readonly number[];
   readonly toleranceColumn: number | null;
+  readonly units: ChartUnit;
+  readonly unitsColumn: number | null;
   readonly baseSize: string;
 }
 
@@ -72,23 +80,39 @@ export type ImportResult =
 
 const POINT_HEADING = /point|measure|pom|description|name/i;
 const TOLERANCE_HEADING = /tol/i;
+const UNITS_HEADING = /^(units?|uom|unit of measure(ment)?)$/i;
+/** A heading such as "Chest (in)" or "Inches" says the file is in inches. */
+const INCH_HEADING = /\binch(es)?\b|\(ins?\)/i;
 
 const normal = (text: string): string => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 
 /** A first guess from the heading row, for the mapping screen to start from. */
 export function suggestMapping(grid: Grid): MappingSuggestion {
   const header = grid[0];
-  if (!header) return { headerLine: 1, pointColumn: 0, sizeColumns: [], toleranceColumn: null, baseSize: "" };
+  if (!header) return { headerLine: 1, pointColumn: 0, sizeColumns: [], toleranceColumn: null, units: "cm", unitsColumn: null, baseSize: "" };
   const cells = header.cells.map((cell) => cell.trim());
-  const named = cells.findIndex((cell) => POINT_HEADING.test(cell));
+  const unitsAt = cells.findIndex((cell) => UNITS_HEADING.test(cell));
+  const unitsColumn = unitsAt >= 0 ? unitsAt : null;
+  const named = cells.findIndex((cell, index) => index !== unitsColumn && POINT_HEADING.test(cell));
   const pointColumn = named >= 0 ? named : 0;
-  const tolerance = cells.findIndex((cell, index) => index !== pointColumn && TOLERANCE_HEADING.test(cell));
+  const tolerance = cells.findIndex((cell, index) => index !== pointColumn && index !== unitsColumn && TOLERANCE_HEADING.test(cell));
   const toleranceColumn = tolerance >= 0 ? tolerance : null;
   const sizeColumns = cells.flatMap((cell, index) =>
-    index !== pointColumn && index !== toleranceColumn && cell !== "" && cell.length <= SIZE_LABEL_MAX_LENGTH ? [index] : [],
+    index !== pointColumn && index !== toleranceColumn && index !== unitsColumn && cell !== "" && cell.length <= SIZE_LABEL_MAX_LENGTH
+      ? [index]
+      : [],
   );
   const middle = sizeColumns[Math.floor((sizeColumns.length - 1) / 2)];
-  return { headerLine: header.line, pointColumn, sizeColumns, toleranceColumn, baseSize: middle === undefined ? "" : (cells[middle] ?? "") };
+  const units: ChartUnit = cells.some((cell) => INCH_HEADING.test(cell)) ? "in" : "cm";
+  return {
+    headerLine: header.line,
+    pointColumn,
+    sizeColumns,
+    toleranceColumn,
+    units,
+    unitsColumn,
+    baseSize: middle === undefined ? "" : (cells[middle] ?? ""),
+  };
 }
 
 const matchPoint = (label: string, points: readonly PointOfMeasure[]): string | null => {
@@ -125,7 +149,33 @@ function columnProblems(mapping: ChartMapping, width: number): string[] {
   if (mapping.sizeColumns.includes(mapping.toleranceColumn)) problems.push("The tolerance column is also chosen as a size column.");
   if (mapping.pointColumn === mapping.toleranceColumn) problems.push("The column of point names is also chosen as the tolerance column.");
   if (new Set(mapping.sizeColumns).size !== mapping.sizeColumns.length) problems.push("A size column is chosen more than once.");
-  return problems;
+  return [...problems, ...unitsColumnProblems(mapping, width)];
+}
+
+function unitsColumnProblems(mapping: ChartMapping, width: number): string[] {
+  const at = mapping.unitsColumn;
+  if (at === null) return [];
+  if (at >= width) return [`Column ${at + 1} is not in the file.`];
+  if (mapping.sizeColumns.includes(at)) return ["The units column is also chosen as a size column."];
+  if (at === mapping.pointColumn) return ["The units column is also chosen as the column of point names."];
+  if (at === mapping.toleranceColumn) return ["The units column is also chosen as the tolerance column."];
+  return [];
+}
+
+type RowUnit = { readonly ok: true; readonly unit: ChartUnit } | { readonly ok: false; readonly problem: string };
+
+/** The unit of one row: its units cell when there is one, otherwise the unit chosen on the screen. */
+function rowUnit(cells: readonly string[], mapping: ChartMapping, line: number): RowUnit {
+  if (mapping.unitsColumn === null) return { ok: true, unit: mapping.units };
+  const cell = (cells[mapping.unitsColumn] ?? "").trim();
+  const read = readChartUnit(cell);
+  if (!read.ok) {
+    return {
+      ok: false,
+      problem: `Line ${line}: the unit "${cell}" is not one we read. Write cm or in, or leave the cell empty to use ${mapping.units === "in" ? "inches" : "centimetres"}.`,
+    };
+  }
+  return { ok: true, unit: read.unit ?? mapping.units };
 }
 
 function sizeProblems(sizes: readonly string[], columns: readonly number[], baseSize: string): string[] {
@@ -185,7 +235,13 @@ function readPoints(grid: Grid, mapping: ChartMapping, frame: Frame): { points: 
       continue;
     }
     seen.set(assignment.pointId, assignment.line);
-    const read = readRowValues(rows.get(assignment.line)?.cells ?? [], { ...mapping, sizes: frame.sizes, label, line: assignment.line });
+    const cells = rows.get(assignment.line)?.cells ?? [];
+    const unit = rowUnit(cells, mapping, assignment.line);
+    if (!unit.ok) {
+      problems.push(unit.problem);
+      continue;
+    }
+    const read = readRowValues(cells, { ...mapping, sizes: frame.sizes, label, line: assignment.line, unit: unit.unit });
     if (read.ok) points.push({ pointId: assignment.pointId, ...read.value });
     else problems.push(...read.problems);
   }
@@ -199,7 +255,8 @@ const missingMessage = (missing: readonly string[]): string =>
  * Reads a brand's file through the mapping into a chart and its size run. The chart is the
  * brand's own, so its values are supplied by the brand. A file that lacks a point every
  * garment of the type has is refused, naming the point. Nothing is guessed: a value that
- * is not a plain number of centimetres is refused, never worked out. Nothing is changed.
+ * is not a plain number in its unit, or a unit other than cm or in, is refused, never worked
+ * out. Inches are stored as centimetres, to the nearest tenth of a millimetre.
  */
 export function applyMapping(grid: Grid, mapping: ChartMapping, today: string): ImportResult {
   const framed = frameOf(grid, mapping);

@@ -13,12 +13,14 @@ import {
   toggleSizeColumn,
   type ChartScreen,
 } from "@/lib/charts/screen";
+import { CHART_UNITS, UNIT_WORDS } from "@/lib/charts/units";
 import { FIT_CHOICES } from "@/lib/sizing/schemas";
 
 type Props = Readonly<{ grid: Grid; fileName: string; screen: ChartScreen; onChange: (next: ChartScreen) => void }>;
 
 const AUTO = "auto";
 const LEAVE_OUT = "leave-out";
+const NO_COLUMN = "";
 
 const asOptions = (choices: readonly { index: number; label: string }[]) =>
   choices.map((choice) => ({ id: String(choice.index), label: choice.label }));
@@ -77,6 +79,22 @@ export function ChartMappingForm({ grid, fileName, screen, onChange }: Props) {
           placeholder="Choose a column"
           options={asOptions(columns)}
           onChange={(event) => set({ toleranceColumn: event.target.value === "" ? null : Number(event.target.value) })}
+        />
+        <SelectField
+          name="units"
+          label="Units of the values"
+          value={screen.units}
+          options={CHART_UNITS.map((unit) => ({ id: unit, label: UNIT_WORDS[unit] }))}
+          onChange={(event) => set({ units: CHART_UNITS.find((unit) => unit === event.target.value) ?? screen.units })}
+        />
+        <SelectField
+          name="unitsColumn"
+          label="Units column, if the file has one"
+          hint="A row whose cell says cm or in is read in that unit. An empty cell uses the units above."
+          value={screen.unitsColumn === null ? NO_COLUMN : String(screen.unitsColumn)}
+          placeholder="No units column"
+          options={asOptions(columns)}
+          onChange={(event) => set({ unitsColumn: event.target.value === NO_COLUMN ? null : Number(event.target.value) })}
         />
       </div>
       <fieldset>

@@ -7,7 +7,7 @@ const csv = (size = 20) => new File([new Uint8Array(size).fill(65)], "chart.csv"
 const reply = (body: unknown, status = 200) => async () => Response.json(body, { status });
 
 const grid = [{ line: 1, cells: ["Point", "S"] }];
-const suggestion = { headerLine: 1, pointColumn: 0, sizeColumns: [1], toleranceColumn: null, baseSize: "S" };
+const suggestion = { headerLine: 1, pointColumn: 0, sizeColumns: [1], toleranceColumn: null, units: "cm", unitsColumn: null, baseSize: "S" };
 
 describe("uploadChart", () => {
   it("sends the file and gives back its id, its cells and the suggested mapping", async () => {

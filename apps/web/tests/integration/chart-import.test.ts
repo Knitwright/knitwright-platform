@@ -33,6 +33,8 @@ const mapping = (sizeCount: number, baseSize: string): ChartMapping => ({
   fit: null,
   headerLine: 1,
   pointColumn: 0,
+  units: "cm",
+  unitsColumn: null,
   sizeColumns: Array.from({ length: sizeCount }, (_, index) => index + 1),
   toleranceColumn: sizeCount + 1,
   baseSize,

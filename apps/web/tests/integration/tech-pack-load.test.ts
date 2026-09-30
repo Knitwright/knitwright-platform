@@ -128,6 +128,8 @@ describe("the size charts a version is shown with", () => {
       fit: null,
       headerLine: 1,
       pointColumn: 0,
+      units: "cm",
+      unitsColumn: null,
       sizeColumns: sizes.map((_, index) => index + 1),
       toleranceColumn: sizes.length + 1,
       baseSize: "M",

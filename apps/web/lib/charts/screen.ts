@@ -2,6 +2,7 @@ import { getType, type Wearer } from "@/lib/garment";
 import { pointsThatCanApply } from "@/lib/sizing";
 import type { FIT_CHOICES } from "@/lib/sizing/schemas";
 import type { Grid } from "./grid";
+import type { ChartUnit } from "./units";
 import { chartMappingSchema, rowAssignments, type ChartMapping, type MappingSuggestion, type RowAssignment } from "./mapping";
 
 /**
@@ -16,6 +17,9 @@ export interface ChartScreen {
   readonly pointColumn: number;
   readonly sizeColumns: readonly number[];
   readonly toleranceColumn: number | null;
+  /** The unit of the values, unless the units column names another for a row. */
+  readonly units: ChartUnit;
+  readonly unitsColumn: number | null;
   readonly baseSize: string;
   readonly person: string;
   readonly rowPoints: readonly { readonly line: number; readonly pointId: string | null }[];
@@ -29,6 +33,8 @@ export const initialScreen = (suggestion: MappingSuggestion): ChartScreen => ({
   pointColumn: suggestion.pointColumn,
   sizeColumns: suggestion.sizeColumns,
   toleranceColumn: suggestion.toleranceColumn,
+  units: suggestion.units,
+  unitsColumn: suggestion.unitsColumn,
   baseSize: suggestion.baseSize,
   person: "",
   rowPoints: [],
