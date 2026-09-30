@@ -85,6 +85,24 @@ describe("the app's routes and actions", () => {
   it("each name a rate limit from lib/server/limits.ts", () => {
     expect(checkRateLimits(files, Object.keys(LIMITS))).toEqual([]);
   });
+
+  // The paid and costly routes added after step 9 each keep their own rule, so a copy-paste of
+  // a cheaper one is caught. Integration of steps 12, 13, 14, 25 and 26.
+  it.each([
+    ["app/api/projects/[projectId]/intent/route.ts", "assistant"],
+    ["app/api/projects/[projectId]/read-image/route.ts", "readImage"],
+    ["app/api/projects/[projectId]/images/route.ts", "startImages"],
+    ["app/api/projects/[projectId]/images/[jobId]/route.ts", "pollJob"],
+    ["app/api/projects/[projectId]/exports/[format]/route.ts", "export"],
+    ["app/api/charts/files/route.ts", "importChart"],
+  ])("%s is limited by LIMITS.%s", (path, rule) => {
+    expect(calls.filter((call) => call.file === path).map((call) => call.rule)).toEqual([rule]);
+  });
+
+  it("limits the assistant's proposals, the guided start and deletion by their own rules", () => {
+    const rules = new Set(calls.filter((call) => call.file.endsWith("actions.ts")).map((call) => call.rule));
+    for (const rule of ["applyProposal", "createProject", "deleteDesign", "deleteAccount"]) expect(rules.has(rule), rule).toBe(true);
+  });
 });
 
 describe("LIMITS", () => {

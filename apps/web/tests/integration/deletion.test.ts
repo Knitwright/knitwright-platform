@@ -9,7 +9,8 @@ import { adminClient, anonClient, brandOf, must, person, type Person } from "./s
 
 /**
  * Plan step 26, task 5: deleting a design and deleting an account, with their stored files, against
- * local Supabase. Needs `pnpm db:start` and supabase/migrations/20260930010000_deletion.sql.
+ * local Supabase. Needs `pnpm db:start`, supabase/migrations/20260930010000_deletion.sql and
+ * 20260930020000_deletion_integration.sql (photoreal jobs and brand charts).
  *
  * Written on 2026-09-30 while Docker was down: NOT RUN YET. Run with
  *   npx vitest run --project db tests/integration/deletion.test.ts
@@ -80,10 +81,10 @@ const makeDesign = async (owner: Person, brandId: string, fileIds: readonly stri
 const pathOf = async (fileId: string): Promise<string> =>
   must(await adminClient().from("files").select("path").eq("id", fileId).single()).path as string;
 
-const objectExists = async (path: string): Promise<boolean> => {
+const objectExists = async (path: string, bucket = "uploads"): Promise<boolean> => {
   const folder = path.split("/").slice(0, -1).join("/");
   const name = path.split("/").at(-1);
-  const { data } = await adminClient().storage.from("uploads").list(folder, { search: name });
+  const { data } = await adminClient().storage.from(bucket).list(folder, { search: name });
   return (data ?? []).some((entry) => entry.name === name);
 };
 
@@ -164,6 +165,87 @@ describe("deleteDesign", () => {
     await deleteDesign(admin(), { brandId: aliceBrand, userId: alice.userId, projectId: design });
     expect(await count("files", "id", bobsFile.id)).toBe(1);
     expect(await objectExists(await pathOf(bobsFile.id))).toBe(true);
+  });
+});
+
+/** A generated picture of a design, as a finished photoreal job leaves it. */
+const photorealJob = async (owner: Person, brandId: string, projectId: string, startedBy: Person = owner) => {
+  const picture = await storeImage({
+    admin: adminClient(),
+    brandId,
+    userId: owner.userId,
+    kind: "render",
+    bytes: await png(),
+    statedType: "image/png",
+  });
+  must(
+    await adminClient().from("jobs").insert({
+      brand_id: brandId,
+      project_id: projectId,
+      version: 1,
+      kind: "photoreal",
+      status: "succeeded",
+      finished_at: new Date().toISOString(),
+      front_file_id: picture.id,
+      created_by: startedBy.userId,
+    }),
+  );
+  return picture;
+};
+
+describe("deleting with photoreal pictures and brand charts (integration of steps 14, 25, 26)", () => {
+  it("removes the pictures generated for a design with it, from the images bucket", async () => {
+    const design = await makeDesign(alice, aliceBrand);
+    const picture = await photorealJob(alice, aliceBrand, design);
+    const path = await pathOf(picture.id);
+    expect(await objectExists(path, "images")).toBe(true);
+
+    expect(await deleteDesign(admin(), { brandId: aliceBrand, userId: alice.userId, projectId: design })).toEqual({
+      removedFiles: 1,
+    });
+
+    expect(await count("jobs", "project_id", design)).toBe(0);
+    expect(await count("files", "id", picture.id)).toBe(0);
+    expect(await objectExists(path, "images")).toBe(false);
+  });
+
+  it("deletes an account whose person started photoreal jobs and imported a size chart", async () => {
+    const frank = await person("frank-del");
+    const brand = await brandOf(frank, "Frank Makes");
+    const design = await makeDesign(frank, brand);
+    await photorealJob(frank, brand, design);
+    must(
+      await adminClient().rpc("replace_brand_chart", {
+        p_brand_id: brand,
+        p_user_id: frank.userId,
+        p_wearer: "men",
+        p_garment_type: "crew-tee",
+        p_fit: "any",
+        p_chart: { seeded: true },
+        p_run: { seeded: true },
+        p_file_id: null,
+      }),
+    );
+
+    expect(await deleteAccount(admin(), { userId: frank.userId })).toEqual({ deletedBrands: 1 });
+
+    expect(await count("jobs", "brand_id", brand)).toBe(0);
+    expect(await count("brand_size_charts", "brand_id", brand)).toBe(0);
+    expect(await count("usage_events", "user_id", frank.userId)).toBe(0);
+    const { data } = await adminClient().auth.admin.getUserById(frank.userId);
+    expect(data.user).toBeNull();
+  });
+
+  // When brands have other members, a person's jobs and charts stay with the brand. Shown here
+  // at the database level, since the MVP refuses to delete an account whose brand is shared.
+  it.skipIf(!dockerReachable)("keeps a brand's jobs and charts when the person who made them is removed", async () => {
+    const gina = await person("gina-del");
+    const brand = await brandOf(bob, `Bob Keeps ${randomUUID().slice(0, 8)}`);
+    const design = await makeDesign(bob, brand);
+    await photorealJob(bob, brand, design, gina);
+    psql(`delete from auth.users where id = '${gina.userId}'`);
+    const kept = must(await adminClient().from("jobs").select("created_by").eq("project_id", design)) as { created_by: string | null }[];
+    expect(kept).toEqual([{ created_by: null }]);
   });
 });
 
