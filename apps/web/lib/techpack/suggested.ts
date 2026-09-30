@@ -1,4 +1,5 @@
 import type { Provenance } from "@/lib/garment";
+import { withoutDrawings } from "./flats";
 import { describeCell } from "./suggested-labels";
 import { PROPOSAL_WORDS, listOf } from "./text";
 import type { SuggestedItem, SuggestedSection, TechPack } from "./types";
@@ -46,11 +47,7 @@ const itemOf = (group: Group): SuggestedItem => ({
  * are listed together. Nothing is picked from a list of what to look for, so nothing can be left off.
  */
 export function buildSuggested(pack: Finished | TechPack): SuggestedSection {
-  const document = {
-    ...pack,
-    suggested: null,
-    flats: { ...pack.flats, views: pack.flats.views.map((view) => ({ ...view, model: null })) },
-  };
+  const document = { ...withoutDrawings(pack), suggested: null };
   const suggestions = new Map<string, Group>();
   const proposals = new Map<string, Group>();
   for (const { path, cell } of allCells(document)) {

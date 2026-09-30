@@ -4,11 +4,12 @@ import { PROVENANCE_VALUES, applyAction, listTypes, type GarmentSpec } from "@/l
 import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "./fixtures/designs";
+import { withoutDrawings } from "./flats";
 import type { TechPack } from "./types";
 import { allCells, leaves } from "./walk";
 
 /** The drawings hold geometry, not values a factory reads. Everything else is walked. */
-const MODELS = /^flats\.views\[\d+\]\.model/;
+const MODELS = /^(flats\.views\[\d+\]|colourways\.colourways\[\d+\]\.drawing)\.model/;
 
 /** Paths of text and numbers that are not values: names of things, ids, codes, notes and sentences. */
 const NOT_VALUES: readonly RegExp[] = [
@@ -33,6 +34,7 @@ const NOT_VALUES: readonly RegExp[] = [
   /^construction\.seams\[\d+\]\.(seamId|label|caveat)$/,
   /^construction\.seams\[\d+\]\.panels\[\d+\]\.(id|label)$/,
   /^colourways\.colourways\[\d+\]\.(id|name)$/,
+  /^colourways\.colourways\[\d+\]\.drawing\.(view|label|notice|description)$/,
   /^colourways\.colourways\[\d+\]\.rows\[\d+\]\.(panelId|label)$/,
   /^artwork\.items\[\d+\]\.(id)$/,
   /^artwork\.items\[\d+\]\.content\.(kind|fileId)$/,
@@ -42,10 +44,7 @@ const NOT_VALUES: readonly RegExp[] = [
   /^signOff\.statement$/,
 ];
 
-const withoutModels = (pack: TechPack): unknown => ({
-  ...pack,
-  flats: { ...pack.flats, views: pack.flats.views.map((view) => ({ ...view, model: null })) },
-});
+const withoutModels = (pack: TechPack): unknown => withoutDrawings(pack);
 
 /** True when the path is a cell or sits inside one. It looks up each shorter path in a set. */
 function insideACell(path: string, cellPaths: ReadonlySet<string>): boolean {

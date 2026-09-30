@@ -210,6 +210,8 @@ export interface ColourwayBlock {
   readonly id: string;
   readonly name: string;
   readonly rows: readonly ColourwayRow[];
+  /** The front of the garment drawn in this colourway, without callouts (owner decision 2026-09-30). */
+  readonly drawing: FlatViewSection;
 }
 
 export interface ColourwaysSection extends SectionHead {

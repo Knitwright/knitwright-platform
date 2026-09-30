@@ -32,7 +32,7 @@ export function buildTechPack(input: TechPackInput): TechPack {
     howToMeasure: buildHowToMeasure(spec),
     components: buildComponents(spec),
     construction: buildConstruction(spec),
-    colourways: buildColourways(spec),
+    colourways: buildColourways(spec, charts),
     artwork: buildArtwork(spec),
     labelling: buildLabelling(spec),
     signOff: buildSignOff(),

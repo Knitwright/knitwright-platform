@@ -73,4 +73,8 @@ export function sectionHeight(section: ExportSection): number {
   return HEADING_TWO + sentences + section.tables.reduce((sum, table) => sum + tableHeight(table), 0);
 }
 
-export const keepsSectionWhole = (section: ExportSection): boolean => section.id !== "flats" && sectionHeight(section) <= KEPT_SECTION_POINTS;
+/** Sections with drawings are never kept whole: the height of a drawing is not estimated. Each drawing is kept whole instead. */
+const HAS_DRAWINGS: ReadonlySet<string> = new Set(["flats", "colourways"]);
+
+export const keepsSectionWhole = (section: ExportSection): boolean =>
+  !HAS_DRAWINGS.has(section.id) && sectionHeight(section) <= KEPT_SECTION_POINTS;

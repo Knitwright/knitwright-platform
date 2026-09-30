@@ -147,9 +147,19 @@ describe("serving an export", () => {
 
     expect(text.startsWith('<?xml version="1.0" encoding="UTF-8"?>')).toBe(true);
     expect(sent.headers.get("content-type")).toBe("image/svg+xml; charset=utf-8");
-    expect(sent.headers.get("content-disposition")).toBe('attachment; filename="KW-001-v3-back.svg"');
+    // The design has two colourways, so the drawing names the one it is drawn in.
+    expect(sent.headers.get("content-disposition")).toBe('attachment; filename="KW-001-v3-Home-back.svg"');
     expect(sent.headers.get("content-security-policy")).toContain("sandbox");
     expect(sent.headers.get("content-length")).toBe(String(new TextEncoder().encode(text).byteLength));
+  });
+
+  it("sends the drawing of each colourway under its own name, so two colourways are two files", async () => {
+    const away = await ask("svg", { view: "front", colourway: "away" }).response;
+    expect(away.headers.get("content-disposition")).toBe('attachment; filename="KW-001-v3-Away-front.svg"');
+
+    const single = source({ project: openProject({ spec: start("crew-tee") }) });
+    const one = await ask("svg", { view: "front" }, { load: async () => single }).response;
+    expect(one.headers.get("content-disposition")).toBe('attachment; filename="KW-001-v3-front.svg"');
   });
 
   it("records the download with the version, the format and the view, before the file is sent (T8)", async () => {

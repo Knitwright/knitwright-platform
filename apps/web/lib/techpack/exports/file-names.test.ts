@@ -16,6 +16,15 @@ describe("file names", () => {
     expect(name({ format: "svg", view: "back" }).plain).toBe("KW-001-v3-back.svg");
   });
 
+  it("names the colourway of a drawing when one is given, and only for a drawing", () => {
+    expect(name({ format: "svg", view: "front", colourway: "Away" }).plain).toBe("KW-001-v3-Away-front.svg");
+    expect(name({ format: "svg", view: "back", colourway: "Home kit / 2027" }).plain).toBe("KW-001-v3-Home-kit-2027-back.svg");
+    expect(name({ format: "svg", view: "front", colourway: "Été" }).original).toBe("KW-001-v3-Été-front.svg");
+    expect(name({ format: "svg", view: "front", colourway: "  " }).plain).toBe("KW-001-v3-front.svg");
+    expect(name({ format: "pdf", colourway: "Away" }).plain).toBe("KW-001-v3-tech-pack.pdf");
+    expect(name({ format: "svg", view: "front", colourway: "x".repeat(200) }).plain).toBe(`KW-001-v3-${"x".repeat(30)}-front.svg`);
+  });
+
   it("uses the design name when there is no style number", () => {
     expect(name({ styleNumber: "", designName: "Club shirt" }).plain).toBe("Club-shirt-v3-tech-pack.pdf");
     expect(name({ styleNumber: "   ", designName: "Club shirt" }).plain).toBe("Club-shirt-v3-tech-pack.pdf");

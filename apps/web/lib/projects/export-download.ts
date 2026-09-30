@@ -55,6 +55,14 @@ async function buildFile(format: ExportFormat, view: View | null, source: TechPa
   return buildSvg(pack, view, images, { pictureLeftOut });
 }
 
+/** The name of the colourway the drawings are in, when the design has more than one; else null. */
+function drawnColourway(source: TechPackSource, pack: TechPack): string | null {
+  const { colourways } = source.project.spec;
+  if (colourways.length < 2) return null;
+  const drawn = pack.flats.views.find((entry) => entry.model !== null)?.model?.colourwayId;
+  return colourways.find((colourway) => colourway.id === drawn)?.name ?? null;
+}
+
 /**
  * Builds one export and sends it. The order is fixed: load the design, build the file in memory,
  * record the download, then send. If the download cannot be recorded, nothing is sent. Nothing is
@@ -89,6 +97,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     version: source.project.currentVersion,
     format: input.format,
     view,
+    colourway: drawnColourway(source, pack),
   });
   return downloadResponse(input.format, name, content);
 }

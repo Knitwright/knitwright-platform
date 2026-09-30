@@ -16,7 +16,15 @@ export interface FileNameInput {
   readonly format: ExportFormat;
   /** Which drawing, for an SVG. Null for the other formats. */
   readonly view: View | null;
+  /**
+   * The colourway an SVG is drawn in, when the design has more than one, so the drawings of two
+   * colourways are saved under two names (owner decision 2026-09-30: one drawing per colourway).
+   */
+  readonly colourway?: string | null;
 }
+
+/** The longest the colourway part of a drawing's file name may be, in characters. */
+export const MAX_COLOURWAY_LENGTH = 30;
 
 export interface FileName {
   /** Letters, digits, hyphen and underscore only. Safe in any header. */
@@ -42,13 +50,18 @@ const originalPart = (text: string): string => {
 
 /**
  * The name of a downloaded file: the style number, or the design name when there is none,
- * then the version and the kind, such as `KW-001-v3-tech-pack.pdf`. The plain name is made
+ * then the version and the kind, such as `KW-001-v3-tech-pack.pdf`. A drawing of a design with
+ * several colourways names its colourway too, such as `KW-001-v3-Away-front.svg`. The plain name is made
  * only of characters that are safe in a header and in every file system.
  */
 export function exportFileName(input: FileNameInput): FileName {
-  const tail = `-v${input.version}-${kind(input)}.${EXTENSIONS[input.format]}`;
   const name = nameOf(input);
-  return { plain: `${plainPart(name)}${tail}`, original: `${originalPart(name)}${tail}` };
+  const colourway = input.format === "svg" && input.view ? (input.colourway?.trim() ?? "") : "";
+  const tail = (part: (text: string) => string): string => {
+    const drawnIn = colourway === "" ? "" : `${Array.from(part(colourway).replace(/-{2,}/g, "-")).slice(0, MAX_COLOURWAY_LENGTH).join("").replace(/-+$/g, "")}-`;
+    return `-v${input.version}-${drawnIn}${kind(input)}.${EXTENSIONS[input.format]}`;
+  };
+  return { plain: `${plainPart(name)}${tail(plainPart)}`, original: `${originalPart(name)}${tail(originalPart)}` };
 }
 
 /** RFC 5987 encoding: everything except letters, digits and a few marks is written as percent-bytes. */

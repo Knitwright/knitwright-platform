@@ -65,6 +65,15 @@ describe("the PDF of a full design", () => {
     for (const callout of pack.flats.callouts) expect(text, callout.label).toContain(noSpace(`${callout.code} ${callout.label}`));
   });
 
+  it("draws one front for each colourway, named after it, in the colourways section (owner decision 2026-09-30)", () => {
+    const text = noSpace(allText(pages));
+    const colourways = text.indexOf(noSpace(SECTION_TITLES.colourways));
+    expect(pack.colourways.colourways.map((block) => block.drawing.label)).toEqual(["Home, front", "Away, front"]);
+    for (const block of pack.colourways.colourways) {
+      expect(text.indexOf(noSpace(block.drawing.label), colourways), block.name).toBeGreaterThan(colourways);
+    }
+  });
+
   it("starts the flats on a new page, so a heading is never left alone at the foot of the cover", () => {
     const first = pages.findIndex((page) => page.text.includes("Front"));
     expect(first).toBeGreaterThan(0);

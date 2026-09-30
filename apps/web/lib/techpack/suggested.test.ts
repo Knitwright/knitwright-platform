@@ -1,4 +1,5 @@
 import fc from "fast-check";
+import { withoutDrawings } from "./flats";
 import { describe, expect, it } from "vitest";
 import { designWith } from "@/lib/flat/fixtures/designs";
 import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
@@ -21,11 +22,7 @@ const section = (spec: GarmentSpec, charts?: typeof CHARTS) => packFor(spec, cha
 const labels = (spec: GarmentSpec, charts?: typeof CHARTS) =>
   section(spec, charts).items.map((item) => `${item.sectionId}: ${item.label}`);
 
-const withoutModels = (pack: TechPack): unknown => ({
-  ...pack,
-  flats: { ...pack.flats, views: pack.flats.views.map((view) => ({ ...view, model: null })) },
-  suggested: null,
-});
+const withoutModels = (pack: TechPack): unknown => ({ ...withoutDrawings(pack), suggested: null });
 
 /** How many cells in the document are a suggestion, and how many are a proposal by the platform. */
 function countCells(pack: TechPack): { suggested: number; proposed: number } {

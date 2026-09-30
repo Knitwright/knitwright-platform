@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ColourwayPicture } from "@/lib/projects/tech-pack-data";
 import { sectionLink } from "@/lib/projects/tech-pack-view";
 import { PROVENANCE_LABELS } from "@/lib/garment";
 import { PROPOSAL_WORDS } from "@/lib/techpack/text";
@@ -13,7 +14,30 @@ import { Cellular, CellText, DocSection, DocTable, LengthText, RowHead } from ".
 
 const SWATCH = /^#[0-9a-f]{6}$/;
 
-export function ColourwaysView({ section }: Readonly<{ section: ColourwaysSection }>) {
+function ColourwayDrawing({ picture }: Readonly<{ picture: ColourwayPicture | undefined }>) {
+  if (!picture) return null;
+  return (
+    <figure className="m-0 mb-3 max-w-sm rounded-xl border border-hairline bg-white p-2">
+      {picture.src ? (
+        // A data address cannot go through next/image, and this is a drawing, not a photo.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={picture.src}
+          alt={picture.alt}
+          data-testid={`techpack-colourway-flat-${picture.colourwayId}`}
+          className="mx-auto h-auto max-h-[18rem] w-full object-contain"
+        />
+      ) : (
+        <p className="p-6 text-center text-sm text-warn">{picture.notice}</p>
+      )}
+      <figcaption className="mt-1 text-center text-sm text-muted">{picture.label}</figcaption>
+    </figure>
+  );
+}
+
+type ColourwaysProps = Readonly<{ section: ColourwaysSection; pictures?: readonly ColourwayPicture[] }>;
+
+export function ColourwaysView({ section, pictures = [] }: ColourwaysProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <p className="text-sm text-muted">
@@ -22,6 +46,7 @@ export function ColourwaysView({ section }: Readonly<{ section: ColourwaysSectio
       {section.colourways.map((block) => (
         <div key={block.id}>
           <h3 className="text-sm font-semibold text-ink">{block.name}</h3>
+          <ColourwayDrawing picture={pictures.find((picture) => picture.colourwayId === block.id)} />
           <DocTable caption={`Colours of ${block.name}`} heads={["Part", "Colour code", "Screen colour"]}>
             {block.rows.map((row) => (
               <tr key={row.panelId}>

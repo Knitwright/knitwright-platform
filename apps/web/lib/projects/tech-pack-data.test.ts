@@ -189,6 +189,21 @@ describe("buildPackFor", () => {
     expect(buildPackFor(input(spec.spec, { colourwayId: "nothing-like-it" })).flats.views[0]?.model?.colourwayId).toBe("main");
   });
 
+  it("gives the page one drawing for each colourway, whichever colourway the flats show", () => {
+    const spec = applyAction(designWith("crew-tee", {}, madeUpForType("crew-tee", {})), {
+      type: "add-colourway",
+      colourway: { id: "away", name: "Away", colours: [{ panelId: "body-front", colour: "White", swatch: "#ffffff", provenance: "user-edited" }] },
+    });
+    if (!spec.ok) throw new Error(spec.reason);
+    const data = buildTechPackPage(input(spec.spec, { colourwayId: "away" }));
+    expect(data.colourwayFlats.map((picture) => [picture.colourwayId, picture.label])).toEqual([
+      ["main", "Main colourway, front"],
+      ["away", "Away, front"],
+    ]);
+    expect(data.colourwayFlats.every((picture) => picture.src?.startsWith("data:image/svg+xml"))).toBe(true);
+    expect(data.colourwayFlats[0]?.src).not.toBe(data.colourwayFlats[1]?.src);
+  });
+
   it("reads the version it was given, whatever is newer in the history", () => {
     const spec = start("crew-tee");
     const old = buildPackFor(input(spec, { project: project(spec, { currentVersion: 1 }) }));

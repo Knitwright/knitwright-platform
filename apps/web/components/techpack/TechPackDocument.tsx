@@ -108,7 +108,7 @@ export function TechPackDocument({ data, colourwayId }: DocumentProps) {
         }
       />
       <ConstructionView section={pack.construction} forms={<SeamForms rows={forms.seams} />} />
-      <ColourwaysView section={pack.colourways} />
+      <ColourwaysView section={pack.colourways} pictures={data.colourwayFlats} />
       <ArtworkView section={pack.artwork} />
       <LabellingView section={pack.labelling} forms={<LabellingForms rows={forms.labelling} />} />
       <SuggestedView section={pack.suggested} />

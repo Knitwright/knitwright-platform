@@ -114,7 +114,9 @@ one sign-in shared by each worker, is the real cure and is owed.
   "Not recorded". The PDF and the Excel file carry the same names.
 - Only components the registry implies can be described. Extra items such as a swing tag are not
   supported yet.
-- The drawings show the first colourway, or the one named in the address (`?colourway=`). The
-  page has no control to choose it yet.
+- The flats show the first colourway, or the one named in the address (`?colourway=`). Since
+  2026-09-30 (owner decision) the colourways section also draws the front of every colourway,
+  one drawing each, without callouts, on the page and in the PDF (`colourwayDrawing` in
+  `lib/techpack/flats.ts`). A drawing's SVG names its colourway when the design has several.
 - The upgrade from version 5 to 6 is proven by unit tests only. No stored design was opened.
 - Step 9 renders this document. It should call `allCells` to check every value before it writes.

@@ -49,11 +49,21 @@ function drawing(view: FlatViewSection, context: Context): ReactElement {
   );
 }
 
-const drawings = (context: Context): ReactElement =>
+const drawingRow = (key: string, views: readonly FlatViewSection[], context: Context): ReactElement =>
   h(
     View,
-    { key: "drawings", style: { flexDirection: "row", gap: DRAWING_GAP, marginVertical: 6 } },
-    ...context.pack.flats.views.map((view) => drawing(view, context)),
+    { key, style: { flexDirection: "row", flexWrap: "wrap", gap: DRAWING_GAP, marginVertical: 6 } },
+    ...views.map((view, index) => h(View, { key: `${key}-${index}`, wrap: false }, drawing(view, context))),
+  );
+
+const drawings = (context: Context): ReactElement => drawingRow("drawings", context.pack.flats.views, context);
+
+/** One drawing for each colourway, two to a row, each whole on its page (owner decision 2026-09-30). */
+const colourwayDrawings = (context: Context): ReactElement =>
+  drawingRow(
+    "colourway-drawings",
+    context.pack.colourways.colourways.map((block) => block.drawing),
+    context,
   );
 
 /** A table with its heading and sentence. A short table is not split across pages. */
@@ -80,6 +90,7 @@ export function sectionElement(section: ExportSection, context: Context): ReactE
     ...others.map((text, index) => paragraph(text, safe, `p${index + 1}`)),
     ...(leftOut ? [paragraph(PICTURE_LEFT_OUT, safe, "left-out")] : []),
     ...(section.id === "flats" ? [drawings(context)] : []),
+    ...(section.id === "colourways" ? [colourwayDrawings(context)] : []),
     ...section.tables.map((table, index) => tableGroup(table, index, safe)),
   );
 }

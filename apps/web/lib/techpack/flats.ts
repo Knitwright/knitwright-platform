@@ -3,7 +3,7 @@ import { LAYERS, type FlatElement, type FlatLayer, type FlatModel, type View } f
 import { formatCm, type GarmentSpec } from "@/lib/garment";
 import { resolveAllSizes, resolveMeasurements, type ChartSet } from "@/lib/sizing";
 import { calloutCodes, type CalloutCode } from "./codes";
-import type { CalloutKey, FlatsSection, FlatViewSection } from "./types";
+import type { CalloutKey, ColourwaysSection, FlatsSection, FlatViewSection } from "./types";
 import { SECTION_TITLES } from "./types";
 
 const VIEWS: readonly { readonly view: View; readonly label: string }[] = [
@@ -32,6 +32,39 @@ export function flatsForTechPack(
   const colourway = spec.colourways.find((entry) => entry.id === colourwayId) ?? spec.colourways[0];
   const draw = (view: View) => buildFlat({ spec, measurements, view, colourwayId: colourway.id, callouts: true });
   return { front: draw("front"), back: draw("back") };
+}
+
+/**
+ * The front of the garment drawn in one colourway, for the colourways section: one drawing per
+ * colourway (owner decision 2026-09-30). It is drawn from the same base-size measurements as the
+ * flats, without callouts, since the flats section carries them. A type with no drawing gives a
+ * section with no model and says so.
+ */
+export function colourwayDrawing(spec: GarmentSpec, colourwayId: string, charts?: ChartSet): FlatViewSection {
+  const colourway = spec.colourways.find((entry) => entry.id === colourwayId);
+  const label = `${colourway?.name ?? colourwayId}, front`;
+  const model = colourway
+    ? buildFlat({ spec, measurements: baseMeasurements(spec, charts), view: "front", colourwayId: colourway.id, callouts: false })
+    : null;
+  if (!model) return { view: "front", label, model: null, toScale: false, notice: NO_DRAWING, description: "" };
+  return { view: "front", label, model: withoutCallouts(model), toScale: model.toScale, notice: model.notice, description: model.description };
+}
+
+const noModel = (view: FlatViewSection): FlatViewSection => ({ ...view, model: null });
+
+/**
+ * The document with every drawing taken out: the flats and the drawing of each colourway. A
+ * drawing holds geometry, not values a factory reads, so walks over the values leave it out.
+ */
+export function withoutDrawings<T extends { readonly flats: FlatsSection; readonly colourways: ColourwaysSection }>(pack: T): T {
+  return {
+    ...pack,
+    flats: { ...pack.flats, views: pack.flats.views.map(noModel) },
+    colourways: {
+      ...pack.colourways,
+      colourways: pack.colourways.colourways.map((block) => ({ ...block, drawing: noModel(block.drawing) })),
+    },
+  };
 }
 
 /** The value drawn for each point of measure, in tenths of a millimetre, for the base size. */
@@ -74,10 +107,9 @@ export function withCalloutCodes(
   return { ...model, layers };
 }
 
-const withoutCallouts = (model: FlatModel): FlatModel => ({
-  ...model,
-  layers: model.layers.filter((layer) => layer.id !== LAYERS.measurements.id),
-});
+function withoutCallouts(model: FlatModel): FlatModel {
+  return { ...model, layers: model.layers.filter((layer) => layer.id !== LAYERS.measurements.id) };
+}
 
 function viewOf(
   entry: (typeof VIEWS)[number],

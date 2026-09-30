@@ -37,6 +37,11 @@ export interface FlatPicture {
   readonly notice: string | null;
 }
 
+/** The front drawn in one colourway, for the colourways section of the page. */
+export interface ColourwayPicture extends FlatPicture {
+  readonly colourwayId: string;
+}
+
 export interface TechPackPageData {
   readonly projectId: string;
   readonly name: string;
@@ -46,6 +51,8 @@ export interface TechPackPageData {
   /** "12 things to confirm." */
   readonly sentence: string;
   readonly flats: readonly FlatPicture[];
+  /** One drawing for each colourway, in the order of the colourways. */
+  readonly colourwayFlats: readonly ColourwayPicture[];
   /** One sentence saying some pictures are not shown, or null. */
   readonly picturesNote: string | null;
   /** Says the design changed while the page was loading, or null. */
@@ -141,6 +148,15 @@ export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
       alt: view.description,
       toScale: view.toScale,
       notice: view.notice,
+    })),
+    colourwayFlats: pack.colourways.colourways.map((block) => ({
+      colourwayId: block.id,
+      view: block.drawing.view,
+      label: block.drawing.label,
+      src: block.drawing.model ? svgDataUri(renderSvg(block.drawing.model, images)) : null,
+      alt: block.drawing.description,
+      toScale: block.drawing.toScale,
+      notice: block.drawing.notice,
     })),
     picturesNote: input.picturesNote ?? null,
     staleNote: historyIsNewer(project, history) ? STALE_SENTENCE : null,
