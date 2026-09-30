@@ -59,6 +59,19 @@ describe("buildTechPackPage", () => {
     ]);
   });
 
+  it("names who made each version from the brand's members, and no one else (owner decision 2026-09-30)", () => {
+    const ADA = "11111111-1111-4111-8111-111111111111";
+    const STRANGER = "33333333-3333-4333-8333-333333333333";
+    const made = history(3);
+    const withMakers: VersionsPage = {
+      ...made,
+      versions: made.versions.map((entry, index) => ({ ...entry, createdBy: [ADA, STRANGER, null][index] ?? null })),
+    };
+    const memberNames = new Map([[ADA, "Ada Lovelace"], ["22222222-2222-4222-8222-222222222222", "bob@example.com"]]);
+    const data = page(start("crew-tee"), { history: withMakers, memberNames });
+    expect(data.pack.cover.revisions.map((entry) => entry.by)).toEqual(["Ada Lovelace", "Not recorded", "Not recorded"]);
+  });
+
   it("dates a version older than the listed history by the day that version was saved, not the day the design last changed", () => {
     const old = project(start("crew-tee"), { currentVersion: 3, versionSavedAt: "2026-08-15T10:00:00Z", updatedAt: "2026-09-20T10:00:00Z" });
     const data = buildTechPackPage({

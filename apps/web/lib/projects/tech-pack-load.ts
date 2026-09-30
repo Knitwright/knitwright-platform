@@ -6,6 +6,7 @@ import { latestImages } from "@/lib/images/service";
 import type { ChartSet } from "@/lib/sizing";
 import { createFileReader, type StoredBytes } from "@/lib/storage/read";
 import { loadArtworkImages, type LoadedPictures } from "./artwork-images";
+import { loadMemberNames, type MemberNames } from "./member-names";
 import { getProjectAt, listVersions, type OpenProject, type VersionsPage } from "./service";
 import { historyIsNewer } from "./tech-pack-data";
 
@@ -22,6 +23,8 @@ export interface TechPackSource {
   readonly charts: ChartSet;
   /** The newest AI pictures of the design, or null when none were made. */
   readonly illustrations: LoadedIllustrations | null;
+  /** The names of the brand's members, for "Made by" in the revision history. */
+  readonly memberNames: MemberNames;
 }
 
 export interface LoadOptions {
@@ -53,10 +56,11 @@ export async function loadTechPackSource(
   options: LoadOptions,
 ): Promise<TechPackSource> {
   const reader = createFileReader(client, brandId);
-  const [first, currentCharts, illustrations] = await Promise.all([
+  const [first, currentCharts, illustrations, memberNames] = await Promise.all([
     readBoth(client, brandId, projectId, options.version),
     brandChartSet(client, brandId),
     latestImages(client, brandId, projectId).then((latest) => loadIllustrations(reader, latest)),
+    loadMemberNames(client, brandId),
   ]);
   let [project, history] = first;
   if (options.version === undefined && historyIsNewer(project, history)) {
@@ -73,5 +77,5 @@ export async function loadTechPackSource(
     project.spec,
     options.maxEmbeddedBytes === undefined ? {} : { maxEmbeddedBytes: options.maxEmbeddedBytes },
   );
-  return { project, history, pictures, charts, illustrations };
+  return { project, history, pictures, charts, illustrations, memberNames };
 }

@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DeleteForm } from "@/components/deletion/DeleteForm";
+import { DisplayNameForm } from "@/components/profile/DisplayNameForm";
 import { deleteAccountAction } from "@/lib/deletion/actions";
+import { setDisplayNameAction } from "@/lib/profile/actions";
+import { profileNameOf } from "@/lib/profile/name";
+import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const { email, brands } = await requireMember();
+  const { data } = await (await sessionClient()).auth.getUser();
+  const name = profileNameOf(data.user?.user_metadata);
 
   return (
     <div className="flex max-w-2xl flex-col gap-8">
@@ -22,6 +28,15 @@ export default async function SettingsPage() {
           .
         </p>
       </header>
+
+      <section aria-labelledby="your-name" className="rounded-2xl border border-hairline bg-surface p-6">
+        <h2 id="your-name" className="text-base font-semibold text-ink">
+          Your name
+        </h2>
+        <div className="mt-4">
+          <DisplayNameForm action={setDisplayNameAction} defaultName={name} />
+        </div>
+      </section>
 
       <section
         aria-labelledby="delete-account"

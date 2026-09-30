@@ -16,13 +16,15 @@ export const projectRowSchema = z.object({
   updated_at: z.string(),
 });
 
-export const VERSION_COLUMNS = "version, note, restored_from, created_at";
+export const VERSION_COLUMNS = "version, note, restored_from, created_at, created_by";
 
 export const versionRowSchema = z.object({
   version: z.number().int().min(1),
   note: z.string(),
   restored_from: z.number().int().min(1).nullable(),
   created_at: z.string(),
+  /** Who saved the version. Null once their account is gone. */
+  created_by: z.uuid().nullable().optional(),
 });
 
 export const versionWithSpecRowSchema = versionRowSchema.extend({ spec: z.unknown() });

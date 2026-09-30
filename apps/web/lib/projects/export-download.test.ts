@@ -3,6 +3,7 @@ import { start } from "@/lib/garment/fixtures/specs";
 import { AppError } from "@/lib/server/core/errors";
 import { DEFAULT_CHART_SET, withBrandCharts } from "@/lib/sizing";
 import { madeUpChart } from "@/lib/sizing/fixtures/made-up-charts";
+import { readPdf } from "@/lib/flat/fixtures/pdf-read";
 import { readWorkbook } from "@/lib/techpack/exports/fixtures/xlsx-read";
 import { PICTURE_LEFT_OUT } from "@/lib/techpack/exports/limits";
 import { fullDesign } from "@/lib/techpack/fixtures/designs";
@@ -69,6 +70,7 @@ const source = (patch: Partial<TechPackSource> = {}): TechPackSource => ({
   pictures: { images: new Map(), skipped: 0 },
   charts: DEFAULT_CHART_SET,
   illustrations: null,
+  memberNames: new Map(),
   ...patch,
 });
 
@@ -282,6 +284,25 @@ describe("serving an export", () => {
     const sheets = await readWorkbook(new Uint8Array(await (await made.response).arrayBuffer()));
     const cells = sheets.flatMap((sheet) => sheet.data.flat());
     expect(cells.some((cell) => typeof cell === "string" && cell.includes("U1"))).toBe(true);
+  });
+
+  it("names who made each version in the PDF and the Excel file, from the brand's members only", async () => {
+    const ADA = "11111111-1111-4111-8111-111111111111";
+    const STRANGER = "33333333-3333-4333-8333-333333333333";
+    const made: VersionsPage = {
+      ...history,
+      versions: history.versions.map((entry, index) => ({ ...entry, createdBy: [ADA, STRANGER, ADA][index] ?? null })),
+    };
+    const load = async () => source({ history: made, memberNames: new Map([[ADA, "Ada Lovelace"]]) });
+
+    const workbook = await readWorkbook(new Uint8Array(await (await ask("xlsx", {}, { load }).response).arrayBuffer()));
+    const cells = workbook.flatMap((sheet) => sheet.data.flat()).filter((cell): cell is string => typeof cell === "string");
+    expect(cells.filter((cell) => cell === "Ada Lovelace")).toHaveLength(2);
+    expect(cells).toContain("Not recorded");
+
+    const pdf = await readPdf(new Uint8Array(await (await ask("pdf", {}, { load }).response).arrayBuffer()));
+    expect(pdf.text).toContain("Ada Lovelace");
+    expect(pdf.text).not.toContain(STRANGER);
   });
 
   it("carries the AI illustrations of the version exported, and leaves out ones made from a later version", async () => {

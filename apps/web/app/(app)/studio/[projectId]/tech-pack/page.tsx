@@ -28,7 +28,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
 
   // The same loader the export route uses, so the screen and the files are made from the same
   // reads, the brand's own size charts and the illustrations included.
-  const { project, history, pictures, charts, illustrations } = await loadTechPackSource(client, brand.id, projectId, {
+  const { project, history, pictures, charts, illustrations, memberNames } = await loadTechPackSource(client, brand.id, projectId, {
     shrink: shrinkForDrawing,
   }).catch(orNotFound);
   const data = buildTechPackPage({
@@ -40,6 +40,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
     picturesNote: picturesNote(pictures.skipped),
     colourwayId,
     charts,
+    memberNames,
   });
 
   return (

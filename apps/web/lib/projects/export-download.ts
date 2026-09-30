@@ -71,6 +71,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     images: source.pictures.images,
     now: deps.now(),
     charts: source.charts,
+    memberNames: source.memberNames,
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
   const view = query.view ?? null;

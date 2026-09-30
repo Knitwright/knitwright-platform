@@ -107,8 +107,11 @@ one sign-in shared by each worker, is the real cure and is owed.
 
 ## Consequences
 
-- "Made by" in the revision history says "Not recorded". The database keeps who saved a version
-  but no name is stored to show.
+- "Made by" in the revision history names the person who saved each version (since 2026-09-30,
+  owner decision): the name from their profile, set in Settings or given by Google, else their
+  email address. Names come from `public.brand_member_names`, which answers only for the reader's
+  own brand and only with its members; anyone else, or a version whose maker is gone, is
+  "Not recorded". The PDF and the Excel file carry the same names.
 - Only components the registry implies can be described. Extra items such as a swing tag are not
   supported yet.
 - The drawings show the first colourway, or the one named in the address (`?colourway=`). The

@@ -44,4 +44,6 @@ export const LIMITS = {
   // Deleting cannot be undone and removes stored files, so a slip or a script can do little harm.
   deleteDesign: { name: "delete-design", limit: 20, windowSeconds: 10 * MINUTE },
   deleteAccount: { name: "delete-account", limit: 3, windowSeconds: HOUR },
+  // The name shown as "Made by" in tech packs. Kept in the person's sign-in profile.
+  changeProfile: { name: "change-profile", limit: 20, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

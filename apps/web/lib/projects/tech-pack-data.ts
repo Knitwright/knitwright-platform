@@ -11,6 +11,7 @@ import {
   type TechPack,
 } from "@/lib/techpack";
 import { formatDate, isoDay } from "./dates";
+import { madeBy, type MemberNames } from "./member-names";
 import type { OpenProject, VersionsPage } from "./service";
 import {
   componentRows,
@@ -70,6 +71,8 @@ export interface TechPackPageInput {
   readonly picturesNote?: string | null;
   /** The colourway to draw, from the address. The first is drawn when it is missing or unknown. */
   readonly colourwayId?: string;
+  /** The names of the brand's members, for "Made by". Anyone else is "Not recorded". */
+  readonly memberNames?: MemberNames;
 }
 
 export const STALE_SENTENCE = "This design was changed while the page was loading. Reload the page to see the latest version.";
@@ -79,16 +82,18 @@ export const historyIsNewer = (project: OpenProject, history: VersionsPage): boo
   history.versions.some((entry) => entry.version > project.currentVersion);
 
 /** Only versions up to the design that was read are listed, so the document never mixes two versions. */
-const revisionsOf = (history: VersionsPage, current: number): readonly RevisionInput[] =>
+const revisionsOf = (history: VersionsPage, current: number, names: MemberNames): readonly RevisionInput[] =>
   history.versions
     .filter((entry) => entry.version <= current)
     .map((entry) => ({
-    version: entry.version,
-    date: formatDate(entry.createdAt),
-    dateIso: isoDay(entry.createdAt),
-    note: entry.note,
-    by: null,
-  }));
+      version: entry.version,
+      date: formatDate(entry.createdAt),
+      dateIso: isoDay(entry.createdAt),
+      note: entry.note,
+      by: madeBy(entry.createdBy ?? null, names),
+    }));
+
+const NO_NAMES: MemberNames = new Map();
 
 /**
  * The document for one version of a design. The screen and every export are made by this one
@@ -105,7 +110,7 @@ export function buildPackFor(input: TechPackPageInput): TechPack {
     versionDateIso: isoDay(project.versionSavedAt),
     printedOn: formatDate(input.now.toISOString()),
     printedOnIso: isoDay(input.now.toISOString()),
-    history: revisionsOf(history, project.currentVersion),
+    history: revisionsOf(history, project.currentVersion, input.memberNames ?? NO_NAMES),
     spec: project.spec,
     charts,
     flats,

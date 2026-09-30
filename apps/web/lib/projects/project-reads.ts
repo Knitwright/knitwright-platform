@@ -49,6 +49,8 @@ export interface VersionSummary {
   readonly note: string;
   readonly restoredFrom: number | null;
   readonly createdAt: string;
+  /** The user who saved the version, when known. Shown by name only to the brand's members. */
+  readonly createdBy?: string | null;
 }
 
 export interface OpenVersion extends VersionSummary {
@@ -80,6 +82,7 @@ const versionOf = (row: z.output<typeof versionRowSchema>): VersionSummary => ({
   note: row.note,
   restoredFrom: row.restored_from,
   createdAt: row.created_at,
+  createdBy: row.created_by ?? null,
 });
 
 /** One design of this brand. A design that is missing, or not this brand's, is not found. */

@@ -251,6 +251,8 @@ const CALLABLE = {
   "public.signup_is_open()": { anon: true, authenticated: true },
   "public.create_brand(p_name text)": { anon: false, authenticated: true },
   "public.rename_brand(p_brand_id uuid, p_name text)": { anon: false, authenticated: true },
+  // Names of the caller's own brand's members, for "Made by" (tests/integration/member-names.test.ts).
+  "public.brand_member_names(p_brand_id uuid)": { anon: false, authenticated: true },
   // Used inside access rules. They cannot be called through the API.
   "private.is_member(p_brand_id uuid)": { anon: false, authenticated: true },
   "private.brand_id_from(p_text text)": { anon: false, authenticated: true },
