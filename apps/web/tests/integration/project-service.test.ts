@@ -97,7 +97,7 @@ describe("creating and opening a design", () => {
     const id = await make();
 
     expect((await listVersions(alice.client, aliceBrand, id)).versions).toEqual([
-      { version: 1, note: "Design created.", restoredFrom: null, createdAt: expect.any(String) },
+      { version: 1, note: "Design created.", restoredFrom: null, createdAt: expect.any(String), createdBy: alice.userId },
     ]);
   });
 
