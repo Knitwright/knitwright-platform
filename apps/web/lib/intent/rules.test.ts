@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { start } from "@/lib/garment/fixtures/specs";
 import goldenFile from "./golden/tops.json";
 import { goldenSetSchema, replayCase, scoreCase } from "./golden/replay";
 import { looksLikeOverride, OVERRIDE_REASON } from "./injection";
@@ -20,7 +21,21 @@ describe("rules first", () => {
     ],
     ["no collar", [{ type: "set-option", optionId: "collar", choiceId: "none" }]],
   ])("answers %j without a model", (utterance, actions) => {
-    expect(ruleReply(utterance)).toEqual({ kind: "changes", actions });
+    expect(ruleReply(utterance, start("crew-tee"))).toEqual({ kind: "changes", actions });
+  });
+
+  it("reads a phrase two families share against the design's type, or the type named with it", () => {
+    const sleeves = (optionId: string) => ({ type: "set-option", optionId, choiceId: "long" });
+    expect(ruleReply("long sleeves", start("crew-tee"))?.actions).toEqual([sleeves("sleeve-length")]);
+    expect(ruleReply("long sleeves", start("compression-top"))?.actions).toEqual([sleeves("sleeves")]);
+    expect(ruleReply("compression top with long sleeves", start("crew-tee"))?.actions).toEqual([
+      { type: "change-type", typeId: "compression-top" },
+      sleeves("sleeves"),
+    ]);
+  });
+
+  it("leaves a phrase two families share to the model when there is no design to read it against", () => {
+    expect(ruleReply("long sleeves")).toBeNull();
   });
 
   it.each([

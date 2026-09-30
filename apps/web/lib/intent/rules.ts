@@ -1,4 +1,4 @@
-import { WEARERS, type Wearer } from "@/lib/garment";
+import { WEARERS, getType, type GarmentSpec, type Wearer } from "@/lib/garment";
 import { BREAK, phraseAt, words } from "./mentions";
 import type { WireAction } from "./reply-schema";
 
@@ -32,23 +32,50 @@ function toAction(target: string): WireAction | null {
 const slotOf = (action: WireAction): string =>
   action.type === "set-option" ? `option:${action.optionId}` : action.type;
 
-/** The targets named in the text, or null when any word is not a named choice or a joining word. */
-function namedTargets(utterance: string): string[] | null {
+/** Every phrase's targets in the text, or null when any word is not a named choice or a joining word. */
+function namedPhrases(utterance: string): (readonly string[])[] | null {
   const tokens = words(utterance);
   if (tokens.length === 0 || tokens.length > MAX_WORDS) return null;
-  const targets: string[] = [];
+  const phrases: (readonly string[])[] = [];
   let index = 0;
   while (index < tokens.length) {
     const token = tokens[index];
     const phrase = phraseAt(tokens, index);
     if (phrase) {
-      targets.push(phrase.target);
+      phrases.push(phrase.targets);
       index += phrase.length;
     } else if (token === BREAK || JOINING_WORDS.has(token)) {
       index += 1;
     } else {
       return null;
     }
+  }
+  return phrases;
+}
+
+/** True when the target can apply to a design of this type: a choice must be one of its options. */
+function fitsType(target: string, typeId: string | undefined): boolean {
+  const [kind, optionId] = target.split(":");
+  if (kind !== "choice") return true;
+  const type = typeId === undefined ? undefined : getType(typeId);
+  return type !== undefined && type.options.some((option) => option.id === optionId);
+}
+
+/**
+ * One target for each phrase, or null. A phrase that names choices in more than one family
+ * (such as "long sleeves") is read against the garment type named in the same message, or
+ * else the design's own type; if that leaves anything but one, the model decides.
+ */
+function namedTargets(utterance: string, spec?: GarmentSpec): string[] | null {
+  const phrases = namedPhrases(utterance);
+  if (!phrases) return null;
+  const types = new Set(phrases.flat().filter((target) => target.startsWith("type:")));
+  const typeId = types.size === 1 ? [...types][0].split(":")[1] : types.size === 0 ? spec?.typeId : undefined;
+  const targets: string[] = [];
+  for (const named of phrases) {
+    const fitting = named.length === 1 ? named : named.filter((target) => fitsType(target, typeId));
+    if (fitting.length !== 1) return null;
+    targets.push(fitting[0]);
   }
   return targets;
 }
@@ -57,8 +84,8 @@ function namedTargets(utterance: string): string[] | null {
  * The reply a model would give to a request the rules can read on their own, or null.
  * Pure and deterministic.
  */
-export function ruleReply(utterance: string): { kind: "changes"; actions: WireAction[] } | null {
-  const targets = namedTargets(utterance);
+export function ruleReply(utterance: string, spec?: GarmentSpec): { kind: "changes"; actions: WireAction[] } | null {
+  const targets = namedTargets(utterance, spec);
   if (!targets || targets.length === 0) return null;
   const actions: WireAction[] = [];
   const slots = new Map<string, string>();

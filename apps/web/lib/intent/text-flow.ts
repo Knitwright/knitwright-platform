@@ -93,7 +93,7 @@ export async function runTextIntent(
   deps: TextFlowDeps,
 ): Promise<TextFlowResult> {
   if (looksLikeOverride(utterance)) return { outcome: rejection(OVERRIDE_REASON), answeredBy: "guard", calls: [] };
-  const rule = ruleReply(utterance);
+  const rule = ruleReply(utterance, spec);
   if (rule) return { outcome: resolveIntent({ utterance, spec, raw: JSON.stringify(rule) }), answeredBy: "rules", calls: [] };
   if (!deps.primary) return { outcome: rejection(UNAVAILABLE_REASON), answeredBy: "unavailable", calls: [] };
 

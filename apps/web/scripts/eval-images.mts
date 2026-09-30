@@ -12,8 +12,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import manifest from "@/lib/intent/golden/images/images.json";
-import { imageSetSchema, scoreImageCase, summariseImages } from "@/lib/intent/golden/image-replay";
+import { allGoldenImageCases } from "@/lib/intent/golden/image-cases";
+import { scoreImageCase, summariseImages } from "@/lib/intent/golden/image-replay";
 import { startSpec } from "@/lib/intent/golden/replay";
 import { runImageIntent } from "@/lib/intent/image-input";
 import { rejection } from "@/lib/intent/outcome";
@@ -29,7 +29,13 @@ const here = dirname(fileURLToPath(import.meta.url));
 const IMAGES = join(here, "..", "lib", "intent", "golden", "images");
 const EVALS = join(here, "..", "..", "..", "docs", "evals");
 
-const set = imageSetSchema.parse(manifest);
+// Tops, and the other families' cases whose pictures the owner has supplied (A8).
+const joined = allGoldenImageCases();
+for (const left of joined.skipped) console.warn(`Skipped ${left.id}: ${left.reason}`);
+const set = {
+  cases: joined.cases,
+  status: joined.cases.length > 0 && joined.cases.every((entry) => entry.approved) ? "approved" : "proposed",
+};
 if (set.cases.length === 0) {
   console.error("The golden image set is empty (owner action A8). Add images and cases first; see the README in that folder.");
   process.exit(1);

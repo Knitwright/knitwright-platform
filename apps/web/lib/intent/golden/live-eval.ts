@@ -77,7 +77,7 @@ export async function evaluateText({
       const result = await runTextIntent({ utterance: golden.utterance, spec }, { primary: recorder.provider, retry: null });
       if (result.answeredBy === "rules") {
         byRules += 1;
-        responses[golden.id] = ruleReply(golden.utterance);
+        responses[golden.id] = ruleReply(golden.utterance, spec);
       }
       for (const call of result.calls) cost += spentMicrodollars(entry, call.usage);
       const said = recorder.last();

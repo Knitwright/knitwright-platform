@@ -7,8 +7,9 @@ import { expectedSchema, startSchema } from "./replay";
  * against, and the outcome it should have. An applied outcome is the proposal shown on the
  * review screen, which the person confirms before anything changes (step 13).
  *
- * No image exists yet, so `file` is null and nothing is replayed. The image pipeline lives on
- * the step 13 branch; these cases are wired to its replay harness when the branches are joined.
+ * No image exists yet, so `file` is null and nothing is replayed. `image-cases.ts` joins these
+ * cases to the step 13 image harness (`scripts/eval-images.mts`); the owner puts each picture in
+ * `golden/images/` and names it in `file`.
  */
 const imageCaseSchema = z.strictObject({
   id: z.string(),

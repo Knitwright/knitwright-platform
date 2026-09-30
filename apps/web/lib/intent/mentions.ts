@@ -55,10 +55,16 @@ function negatedAt(tokens: readonly string[], index: number): boolean {
   return false;
 }
 
-/** The longest phrase that starts at `index`, with how many words it takes, or null. */
-export function phraseAt(tokens: readonly string[], index: number): { readonly target: string; readonly length: number } | null {
+/**
+ * The longest phrase that starts at `index`, every target it names, and how many words it
+ * takes, or null. A phrase may name a choice in more than one family.
+ */
+export function phraseAt(
+  tokens: readonly string[],
+  index: number,
+): { readonly targets: readonly string[]; readonly length: number } | null {
   const phrase = PHRASES.find((candidate) => matchesAt(tokens, index, candidate));
-  return phrase ? { target: phrase.target, length: phrase.words.length } : null;
+  return phrase ? { targets: phrase.targets, length: phrase.words.length } : null;
 }
 
 /**
