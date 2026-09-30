@@ -2,7 +2,7 @@
 
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { startTransition, useEffect, useOptimistic, useRef } from "react";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { SaveStatus } from "@/components/studio/EditorParts";
 import { useEditor } from "@/components/studio/useEditor";
@@ -31,6 +31,13 @@ export function GuidedFlow({ data, step, from, say, unit, assistant }: Props) {
   const router = useRouter();
   const editor = useEditor(data);
   const heading = useRef<HTMLHeadingElement>(null);
+  // The unit comes from the address. The choice shows at once, while the address changes.
+  const [shownUnit, showUnit] = useOptimistic(unit);
+  const chooseUnit = (chosen: LengthUnit): void =>
+    startTransition(() => {
+      showUnit(chosen);
+      router.replace(guideAddress(data.projectId, step, { unit: chosen }) as Route);
+    });
   const current = GUIDED_STEPS.find((entry) => entry.id === step) ?? GUIDED_STEPS[0];
   const { previous, next } = neighbours(step);
   const address = (to: StepId) => guideAddress(data.projectId, to, { unit, ...(to === step ? { from } : {}) }) as Route;
@@ -78,7 +85,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant }: Props) {
           </div>
         </section>
         <div className="min-w-0">
-          <LivePreview data={data} unit={unit} onUnit={(chosen) => router.replace(guideAddress(data.projectId, step, { unit: chosen }) as Route)} />
+          <LivePreview data={data} unit={shownUnit} onUnit={chooseUnit} />
         </div>
       </div>
     </div>
