@@ -33,4 +33,5 @@ Copy `0000-template.md` to start.
 | 0023 | [Launch hardening: deletion, monitoring, legal pages](0023-launch-hardening.md) | Accepted, with owner actions open (A9 legal review, Sentry DSN). Sentry EU and the storage quota decided 2026-09-30. |
 | 0024 | [The lead engine: buyer kind, organisation details, quote requests, leads page](0024-lead-engine.md) | Accepted. Mail notice waits for A4; platform admins added by hand. |
 | 0025 | [Consent to marketing email, unsubscribe links and logo rights](0025-consent-and-logo-rights.md) | Accepted. Legal text is a draft (A9); Australian questions open for the owner. |
+| 0026 | [Share links with comments and votes](0026-share-links.md) | Accepted, with questions open for the owner |
 | 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments, lettering and the 3D verdict asked of the owner. |

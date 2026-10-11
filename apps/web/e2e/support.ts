@@ -219,7 +219,9 @@ export const makePlatformAdmin = async (email: string): Promise<void> => {
   if (!user) throw new Error(`No account for ${email}.`);
   const added = await admin().from("platform_admins").insert({ user_id: user.id });
   if (added.error) throw new Error(added.error.message);
-};\n\n/** The id of the account with this address, read with the server's own key. */
+};
+
+/** The id of the account with this address, read with the server's own key. */
 export const userIdOf = async (email: string): Promise<string> => {
   const { data, error } = await admin().auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (error) throw new Error(error.message);

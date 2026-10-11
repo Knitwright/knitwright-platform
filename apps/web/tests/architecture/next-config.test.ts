@@ -85,3 +85,29 @@ describe("the export route keeps its sandbox policy (T9)", () => {
     expect(policy).toContain("object-src 'none'");
   });
 });
+
+/**
+ * Decision 0026: a share page is open to anyone holding its link. Its address must never be sent
+ * on to another site, it must never be indexed, and it must never be kept by a cache. The rule for
+ * share pages comes after the rule for every path, so its Referrer-Policy wins.
+ */
+describe("share pages keep their address to themselves", () => {
+  const SHARE_SOURCE = "/s/:token";
+
+  const rules = async () => (await nextConfig.headers?.()) ?? [];
+  const valueOf = (headers: readonly { key: string; value: string }[], key: string) =>
+    headers.find((header) => header.key.toLowerCase() === key.toLowerCase())?.value;
+
+  it("sends no referrer, asks not to be indexed and not to be stored", async () => {
+    const share = (await rules()).find((rule) => rule.source === SHARE_SOURCE);
+    expect(share).toBeDefined();
+    expect(valueOf(share?.headers ?? [], "Referrer-Policy")).toBe("no-referrer");
+    expect(valueOf(share?.headers ?? [], "X-Robots-Tag")).toBe("noindex, nofollow, noarchive");
+    expect(valueOf(share?.headers ?? [], "Cache-Control")).toBe("private, no-store, max-age=0");
+  });
+
+  it("comes after the rule for every path, so its referrer rule wins", async () => {
+    const all = await rules();
+    expect(all.findIndex((rule) => rule.source === SHARE_SOURCE)).toBeGreaterThan(all.findIndex((rule) => rule.source === "/:path*"));
+  });
+});

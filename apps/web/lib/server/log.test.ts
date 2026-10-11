@@ -91,6 +91,12 @@ describe("scrub", () => {
     const { scrub } = await import("./log");
     expect(scrub("key sb_secret_abc and Bearer xyz")).toBe("key [removed] and Bearer [removed]");
   });
+
+  it("removes the token of a share link from its address (decision 0026)", async () => {
+    const { scrub } = await import("./log");
+    const token = "ECxl0lFqlHu2x987PO-qI2j7bf92_gFdkBPlJTdLceI";
+    expect(scrub(`GET https://app.knitwright.com/s/${token} failed`)).toBe("GET https://app.knitwright.com/s/[removed] failed");
+  });
 });
 
 describe("AI provider keys", () => {

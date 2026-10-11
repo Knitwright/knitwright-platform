@@ -17,15 +17,17 @@ const SECRETS = [
   /sk-(?:proj-)?[A-Za-z0-9_-]{20,}/g,
 ];
 
+/** The token in a share link's address (decision 0026). The path stays, so the log still says what was asked for. */
+const SHARE_TOKEN = /(\/s\/)[A-Za-z0-9_-]{43}/g;
+
 /** Values that follow a telling name. The name stays, so the log still says what was there. */
 const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[^\s&"',;]+/g;
 
 /** Removes keys and tokens from text that leaves the server: the log, and error monitoring. */
 export const scrub = (text: string): string =>
-  SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text).replace(
-    LABELLED,
-    "$1[removed]",
-  );
+  SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text)
+    .replace(LABELLED, "$1[removed]")
+    .replace(SHARE_TOKEN, "$1[removed]");
 
 type Described = Readonly<Record<string, unknown>>;
 

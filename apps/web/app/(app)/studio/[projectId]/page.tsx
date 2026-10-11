@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DesignLeads } from "@/components/leads/DesignLeads";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
+import { ShareSection } from "@/components/share/ShareSection";
 import { brandChartSet } from "@/lib/charts/service";
 import { getEnv } from "@/lib/config/env";
 import { loadIllustrations } from "@/lib/images/illustrations";
@@ -61,6 +62,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
         loaded={illustrations}
       />
       <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} withPrompt />
+      <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />
     </div>
   );
 }

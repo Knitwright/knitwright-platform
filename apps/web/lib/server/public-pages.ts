@@ -21,4 +21,7 @@ export const PUBLIC_PAGES = [
   // Opened from the unsubscribe link in a marketing email, without signing in. The signed
   // token names the person; showing the page changes nothing (decision 0025).
   "app/unsubscribe/page.tsx",
+  // A design a member shared with their committee (decision 0026). The token in the address is the
+  // only key: the page reads through the share functions, which check it, and shows no other data.
+  "app/s/[token]/page.tsx",
 ] as const;

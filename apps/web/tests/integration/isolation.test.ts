@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
@@ -292,6 +292,62 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "closed", quantity: 1 },
   },
+  // Decision 0026: members read their brand's share links; only the server makes or revokes one.
+  share_links: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedShareLink(brandId, ownerId)).id }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      version: 1,
+      token_hash: "\\x" + "00".repeat(32),
+      created_by: userId,
+      expires_at: "2099-01-01T00:00:00Z",
+    }),
+    change: { revoked_at: "2026-01-01T00:00:00Z", version: 9 },
+  },
+  // Answers left through a share link. Only the server keeps one, after the bot check.
+  share_responses: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const link = await seedShareLink(brandId, ownerId);
+      must(
+        await adminClient().rpc("share_respond", {
+          p_token: link.token,
+          p_visitor_key: randomBytes(32).toString("base64url"),
+          p_name: "Seeded visitor",
+          p_vote: "yes",
+          p_comment: null,
+        }),
+      );
+      return { link_id: link.id };
+    },
+    attempt: (brandId) => ({
+      link_id: randomUUID(),
+      brand_id: brandId,
+      visitor_hash: "\\x" + "00".repeat(32),
+      name: "Made directly",
+      vote: "yes",
+    }),
+    change: { vote: "not_yet", comment: "Changed by a stranger." },
+  },
+};
+
+/** A share link made the way the server makes one, to a new design. */
+const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: string; token: string }> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const token = randomBytes(32).toString("base64url");
+  const rows = must(
+    await adminClient().rpc("create_share_link", {
+      p_project_id: projectId,
+      p_user_id: ownerId,
+      p_token: token,
+      p_days: 30,
+    }),
+  ) as { id: string }[];
+  return { id: rows[0].id, token };
 };
 
 /** A project made the way the server makes one. Returns its id. */

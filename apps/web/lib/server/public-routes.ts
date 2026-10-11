@@ -18,4 +18,8 @@ export const PUBLIC_ENTRY_POINTS = [
   "lib/consent/actions.ts#unsubscribeAction",
   // Google sends the browser back here with a code, before a session exists.
   "app/auth/callback/route.ts#GET",
+  // A vote or comment from someone a member sent a share link to, who has no account (decision
+  // 0026). The share token decides which design; the bot check and limits per address and per link
+  // guard it.
+  "lib/share/actions.ts#respondToShareAction",
 ] as const;

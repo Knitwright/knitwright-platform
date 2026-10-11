@@ -33,6 +33,9 @@ const KEPT_FIELDS = [
   "message",
   "nextStep",
   "nextStepOn",
+  // Share link answers (decision 0026).
+  "vote",
+  "comment",
 ] as const;
 
 const UNREACHABLE: Failure = {

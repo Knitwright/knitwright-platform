@@ -54,4 +54,15 @@ export const LIMITS = {
   changeConsent: { name: "change-consent", limit: 20, windowSeconds: 10 * MINUTE },
   // An unsubscribe link needs no sign-in. A person clicks it once; this stops a script hammering it.
   unsubscribe: { name: "unsubscribe", limit: 20, windowSeconds: 10 * MINUTE },
+  // Share links (decision 0026). Making one, and revoking or moving one, by a member.
+  createShareLink: { name: "create-share-link", limit: 20, windowSeconds: HOUR },
+  changeShareLink: { name: "change-share-link", limit: 60, windowSeconds: 10 * MINUTE },
+  // Opening a share page draws the design on the server, with no session, so each address is held
+  // to a page a second on average.
+  shareView: { name: "share-view", limit: 60, windowSeconds: MINUTE },
+  // A visitor's vote or comment, per address. The bot check guards it as well.
+  shareRespond: { name: "share-respond", limit: 10, windowSeconds: 10 * MINUTE },
+  // The same answers per link, whatever the address, so many addresses cannot flood one design.
+  // Counted in lib/share/respond.ts, inside the action.
+  shareRespondLink: { name: "share-respond-link", limit: 60, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

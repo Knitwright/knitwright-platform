@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EnvError, parseEnv } from "./env";
+import { EnvError, parseEnv, turnstileSecret } from "./env";
 
 const valid = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
@@ -198,6 +198,37 @@ describe("parseEnv", () => {
           VERCEL_ENV: "production",
         }),
       ).not.toThrow();
+    });
+  });
+
+  describe("the Turnstile secret, for bot checks the app makes itself (share pages)", () => {
+    const TEST_SECRETS = [
+      "1x0000000000000000000000000000000AA",
+      "2x0000000000000000000000000000000AA",
+      "3x0000000000000000000000000000000AA",
+    ];
+
+    it("uses the secret that is set", () => {
+      expect(turnstileSecret(parseEnv({ ...valid, TURNSTILE_SECRET_KEY: "0x4AAAreal" }))).toBe("0x4AAAreal");
+    });
+
+    it("falls back to Cloudflare's always-pass test secret on this machine and in tests", () => {
+      expect(turnstileSecret(parseEnv(valid))).toBe(TEST_SECRETS[0]);
+      expect(turnstileSecret(parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "http://localhost:3100", NODE_ENV: "production" }))).toBe(
+        TEST_SECRETS[0],
+      );
+    });
+
+    it("has none wherever real people visit and no secret is set, so share pages refuse answers", () => {
+      expect(turnstileSecret(parseEnv({ ...valid, VERCEL_ENV: "production" }))).toBeNull();
+      expect(turnstileSecret(parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", NODE_ENV: "production" }))).toBeNull();
+    });
+
+    it.each(TEST_SECRETS)("refuses the test secret %s wherever real people visit", (secret) => {
+      expect(() => parseEnv({ ...valid, TURNSTILE_SECRET_KEY: secret, VERCEL_ENV: "production" })).toThrow(
+        /TURNSTILE_SECRET_KEY is a test key/,
+      );
+      expect(() => parseEnv({ ...valid, TURNSTILE_SECRET_KEY: secret })).not.toThrow();
     });
   });
 
