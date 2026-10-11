@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DesignLeads } from "@/components/leads/DesignLeads";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { brandChartSet } from "@/lib/charts/service";
 import { getEnv } from "@/lib/config/env";
 import { loadIllustrations } from "@/lib/images/illustrations";
+import { loadDesignLeads } from "@/lib/leads/service";
 import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
@@ -38,9 +40,10 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   ]).catch(orNotFound);
 
   const reader = createFileReader(client, brand.id);
-  const [pictures, illustrations] = await Promise.all([
+  const [pictures, illustrations, leads] = await Promise.all([
     loadArtworkImages(reader, shrinkForDrawing, project.spec),
     latestImages(client, brand.id, projectId).then((latest) => loadIllustrations(reader, latest)),
+    loadDesignLeads(client, brand.id, projectId, new Date()),
   ]);
 
   return (
@@ -57,6 +60,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
         currentVersion={project.currentVersion}
         loaded={illustrations}
       />
+      <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} withPrompt />
     </div>
   );
 }

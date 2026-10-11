@@ -2,6 +2,7 @@
 
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
+import { OrganisationFields } from "@/components/leads/OrganisationFields";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { BRAND_NAME_MAX } from "@/lib/brands/limits";
@@ -16,6 +17,8 @@ type BrandNameFormProps = Readonly<{
   busyLabel: string;
   /** Said once the action has succeeded, when it does not lead to another page. */
   doneMessage?: string;
+  /** Also asks for the optional organisation details, when a brand is created (decision 0024). */
+  withDetails?: boolean;
 }>;
 
 /** Asks for a brand name. Used to create a brand and to rename one. */
@@ -27,6 +30,7 @@ export function BrandNameForm({
   submitLabel,
   busyLabel,
   doneMessage,
+  withDetails = false,
 }: BrandNameFormProps) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(action);
   const saved = state.result?.success === true && doneMessage;
@@ -46,6 +50,16 @@ export function BrandNameForm({
         defaultValue={state.values.name ?? defaultName}
         errors={fieldErrors("name")}
       />
+      {withDetails ? (
+        <OrganisationFields
+          values={{
+            organisationType: state.values.organisationType ?? "",
+            country: state.values.country ?? "",
+            region: state.values.region ?? "",
+          }}
+          errors={fieldErrors}
+        />
+      ) : null}
       <div>
         <Button type="submit" pending={pending}>
           {pending ? busyLabel : submitLabel}

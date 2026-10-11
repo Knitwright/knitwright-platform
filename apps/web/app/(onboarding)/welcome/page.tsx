@@ -25,6 +25,7 @@ export default async function WelcomePage() {
         hint="You can change it later."
         submitLabel="Create brand"
         busyLabel="Creating"
+        withDetails
       />
     </AuthCard>
   );

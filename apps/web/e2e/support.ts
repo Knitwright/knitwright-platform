@@ -210,3 +210,13 @@ export const downloadRecords = async (projectId: string): Promise<DownloadRecord
   if (error) throw new Error(error.message);
   return data as DownloadRecord[];
 };
+
+/** Makes an account a platform admin, as the owner does by hand in the database (decision 0024). */
+export const makePlatformAdmin = async (email: string): Promise<void> => {
+  const { data, error } = await admin().auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error) throw new Error(error.message);
+  const user = data.users.find((candidate) => candidate.email === email);
+  if (!user) throw new Error(`No account for ${email}.`);
+  const added = await admin().from("platform_admins").insert({ user_id: user.id });
+  if (added.error) throw new Error(added.error.message);
+};

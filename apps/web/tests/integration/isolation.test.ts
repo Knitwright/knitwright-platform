@@ -227,6 +227,38 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { fit: "slim" },
   },
+  // Decision 0024: a member reads their brand's quote requests; only the server writes them, and
+  // only platform admins change their status (tests/integration/leads.test.ts).
+  quote_requests: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const later = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      return {
+        id: must(
+          await adminClient().rpc("request_quote", {
+            p_project_id: projectId,
+            p_user_id: ownerId,
+            p_version: 1,
+            p_quantity: 50,
+            p_needed_by: later,
+            p_sizes_note: "",
+            p_message: "",
+          }),
+        ),
+      };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      version: 1,
+      quantity: 10,
+      needed_by: "2099-01-01",
+      created_by: userId,
+    }),
+    change: { status: "closed", quantity: 1 },
+  },
 };
 
 /** A project made the way the server makes one. Returns its id. */
@@ -244,6 +276,52 @@ const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
     }),
   );
 
+/**
+ * Tables no member may read at all, not even for their own brand: only platform admins, through
+ * policies and functions that check platform_admins (decision 0024). Each seeds a row and the
+ * suite checks that a member, and a visitor, can neither see nor touch it.
+ */
+type PlatformTableSpec = Readonly<{
+  privileges: readonly string[];
+  seed: (brandId: string) => Promise<Row>;
+  attempt: (brandId: string, userId: string) => Row;
+  change: Row;
+}>;
+
+const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
+  leads: {
+    privileges: ["SELECT"],
+    // Only a platform admin writes a lead, through admin_set_lead.
+    seed: async (brandId) => {
+      const admin = await person("lead-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      must(
+        await admin.client.rpc("admin_set_lead", {
+          p_brand_id: brandId,
+          p_owner: "partner",
+          p_next_step: "Seeded",
+          p_next_step_on: null,
+        }),
+      );
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, owner: "knitwright" }),
+    change: { owner: "knitwright", next_step: "Changed by a member" },
+  },
+  platform_admins: {
+    privileges: [],
+    seed: async () => {
+      const someone = await person("admin");
+      must(
+        await adminClient().from("platform_admins").insert({ user_id: someone.userId }).select("user_id"),
+      );
+      return { user_id: someone.userId };
+    },
+    attempt: (_brandId, userId) => ({ user_id: userId }),
+    change: { created_at: "2000-01-01T00:00:00Z" },
+  },
+};
+
 const BUCKETS = ["exports", "images", "uploads"] as const;
 
 /** Functions a browser may call, and who may call them. Everything else is refused. */
@@ -253,9 +331,23 @@ const CALLABLE = {
   "public.rename_brand(p_brand_id uuid, p_name text)": { anon: false, authenticated: true },
   // Names of the caller's own brand's members, for "Made by" (tests/integration/member-names.test.ts).
   "public.brand_member_names(p_brand_id uuid)": { anon: false, authenticated: true },
+  // Decision 0024: a member sets their own brand's organisation details.
+  "public.set_brand_details(p_brand_id uuid, p_organisation_type text, p_country text, p_region text)": {
+    anon: false,
+    authenticated: true,
+  },
+  // Decision 0024: callable by any signed-in person, but each refuses anyone not in platform_admins.
+  "public.am_platform_admin()": { anon: false, authenticated: true },
+  "public.admin_lead_rows()": { anon: false, authenticated: true },
+  "public.admin_set_lead(p_brand_id uuid, p_owner text, p_next_step text, p_next_step_on date)": {
+    anon: false,
+    authenticated: true,
+  },
+  "public.admin_set_quote_status(p_quote_id uuid, p_status text)": { anon: false, authenticated: true },
   // Used inside access rules. They cannot be called through the API.
   "private.is_member(p_brand_id uuid)": { anon: false, authenticated: true },
   "private.brand_id_from(p_text text)": { anon: false, authenticated: true },
+  "private.is_platform_admin()": { anon: false, authenticated: true },
 } as const;
 
 type Report = Readonly<{
@@ -304,14 +396,16 @@ describe("what exists", () => {
   });
 
   it("has a test below for every table, and no test for a table that is gone", () => {
-    expect(report.tables.map((table) => table.name).sort()).toEqual(Object.keys(TABLES).sort());
+    expect(report.tables.map((table) => table.name).sort()).toEqual(
+      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES)].sort(),
+    );
   });
 
   it("lets a browser do to each table only what is written down here", () => {
     for (const table of report.tables) {
       expect([table.name, table.client_privileges]).toEqual([
         table.name,
-        [...TABLES[table.name].privileges].sort(),
+        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name]).privileges].sort(),
       ]);
     }
   });
@@ -434,6 +528,38 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
     await alice.client.from(table).delete().match(mine);
 
     expect(await rowsAsServer(table, mine)).toEqual(mineBefore);
+  });
+});
+
+describe.each(Object.entries(PLATFORM_TABLES))("platform table %s", (table, spec) => {
+  let seeded: Row;
+  let before: Row | undefined;
+
+  beforeAll(async () => {
+    seeded = await spec.seed(aliceBrand);
+    before = await rowAsServer(table, seeded);
+    expect(before).toBeDefined();
+  });
+
+  it("shows a member nothing, not even for their own brand", async () => {
+    const { data } = await alice.client.from(table).select("*");
+
+    expect(data ?? []).toEqual([]);
+  });
+
+  it("shows a visitor who is not signed in nothing", async () => {
+    const { data } = await anonClient().from(table).select("*");
+
+    expect(data ?? []).toEqual([]);
+  });
+
+  it("lets a member add, change or delete nothing", async () => {
+    const { error } = await alice.client.from(table).insert(spec.attempt(aliceBrand, alice.userId));
+    await alice.client.from(table).update(spec.change).match(seeded);
+    await alice.client.from(table).delete().match(seeded);
+
+    expect(error).not.toBeNull();
+    expect(await rowAsServer(table, seeded)).toEqual(before);
   });
 });
 

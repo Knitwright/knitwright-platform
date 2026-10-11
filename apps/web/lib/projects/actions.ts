@@ -9,7 +9,10 @@ import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { guideAddress } from "@/lib/guided/flow";
-import { guidedStartSchema, planGuidedStart } from "@/lib/guided/start";
+import { planGuidedStart } from "@/lib/guided/start";
+import { guidedStartWithKindSchema } from "@/lib/leads/guided-start";
+import { setProjectBuyerKind } from "@/lib/leads/service";
+import { log } from "@/lib/server/log";
 import { verifyProposal } from "@/lib/intent/proposal-token";
 import { nowSeconds, proposalSigningKey } from "./assistant";
 import { applySignedProposal } from "./assistant-request";
@@ -74,7 +77,7 @@ export const createProjectAction = defineAction({
 export const startGuidedAction = defineAction({
   auth: "member",
   rateLimit: LIMITS.createProject,
-  schema: guidedStartSchema,
+  schema: guidedStartWithKindSchema,
   handler: async ({ input, session }) => {
     const plan = planGuidedStart(input);
     const id = await createProject(adminClient(), {
@@ -87,6 +90,11 @@ export const startGuidedAction = defineAction({
       season: "",
       charts: await brandChartSet(await sessionClient(), session.brand.id),
     });
+    // The path the person chose (decision 0024). The design is made already, so a failure here
+    // is logged and the guide opens anyway.
+    await setProjectBuyerKind(adminClient(), { projectId: id, userId: session.userId, buyerKind: input.buyerKind }).catch(
+      (error: unknown) => log({ level: "warn", message: "The buyer kind could not be saved", where: "action create-project", error }),
+    );
     revalidatePath("/studio");
     redirect(guideAddress(id, "start", plan.next) as Route);
   },

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DesignLeads } from "@/components/leads/DesignLeads";
 import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
 import { IllustrationsSection } from "@/components/techpack/Illustrations";
+import { loadDesignLeads } from "@/lib/leads/service";
 import { picturesNote } from "@/lib/projects/artwork-images";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { buildTechPackPage } from "@/lib/projects/tech-pack-data";
@@ -31,6 +33,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   const { project, history, pictures, charts, illustrations, memberNames } = await loadTechPackSource(client, brand.id, projectId, {
     shrink: shrinkForDrawing,
   }).catch(orNotFound);
+  const leads = await loadDesignLeads(client, brand.id, projectId, new Date());
   const data = buildTechPackPage({
     project,
     history,
@@ -47,6 +50,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
     <TechPackEdit projectId={data.projectId} version={data.version}>
       <TechPackDocument data={data} colourwayId={colourwayId} />
       {illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
+      <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />
     </TechPackEdit>
   );
 }

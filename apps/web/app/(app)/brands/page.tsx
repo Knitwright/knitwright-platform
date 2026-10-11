@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { BrandNameForm } from "@/components/brands/BrandNameForm";
 import { SwitchBrandButton } from "@/components/brands/SwitchBrandButton";
+import { OrganisationForm } from "@/components/leads/OrganisationForm";
 import { createBrandAction, renameBrandAction } from "@/lib/brands/actions";
 import { MAX_BRANDS } from "@/lib/brands/limits";
+import { getBrandDetails } from "@/lib/leads/service";
+import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "Brands" };
@@ -11,6 +14,7 @@ export default async function BrandsPage() {
   const { brand, brands } = await requireMember();
   const others = brands.filter((other) => other.id !== brand.id);
   const canAdd = brands.length < MAX_BRANDS;
+  const details = await getBrandDetails(await sessionClient(), brand.id);
 
   return (
     <div className="flex max-w-2xl flex-col gap-8">
@@ -39,6 +43,18 @@ export default async function BrandsPage() {
             busyLabel="Saving"
             doneMessage="The name is saved."
           />
+        </div>
+      </section>
+
+      <section aria-labelledby="organisation" className="rounded-2xl border border-hairline bg-surface p-6">
+        <h2 id="organisation" className="text-base font-semibold text-ink">
+          About your organisation
+        </h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-muted">
+          What kind of organisation this brand is, and where. It helps us make and deliver your kit.
+        </p>
+        <div className="mt-4">
+          <OrganisationForm details={details} submitLabel="Save details" doneMessage="The details are saved." />
         </div>
       </section>
 
@@ -73,6 +89,7 @@ export default async function BrandsPage() {
               hint={`You can have ${MAX_BRANDS} brands. You have ${brands.length}.`}
               submitLabel="Create brand"
               busyLabel="Creating"
+              withDetails
             />
           </div>
         ) : (

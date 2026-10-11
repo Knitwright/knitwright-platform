@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandNameFormSchema, switchBrandSchema } from "./schemas";
+import { brandNameFormSchema, newBrandFormSchema, switchBrandSchema } from "./schemas";
 
 describe("brandNameFormSchema", () => {
   it("trims the name", () => {
@@ -27,5 +27,30 @@ describe("switchBrandSchema", () => {
       const result = switchBrandSchema.safeParse({ brandId });
       expect(result.error?.issues[0].message).toBe("Choose one of your brands.");
     }
+  });
+});
+
+describe("newBrandFormSchema", () => {
+  it("takes a name alone, the organisation details being optional", () => {
+    expect(newBrandFormSchema.parse({ name: "Northfield FC" })).toEqual({
+      name: "Northfield FC",
+      organisationType: null,
+      country: null,
+      region: null,
+    });
+  });
+
+  it("takes a name with the organisation details", () => {
+    expect(newBrandFormSchema.parse({ name: "Northfield FC", organisationType: "club", country: "AU", region: "QLD" })).toEqual({
+      name: "Northfield FC",
+      organisationType: "club",
+      country: "AU",
+      region: "QLD",
+    });
+  });
+
+  it("refuses a region in Australia that is not a state", () => {
+    const result = newBrandFormSchema.safeParse({ name: "Northfield FC", country: "AU", region: "Brisbane" });
+    expect(result.error?.issues.map((issue) => issue.path)).toEqual([["region"]]);
   });
 });
