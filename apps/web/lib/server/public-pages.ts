@@ -18,4 +18,7 @@ export const PUBLIC_PAGES = [
   "app/(auth)/auth/confirm/page.tsx",
   // The terms, privacy notice and data-processing terms. Anyone must be able to read them before signing up.
   "app/legal/[document]/page.tsx",
+  // A design a member shared with their committee (decision 0026). The token in the address is the
+  // only key: the page reads through the share functions, which check it, and shows no other data.
+  "app/s/[token]/page.tsx",
 ] as const;

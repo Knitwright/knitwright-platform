@@ -36,6 +36,18 @@ const EXPORT_HEADERS = [
   },
 ];
 
+/**
+ * A share page (decision 0026) is open to anyone holding its link, and the link's token is in the
+ * address. So the address is never sent to another site, the page is never indexed, and it is never
+ * kept by a cache. This rule comes after the rule for every path, so its Referrer-Policy wins. A
+ * dynamic page is already sent with no-store; the header here says so again.
+ */
+const SHARE_HEADERS = [
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  { key: "Cache-Control", value: "private, no-store, max-age=0" },
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   typedRoutes: true,
@@ -46,6 +58,7 @@ const nextConfig: NextConfig = {
   headers: async () => [
     { source: "/:path*", headers: SECURITY_HEADERS },
     { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },
+    { source: "/s/:token", headers: SHARE_HEADERS },
   ],
 };
 

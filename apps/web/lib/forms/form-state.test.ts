@@ -51,6 +51,17 @@ describe("nextFormState", () => {
     expect(state.values).toEqual({ name: "Northfield FC" });
   });
 
+  it("keeps a share page visitor's vote and comment, so a failed bot check loses nothing", async () => {
+    const state = await nextFormState(
+      start,
+      form({ name: "Sam", vote: "yes", comment: "Navy sleeves.", token: "abc" }),
+      async () => ({ success: false, error: { code: "invalid_input", message: "No." } }),
+      noRethrow,
+    );
+
+    expect(state.values).toEqual({ name: "Sam", vote: "yes", comment: "Navy sleeves." });
+  });
+
   it("keeps the choices made on the new design form", async () => {
     const state = await nextFormState(
       start,

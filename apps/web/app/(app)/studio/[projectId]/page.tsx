@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
+import { ShareSection } from "@/components/share/ShareSection";
 import { brandChartSet } from "@/lib/charts/service";
 import { loadIllustrations } from "@/lib/images/illustrations";
 import { latestImages } from "@/lib/images/service";
@@ -55,6 +56,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
         currentVersion={project.currentVersion}
         loaded={illustrations}
       />
+      <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />
     </div>
   );
 }

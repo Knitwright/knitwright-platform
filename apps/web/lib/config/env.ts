@@ -16,6 +16,11 @@ const envSchema = z.object({
   // Full database access. Read on the server only, never sent to a browser.
   SUPABASE_SECRET_KEY: z.string().min(1),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+  // The Turnstile secret, for the bot check the app makes itself on share pages (decision 0026).
+  // Sign-in and sign-up hand their token to Supabase, which holds its own copy. Server only.
+  // Optional: on this machine Cloudflare's always-pass test secret stands in; where real people
+  // visit, share pages refuse answers until it is set.
+  TURNSTILE_SECRET_KEY: z.string().regex(/^\S{1,200}$/).optional(),
   // May register while sign-up is closed. The switch itself lives in the database.
   OWNER_EMAIL: z
     .email()
@@ -77,6 +82,15 @@ const TURNSTILE_TEST_SITE_KEYS: ReadonlySet<string> = new Set([
   "3x00000000000000000000FF",
 ]);
 
+/** Cloudflare's published Turnstile test secrets: pass, fail, and "token already spent". */
+const TURNSTILE_TEST_SECRETS: ReadonlySet<string> = new Set([
+  "1x0000000000000000000000000000000AA",
+  "2x0000000000000000000000000000000AA",
+  "3x0000000000000000000000000000000AA",
+]);
+
+const TURNSTILE_PASSING_TEST_SECRET = "1x0000000000000000000000000000000AA";
+
 const LOOPBACK_HOSTS: ReadonlySet<string> = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 /**
@@ -96,12 +110,22 @@ const guardedSchema = envSchema.superRefine((env, context) => {
       message: "test key",
     });
   }
+  if (env.TURNSTILE_SECRET_KEY && TURNSTILE_TEST_SECRETS.has(env.TURNSTILE_SECRET_KEY) && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["TURNSTILE_SECRET_KEY"], message: "test key" });
+  }
   if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });
   }
 });
 
 export type Env = z.infer<typeof envSchema>;
+
+/**
+ * The secret for the app's own bot checks: the one that is set, Cloudflare's always-pass test
+ * secret on this machine and in tests, or null where real people visit and none is set.
+ */
+export const turnstileSecret = (env: Env): string | null =>
+  env.TURNSTILE_SECRET_KEY ?? (servesRealPeople(env) ? null : TURNSTILE_PASSING_TEST_SECRET);
 
 export class EnvError extends Error {
   constructor(readonly problems: readonly string[]) {
