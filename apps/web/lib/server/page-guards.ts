@@ -1,8 +1,9 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { amPlatformAdmin } from "@/lib/leads/service";
 import type { Brand, MemberSession, Session } from "./core/guard";
 import { SIGN_IN_PATH, WELCOME_PATH } from "./core/paths";
-import { activeBrand, currentBrands, currentSession } from "./deps";
+import { activeBrand, currentBrands, currentSession, sessionClient } from "./deps";
 
 /**
  * The checks a page makes before it shows anything. Every page and layout that shows a
@@ -30,4 +31,14 @@ export const requireMember = async (): Promise<Member> => {
   const brand = await activeBrand();
   if (!brand) redirect(WELCOME_PATH);
   return { ...session, brand, brands: await currentBrands() };
+};
+
+/**
+ * A platform admin: someone on the Knitwright team (decision 0024). Everyone else, signed in or
+ * not, gets the page that does not exist, so nobody learns the page is there.
+ */
+export const requirePlatformAdmin = async (): Promise<Session> => {
+  const session = await currentSession();
+  if (!session || !(await amPlatformAdmin(await sessionClient()))) notFound();
+  return session;
 };

@@ -1,6 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { BuyerKindChoice } from "@/components/leads/BuyerKindChoice";
 import { FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
@@ -19,9 +20,13 @@ type Fields = Readonly<{ kept: (name: string) => string; errors: (name: string) 
  * the design is made at once and the guide opens. Rules live in lib/guided.
  */
 export function GuidedStart({ types, wearers }: Props) {
+  // The path is asked first (decision 0024) and sent with whichever way to start is chosen.
+  const [buyerKind, setBuyerKind] = useState("");
   return (
     <div className="grid gap-6">
+      <BuyerKindChoice value={buyerKind} onChange={setBuyerKind} />
       <StartForm
+        buyerKind={buyerKind}
         method="text"
         title="Describe it in your own words"
         lead="For example: a slim polo shirt for women with long sleeves."
@@ -30,12 +35,14 @@ export function GuidedStart({ types, wearers }: Props) {
         {({ kept, errors }) => <SentenceField kept={kept} errors={errors} />}
       </StartForm>
       <StartForm
+        buyerKind={buyerKind}
         method="sketch"
         title="Start from a sketch or photo"
         lead="You will be asked for the picture next. Nothing changes until you check what was read."
         submit="Start from a picture"
       />
       <StartForm
+        buyerKind={buyerKind}
         method="picker"
         title="Pick a garment"
         lead="Choose the garment and who it is for. You can change every option afterwards."
@@ -53,6 +60,7 @@ export function GuidedStart({ types, wearers }: Props) {
 }
 
 type StartFormProps = Readonly<{
+  buyerKind: string;
   method: StartMethod;
   title: string;
   lead: string;
@@ -60,7 +68,7 @@ type StartFormProps = Readonly<{
   children?: (fields: Fields) => ReactNode;
 }>;
 
-function StartForm({ method, title, lead, submit, children }: StartFormProps) {
+function StartForm({ buyerKind, method, title, lead, submit, children }: StartFormProps) {
   const { form, state, submit: send, pending, summary, fieldErrors } = useFormAction(startGuidedAction);
   const headingId = `start-${method}`;
   return (
@@ -72,6 +80,8 @@ function StartForm({ method, title, lead, submit, children }: StartFormProps) {
       <form ref={form} action={send} className="mt-4 flex flex-col gap-4" noValidate>
         <FormSummary message={summary} />
         <input type="hidden" name="method" value={method} />
+        <input type="hidden" name="buyerKind" value={buyerKind} />
+        {fieldErrors("buyerKind").length > 0 ? <p className="text-sm text-warn">{fieldErrors("buyerKind").join(" ")}</p> : null}
         {children?.({ kept: (name) => state.values[name] ?? "", errors: fieldErrors })}
         <div>
           <Button type="submit" pending={pending}>

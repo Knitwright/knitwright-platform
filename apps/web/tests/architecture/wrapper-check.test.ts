@@ -402,6 +402,14 @@ ${UNGUARDED}`;
     ).toEqual([]);
   });
 
+  it("lets only a platform admin check guard a page in the admin group", () => {
+    const path = "app/(admin)/admin/leads/page.tsx";
+    expect(pageRules([page(guardedBy("requirePlatformAdmin"), path)])).toEqual([]);
+    expect(pageRules([page(guardedBy("requireMember"), path)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(guardedBy("requireSession"), path)])).toEqual(["page-not-guarded"]);
+    expect(pageRules([page(UNGUARDED, path)], [path])).toContain("page-not-guarded");
+  });
+
   it("accepts a page with no check only when it is on the list of public pages", () => {
     expect(pageRules([page(UNGUARDED, "app/page.tsx")], ["app/page.tsx"])).toEqual([]);
   });

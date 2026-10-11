@@ -19,7 +19,7 @@ export type RateLimitRule = Readonly<{
 }>;
 
 export type LogEvent = Readonly<{
-  level: "error" | "warn";
+  level: "error" | "warn" | "info";
   message: string;
   where: string;
   error?: unknown;

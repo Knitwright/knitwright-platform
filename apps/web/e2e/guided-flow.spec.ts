@@ -71,6 +71,7 @@ test.describe("the guided flow", () => {
       await expect(page).toHaveURL(/\/studio\/start$/);
       await accessible(page);
 
+      await page.getByRole("radio", { name: /Team kit/ }).check();
       await page.getByLabel("What do you want to make?").fill(sentence);
       await page.getByRole("button", { name: "Start from these words" }).click();
       await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}\/guide\?step=start/);
@@ -87,6 +88,7 @@ test.describe("the guided flow", () => {
   test("goes from a sketch to all four downloads", async ({ page }) => {
     await signedIn(page, "guided-sketch");
     await page.goto("/studio/start");
+    await page.getByRole("radio", { name: /Upload my design/ }).check();
     await page.getByRole("button", { name: "Start from a picture" }).click();
     await expect(page).toHaveURL(/\/guide\?step=start&from=sketch/);
     await accessible(page);
@@ -106,6 +108,8 @@ test.describe("the guided flow", () => {
   test("keeps every step usable by keyboard, and names the current step", async ({ page }) => {
     await signedIn(page, "guided-keys");
     await page.goto("/studio/start");
+    await page.getByRole("radio", { name: /Launch a brand/ }).focus();
+    await page.keyboard.press("Space");
     await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
     await page.getByLabel("Made for").selectOption({ label: "Women" });
     await page.getByRole("button", { name: "Start from this garment" }).focus();

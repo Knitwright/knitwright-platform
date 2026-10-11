@@ -15,6 +15,7 @@ import type { Violation } from "./wrapper-check";
 const GUARDS = "@/lib/server/page-guards";
 const REQUIRE_MEMBER: Imported = { module: GUARDS, name: "requireMember" };
 const REQUIRE_SESSION: Imported = { module: GUARDS, name: "requireSession" };
+const REQUIRE_PLATFORM_ADMIN: Imported = { module: GUARDS, name: "requirePlatformAdmin" };
 
 const RENDERED_FILE = /^app\/(.*\/)?(page|layout|template|default)\.[jt]sx?$/;
 
@@ -23,6 +24,9 @@ const STUDIO = "app/(app)/";
 
 /** Groups where a session is enough. Everywhere else a page needs a brand as well. */
 const SESSION_ONLY_GROUPS = ["app/(auth)/", "app/(onboarding)/"];
+
+/** The Knitwright team's pages (decision 0024). Only a platform admin may see them. */
+const ADMIN_GROUP = "app/(admin)/";
 
 const isRenderedFile = (path: string): boolean => RENDERED_FILE.test(path);
 
@@ -67,13 +71,14 @@ export const checkPage = (
   if (!isRenderedFile(path)) return { violations: [], isPublicPage: false };
 
   const inStudio = path.startsWith(STUDIO);
-  if (!inStudio && publicPages.has(path)) return { violations: [], isPublicPage: true };
+  const admin = path.startsWith(ADMIN_GROUP);
+  if (!inStudio && !admin && publicPages.has(path)) return { violations: [], isPublicPage: true };
 
   const sessionEnough = SESSION_ONLY_GROUPS.some((group) => path.startsWith(group));
-  const accepted = sessionEnough ? [REQUIRE_SESSION, REQUIRE_MEMBER] : [REQUIRE_MEMBER];
+  const accepted = admin ? [REQUIRE_PLATFORM_ADMIN] : sessionEnough ? [REQUIRE_SESSION, REQUIRE_MEMBER] : [REQUIRE_MEMBER];
   if (runsGuardFirst(source, accepted)) return { violations: [], isPublicPage: false };
 
-  const needs = sessionEnough ? "requireSession" : "requireMember";
+  const needs = admin ? "requirePlatformAdmin" : sessionEnough ? "requireSession" : "requireMember";
   return {
     isPublicPage: false,
     violations: [
