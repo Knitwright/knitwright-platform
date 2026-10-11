@@ -7,6 +7,7 @@ import { optionControls, type OptionControl } from "./controls";
 import { formatDateTime } from "./dates";
 import { flatPreview, type FlatPreviewData } from "./flat-preview";
 import { measurementTable, type MeasurementTable } from "./measurement-table";
+import { namesNumbersPanel, type NamesNumbersPanel } from "./names-numbers-controls";
 import type { OpenProject, VersionsPage } from "./service";
 import { sizesText } from "./sizing-form";
 import { undoTarget } from "./undo";
@@ -41,6 +42,8 @@ export interface EditorData {
   readonly artwork: readonly ArtworkRow[];
   /** The parts that can carry artwork, and the places on each. */
   readonly parts: readonly Part[];
+  /** Player names and numbers, or null when the garment has no place for them. */
+  readonly namesNumbers: NamesNumbersPanel | null;
   readonly table: MeasurementTable;
   readonly sizes: Readonly<{ text: string; baseSize: string; set: boolean }>;
   readonly versions: readonly VersionView[];
@@ -77,6 +80,7 @@ export const buildEditorData = (
   colours: colourRows(project.spec, colourwayId),
   artwork: artworkRows(project.spec),
   parts: placeableParts(project.spec),
+  namesNumbers: namesNumbersPanel(project.spec),
   table: measurementTable(project.spec, charts),
   sizes: {
     text: sizesText(project.spec.sizing),

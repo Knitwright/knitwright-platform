@@ -1,4 +1,12 @@
-import { cmToTenthsMm, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import {
+  DEFAULT_SAMPLE_NAME,
+  DEFAULT_SAMPLE_NUMBER,
+  cmToTenthsMm,
+  getType,
+  usualPlaces,
+  type GarmentSpec,
+  type SpecAction,
+} from "@/lib/garment";
 import type { WireAction } from "./reply-schema";
 
 /** Everything a model sets is a suggestion until a person changes it (criterion M4). */
@@ -29,6 +37,30 @@ function setColour(spec: GarmentSpec, wire: Extract<WireAction, { type: "set-col
   }));
   const kept = colourway.colours.filter((entry) => !named.has(entry.panelId));
   return done({ type: "update-colourway", colourway: { ...colourway, colours: [...kept, ...added] } });
+}
+
+export const NO_PLACE_FOR_MARKS = "This garment has no place for player names or numbers.";
+
+/**
+ * Names and numbers at the usual places, with a sample to draw. Nothing else is chosen for the
+ * person: style, colour, how they are made and every height stay unset. A design that has them
+ * already keeps what it has.
+ */
+function addNamesNumbers(spec: GarmentSpec, source: ModelSource): Converted {
+  if (spec.namesAndNumbers) return done({ type: "set-names-numbers", namesAndNumbers: spec.namesAndNumbers });
+  const type = getType(spec.typeId);
+  const places = type ? usualPlaces(type, spec.options) : [];
+  if (places.length === 0) return { ok: false, reason: NO_PLACE_FOR_MARKS };
+  return done({
+    type: "set-names-numbers",
+    namesAndNumbers: {
+      places: places.map((place) => ({ place })),
+      colour: "",
+      sampleName: DEFAULT_SAMPLE_NAME,
+      sampleNumber: DEFAULT_SAMPLE_NUMBER,
+      provenance: source,
+    },
+  });
 }
 
 /**
@@ -63,5 +95,7 @@ export function toSpecAction(spec: GarmentSpec, wire: WireAction, source: ModelS
       });
     case "set-labelling":
       return done({ type: "set-labelling", field: wire.field, text: wire.text, provenance: source });
+    case "add-names-numbers":
+      return addNamesNumbers(spec, source);
   }
 }

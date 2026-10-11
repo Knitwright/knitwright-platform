@@ -1,6 +1,7 @@
 import {
   LABELLING_FIELDS,
   LABELLING_LABELS,
+  PLACE_DEFINITIONS,
   PROVENANCE_LABELS,
   formatCm,
   getType,
@@ -167,6 +168,15 @@ function explainLabelling(before: GarmentSpec, after: GarmentSpec): string[] {
   });
 }
 
+function explainMarks(before: GarmentSpec, after: GarmentSpec): string[] {
+  const was = before.namesAndNumbers;
+  const now = after.namesAndNumbers;
+  if (same(was, now)) return [];
+  if (!now) return ["Player names and numbers removed."];
+  const places = now.places.map((entry) => PLACE_DEFINITIONS[entry.place].label.toLowerCase()).join(", and ");
+  return [was ? `Player names and numbers changed: ${places}.` : `Player names and numbers added: ${places}.`];
+}
+
 /** Parts with no sentence of their own yet. A change to one is still named, never skipped. */
 const OTHER_PARTS = {
   sizing: "Size run changed.",
@@ -197,6 +207,7 @@ export function explainChanges(before: GarmentSpec, after: GarmentSpec): readonl
     ...explainColourways(before, after),
     ...explainFabrics(before, after),
     ...explainLabelling(before, after),
+    ...explainMarks(before, after),
   );
   for (const [key, sentence] of Object.entries(OTHER_PARTS) as [keyof typeof OTHER_PARTS, string][]) {
     if (!same(before[key], after[key])) said.push(sentence);

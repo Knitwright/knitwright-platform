@@ -10,8 +10,9 @@ import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from 
 import { FlatPreview } from "./FlatPreview";
 import { History } from "./History";
 import { ImageReview } from "./ImageReview";
-import { BASE_KEY, SIZES_KEY, measurementKey } from "./keys";
+import { BASE_KEY, NAMES_NUMBERS_KEY, SIZES_KEY, measurementKey } from "./keys";
 import { MeasurementTables } from "./MeasurementTables";
+import { NamesNumbersControls } from "./NamesNumbersControls";
 import { OptionControls } from "./OptionControls";
 import { SizesForm } from "./SizesForm";
 import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
@@ -63,6 +64,15 @@ function MainColumn({ data, editor, assistant }: PartProps & Readonly<{ assistan
       </Section>
       <ColoursSection data={data} editor={editor} />
       <ArtworkSection data={data} editor={editor} />
+      <Section id="names-numbers" title="Player names and numbers">
+        <NamesNumbersControls
+          panel={data.namesNumbers}
+          error={editor.errorFor(NAMES_NUMBERS_KEY)}
+          onSave={editor.saveAction}
+          onProblem={(key, message) => editor.problem(key, message, false)}
+          onClearProblem={editor.clearProblem}
+        />
+      </Section>
       <Section id="sizes" title="Sizes">
         <SizesSection data={data} editor={editor} />
       </Section>

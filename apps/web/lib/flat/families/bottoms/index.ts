@@ -1,6 +1,6 @@
 import { chain, closedCommands, curveTo, pt } from "../../chain";
 import { need, resolveDimensions } from "../../dimensions";
-import { placedArtwork } from "../../artwork";
+import { placedDecoration } from "../../artwork";
 import { tidyCommands } from "../../paths";
 import type { Point } from "../../model";
 import { calloutsFrom, type DrawContext, type FamilyDrawing } from "../drawing";
@@ -59,7 +59,7 @@ export function drawBottoms(context: DrawContext): FamilyDrawing | null {
     seams: bottomsSeams(view, basis, options),
     stitching: bottomsStitching(basis, options),
     details: bottomsDetails(view, basis, options),
-    artwork: placedArtwork(context.spec.artwork, view, (panelId, anchorId) => bottomsAnchor(view, basis, panelId, anchorId)),
+    artwork: placedDecoration(context.spec, view, (panelId, anchorId) => bottomsAnchor(view, basis, panelId, anchorId)),
     callouts,
     outline: { silhouette: tidyCommands(closedCommands(bottomsSilhouette(basis))), neck: tidyCommands(closedCommands(waistOpening(basis))) },
     landmarks: landmarksOf(basis),

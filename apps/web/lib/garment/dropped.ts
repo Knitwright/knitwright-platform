@@ -6,6 +6,7 @@ export type DroppedKind =
   | "fabric-assignment"
   | "fabric-change"
   | "artwork"
+  | "names-numbers"
   | "component"
   | "construction";
 

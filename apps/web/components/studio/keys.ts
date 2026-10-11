@@ -7,3 +7,4 @@ export const colourKey = (panelId: string): string => `colour:${panelId}`;
 export const artworkKey = (artworkId: string): string => `artwork:${artworkId}`;
 export const NEW_ARTWORK_KEY = "artwork:new";
 export const UPLOAD_KEY = "artwork:upload";
+export const NAMES_NUMBERS_KEY = "names-numbers";

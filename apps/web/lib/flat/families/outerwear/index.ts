@@ -1,6 +1,6 @@
 import { closedCommands, pt } from "../../chain";
 import { need, resolveDimensions } from "../../dimensions";
-import { placedArtwork } from "../../artwork";
+import { placedDecoration } from "../../artwork";
 import type { Point } from "../../model";
 import { tidyCommands } from "../../paths";
 import { anchorPoint } from "../../templates/anchors";
@@ -82,7 +82,7 @@ export function drawOuterwear(context: DrawContext): FamilyDrawing | null {
     seams: outerwearSeams(shape),
     stitching: outerwearStitching(shape),
     details: outerwearDetails(shape),
-    artwork: placedArtwork(context.spec.artwork, context.view, (panelId, anchorId) => anchorPoint(shape.frame, panelId, anchorId)),
+    artwork: placedDecoration(context.spec, context.view, (panelId, anchorId) => anchorPoint(shape.frame, panelId, anchorId)),
     callouts,
     outline: outlineFor(shape),
     landmarks: landmarksOf(shape),

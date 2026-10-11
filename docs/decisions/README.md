@@ -31,4 +31,4 @@ Copy `0000-template.md` to start.
 | 0021 | [Construction rules, words and golden sets for the other families](0021-family-rules.md) | Accepted. The rules wait for a factory; the golden sets wait for the owner (A7, A8). |
 | 0022 | [The guided flow](0022-guided-flow.md) | Accepted. The five timed runs are owed to the owner. |
 | 0023 | [Launch hardening: deletion, monitoring, legal pages](0023-launch-hardening.md) | Accepted, with owner actions open (A9 legal review, Sentry DSN). Sentry EU and the storage quota decided 2026-09-30. |
-| 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments and the 3D verdict asked of the owner. |
+| 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments, lettering and the 3D verdict asked of the owner. |

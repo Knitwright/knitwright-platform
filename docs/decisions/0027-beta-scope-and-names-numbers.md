@@ -1,6 +1,6 @@
 # 0027: Beta scope, and player names and numbers
 
-Status: Accepted. Which garments launch and the 3D verdict are asked in apps/web/lib/config/OWNER-QUESTIONS.md.
+Status: Accepted. Which garments launch, the lettering and places, and the 3D verdict are asked in apps/web/lib/config/OWNER-QUESTIONS.md.
 Date: 2026-10-11
 Plan step: wave 3 (Platform and Store Guide, 2026-10-10)
 
@@ -36,17 +36,47 @@ waiting for the owner's verdict (A10).
 5. **The 3D view is behind a server switch**, `SHOW_3D`, shown only for the exact value
    `true` and off by default. Its code, tests and the architecture guard stay.
 
+### Part 2: player names and numbers
+
+6. **A design records how names and numbers go on, never who wears them.** A new optional spec
+   field `namesAndNumbers` (`lib/garment/names-numbers.ts`) holds the places, a lettering style
+   from a fixed set of four, a colour name or code with an optional drawn colour, how they are
+   made, a height for each place only if typed, and one sample name and number to draw. The
+   roster belongs to the team order portal (guide p.5), which is not built.
+7. **Places are standard anchors**: name on the upper back, number on the centre back (drawn
+   below the name), an optional front number on the centre chest, and a number on the left
+   thigh of bottoms. A garment offers only the places whose panel and anchor it has. When the
+   type changes, places it lacks are removed and reported, like artwork.
+8. **No spec version bump.** The field is optional and additive; every saved design still
+   reads. A design saved with the field cannot be read by code older than this change.
+9. **Nothing is guessed.** Style, colour, technique and every height stay unset ("To be
+   confirmed" in the tech pack) until chosen. The drawing places an untyped sample at a drawing
+   size that is never shown or written as a measurement, like `SCHEMATIC_CHEST`.
+10. **One font in the drawings.** SVG and PDF draw the sample in the bundled font so the two
+    match; the lettering style is a written instruction to the factory.
+11. **Shown everywhere artwork is**: the editor, both flats, the tech pack artwork section (a
+    table of its own), and the PDF, Excel and SVG exports. Plain English: "add names and numbers
+    on the back" (and a few close phrases) is read by the rules at no cost, and the model may
+    reply `add-names-numbers`. Three golden cases were added, not approved (A7).
+
 ## Evidence
 
 Unit tests: `lib/config/launch-garments.test.ts`, `lib/intent/launch-scope.test.ts`, and
 cases added to `lib/guided/start.test.ts`, `lib/intent/text-flow.test.ts`,
 `lib/projects/schemas.test.ts`, `lib/projects/type-groups.test.ts`, `lib/config/env.test.ts`.
+Part 2: `lib/garment/names-numbers.test.ts`, `lib/flat/player-marks.test.ts` (SVG and PDF read
+back), `lib/techpack/player-marks.test.ts`, `lib/projects/names-numbers-controls.test.ts`, and
+cases in `lib/intent/text-flow.test.ts`. An e2e test was written in `e2e/editor.spec.ts`.
 
 ## Alternatives
 
 - A deny list of hidden garments: one edit to re-enable as well, but a new registry type would
   appear in the beta unasked.
 - Removing the hidden garments from the registry: breaks existing designs and throws away work.
+- Names and numbers as text artwork: artwork needs a width and height, which would force a
+  guessed size, and it cannot say "the player's own name".
+- Real lettering fonts in the drawings: needs licensed font files in both renderers; asked of
+  the owner.
 - Hiding the 3D view with a build flag (`NEXT_PUBLIC_`): needs a rebuild to change; a server
   variable needs a restart only.
 

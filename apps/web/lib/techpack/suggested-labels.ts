@@ -50,6 +50,18 @@ const ARTWORK_FIELDS: Readonly<Record<string, string>> = {
   "content.description": "shows",
 };
 
+const PLAYER_MARK_FIELDS: Readonly<Record<string, string>> = {
+  place: "",
+  panel: "part",
+  anchor: "place",
+  shows: "shows",
+  height: "height",
+  style: "lettering style",
+  colour: "colour",
+  screenColour: "screen colour",
+  technique: "how it is made",
+};
+
 const SEAM_FIELDS: Readonly<Record<string, string>> = {
   seamClass: "seam class",
   stitchClass: "stitch class",
@@ -125,6 +137,10 @@ const RULES: readonly Rule[] = [
   [
     /^artwork\.items\[(\d+)\]\.(.+)$/,
     (root, m) => at("artwork", text(root, `artwork.items[${m[1]}].name.value`), ARTWORK_FIELDS[m[2] ?? ""] ?? m[2] ?? ""),
+  ],
+  [
+    /^artwork\.playerMarks\[(\d+)\]\.(\w+)$/,
+    (root, m) => at("artwork", text(root, `artwork.playerMarks[${m[1]}].place.value`), PLAYER_MARK_FIELDS[m[2] ?? ""] ?? m[2] ?? ""),
   ],
   [/^labelling\.rows\[(\d+)\]\.value$/, (root, m) => at("labelling", text(root, `labelling.rows[${m[1]}].label`))],
 ];

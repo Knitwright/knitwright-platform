@@ -3,6 +3,7 @@ import type { Dropped } from "./dropped";
 import { fabricChanges } from "./fabric-changes";
 import { changeFabric } from "./fabric-edit";
 import { panelName } from "./labels";
+import { withoutMarks } from "./names-numbers";
 import { nonEmpty } from "./non-empty";
 import { reconcile, retype } from "./reconcile";
 import { getType } from "./registry";
@@ -147,6 +148,10 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return artworkList(spec, { kind: "update", item: action.artwork });
     case "remove-artwork":
       return artworkList(spec, { kind: "remove", id: action.id });
+    case "set-names-numbers":
+      return accept({ ...spec, namesAndNumbers: action.namesAndNumbers });
+    case "remove-names-numbers":
+      return spec.namesAndNumbers === undefined ? reject("There are no names and numbers to remove.") : accept(withoutMarks(spec));
     case "set-component":
       return setComponent(spec, action.component);
     case "remove-component":

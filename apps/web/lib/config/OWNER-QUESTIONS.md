@@ -14,6 +14,18 @@ in `launch-garments.ts` or one environment variable.
 - Socks and the hockey skort are launch products in the guide but the studio has no garment
   for them yet. Building them needs measurements and drawings from the owner (A5, A6).
 
+## Player names and numbers
+
+- Which lettering styles should be offered? Today: Block, Varsity (college), Rounded, Italic.
+  The drawings show every style in one font; the style is written for the factory. Real
+  lettering in the drawings needs font files you are allowed to use.
+- Are the places right? Today: name across the upper back, number on the back below it, an
+  optional number on the front centre chest, and a number on the left thigh of shorts. Some
+  codes put the front number on the right chest, or a number on the sleeve.
+- What heights should be suggested? Today none: a height is "to be confirmed" until typed.
+- Should a design hold more than one style of number (front smaller than back)? Today one
+  style and colour for all places, with a height for each place.
+
 ## The 3D view
 
 - The "Show in 3D" button is hidden unless `SHOW_3D=true` is set on the server. The guide

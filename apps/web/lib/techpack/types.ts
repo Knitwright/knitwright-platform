@@ -242,8 +242,31 @@ export interface ArtworkItem {
   readonly content: ArtworkContent;
 }
 
+/**
+ * One place for player names or numbers (decision 0027). Each player's own name and number
+ * come from the team order; the sample only shows the placement.
+ */
+export interface PlayerMarkItem {
+  /** The place id, such as `back-number`. */
+  readonly id: string;
+  readonly place: Cell;
+  readonly panel: Cell;
+  readonly anchor: Cell;
+  /** "Name" or "Number", with the sample drawn. */
+  readonly shows: Cell;
+  /** To be confirmed until someone types it. */
+  readonly height: LengthValue;
+  readonly style: Cell;
+  readonly colour: Cell;
+  readonly screenColour: Cell;
+  readonly technique: Cell;
+}
+
 export interface ArtworkSection extends SectionHead {
   readonly items: readonly ArtworkItem[];
+  readonly playerMarks: readonly PlayerMarkItem[];
+  /** Said beside the names and numbers, or null when the design has none. */
+  readonly playerMarksNote: string | null;
 }
 
 export interface LabellingRow {

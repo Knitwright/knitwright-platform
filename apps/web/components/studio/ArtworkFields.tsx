@@ -15,7 +15,7 @@ type FieldsProps = Readonly<{
 
 type TextFieldProps = Readonly<{ label: string; value: string; onChange: (value: string) => void; inputMode?: "decimal" | "numeric" }>;
 
-function TextField({ label, value, onChange, inputMode }: TextFieldProps) {
+export function TextField({ label, value, onChange, inputMode }: TextFieldProps) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
@@ -34,7 +34,7 @@ type ChoiceFieldProps = Readonly<{
   onChange: (value: string) => void;
 }>;
 
-function ChoiceField({ label, value, choices, onChange }: ChoiceFieldProps) {
+export function ChoiceField({ label, value, choices, onChange }: ChoiceFieldProps) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">

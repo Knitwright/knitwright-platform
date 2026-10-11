@@ -173,3 +173,30 @@ describe("answering a text request", () => {
     }
   });
 });
+
+describe("adding player names and numbers in plain English", () => {
+  it("is read by the rules, at no cost, and puts them at the usual places", async () => {
+    const result = await runTextIntent({ utterance: "add names and numbers on the back", spec: spec("team-jersey") }, { primary: null, retry: null });
+    expect(result.answeredBy).toBe("rules");
+    expect(answeredWithoutModel("add names and numbers on the back")).toBe(true);
+    expect(result.outcome.kind).toBe("applied");
+    if (result.outcome.kind !== "applied") return;
+    expect(result.outcome.spec.namesAndNumbers).toMatchObject({
+      places: [{ place: "back-name" }, { place: "back-number" }],
+      colour: "",
+      sampleName: "PLAYER",
+      sampleNumber: "10",
+      provenance: "ai-suggested",
+    });
+    expect(result.outcome.spec.namesAndNumbers?.style).toBeUndefined();
+    expect(result.outcome.explanations).toEqual(["Player names and numbers added: name across the upper back, and number on the back, below the name."]);
+  });
+
+  it("puts a number on the leg of shorts, and says when the design already has them", async () => {
+    const shorts = await runTextIntent({ utterance: "names and numbers please", spec: spec("shorts") }, { primary: null, retry: null });
+    expect(shorts.outcome.kind === "applied" && shorts.outcome.spec.namesAndNumbers?.places).toEqual([{ place: "leg-number" }]);
+    if (shorts.outcome.kind !== "applied") return;
+    const again = await runTextIntent({ utterance: "names and numbers", spec: shorts.outcome.spec }, { primary: null, retry: null });
+    expect(again.outcome.kind).toBe("rejection");
+  });
+});

@@ -123,7 +123,54 @@ export function ArtworkView({ section }: Readonly<{ section: ArtworkSection }>) 
           ))}
         </DocTable>
       ) : null}
+      <PlayerMarksTable section={section} />
     </DocSection>
+  );
+}
+
+/** Player names and numbers, one row for each place (decision 0027). */
+function PlayerMarksTable({ section }: Readonly<{ section: ArtworkSection }>) {
+  if (section.playerMarks.length === 0) return null;
+  return (
+    <div className="mt-4" data-testid="player-marks">
+      {section.playerMarksNote ? <p className="mb-2 text-sm text-muted">{section.playerMarksNote}</p> : null}
+      <DocTable
+        caption="Player names and numbers"
+        heads={["Place", "Part", "Anchor", "Shows", "Height", "Lettering style", "Colour code", "Screen colour", "How it is made"]}
+      >
+        {section.playerMarks.map((item) => (
+          <tr key={item.id}>
+            <RowHead>
+              <CellText cell={item.place} />
+            </RowHead>
+            <Cellular>
+              <CellText cell={item.panel} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.anchor} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.shows} />
+            </Cellular>
+            <Cellular>
+              <LengthText cell={item.height} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.style} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.colour} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.screenColour} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={item.technique} />
+            </Cellular>
+          </tr>
+        ))}
+      </DocTable>
+    </div>
   );
 }
 

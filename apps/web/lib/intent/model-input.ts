@@ -44,6 +44,7 @@ export function describeSpec(spec: GarmentSpec) {
       colours: Object.fromEntries(colourway.colours.map((entry) => [entry.panelId, entry.colour || entry.swatch || ""])),
     })),
     labelling: Object.fromEntries(Object.entries(spec.labelling).map(([field, value]) => [field, value?.text ?? ""])),
+    namesAndNumbers: spec.namesAndNumbers?.places.map((entry) => entry.place) ?? [],
   };
 }
 
@@ -87,6 +88,7 @@ Actions, with no other fields:
 {"type": "set-colour", "panels": ["..."], "colour": "navy", "swatch": "#1b2a49"}  swatch is optional
 {"type": "change-fabric", "changes": {"composition": "...", "construction": "...", "weightGsm": 180, "finish": "...", "stretch": "${STRETCH_VALUES.join('" | "')}"}}  include only the fields asked for
 {"type": "set-labelling", "field": "${LABELLING_FIELDS.join('" | "')}", "text": "..."}
+{"type": "add-names-numbers"}  adds player names and numbers at the usual places; each player's own name and number come later with the team order
 
 Garment types, with the choices each one offers:
 ${typeLines(types)}

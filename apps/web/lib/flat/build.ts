@@ -88,7 +88,7 @@ function layersOf(spec: GarmentSpec, active: string, frame: Frame, panels: reado
     layer("seams", seamLines(frame)),
     layer("stitching", stitchLines(frame)),
     layer("details", detailLines(frame, panelFill(spec, active, "collar"))),
-    layer("artwork", artworkElements(spec.artwork, frame)),
+    layer("artwork", artworkElements(spec, frame)),
     ...(callouts ? [layer("measurements", callouts)] : []),
   ];
 }
