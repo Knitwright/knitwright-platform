@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LOGO_RIGHTS_MISSING } from "@/lib/storage/rights";
 
 /**
  * Sending a logo to the upload route, kept apart from the screen. The route checks and
@@ -28,12 +29,20 @@ const answer = z.union([
   z.object({ success: z.literal(false), error: z.object({ message: z.string() }) }),
 ]);
 
-/** Uploads a picture for the design's artwork. `post` sends the form to the upload route. */
-export const uploadArtworkFile = (file: File, post: (form: FormData) => Promise<Response>): Promise<UploadResult> =>
-  uploadImageFile(file, "artwork", post);
+/**
+ * Uploads a picture for the design's artwork. `post` sends the form to the upload route.
+ * `rightsConfirmed` is the box saying the person owns the logo or may use it on garments;
+ * without it nothing is sent, and the route refuses it too (decision 0025).
+ */
+export const uploadArtworkFile = async (file: File, post: (form: FormData) => Promise<Response>, rightsConfirmed: boolean): Promise<UploadResult> =>
+  rightsConfirmed ? send(file, "artwork", post) : { ok: false, reason: LOGO_RIGHTS_MISSING };
 
-/** Uploads a picture through the one upload route (step 3): artwork, or a sketch or photo to read. */
-export async function uploadImageFile(
+/** Uploads a sketch or photo to read. It is never printed, so it needs no rights box. */
+export const uploadImageFile = (file: File, kind: "sketch" | "photo", post: (form: FormData) => Promise<Response>): Promise<UploadResult> =>
+  send(file, kind, post);
+
+/** Sends a picture through the one upload route (step 3): artwork, or a sketch or photo to read. */
+async function send(
   file: File,
   kind: "artwork" | "sketch" | "photo",
   post: (form: FormData) => Promise<Response>,
@@ -43,6 +52,8 @@ export async function uploadImageFile(
   const form = new FormData();
   form.set("kind", kind);
   form.set("file", file);
+  // Artwork reaches here only once the box is ticked (uploadArtworkFile).
+  if (kind === "artwork") form.set("rights", "yes");
   try {
     const response = await post(form);
     const parsed = answer.safeParse(await response.json().catch(() => null));

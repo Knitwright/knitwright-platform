@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { signupConsentData } from "@/lib/consent/consent";
+import { MARKETING_FIELD } from "@/lib/consent/schemas";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { answersTheSameOnEmailPaths, authFailure } from "./failures";
 import {
@@ -53,6 +55,9 @@ export const ensureOwnerAllowed = async (context: AuthContext): Promise<void> =>
  * Sends a link to the address. A new address gets a link that confirms it. An address
  * that already has an account gets a link that signs it in. An address that may not
  * register gets nothing. The caller is told the same in all three cases.
+ *
+ * The marketing choice travels with a new account and is recorded by the database when the
+ * account is made. An existing account's choice is not changed here: that is done in Settings.
  */
 export const signUp = async (context: AuthContext, input: Registration): Promise<void> => {
   if (input.email === context.ownerEmail) await ensureOwnerAllowed(context);
@@ -61,6 +66,7 @@ export const signUp = async (context: AuthContext, input: Registration): Promise
     email: input.email,
     options: {
       shouldCreateUser: true,
+      data: signupConsentData(input[MARKETING_FIELD] === "yes"),
       captchaToken: input[CAPTCHA_FIELD],
       emailRedirectTo: confirmUrl(context.siteUrl),
     },
@@ -144,8 +150,9 @@ export const startGoogleSignIn = async (context: AuthContext): Promise<string> =
   return data.url;
 };
 
-/** Finishes sign-in with Google by exchanging the code for a session. */
-export const finishGoogleSignIn = async (context: AuthContext, code: string): Promise<void> => {
-  const { error } = await context.supabase.auth.exchangeCodeForSession(code);
-  if (error) throw authFailure(error);
+/** Finishes sign-in with Google by exchanging the code for a session. Returns the user's id. */
+export const finishGoogleSignIn = async (context: AuthContext, code: string): Promise<string> => {
+  const { data, error } = await context.supabase.auth.exchangeCodeForSession(code);
+  if (error || !data.user) throw authFailure(error);
+  return data.user.id;
 };

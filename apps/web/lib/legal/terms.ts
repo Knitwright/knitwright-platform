@@ -1,11 +1,12 @@
-import type { LegalDocument } from "./model";
+import { LOGO_RIGHTS } from "@/lib/consent/wording";
+import { AUSTRALIA_REVIEW, type LegalDocument } from "./model";
 
 export const TERMS: LegalDocument = {
   slug: "terms",
   title: "Terms of use",
   summary:
     "These terms govern your use of Knitwright, a web service for designing sportswear and producing tech packs. By creating an account you agree to them on behalf of yourself and the business you use Knitwright for.",
-  updated: "2026-09-30",
+  updated: "2026-10-11",
   status: "draft",
   sections: [
     {
@@ -89,6 +90,19 @@ export const TERMS: LegalDocument = {
       ],
     },
     {
+      heading: "Logos and artwork",
+      blocks: [
+        {
+          kind: "p",
+          text: `Before you upload a logo or picture to go on a garment, you confirm: "${LOGO_RIGHTS.text}" We keep a record of that confirmation with the file: who gave it, when, and the words shown.`,
+        },
+        {
+          kind: "p",
+          text: "Pro team and brand logos need a licence from their owner. This includes the marks of professional sports teams, leagues, governing bodies and clothing brands. Knitwright may refuse to make, quote for or keep a design that uses such a logo unless you show us the licence, and may remove it from your account.",
+        },
+      ],
+    },
+    {
       heading: "Acceptable use",
       blocks: [
         { kind: "p", text: "You must not:" },
@@ -115,6 +129,24 @@ export const TERMS: LegalDocument = {
           kind: "p",
           text: "We aim to keep Knitwright available but do not promise that it will be uninterrupted or free of errors. Keep your own copies of tech packs you rely on. We may change these terms; we will give at least 30 days' notice of a change that affects you materially, and continuing to use Knitwright after that means you accept it.",
         },
+      ],
+    },
+    {
+      heading: "Buyers in Australia",
+      blocks: [
+        {
+          kind: "p",
+          text: "If you are in Australia, our goods and services come with guarantees that cannot be excluded under the Australian Consumer Law. Nothing in these terms excludes, restricts or changes those guarantees or any other right you have under that law.",
+        },
+        {
+          kind: "p",
+          text: "Garments are made to your design: your artwork, colours, names, numbers and sizes. Because they are made to your specifications, we do not give refunds or exchanges for a change of mind, a wrong size you chose or a mistake in a design you approved. The consumer guarantees still apply: the garments must be of acceptable quality and must match the design and any sample you approved. If they do not, you are entitled to a remedy under the Australian Consumer Law.",
+        },
+        {
+          kind: "p",
+          text: "Prices quoted to buyers in Australia are in Australian dollars (AUD). [owner and Australian adviser: whether prices include GST, and the GST registration of the business that sells to Australian buyers.]",
+        },
+        { kind: "p", text: AUSTRALIA_REVIEW },
       ],
     },
     {

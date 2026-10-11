@@ -1,9 +1,11 @@
 "use client";
 
 import { signUpAction } from "@/lib/auth/actions";
+import { MARKETING_FIELD } from "@/lib/consent/schemas";
 import { EmailLinkForm } from "./EmailLinkForm";
 
-export function SignUpForm({ siteKey }: Readonly<{ siteKey: string }>) {
+/** `marketing` is the state of the box on the sign-up page, shared with the Google button. */
+export function SignUpForm({ siteKey, marketing }: Readonly<{ siteKey: string; marketing: boolean }>) {
   return (
     <EmailLinkForm
       action={signUpAction}
@@ -11,6 +13,7 @@ export function SignUpForm({ siteKey }: Readonly<{ siteKey: string }>) {
       emailLabel="Work email"
       submitLabel="Send me a link"
       busyLabel="Sending"
+      extraFields={marketing ? <input type="hidden" name={MARKETING_FIELD} value="yes" /> : null}
       done={(email) => (
         <>
           <strong className="font-semibold">Check your email.</strong> If {email} can have an

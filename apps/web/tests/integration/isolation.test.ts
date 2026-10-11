@@ -16,11 +16,16 @@ type Row = Record<string, unknown>;
 type TableSpec = Readonly<{
   /** What a browser may do to the table at all, before any policy is considered. */
   privileges: readonly string[];
-  /** The column that says which brand a row belongs to. */
+  /**
+   * The column that says whose a row is: a brand's id, or for a table of one person's own rows
+   * (`ownedBy: "user"`), that person's id.
+   */
   brandColumn: string;
+  /** Rows belong to one person rather than to a brand. The tests then use people's ids. */
+  ownedBy?: "user";
   /** A row of the given brand, made by the server. Returns the columns that identify it. */
   seed: (brandId: string, ownerId: string) => Promise<Row>;
-  /** A row someone might try to insert for the given brand. */
+  /** A row someone might try to insert for the given brand (or person, when owned by a user). */
   attempt: (brandId: string, userId: string) => Row;
   /** A change someone might try to make. */
   change: Row;
@@ -199,6 +204,34 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
   },
+  // Decision 0025: a person reads their own consent records; only the server adds one, and none
+  // is ever changed or removed.
+  consent_events: {
+    privileges: ["SELECT"],
+    brandColumn: "user_id",
+    ownedBy: "user",
+    seed: async (_brandId, ownerId) => {
+      must(
+        await adminClient().rpc("record_consent", {
+          p_user_id: ownerId,
+          p_purpose: "marketing_email",
+          p_granted: true,
+          p_wording_version: "marketing-email-v1",
+          p_source: "settings",
+        }),
+      );
+      return { user_id: ownerId };
+    },
+    attempt: (ownerId) => ({
+      user_id: ownerId,
+      purpose: "marketing_email",
+      granted: true,
+      wording: "Made directly.",
+      wording_version: "marketing-email-v1",
+      source: "settings",
+    }),
+    change: { granted: false },
+  },
   brand_size_charts: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -371,6 +404,9 @@ describe("what exists", () => {
 describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
   let theirs: Row;
   let before: Row | undefined;
+  // Whose rows are whose: brands for most tables, people for a table of one person's own rows.
+  const aliceOwner = () => (spec.ownedBy === "user" ? alice.userId : aliceBrand);
+  const bobOwner = () => (spec.ownedBy === "user" ? bob.userId : bobBrand);
 
   beforeAll(async () => {
     theirs = await spec.seed(bobBrand, bob.userId);
@@ -383,14 +419,14 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
     const rows = must(await alice.client.from(table).select("*"));
 
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.every((row) => row[spec.brandColumn] === aliceBrand)).toBe(true);
+    expect(rows.every((row) => row[spec.brandColumn] === aliceOwner())).toBe(true);
   });
 
   it("shows a member nothing of another brand", async () => {
     const all = must(await alice.client.from(table).select("*"));
     const asked = must(await alice.client.from(table).select("*").match(theirs));
 
-    expect(all.some((row) => row[spec.brandColumn] === bobBrand)).toBe(false);
+    expect(all.some((row) => row[spec.brandColumn] === bobOwner())).toBe(false);
     expect(asked).toEqual([]);
   });
 
@@ -401,7 +437,7 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
   });
 
   it("lets a member add nothing to another brand", async () => {
-    const { error } = await alice.client.from(table).insert(spec.attempt(bobBrand, alice.userId));
+    const { error } = await alice.client.from(table).insert(spec.attempt(bobOwner(), alice.userId));
 
     expect(error).not.toBeNull();
   });
@@ -409,7 +445,7 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
   it("lets a member add nothing directly, even to their own brand", async () => {
     const { error } = await alice.client
       .from(table)
-      .insert(spec.attempt(aliceBrand, alice.userId));
+      .insert(spec.attempt(aliceOwner(), alice.userId));
 
     expect(error).not.toBeNull();
   });
@@ -427,7 +463,7 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
   });
 
   it("lets a member change or delete nothing of their own brand directly", async () => {
-    const mine = { [spec.brandColumn]: aliceBrand };
+    const mine = { [spec.brandColumn]: aliceOwner() };
     const mineBefore = await rowsAsServer(table, mine);
 
     await alice.client.from(table).update(spec.change).match(mine);

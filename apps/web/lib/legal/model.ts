@@ -26,6 +26,10 @@ export type LegalDocument = Readonly<{
 export const DRAFT_NOTICE =
   "DRAFT. Not in force. The owner and a qualified lawyer must approve this text before Knitwright opens to the public (owner action A9). Text in [square brackets] is for the owner to fill in.";
 
+/** The lawyer's note under each Australian section (decision 0025). */
+export const AUSTRALIA_REVIEW =
+  "[lawyer: Australia is the first market (owner, 2026-10-11; the Platform and Store Guide). Review the Australian sections for the Spam Act 2003, the Privacy Act 1988 and the Australian Consumer Law before Knitwright is offered to Australian clubs.]";
+
 const cell = (text: string): string => text.replaceAll("|", "\\|");
 
 const blockToMarkdown = (block: LegalBlock): string => {

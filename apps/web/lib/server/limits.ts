@@ -46,4 +46,8 @@ export const LIMITS = {
   deleteAccount: { name: "delete-account", limit: 3, windowSeconds: HOUR },
   // The name shown as "Made by" in tech packs. Kept in the person's sign-in profile.
   changeProfile: { name: "change-profile", limit: 20, windowSeconds: 10 * MINUTE },
+  // The marketing email box in Settings.
+  changeConsent: { name: "change-consent", limit: 20, windowSeconds: 10 * MINUTE },
+  // An unsubscribe link needs no sign-in. A person clicks it once; this stops a script hammering it.
+  unsubscribe: { name: "unsubscribe", limit: 20, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

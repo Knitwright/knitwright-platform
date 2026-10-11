@@ -1,8 +1,12 @@
 "use server";
 
 import type { Route } from "next";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { getEnv } from "@/lib/config/env";
+import { googleSignUpSchema, SIGNUP_CHOICE_COOKIE, SIGNUP_CHOICE_MAX_AGE_SECONDS, signupChoiceValue } from "@/lib/consent/schemas";
+import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
 import { CHOOSE_PASSWORD_PATH, HOME_AFTER_SIGN_IN, SIGN_IN_PATH } from "@/lib/server/core/paths";
 import { defineAction } from "@/lib/server/define-action";
 import { authContext } from "@/lib/server/deps";
@@ -89,8 +93,17 @@ export const updatePasswordAction = defineAction({
 export const startGoogleSignInAction = defineAction({
   auth: "public",
   rateLimit: LIMITS.oauthStart,
-  schema: nothing,
-  handler: async () => {
+  schema: googleSignUpSchema,
+  handler: async ({ input }) => {
+    // On the sign-up page the marketing box's answer waits in a short-lived cookie while
+    // Google signs the person in; app/auth/callback records it (decision 0025).
+    const jar = await cookies();
+    if (input.marketing === null) jar.delete(SIGNUP_CHOICE_COOKIE);
+    else
+      jar.set(SIGNUP_CHOICE_COOKIE, signupChoiceValue(input.marketing), {
+        ...sessionCookieOptions(getEnv().NEXT_PUBLIC_SITE_URL),
+        maxAge: SIGNUP_CHOICE_MAX_AGE_SECONDS,
+      });
     // The address is on another site, which the route types do not describe. It comes
     // from the sign-in service, not from the request, so it is safe to follow.
     redirect((await startGoogleSignIn(await authContext())) as Route);

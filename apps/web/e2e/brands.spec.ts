@@ -7,9 +7,10 @@ const logo = () =>
     .png()
     .toBuffer();
 
+/** Uploads artwork with the box ticked that says the person may use the logo (decision 0025). */
 const upload = async (page: Page, file: Buffer, type = "image/png"): Promise<APIResponse> =>
   page.request.post("/api/files", {
-    multipart: { kind: "artwork", file: { name: "logo.png", mimeType: type, buffer: file } },
+    multipart: { kind: "artwork", rights: "yes", file: { name: "logo.png", mimeType: type, buffer: file } },
   });
 
 const signedIn = async (page: Page, label: string, brand?: string | null): Promise<string> => {
@@ -164,6 +165,17 @@ test.describe("files", () => {
     } finally {
       await other.close();
     }
+  });
+
+  test("artwork is refused unless the person confirms they may use the logo", async ({ page }) => {
+    await signedIn(page, "no-rights");
+
+    const refused = await page.request.post("/api/files", {
+      multipart: { kind: "artwork", file: { name: "logo.png", mimeType: "image/png", buffer: await logo() } },
+    });
+
+    expect(refused.status()).toBe(400);
+    expect((await refused.json()).error.message).toMatch(/^Tick the box to confirm you own this logo/);
   });
 
   test("a file that is not an image is refused in plain words", async ({ page }) => {

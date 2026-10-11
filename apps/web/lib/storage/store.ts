@@ -4,6 +4,7 @@ import { sheetKind } from "@/lib/charts/container";
 import { AppError } from "@/lib/server/core/errors";
 import { checkImage } from "./image";
 import { isQuotaRefusal, STORAGE_FULL_MESSAGE, storageRoom } from "./quota";
+import type { LogoRights } from "./rights";
 
 /**
  * The one way a file enters storage. The image is checked and rewritten first, then
@@ -33,6 +34,8 @@ export type StoreImageInput = Readonly<{
   bytes: Uint8Array;
   /** The type the browser stated. The content decides, so it is not used. */
   statedType: string;
+  /** For artwork from a person: their confirmation that they may use it (lib/storage/rights.ts). */
+  rights?: LogoRights | null;
 }>;
 
 export type StoredFile = Readonly<{
@@ -55,6 +58,7 @@ type FileRecord = Readonly<{
   bytes: Uint8Array;
   width: number | null;
   height: number | null;
+  rights?: LogoRights | null;
 }>;
 
 /**
@@ -91,6 +95,13 @@ const writeFile = async (file: FileRecord): Promise<string> => {
     width: file.width,
     height: file.height,
     created_by: file.userId,
+    ...(file.rights
+      ? {
+          rights_confirmed_by: file.rights.confirmedBy,
+          rights_confirmed_at: file.rights.confirmedAt,
+          rights_wording_version: file.rights.wordingVersion,
+        }
+      : {}),
   });
   if (record.error) {
     // A file with no record could never be found again. Remove it. If that fails too,
@@ -118,6 +129,7 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
     bytes: image.bytes,
     width: image.width,
     height: image.height,
+    rights: input.rights,
   });
 
   return {

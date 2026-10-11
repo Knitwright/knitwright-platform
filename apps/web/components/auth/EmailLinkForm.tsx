@@ -17,6 +17,8 @@ type EmailLinkFormProps = Readonly<{
   busyLabel: string;
   /** What to say once the link has been asked for. */
   done: (email: string) => ReactNode;
+  /** Hidden fields sent with the address, such as the sign-up page's marketing choice. */
+  extraFields?: ReactNode;
 }>;
 
 /** A form that takes an address and sends it a link. Sign-up and password reset use it. */
@@ -27,6 +29,7 @@ export function EmailLinkForm({
   submitLabel,
   busyLabel,
   done,
+  extraFields,
 }: EmailLinkFormProps) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(action);
   const { guard, widget } = useBotCheck(state.attempt);
@@ -45,6 +48,7 @@ export function EmailLinkForm({
         defaultValue={state.values.email}
         errors={fieldErrors("email")}
       />
+      {extraFields}
       <BotCheck siteKey={siteKey} widget={widget} errors={fieldErrors(CAPTCHA_FIELD)} />
       <Button type="submit" pending={pending}>
         {pending ? busyLabel : submitLabel}

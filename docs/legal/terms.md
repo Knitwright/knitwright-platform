@@ -2,7 +2,7 @@
 
 > **DRAFT. Not in force. The owner and a qualified lawyer must approve this text before Knitwright opens to the public (owner action A9). Text in [square brackets] is for the owner to fill in.**
 
-Last updated: 2026-09-30
+Last updated: 2026-10-11
 
 These terms govern your use of Knitwright, a web service for designing sportswear and producing tech packs. By creating an account you agree to them on behalf of yourself and the business you use Knitwright for.
 
@@ -43,7 +43,13 @@ You keep all rights in the designs, text and pictures you put into Knitwright ("
 
 As far as the law allows, we claim no rights in the tech packs, drawings and pictures Knitwright makes from your content. They are yours to use. The law on ownership of AI-generated material is unsettled and differs between countries; we make no promise that such material can be protected.
 
-## 8. Acceptable use
+## 8. Logos and artwork
+
+Before you upload a logo or picture to go on a garment, you confirm: "I own this logo or have permission to use it on garments." We keep a record of that confirmation with the file: who gave it, when, and the words shown.
+
+Pro team and brand logos need a licence from their owner. This includes the marks of professional sports teams, leagues, governing bodies and clothing brands. Knitwright may refuse to make, quote for or keep a design that uses such a logo unless you show us the licence, and may remove it from your account.
+
+## 9. Acceptable use
 
 You must not:
 
@@ -55,18 +61,28 @@ You must not:
 
 We may suspend or close an account that breaks these rules, putting safety and the rights of others first. Where we can, we will tell you why and let you download your content first.
 
-## 9. Availability and changes
+## 10. Availability and changes
 
 We aim to keep Knitwright available but do not promise that it will be uninterrupted or free of errors. Keep your own copies of tech packs you rely on. We may change these terms; we will give at least 30 days' notice of a change that affects you materially, and continuing to use Knitwright after that means you accept it.
 
-## 10. Liability
+## 11. Buyers in Australia
+
+If you are in Australia, our goods and services come with guarantees that cannot be excluded under the Australian Consumer Law. Nothing in these terms excludes, restricts or changes those guarantees or any other right you have under that law.
+
+Garments are made to your design: your artwork, colours, names, numbers and sizes. Because they are made to your specifications, we do not give refunds or exchanges for a change of mind, a wrong size you chose or a mistake in a design you approved. The consumer guarantees still apply: the garments must be of acceptable quality and must match the design and any sample you approved. If they do not, you are entitled to a remedy under the Australian Consumer Law.
+
+Prices quoted to buyers in Australia are in Australian dollars (AUD). [owner and Australian adviser: whether prices include GST, and the GST registration of the business that sells to Australian buyers.]
+
+[lawyer: Australia is the first market (owner, 2026-10-11; the Platform and Store Guide). Review the Australian sections for the Spam Act 2003, the Privacy Act 1988 and the Australian Consumer Law before Knitwright is offered to Australian clubs.]
+
+## 12. Liability
 
 Nothing in these terms limits liability for death or personal injury caused by negligence, for fraud, or for anything else that cannot be limited by law. Otherwise, while Knitwright is free, our total liability to you for all claims is limited to [owner and lawyer: an amount, for example GBP 100], and we are not liable for loss of profit, business, goodwill or data, or for indirect or consequential loss.
 
-## 11. Ending
+## 13. Ending
 
 You can stop using Knitwright and delete your account at any time. We may end the service, or your access to it, with at least 30 days' notice, or at once for a serious breach of these terms. Sections on your content, liability and the law continue after the end.
 
-## 12. Law
+## 14. Law
 
 These terms, and any dispute or claim arising out of them or your use of Knitwright, are governed by the law of England and Wales, and the courts of England and Wales have exclusive jurisdiction. Nothing in this section takes away protection that the mandatory law of the country where you live gives you and that cannot be excluded by agreement.

@@ -210,3 +210,29 @@ export const downloadRecords = async (projectId: string): Promise<DownloadRecord
   if (error) throw new Error(error.message);
   return data as DownloadRecord[];
 };
+
+/** The id of the account with this address, read with the server's own key. */
+export const userIdOf = async (email: string): Promise<string> => {
+  const { data, error } = await admin().auth.admin.listUsers({ page: 1, perPage: 1000 });
+  if (error) throw new Error(error.message);
+  const user = data.users.find((entry) => entry.email === email);
+  if (!user) throw new Error(`No account for ${email}.`);
+  return user.id;
+};
+
+export interface ConsentRecord {
+  readonly granted: boolean;
+  readonly source: string;
+  readonly wording_version: string;
+}
+
+/** A person's marketing email choices, oldest first, read with the server's own key. */
+export const consentRecords = async (userId: string): Promise<ConsentRecord[]> => {
+  const { data, error } = await admin()
+    .from("consent_events")
+    .select("granted, source, wording_version")
+    .eq("user_id", userId)
+    .order("created_at");
+  if (error) throw new Error(error.message);
+  return data as ConsentRecord[];
+};

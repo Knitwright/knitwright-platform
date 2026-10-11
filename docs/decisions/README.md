@@ -31,3 +31,4 @@ Copy `0000-template.md` to start.
 | 0021 | [Construction rules, words and golden sets for the other families](0021-family-rules.md) | Accepted. The rules wait for a factory; the golden sets wait for the owner (A7, A8). |
 | 0022 | [The guided flow](0022-guided-flow.md) | Accepted. The five timed runs are owed to the owner. |
 | 0023 | [Launch hardening: deletion, monitoring, legal pages](0023-launch-hardening.md) | Accepted, with owner actions open (A9 legal review, Sentry DSN). Sentry EU and the storage quota decided 2026-09-30. |
+| 0025 | [Consent to marketing email, unsubscribe links and logo rights](0025-consent-and-logo-rights.md) | Accepted. Legal text is a draft (A9); Australian questions open for the owner. |

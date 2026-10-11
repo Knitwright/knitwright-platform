@@ -1,12 +1,12 @@
-import type { LegalDocument } from "./model";
+import { AUSTRALIA_REVIEW, type LegalDocument } from "./model";
 import { processorTable } from "./processors";
 
 export const PRIVACY: LegalDocument = {
   slug: "privacy",
   title: "Privacy notice",
   summary:
-    "This notice explains what personal data Knitwright collects, why, who it is shared with, how long it is kept and the rights you have. It is written for the UK GDPR, the Data Protection Act 2018 and the EU GDPR.",
-  updated: "2026-09-30",
+    "This notice explains what personal data Knitwright collects, why, who it is shared with, how long it is kept and the rights you have. It is written for the UK GDPR, the Data Protection Act 2018 and the EU GDPR, and, for people in Australia, the Privacy Act 1988 and the Australian Privacy Principles.",
+  updated: "2026-10-11",
   status: "draft",
   sections: [
     {
@@ -41,6 +41,8 @@ export const PRIVACY: LegalDocument = {
             ["Your Google account id, name and email, if you sign in with Google", "Google, with your permission"],
             ["Brand names, designs, every saved version, notes and text you enter", "You"],
             ["Pictures you upload (logos, artwork, sketches, photos). We re-encode them, which removes location and camera details", "You"],
+            ["Your confirmation that you may use a logo or artwork you upload: who gave it, when, and the words shown", "You, when you upload"],
+            ["Your choices about marketing email: each yes or no, when, where you made it (sign-up, Settings or an unsubscribe link) and the words shown", "You"],
             ["Pictures generated for you, and the descriptions used to make them", "Knitwright and its AI providers"],
             ["Records of tech pack downloads: which design, version, format and when", "Knitwright, as you use it"],
             ["Usage and cost records for AI features", "Knitwright, as you use it"],
@@ -66,11 +68,33 @@ export const PRIVACY: LegalDocument = {
             ["Recording errors so we can fix them", "Legitimate interests: a working service"],
             ["Usage allowances and cost limits for AI features", "Contract and legitimate interests: preventing abuse and runaway costs"],
             ["Keeping records the law requires, and dealing with legal claims", "Legal obligation (Article 6(1)(c)) and legitimate interests"],
+            ["Sending marketing email about new templates, season deadlines and offers, only if you said yes", "Consent (Article 6(1)(a)); in Australia, consent under the Spam Act 2003"],
+            ["Keeping a record of your marketing choices and of your logo confirmations", "Legal obligation and legitimate interests: showing that we had consent, and that you confirmed your rights"],
           ],
         },
         {
           kind: "p",
           text: "We do not sell personal data, show advertising, or use your content to train AI models. AI features suggest changes that you can accept or reject; they make no decision that has a legal or similarly significant effect on you.",
+        },
+      ],
+    },
+    {
+      heading: "Marketing email",
+      blocks: [
+        {
+          kind: "p",
+          text: "We send marketing email (new templates, season deadlines, offers) only if you tick the box that says so, at sign-up or in Settings. The box is never ticked for you. We keep a record of each choice you make: yes or no, when, where and the exact words shown. You can change your choice in Settings at any time.",
+        },
+        {
+          kind: "list",
+          items: [
+            "Every marketing email identifies Knitwright and how to contact us, as Australia's Spam Act 2003 requires, and has a working unsubscribe link.",
+            "The unsubscribe link works without signing in. We stop marketing email as soon as you use it, and in any case within 5 working days.",
+            "Emails about a design or order you started (its price, its deadline) are service messages about that design or order. They also carry an unsubscribe link.",
+            "Emails you need to use your account, such as sign-in and confirmation links, are not marketing and are always sent.",
+            "We never email people you invite to see or comment on a design, unless they sign up and opt in themselves.",
+            "We do not use the designs, logos or pictures you upload for anything else, such as advertising or other customers, without your written permission.",
+          ],
         },
       ],
     },
@@ -128,6 +152,26 @@ export const PRIVACY: LegalDocument = {
           kind: "p",
           text: "You can complain to the UK Information Commissioner's Office (ico.org.uk) or, in the EU, to the data protection authority where you live or work. We would like the chance to help first.",
         },
+      ],
+    },
+    {
+      heading: "People in Australia: the Privacy Act 1988",
+      blocks: [
+        {
+          kind: "p",
+          text: "For people in Australia, we handle personal information in line with the Privacy Act 1988 and the Australian Privacy Principles. [owner and Australian adviser: whether the Privacy Act applies to Knitwright at its size (the small business exemption turns on annual turnover); this notice follows the Australian Privacy Principles either way.]",
+        },
+        {
+          kind: "list",
+          items: [
+            "What we collect and why: the information in the sections above, collected from you or, for Google sign-in, from Google with your permission. We collect only what we need to provide Knitwright, make your garments and, if you said yes, send you marketing email. You can use Knitwright without telling us anything beyond your email address.",
+            "Where it is stored: Knitwright is hosted outside Australia. Our providers, and the countries where they hold or process data, are listed under \"Who we share it with\". We disclose personal information to them overseas only to provide Knitwright, under contracts that require them to protect it. [owner: the Supabase project region.]",
+            "Access and correction: you can see and correct most of your information in Knitwright yourself. Ask the privacy contact above for a copy of the rest, or to correct it. We reply within 30 days and do not charge for asking.",
+            "Deleting it: you can delete your designs and your whole account in Settings.",
+            "Complaints: write to the privacy contact above first; we will reply within 30 days. If you are not satisfied, you can complain to the Office of the Australian Information Commissioner (OAIC) at oaic.gov.au.",
+          ],
+        },
+        { kind: "p", text: AUSTRALIA_REVIEW },
       ],
     },
     {

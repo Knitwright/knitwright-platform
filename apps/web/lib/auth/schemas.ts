@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MARKETING_FIELD } from "@/lib/consent/schemas";
 
 /** The field name the Turnstile widget adds to a form. */
 export const CAPTCHA_FIELD = "cf-turnstile-response";
@@ -30,11 +31,13 @@ const captcha = z
 
 /**
  * Registration takes an address only. The password is chosen after the address is
- * confirmed, so nobody can attach a password to an address they do not own.
+ * confirmed, so nobody can attach a password to an address they do not own. The marketing
+ * box is never ticked for the person: a missing box means no (decision 0025).
  */
 export const registrationSchema = z.object({
   email,
   [CAPTCHA_FIELD]: captcha,
+  [MARKETING_FIELD]: z.literal("yes").optional(),
 });
 
 export const credentialsSchema = z.object({

@@ -38,3 +38,29 @@ Nothing here was invented. Each item needs the owner, and some a lawyer.
     (`supabase/migrations/20260930040000_storage_quota.sql`, `lib/storage/quota.ts`); S-01 closed.
 14. Whether account deletion should ask for a fresh sign-in or an emailed code first (S-08). Needs
     email sending (A4).
+
+## Australia, the first market (wave 3, 2026-10-11; decision 0025)
+
+The Platform and Store Guide makes Australian clubs the first market. The drafts now carry
+Australian sections (Spam Act 2003, Privacy Act 1988 and the Australian Privacy Principles,
+Australian Consumer Law, prices in AUD) beside the UK, EU and worldwide text, which is unchanged.
+The guide says to ask an Australian adviser; these need one.
+
+15. **Governing law.** The terms still say England and Wales (answer of 2026-09-30) and were not
+    changed. Should the governing law and courts change now that Australia is the first market
+    (for example New South Wales or Victoria for Australian buyers), or stay England and Wales
+    with the Australian Consumer Law note? A lawyer should advise; the Australian Consumer Law
+    applies to Australian consumers whatever the clause says.
+16. **Does the Privacy Act 1988 apply at Knitwright's size?** The small business exemption turns on
+    annual turnover (AUD 3 million at the time of writing), with exceptions. The privacy notice
+    follows the Australian Privacy Principles either way. Ask an Australian adviser.
+17. Which business sells to Australian buyers (the UK business, an Australian entity, or the
+    Australian sales partner), its ABN if any, and whether it is registered for GST. This decides
+    whether AUD prices include GST and who is named in marketing emails as the sender.
+18. The Supabase project region, now that most users may be in Australia (an Australian region
+    would keep most data in the country; the privacy notice says data is hosted outside Australia).
+19. The contact details every marketing email must carry (Spam Act: identify the sender and how to
+    contact them), and the email provider (A4). No marketing email is sent until then; the code
+    exposes `canSendMarketing` for that sender.
+20. Whether team names and player names printed on a garment need the same
+    rights confirmation as a logo. Today only uploaded artwork asks.

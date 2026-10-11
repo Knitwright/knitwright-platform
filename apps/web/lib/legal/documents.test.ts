@@ -60,6 +60,54 @@ describe("the legal documents", () => {
     expect(text("privacy")).toMatch(/Sentry/);
   });
 
+  describe("Australia, the first market (guide pages 10 and 14, decision 0025)", () => {
+    it("explain the Spam Act: consent first, Knitwright named, an unsubscribe honoured within 5 working days", () => {
+      const privacy = text("privacy");
+      for (const phrase of ["Spam Act 2003", "only if you tick", "identifies Knitwright", "5 working days", "never ticked for you"]) {
+        expect(privacy).toContain(phrase);
+      }
+    });
+
+    it("never email the people a user invites, and never use uploads for anything else", () => {
+      const privacy = text("privacy");
+      expect(privacy).toMatch(/never email people you invite/);
+      expect(privacy).toMatch(/written permission/);
+    });
+
+    it("follow the Privacy Act 1988 and the Australian Privacy Principles, with the overseas hosting and the OAIC", () => {
+      const privacy = text("privacy");
+      for (const phrase of ["Privacy Act 1988", "Australian Privacy Principles", "outside Australia", "access", "correct", "Office of the Australian Information Commissioner", "oaic.gov.au"]) {
+        expect(privacy).toContain(phrase);
+      }
+      expect(privacy).toMatch(/\[owner and Australian adviser: whether the Privacy Act applies/);
+    });
+
+    it("keep the UK and EU text it had", () => {
+      const privacy = text("privacy");
+      for (const phrase of ["UK GDPR", "EU GDPR", "Article 27", "Information Commissioner's Office"]) expect(privacy).toContain(phrase);
+    });
+
+    it("note the Australian Consumer Law for custom-made goods, and prices in AUD", () => {
+      const terms = text("terms");
+      expect(terms).toContain("Australian Consumer Law");
+      expect(terms).toMatch(/made to your design/);
+      expect(terms).toMatch(/Australian dollars \(AUD\)/);
+    });
+
+    it("say pro team and brand logos need a licence, and Knitwright may refuse them (guide p.14)", () => {
+      const terms = text("terms");
+      expect(terms).toMatch(/pro team and brand logos need a licence/i);
+      expect(terms).toMatch(/may refuse/);
+      expect(terms).toContain("I own this logo or have permission to use it on garments.");
+    });
+
+    it("leave the governing law as it was, and ask the owner instead", () => {
+      const terms = text("terms");
+      expect(terms).toContain("governed by the law of England and Wales");
+      expect(readFileSync(new URL("./OWNER-QUESTIONS.md", import.meta.url), "utf8")).toMatch(/governing law[\s\S]*Australia/i);
+    });
+  });
+
   it("never call a pattern production-ready, except to say it is not", () => {
     for (const doc of LEGAL_DOCUMENTS) {
       for (const match of toMarkdown(doc).matchAll(/production-ready/g)) {

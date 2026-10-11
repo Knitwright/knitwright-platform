@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MarketingForm } from "@/components/consent/MarketingForm";
 import { DeleteForm } from "@/components/deletion/DeleteForm";
 import { DisplayNameForm } from "@/components/profile/DisplayNameForm";
+import { setMarketingConsentAction } from "@/lib/consent/actions";
+import { currentMarketingChoice } from "@/lib/consent/consent";
+import { loadMarketingEvents } from "@/lib/consent/service";
 import { deleteAccountAction } from "@/lib/deletion/actions";
 import { setDisplayNameAction } from "@/lib/profile/actions";
 import { profileNameOf } from "@/lib/profile/name";
@@ -12,8 +16,10 @@ export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const { email, brands } = await requireMember();
-  const { data } = await (await sessionClient()).auth.getUser();
+  const client = await sessionClient();
+  const { data } = await client.auth.getUser();
   const name = profileNameOf(data.user?.user_metadata);
+  const marketing = currentMarketingChoice(await loadMarketingEvents(client))?.granted === true;
 
   return (
     <div className="flex max-w-2xl flex-col gap-8">
@@ -35,6 +41,19 @@ export default async function SettingsPage() {
         </h2>
         <div className="mt-4">
           <DisplayNameForm action={setDisplayNameAction} defaultName={name} />
+        </div>
+      </section>
+
+      <section aria-labelledby="emails" className="rounded-2xl border border-hairline bg-surface p-6">
+        <h2 id="emails" className="text-base font-semibold text-ink">
+          Emails from us
+        </h2>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted">
+          Emails about your account, such as sign-in links, always come. Marketing emails come only
+          if you tick this box, and every one has a link to stop them.
+        </p>
+        <div className="mt-4">
+          <MarketingForm action={setMarketingConsentAction} granted={marketing} />
         </div>
       </section>
 

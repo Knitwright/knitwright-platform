@@ -2,6 +2,8 @@
 
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { CheckboxField } from "@/components/ui/CheckboxField";
+import { LOGO_RIGHTS } from "@/lib/consent/wording";
 import type { GarmentSpec } from "@/lib/garment";
 import { uploadArtworkFile } from "@/lib/projects/artwork-upload";
 import { buildArtworkAction, defaultArtworkForm, type ArtworkForm, type Part } from "@/lib/projects/artwork-controls";
@@ -19,13 +21,14 @@ type AddProps = Readonly<Pick<ArtworkControlsProps, "spec" | "parts" | "errorFor
 export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearProblem }: AddProps) {
   const [draft, setDraft] = useState<ArtworkForm | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [rights, setRights] = useState(false);
   const [words, setWords] = useState("");
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
     onClearProblem(UPLOAD_KEY);
     setUploading(true);
-    const result = await uploadArtworkFile(file, postFile);
+    const result = await uploadArtworkFile(file, postFile, rights);
     setUploading(false);
     if (result.ok) setDraft(defaultArtworkForm(spec, { kind: "file", fileId: result.fileId }, { width: result.width, height: result.height }));
     else onProblem(UPLOAD_KEY, result.reason);
@@ -44,7 +47,13 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
-        <PictureInput uploading={uploading} error={errorFor(UPLOAD_KEY)} onFile={(file) => void upload(file)} />
+        <PictureInput
+          uploading={uploading}
+          rights={rights}
+          onRights={setRights}
+          error={errorFor(UPLOAD_KEY)}
+          onFile={(file) => void upload(file)}
+        />
         <WordsInput
           words={words}
           onChange={setWords}
@@ -58,9 +67,16 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
   );
 }
 
-type PictureInputProps = Readonly<{ uploading: boolean; error: string | null; onFile: (file: File | undefined) => void }>;
+type PictureInputProps = Readonly<{
+  uploading: boolean;
+  rights: boolean;
+  onRights: (ticked: boolean) => void;
+  error: string | null;
+  onFile: (file: File | undefined) => void;
+}>;
 
-function PictureInput({ uploading, error, onFile }: PictureInputProps) {
+/** A logo goes on the garment, so the person confirms they may use it before it is uploaded. */
+function PictureInput({ uploading, rights, onRights, error, onFile }: PictureInputProps) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
@@ -81,8 +97,9 @@ function PictureInput({ uploading, error, onFile }: PictureInputProps) {
         className="text-[15px] text-ink"
       />
       <p id={`${id}-hint`} className="text-sm text-muted">
-        A PNG, JPEG or WebP image, up to 8 MB.
+        A PNG, JPEG or WebP image, up to 8 MB. Pro team and brand logos need a licence from their owner.
       </p>
+      <CheckboxField label={LOGO_RIGHTS.text} checked={rights} onChange={(event) => onRights(event.target.checked)} />
       <p role="status" className="min-h-5 text-sm text-ink-2">
         {uploading ? "Uploading" : ""}
       </p>
