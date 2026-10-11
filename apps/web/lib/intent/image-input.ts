@@ -4,6 +4,7 @@ import type { ModelImage, TextModelProvider } from "@/lib/providers/text-model";
 import { NOTHING_CHANGED, applyBatch, readActions } from "./batch";
 import { explainChanges } from "./explain";
 import { isConstruction } from "./gates";
+import { withinLaunch } from "./launch-scope";
 import { describeSpec, instructionsFor, type ModelInput } from "./model-input";
 import { rejection } from "./outcome";
 import type { WireAction } from "./reply-schema";
@@ -122,12 +123,15 @@ export function resolveImageReading({ spec, raw }: { readonly spec: GarmentSpec;
 export const reviewReady = (confirmations: readonly Confirmation[], ticked: ReadonlySet<string>): boolean =>
   confirmations.every((entry) => ticked.has(entry.id));
 
-/** Reads one picture with the configured model. A failed call is thrown, so the route can refund it. */
+/**
+ * Reads one picture with the configured model. A failed call is thrown, so the route can refund
+ * it. A picture of a garment that is not offered yet is refused (decision 0027).
+ */
 export async function runImageIntent(
   { spec, image, signal }: { readonly spec: GarmentSpec; readonly image: ModelImage; readonly signal?: AbortSignal },
   provider: TextModelProvider | null,
 ): Promise<ImageOutcome> {
   if (!provider) return rejection(IMAGE_UNAVAILABLE);
   const reply = await provider.complete({ ...buildImageInput(spec), image, maxOutputTokens: MAX_OUTPUT_TOKENS, signal });
-  return resolveImageReading({ spec, raw: reply.text });
+  return withinLaunch(resolveImageReading({ spec, raw: reply.text }), spec);
 }

@@ -59,6 +59,12 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === "true"),
+  // The 3D view in the editor (a trial, decision 0014) is shown only when this is exactly
+  // "true". Off for the beta (decision 0027); its code stays.
+  SHOW_3D: z
+    .string()
+    .optional()
+    .transform((value) => value === "true"),
   // Read only to refuse Cloudflare's test keys where real people sign in.
   NODE_ENV: z.string().optional(),
   VERCEL_ENV: z.string().optional(),

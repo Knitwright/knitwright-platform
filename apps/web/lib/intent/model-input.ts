@@ -1,3 +1,4 @@
+import { isOffered } from "@/lib/config/launch-garments";
 import {
   LABELLING_FIELDS,
   STRETCH_VALUES,
@@ -65,7 +66,8 @@ function choiceLines(types: readonly ResolvedType[]): string {
 }
 
 function systemPrompt(type: ResolvedType | undefined): string {
-  const types = type ? listTypes(type.family) : [];
+  // Only the garments a design may become: its own, and those offered (decision 0027).
+  const types = type ? listTypes(type.family).filter((entry) => entry.id === type.id || isOffered(entry.id)) : [];
   const rules = [...new Set(types.flatMap((entry) => entry.rules.map((rule) => `- ${rule.reason}`)))].join("\n");
   const panels = type ? type.panels.map((panel) => panel.id).join(", ") : "";
   const points = type ? type.pointsOfMeasure.map((point) => point.id).join(", ") : "";

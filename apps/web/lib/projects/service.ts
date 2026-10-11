@@ -1,3 +1,4 @@
+import { notOfferedChange } from "@/lib/config/launch-garments";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import {
@@ -156,6 +157,8 @@ export const saveAction = async (
   const current = await loadCurrent(client, input);
   const action = browserActionSchema.safeParse(input.action);
   if (!action.success) return { ok: false, reason: NOT_UNDERSTOOD };
+  const notOffered = notOfferedChange(current.read.spec, [action.data]);
+  if (notOffered) return { ok: false, reason: notOffered };
   return storeAction(admin, client, input, current, action.data);
 };
 

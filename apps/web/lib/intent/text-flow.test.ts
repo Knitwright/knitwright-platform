@@ -47,6 +47,25 @@ describe("answering a text request", () => {
     expect(answeredWithoutModel(utterance)).toBe(true);
   });
 
+  it("says plainly that a garment is not offered yet, and asks no model", async () => {
+    const primary = createStubProvider([changes({ type: "change-type", typeId: "joggers" })]);
+    const result = await runTextIntent({ utterance: "make these into leggings with a wide waistband", spec: spec("shorts") }, { primary, retry: null });
+    expect(result.outcome).toEqual({ kind: "rejection", reason: "Not offered yet: Leggings. Nothing was changed." });
+    expect(result.answeredBy).toBe("guard");
+    expect(primary.requests).toHaveLength(0);
+    expect(answeredWithoutModel("leggings please")).toBe(true);
+  });
+
+  it("refuses a model's change to a garment that is not offered yet, and lets an existing one keep its type", async () => {
+    const primary = createStubProvider([changes({ type: "change-type", typeId: "sports-bra" })]);
+    const singlet = createSpec("singlet", "women");
+    if (!singlet.ok) throw new Error(singlet.reason);
+    const refused = await runTextIntent({ utterance: "something for the gym with thin straps", spec: singlet.spec }, { primary, retry: null });
+    expect(refused.outcome).toEqual({ kind: "rejection", reason: "Not offered yet: Sports bra. Nothing was changed." });
+    const kept = await runTextIntent({ utterance: "short sleeves", spec: spec("compression-top") }, { primary: null, retry: null });
+    expect(kept.outcome.kind).toBe("applied");
+  });
+
   it("says the assistant is not available when no model is configured", async () => {
     const result = await runTextIntent({ utterance: "make it a bit roomier", spec: spec() }, { primary: null, retry: null });
     expect(result.outcome).toEqual({ kind: "rejection", reason: UNAVAILABLE_REASON });

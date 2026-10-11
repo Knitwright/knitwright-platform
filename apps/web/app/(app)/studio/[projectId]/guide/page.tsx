@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GuidedFlow } from "@/components/guided/GuidedFlow";
 import { brandChartSet } from "@/lib/charts/service";
+import { getEnv } from "@/lib/config/env";
 import { startMethodFrom, stepFrom } from "@/lib/guided/flow";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
@@ -45,6 +46,7 @@ export default async function GuidePage({ params, searchParams }: PageProps<"/st
       say={say}
       unit={lengthUnitFrom(query.unit)}
       assistant={{ available: assistantAvailable() }}
+      show3d={getEnv().SHOW_3D}
     />
   );
 }

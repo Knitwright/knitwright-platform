@@ -80,6 +80,13 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "1" }).GOOGLE_SIGN_IN).toBe(false);
   });
 
+  it("hides the 3D view unless SHOW_3D is exactly true", () => {
+    expect(parseEnv(valid).SHOW_3D).toBe(false);
+    expect(parseEnv({ ...valid, SHOW_3D: "true" }).SHOW_3D).toBe(true);
+    expect(parseEnv({ ...valid, SHOW_3D: "yes" }).SHOW_3D).toBe(false);
+    expect(parseEnv({ ...valid, SHOW_3D: "" }).SHOW_3D).toBe(false);
+  });
+
   it("reads the caller's address from the header Vercel writes, unless told otherwise", () => {
     expect(parseEnv(valid).CLIENT_ADDRESS_HEADER).toBe("x-vercel-forwarded-for");
     expect(parseEnv({ ...valid, CLIENT_ADDRESS_HEADER: "X-Real-IP" }).CLIENT_ADDRESS_HEADER).toBe(

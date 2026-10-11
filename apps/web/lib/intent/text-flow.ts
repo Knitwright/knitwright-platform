@@ -3,6 +3,7 @@ import { MAX_OUTPUT_TOKENS } from "@/lib/providers/catalog";
 import type { ModelUsage, TextModelProvider } from "@/lib/providers/text-model";
 import { NOTHING_CHANGED } from "./batch";
 import { OVERRIDE_REASON, looksLikeOverride } from "./injection";
+import { namedNotOffered, withinLaunch } from "./launch-scope";
 import { buildModelInput, type ModelInput } from "./model-input";
 import { rejection, type IntentOutcome } from "./outcome";
 import { UNREADABLE, resolveIntent } from "./resolve";
@@ -50,7 +51,8 @@ export interface TextFlowDeps {
 }
 
 /** True when the request is answered without a model, so it costs nothing. Pure. */
-export const answeredWithoutModel = (utterance: string): boolean => looksLikeOverride(utterance) || ruleReply(utterance) !== null;
+export const answeredWithoutModel = (utterance: string, spec?: GarmentSpec): boolean =>
+  looksLikeOverride(utterance) || namedNotOffered(utterance, spec) !== null || ruleReply(utterance) !== null;
 
 const isUnreadable = (outcome: IntentOutcome): boolean => outcome.kind === "rejection" && outcome.reason === UNREADABLE;
 
@@ -86,13 +88,24 @@ async function retried(
 
 /**
  * Turns one message into one outcome. A failure of the first model call is thrown, so the
- * route can give its cost back; a failure of the retry keeps the first answer.
+ * route can give its cost back; a failure of the retry keeps the first answer. A change to a
+ * garment that is not offered yet is refused, whoever proposed it (decision 0027).
  */
 export async function runTextIntent(
+  request: { readonly utterance: string; readonly spec: GarmentSpec },
+  deps: TextFlowDeps,
+): Promise<TextFlowResult> {
+  const result = await answer(request, deps);
+  return { ...result, outcome: withinLaunch(result.outcome, request.spec) };
+}
+
+async function answer(
   { utterance, spec }: { readonly utterance: string; readonly spec: GarmentSpec },
   deps: TextFlowDeps,
 ): Promise<TextFlowResult> {
   if (looksLikeOverride(utterance)) return { outcome: rejection(OVERRIDE_REASON), answeredBy: "guard", calls: [] };
+  const notOffered = namedNotOffered(utterance, spec);
+  if (notOffered) return { outcome: rejection(notOffered), answeredBy: "guard", calls: [] };
   const rule = ruleReply(utterance, spec);
   if (rule) return { outcome: resolveIntent({ utterance, spec, raw: JSON.stringify(rule) }), answeredBy: "rules", calls: [] };
   if (!deps.primary) return { outcome: rejection(UNAVAILABLE_REASON), answeredBy: "unavailable", calls: [] };
