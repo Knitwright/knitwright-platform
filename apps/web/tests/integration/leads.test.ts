@@ -240,7 +240,8 @@ describe("account deletion", () => {
     must(await adminClient().from("platform_admins").insert({ user_id: dan.userId }).select("user_id"));
 
     must(await adminClient().rpc("delete_account_data", { p_user_id: dan.userId }));
-    must(await adminClient().auth.admin.deleteUser(dan.userId));
+    const deleted = await adminClient().auth.admin.deleteUser(dan.userId);
+    if (deleted.error) throw new Error(deleted.error.message);
 
     expect(must(await adminClient().from("quote_requests").select("id").eq("id", quoteId))).toEqual([]);
     expect(must(await adminClient().from("leads").select("brand_id").eq("brand_id", danBrand))).toEqual([]);
