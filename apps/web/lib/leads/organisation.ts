@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * Who a brand is (Platform and Store Guide, page 9: asked for when a design is saved): the type
  * of organisation, the country, and a state for Australia or a region elsewhere. Every detail is
- * optional. The database checks the same rules (migration 20261011010000).
+ * optional. The database checks the same rules (migrations 20261011010000 and 20261011050000).
  */
 
 export const ORGANISATION_TYPES = [
@@ -96,6 +96,28 @@ export const organisationDetailsSchema = z
 export type OrganisationDetails = z.output<typeof organisationDetailsSchema>;
 
 export type DetailName = keyof OrganisationDetails;
+
+const NONE: OrganisationDetails = { organisationType: null, country: null, region: null };
+
+/**
+ * Details read back from the database. A stored detail the form would refuse is treated as not
+ * given, so one odd value never takes down the pages that show it; the others are kept. A region
+ * goes with a country it does not fit, so this can take up to three passes.
+ */
+export function storedDetails(stored: Readonly<Record<DetailName, string | null>>): OrganisationDetails {
+  let input: Record<string, string> = {
+    organisationType: stored.organisationType ?? "",
+    country: stored.country ?? "",
+    region: stored.region ?? "",
+  };
+  for (let pass = 0; pass < 3; pass += 1) {
+    const result = organisationDetailsSchema.safeParse(input);
+    if (result.success) return result.data;
+    const refused = new Set(result.error.issues.map((issue) => String(issue.path[0])));
+    input = Object.fromEntries(Object.entries(input).map(([name, value]) => [name, refused.has(name) ? "" : value]));
+  }
+  return NONE;
+}
 
 /** The details a brand has not given yet. */
 export const missingDetails = (details: OrganisationDetails): DetailName[] =>

@@ -63,6 +63,23 @@ Browser test `e2e/leads.spec.ts` written, not yet run.
 
 ## Consequences
 
-Partner accounts, priced quotes, sharing and paid credits will each feed the score through the
-hooks in `ScoreInput`. Changing a point is one line. The admin list reads at most 1000 brands at
-once; past that it needs paging.
+Partner accounts, priced quotes and paid credits will each feed the score through the hooks in
+`ScoreInput`. Changing a point is one line.
+
+**Known limit:** `admin_lead_rows` returns the 1000 most recently changed brands. Past that, older
+brands drop off the leads page until it gets paging. Not fixed in the review of wave 3.
+
+## Review of wave 3 (2026-10-11)
+
+- **Brand details the app can always read.** The table checked any two capital letters as a
+  country and allowed control characters in a region, while the app refused both, so a member
+  calling `set_brand_details` directly could store a value that broke the design page, its tech
+  pack and `/brands`. Migration `20261011050000_brand_details_checks.sql` makes the table check the
+  app's country list and refuse control characters (clearing any stored value it would refuse),
+  and the app reads stored details with `storedDetails`, which treats a refused field as not given
+  instead of failing.
+- **Sharing counts.** `admin_lead_rows` now says whether the brand has made any share link
+  (decision 0026), revoked or expired ones included, and the score gives "Shared with others or
+  design edited 3+ times" its 15 points once.
+- **Closed requests earn nothing.** A quote request with status closed no longer counts towards
+  the quantity, needed-by or "twice" points: it is finished business.

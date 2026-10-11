@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildLeadList } from "@/lib/leads/admin";
 import {
@@ -101,6 +102,25 @@ describe("organisation details", () => {
     expect(error?.code).toBe("22023");
   });
 
+  it("refuses what the app refuses: a country not on its list, a region with hidden characters", async () => {
+    const details = (country: string, region: string) =>
+      ada.client.rpc("set_brand_details", { p_brand_id: adaBrand, p_organisation_type: "club", p_country: country, p_region: region });
+
+    expect((await details("ZZ", "")).error?.code).toBe("22023");
+    expect((await details("NZ", "Ota\ngo")).error?.code).toBe("22023");
+    expect((await details("NZ", "Ota\u0085go")).error?.code).toBe("22023");
+    expect((await details("NZ", "x".repeat(81))).error?.code).toBe("22023");
+    expect((await details("nz", " Otago ")).error).toBeNull();
+    expect(await getBrandDetails(ada.client, adaBrand)).toMatchObject({ organisationType: "club", country: "NZ", region: "Otago" });
+  });
+
+  it("keeps the same rules on the table itself, whoever writes", async () => {
+    for (const patch of [{ country: "ZZ" }, { region: "Tab\there" }, { organisation_type: "charity" }]) {
+      const { error } = await adminClient().from("brands").update(patch).eq("id", adaBrand);
+      expect(error?.code).toBe("23514");
+    }
+  });
+
   it("lets nobody change another brand's details", async () => {
     expect(await failure(setBrandDetails(bob.client, adaBrand, { organisationType: "brand", country: null, region: null }))).toBe("not_found");
     const { error } = await anonClient().rpc("set_brand_details", {
@@ -201,6 +221,24 @@ describe("platform admins", () => {
     expect(adaRow?.quotes.map((quote) => quote.quantity)).toEqual([250, 120]);
     expect(await failure(loadLeadRows(ada.client))).toBe("not_found");
     expect((await anonClient().rpc("admin_lead_rows")).error).not.toBeNull();
+  });
+
+  it("says whether a brand has made a share link, and scores it", async () => {
+    const sharedOf = async (brandId: string) => (await loadLeadRows(kate.client)).find((row) => row.id === brandId)?.shared;
+    expect(await sharedOf(bobBrand)).toBe(false);
+
+    must(
+      await adminClient().rpc("create_share_link", {
+        p_project_id: bobDesign,
+        p_user_id: bob.userId,
+        p_token: randomBytes(32).toString("base64url"),
+        p_days: 30,
+      }),
+    );
+    const [lead] = buildLeadList((await loadLeadRows(kate.client)).filter((row) => row.id === bobBrand), new Date());
+
+    expect(lead.shared).toBe(true);
+    expect(lead.score.reasons).toContain("Shared with others");
   });
 
   it("lets an admin read every quote request, and no member read another brand's", async () => {

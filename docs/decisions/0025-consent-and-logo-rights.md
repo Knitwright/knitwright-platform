@@ -37,7 +37,8 @@ every message, consent records). No email provider exists yet (A4), so nothing i
    default is no). The sign-in page asks nothing and records nothing.
 5. **Settings** shows the current choice and writes a new event only when it changes.
 6. **Unsubscribe** at `/unsubscribe?token=...`: the token is an HMAC of the person's id, signed
-   with a key derived from the server secret (as the intent proposals are, with its own label). It
+   with a key derived from `UNSUBSCRIBE_SECRET`, which a deploy must set (review of wave 3: then
+   changing the server secret breaks no sent link); locally from the server secret. It
    never runs out. The page (GET) changes nothing; its button (a public server action, rate limited,
    no bot check) records a withdrawal at once with the unsubscribe wording. A tampered link is
    refused in plain words; a link for a deleted account succeeds with nothing to record.

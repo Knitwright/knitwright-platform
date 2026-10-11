@@ -16,6 +16,11 @@ const envSchema = z.object({
   // Full database access. Read on the server only, never sent to a browser.
   SUPABASE_SECRET_KEY: z.string().min(1),
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+  // Signs the unsubscribe links in marketing email. Server only. A key of its own, so that
+  // changing SUPABASE_SECRET_KEY never breaks a link already sent (the Spam Act wants them to work
+  // for 30 days after sending). Required where real people visit; on this machine and in tests the
+  // links are signed from SUPABASE_SECRET_KEY instead.
+  UNSUBSCRIBE_SECRET: z.string().min(32).optional(),
   // The Turnstile secret, for the bot check the app makes itself on share pages (decision 0026).
   // Sign-in and sign-up hand their token to Supabase, which holds its own copy. Server only.
   // Optional: on this machine Cloudflare's always-pass test secret stands in; where real people
@@ -119,6 +124,9 @@ const guardedSchema = envSchema.superRefine((env, context) => {
   if (env.TURNSTILE_SECRET_KEY && TURNSTILE_TEST_SECRETS.has(env.TURNSTILE_SECRET_KEY) && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["TURNSTILE_SECRET_KEY"], message: "test key" });
   }
+  if (!env.UNSUBSCRIBE_SECRET && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["UNSUBSCRIBE_SECRET"], message: "missing" });
+  }
   if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });
   }
@@ -132,6 +140,13 @@ export type Env = z.infer<typeof envSchema>;
  */
 export const turnstileSecret = (env: Env): string | null =>
   env.TURNSTILE_SECRET_KEY ?? (servesRealPeople(env) ? null : TURNSTILE_PASSING_TEST_SECRET);
+
+/**
+ * The secret unsubscribe links are signed from: the one that is set, or the server's secret key on
+ * this machine and in tests. Where real people visit the first is always set: parseEnv refuses to
+ * start without it.
+ */
+export const unsubscribeSecret = (env: Env): string => env.UNSUBSCRIBE_SECRET ?? env.SUPABASE_SECRET_KEY;
 
 export class EnvError extends Error {
   constructor(readonly problems: readonly string[]) {
@@ -152,6 +167,7 @@ const withoutEmptyStrings = (source: EnvSource): EnvSource =>
 /** Values are never included in problems: a malformed secret must not reach a log. */
 const describeIssue = (issue: z.core.$ZodIssue): string => {
   const name = issue.path.join(".") || "(root)";
+  if (issue.code === "custom" && issue.message === "missing") return `${name} is missing`;
   if (issue.code === "custom" && name === "AI_PROVIDER_STUB") return `${name} is for browser tests, which a deploy may not use`;
   if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;

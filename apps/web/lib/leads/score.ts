@@ -1,4 +1,5 @@
 import type { OrganisationType } from "./organisation";
+import type { QuoteStatus } from "./quote";
 
 /**
  * The lead score (Platform and Store Guide, page 9): simple points the owner can tune. Change a
@@ -35,10 +36,11 @@ export const ENGAGED_EDITS = 3;
 export interface ScoreInput {
   readonly organisationType: OrganisationType | null;
   readonly country: string | null;
-  readonly quotes: readonly { readonly quantity: number; readonly neededBy: string }[];
+  /** Every quote request of the brand. Closed ones earn nothing. */
+  readonly quotes: readonly { readonly quantity: number; readonly neededBy: string; readonly status: QuoteStatus }[];
   /** The most versions any one of the brand's designs has. */
   readonly mostVersions: number;
-  /** Hook: sharing with a committee is built on another branch. False until it is joined here. */
+  /** Whether the brand has made a share link (decision 0026). */
   readonly sharedWithOthers: boolean;
   /** Hook: paid credits and samples are not built. False until they are. */
   readonly paidCreditsOrSample: boolean;
@@ -65,8 +67,10 @@ const quantityPart = (highest: number): [number, string] | null => {
 };
 
 export function leadScore(input: ScoreInput, now: Date): LeadScore {
-  const highest = Math.max(0, ...input.quotes.map((quote) => quote.quantity));
-  const soon = input.quotes.some((quote) => {
+  // A closed request is finished business: it no longer says the brand is ready to buy.
+  const open = input.quotes.filter((quote) => quote.status !== "closed");
+  const highest = Math.max(0, ...open.map((quote) => quote.quantity));
+  const soon = open.some((quote) => {
     const days = daysUntil(quote.neededBy, now);
     return days >= 0 && days <= NEEDED_SOON_WEEKS * 7;
   });
@@ -77,7 +81,7 @@ export function leadScore(input: ScoreInput, now: Date): LeadScore {
     input.sharedWithOthers || input.mostVersions - 1 >= ENGAGED_EDITS
       ? [LEAD_POINTS.engaged, input.sharedWithOthers ? "Shared with others" : `Design edited ${ENGAGED_EDITS} times or more`]
       : null,
-    input.quotes.length >= 2 ? [LEAD_POINTS.quotedTwice, "Asked for a quote twice or more"] : null,
+    open.length >= 2 ? [LEAD_POINTS.quotedTwice, "Asked for a quote twice or more"] : null,
     input.paidCreditsOrSample ? [LEAD_POINTS.paid, "Paid credits or a sample"] : null,
     input.country === "AU" ? [LEAD_POINTS.australia, "In Australia"] : null,
   ];

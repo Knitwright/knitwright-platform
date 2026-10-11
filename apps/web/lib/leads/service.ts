@@ -4,7 +4,7 @@ import { failureFromDatabase, type DatabaseError } from "@/lib/projects/database
 import { AppError } from "@/lib/server/core/errors";
 import { parseLeadRows, type LeadRow } from "./admin";
 import { BUYER_KINDS, type BuyerKind } from "./buyer-kind";
-import { missingDetails, organisationDetailsSchema, type OrganisationDetails } from "./organisation";
+import { missingDetails, storedDetails, type OrganisationDetails } from "./organisation";
 import { firstAllowedDate, quoteStatusSchema, type QuoteRequestInput, type QuoteStatus } from "./quote";
 import type { LeadOwner } from "./routing";
 
@@ -26,7 +26,8 @@ const brandDetailsRow = z.object({
   organisation_type: z.string().nullable(),
   country: z.string().nullable(),
   region: z.string().nullable(),
-  segment: z.enum(BUYER_KINDS.map((kind) => kind.id) as [BuyerKind, ...BuyerKind[]]).nullable(),
+  // An unknown segment reads as none rather than failing the page.
+  segment: z.enum(BUYER_KINDS.map((kind) => kind.id) as [BuyerKind, ...BuyerKind[]]).nullable().catch(null),
 });
 
 export type BrandDetails = OrganisationDetails & Readonly<{ segment: BuyerKind | null }>;
@@ -40,10 +41,10 @@ export async function getBrandDetails(client: SupabaseClient, brandId: string): 
   failIf(error);
   if (!data) throw new AppError("not_found", BRAND_NOT_FOUND);
   const row = brandDetailsRow.parse(data);
-  const details = organisationDetailsSchema.parse({
-    organisationType: row.organisation_type ?? "",
-    country: row.country ?? "",
-    region: row.region ?? "",
+  const details = storedDetails({
+    organisationType: row.organisation_type,
+    country: row.country,
+    region: row.region,
   });
   return { ...details, segment: row.segment };
 }

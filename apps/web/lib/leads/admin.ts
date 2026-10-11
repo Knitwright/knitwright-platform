@@ -55,6 +55,8 @@ const leadRow = z
     emails: z.array(z.string()),
     designs: z.number().int(),
     most_versions: z.number().int(),
+    // Whether the brand has made any share link.
+    shared: z.boolean(),
     last_design_at: timestamp.nullable(),
     quotes: z.array(quoteRow),
     lead: z
@@ -78,6 +80,7 @@ const leadRow = z
     emails: row.emails,
     designs: row.designs,
     mostVersions: row.most_versions,
+    shared: row.shared,
     lastDesignAt: row.last_design_at,
     quotes: row.quotes,
     lead: row.lead && {
@@ -115,8 +118,8 @@ export function buildLeadList(rows: readonly LeadRow[], now: Date): LeadListItem
           country: row.country,
           quotes: row.quotes,
           mostVersions: row.mostVersions,
-          // Hooks for features not built on this branch: see lib/leads/score.ts.
-          sharedWithOthers: false,
+          sharedWithOthers: row.shared,
+          // Paid credits and samples are not built: see lib/leads/score.ts.
           paidCreditsOrSample: false,
         },
         now,

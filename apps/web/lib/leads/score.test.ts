@@ -12,7 +12,11 @@ const nothing: ScoreInput = {
   paidCreditsOrSample: false,
 };
 
-const quote = (quantity: number, neededBy: string) => ({ quantity, neededBy });
+const quote = (quantity: number, neededBy: string, status: "new" | "quoted" | "closed" = "new") => ({
+  quantity,
+  neededBy,
+  status,
+});
 
 describe("leadScore", () => {
   it("gives nothing to a brand that has told us nothing", () => {
@@ -60,6 +64,16 @@ describe("leadScore", () => {
 
     expect(leadScore({ ...nothing, quotes: two.slice(0, 1) }, NOW).total).toBe(0);
     expect(leadScore({ ...nothing, quotes: two }, NOW).total).toBe(LEAD_POINTS.quotedTwice);
+  });
+
+  it("gives no points for closed quote requests: not their quantity, date or count", () => {
+    const closed = [quote(250, "2026-11-20", "closed"), quote(80, "2026-12-01", "closed")];
+
+    expect(leadScore({ ...nothing, quotes: closed }, NOW)).toEqual({ total: 0, reasons: [] });
+    expect(leadScore({ ...nothing, quotes: [...closed, quote(10, "2027-06-01", "quoted")] }, NOW).total).toBe(0);
+    expect(leadScore({ ...nothing, quotes: [quote(60, "2027-06-01", "quoted"), quote(1, "2027-06-01")] }, NOW).total).toBe(
+      LEAD_POINTS.quantity50 + LEAD_POINTS.quotedTwice,
+    );
   });
 
   it("gives points for paid credits or a sample, once they exist", () => {

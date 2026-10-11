@@ -64,3 +64,7 @@ The guide says to ask an Australian adviser; these need one.
     exposes `canSendMarketing` for that sender.
 20. Whether team names and player names printed on a garment need the same
     rights confirmation as a logo. Today only uploaded artwork asks.
+21. **Set `UNSUBSCRIBE_SECRET` on the deploy** (a random value of 32 characters or more, server
+    only; see `apps/web/.env.example`). A deploy refuses to start without it. It signs the
+    unsubscribe links in marketing email, so keep it unchanged once emails go out: changing it
+    breaks every link already sent, and the Spam Act wants them to work for 30 days.

@@ -18,6 +18,7 @@ const row = (overrides: Record<string, unknown> = {}) => ({
   emails: ["sec@harbour.example"],
   designs: 2,
   most_versions: 5,
+  shared: false,
   last_design_at: "2026-10-10T08:00:00+00:00",
   quotes: [
     {
@@ -59,6 +60,17 @@ describe("buildLeadList", () => {
     expect(lead.hot).toBe(true);
     expect(lead.suggestedOwner).toBe("partner");
     expect(lead.lastActivity).toBe("2026-10-10T09:00:00+00:00");
+  });
+
+  it("gives the engagement points for a share link, once even when the design was also edited often", () => {
+    const quiet = { organisation_type: null, country: null, region: null, quotes: [], most_versions: 1 };
+    const [shared] = buildLeadList(parseLeadRows([row({ ...quiet, shared: true })]), NOW);
+    const [both] = buildLeadList(parseLeadRows([row({ ...quiet, shared: true, most_versions: 9 })]), NOW);
+    const [neither] = buildLeadList(parseLeadRows([row(quiet)]), NOW);
+
+    expect(shared.score).toEqual({ total: 15, reasons: ["Shared with others"] });
+    expect(both.score.total).toBe(15);
+    expect(neither.score.total).toBe(0);
   });
 
   it("sorts by score, then by the latest activity", () => {

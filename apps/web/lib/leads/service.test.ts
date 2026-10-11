@@ -70,6 +70,17 @@ describe("brand details", () => {
     });
   });
 
+  it("treats a stored value the app would refuse as not given, rather than failing the page", async () => {
+    const { client } = fake(ok({ organisation_type: "club", country: "ZZ", region: "Nowhere", segment: "unknown" }));
+
+    expect(await getBrandDetails(client, BRAND)).toEqual({
+      organisationType: "club",
+      country: null,
+      region: null,
+      segment: null,
+    });
+  });
+
   it("says a brand it cannot see does not exist", async () => {
     expect((await failureOf(getBrandDetails(fake(ok(null)).client, BRAND))).code).toBe("not_found");
   });

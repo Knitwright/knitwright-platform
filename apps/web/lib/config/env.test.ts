@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EnvError, parseEnv, turnstileSecret } from "./env";
+import { EnvError, parseEnv, turnstileSecret, unsubscribeSecret } from "./env";
 
 const valid = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
@@ -8,6 +8,8 @@ const valid = {
   SUPABASE_SECRET_KEY: "secret-key",
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: "site-key",
 };
+
+const UNSUBSCRIBE = "u".repeat(32);
 
 const without = (name: keyof typeof valid) =>
   Object.fromEntries(Object.entries(valid).filter(([key]) => key !== name));
@@ -194,6 +196,7 @@ describe("parseEnv", () => {
         parseEnv({
           ...live,
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAAreal-key",
+          UNSUBSCRIBE_SECRET: UNSUBSCRIBE,
           NODE_ENV: "production",
           VERCEL_ENV: "production",
         }),
@@ -220,8 +223,8 @@ describe("parseEnv", () => {
     });
 
     it("has none wherever real people visit and no secret is set, so share pages refuse answers", () => {
-      expect(turnstileSecret(parseEnv({ ...valid, VERCEL_ENV: "production" }))).toBeNull();
-      expect(turnstileSecret(parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", NODE_ENV: "production" }))).toBeNull();
+      expect(turnstileSecret(parseEnv({ ...valid, VERCEL_ENV: "production", UNSUBSCRIBE_SECRET: UNSUBSCRIBE }))).toBeNull();
+      expect(turnstileSecret(parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", NODE_ENV: "production", UNSUBSCRIBE_SECRET: UNSUBSCRIBE }))).toBeNull();
     });
 
     it.each(TEST_SECRETS)("refuses the test secret %s wherever real people visit", (secret) => {
@@ -229,6 +232,31 @@ describe("parseEnv", () => {
         /TURNSTILE_SECRET_KEY is a test key/,
       );
       expect(() => parseEnv({ ...valid, TURNSTILE_SECRET_KEY: secret })).not.toThrow();
+    });
+  });
+
+  describe("the unsubscribe secret, which signs the links in marketing email", () => {
+    it("uses the secret that is set", () => {
+      expect(unsubscribeSecret(parseEnv({ ...valid, UNSUBSCRIBE_SECRET: UNSUBSCRIBE }))).toBe(UNSUBSCRIBE);
+    });
+
+    it("falls back to the server's secret key on this machine and in tests", () => {
+      expect(unsubscribeSecret(parseEnv(valid))).toBe("secret-key");
+      expect(
+        unsubscribeSecret(parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "http://localhost:3100", NODE_ENV: "production" })),
+      ).toBe("secret-key");
+    });
+
+    it("is required wherever real people visit, so changing the secret key never breaks a sent link", () => {
+      expect(() => parseEnv({ ...valid, VERCEL_ENV: "production" })).toThrow(/UNSUBSCRIBE_SECRET is missing/);
+      expect(() =>
+        parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", NODE_ENV: "production" }),
+      ).toThrow(/UNSUBSCRIBE_SECRET is missing/);
+      expect(() => parseEnv({ ...valid, VERCEL_ENV: "production", UNSUBSCRIBE_SECRET: UNSUBSCRIBE })).not.toThrow();
+    });
+
+    it("is at least 32 characters", () => {
+      expect(() => parseEnv({ ...valid, UNSUBSCRIBE_SECRET: "u".repeat(31) })).toThrow(/UNSUBSCRIBE_SECRET is not valid/);
     });
   });
 

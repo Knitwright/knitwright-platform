@@ -8,6 +8,7 @@ import {
   missingDetails,
   organisationDetailsSchema,
   placeOf,
+  storedDetails,
 } from "./organisation";
 
 const parse = (input: Record<string, string>) => organisationDetailsSchema.safeParse(input);
@@ -83,5 +84,44 @@ describe("countries", () => {
   it("lists the eight Australian states and territories and the five organisation types", () => {
     expect(AU_STATES.map((state) => state.id)).toEqual(["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"]);
     expect(ORGANISATION_TYPES.map((type) => type.id)).toEqual(["club", "school", "brand", "gym", "event"]);
+  });
+});
+
+describe("storedDetails", () => {
+  it("reads what was stored when the app would take it", () => {
+    expect(storedDetails({ organisationType: "club", country: "AU", region: "VIC" })).toEqual({
+      organisationType: "club",
+      country: "AU",
+      region: "VIC",
+    });
+  });
+
+  it("treats a stored detail the app would refuse as not given, keeping the others", () => {
+    expect(storedDetails({ organisationType: "charity", country: "NZ", region: "Otago" })).toEqual({
+      organisationType: null,
+      country: "NZ",
+      region: "Otago",
+    });
+    expect(storedDetails({ organisationType: "club", country: "NZ", region: "Ota\u0007go" })).toEqual({
+      organisationType: "club",
+      country: "NZ",
+      region: null,
+    });
+  });
+
+  it("drops the region with an unknown country, since a region needs a country", () => {
+    expect(storedDetails({ organisationType: "school", country: "ZZ", region: "Somewhere" })).toEqual({
+      organisationType: "school",
+      country: null,
+      region: null,
+    });
+  });
+
+  it("drops an Australian region that is not a state", () => {
+    expect(storedDetails({ organisationType: null, country: "AU", region: "Melbourne" })).toEqual({
+      organisationType: null,
+      country: "AU",
+      region: null,
+    });
   });
 });

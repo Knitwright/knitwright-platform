@@ -3,7 +3,7 @@ import type { SharePageData, SharePicture } from "@/lib/share/public-view";
 type SharedDesignProps = Readonly<{ page: SharePageData; picturesNote: string | null }>;
 
 /** One drawing. It is a data address in an image tag, so nothing in it can run. */
-function Drawing({ picture }: Readonly<{ picture: SharePicture }>) {
+function Drawing({ picture, testId }: Readonly<{ picture: SharePicture; testId: string }>) {
   return (
     <figure className="m-0 rounded-xl border border-hairline bg-white p-2">
       {picture.src ? (
@@ -12,7 +12,7 @@ function Drawing({ picture }: Readonly<{ picture: SharePicture }>) {
         <img
           src={picture.src}
           alt={picture.alt}
-          data-testid={`share-flat-${picture.view}`}
+          data-testid={testId}
           className="mx-auto h-auto max-h-[28rem] w-full object-contain"
         />
       ) : (
@@ -44,7 +44,7 @@ export function SharedDesign({ page, picturesNote }: SharedDesignProps) {
         {picturesNote ? <p className="text-sm text-muted">{picturesNote}</p> : null}
         <div className="grid gap-4 sm:grid-cols-2">
           {page.flats.map((picture) => (
-            <Drawing key={picture.view} picture={picture} />
+            <Drawing key={picture.view} picture={picture} testId={`share-flat-${picture.view}`} />
           ))}
         </div>
       </section>
@@ -55,7 +55,7 @@ export function SharedDesign({ page, picturesNote }: SharedDesignProps) {
         </h2>
         {page.colourways.map((colourway) => (
           <div key={colourway.id} className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <Drawing picture={colourway.picture} />
+            <Drawing picture={colourway.picture} testId={`share-colourway-${colourway.id}`} />
             <div className="flex flex-col gap-2">
               <h3 className="font-semibold text-ink">{colourway.name}</h3>
               <ul className="flex flex-col gap-1.5">
