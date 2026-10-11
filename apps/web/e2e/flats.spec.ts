@@ -138,6 +138,7 @@ test.describe("the drawing", () => {
     await startDesign(page, "Crew neck tee");
     expect(await svgOf(page)).not.toContain("<image");
 
+    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
     await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
     const form = page.getByRole("form", { name: "New artwork" });
     await expect(form).toBeVisible();
@@ -187,10 +188,21 @@ test.describe("the drawing", () => {
     await expect(page.getByRole("form", { name: /^Change / }).getByLabel("Words to print")).toHaveValue("</text><script>window.hacked=1;alert(1)</script>");
   });
 
+  test("uploads no logo until the person confirms they may use it", async ({ page }) => {
+    await signedIn(page, "flat-norights");
+    await startDesign(page, "Crew neck tee");
+
+    await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
+
+    await expect(page.getByText(/^Tick the box to confirm you own this logo/)).toBeVisible();
+    await expect(page.getByRole("form", { name: "New artwork" })).toHaveCount(0);
+  });
+
   test("refuses a file that is not a picture, beside the field", async ({ page }) => {
     await signedIn(page, "flat-badfile");
     await startDesign(page, "Crew neck tee");
 
+    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
     await page.getByLabel("Logo or picture").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
 
     await expect(page.getByText("Upload a PNG, JPEG or WebP image.")).toBeVisible();

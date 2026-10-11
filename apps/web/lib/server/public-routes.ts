@@ -12,6 +12,10 @@ export const PUBLIC_ENTRY_POINTS = [
   "lib/auth/actions.ts#requestPasswordResetAction",
   "lib/auth/actions.ts#confirmLinkAction",
   "lib/auth/actions.ts#startGoogleSignInAction",
+  // The unsubscribe button, from a link in an email: no session, by law it must work without
+  // signing in. Only a token this server signed is accepted, and all it can do is stop
+  // marketing email to the person it names. Rate limited (decision 0025).
+  "lib/consent/actions.ts#unsubscribeAction",
   // Google sends the browser back here with a code, before a session exists.
   "app/auth/callback/route.ts#GET",
 ] as const;

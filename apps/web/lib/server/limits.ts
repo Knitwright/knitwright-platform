@@ -50,4 +50,8 @@ export const LIMITS = {
   requestQuote: { name: "request-quote", limit: 10, windowSeconds: HOUR },
   // Platform admins working through the leads page.
   manageLeads: { name: "manage-leads", limit: 120, windowSeconds: 10 * MINUTE },
+  // The marketing email box in Settings.
+  changeConsent: { name: "change-consent", limit: 20, windowSeconds: 10 * MINUTE },
+  // An unsubscribe link needs no sign-in. A person clicks it once; this stops a script hammering it.
+  unsubscribe: { name: "unsubscribe", limit: 20, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

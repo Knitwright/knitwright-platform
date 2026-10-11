@@ -1,7 +1,6 @@
 import type { Metadata, Route } from "next";
 import { AuthCard, TextLink } from "@/components/auth/AuthCard";
-import { GoogleButton, OrDivider } from "@/components/auth/GoogleButton";
-import { SignUpForm } from "@/components/auth/SignUpForm";
+import { SignUpChoices } from "@/components/auth/SignUpChoices";
 import { Notice } from "@/components/ui/Notice";
 import { isSignupOpen } from "@/lib/auth/queries";
 import { getEnv } from "@/lib/config/env";
@@ -32,13 +31,7 @@ export default async function SignUpPage() {
           </Notice>
         </div>
       )}
-      {env.GOOGLE_SIGN_IN ? (
-        <>
-          <GoogleButton />
-          <OrDivider />
-        </>
-      ) : null}
-      <SignUpForm siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
+      <SignUpChoices siteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} google={env.GOOGLE_SIGN_IN} />
       <p className="mt-5 text-sm text-muted">
         By creating an account you agree to the <TextLink href={"/legal/terms" as Route}>terms of use</TextLink>.
         Read how we handle your data in the <TextLink href={"/legal/privacy" as Route}>privacy notice</TextLink>.

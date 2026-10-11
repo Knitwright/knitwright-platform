@@ -18,4 +18,7 @@ export const PUBLIC_PAGES = [
   "app/(auth)/auth/confirm/page.tsx",
   // The terms, privacy notice and data-processing terms. Anyone must be able to read them before signing up.
   "app/legal/[document]/page.tsx",
+  // Opened from the unsubscribe link in a marketing email, without signing in. The signed
+  // token names the person; showing the page changes nothing (decision 0025).
+  "app/unsubscribe/page.tsx",
 ] as const;
