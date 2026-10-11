@@ -10,8 +10,9 @@ import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from 
 import { FlatPreview } from "./FlatPreview";
 import { History } from "./History";
 import { ImageReview } from "./ImageReview";
-import { BASE_KEY, SIZES_KEY, measurementKey } from "./keys";
+import { BASE_KEY, NAMES_NUMBERS_KEY, SIZES_KEY, measurementKey } from "./keys";
 import { MeasurementTables } from "./MeasurementTables";
+import { NamesNumbersControls } from "./NamesNumbersControls";
 import { OptionControls } from "./OptionControls";
 import { SizesForm } from "./SizesForm";
 import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
@@ -26,7 +27,8 @@ type PartProps = Readonly<{ data: EditorData; editor: EditorApi }>;
 /** What the page knows about the assistant. */
 export type AssistantInfo = Readonly<{ available: boolean }>;
 
-export function Editor({ data, assistant }: Readonly<{ data: EditorData; assistant: AssistantInfo }>) {
+/** `show3d` is the server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
+export function Editor({ data, assistant, show3d = false }: Readonly<{ data: EditorData; assistant: AssistantInfo; show3d?: boolean }>) {
   const editor = useEditor(data);
   const { state } = editor;
 
@@ -36,7 +38,7 @@ export function Editor({ data, assistant }: Readonly<{ data: EditorData; assista
       <SaveStatus busy={editor.busy} status={state.status} />
       <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
       <DroppedNotice dropped={state.dropped ?? data.dropped} />
-      <FlatPreview flat={data.flat} />
+      <FlatPreview flat={data.flat} show3d={show3d} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <MainColumn data={data} editor={editor} assistant={assistant} />
         <SideColumn data={data} editor={editor} assistant={assistant} />
@@ -62,6 +64,15 @@ function MainColumn({ data, editor, assistant }: PartProps & Readonly<{ assistan
       </Section>
       <ColoursSection data={data} editor={editor} />
       <ArtworkSection data={data} editor={editor} />
+      <Section id="names-numbers" title="Player names and numbers">
+        <NamesNumbersControls
+          panel={data.namesNumbers}
+          error={editor.errorFor(NAMES_NUMBERS_KEY)}
+          onSave={editor.saveAction}
+          onProblem={(key, message) => editor.problem(key, message, false)}
+          onClearProblem={editor.clearProblem}
+        />
+      </Section>
       <Section id="sizes" title="Sizes">
         <SizesSection data={data} editor={editor} />
       </Section>

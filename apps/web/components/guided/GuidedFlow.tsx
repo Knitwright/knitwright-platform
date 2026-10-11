@@ -20,6 +20,8 @@ type Props = Readonly<{
   say: string | undefined;
   unit: LengthUnit;
   assistant: Readonly<{ available: boolean }>;
+  /** The server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
+  show3d?: boolean;
 }>;
 
 /**
@@ -27,7 +29,7 @@ type Props = Readonly<{
  * measurements in view at every step. Each step has its own address, so the browser's back
  * button works and a step can be shared. Focus moves to the step's heading when it changes.
  */
-export function GuidedFlow({ data, step, from, say, unit, assistant }: Props) {
+export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = false }: Props) {
   const router = useRouter();
   const editor = useEditor(data);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -85,7 +87,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant }: Props) {
           </div>
         </section>
         <div className="min-w-0">
-          <LivePreview data={data} unit={shownUnit} onUnit={chooseUnit} />
+          <LivePreview data={data} unit={shownUnit} onUnit={chooseUnit} show3d={show3d} />
         </div>
       </div>
     </div>

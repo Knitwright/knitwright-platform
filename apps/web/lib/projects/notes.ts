@@ -87,6 +87,10 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Artwork ${action.artwork.name} changed.`);
     case "remove-artwork":
       return clipNote(sentence("Artwork", nameOf(spec.artwork, action.id), "removed", "Artwork was removed."));
+    case "set-names-numbers":
+      return spec.namesAndNumbers === undefined ? "Player names and numbers added." : "Player names and numbers changed.";
+    case "remove-names-numbers":
+      return "Player names and numbers removed.";
     case "set-component":
       return clipNote(`Details for ${componentLabel(type, action.component.id)} saved.`);
     case "remove-component":

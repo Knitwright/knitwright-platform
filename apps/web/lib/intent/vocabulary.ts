@@ -150,7 +150,26 @@ const familyEntries = ({ types, choices }: FamilyWords): VocabularyEntry[] => [
   ...Object.entries(choices).flatMap(([optionId, table]) => entries(table, (choiceId) => choiceTarget(optionId, choiceId))),
 ];
 
-export const VOCABULARY: readonly VocabularyEntry[] = [...FAMILY_WORDS.flatMap(familyEntries), ...entries(WEARERS, wearerTarget)];
+/** The target for player names and numbers (decision 0027). Not a family word: every family with a place for them uses it. */
+export const MARKS_TARGET = "marks:names-numbers";
+
+const MARKS_PHRASES: readonly string[] = [
+  "names and numbers",
+  "name and number",
+  "names and numbers on the back",
+  "name and number on the back",
+  "player names and numbers",
+  "player name and number",
+  "player names",
+  "player numbers",
+  "team names and numbers",
+];
+
+export const VOCABULARY: readonly VocabularyEntry[] = [
+  ...FAMILY_WORDS.flatMap(familyEntries),
+  ...entries(WEARERS, wearerTarget),
+  ...MARKS_PHRASES.map((phrase) => ({ phrase, target: MARKS_TARGET })),
+];
 
 /** Words that, just before a phrase, mean the person does not want it. */
 export const NEGATORS: readonly string[] = ["not", "dont", "no", "never", "without", "instead", "rather", "except", "nor"];

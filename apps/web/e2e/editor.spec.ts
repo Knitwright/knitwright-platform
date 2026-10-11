@@ -175,11 +175,31 @@ test.describe("the editor", () => {
     await expect(page.getByText("Fit changed to Slim.")).toHaveCount(0);
   });
 
-  test("lists every garment type the registry has, under the name of its family", async ({ page }) => {
+  test("lists every garment type that is offered, under the name of its family", async ({ page }) => {
     await signedIn(page, "groups");
     await page.goto("/studio/new");
 
     await expect(page.locator('optgroup[label="Tops"] option')).toHaveCount(5);
+    // Leggings, sports bras and compression tops wait for the second wave (decision 0027).
+    await expect(page.locator("option", { hasText: "Leggings" })).toHaveCount(0);
+    await expect(page.locator("option", { hasText: "Sports bra" })).toHaveCount(0);
+  });
+
+  test("adds player names and numbers, with a height left to be confirmed", async ({ page }) => {
+    await signedIn(page, "marks");
+    const address = await startDesign(page, "Team jersey");
+    const marks = page.getByTestId("names-numbers");
+    await marks.getByLabel("Sample name").fill("SMITH");
+    await marks.getByLabel("Lettering style").selectOption({ label: "Block" });
+    await marks.getByRole("button", { name: "Add names and numbers" }).click();
+    await saved(page, 2);
+    await expect(page.getByTestId("garment-3d-toggle")).toHaveCount(0);
+
+    await page.goto(`${address}/tech-pack`);
+    const table = page.getByTestId("player-marks");
+    await expect(table).toContainText("Name across the upper back");
+    await expect(table).toContainText("Name, sample SMITH");
+    await expect(table).toContainText("To be confirmed");
   });
 
   test("says what a change removed", async ({ page }) => {

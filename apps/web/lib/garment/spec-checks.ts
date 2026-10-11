@@ -1,6 +1,7 @@
 import { checkCombination } from "./combinations";
 import { conditionsHold } from "./conditions";
 import { anchorName, choiceName, panelName, pointName } from "./labels";
+import { namesNumbersProblem, type NamesAndNumbers } from "./names-numbers";
 import type {
   Artwork,
   Colourway,
@@ -32,6 +33,7 @@ export interface CheckedSpec {
   readonly artwork: readonly Artwork[];
   readonly components: readonly ComponentEntry[];
   readonly construction: readonly ConstructionEntry[];
+  readonly namesAndNumbers?: NamesAndNumbers;
 }
 
 /** The most fabrics and colourways a design may hold. Kept here so the schema stays a plain tuple. */
@@ -151,6 +153,12 @@ function artworkProblems(spec: CheckedSpec, type: ResolvedType): SpecProblem[] {
   return found;
 }
 
+function namesNumbersProblems(spec: CheckedSpec, type: ResolvedType): SpecProblem[] {
+  if (spec.namesAndNumbers === undefined) return [];
+  const message = namesNumbersProblem(spec.namesAndNumbers, type, spec.options);
+  return message ? [problem(["namesAndNumbers", "places"], message)] : [];
+}
+
 function limitProblems(spec: CheckedSpec): SpecProblem[] {
   const found: SpecProblem[] = [];
   if (spec.fabrics.length > LIST_LIMITS.fabrics) {
@@ -184,6 +192,7 @@ export function specProblems(spec: CheckedSpec): SpecProblem[] {
     ...fabricProblems(spec, type, panels),
     ...colourwayProblems(spec, type, panels),
     ...artworkProblems(spec, type),
+    ...namesNumbersProblems(spec, type),
     ...techProblems(spec, type),
   ];
 }

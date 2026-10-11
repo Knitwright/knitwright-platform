@@ -34,6 +34,8 @@ export const expectedSchema = z.discriminatedUnion("kind", [
     colours: z.record(z.string(), z.string()).optional(),
     fabric: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
     labelling: z.record(z.string(), z.string()).optional(),
+    /** The places of player names and numbers, in order (decision 0027). */
+    namesNumbers: z.array(z.string()).optional(),
   }),
   z.strictObject({ kind: z.literal("question") }),
   z.strictObject({ kind: z.literal("rejection") }),
@@ -121,6 +123,12 @@ function mismatches<T>(label: string, expected: Readonly<Record<string, T>> | un
   return wrong.length === 0 ? [] : [`${label}: expected ${JSON.stringify(Object.fromEntries(wrong))}`];
 }
 
+function marksProblems(expected: readonly string[] | undefined, spec: GarmentSpec): string[] {
+  if (!expected) return [];
+  const places = spec.namesAndNumbers?.places.map((entry) => entry.place) ?? [];
+  return JSON.stringify(places) === JSON.stringify(expected) ? [] : [`names and numbers: expected ${expected.join(", ")}, got ${places.join(", ") || "none"}`];
+}
+
 function appliedProblems(expected: Extract<Expected, { kind: "applied" }>, spec: GarmentSpec): { type: string[]; options: string[]; rest: string[] } {
   const type = expected.typeId !== undefined && expected.typeId !== spec.typeId ? [`type: expected ${expected.typeId}, got ${spec.typeId}`] : [];
   const options = mismatches("options", expected.options, (key) => spec.options[key]?.choiceId);
@@ -139,6 +147,7 @@ function appliedProblems(expected: Extract<Expected, { kind: "applied" }>, spec:
     ...mismatches("colours", expected.colours, colour),
     ...mismatches("fabric", expected.fabric, (key) => fabric[key]),
     ...mismatches("labelling", expected.labelling, (key) => spec.labelling[key as keyof GarmentSpec["labelling"]]?.text),
+    ...marksProblems(expected.namesNumbers, spec),
   ];
   return { type, options, rest };
 }

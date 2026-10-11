@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { WEARERS, freeText } from "@/lib/garment";
+import { offeredTypeSchema } from "@/lib/guided/start";
 import { MAX_UTTERANCE_LENGTH } from "@/lib/intent/text-flow";
 
 /** Limits on the text of a project. The database enforces the same ones. */
@@ -27,7 +28,7 @@ const projectId = z.uuid("That is not a design.");
 const expectedVersion = z.number().int().min(1).max(MAX_VERSION);
 
 export const createProjectSchema = z.object({
-  typeId: z.string().min(1, "Choose a garment type."),
+  typeId: offeredTypeSchema,
   wearer: z.enum(WEARERS, "Choose who it is for."),
   name: projectNameSchema,
   styleNumber: projectTextSchema,

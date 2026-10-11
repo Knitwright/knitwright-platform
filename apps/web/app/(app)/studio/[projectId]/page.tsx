@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { brandChartSet } from "@/lib/charts/service";
+import { getEnv } from "@/lib/config/env";
 import { loadIllustrations } from "@/lib/images/illustrations";
 import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
@@ -47,6 +48,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
       <Editor
         data={buildEditorData(project, history, charts, pictures, colourway)}
         assistant={{ available: assistantAvailable() }}
+        show3d={getEnv().SHOW_3D}
       />
       <PhotorealPanel
         projectId={projectId}

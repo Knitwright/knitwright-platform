@@ -25,6 +25,7 @@ function toAction(target: string): WireAction | null {
   if (kind === "type" && first) return { type: "change-type", typeId: first };
   if (kind === "wearer" && (WEARERS as readonly string[]).includes(first)) return { type: "change-wearer", wearer: first as Wearer };
   if (kind === "choice" && first && second) return { type: "set-option", optionId: first, choiceId: second };
+  if (kind === "marks") return { type: "add-names-numbers" };
   return null;
 }
 

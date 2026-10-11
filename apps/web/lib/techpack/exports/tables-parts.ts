@@ -148,9 +148,37 @@ export function artworkSection(pack: TechPack): ExportSection {
     id: "artwork",
     title: artwork.title,
     sheet: EXCEL_SHEETS.artwork,
-    paragraphs: sentences(artwork.note),
-    tables: rows.length > 0 ? [table(null, columns, rows)] : [],
+    paragraphs: sentences(artwork.note, artwork.playerMarksNote),
+    tables: [...(rows.length > 0 ? [table(null, columns, rows)] : []), ...playerMarksTables(pack)],
   };
+}
+
+const PLAYER_MARK_COLUMNS = [
+  valueColumn("Place"),
+  valueColumn("Part"),
+  valueColumn("Anchor"),
+  valueColumn("Shows"),
+  lengthColumn("Height"),
+  valueColumn("Lettering style"),
+  valueColumn("Colour code"),
+  valueColumn("Screen colour"),
+  valueColumn("How it is made"),
+];
+
+/** Player names and numbers, one row for each place (decision 0027). None when the design has none. */
+function playerMarksTables(pack: TechPack): ExportTable[] {
+  const rows = pack.artwork.playerMarks.map((item): readonly Datum[] => [
+    value(item.place),
+    value(item.panel),
+    value(item.anchor),
+    value(item.shows),
+    length(item.height),
+    value(item.style),
+    value(item.colour),
+    value(item.screenColour),
+    value(item.technique),
+  ]);
+  return rows.length > 0 ? [table("Player names and numbers", PLAYER_MARK_COLUMNS, rows)] : [];
 }
 
 export function labellingSection(pack: TechPack): ExportSection {

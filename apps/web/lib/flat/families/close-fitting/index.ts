@@ -1,6 +1,6 @@
 import { closedCommands, pt } from "../../chain";
 import { need, resolveDimensions, type Dims } from "../../dimensions";
-import { placedArtwork } from "../../artwork";
+import { placedDecoration } from "../../artwork";
 import type { Point } from "../../model";
 import { tidyCommands } from "../../paths";
 import { calloutsFrom, type DrawContext, type FamilyDrawing } from "../drawing";
@@ -36,7 +36,7 @@ export function drawCloseFitting(context: DrawContext): FamilyDrawing | null {
     const { frame } = compressionFrame(resolved.dims, options, view);
     if (!frame) return null;
     const drawing = drawCompression(context, frame, options, resolved);
-    const artwork = placedArtwork(context.spec.artwork, view, (panelId, anchorId) => compressionAnchor(frame, panelId, anchorId));
+    const artwork = placedDecoration(context.spec, view, (panelId, anchorId) => compressionAnchor(frame, panelId, anchorId));
     return { ...drawing, artwork };
   }
   const { shape } = sleevelessShapeOf(resolved.dims, options, view);
@@ -51,7 +51,7 @@ export function drawCloseFitting(context: DrawContext): FamilyDrawing | null {
     seams: sleevelessSeams(shape),
     stitching: sleevelessStitching(shape),
     details: [],
-    artwork: placedArtwork(context.spec.artwork, view, (panelId, anchorId) => sleevelessAnchor(shape, panelId, anchorId)),
+    artwork: placedDecoration(context.spec, view, (panelId, anchorId) => sleevelessAnchor(shape, panelId, anchorId)),
     callouts,
     outline: { silhouette: tidyCommands(closedCommands(sleevelessOutline(shape))), neck: tidyCommands(closedCommands(neckLoop(shape))) },
     landmarks: {

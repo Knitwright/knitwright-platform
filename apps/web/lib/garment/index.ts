@@ -98,6 +98,23 @@ export {
   type FamilyId,
   type Wearer,
 } from "./primitives";
+export {
+  DEFAULT_SAMPLE_NAME,
+  DEFAULT_SAMPLE_NUMBER,
+  LETTERING_LABELS,
+  LETTERING_STYLES,
+  PLACE_DEFINITIONS,
+  PLAYER_MARK_PLACES,
+  SAMPLE_NAME_MAX_LENGTH,
+  namesAndNumbersSchema,
+  placesFor,
+  sampleFor,
+  usualPlaces,
+  type LetteringStyle,
+  type NamesAndNumbers,
+  type PlayerMarkPlace,
+  type PlayerMarkPlacement,
+} from "./names-numbers";
 export { PROVENANCE_LABELS, PROVENANCE_VALUES, provenanceSchema, type Provenance } from "./provenance";
 export {
   USUAL_SIZE_SYSTEM,

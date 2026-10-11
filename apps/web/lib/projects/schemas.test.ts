@@ -31,6 +31,7 @@ describe("createProjectSchema", () => {
     ["no wearer", { wearer: "" }, "wearer", "Choose who it is for."],
     ["an unknown wearer", { wearer: "dogs" }, "wearer", "Choose who it is for."],
     ["no type", { typeId: "" }, "typeId", "Choose a garment type."],
+    ["a type not offered yet", { typeId: "sports-bra" }, "typeId", "Not offered yet: Sports bra. Choose another garment."],
   ])("refuses %s beside the right field", (_label, patch, field, message) => {
     const result = createProjectSchema.safeParse({ ...valid, ...patch });
 

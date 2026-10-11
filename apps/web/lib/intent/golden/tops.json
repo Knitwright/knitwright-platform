@@ -2990,6 +2990,54 @@
         "kind": "rejection"
       },
       "approved": false
+    },
+    {
+      "id": "tops-208",
+      "category": "names-numbers",
+      "utterance": "add names and numbers on the back",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "applied",
+        "namesNumbers": [
+          "back-name",
+          "back-number"
+        ]
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-209",
+      "category": "names-numbers",
+      "utterance": "can we put player names and numbers on these shirts",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expected": {
+        "kind": "applied",
+        "namesNumbers": [
+          "back-name",
+          "back-number"
+        ]
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-210",
+      "category": "names-numbers",
+      "utterance": "names and numbers please",
+      "start": {
+        "typeId": "polo"
+      },
+      "expected": {
+        "kind": "applied",
+        "namesNumbers": [
+          "back-name",
+          "back-number"
+        ]
+      },
+      "approved": false
     }
   ]
 }

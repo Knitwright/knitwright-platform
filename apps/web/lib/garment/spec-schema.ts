@@ -8,6 +8,7 @@ import {
   panelFabricSchema,
   sizingSchema,
 } from "./parts";
+import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
 import { LIST_LIMITS, specProblems } from "./spec-checks";
 import { componentSchema, constructionEntrySchema, labellingSchema } from "./tech-parts";
@@ -51,6 +52,11 @@ export const garmentSpecStructureSchema = z
     construction: z.array(constructionEntrySchema).max(MAX_CONSTRUCTION).readonly(),
     /** Care, composition, origin, fold and bag. Only the fields the user filled in. */
     labelling: labellingSchema,
+    /**
+     * Player names and numbers: where they go and how they look, never a roster. Optional and
+     * added after version 6 without a bump, so every design saved before still reads.
+     */
+    namesAndNumbers: namesAndNumbersSchema.optional(),
   })
   .readonly();
 

@@ -32,6 +32,7 @@ export const WIRE_ACTION_TYPES = [
   "set-colour",
   "change-fabric",
   "set-labelling",
+  "add-names-numbers",
 ] as const;
 export type WireActionType = (typeof WIRE_ACTION_TYPES)[number];
 
@@ -57,6 +58,8 @@ export const wireActionSchema = z.discriminatedUnion("type", [
     changes: fabricChangesSchema,
   }),
   z.strictObject({ type: z.literal("set-labelling"), field: labellingFieldSchema, text: z.string().max(TEXT_MAX_LENGTH) }),
+  /** Player names and numbers at the usual places of the garment (decision 0027). */
+  z.strictObject({ type: z.literal("add-names-numbers") }),
 ]);
 export type WireAction = z.output<typeof wireActionSchema>;
 

@@ -6,9 +6,10 @@ import { Preview3D } from "./Preview3D";
 /**
  * The drawing of the design, front and back. It is drawn on the server and handed over as
  * a picture address, so the browser treats it as an image and nothing inside it can run.
- * This holds markup only. Every sentence comes from lib/projects/flat-preview.
+ * This holds markup only. Every sentence comes from lib/projects/flat-preview. The 3D trial
+ * shows only when the server switch SHOW_3D is on (decision 0027).
  */
-export function FlatPreview({ flat }: Readonly<{ flat: FlatPreviewData | null }>) {
+export function FlatPreview({ flat, show3d = false }: Readonly<{ flat: FlatPreviewData | null; show3d?: boolean }>) {
   if (!flat) return null;
   return (
     <Section id="drawing" title="Drawing">
@@ -44,7 +45,7 @@ export function FlatPreview({ flat }: Readonly<{ flat: FlatPreviewData | null }>
           </figure>
         ))}
       </div>
-      <Preview3D flat={flat} />
+      {show3d ? <Preview3D flat={flat} /> : null}
     </Section>
   );
 }

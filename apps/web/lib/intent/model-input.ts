@@ -1,3 +1,4 @@
+import { isOffered } from "@/lib/config/launch-garments";
 import {
   LABELLING_FIELDS,
   STRETCH_VALUES,
@@ -43,6 +44,7 @@ export function describeSpec(spec: GarmentSpec) {
       colours: Object.fromEntries(colourway.colours.map((entry) => [entry.panelId, entry.colour || entry.swatch || ""])),
     })),
     labelling: Object.fromEntries(Object.entries(spec.labelling).map(([field, value]) => [field, value?.text ?? ""])),
+    namesAndNumbers: spec.namesAndNumbers?.places.map((entry) => entry.place) ?? [],
   };
 }
 
@@ -65,7 +67,8 @@ function choiceLines(types: readonly ResolvedType[]): string {
 }
 
 function systemPrompt(type: ResolvedType | undefined): string {
-  const types = type ? listTypes(type.family) : [];
+  // Only the garments a design may become: its own, and those offered (decision 0027).
+  const types = type ? listTypes(type.family).filter((entry) => entry.id === type.id || isOffered(entry.id)) : [];
   const rules = [...new Set(types.flatMap((entry) => entry.rules.map((rule) => `- ${rule.reason}`)))].join("\n");
   const panels = type ? type.panels.map((panel) => panel.id).join(", ") : "";
   const points = type ? type.pointsOfMeasure.map((point) => point.id).join(", ") : "";
@@ -85,6 +88,7 @@ Actions, with no other fields:
 {"type": "set-colour", "panels": ["..."], "colour": "navy", "swatch": "#1b2a49"}  swatch is optional
 {"type": "change-fabric", "changes": {"composition": "...", "construction": "...", "weightGsm": 180, "finish": "...", "stretch": "${STRETCH_VALUES.join('" | "')}"}}  include only the fields asked for
 {"type": "set-labelling", "field": "${LABELLING_FIELDS.join('" | "')}", "text": "..."}
+{"type": "add-names-numbers"}  adds player names and numbers at the usual places; each player's own name and number come later with the team order
 
 Garment types, with the choices each one offers:
 ${typeLines(types)}

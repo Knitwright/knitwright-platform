@@ -1,3 +1,4 @@
+import { isOffered } from "@/lib/config/launch-garments";
 import { describe, expect, it } from "vitest";
 import { applyAction, createSpec, listTypes, type GarmentSpec } from "@/lib/garment";
 import { buildModelInput, describeSpec } from "./model-input";
@@ -67,10 +68,13 @@ describe.each(FAMILIES)("the model input for %s", (family) => {
     return made.spec;
   };
 
-  it("lists every type of the family with every choice it offers, and every choice of every option", () => {
+  it("lists the design's own type and every offered type of the family, with every choice of every option", () => {
     for (const type of listTypes(family)) {
       const { system } = buildModelInput({ utterance: "x", spec: firstFor(type.id) });
-      for (const other of listTypes(family)) expect(system).toContain(`- ${other.id}: ${other.label}. Options: `);
+      for (const other of listTypes(family)) {
+        const listed = other.id === type.id || isOffered(other.id);
+        expect(system.includes(`- ${other.id}: ${other.label}. Options: `), other.id).toBe(listed);
+      }
       for (const option of type.options) {
         expect(system).toContain(`${option.id}=${option.choices.map((choice) => choice.id).join("|")}`);
         for (const choice of [...option.choices, ...option.notOffered]) expect(system).toContain(`${choice.id} (${choice.label})`);

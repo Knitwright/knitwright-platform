@@ -4,6 +4,7 @@ import { choiceName, panelName, pointName } from "./labels";
 import { nonEmpty } from "./non-empty";
 import type { OptionChoice } from "./parts";
 import type { ResolvedType } from "./registry";
+import { fittingMarks, PLACE_DEFINITIONS, withoutMarks } from "./names-numbers";
 import { artworkProblem } from "./spec-checks";
 import { dropStaleTechFields } from "./tech-reconcile";
 import type { GarmentSpec } from "./spec-schema";
@@ -118,9 +119,24 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
     dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
     return false;
   });
-  const kept = { ...spec, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork };
+  const rest = withoutMarks(spec);
+  const marks = keptMarks(spec, type, dropped);
+  const kept = { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks };
   const tech = dropStaleTechFields(kept, type);
   return { value: tech.value, dropped: [...dropped, ...tech.dropped] };
+}
+
+/** Names and numbers with only the places the garment still has. Each place dropped is reported. */
+function keptMarks(spec: GarmentSpec, type: ResolvedType, dropped: Dropped[]): Pick<GarmentSpec, "namesAndNumbers"> {
+  const marks = spec.namesAndNumbers;
+  if (marks === undefined) return {};
+  const fitting = fittingMarks(marks, type, spec.options);
+  for (const entry of marks.places) {
+    if (fitting?.places.includes(entry)) continue;
+    const label = PLACE_DEFINITIONS[entry.place].label;
+    dropped.push({ kind: "names-numbers", id: entry.place, message: `${label} was removed, because ${type.label} has no place for it.` });
+  }
+  return fitting === null ? {} : { namesAndNumbers: fitting };
 }
 
 /**

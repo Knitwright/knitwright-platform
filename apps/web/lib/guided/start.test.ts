@@ -39,6 +39,16 @@ describe("starting the guided flow", () => {
     expect(parse({ method: "picker", wearer: "men" }).success).toBe(false);
   });
 
+  it("refuses a garment that is not offered yet, from the picker or from words, and says so", () => {
+    const picked = parse({ method: "picker", typeId: "leggings", wearer: "women" });
+    expect(picked.success).toBe(false);
+    expect(picked.error?.issues[0]?.message).toBe("Not offered yet: Leggings. Choose another garment.");
+    const said = parse({ method: "text", sentence: "a sports bra for women" });
+    expect(said.success).toBe(false);
+    expect(said.error?.issues[0]?.message).toBe("Not offered yet: Sports bra. Describe another garment, or pick one from the list.");
+    expect(parse({ method: "text", sentence: "a singlet, not a sports bra" }).success).toBe(true);
+  });
+
   it("refuses a way of starting it does not know", () => {
     expect(parse({ method: "voice" }).success).toBe(false);
   });

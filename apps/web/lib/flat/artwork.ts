@@ -1,6 +1,7 @@
-import type { Artwork } from "@/lib/garment";
+import type { Artwork, GarmentSpec } from "@/lib/garment";
 import { tidy } from "./chain";
 import { TEXT_COLOUR } from "./colour";
+import { BASELINE_SHIFT, playerMarkElements } from "./player-marks";
 import type { FlatElement, Point, View } from "./model";
 import { anchorPoint } from "./templates/anchors";
 import type { Frame } from "./templates/pieces";
@@ -11,8 +12,6 @@ export const ARTWORK_SHOWN: Readonly<Record<View, readonly string[]>> = {
   back: ["body-back", "legs-back"],
 };
 
-/** How far below the middle of a line of text its baseline sits, as a share of the type size. */
-const BASELINE_SHIFT = 0.35;
 
 /**
  * Artwork as drawing elements: a picture for an image, a line of text for text.
@@ -20,8 +19,20 @@ const BASELINE_SHIFT = 0.35;
  * clip a picture, and the two drawings must match, so neither does. A picture placed
  * partly off its panel is drawn as placed. Position, size and turn are from the anchor.
  */
-export function artworkElements(artwork: readonly Artwork[], frame: Frame): readonly FlatElement[] {
-  return placedArtwork(artwork, frame.view, (panelId, anchorId) => anchorPoint(frame, panelId, anchorId));
+export function artworkElements(spec: Decorated, frame: Frame): readonly FlatElement[] {
+  return placedDecoration(spec, frame.view, (panelId, anchorId) => anchorPoint(frame, panelId, anchorId));
+}
+
+/** What a design puts on the garment: artwork, and player names and numbers. */
+export type Decorated = Pick<GarmentSpec, "artwork" | "namesAndNumbers">;
+
+/** Artwork, then names and numbers, placed from the anchors a family's drawing knows. */
+export function placedDecoration(
+  spec: Decorated,
+  view: View,
+  anchorOf: (panelId: string, anchorId: string) => Point | null,
+): readonly FlatElement[] {
+  return [...placedArtwork(spec.artwork, view, anchorOf), ...playerMarkElements(spec.namesAndNumbers, view, anchorOf)];
 }
 
 /** Artwork placed from the anchors a family's drawing knows. See `artworkElements`. */
