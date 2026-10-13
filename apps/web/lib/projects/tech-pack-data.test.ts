@@ -124,8 +124,8 @@ describe("buildTechPackPage", () => {
     const data = page(spec);
     expect(data.flats.every((flat) => flat.toScale)).toBe(true);
     const svg = decodeURIComponent(data.flats[0]?.src?.split(",")[1] ?? "");
-    expect(svg).toContain("A 52.0 cm");
-    expect(svg).not.toContain("Chest width 52.0 cm");
+    expect(svg).toContain(">A</text>");
+    expect(svg).not.toContain("Chest width");
   });
 
   it("gives no picture when the type has no drawing", () => {

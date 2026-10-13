@@ -1,15 +1,18 @@
 import { Text, View } from "@react-pdf/renderer";
 import { createElement as h, type ReactElement } from "react";
 import { PDF_FONT_FAMILY } from "@/lib/flat/pdf-font";
-import { TO_BE_CONFIRMED } from "../../cell";
+import { TO_BE_CONFIRMED, type SetCell } from "../../cell";
 import { sourceWords } from "../contents";
+import { ExportRefused } from "../errors";
 import type { Column, Datum, ExportTable } from "../tables";
+import { markLabel, type SourceMarks } from "./marks";
 import { COLOURS, SIZES } from "./styles";
 
 /** Turns text into text the PDF font can draw. Every string that goes into the PDF passes through it. */
 export type Safe = (text: string) => string;
 
-const KEEP_WITH_NEXT = 60;
+/** A heading keeps this much of what follows it on its page, so it is never left alone above a table that moves on. */
+const KEEP_WITH_NEXT = 100;
 
 export const heading = (level: 2 | 3, text: string, safe: Safe): ReactElement =>
   h(
@@ -34,27 +37,35 @@ const CELL_STYLE = { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: C
 
 const valueText = (text: string, safe: Safe, key: string): ReactElement => h(Text, { key, style: CELL_STYLE }, safe(text));
 
-/** A small line inside a cell, in the muted colour, or the attention colour for a proposal. */
-const noteSpan = (text: string, safe: Safe, colour: string = COLOURS.muted): ReactElement =>
-  h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.small, color: colour } }, safe(text));
+/** The mark of a source, printed small after a value: in the attention colour for a proposal. */
+function markSpan(cell: SetCell, marks: SourceMarks): ReactElement {
+  const words = sourceWords(cell) as string;
+  const mark = marks.get(words);
+  if (mark === undefined) throw new ExportRefused(`The source "${words}" has no mark in the key.`);
+  const proposal = "proposal" in cell && cell.proposal === true;
+  return h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.small, color: proposal ? COLOURS.warn : COLOURS.muted } }, ` ${markLabel(mark)}`);
+}
 
 /**
- * A value with lines under it, all in one text node. The PDF library lays out each text node on
- * its own, and that is the slowest part of a document, so a value and its source share one.
+ * A value with the mark of its source after it, in one text node. The PDF library lays out each
+ * text node on its own, and that is the slowest part of a document.
  */
-const withNotes = (value: string, notes: readonly ReactElement[], safe: Safe): ReactElement[] => [
-  h(Text, { key: "v", style: CELL_STYLE }, safe(value), ...notes.flatMap((note) => ["\n", note])),
+const withMark = (value: string, cell: SetCell, marks: SourceMarks, safe: Safe): ReactElement[] => [
+  h(Text, { key: "v", style: CELL_STYLE }, safe(value), markSpan(cell, marks)),
 ];
 
-/** A value that nobody has filled in says so, in the attention colours. It is never blank, a zero or a dash. */
-const missing = (key: string): ReactElement =>
+/**
+ * A value that nobody has filled in says so, in the attention colours. It is never blank, a zero or
+ * a dash. In the narrow columns of numbers it is in smaller type, so it stays on one line.
+ */
+const missing = (key: string, fontSize: number = SIZES.cell): ReactElement =>
   h(
     Text,
     {
       key,
       style: {
         fontFamily: PDF_FONT_FAMILY,
-        fontSize: SIZES.cell,
+        fontSize,
         color: COLOURS.warn,
         backgroundColor: COLOURS.warnWash,
         paddingHorizontal: 2,
@@ -64,30 +75,21 @@ const missing = (key: string): ReactElement =>
     TO_BE_CONFIRMED,
   );
 
-/** What a datum prints, as a value and, under it, the words for where the value came from. */
-function contentOf(datum: Datum, safe: Safe): ReactElement[] {
+/** What a datum prints: a value with the mark of its source after it, or the words for a missing value. */
+function contentOf(datum: Datum, safe: Safe, marks: SourceMarks): ReactElement[] {
   switch (datum.kind) {
     case "text":
       return [valueText(datum.text, safe, "t")];
     case "value":
       if (datum.cell === null) return [];
-      return datum.cell.status === "set"
-        ? withNotes(datum.cell.value, [noteSpan(sourceWords(datum.cell) ?? "", safe)], safe)
-        : [missing("m")];
+      return datum.cell.status === "set" ? withMark(datum.cell.value, datum.cell, marks, safe) : [missing("m")];
     case "length":
-      return datum.cell.status === "set"
-        ? withNotes(`${datum.cell.value} cm`, [noteSpan(sourceWords(datum.cell) ?? "", safe)], safe)
-        : [missing("m")];
+      return datum.cell.status === "set" ? withMark(`${datum.cell.value} cm`, datum.cell, marks, safe) : [missing("m", SIZES.small)];
     case "number":
-      return datum.cell.status === "set"
-        ? withNotes(datum.cell.value, [noteSpan(sourceWords(datum.cell) ?? "", safe)], safe)
-        : [missing("m")];
+      return datum.cell.status === "set" ? withMark(datum.cell.value, datum.cell, marks, safe) : [missing("m", SIZES.small)];
     case "class":
-      return withNotes(
-        `${datum.cell.value}, ISO ${datum.cell.iso}`,
-        [noteSpan(sourceWords(datum.cell) ?? "", safe, datum.cell.proposal ? COLOURS.warn : COLOURS.muted), noteSpan(datum.cell.explanation, safe)],
-        safe,
-      );
+      // The explanation of the class is said once, in the appendix, not under every seam.
+      return withMark(`${datum.cell.value}, ISO ${datum.cell.iso}`, datum.cell, marks, safe);
   }
 }
 
@@ -113,7 +115,7 @@ const cellBox = (width: string) => ({ width, paddingVertical: 3, paddingHorizont
  * A table of the document. The header row is fixed, so it is drawn again at the top of every page
  * the table runs onto. A row is never split across two pages.
  */
-export function dataTable(table: ExportTable, safe: Safe): ReactElement {
+export function dataTable(table: ExportTable, safe: Safe, marks: SourceMarks): ReactElement {
   const widths = widthsOf(table);
   const header = h(
     View,
@@ -126,7 +128,7 @@ export function dataTable(table: ExportTable, safe: Safe): ReactElement {
     h(
       View,
       { key: `r${rowIndex}`, wrap: false, style: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: COLOURS.line } },
-      ...row.map((datum, index) => h(View, { key: `c${index}`, style: cellBox(widths[index] ?? "10%") }, ...contentOf(datum, safe))),
+      ...row.map((datum, index) => h(View, { key: `c${index}`, style: cellBox(widths[index] ?? "10%") }, ...contentOf(datum, safe, marks))),
     ),
   );
   return h(View, { style: { marginBottom: 6 } }, header, ...rows);

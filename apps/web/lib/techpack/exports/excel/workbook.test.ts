@@ -1,15 +1,15 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { PROVENANCE_LABELS, applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
-import { TO_BE_CONFIRMED } from "../../cell";
+import { TO_BE_CONFIRMED, sourceLabel, type SetCell } from "../../cell";
 import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../../fixtures/designs";
-import { PROPOSAL_WORDS } from "../../text";
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
 import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
 import { EXCEL_SHEETS } from "../contents";
+import { measurementNotes } from "../measurement-notes";
 import {
   pairsOf,
   readWorkbook,
@@ -34,7 +34,7 @@ const expectedText = (text: string): string | null => {
 };
 
 const sourceOf = (cell: Record<string, unknown>): string | null =>
-  cell.status !== "set" ? null : cell.proposal === true ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance as keyof typeof PROVENANCE_LABELS];
+  cell.status !== "set" ? null : sourceLabel(cell as unknown as SetCell);
 
 const valueOf = (cell: Record<string, unknown>): Value => {
   if (cell.status !== "set") return TO_BE_CONFIRMED;
@@ -135,6 +135,21 @@ describe("the Excel file equals the document (T2)", () => {
     for (const row of pack.labelling.rows) expect(text.has(row.label), row.label).toBe(true);
     expect(text.has(pack.signOff.statement)).toBe(true);
     expect(text.has(String(pack.cover.version))).toBe(true);
+  });
+
+  it("puts the code first in the measurement table, and the notes on single measurements in a table by code under it", async () => {
+    const pack = packFor(start("polo"));
+    const sheets = await readWorkbook(await buildWorkbook(pack));
+    const sheet = sheets.find((entry) => entry.sheet === EXCEL_SHEETS.measurements);
+    const rows = sheet?.data ?? [];
+    const header = rows.findIndex((row) => row[0] === "Code" && row[1] === "Measurement");
+    expect(rows[header + 1]?.[0]).toBe("A");
+    const notesAt = rows.findIndex((row) => row[0] === "Measurement notes");
+    expect(notesAt).toBeGreaterThan(header);
+    expect(rows[notesAt + 1]?.slice(0, 3)).toEqual(["Code", "Measurement", "Note"]);
+    const first = (measurementNotes(pack.measurements.groups)?.rows[0] ?? []).map((datum) => (datum.kind === "text" ? datum.text : null));
+    expect(first).toHaveLength(3);
+    expect(rows[notesAt + 2]?.slice(0, 3)).toEqual(first);
   });
 
   it("freezes the header row and makes it bold", async () => {

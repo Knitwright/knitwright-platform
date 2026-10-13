@@ -1,11 +1,13 @@
 /** Test support shared by the PDF tests. Nothing here is used by the app. */
-import { PROVENANCE_LABELS, applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { sourceLabel, type SetCell } from "../../cell";
 import { fullDesign } from "../../fixtures/designs";
-import { PROPOSAL_WORDS } from "../../text";
 import type { ImageMap } from "@/lib/flat/images";
 import type { TechPack } from "../../types";
 import { buildPdf, type PdfOptions } from "../pdf/document";
+import { SOURCES_AND_NOTES } from "../pdf/appendix";
 import { readPages, type ReadPage } from "./pdf-pages";
+import { drawable } from "../pdf-text";
 
 export const noSpace = (text: string): string => text.replace(/\s+/g, "");
 
@@ -18,7 +20,28 @@ export const printed = (cell: Record<string, unknown>): string => {
 
 /** The words for where a set cell came from. */
 export const sourceOf = (cell: Record<string, unknown>): string =>
-  cell.proposal === true ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance as keyof typeof PROVENANCE_LABELS];
+  sourceLabel(cell as unknown as SetCell);
+
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The mark the PDF gives a source, read from its "Sources and notes" key, where each mark is
+ * printed before the words of its source. The text is read with the spaces taken out.
+ */
+export function markOf(squashed: string, words: string): string | undefined {
+  const key = squashed.slice(squashed.lastIndexOf(noSpace(SOURCES_AND_NOTES)));
+  return new RegExp(`\\[(\\d+)\\]${escapeRegExp(noSpace(words))}`).exec(key)?.[1];
+}
+
+/**
+ * What a set cell prints in the PDF, with the spaces taken out: its value made drawable, then the
+ * mark of its source. The words of the mark are in the key at the end, read from the same text.
+ */
+export function withMark(squashed: string, cell: Record<string, unknown>): string {
+  const mark = markOf(squashed, sourceOf(cell));
+  if (mark === undefined) throw new Error(`The key has no mark for "${sourceOf(cell)}".`);
+  return noSpace(`${drawable(printed(cell))}[${mark}]`);
+}
 
 interface Built {
   readonly bytes: Uint8Array;

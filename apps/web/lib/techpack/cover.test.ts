@@ -79,10 +79,17 @@ describe("the cover", () => {
     expect(cover.sizeRun).toEqual({ status: "to-be-confirmed" });
   });
 
-  it("lists each option with the choice made and who made it", () => {
+  it("lists each option with the choice made and who made it, and marks a choice nobody made as the standard one", () => {
     const cover = buildCover(base());
     const collar = cover.options.find((option) => option.id === "collar");
-    expect(collar).toEqual({ id: "collar", label: "Collar", choice: { status: "set", value: "Polo collar", provenance: "derived" } });
+    expect(collar).toEqual({
+      id: "collar",
+      label: "Collar",
+      choice: { status: "set", value: "Polo collar", provenance: "derived", standard: true },
+    });
+    const chosen = applyAction(start("polo"), { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "user-edited" });
+    const fit = buildCover(base({ spec: accepted(chosen).spec })).options.find((option) => option.id === "fit");
+    expect(fit?.choice).toEqual({ status: "set", value: "Slim", provenance: "user-edited" });
     expect(cover.options.map((option) => option.id)).toEqual(["fit", "neckline", "collar", "placket", "sleeve-type", "sleeve-length", "hem-shape", "side-panels", "cuffs"]);
   });
 

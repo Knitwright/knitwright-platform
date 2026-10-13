@@ -52,8 +52,11 @@ describe("the PDF of a full design", () => {
     }
   });
 
-  it("draws the flats as vector paths, with the callouts as text, and no picture", () => {
-    expect(allText(pages)).toContain("A 52.0 cm");
+  it("draws the flats as vector paths, with the code of each callout as text in its mark, and no picture", () => {
+    const flats = pages.find((page) => page.text.includes(SECTION_TITLES.flats));
+    const words = new Set(flats?.text.split(/\s+/));
+    for (const callout of pack.flats.callouts) expect(words.has(callout.code), callout.code).toBe(true);
+    expect(allText(pages)).not.toContain("A 52.0 cm");
     const operations = pages.flatMap((page) => page.operations);
     expect(operations).toContain("constructPath");
     expect(operations).not.toContain("paintImageXObject");

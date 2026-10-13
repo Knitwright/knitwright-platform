@@ -52,8 +52,11 @@ export function outlineOf(frame: Frame): Outline {
   const { topEnd, lowerEnd } = sleeveEnds(basis);
   const side = pt(basis.halfHem, basis.length - hemLift(frame, basis.halfHem));
   const shoulder = frame.options.raglan ? [] : [lineTo(basis.top)];
+  // A polo collar meets the shoulder line where its edge starts, so there is no step to it: a
+  // step of no length would leave the same point twice in the outline.
+  const toJoin = join.x === edge.start.x && join.y === edge.start.y ? [] : [lineTo(join)];
   const right = joinChains(
-    chain(edge.start, lineTo(join), ...shoulder, lineTo(topEnd), lineTo(lowerEnd), lineTo(basis.underarm), lineTo(side)),
+    chain(edge.start, ...toJoin, ...shoulder, lineTo(topEnd), lineTo(lowerEnd), lineTo(basis.underarm), lineTo(side)),
     hemSegment(frame, basis.halfHem, 0),
   );
   const silhouette = joinChains(right, reverseChain(mirrorChain(right)), reverseChain(bothSides(edge)));

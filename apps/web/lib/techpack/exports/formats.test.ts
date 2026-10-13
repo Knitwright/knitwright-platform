@@ -48,12 +48,15 @@ describe("a measurement changes the PDF, the Excel file and the SVG together, to
   ] as const)("holds the same value in all three formats %s the change", async (_when, pack, text, number) => {
     const { pages } = await readPdfOf(pack);
     const pdf = allText(pages);
-    expect(pdf).toContain(`A ${text} cm`);
-    expect(pdf).toContain(`Chest width To be confirmed ${text} cm`);
+    expect(pdf).toContain(`A Chest width To be confirmed ${text} cm`);
     const sheet = (await readWorkbook(await buildWorkbook(pack))).find((entry) => entry.sheet === "Measurements");
     expect(numberInRow(sheet, "A", "Chest width", "Size not set (cm)")).toBe(number);
-    expect(buildSvg(pack, "front", new Map())).toContain(`>A ${text} cm<`);
-    expect(buildSvg(pack, "back", new Map())).toContain(`>A ${text} cm<`);
+    // The drawings carry the code of the row in a mark, and the value only in the table.
+    for (const view of ["front", "back"] as const) {
+      const svg = buildSvg(pack, view, new Map());
+      expect(svg).toContain(">A</text>");
+      expect(svg).not.toContain(`${text} cm`);
+    }
   });
 
   it("changes each format, and no other measurement", async () => {

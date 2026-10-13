@@ -18,6 +18,7 @@ import {
 } from "@/lib/sizing";
 import { TBC } from "./cell";
 import { codeFor, pointsInTableOrder } from "./codes";
+import { listOf } from "./text";
 import type {
   HowToMeasureSection,
   LengthValue,
@@ -56,14 +57,37 @@ function toleranceOf(typed: Tolerance | undefined, rows: readonly (ResolutionRow
   return TBC;
 }
 
-const notesOf = (rows: readonly (ResolutionRow | undefined)[]): string[] => {
-  const notes = rows.flatMap((row) => {
-    if (!row) return [];
-    const text = row.status === "missing" ? row.message : row.note;
-    return text ? [text] : [];
+/** Stands for the size of the column in a note, while notes for several sizes are compared. */
+const SIZE_SLOT = "\u0000";
+
+const escaped = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/** The note with the words "size X" for its own column's size replaced by a slot, or as it is. */
+const sizeTemplate = (text: string, size: string | null): string =>
+  size === null ? text : text.replace(new RegExp(`\\bsize ${escaped(size)}(?![\\p{L}\\p{N}])`, "gu"), SIZE_SLOT);
+
+/** One note for a group of sizes that were told the same thing, with the sizes named together. */
+function sayOnce(template: string, sizes: readonly string[], first: string): string {
+  if (sizes.length < 2 || !template.includes(SIZE_SLOT)) return first;
+  return template.replaceAll(SIZE_SLOT, `sizes ${listOf(sizes)}`).replaceAll("this size", "these sizes");
+}
+
+/**
+ * The notes of a row, each said once. Notes that differ only in the size of their column, such as
+ * "it cannot be worked out for size XS" and the same for size S, are said once for all those sizes.
+ */
+function notesOf(rows: readonly (ResolutionRow | undefined)[], columns: readonly SizeColumn[]): string[] {
+  const groups = new Map<string, { sizes: string[]; first: string }>();
+  rows.forEach((row, index) => {
+    const text = !row ? null : row.status === "missing" ? row.message : row.note;
+    if (!text) return;
+    const size = columns[index]?.size ?? null;
+    const template = sizeTemplate(text, size);
+    const group = groups.get(template) ?? { sizes: [], first: text };
+    groups.set(template, { first: group.first, sizes: size === null ? group.sizes : [...group.sizes, size] });
   });
-  return [...new Set(notes)];
-};
+  return [...new Set([...groups].map(([template, group]) => sayOnce(template, group.sizes, group.first)))];
+}
 
 const chartSourceOf = (resolutions: readonly Resolution[]): ChartProvenance =>
   resolutions.flatMap((resolution) => (resolution.status === "resolved" ? [resolution.chartProvenance] : []))[0] ??
@@ -88,7 +112,7 @@ function rowFor(
     label: point.label,
     tolerance: toleranceOf(typed, columns.some((column) => column.isBase) ? baseFirst : found, chartSourceOf(resolutions)),
     values: found.map(lengthOf),
-    notes: notesOf(found),
+    notes: notesOf(found, columns),
   };
 }
 
