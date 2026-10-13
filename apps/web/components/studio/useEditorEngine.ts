@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useReducer, useRef, type Dispatch } from "react";
 import {
   applyDesignActionAction,
+  applyDesignActionsAction,
   readVersionAction,
   restoreVersionAction,
   undoDesignAction,
@@ -36,6 +37,8 @@ const send = (projectId: string, change: InFlight) => {
   switch (request.kind) {
     case "action":
       return applyDesignActionAction({ projectId, expectedVersion, action: request.action });
+    case "actions":
+      return applyDesignActionsAction({ projectId, expectedVersion, actions: request.actions });
     case "restore":
       return restoreVersionAction({ projectId, expectedVersion, version: request.version });
     case "undo":

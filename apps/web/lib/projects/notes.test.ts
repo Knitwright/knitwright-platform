@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { specActionSchema, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
-import { NOTE_MAX_LENGTH, clipNote, describeAction, describeProposal, restoreNote } from "./notes";
+import { NOTE_MAX_LENGTH, clipNote, describeAction, describeActions, describeProposal, restoreNote } from "./notes";
 
 const jersey = (): GarmentSpec => start("team-jersey", "men");
 
@@ -91,6 +91,14 @@ describe("describeAction", () => {
     expect(describeAction(jersey(), action({ type: "remove-tolerance", pointId: "body-length" }))).toBe(
       "Your tolerance for Body length was removed.",
     );
+  });
+
+  it("describes changes saved together: one as itself, several by count and the first", () => {
+    const fit = action({ type: "set-option", optionId: "fit", choiceId: "slim", provenance: "user-edited" });
+    const length = action({ type: "remove-measurement", pointId: "body-length" });
+    expect(describeActions(jersey(), [])).toBe("Nothing changed.");
+    expect(describeActions(jersey(), [fit])).toBe(describeAction(jersey(), fit));
+    expect(describeActions(jersey(), [fit, length])).toBe(`2 changes saved together. The first: ${describeAction(jersey(), fit)}`);
   });
 
   it("counts the sizes instead of listing a very long run", () => {

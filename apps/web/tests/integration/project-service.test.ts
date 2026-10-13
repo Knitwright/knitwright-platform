@@ -13,6 +13,7 @@ import {
   renameProject,
   restoreVersion,
   saveAction,
+  saveActions,
   saveTrustedAction,
   saveTrustedActions,
   loadCurrentDesign,
@@ -305,6 +306,46 @@ describe("saving the assistant's changes", () => {
     expect((await failureOf(batch(id, 1, [{ type: "set-option", optionId: "fit", choiceId: "relaxed", provenance: "ai-suggested" }]))).code).toBe("conflict");
     expect((await failureOf(loadCurrentDesign(bob.client, { brandId: bobBrand, projectId: id, expectedVersion: 2 }))).code).toBe("not_found");
     expect((await loadCurrentDesign(alice.client, { brandId: aliceBrand, projectId: id, expectedVersion: 2 })).options.fit.choiceId).toBe("slim");
+  });
+});
+
+describe("saving several of a person's changes together", () => {
+  const together = (id: string, expectedVersion: number, actions: unknown[]) =>
+    saveActions(adminClient(), alice.client, { brandId: aliceBrand, userId: alice.userId, projectId: id, expectedVersion, actions });
+
+  it("stores them as one version, each as the person's own whatever source was claimed", async () => {
+    const id = await make();
+    const outcome = saved(
+      await together(id, 1, [
+        { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "ai-suggested" },
+        { type: "set-tolerance", entry: { pointId: "chest-width", value: 100, provenance: "suggested-chart" } },
+      ]),
+    );
+    expect(outcome.version).toBe(2);
+    expect(outcome.spec.options.fit.provenance).toBe("user-edited");
+    expect(outcome.spec.tolerances).toEqual([{ pointId: "chest-width", value: 100, provenance: "user-edited" }]);
+    expect((await listVersions(alice.client, aliceBrand, id)).versions[0].note).toBe(
+      "2 changes saved together. The first: Fit changed to Slim.",
+    );
+  });
+
+  it("stores nothing when one change is refused or not understood", async () => {
+    const id = await make();
+    const refused = await together(id, 1, [setOption("fit", "slim"), setOption("collar", "no-such-collar")]);
+    expect(refused.ok).toBe(false);
+    expect(await together(id, 1, [setOption("fit", "slim"), { type: "no-such-change" }])).toEqual({
+      ok: false,
+      reason: expect.any(String),
+    });
+    expect(await currentVersion(alice.client, aliceBrand, id)).toBe(1);
+  });
+
+  it("stores no version when nothing changed, and refuses a batch made against an older version", async () => {
+    const id = await make();
+    const same = saved(await together(id, 1, [setOption("fit", "regular")]));
+    expect(same.version).toBe(1);
+    saved(await change(id, 1, setOption("fit", "slim")));
+    expect((await failureOf(together(id, 1, [setOption("fit", "relaxed")]))).code).toBe("conflict");
   });
 });
 

@@ -116,6 +116,17 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
   }
 };
 
+/**
+ * The note for several changes a person saved as one version. One change reads as it always
+ * does. More say how many there were and name the first, since a long list does not fit.
+ */
+export const describeActions = (spec: GarmentSpec, actions: readonly SpecAction[]): string => {
+  const [first, ...rest] = actions;
+  if (!first) return "Nothing changed.";
+  const one = describeAction(spec, first);
+  return rest.length === 0 ? one : clipNote(`${actions.length} changes saved together. The first: ${one}`);
+};
+
 /** The note for a version that was made by going back to an older one. */
 /** Who proposed a change stored as one version: the assistant from a message, or a picture reading. */
 export type ProposalSource = "assistant" | "picture";

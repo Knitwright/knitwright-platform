@@ -49,6 +49,16 @@ export const applyDesignActionSchema = z.object({
   action: z.unknown(),
 });
 
+/** The most changes one batch may hold: enough to confirm every suggestion in a large section. */
+export const MAX_BATCH_ACTIONS = 200;
+
+/** Several changes saved as one version. Each is checked by the garment library, as one change is. */
+export const applyDesignActionsSchema = z.object({
+  projectId,
+  expectedVersion,
+  actions: z.array(z.unknown()).min(1).max(MAX_BATCH_ACTIONS),
+});
+
 export const restoreVersionSchema = z.object({
   projectId,
   expectedVersion,

@@ -20,6 +20,8 @@ import type { Dropped, SpecAction } from "@/lib/garment";
 
 export type Request =
   | Readonly<{ kind: "action"; action: SpecAction }>
+  /** Several changes saved as one version, so one undo takes them all back. */
+  | Readonly<{ kind: "actions"; actions: readonly SpecAction[] }>
   | Readonly<{ kind: "restore"; version: number }>
   | Readonly<{ kind: "undo" }>;
 
@@ -119,7 +121,7 @@ const seenVersion = (state: EditorState, version: number): EditorState =>
 
 const enqueue = (state: EditorState, event: Extract<EditorEvent, { type: "enqueue" }>): EditorState => {
   if (state.conflict !== null) return state;
-  const replaces = event.request.kind === "action";
+  const replaces = event.request.kind === "action" || event.request.kind === "actions";
   const kept = replaces ? state.queue.filter((change) => change.key !== event.key) : state.queue;
   const change: Change = { id: state.nextId, key: event.key, request: event.request, focus: event.focus };
   return { ...state, nextId: state.nextId + 1, queue: [...kept, change] };
