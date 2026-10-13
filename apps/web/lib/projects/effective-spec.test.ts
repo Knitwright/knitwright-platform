@@ -52,4 +52,14 @@ describe("pendingActions", () => {
     expect(pendingActions(state)).toEqual([a, b]);
     expect(pendingActions(initialEditorState(1))).toEqual([]);
   });
+
+  it("lists every change of a batch in its order, and a newer batch for the same control replaces the older", () => {
+    const spec = start("crew-tee");
+    const a = colour(spec, "body-front", "#111111");
+    const b = colour(spec, "body-back", "#222222");
+    let state = initialEditorState(1);
+    state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a] }, focus: true });
+    state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a, b] }, focus: true });
+    expect(pendingActions(state)).toEqual([a, b]);
+  });
 });

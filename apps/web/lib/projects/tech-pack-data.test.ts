@@ -122,6 +122,16 @@ describe("buildTechPackPage", () => {
     expect(data.forms.seams[0]?.seamId).toBe("shoulder-seam");
     expect(data.forms.labelling).toHaveLength(5);
     expect(data.forms.panels.map((row) => row.panelId)).toContain("collar");
+    expect(data.forms.measurements.map((row) => row.pointId)).toContain("chest-width");
+    expect(data.forms.colourways[0]?.panels.map((panel) => panel.panelId)).toContain("collar");
+    expect(data.forms.cover).toMatchObject({ sizesText: "", baseSize: "", sizesSet: false });
+    expect(data.spec).toEqual(start("polo"));
+  });
+
+  it("lists what can be confirmed, and nothing the person typed", () => {
+    const data = page(start("polo"));
+    expect(data.confirmables.some((entry) => entry.sectionId === "construction")).toBe(true);
+    expect(data.confirmables.every((entry) => entry.source !== "Typed in by you")).toBe(true);
   });
 
   it("changes when a measurement changes, from one version of the design", () => {

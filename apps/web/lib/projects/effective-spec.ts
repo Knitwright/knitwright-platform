@@ -7,7 +7,10 @@ import type { EditorState } from "./editor-state";
  */
 export function pendingActions(state: Pick<EditorState, "inFlight" | "queue">): readonly SpecAction[] {
   const requests = [state.inFlight?.request, ...state.queue.map((change) => change.request)];
-  return requests.flatMap((request) => (request?.kind === "action" ? [request.action] : []));
+  return requests.flatMap((request) => {
+    if (request?.kind === "action") return [request.action];
+    return request?.kind === "actions" ? request.actions : [];
+  });
 }
 
 /**

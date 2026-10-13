@@ -8,6 +8,7 @@ import { nonEmpty } from "./non-empty";
 import { reconcile, retype } from "./reconcile";
 import { getType } from "./registry";
 import { validateSpec, type GarmentSpec } from "./spec";
+import { removeSizeMeasurement, removeTolerance, setSizeMeasurement, setSizing, setTolerance } from "./size-values";
 import { removeComponent, removeConstruction, setComponent, setConstruction, setLabelling } from "./tech-changes";
 
 export type ActionResult =
@@ -125,7 +126,15 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
     case "remove-measurement":
       return removeMeasurement(spec, action.pointId);
     case "set-sizing":
-      return accept({ ...spec, sizing: action.sizing });
+      return setSizing(spec, action.sizing);
+    case "set-size-measurement":
+      return setSizeMeasurement(spec, action.entry);
+    case "remove-size-measurement":
+      return removeSizeMeasurement(spec, action.pointId, action.size);
+    case "set-tolerance":
+      return setTolerance(spec, action.entry);
+    case "remove-tolerance":
+      return removeTolerance(spec, action.pointId);
     case "add-fabric":
       return fabricList(spec, { kind: "add", item: action.fabric });
     case "update-fabric":

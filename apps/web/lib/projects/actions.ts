@@ -18,6 +18,7 @@ import { nowSeconds, proposalSigningKey } from "./assistant";
 import { applySignedProposal } from "./assistant-request";
 import {
   applyDesignActionSchema,
+  applyDesignActionsSchema,
   applyProposalSchema,
   createProjectSchema,
   designIdSchema,
@@ -31,6 +32,7 @@ import {
   renameProject,
   restoreVersion,
   saveAction,
+  saveActions,
   saveTrustedActions,
   undoDesign,
   type SaveOutcome,
@@ -107,6 +109,23 @@ export const applyDesignActionAction = defineAction({
   schema: applyDesignActionSchema,
   handler: async ({ input, session }) => {
     const outcome = await saveAction(adminClient(), await sessionClient(), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      ...input,
+    });
+    const answer = savedOrRefused(outcome);
+    refreshDesign(input.projectId);
+    return answer;
+  },
+});
+
+/** Applies several changes to a design, all or none, and stores them as one version. */
+export const applyDesignActionsAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.editDesign,
+  schema: applyDesignActionsSchema,
+  handler: async ({ input, session }) => {
+    const outcome = await saveActions(adminClient(), await sessionClient(), {
       brandId: session.brand.id,
       userId: session.userId,
       ...input,

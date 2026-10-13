@@ -46,6 +46,8 @@ export const stampUserEdited = (raw: unknown): unknown => {
     case "set-component":
       return { ...action, component: stamped(action.component) };
     case "set-construction":
+    case "set-size-measurement":
+    case "set-tolerance":
       return { ...action, entry: stamped(action.entry) };
     case "change-fabric":
       return stamped(action);

@@ -27,12 +27,21 @@ export const componentSchema = z
     quantity: freeText(QUANTITY_MAX_LENGTH),
     /** True when the brand says this part is not used. It then has no name, details or quantity. */
     notUsed: z.boolean().optional(),
+    /**
+     * True when the brand confirms a part Knitwright proposed is used, before it has any details.
+     * The proposal is then theirs, and its name, details and quantity stay to be confirmed.
+     */
+    used: z.literal(true).optional(),
     provenance: provenanceSchema,
   })
   .readonly()
-  .refine((entry) => entry.notUsed === true || entry.name !== "" || entry.details !== "" || entry.quantity !== "", {
-    message: "Enter a name, details or a quantity.",
-    path: ["name"],
+  .refine(
+    (entry) => entry.notUsed === true || entry.used === true || entry.name !== "" || entry.details !== "" || entry.quantity !== "",
+    { message: "Enter a name, details or a quantity.", path: ["name"] },
+  )
+  .refine((entry) => !(entry.notUsed === true && entry.used === true), {
+    message: "A part cannot be both used and not used.",
+    path: ["used"],
   })
   .refine((entry) => entry.notUsed !== true || (entry.name === "" && entry.details === "" && entry.quantity === ""), {
     message: "A part that is not used has no details.",

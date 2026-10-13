@@ -52,6 +52,11 @@ export function ComponentForms({ rows }: Readonly<{ rows: readonly ComponentRow[
   );
 }
 
+// The first choice leaves the class as Knitwright's proposal. It must not read as a choice made:
+// picking it confirms nothing. The confirm button above the forms does that.
+const proposalChoice = (name: string): string => `Keep Knitwright's proposal for now, chosen by nobody: ${name}`;
+const PROPOSAL_HINT = "To make the proposal your own, pick the same class from the list, or use Confirm above.";
+
 /** For each seam: change the kind of seam or stitch the registry proposes, and enter the stitch density. */
 export function SeamForms({ rows }: Readonly<{ rows: readonly SeamRow[] }>) {
   return (
@@ -68,13 +73,15 @@ export function SeamForms({ rows }: Readonly<{ rows: readonly SeamRow[] }>) {
                 name: "seamClass",
                 label: `Seam class of ${row.label.toLowerCase()}`,
                 value: row.values.seamClass,
-                choices: [{ id: "", label: `Use the proposal: ${row.proposal.seamClass}` }, ...SEAM_CLASS_CHOICES],
+                choices: [{ id: "", label: proposalChoice(row.proposal.seamClass) }, ...SEAM_CLASS_CHOICES],
+                hint: PROPOSAL_HINT,
               },
               {
                 name: "stitchClass",
                 label: `Stitch class of ${row.label.toLowerCase()}`,
                 value: row.values.stitchClass,
-                choices: [{ id: "", label: `Use the proposal: ${row.proposal.stitchClass}` }, ...STITCH_CLASS_CHOICES],
+                choices: [{ id: "", label: proposalChoice(row.proposal.stitchClass) }, ...STITCH_CLASS_CHOICES],
+                hint: PROPOSAL_HINT,
               },
               {
                 name: "stitchDensity",

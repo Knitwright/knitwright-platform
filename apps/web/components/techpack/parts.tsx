@@ -60,6 +60,20 @@ export function DocSection({ id, title, note, children }: DocSectionProps) {
   );
 }
 
+/**
+ * The forms of a section, closed until asked for, so the document reads first. A link from the
+ * confirm list opens it (see FormOpener). Nothing is shown when the section has no forms.
+ */
+export function FillIn({ summary, children }: Readonly<{ summary: string; children: ReactNode }>) {
+  if (!children) return null;
+  return (
+    <details className="rounded-xl border border-hairline p-4">
+      <summary className="cursor-pointer text-[15px] font-medium text-ink">{summary}</summary>
+      <div className="mt-4">{children}</div>
+    </details>
+  );
+}
+
 type TableProps = Readonly<{ caption: string; heads: readonly string[]; children: ReactNode }>;
 
 /** A table with a hidden caption and column heads. It scrolls sideways when it is wide. */

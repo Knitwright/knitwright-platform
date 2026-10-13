@@ -181,6 +181,15 @@ describe("browserActionSchema, tech pack fields", () => {
     expect(parse({ type: "set-labelling", field: "bag", text: "Poly bag" })).toMatchObject({ provenance: "user-edited" });
   });
 
+  it.each(CLAIMS)("stamps user-edited on a value for one size and on a tolerance that claim %s", (claim) => {
+    expect(
+      parse({ type: "set-size-measurement", entry: { pointId: "chest-width", size: "L", value: 5500, provenance: claim } }),
+    ).toMatchObject({ entry: { provenance: "user-edited" } });
+    expect(parse({ type: "set-tolerance", entry: { pointId: "chest-width", value: 100, provenance: claim } })).toMatchObject({
+      entry: { provenance: "user-edited" },
+    });
+  });
+
   it("leaves the removal of a component or a seam entry as it is", () => {
     expect(parse({ type: "remove-component", id: "buttons" })).toEqual({ type: "remove-component", id: "buttons" });
     expect(parse({ type: "remove-construction", seamId: "body-hem" })).toEqual({ type: "remove-construction", seamId: "body-hem" });
