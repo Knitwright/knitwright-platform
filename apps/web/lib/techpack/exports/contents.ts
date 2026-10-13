@@ -1,5 +1,4 @@
-import { PROVENANCE_LABELS } from "@/lib/garment";
-import { PROPOSAL_WORDS } from "../text";
+import { sourceLabel } from "../cell";
 import type { Cell, SectionId } from "../types";
 import { EXPORT_VIEWS } from "./formats";
 
@@ -27,9 +26,9 @@ export const SVG_VIEWS = EXPORT_VIEWS;
 
 /**
  * The source of a cell in words, or null for a cell that is to be confirmed. A proposal says it
- * is a proposal, as the screen does, and never reads as a specification.
+ * is a proposal, as the screen does, and never reads as a specification. An option nobody chose
+ * is the standard choice.
  */
 export function sourceWords(cell: Cell): string | null {
-  if (cell.status !== "set") return null;
-  return "proposal" in cell && cell.proposal === true ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance];
+  return cell.status === "set" ? sourceLabel(cell) : null;
 }

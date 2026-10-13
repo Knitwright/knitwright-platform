@@ -31,6 +31,14 @@ describe("cellView", () => {
     expect(cellView({ status: "set", value: "Polo collar", provenance: "derived" }).tone).toBe("derived");
   });
 
+  it("says an option nobody chose is the standard choice, not a value worked out from others", () => {
+    expect(cellView({ status: "set", value: "Polo collar", provenance: "derived", standard: true } as never)).toEqual({
+      text: "Polo collar",
+      source: "Standard choice",
+      tone: "derived",
+    });
+  });
+
   it("adds a unit after a value but never after to be confirmed", () => {
     expect(cellView({ status: "set", value: "52.0", provenance: "user-edited" }, "cm").text).toBe("52.0 cm");
     expect(cellView(TBC, "cm").text).toBe("To be confirmed");

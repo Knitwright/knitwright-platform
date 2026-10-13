@@ -1,11 +1,10 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { PROVENANCE_LABELS, applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
-import { TO_BE_CONFIRMED } from "../../cell";
+import { TO_BE_CONFIRMED, sourceLabel, type SetCell } from "../../cell";
 import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../../fixtures/designs";
-import { PROPOSAL_WORDS } from "../../text";
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
 import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
@@ -34,7 +33,7 @@ const expectedText = (text: string): string | null => {
 };
 
 const sourceOf = (cell: Record<string, unknown>): string | null =>
-  cell.status !== "set" ? null : cell.proposal === true ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance as keyof typeof PROVENANCE_LABELS];
+  cell.status !== "set" ? null : sourceLabel(cell as unknown as SetCell);
 
 const valueOf = (cell: Record<string, unknown>): Value => {
   if (cell.status !== "set") return TO_BE_CONFIRMED;

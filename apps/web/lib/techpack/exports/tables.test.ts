@@ -4,6 +4,7 @@ import { PROVENANCE_LABELS } from "@/lib/garment";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "../fixtures/designs";
 import { SECTION_IDS, SECTION_TITLES, type TechPack } from "../types";
 import { PROPOSAL_WORDS } from "../text";
+import { STANDARD_CHOICE } from "../cell";
 import { allCells } from "../walk";
 import { EXCEL_SHEETS, sourceWords } from "./contents";
 import { exportSections, type Datum, type ExportSection } from "./tables";
@@ -93,6 +94,8 @@ describe("the tables every format is made from", () => {
     expect(sourceWords({ status: "set", value: "x", provenance: "user-edited" })).toBe(PROVENANCE_LABELS["user-edited"]);
     expect(sourceWords({ status: "set", value: "x", provenance: "derived", proposal: true } as never)).toBe(PROPOSAL_WORDS);
     expect(sourceWords({ status: "to-be-confirmed" })).toBeNull();
+    expect(sourceWords({ status: "set", value: "Polo collar", provenance: "derived", standard: true } as never)).toBe(STANDARD_CHOICE);
+    expect(STANDARD_CHOICE).toBe("Standard choice");
   });
 
   it("refuses a number whose unit differs from the column, so the header can never say the wrong unit", () => {

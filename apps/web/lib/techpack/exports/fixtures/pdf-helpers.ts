@@ -1,7 +1,7 @@
 /** Test support shared by the PDF tests. Nothing here is used by the app. */
-import { PROVENANCE_LABELS, applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { sourceLabel, type SetCell } from "../../cell";
 import { fullDesign } from "../../fixtures/designs";
-import { PROPOSAL_WORDS } from "../../text";
 import type { ImageMap } from "@/lib/flat/images";
 import type { TechPack } from "../../types";
 import { buildPdf, type PdfOptions } from "../pdf/document";
@@ -18,7 +18,7 @@ export const printed = (cell: Record<string, unknown>): string => {
 
 /** The words for where a set cell came from. */
 export const sourceOf = (cell: Record<string, unknown>): string =>
-  cell.proposal === true ? PROPOSAL_WORDS : PROVENANCE_LABELS[cell.provenance as keyof typeof PROVENANCE_LABELS];
+  sourceLabel(cell as unknown as SetCell);
 
 interface Built {
   readonly bytes: Uint8Array;
