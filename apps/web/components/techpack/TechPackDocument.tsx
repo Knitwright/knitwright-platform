@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Notice } from "@/components/ui/Notice";
 import type { TechPackPageData } from "@/lib/projects/tech-pack-data";
-import { sectionHasForms, sectionLink, summaryTone } from "@/lib/projects/tech-pack-view";
+import { SECTION_GUIDANCE, fieldFor, sectionHasForms, sectionLink, summaryTone } from "@/lib/projects/tech-pack-view";
+import type { ConfirmItem, ConfirmSection } from "@/lib/techpack";
 import { ComponentsView, ConstructionView } from "./ComponentViews";
+import { ConfirmPanel } from "./ConfirmPanel";
 import { CoverView, FlatsView } from "./CoverAndFlats";
 import { ComponentForms, LabellingForms, SeamForms } from "./DetailForms";
 import { FabricForms } from "./FabricForms";
@@ -10,10 +12,57 @@ import { FormOpener } from "./FormOpener";
 import { HowToMeasureView, MeasurementsView } from "./MeasurementViews";
 import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView } from "./OtherViews";
 import { TechPackDownloads } from "./TechPackDownloads";
+import { ColourwayForms, CoverForms, MeasurementForms } from "./ValueForms";
+
+/** One thing to fill in, as a link that opens the form and moves focus to its field. */
+function ConfirmItemLink({ item }: Readonly<{ item: ConfirmItem }>) {
+  const field = fieldFor(item);
+  const text = item.detail ? `${item.label}: ${item.detail}` : item.label;
+  if (!field) return <span>{`${text} (set this in the design editor)`}</span>;
+  return (
+    <a
+      href={sectionLink(item.sectionId)}
+      className="underline underline-offset-4"
+      data-opens-forms="true"
+      data-focus-form={field.form}
+      {...(field.field ? { "data-focus-field": field.field } : {})}
+    >
+      {text}
+    </a>
+  );
+}
+
+/** A section of the confirm list: what is needed and why, then each thing as a link to its field. */
+function ConfirmSectionEntry({ section }: Readonly<{ section: ConfirmSection }>) {
+  return (
+    <li>
+      <a
+        href={sectionLink(section.id)}
+        className="font-medium underline underline-offset-4"
+        {...(sectionHasForms(section.id) ? { "data-opens-forms": "true" } : {})}
+      >
+        {section.title}
+      </a>
+      : {section.items.length}
+      {SECTION_GUIDANCE[section.id] ? <p className="mt-0.5 text-sm">{SECTION_GUIDANCE[section.id]}</p> : null}
+      <details className="mt-1">
+        <summary className="cursor-pointer text-sm">{`Show the ${section.items.length === 1 ? "thing" : `${section.items.length} things`} to fill in`}</summary>
+        <ul className="mt-1 flex list-disc flex-col gap-0.5 pl-5 text-sm">
+          {section.items.map((item) => (
+            <li key={`${item.target}|${item.label}`}>
+              <ConfirmItemLink item={item} />
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
+  );
+}
 
 /**
- * What is still to be confirmed, as a count at the top with a link to each section that has
- * something in it. Markup only: the count and every name come from the completeness report.
+ * What is still to be confirmed, as a count at the top, then each section with one sentence on
+ * what a factory needs from it, and a link to every field. Markup only: the count and every
+ * name come from the completeness report.
  */
 function ConfirmSummary({ data }: Readonly<{ data: TechPackPageData }>) {
   const { report } = data;
@@ -26,21 +75,12 @@ function ConfirmSummary({ data }: Readonly<{ data: TechPackPageData }>) {
         <a href={sectionLink("suggested")} className="underline underline-offset-4">
           {`${report.suggested} ${report.suggested === 1 ? "suggestion" : "suggestions"} and ${report.proposed} ${report.proposed === 1 ? "proposal" : "proposals"} by Knitwright`}
         </a>
-        , not confirmed by anyone.
+        , not confirmed by anyone. Each section shows them with a button to confirm them as your own.
       </p>
       {report.sections.length > 0 ? (
-        <ul className="mt-2 flex flex-col gap-1" data-testid="confirm-list">
+        <ul className="mt-3 flex flex-col gap-3" data-testid="confirm-list">
           {report.sections.map((section) => (
-            <li key={section.id}>
-              <a
-                href={sectionLink(section.id)}
-                className="underline underline-offset-4"
-                {...(sectionHasForms(section.id) ? { "data-opens-forms": "true" } : {})}
-              >
-                {section.title}
-              </a>
-              : {section.items.length}
-            </li>
+            <ConfirmSectionEntry key={section.id} section={section} />
           ))}
         </ul>
       ) : null}
@@ -72,7 +112,8 @@ type DocumentProps = Readonly<{
 
 /** The tech pack on screen: real headings, tables and lists, with the forms to fill in what is missing. */
 export function TechPackDocument({ data, colourwayId }: DocumentProps) {
-  const { pack, forms } = data;
+  const { pack, forms, confirmables } = data;
+  const confirm = (sectionId: Parameters<typeof ConfirmPanel>[0]["sectionId"]) => <ConfirmPanel sectionId={sectionId} items={confirmables} />;
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -93,12 +134,13 @@ export function TechPackDocument({ data, colourwayId }: DocumentProps) {
       <ConfirmSummary data={data} />
       <Contents data={data} />
       <TechPackDownloads projectId={data.projectId} version={data.version} colourwayId={colourwayId} />
-      <CoverView cover={pack.cover} />
+      <CoverView cover={pack.cover} forms={<CoverForms projectId={data.projectId} cover={forms.cover} />} confirm={confirm("cover")} />
       <FlatsView flats={pack.flats} pictures={data.flats} picturesNote={data.picturesNote} />
-      <MeasurementsView table={pack.measurements} />
+      <MeasurementsView table={pack.measurements} forms={<MeasurementForms rows={forms.measurements} />} confirm={confirm("measurements")} />
       <HowToMeasureView section={pack.howToMeasure} />
       <ComponentsView
         section={pack.components}
+        confirm={confirm("components")}
         forms={
           <div className="flex flex-col gap-6">
             <FabricForms fabrics={forms.fabrics} panels={forms.panels} />
@@ -107,10 +149,15 @@ export function TechPackDocument({ data, colourwayId }: DocumentProps) {
           </div>
         }
       />
-      <ConstructionView section={pack.construction} forms={<SeamForms rows={forms.seams} />} />
-      <ColourwaysView section={pack.colourways} pictures={data.colourwayFlats} />
-      <ArtworkView section={pack.artwork} />
-      <LabellingView section={pack.labelling} forms={<LabellingForms rows={forms.labelling} />} />
+      <ConstructionView section={pack.construction} forms={<SeamForms rows={forms.seams} />} confirm={confirm("construction")} />
+      <ColourwaysView
+        section={pack.colourways}
+        pictures={data.colourwayFlats}
+        forms={<ColourwayForms rows={forms.colourways} />}
+        confirm={confirm("colourways")}
+      />
+      <ArtworkView section={pack.artwork} confirm={confirm("artwork")} />
+      <LabellingView section={pack.labelling} forms={<LabellingForms rows={forms.labelling} />} confirm={confirm("labelling")} />
       <SuggestedView section={pack.suggested} />
       <SignOffView section={pack.signOff} />
     </div>

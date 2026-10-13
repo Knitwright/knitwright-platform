@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
 import type { FlatPicture } from "@/lib/projects/tech-pack-data";
 import type { CoverSection, FlatsSection } from "@/lib/techpack";
-import { Cellular, CellText, DocSection, DocTable, RowHead } from "./parts";
+import { Cellular, CellText, DocSection, DocTable, FillIn, RowHead } from "./parts";
 
-type CoverProps = Readonly<{ cover: CoverSection }>;
+type CoverProps = Readonly<{ cover: CoverSection; forms?: ReactNode; confirm?: ReactNode }>;
 
-export function CoverView({ cover }: CoverProps) {
+export function CoverView({ cover, forms, confirm }: CoverProps) {
   const facts: readonly (readonly [string, ReactNode])[] = [
     ["Style number", <CellText key="s" cell={cover.styleNumber} />],
     ["Season", <CellText key="e" cell={cover.season} />],
@@ -36,6 +36,7 @@ export function CoverView({ cover }: CoverProps) {
           <dd className="mt-0.5 text-[15px] text-ink">{cover.date}</dd>
         </div>
       </dl>
+      <FillIn summary="Fill in the style number, season and sizes">{forms}</FillIn>
       <div>
         <h3 className="text-sm font-semibold text-ink">Design options</h3>
         <DocTable caption="Options chosen for this design" heads={["Option", "Choice"]}>
@@ -49,6 +50,7 @@ export function CoverView({ cover }: CoverProps) {
           ))}
         </DocTable>
       </div>
+      {confirm}
       <div>
         <h3 className="text-sm font-semibold text-ink">Revision history</h3>
         {cover.revisions.length === 0 ? (

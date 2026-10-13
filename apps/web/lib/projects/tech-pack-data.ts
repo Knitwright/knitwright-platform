@@ -1,4 +1,5 @@
 import type { ImageMap } from "@/lib/flat/images";
+import type { GarmentSpec } from "@/lib/garment";
 import { renderSvg, svgDataUri } from "@/lib/flat/render-svg";
 import type { ChartSet } from "@/lib/sizing";
 import {
@@ -25,6 +26,9 @@ import {
   type PanelFabricRow,
   type SeamRow,
 } from "./tech-pack-forms";
+import { sizesText } from "./sizing-form";
+import { confirmables, type Confirmable } from "./tech-pack-confirm";
+import { colourwayFormRows, measurementFormRows, type ColourwayFormRow, type MeasurementFormRow } from "./tech-pack-value-forms";
 
 export interface FlatPicture {
   readonly view: "front" | "back";
@@ -58,12 +62,30 @@ export interface TechPackPageData {
   /** Says the design changed while the page was loading, or null. */
   readonly staleNote: string | null;
   readonly forms: Readonly<{
+    cover: CoverFormData;
+    measurements: readonly MeasurementFormRow[];
     fabrics: readonly FabricFormRow[];
     panels: readonly PanelFabricRow[];
     components: readonly ComponentRow[];
     seams: readonly SeamRow[];
+    colourways: readonly ColourwayFormRow[];
     labelling: readonly LabellingFormRow[];
   }>;
+  /** Everything suggested or proposed and not yet confirmed, each with what confirms it. */
+  readonly confirmables: readonly Confirmable[];
+  /** The design the page was made from. The forms work out changes from it and the changes waiting. */
+  readonly spec: GarmentSpec;
+}
+
+/** What the cover's forms hold: the design's details, and its sizes. */
+export interface CoverFormData {
+  readonly name: string;
+  readonly styleNumber: string;
+  readonly season: string;
+  /** The sizes as typed in the editor, such as "S, M, L". Empty when the design has none of its own. */
+  readonly sizesText: string;
+  readonly baseSize: string;
+  readonly sizesSet: boolean;
 }
 
 export interface TechPackPageInput {
@@ -161,11 +183,23 @@ export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
     picturesNote: input.picturesNote ?? null,
     staleNote: historyIsNewer(project, history) ? STALE_SENTENCE : null,
     forms: {
+      cover: {
+        name: project.name,
+        styleNumber: project.styleNumber,
+        season: project.season,
+        sizesText: sizesText(project.spec.sizing),
+        baseSize: project.spec.sizing?.baseSize ?? "",
+        sizesSet: project.spec.sizing !== null,
+      },
+      measurements: measurementFormRows(project.spec, pack),
+      colourways: colourwayFormRows(project.spec),
       fabrics: fabricRows(project.spec),
       panels: panelFabricRows(project.spec),
       components: componentRows(project.spec),
       seams: seamRows(project.spec),
       labelling: labellingRows(project.spec),
     },
+    confirmables: confirmables(project.spec, pack),
+    spec: project.spec,
   };
 }

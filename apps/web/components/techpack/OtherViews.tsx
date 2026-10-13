@@ -10,7 +10,7 @@ import type {
   SignOffSection,
   SuggestedSection,
 } from "@/lib/techpack";
-import { Cellular, CellText, DocSection, DocTable, LengthText, RowHead } from "./parts";
+import { Cellular, CellText, DocSection, DocTable, FillIn, LengthText, RowHead } from "./parts";
 
 const SWATCH = /^#[0-9a-f]{6}$/;
 
@@ -35,9 +35,14 @@ function ColourwayDrawing({ picture }: Readonly<{ picture: ColourwayPicture | un
   );
 }
 
-type ColourwaysProps = Readonly<{ section: ColourwaysSection; pictures?: readonly ColourwayPicture[] }>;
+type ColourwaysProps = Readonly<{
+  section: ColourwaysSection;
+  pictures?: readonly ColourwayPicture[];
+  forms?: ReactNode;
+  confirm?: ReactNode;
+}>;
 
-export function ColourwaysView({ section, pictures = [] }: ColourwaysProps) {
+export function ColourwaysView({ section, pictures = [], forms, confirm }: ColourwaysProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <p className="text-sm text-muted">
@@ -71,11 +76,13 @@ export function ColourwaysView({ section, pictures = [] }: ColourwaysProps) {
           </DocTable>
         </div>
       ))}
+      {confirm}
+      <FillIn summary="Fill in the colours">{forms}</FillIn>
     </DocSection>
   );
 }
 
-export function ArtworkView({ section }: Readonly<{ section: ArtworkSection }>) {
+export function ArtworkView({ section, confirm }: Readonly<{ section: ArtworkSection; confirm?: ReactNode }>) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       {section.items.length > 0 ? (
@@ -124,6 +131,7 @@ export function ArtworkView({ section }: Readonly<{ section: ArtworkSection }>) 
         </DocTable>
       ) : null}
       <PlayerMarksTable section={section} />
+      {confirm}
     </DocSection>
   );
 }
@@ -174,9 +182,9 @@ function PlayerMarksTable({ section }: Readonly<{ section: ArtworkSection }>) {
   );
 }
 
-type LabellingProps = Readonly<{ section: LabellingSection; forms: ReactNode }>;
+type LabellingProps = Readonly<{ section: LabellingSection; forms: ReactNode; confirm?: ReactNode }>;
 
-export function LabellingView({ section, forms }: LabellingProps) {
+export function LabellingView({ section, forms, confirm }: LabellingProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <DocTable caption="Labels and packing" heads={["Field", "Entry"]}>
@@ -189,10 +197,8 @@ export function LabellingView({ section, forms }: LabellingProps) {
           </tr>
         ))}
       </DocTable>
-      <details className="rounded-xl border border-hairline p-4">
-        <summary className="cursor-pointer text-[15px] font-medium text-ink">Fill in labels and packing</summary>
-        <div className="mt-4">{forms}</div>
-      </details>
+      {confirm}
+      <FillIn summary="Fill in labels and packing">{forms}</FillIn>
     </DocSection>
   );
 }

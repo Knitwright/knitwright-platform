@@ -144,7 +144,7 @@ describe("completenessReport", () => {
     const targets = Object.fromEntries(report.sections.map((section) => [section.id, section.items.map((item) => item.target)]));
     expect(targets.cover).toEqual(["styleNumber", "season", "baseSize", "sizeRun"]);
     expect(targets.measurements?.[0]).toBe("chest-width");
-    expect(targets.components?.slice(0, 2)).toEqual(["main", "main-thread"]);
+    expect(targets.components?.slice(0, 2)).toEqual(["fabric:main", "main-thread"]);
     expect(targets.construction?.[0]).toBe("shoulder-seam");
     expect(targets.colourways?.[0]).toBe("main:body-front");
     expect(targets.labelling?.[0]).toBe("care");

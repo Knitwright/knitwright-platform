@@ -47,7 +47,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   });
 
   return (
-    <TechPackEdit projectId={data.projectId} version={data.version}>
+    <TechPackEdit projectId={data.projectId} version={data.version} spec={data.spec}>
       <TechPackDocument data={data} colourwayId={colourwayId} />
       {illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
       <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />

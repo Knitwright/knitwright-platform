@@ -1,7 +1,10 @@
+import type { ReactNode } from "react";
 import type { HowToMeasureSection, MeasurementsSection } from "@/lib/techpack";
-import { Cellular, DocSection, DocTable, LengthText, RowHead, ToleranceText } from "./parts";
+import { Cellular, DocSection, DocTable, FillIn, LengthText, RowHead, ToleranceText } from "./parts";
 
-export function MeasurementsView({ table }: Readonly<{ table: MeasurementsSection }>) {
+type MeasurementsProps = Readonly<{ table: MeasurementsSection; forms?: ReactNode; confirm?: ReactNode }>;
+
+export function MeasurementsView({ table, forms, confirm }: MeasurementsProps) {
   const heads = [
     "Code",
     "Measurement",
@@ -40,6 +43,8 @@ export function MeasurementsView({ table }: Readonly<{ table: MeasurementsSectio
           </DocTable>
         </div>
       ))}
+      {confirm}
+      <FillIn summary="Fill in the measurements">{forms}</FillIn>
     </DocSection>
   );
 }

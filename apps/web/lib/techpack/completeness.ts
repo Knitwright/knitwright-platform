@@ -12,7 +12,7 @@ export interface ConfirmItem {
   readonly detail: string | null;
   /**
    * Names the thing within its section, so a screen can take the person to the field that
-   * fills it: a cover field, a point of measure, a fabric or component id, a seam id, a
+   * fills it: a cover field, a point of measure, "fabric:" and a fabric id, a component slot id, a seam id, a
    * colourway id and panel id joined by a colon, or a labelling field.
    */
   readonly target: string;
@@ -103,7 +103,7 @@ function componentItems(pack: TechPack): ConfirmItem[] {
       [line.consumption, "consumption"],
     ]);
     const label = `Fabric for ${listOf(line.panels.map((panel) => panel.label))}`;
-    return detail === null ? [] : [item("components", line.fabricId, label, detail)];
+    return detail === null ? [] : [item("components", `fabric:${line.fabricId}`, label, detail)];
   });
   const others = pack.components.others.flatMap((line) => {
     const detail = named([
