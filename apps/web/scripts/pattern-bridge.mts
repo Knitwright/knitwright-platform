@@ -1,8 +1,10 @@
 /**
  * The local pattern bridge. While PATTERN_PROVIDER=claude-bridge, the app queues pattern
  * requests and the owner's own Claude session drafts them through FashionInsta, then hands
- * the files back with this script. Local only: it reads apps/web/.env.local and writes with
- * the server's key.
+ * the files back with this script. It reads apps/web/.env.local and writes with the server's
+ * key. With --remote it works on the hosted project instead, reading NEXT_PUBLIC_SUPABASE_URL
+ * and SUPABASE_SECRET_KEY from apps/web/.env.bridge.local (never committed). On the live site
+ * only OWNER_EMAIL can ask for a pattern (lib/patterns/access.ts).
  *
  *   pnpm --filter web exec tsx scripts/pattern-bridge.mts list
  *   pnpm --filter web exec tsx scripts/pattern-bridge.mts start <job id>
@@ -20,7 +22,8 @@ import {
   openPatternJobs,
 } from "@/lib/patterns/service";
 
-const envFile = resolve(import.meta.dirname, "../.env.local");
+const remote = process.argv.includes("--remote");
+const envFile = resolve(import.meta.dirname, remote ? "../.env.bridge.local" : "../.env.local");
 const env = Object.fromEntries(
   readFileSync(envFile, "utf8")
     .split(/\r?\n/)
@@ -32,11 +35,12 @@ const env = Object.fromEntries(
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.SUPABASE_SECRET_KEY;
 if (!url || !key) throw new Error(`NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY must be in ${envFile}.`);
-if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) throw new Error("The pattern bridge runs against the local database only.");
+const isLocal = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url);
+if (remote === isLocal) throw new Error(remote ? "--remote needs the hosted project's address." : "Without --remote the bridge works on the local database only.");
 
 const admin = createClient(url, key, { auth: { persistSession: false } });
 
-const [command, jobId, ...rest] = process.argv.slice(2);
+const [command, jobId, ...rest] = process.argv.slice(2).filter((argument) => argument !== "--remote");
 
 const flag = (name: string): string | undefined => {
   const at = rest.indexOf(`--${name}`);

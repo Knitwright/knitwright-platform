@@ -260,6 +260,21 @@ describe("parseEnv", () => {
     });
   });
 
+  describe("the pattern bridge", () => {
+    it("is allowed on a deploy only when the owner is named, since it is the owner's test alone", () => {
+      expect(() => parseEnv({ ...valid, UNSUBSCRIBE_SECRET: UNSUBSCRIBE, PATTERN_PROVIDER: "claude-bridge", VERCEL_ENV: "production" })).toThrow(
+        /PATTERN_PROVIDER=claude-bridge needs OWNER_EMAIL/,
+      );
+      expect(
+        parseEnv({ ...valid, UNSUBSCRIBE_SECRET: UNSUBSCRIBE, PATTERN_PROVIDER: "claude-bridge", OWNER_EMAIL: "owner@example.com", VERCEL_ENV: "production" }).PATTERN_PROVIDER,
+      ).toBe("claude-bridge");
+    });
+
+    it("is allowed on this machine without an owner", () => {
+      expect(parseEnv({ ...valid, PATTERN_PROVIDER: "claude-bridge" }).PATTERN_PROVIDER).toBe("claude-bridge");
+    });
+  });
+
   describe("the stand-in model for browser tests", () => {
     it("is off unless switched on", () => {
       expect(parseEnv(valid).AI_PROVIDER_STUB).toBeUndefined();

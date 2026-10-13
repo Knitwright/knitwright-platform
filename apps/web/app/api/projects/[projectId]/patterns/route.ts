@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getEnv } from "@/lib/config/env";
+import { patternsOpenTo } from "@/lib/patterns/access";
 import { patternJobView } from "@/lib/patterns/job-view";
 import { patternRequest } from "@/lib/patterns/request";
 import { createPatternJob, expirePatternJob, latestPatternJob } from "@/lib/patterns/service";
@@ -24,8 +25,9 @@ export const POST = defineRoute({
     body: z.object({ size: z.string().trim().min(1).max(12) }),
   },
   handler: async ({ input, session }) => {
-    const provider = getEnv().PATTERN_PROVIDER;
-    if (!provider) throw new AppError("unavailable", NOT_AVAILABLE);
+    const env = getEnv();
+    const provider = env.PATTERN_PROVIDER;
+    if (!provider || !patternsOpenTo(env, session.email)) throw new AppError("unavailable", NOT_AVAILABLE);
     const client = await sessionClient();
     const brandId = session.brand.id;
     const project = await getProject(client, brandId, input.params.projectId);
@@ -50,10 +52,11 @@ export const GET = defineRoute({
   rateLimit: LIMITS.pollJob,
   schema: { params: z.object({ projectId: z.uuid() }) },
   handler: async ({ input, session }) => {
+    const available = patternsOpenTo(getEnv(), session.email);
     const row = await latestPatternJob(await sessionClient(), session.brand.id, input.params.projectId);
-    if (!row) return { available: Boolean(getEnv().PATTERN_PROVIDER), job: null };
+    if (!row) return { available, job: null };
     const now = new Date();
     await expirePatternJob(adminClient(), row, now);
-    return { available: Boolean(getEnv().PATTERN_PROVIDER), job: patternJobView(row, now) };
+    return { available, job: patternJobView(row, now) };
   },
 });
