@@ -22,4 +22,8 @@ export const PUBLIC_ENTRY_POINTS = [
   // 0026). The share token decides which design; the bot check and limits per address and per link
   // guard it.
   "lib/share/actions.ts#respondToShareAction",
+  // Asking for access while sign-up is by invitation, by someone with no account yet. It can only
+  // add one request per email address, kept by request_access; the bot check and a limit per
+  // address guard it, and nothing it returns says whether the address asked before.
+  "lib/leads/actions.ts#requestAccessAction",
 ] as const;

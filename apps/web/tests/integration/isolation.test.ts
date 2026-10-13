@@ -430,6 +430,25 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, owner: "knitwright" }),
     change: { owner: "knitwright", next_step: "Changed by a member" },
   },
+  // Requests for access while sign-up is by invitation (migration 20261013030000). The server writes
+  // them through request_access; only platform admins read them.
+  access_requests: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      const id = must(
+        await adminClient().rpc("request_access", {
+          p_email: `seeded-${Date.now()}@example.com`,
+          p_name: "Seeded",
+          p_organisation: "",
+          p_organisation_type: "club",
+          p_message: "",
+        }),
+      );
+      return { id };
+    },
+    attempt: () => ({ email: "intruder@example.com", name: "Intruder" }),
+    change: { name: "Changed by a member" },
+  },
   platform_admins: {
     privileges: [],
     seed: async () => {

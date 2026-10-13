@@ -38,10 +38,11 @@ test.describe("accounts", () => {
     await page.getByLabel("New password").fill(PASSWORD);
     await page.getByRole("button", { name: "Save password" }).click();
 
-    // Someone new has no brand yet, so they are asked to name one first.
+    // Someone new has no brand yet, so they are asked who they design for, then for a name in those words.
     await expect(page).toHaveURL(/\/welcome$/);
-    await page.getByLabel("Brand name").fill("Northfield FC");
-    await page.getByRole("button", { name: "Create brand" }).click();
+    await page.getByRole("radio", { name: "Club", exact: true }).check();
+    await page.getByLabel("Club name").fill("Northfield FC");
+    await page.getByRole("button", { name: "Set up your club" }).click();
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("account-email")).toHaveText(email);
     await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
@@ -53,13 +54,29 @@ test.describe("accounts", () => {
     await expect(page).toHaveURL(/\/studio$/);
   });
 
+  test("the landing page leads to sign-up, where someone not invited can ask for access", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("Committee vote")).toBeVisible();
+    await page.getByRole("main").getByRole("link", { name: "Get started" }).click();
+    await expect(page).toHaveURL(/\/sign-up$/);
+
+    const access = page.getByRole("region", { name: "Not invited yet? Ask for access" });
+    await access.getByLabel("Your name").fill("Sam Lee");
+    await access.getByLabel("Email", { exact: true }).fill(uniqueEmail("access"));
+    await access.getByLabel("Club, school or brand").fill("Northfield FC");
+    await access.getByLabel("Type of organisation").selectOption({ label: "Club" });
+    await access.getByRole("button", { name: "Request access" }).click();
+
+    await expect(access.getByText("We have your request.")).toBeVisible();
+  });
+
   test("a new address gets no account while sign-up is closed, and is told the same as anyone", async ({
     page,
   }) => {
     const stranger = uniqueEmail("stranger");
 
     await page.goto("/sign-up");
-    await expect(page.getByText(/not open to new accounts yet/)).toBeVisible();
+    await expect(page.getByText(/Sign-up is by invitation for now/)).toBeVisible();
     await askForLink(page, stranger);
 
     await expect(page.getByText("Check your email.")).toBeVisible();

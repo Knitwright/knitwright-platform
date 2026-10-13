@@ -23,7 +23,8 @@ const KEPT_FIELDS = [
   "wearer",
   "styleNumber",
   "season",
-  // Organisation details and quote requests (decision 0024).
+  // Organisation details and quote requests (decision 0024), and requests for access.
+  "organisation",
   "organisationType",
   "country",
   "region",

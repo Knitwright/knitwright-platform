@@ -50,6 +50,8 @@ export const LIMITS = {
   changeProfile: { name: "change-profile", limit: 20, windowSeconds: 10 * MINUTE },
   // A quote request reaches a person at Knitwright, so a few an hour is plenty (decision 0024).
   requestQuote: { name: "request-quote", limit: 10, windowSeconds: HOUR },
+  // Asking for access while sign-up is by invitation. No account is needed, so the bot check guards it too.
+  requestAccess: { name: "request-access", limit: 5, windowSeconds: HOUR },
   // Platform admins working through the leads page.
   manageLeads: { name: "manage-leads", limit: 120, windowSeconds: 10 * MINUTE },
   // The marketing email box in Settings.
