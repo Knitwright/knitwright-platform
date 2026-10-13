@@ -84,7 +84,9 @@ describe("sheetKind", () => {
     const bytes = zip(spreadsheetParts(parts));
     expect(bytes.length).toBeLessThan(CHART_IMPORT_LIMITS.maxBytes);
     expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/unpack/) });
-  });
+    // Building and unpacking 10 MB takes about a second alone, and many times that with coverage
+    // on a shared CI machine, past the default five seconds.
+  }, 30_000);
 });
 
 /**

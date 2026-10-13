@@ -203,12 +203,11 @@ describe("defineRoute", () => {
         controller.enqueue(new TextEncoder().encode("x".repeat(16)));
       },
     });
-    const request = new Request("http://localhost/api/thing", {
-      method: "POST",
-      body: endless,
-      // Node needs this to send a stream. No content-length is set.
-      duplex: "half",
-    } as RequestInit);
+    // The stream is handed to the route directly. Passed as a Request body, Node's fetch pumps it
+    // through a stream of its own, and when the route cancels, that pump can write into the
+    // closed stream after the test ends ("ReadableStream is already closed"). No content-length.
+    const request = new Request("http://localhost/api/thing", { method: "POST" });
+    Object.defineProperty(request, "body", { value: endless });
 
     const response = await route(request, noParams);
 
