@@ -115,6 +115,18 @@ export {
   type PlayerMarkPlace,
   type PlayerMarkPlacement,
 } from "./names-numbers";
+export {
+  KIT_PATTERN_LABELS,
+  KIT_PATTERN_STYLES,
+  MAX_PATTERN_COLOURS,
+  describeKitPattern,
+  kitPatternFits,
+  kitPatternSchema,
+  patternColourText,
+  type KitPattern,
+  type KitPatternStyle,
+  type PatternColour,
+} from "./kit-pattern";
 export { PROVENANCE_LABELS, PROVENANCE_VALUES, provenanceSchema, type Provenance } from "./provenance";
 export {
   USUAL_SIZE_SYSTEM,
