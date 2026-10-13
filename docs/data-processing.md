@@ -24,7 +24,8 @@ customer inputs or outputs is excluded (plan step 14, task 1).
 | **fal.ai**, `fal-ai/nano-banana-2/edit` (same Google model, resold) | $0.08 | **Not ruled out.** The terms give no "no training" promise; de-identified usage data may be used to develop AI models | Payloads kept 30 days by default (a header turns it off) | Yes, up to 14 image URLs |
 | **Black Forest Labs**, FLUX Kontext / FLUX.2 API | About $0.04 (Kontext Pro); FLUX.2 $0.014 to $0.07 | **Yes.** Perpetual licence to use input and output to improve and develop products | Not stated | Not verified |
 
-Excluded: Black Forest Labs (terms allow training) and fal.ai (terms do not rule it out).
+Excluded: Black Forest Labs (terms allow training). fal.ai was excluded on 2026-09-29 because
+its terms do not rule training out; the owner chose it on 2026-10-13 (see "fal.ai" below).
 
 ## Provisional choice
 
@@ -33,6 +34,27 @@ Excluded: Black Forest Labs (terms allow training) and fal.ai (terms do not rule
 used to improve Google's products; it is cheaper than the same model through fal; it takes
 the flat as a reference image. OpenAI `gpt-image-2` is the close alternative with the same
 terms position; switching means one new file in `lib/providers`.
+
+### fal.ai (owner's choice, 2026-10-13)
+
+The owner chose fal.ai's resale of the same Google model, `fal-ai/nano-banana-2/edit`, at $0.08
+an image at 1K (`lib/providers/fal.ts`, key `FAL_KEY`). Google directly stays available
+(`GEMINI_API_KEY`); `IMAGE_PROVIDER` picks one when both keys are set. The photoreal allowance
+now reserves $0.08 an image, the dearer of the two.
+
+What each call asks of fal, to narrow the gap in its terms:
+
+- `X-Fal-Store-IO: 0`: fal does not store the request or the answer (otherwise 30 days).
+- `sync_mode: true`: the picture comes back inside the answer and is not kept in the request
+  history.
+- `X-Fal-Object-Lifecycle-Preference` with a 600-second expiry, for any file fal still writes
+  to its file host.
+- A picture is only ever fetched back from fal's file host (`*.fal.media`), never from another
+  address an answer names.
+
+What remains: fal's terms still do not promise that de-identified data is not used to develop
+models. fal is listed as a processor in the privacy notice and the data-processing terms. The
+lawyer reviewing them should see this paragraph.
 
 Conditions of use:
 

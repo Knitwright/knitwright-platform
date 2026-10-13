@@ -61,6 +61,11 @@ const envSchema = z.object({
   // feature is shown as unavailable. Server only. It must belong to a Google project with
   // billing on: on the free tier Google may train on what is sent. See docs/data-processing.md.
   GEMINI_API_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  // The same image model resold by fal.ai (owner's choice, 2026-10-13). Optional. Server only.
+  // fal's terms do not rule out training on de-identified data; see docs/data-processing.md.
+  FAL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  // Which image provider to use when both keys are set. Without it Google directly comes first.
+  IMAGE_PROVIDER: z.enum(["gemini", "fal"]).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),

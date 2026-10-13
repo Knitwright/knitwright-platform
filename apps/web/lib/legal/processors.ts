@@ -42,6 +42,12 @@ export const PROCESSORS: readonly Processor[] = [
     location: "United States",
   },
   {
+    name: "Features & Labels, Inc. (fal.ai)",
+    purpose: "Making photoreal pictures of a design on request, in place of Google (AI features)",
+    data: "A description and drawing of the design, which we ask fal not to store",
+    location: "United States",
+  },
+  {
     name: "Cloudflare, Inc. (Turnstile)",
     purpose: "Telling people from automated sign-ups",
     data: "Browser and network signals during sign-up, sign-in and password reset",

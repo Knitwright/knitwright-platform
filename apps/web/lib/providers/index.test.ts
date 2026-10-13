@@ -11,6 +11,18 @@ describe("imageProviderFrom", () => {
   it("is the Gemini model when a key is set", () => {
     expect(imageProviderFrom({ GEMINI_API_KEY: "k" })?.name).toMatch(/^gemini:/);
   });
+
+  it("is fal when only its key is set, and Google first when both are", () => {
+    expect(imageProviderFrom({ FAL_KEY: "k" })?.name).toMatch(/^fal:/);
+    expect(imageProviderFrom({ GEMINI_API_KEY: "g", FAL_KEY: "f" })?.name).toMatch(/^gemini:/);
+  });
+
+  it("follows IMAGE_PROVIDER, and is null when the named provider has no key", () => {
+    expect(imageProviderFrom({ GEMINI_API_KEY: "g", FAL_KEY: "f", IMAGE_PROVIDER: "fal" })?.name).toMatch(/^fal:/);
+    expect(imageProviderFrom({ GEMINI_API_KEY: "g", FAL_KEY: "f", IMAGE_PROVIDER: "gemini" })?.name).toMatch(/^gemini:/);
+    expect(imageProviderFrom({ GEMINI_API_KEY: "g", IMAGE_PROVIDER: "fal" })).toBeNull();
+    expect(imageProviderFrom({ FAL_KEY: "f", IMAGE_PROVIDER: "gemini" })).toBeNull();
+  });
 });
 
 describe("stubs", () => {

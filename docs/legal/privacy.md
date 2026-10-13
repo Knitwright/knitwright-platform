@@ -70,6 +70,7 @@ We share personal data only with the providers below, who process it for us unde
 | Anthropic PBC | Reading text instructions and sketches (AI features) | The instruction or picture sent, and the design it applies to | United States |
 | OpenAI, L.L.C. | Reading text instructions and sketches when the first model cannot (AI features) | The instruction or picture sent, and the design it applies to | United States |
 | Google LLC (Gemini API) | Making photoreal pictures of a design on request (AI features) | A description and drawing of the design | United States |
+| Features & Labels, Inc. (fal.ai) | Making photoreal pictures of a design on request, in place of Google (AI features) | A description and drawing of the design, which we ask fal not to store | United States |
 | Cloudflare, Inc. (Turnstile) | Telling people from automated sign-ups | Browser and network signals during sign-up, sign-in and password reset | United States, with servers worldwide |
 | Resend, Inc. | Sending sign-up, sign-in and password emails | Email address and the message | United States |
 | Functional Software, Inc. (Sentry) | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | European Union (Frankfurt, Germany): Sentry's EU data region |
