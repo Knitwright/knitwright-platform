@@ -4,6 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { ChatPanel } from "@/components/studio/ChatPanel";
 import { ImageReview } from "@/components/studio/ImageReview";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { OptionControls } from "@/components/studio/OptionControls";
 import type { Editor as EditorApi } from "@/components/studio/useEditor";
 import { TechPackDownloads } from "@/components/techpack/TechPackDownloads";
@@ -41,6 +42,7 @@ export function StartStep({ data, from, say, assistant, busy, onSaid }: StartPro
           ? "Your words were sent to the assistant. Its answer is below; the drawing and measurements change with it."
           : "You picked the garment. Describe anything else you want, or go on to review."}
       </p>
+      <KitStylesLink projectId={data.projectId} typeId={data.spec.typeId} from="guide" />
       <ChatPanel
         projectId={data.projectId}
         version={data.version}

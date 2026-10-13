@@ -14,6 +14,7 @@ import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { AppError } from "@/lib/server/core/errors";
 import { imageProvider, sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
@@ -49,6 +50,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
 
   return (
     <div className="flex flex-col gap-10">
+      <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />
       <Editor
         data={buildEditorData(project, history, charts, pictures, colourway)}
         assistant={{ available: assistantAvailable() }}

@@ -8,6 +8,7 @@ import {
   panelFabricSchema,
   sizingSchema,
 } from "./parts";
+import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
 import { LIST_LIMITS, specProblems } from "./spec-checks";
@@ -57,6 +58,11 @@ export const garmentSpecStructureSchema = z
      * added after version 6 without a bump, so every design saved before still reads.
      */
     namesAndNumbers: namesAndNumbersSchema.optional(),
+    /**
+     * A style printed over the body, such as hoops or a sash. Optional and added after
+     * version 6 without a bump, so every design saved before still reads.
+     */
+    kitPattern: kitPatternSchema.optional(),
   })
   .readonly();
 

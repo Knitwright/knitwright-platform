@@ -1,6 +1,7 @@
 import { checkCombination } from "./combinations";
 import { conditionsHold } from "./conditions";
 import { anchorName, choiceName, panelName, pointName } from "./labels";
+import { kitPatternProblem, type KitPattern } from "./kit-pattern";
 import { namesNumbersProblem, type NamesAndNumbers } from "./names-numbers";
 import type {
   Artwork,
@@ -34,6 +35,7 @@ export interface CheckedSpec {
   readonly components: readonly ComponentEntry[];
   readonly construction: readonly ConstructionEntry[];
   readonly namesAndNumbers?: NamesAndNumbers;
+  readonly kitPattern?: KitPattern;
 }
 
 /** The most fabrics and colourways a design may hold. Kept here so the schema stays a plain tuple. */
@@ -159,6 +161,12 @@ function namesNumbersProblems(spec: CheckedSpec, type: ResolvedType): SpecProble
   return message ? [problem(["namesAndNumbers", "places"], message)] : [];
 }
 
+function kitPatternProblems(spec: CheckedSpec): SpecProblem[] {
+  if (spec.kitPattern === undefined) return [];
+  const message = kitPatternProblem(spec.typeId);
+  return message ? [problem(["kitPattern"], message)] : [];
+}
+
 function limitProblems(spec: CheckedSpec): SpecProblem[] {
   const found: SpecProblem[] = [];
   if (spec.fabrics.length > LIST_LIMITS.fabrics) {
@@ -193,6 +201,7 @@ export function specProblems(spec: CheckedSpec): SpecProblem[] {
     ...colourwayProblems(spec, type, panels),
     ...artworkProblems(spec, type),
     ...namesNumbersProblems(spec, type),
+    ...kitPatternProblems(spec),
     ...techProblems(spec, type),
   ];
 }
