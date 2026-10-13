@@ -9,13 +9,15 @@ import { flatsForTechPack } from "../flats";
 import { buildTechPack } from "../build";
 import type { TechPackInput } from "../input";
 import type { TechPack } from "../types";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 
 export const TOPS_IDS = listTypes("tops").map((type) => type.id);
 
 export const PROJECT = { name: "Club shirt", styleNumber: "", season: "", brandName: "Test Brand" } as const;
 
 export const inputFor = (spec: GarmentSpec, extra: Partial<TechPackInput> = {}): TechPackInput => {
-  const charts = extra.charts;
+  // No chart unless a test gives one, so a test sees only what it typed in.
+  const charts = extra.charts ?? NO_CHART_SET;
   return {
     project: PROJECT,
     version: 1,
@@ -25,6 +27,7 @@ export const inputFor = (spec: GarmentSpec, extra: Partial<TechPackInput> = {}):
     printedOnIso: "2026-09-30",
     history: [],
     spec,
+    charts,
     flats: flatsForTechPack(spec, charts),
     ...extra,
   };

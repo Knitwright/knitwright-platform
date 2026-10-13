@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import { MADE_UP_CHART_SET } from "@/lib/sizing/fixtures/made-up-charts";
 import { startingSpec } from "./starting-spec";
 
 describe("startingSpec", () => {
-  it("starts a design with no sizes and no measurements while there are no size charts", () => {
-    const result = startingSpec("crew-tee", "women");
+  it("starts a design with no sizes and no measurements when there are no size charts", () => {
+    const result = startingSpec("crew-tee", "women", NO_CHART_SET);
 
     expect(result).toMatchObject({ ok: true, spec: { typeId: "crew-tee", wearer: "women", sizing: null, measurements: [] } });
   });
@@ -15,6 +16,15 @@ describe("startingSpec", () => {
     expect(result).toMatchObject({
       ok: true,
       spec: { sizing: { sizes: ["T1", "T2", "T3", "T4", "T5"], baseSize: "T3" }, measurements: [] },
+    });
+  });
+
+  it("takes the sizes of the Knitwright starter chart by default, and stores no measurement", () => {
+    const result = startingSpec("crew-tee", "women");
+
+    expect(result).toMatchObject({
+      ok: true,
+      spec: { sizing: { sizes: ["XS", "S", "M", "L", "XL", "2XL"], baseSize: "M" }, measurements: [] },
     });
   });
 

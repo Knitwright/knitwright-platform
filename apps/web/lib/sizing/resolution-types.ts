@@ -69,6 +69,11 @@ export interface ResolvedResolution {
   readonly source: ChartSource;
   /** Where the chart's values come from: a platform suggestion, or the brand's own chart. */
   readonly chartProvenance: ChartProvenance;
+  /**
+   * A sentence that says a platform chart's values are suggestions to check with the
+   * factory. Null for a brand's own chart.
+   */
+  readonly chartNote: string | null;
   /** One row for every point of measure that applies, in the garment type order. */
   readonly rows: readonly ResolutionRow[];
   readonly message: null;

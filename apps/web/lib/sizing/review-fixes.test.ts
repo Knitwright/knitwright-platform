@@ -14,7 +14,7 @@ import { parseSourceNote } from "./source-note";
 
 const NONE: ChartSet = { runs: [], charts: [] };
 const TODAY = new Date("2026-10-02T00:00:00Z");
-const NO_CHART = "There is no size chart yet for Crew neck tee for men. Nothing is filled in for you, so type each measurement in.";
+const NO_CHART = "There is no Knitwright starter chart yet for Crew neck tee for men, so no measurements are suggested. Type each measurement in, or import your own size chart.";
 
 function crewTee(sizing: GarmentSpec["sizing"], typed = true): GarmentSpec {
   const made = createSpec("crew-tee", "men");

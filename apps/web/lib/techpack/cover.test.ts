@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import { designWith } from "@/lib/flat/fixtures/designs";
 import { applyAction } from "@/lib/garment";
 import { accepted, start } from "@/lib/garment/fixtures/specs";
@@ -73,7 +74,7 @@ describe("the cover", () => {
   });
 
   it("shows the sizes as to be confirmed when there are none", () => {
-    const cover = buildCover(base());
+    const cover = buildCover(base({ charts: NO_CHART_SET }));
     expect(cover.baseSize).toEqual({ status: "to-be-confirmed" });
     expect(cover.sizeRun).toEqual({ status: "to-be-confirmed" });
   });

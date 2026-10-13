@@ -9,7 +9,7 @@ const PAIR_COUNT = listTypes().reduce((total, type) => total + type.wearers.leng
 
 describe("chartCompleteness", () => {
   it("lists every garment type and wearer and says none has a chart when there are no charts", () => {
-    const report = chartCompleteness();
+    const report = chartCompleteness({ runs: [], charts: [] });
     expect(report.entries).toHaveLength(PAIR_COUNT);
     expect(listTypes("tops").reduce((total, type) => total + type.wearers.length, 0)).toBe(15);
     expect(report.entries.every((entry) => !entry.hasChart)).toBe(true);
