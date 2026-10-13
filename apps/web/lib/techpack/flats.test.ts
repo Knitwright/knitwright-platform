@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import type { FlatModel } from "@/lib/flat/model";
 import { buildFlat } from "@/lib/flat/build";
 import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
@@ -27,7 +28,7 @@ describe("flatsForTechPack", () => {
   });
 
   it("draws a new design not to scale, with no callout layer", () => {
-    const flats = flatsForTechPack(start("crew-tee"));
+    const flats = flatsForTechPack(start("crew-tee"), NO_CHART_SET);
     expect(flats.front?.toScale).toBe(false);
     expect(layerIds(flats.front)).not.toContain("measurements");
   });
@@ -42,21 +43,42 @@ describe("flatsForTechPack", () => {
 
   it("uses the same measurements as a drawing made by hand at the base size", () => {
     const spec = scaled();
-    const by = buildFlat({ spec, measurements: resolveMeasurements(spec, ""), view: "front", colourwayId: "main", callouts: true });
-    expect(flatsForTechPack(spec).front).toEqual(by);
+    const by = buildFlat({ spec, measurements: resolveMeasurements(spec, "", NO_CHART_SET), view: "front", colourwayId: "main", callouts: true });
+    expect(flatsForTechPack(spec, NO_CHART_SET).front).toEqual(by);
   });
 });
 
 describe("withCalloutCodes", () => {
-  it("replaces each label with the short code and keeps the value", () => {
+  it("replaces each label with a round mark that holds the short code, and leaves the value to the table", () => {
     const spec = scaled();
     const model = flatsForTechPack(spec).front;
     if (!model) throw new Error("no drawing");
     const before = measurementTexts(model);
     expect(before.some((text) => text.startsWith("Chest width "))).toBe(true);
-    const after = measurementTexts(withCalloutCodes(model, calloutCodes(spec), calloutValues(spec)));
-    expect(after).toContain("A 52.0 cm");
-    for (const text of after) expect(text).toMatch(/^[A-Z]+ \d+\.\d cm$/);
+    const coded = withCalloutCodes(model, calloutCodes(spec), calloutValues(spec));
+    const after = measurementTexts(coded);
+    expect(after).toContain("A");
+    for (const text of after) expect(text).toMatch(/^[A-Z]+$/);
+    const names = coded.layers.flatMap((layer) => layer.elements).flatMap((element) => (element.kind === "path" ? [element.name] : []));
+    expect(names).toContain("A mark");
+    expect(names).toContain("A line");
+  });
+
+  it("makes the marks big enough to read at the printed size, keeps them apart, and grows the bounds to hold them", () => {
+    const spec = designWith("polo", {}, madeUpForType("polo", {}));
+    const model = flatsForTechPack(spec).front;
+    if (!model) throw new Error("no drawing");
+    const coded = withCalloutCodes(model, calloutCodes(spec), calloutValues(spec));
+    const marks = coded.layers.flatMap((layer) => layer.elements).filter((element) => element.kind === "text");
+    const width = coded.bounds.maxX - coded.bounds.minX;
+    expect(marks.length).toBeGreaterThan(10);
+    for (const mark of marks) expect(mark.size).toBeGreaterThan(0.02 * width);
+    const centres = marks.map((mark) => (mark.kind === "text" ? mark.at : { x: 0, y: 0 }));
+    for (const [index, centre] of centres.entries()) {
+      for (const other of centres.slice(index + 1)) expect(Math.hypot(other.x - centre.x, other.y - centre.y)).toBeGreaterThan(0.03 * width);
+      expect(centre.y).toBeGreaterThan(coded.bounds.minY);
+    }
+    expect(coded.bounds.minY).toBeLessThanOrEqual(model.bounds.minY);
   });
 
   it("does not change the drawing it is given", () => {
@@ -79,8 +101,11 @@ describe("callout codes, matched by point", () => {
   const text = (value: string) =>
     ({ kind: "text", text: value, at: { x: 0, y: 0 }, size: 1, anchor: "start", colour: "#000000", rotation: 0 }) as const;
   const model = {
+    bounds: { minX: -1000, minY: -1000, maxX: 1000, maxY: 1000 },
     layers: [{ id: "measurements", label: "Measurements", elements: [text("Neck 1.0 cm"), text("Neck width 2.0 cm")] }],
   } as unknown as FlatModel;
+  const textsOf = (coded: FlatModel): string[] =>
+    (coded.layers[0]?.elements ?? []).flatMap((element) => (element.kind === "text" ? [element.text] : []));
   const codes = [
     { pointId: "neck", code: "A", label: "Neck" },
     { pointId: "neck-width", code: "B", label: "Neck width" },
@@ -88,18 +113,12 @@ describe("callout codes, matched by point", () => {
 
   it("gives each callout the code of its own point, even when one label starts with another", () => {
     const coded = withCalloutCodes(model, codes, new Map([["neck", 100], ["neck-width", 200]]));
-    expect(coded.layers[0]?.elements.map((element) => (element.kind === "text" ? element.text : ""))).toEqual([
-      "A 1.0 cm",
-      "B 2.0 cm",
-    ]);
+    expect(textsOf(coded)).toEqual(["A", "B"]);
   });
 
   it("leaves a callout alone when its value is not the one drawn for the point", () => {
     const coded = withCalloutCodes(model, codes, new Map([["neck", 999], ["neck-width", 200]]));
-    expect(coded.layers[0]?.elements.map((element) => (element.kind === "text" ? element.text : ""))).toEqual([
-      "Neck 1.0 cm",
-      "B 2.0 cm",
-    ]);
+    expect(textsOf(coded)).toEqual(["Neck 1.0 cm", "B"]);
   });
 });
 
@@ -134,7 +153,7 @@ describe("the drawing is made for the base size and the colourway asked for", ()
 describe("the flats section", () => {
   it("carries both views, with codes in the callouts and a legend that matches the table", () => {
     const spec = scaled();
-    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
+    const section = buildFlatsSection(spec, flatsForTechPack(spec, NO_CHART_SET), NO_CHART_SET);
     expect(section.id).toBe("flats");
     expect(section.title).toBe("Flats with callouts");
     expect(section.views.map((view) => view.label)).toEqual(["Front", "Back"]);
@@ -150,7 +169,7 @@ describe("the flats section", () => {
 
   it("says when the drawing is not to scale, and carries no callout values", () => {
     const spec = start("crew-tee");
-    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
+    const section = buildFlatsSection(spec, flatsForTechPack(spec, NO_CHART_SET), NO_CHART_SET);
     expect(section.callouts).toEqual([]);
     expect(section.note).toBe("Not to scale. Some measurements are missing. The drawing carries no measurement values.");
     for (const view of section.views) {
@@ -178,7 +197,7 @@ describe("the flats section", () => {
 
   it("describes each view in words", () => {
     const spec = start("crew-tee");
-    const section = buildFlatsSection(spec, flatsForTechPack(spec), undefined);
+    const section = buildFlatsSection(spec, flatsForTechPack(spec, NO_CHART_SET), NO_CHART_SET);
     expect(section.views[0]?.description).toMatch(/^Front view\. Crew neck tee/);
     expect(section.views[1]?.description).toMatch(/^Back view\./);
   });

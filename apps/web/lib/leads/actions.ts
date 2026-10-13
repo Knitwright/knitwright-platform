@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getEnv, turnstileSecret } from "@/lib/config/env";
 import { defineAction } from "@/lib/server/define-action";
-import { adminClient, sessionClient } from "@/lib/server/deps";
+import { adminClient, productionDeps, sessionClient } from "@/lib/server/deps";
+import { verifyBotCheck } from "@/lib/share/turnstile";
+import { accessRequestSchema, keepAccessRequest, loggingAccessNotifier, saveAccessRequest } from "./access";
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
 import { leadFormSchema, quoteStatusFormSchema } from "./admin";
@@ -19,6 +22,31 @@ import { requestQuote, setBrandDetails, setLead, setQuoteStatus } from "./servic
 
 // No mail sender exists yet (owner action A4). See lib/leads/notify.ts.
 const notifyTeam = loggingQuoteNotifier(log);
+const notifyAccess = loggingAccessNotifier(log);
+
+/**
+ * Someone with no account asks for access while sign-up is by invitation. Limited per address,
+ * guarded by the bot check, and kept by the database. The answer is the same for a new address
+ * and one that has asked before.
+ */
+export const requestAccessAction = defineAction({
+  auth: "public",
+  rateLimit: LIMITS.requestAccess,
+  schema: accessRequestSchema,
+  handler: async ({ input }) => {
+    await keepAccessRequest(
+      {
+        botCheck: (request) => verifyBotCheck({ ...request, send: fetch }),
+        secret: turnstileSecret(getEnv()),
+        address: await productionDeps.getClientAddress(),
+        save: (request) => saveAccessRequest(adminClient(), request),
+        notify: notifyAccess,
+      },
+      input,
+    );
+    return { email: input.email };
+  },
+});
 
 /** Sets the organisation type, country and state or region of the brand the user is working in. */
 export const saveBrandDetailsAction = defineAction({

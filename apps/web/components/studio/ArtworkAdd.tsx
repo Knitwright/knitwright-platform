@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { CheckboxField } from "@/components/ui/CheckboxField";
 import { LOGO_RIGHTS } from "@/lib/consent/wording";
 import type { GarmentSpec } from "@/lib/garment";
-import { uploadArtworkFile } from "@/lib/projects/artwork-upload";
+import { LOGO_RIGHTS_WAITING, logoStep, uploadArtworkFile } from "@/lib/projects/artwork-upload";
 import { buildArtworkAction, defaultArtworkForm, type ArtworkForm, type Part } from "@/lib/projects/artwork-controls";
 import type { ArtworkControlsProps } from "./ArtworkControls";
 import { ArtworkFields, Problem } from "./ArtworkFields";
@@ -22,16 +22,32 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
   const [draft, setDraft] = useState<ArtworkForm | null>(null);
   const [uploading, setUploading] = useState(false);
   const [rights, setRights] = useState(false);
+  /** A logo chosen before the box was ticked. It is kept and sent once the box is ticked. */
+  const [held, setHeld] = useState<File | null>(null);
   const [words, setWords] = useState("");
 
-  const upload = async (file: File | undefined) => {
-    if (!file) return;
+  const send = async (file: File) => {
     onClearProblem(UPLOAD_KEY);
+    setHeld(null);
     setUploading(true);
-    const result = await uploadArtworkFile(file, postFile, rights);
+    const result = await uploadArtworkFile(file, postFile, true);
     setUploading(false);
     if (result.ok) setDraft(defaultArtworkForm(spec, { kind: "file", fileId: result.fileId }, { width: result.width, height: result.height }));
     else onProblem(UPLOAD_KEY, result.reason);
+  };
+
+  const choose = (file: File | undefined, ticked: boolean) => {
+    const step = logoStep(file ?? null, ticked);
+    if (step === "upload" && file) void send(file);
+    if (step === "wait-for-rights" && file) {
+      setHeld(file);
+      onProblem(UPLOAD_KEY, LOGO_RIGHTS_WAITING);
+    }
+  };
+
+  const tick = (ticked: boolean) => {
+    setRights(ticked);
+    if (held) choose(held, ticked);
   };
 
   const add = () => {
@@ -50,9 +66,10 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
         <PictureInput
           uploading={uploading}
           rights={rights}
-          onRights={setRights}
+          held={held?.name ?? null}
+          onRights={tick}
           error={errorFor(UPLOAD_KEY)}
-          onFile={(file) => void upload(file)}
+          onFile={(file) => choose(file, rights)}
         />
         <WordsInput
           words={words}
@@ -70,13 +87,15 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
 type PictureInputProps = Readonly<{
   uploading: boolean;
   rights: boolean;
+  /** The name of a logo chosen before the box was ticked, kept until it is. */
+  held: string | null;
   onRights: (ticked: boolean) => void;
   error: string | null;
   onFile: (file: File | undefined) => void;
 }>;
 
 /** A logo goes on the garment, so the person confirms they may use it before it is uploaded. */
-function PictureInput({ uploading, rights, onRights, error, onFile }: PictureInputProps) {
+function PictureInput({ uploading, rights, held, onRights, error, onFile }: PictureInputProps) {
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
@@ -101,7 +120,7 @@ function PictureInput({ uploading, rights, onRights, error, onFile }: PictureInp
       </p>
       <CheckboxField label={LOGO_RIGHTS.text} checked={rights} onChange={(event) => onRights(event.target.checked)} />
       <p role="status" className="min-h-5 text-sm text-ink-2">
-        {uploading ? "Uploading" : ""}
+        {uploading ? "Uploading" : held ? `Chosen: ${held}. Waiting for the box to be ticked.` : ""}
       </p>
       <Problem id={`${id}-error`} message={error} />
     </div>

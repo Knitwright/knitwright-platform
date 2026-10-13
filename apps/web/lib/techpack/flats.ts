@@ -1,7 +1,8 @@
 import { buildFlat } from "@/lib/flat/build";
-import { LAYERS, type FlatElement, type FlatLayer, type FlatModel, type View } from "@/lib/flat/model";
+import { LAYERS, type FlatElement, type FlatLayer, type FlatModel, type FlatPath, type Point, type View } from "@/lib/flat/model";
 import { formatCm, type GarmentSpec } from "@/lib/garment";
 import { resolveAllSizes, resolveMeasurements, type ChartSet } from "@/lib/sizing";
+import { lineEnds, markElements, markSizes, markedLine, placeMark, withMarks, type MarkSizes } from "./callout-marks";
 import { calloutCodes, type CalloutCode } from "./codes";
 import type { CalloutKey, ColourwaysSection, FlatsSection, FlatViewSection } from "./types";
 import { SECTION_TITLES } from "./types";
@@ -75,36 +76,60 @@ export function calloutValues(spec: GarmentSpec, charts?: ChartSet): ReadonlyMap
 /** The words of a callout on the drawing, which are the label of its point and its value. */
 const calloutText = (label: string, value: number): string => `${label} ${formatCm(value)} cm`;
 
-function recoded(element: FlatElement, codes: readonly CalloutCode[], values: ReadonlyMap<string, number>): FlatElement {
-  if (element.kind === "text") {
-    const found = codes.find((entry) => {
-      const value = values.get(entry.pointId);
-      return value !== undefined && element.text === calloutText(entry.label, value);
-    });
-    const value = found ? values.get(found.pointId) : undefined;
-    return found && value !== undefined ? { ...element, text: `${found.code} ${formatCm(value)} cm` } : element;
-  }
-  if (element.kind === "path") {
-    const found = codes.find((entry) => element.name === `${entry.label} line`);
-    return found ? { ...element, name: `${found.code} line` } : element;
-  }
-  return element;
+interface Marked {
+  readonly kept: readonly FlatElement[];
+  readonly marks: readonly FlatElement[];
+  readonly placed: readonly Point[];
+}
+
+/** The code whose callout text this is: its label and the value drawn for it, matched as a whole. */
+const codeOfText = (text: string, codes: readonly CalloutCode[], values: ReadonlyMap<string, number>): CalloutCode | undefined =>
+  codes.find((entry) => {
+    const value = values.get(entry.pointId);
+    return value !== undefined && text === calloutText(entry.label, value);
+  });
+
+/**
+ * The callout layer with each line named by its code and each label replaced by a round mark
+ * holding the code. The marks are drawn last, over the lines. Anything not matched is kept as it is.
+ */
+function marked(elements: readonly FlatElement[], codes: readonly CalloutCode[], values: ReadonlyMap<string, number>, sizes: MarkSizes): readonly FlatElement[] {
+  const lineOf = (label: string): FlatPath | undefined =>
+    elements.find((element): element is FlatPath => element.kind === "path" && element.name === `${label} line`);
+  const result = elements.reduce<Marked>(
+    (done, element) => {
+      if (element.kind === "path") {
+        const found = codes.find((entry) => element.name === `${entry.label} line`);
+        return { ...done, kept: [...done.kept, found ? markedLine(element, found.code, sizes) : element] };
+      }
+      const found = element.kind === "text" ? codeOfText(element.text, codes, values) : undefined;
+      if (!found || element.kind !== "text") return { ...done, kept: [...done.kept, element] };
+      const line = lineOf(found.label);
+      const ends = line ? lineEnds(line) : null;
+      const centre = ends ? placeMark(ends, done.placed, sizes.radius) : element.at;
+      return { kept: done.kept, marks: [...done.marks, ...markElements(found.code, centre, sizes)], placed: [...done.placed, centre] };
+    },
+    { kept: [], marks: [], placed: [] },
+  );
+  return [...result.kept, ...result.marks];
 }
 
 /**
- * The drawing with each callout label replaced by the short code of its point, so it reads with
- * the table. A callout is matched to its point by the label and the value that was drawn for it,
- * as a whole, and never by the start of the words. The drawing it is given is not changed.
+ * The drawing with each callout shown by the short code of its point, in a round mark, so it
+ * reads with the first column of the measurement table. The value itself is in the table, with
+ * its source. A callout is matched to its point by the label and the value that was drawn for
+ * it, as a whole, and never by the start of the words. The drawing it is given is not changed.
  */
 export function withCalloutCodes(
   model: FlatModel,
   codes: readonly CalloutCode[],
   values: ReadonlyMap<string, number>,
 ): FlatModel {
+  const sizes = markSizes(model.bounds);
   const layers: readonly FlatLayer[] = model.layers.map((layer) =>
-    layer.id === LAYERS.measurements.id ? { ...layer, elements: layer.elements.map((element) => recoded(element, codes, values)) } : layer,
+    layer.id === LAYERS.measurements.id ? { ...layer, elements: marked(layer.elements, codes, values, sizes) } : layer,
   );
-  return { ...model, layers };
+  return { ...model, layers, bounds: withMarks(model.bounds, layers, sizes) };
 }
 
 function withoutCallouts(model: FlatModel): FlatModel {

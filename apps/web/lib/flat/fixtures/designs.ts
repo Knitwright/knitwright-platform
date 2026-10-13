@@ -8,6 +8,7 @@ import { allCombinations, type Choices } from "@/lib/garment/fixtures/combinatio
 import { start } from "@/lib/garment/fixtures/specs";
 import { checkCombination, validateSpec } from "@/lib/garment";
 import { resolveMeasurements, type Resolution } from "@/lib/sizing";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 
 export const TOPS_TYPE_IDS = ["crew-tee", "v-neck-tee", "long-sleeve-tee", "polo", "team-jersey"] as const;
 
@@ -65,7 +66,7 @@ export function designWith(typeId: string, choices: Choices, values?: Readonly<R
 
 /** What the sizing library says about a design that has only the measurements typed in. */
 export function typedIn(spec: GarmentSpec): Resolution {
-  return resolveMeasurements(spec, "");
+  return resolveMeasurements(spec, "", NO_CHART_SET);
 }
 
 const valid = (typeId: string): Choices[] =>

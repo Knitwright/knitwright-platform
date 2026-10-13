@@ -2,6 +2,7 @@ import { PROVENANCE_LABELS } from "@/lib/garment";
 import {
   PROPOSAL_WORDS,
   TO_BE_CONFIRMED,
+  sourceLabel,
   type Cell,
   type ClassCell,
   type CompletenessReport,
@@ -29,7 +30,7 @@ export function cellView(cell: Cell, unit?: string): CellView {
   if (cell.status !== "set") return { text: TO_BE_CONFIRMED, source: null, tone: "missing" };
   return {
     text: unit ? `${cell.value} ${unit}` : cell.value,
-    source: PROVENANCE_LABELS[cell.provenance],
+    source: sourceLabel(cell),
     tone: toneOf(cell.provenance),
   };
 }

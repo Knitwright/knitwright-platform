@@ -31,7 +31,7 @@ export function SelectField({ name, label, hint, errors = [], options, placehold
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex min-w-0 flex-col gap-1.5">
       <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
@@ -41,7 +41,7 @@ export function SelectField({ name, label, hint, errors = [], options, placehold
         name={name}
         aria-invalid={errors.length > 0 || undefined}
         aria-describedby={describedBy}
-        className={FIELD_CONTROL}
+        className={`${FIELD_CONTROL} w-full min-w-0 max-w-full`}
       >
         {placeholder ? <option value="">{placeholder}</option> : null}
         {options.map((entry) =>

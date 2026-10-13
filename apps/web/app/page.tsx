@@ -6,16 +6,20 @@ import { PRODUCT } from "@/lib/config/product";
 
 const STEPS = [
   {
-    label: "Describe",
-    body: "Say what you want to make, or upload a sketch.",
+    label: "Design",
+    body: "Say what you want to make, upload a sketch or pick a garment. Change the fit, colours and logos.",
   },
   {
-    label: "Adjust",
-    body: "Change the fit, the sleeve or the colours. Every number moves with it.",
+    label: "Committee vote",
+    body: "Send your club or team committee a link. They see the design and vote, no account needed.",
   },
   {
-    label: "Download",
-    body: "Take the tech pack to your factory as PDF, Excel and drawings.",
+    label: "Factory pack",
+    body: "Get the tech pack a factory works from, as PDF, Excel and drawings, with graded measurements.",
+  },
+  {
+    label: "Quote",
+    body: "Tell us how many and by when, and the Knitwright team replies with a price.",
   },
 ] as const;
 
@@ -23,12 +27,18 @@ export default function HomePage() {
   return (
     <>
       <PublicHeader>
-        <nav aria-label="Account" className="flex items-center gap-1">
+        <nav aria-label="Account" className="flex flex-wrap items-center gap-1">
           <a href={`mailto:${PRODUCT.contactEmail}`} className="nav-pill rounded-full px-4 py-2 text-sm text-muted">
             Contact
           </a>
           <Link href="/sign-in" className="nav-pill rounded-full px-4 py-2 text-sm font-medium text-ink">
             Sign in
+          </Link>
+          <Link
+            href="/sign-up"
+            className="chip-btn rounded-full border border-white/20 bg-white/[0.06] px-4 py-2 text-sm font-medium text-ink"
+          >
+            Get started
           </Link>
         </nav>
       </PublicHeader>
@@ -39,24 +49,29 @@ export default function HomePage() {
           A spec a factory <span className="morph-reveal thread-text pb-[0.08em]">can build from.</span>
         </h1>
         <p className="rise mt-6 max-w-xl text-lg leading-relaxed text-ink-2" style={{ "--i": 3 } as CSSProperties}>
-          Describe a garment in plain words or start from a sketch. {PRODUCT.name} drafts the
-          drawings, the graded measurements and the construction details.
+          Kit for your club, school or team, or clothing for your own brand. Describe a garment in plain
+          words or start from a sketch. {PRODUCT.name} drafts the drawings, the graded measurements and the
+          construction details, then helps you get it made.
         </p>
-        <div className="rise mt-9" style={{ "--i": 4 } as CSSProperties}>
+        <div className="rise mt-9 flex flex-wrap items-center gap-4" style={{ "--i": 4 } as CSSProperties}>
           <LinkButton href="/sign-up" arrow>
-            Start a design
+            Get started
           </LinkButton>
+          <p className="text-sm text-muted">Sign-up is by invitation for now. You can ask for access.</p>
         </div>
 
-        <ol className="mt-16 grid gap-4 sm:grid-cols-3">
+        <h2 className="rise mt-16 text-2xl font-medium tracking-[-0.02em] text-ink" style={{ "--i": 5 } as CSSProperties}>
+          From an idea to a quote, in four steps
+        </h2>
+        <ol className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <li
               key={step.label}
               className="glass rise rounded-[1.75rem] p-6"
-              style={{ "--i": index + 5 } as CSSProperties}
+              style={{ "--i": index + 6 } as CSSProperties}
             >
               <span className="font-mono text-xs text-faint">{String(index + 1).padStart(2, "0")}</span>
-              <h2 className="mt-3 text-lg font-medium tracking-[-0.01em] text-ink">{step.label}</h2>
+              <h3 className="mt-3 text-lg font-medium tracking-[-0.01em] text-ink">{step.label}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">{step.body}</p>
             </li>
           ))}

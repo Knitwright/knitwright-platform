@@ -1,6 +1,6 @@
 import { getType, type GarmentSpec, type Wearer, type Provenance } from "@/lib/garment";
 import { resolveAllSizes, type ChartSet } from "@/lib/sizing";
-import { TBC, textCell, type Cell } from "./cell";
+import { TBC, choiceCell, textCell, type Cell } from "./cell";
 import { REVISIONS_SHOWN, type RevisionInput, type TechPackInput } from "./input";
 import { SOME_MISSING } from "./text";
 import type { CoverSection, Revision } from "./types";
@@ -27,7 +27,7 @@ function optionCells(spec: GarmentSpec): CoverSection["options"] {
   return (type?.options ?? []).flatMap((option) => {
     const chosen = Object.hasOwn(spec.options, option.id) ? spec.options[option.id] : undefined;
     const label = chosen ? option.choices.find((choice) => choice.id === chosen.choiceId)?.label : undefined;
-    return [{ id: option.id, label: option.label, choice: chosen && label ? textCell(label, chosen.provenance) : TBC }];
+    return [{ id: option.id, label: option.label, choice: chosen && label ? choiceCell(label, chosen.provenance) : TBC }];
   });
 }
 

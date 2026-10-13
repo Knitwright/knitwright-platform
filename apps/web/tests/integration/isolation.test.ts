@@ -237,6 +237,24 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
   },
+  // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
+  // line, and none is ever changed or removed.
+  assistant_messages: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      return must(
+        await adminClient()
+          .from("assistant_messages")
+          .insert({ brand_id: brandId, project_id: projectId, role: "person", kind: "text", body: "slim fit" })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId) => ({ brand_id: brandId, project_id: randomUUID(), role: "person", kind: "text", body: "Made directly." }),
+    change: { body: "Changed by a stranger." },
+  },
   // Decision 0025: a person reads their own consent records; only the server adds one, and none
   // is ever changed or removed.
   consent_events: {
@@ -429,6 +447,25 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: (brandId) => ({ brand_id: brandId, owner: "knitwright" }),
     change: { owner: "knitwright", next_step: "Changed by a member" },
+  },
+  // Requests for access while sign-up is by invitation (migration 20261013030000). The server writes
+  // them through request_access; only platform admins read them.
+  access_requests: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      const id = must(
+        await adminClient().rpc("request_access", {
+          p_email: `seeded-${Date.now()}@example.com`,
+          p_name: "Seeded",
+          p_organisation: "",
+          p_organisation_type: "club",
+          p_message: "",
+        }),
+      );
+      return { id };
+    },
+    attempt: () => ({ email: "intruder@example.com", name: "Intruder" }),
+    change: { name: "Changed by a member" },
   },
   platform_admins: {
     privileges: [],

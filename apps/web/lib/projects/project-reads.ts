@@ -239,6 +239,36 @@ export const currentVersion = async (
   projectId: string,
 ): Promise<number> => (await loadRow(client, brandId, projectId)).current_version;
 
+export type VersionCheck = Readonly<{
+  /** The version the design is at now. */
+  version: number;
+  /** How many versions after `since` were made by someone other than the user. */
+  others: number;
+}>;
+
+/**
+ * The version a design is at now, and whether anyone else saved it after `since`. The editor
+ * asks when a save was refused because the design moved on: if every newer version is the
+ * person's own, their change is sent again on top of it, and only a change by someone else
+ * is a conflict.
+ */
+export const checkVersion = async (
+  client: SupabaseClient,
+  input: Readonly<{ brandId: string; projectId: string; userId: string; since: number }>,
+): Promise<VersionCheck> => {
+  const version = (await loadRow(client, input.brandId, input.projectId)).current_version;
+  if (version <= input.since) return { version, others: 0 };
+  const { count, error } = await client
+    .from("spec_versions")
+    .select("version", { count: "exact", head: true })
+    .eq("brand_id", input.brandId)
+    .eq("project_id", input.projectId)
+    .gt("version", input.since)
+    .neq("created_by", input.userId);
+  throwIfFailed(error);
+  return { version, others: z.number().int().min(0).parse(count ?? 0) };
+};
+
 /** Which version each version restored, for working out where an undo goes. */
 export const historyRows = async (
   client: SupabaseClient,

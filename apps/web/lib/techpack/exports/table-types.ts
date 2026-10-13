@@ -39,6 +39,11 @@ export interface ExportSection {
   /** Sentences before the tables. */
   readonly paragraphs: readonly string[];
   readonly tables: readonly ExportTable[];
+  /**
+   * Notes that explain single values, kept out of the way of the tables. The PDF prints them in its
+   * "Sources and notes" appendix and the Excel file under the section's tables. Absent means none.
+   */
+  readonly notes?: readonly ExportTable[];
 }
 
 export const text = (value: string): Datum => ({ kind: "text", text: value });

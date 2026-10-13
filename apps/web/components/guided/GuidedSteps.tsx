@@ -4,14 +4,18 @@ import type { Route } from "next";
 import Link from "next/link";
 import { ChatPanel } from "@/components/studio/ChatPanel";
 import { ImageReview } from "@/components/studio/ImageReview";
+import type { AssistantInfo } from "@/components/studio/Editor";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { OptionControls } from "@/components/studio/OptionControls";
 import type { Editor as EditorApi } from "@/components/studio/useEditor";
 import { TechPackDownloads } from "@/components/techpack/TechPackDownloads";
+import { LinkButton } from "@/components/ui/LinkButton";
 import { withPlain } from "@/lib/copy/vocabulary";
-import type { StartMethod } from "@/lib/guided/flow";
+import { startLead, type StartMethod } from "@/lib/guided/flow";
+import { designActions } from "@/lib/projects/design-actions";
 import type { EditorData } from "@/lib/projects/editor-data";
 
-type Assistant = Readonly<{ available: boolean }>;
+type Assistant = AssistantInfo;
 
 type StartProps = Readonly<{
   data: EditorData;
@@ -36,16 +40,14 @@ export function StartStep({ data, from, say, assistant, busy, onSaid }: StartPro
   }
   return (
     <>
-      <p className="text-[15px] leading-relaxed text-muted">
-        {from === "text"
-          ? "Your words were sent to the assistant. Its answer is below; the drawing and measurements change with it."
-          : "You picked the garment. Describe anything else you want, or go on to review."}
-      </p>
+      <p className="text-[15px] leading-relaxed text-muted">{startLead(from, say, assistant.conversation.length)}</p>
+      <KitStylesLink projectId={data.projectId} typeId={data.spec.typeId} from="guide" />
       <ChatPanel
         projectId={data.projectId}
         version={data.version}
         available={assistant.available}
         busy={busy}
+        conversation={assistant.conversation}
         initialUtterance={from === "text" ? say : undefined}
         onInitialSent={onSaid}
       />
@@ -77,7 +79,7 @@ export function AdjustStep({ data, editor, assistant }: AdjustProps) {
         onSettle={editor.settleOption}
         errorFor={editor.errorFor}
       />
-      <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} />
+      <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} conversation={assistant.conversation} />
       <p className="text-sm text-muted">
         To type measurements, colours or logos,{" "}
         <Link href={`/studio/${data.projectId}` as Route} className="font-medium text-ink underline underline-offset-4">
@@ -104,5 +106,24 @@ export function DownloadStep({ data }: Readonly<{ data: EditorData }>) {
         </Link>
       </p>
     </div>
+  );
+}
+
+/** Step 5: no dead end. Each next step is a button with one sentence on what it does. */
+export function MakeStep({ data }: Readonly<{ data: EditorData }>) {
+  const actions = designActions(data.projectId);
+  return (
+    <ul className="flex flex-col divide-y divide-hairline" aria-label="What to do next">
+      {actions.map((action, index) => (
+        <li key={action.id} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+          <div>
+            <LinkButton href={action.href as Route} variant={index === 0 ? "primary" : "secondary"}>
+              {action.label}
+            </LinkButton>
+          </div>
+          <p className="text-[15px] leading-relaxed text-muted">{action.sentence}</p>
+        </li>
+      ))}
+    </ul>
   );
 }

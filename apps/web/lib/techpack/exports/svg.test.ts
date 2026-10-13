@@ -26,8 +26,10 @@ describe("the SVG file of a view", () => {
     }
   });
 
-  it("carries the callouts as they are on the tech pack, with the code and the value", () => {
-    expect(buildSvg(pack, "front", new Map())).toContain(">A 52.0 cm<");
+  it("carries the callouts as they are on the tech pack, each a mark with the code of its row", () => {
+    const svg = buildSvg(pack, "front", new Map());
+    expect(svg).toContain(">A</text>");
+    expect(svg).not.toContain("52.0 cm");
   });
 
   it("gives a different drawing for each view, one file for each", () => {

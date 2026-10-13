@@ -12,10 +12,13 @@ import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
+import { conversationFor } from "@/lib/projects/chat-history";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { AppError } from "@/lib/server/core/errors";
 import { imageProvider, sessionClient } from "@/lib/server/deps";
+import { log } from "@/lib/server/log";
 import { requireMember } from "@/lib/server/page-guards";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
@@ -41,17 +44,19 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   ]).catch(orNotFound);
 
   const reader = createFileReader(client, brand.id);
-  const [pictures, illustrations, leads] = await Promise.all([
+  const [pictures, illustrations, leads, conversation] = await Promise.all([
     loadArtworkImages(reader, shrinkForDrawing, project.spec),
     latestImages(client, brand.id, projectId).then((latest) => loadIllustrations(reader, latest)),
     loadDesignLeads(client, brand.id, projectId, new Date()),
+    conversationFor(client, { brandId: brand.id, projectId }, log),
   ]);
 
   return (
     <div className="flex flex-col gap-10">
+      <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />
       <Editor
         data={buildEditorData(project, history, charts, pictures, colourway)}
-        assistant={{ available: assistantAvailable() }}
+        assistant={{ available: assistantAvailable(), conversation }}
         show3d={getEnv().SHOW_3D}
       />
       <PhotorealPanel

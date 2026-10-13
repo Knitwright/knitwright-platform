@@ -213,7 +213,7 @@ body {
     color: #0f1012;
   }
   .chip-cta:not(:disabled):is(:hover, :focus-visible) .chip-disc,
-  .lift:is(:hover, :focus-visible) .chip-disc {
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .chip-disc {
     transform: rotate(45deg);
   }
 
@@ -259,7 +259,7 @@ body {
       transform 600ms var(--spring),
       border-color 500ms var(--ease);
   }
-  .lift:is(:hover, :focus-visible) {
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) {
     transform: translateY(-4px);
     border-color: rgba(255, 255, 255, 0.32);
     --glass-edge: rgba(255, 255, 255, 0.32);
@@ -274,7 +274,7 @@ body {
     transition: clip-path 700ms var(--ease);
     pointer-events: none;
   }
-  .lift:is(:hover, :focus-visible) .fill-layer {
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .fill-layer {
     clip-path: circle(160% at var(--fx, 50%) var(--fy, 100%));
   }
   /* A caption that slides up and fades in as its card is hovered. */
@@ -286,13 +286,13 @@ body {
   .lift .lift-caption {
     transform: translateY(8px);
   }
-  .lift:is(:hover, :focus-visible) .lift-caption {
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-caption {
     transform: none;
   }
   .lift .lift-art {
     transition: transform 800ms var(--spring);
   }
-  .lift:is(:hover, :focus-visible) .lift-art {
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-art {
     transform: scale(1.06) rotate(-2deg);
   }
 

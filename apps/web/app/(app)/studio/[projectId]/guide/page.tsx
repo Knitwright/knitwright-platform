@@ -6,10 +6,12 @@ import { getEnv } from "@/lib/config/env";
 import { startMethodFrom, stepFrom } from "@/lib/guided/flow";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
+import { conversationFor } from "@/lib/projects/chat-history";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
+import { log } from "@/lib/server/log";
 import { requireMember } from "@/lib/server/page-guards";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
@@ -35,7 +37,10 @@ export default async function GuidePage({ params, searchParams }: PageProps<"/st
     listVersions(client, brand.id, projectId),
     brandChartSet(client, brand.id),
   ]).catch(orNotFound);
-  const pictures = await loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec);
+  const [pictures, conversation] = await Promise.all([
+    loadArtworkImages(createFileReader(client, brand.id), shrinkForDrawing, project.spec),
+    conversationFor(client, { brandId: brand.id, projectId }, log),
+  ]);
   const say = typeof query.say === "string" ? query.say : undefined;
 
   return (
@@ -45,7 +50,7 @@ export default async function GuidePage({ params, searchParams }: PageProps<"/st
       from={startMethodFrom(query.from)}
       say={say}
       unit={lengthUnitFrom(query.unit)}
-      assistant={{ available: assistantAvailable() }}
+      assistant={{ available: assistantAvailable(), conversation }}
       show3d={getEnv().SHOW_3D}
     />
   );

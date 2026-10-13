@@ -3,8 +3,7 @@ import { start } from "@/lib/garment/fixtures/specs";
 import { PROJECT, packFor } from "../../fixtures/designs";
 import { allCells } from "../../walk";
 import { allText } from "../fixtures/pdf-pages";
-import { designWithTexts, noSpace, printed, readPdfOf, sourceOf } from "../fixtures/pdf-helpers";
-import { drawable } from "../pdf-text";
+import { designWithTexts, noSpace, readPdfOf, withMark } from "../fixtures/pdf-helpers";
 import { CHARACTERS_REPLACED } from "./document";
 
 /**
@@ -38,7 +37,7 @@ describe("text a person typed may hold any character", () => {
     const hostile = allCells(pack).filter(({ cell }) => cell.status === "set" && HOSTILE.some((entry) => String(cell.value).includes(entry.slice(0, 3))));
     expect(hostile.length).toBeGreaterThan(5);
     for (const { path, cell } of allCells(pack).filter(({ cell }) => cell.status === "set")) {
-      expect(text, path).toContain(noSpace(`${drawable(printed(cell))}${sourceOf(cell)}`));
+      expect(text, path).toContain(withMark(text, cell));
     }
     // A long word with no space in it is cut where the line ends, and is never lost.
     expect(warnings).toEqual([]);

@@ -32,7 +32,7 @@ describe("sizingFromChart", () => {
   it("gives a plain reason when there is no chart", () => {
     const result = sizingFromChart(crewTee(), { runs: [], charts: [] });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toContain("no size chart");
+    if (!result.ok) expect(result.reason).toContain("no Knitwright starter chart");
   });
 
   it("leaves a design that already has sizing alone", () => {
@@ -69,13 +69,13 @@ describe("resolveAllSizes", () => {
   it("says so, with no entries, when there is no chart and no design sizing", () => {
     const all = resolveAllSizes(crewTee(), { runs: [], charts: [] });
     expect(all).toMatchObject({ entries: [], baseSize: null, sizesFrom: null });
-    expect(all.message).toContain("no size chart");
+    expect(all.message).toContain("no Knitwright starter chart");
   });
 
   it("gives every size a no-chart result when the design has sizing but there is no chart", () => {
     const all = resolveAllSizes(crewTee({ sizes: ["S", "M"], baseSize: "S" }), { runs: [], charts: [] });
     expect(all.entries.map((entry) => entry.resolution.status)).toEqual(["no-chart", "no-chart"]);
-    expect(all.message).toContain("no size chart");
+    expect(all.message).toContain("no Knitwright starter chart");
   });
 
   it("reports a chart that cannot be graded", () => {

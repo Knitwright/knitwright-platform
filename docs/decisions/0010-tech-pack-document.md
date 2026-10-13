@@ -25,7 +25,9 @@ of them can read, and it must never say more than the design does.
 5. **The table, the drawing and the document come from one version.** The table is made with the
    same `resolveAllSizes` call as the editor. The drawings are made from the measurements of the
    base size. Callouts are short codes (A, B, C in table order) that tie a drawing to its rows. A
-   drawing that is not to scale carries no callouts.
+   drawing that is not to scale carries no callouts. Since 2026-10-13 each code is a round mark
+   sized from the drawing, so it can be read in print, and the drawing no longer repeats the
+   value: the value is in the table, beside its source (`lib/techpack/callout-marks.ts`).
 6. **Seams and components are registry data.** Each seam names a seam class (ISO 4916) and a
    stitch class (ISO 4915), and each component names what the design implies. They are a starting
    proposal from general knitwear practice. The numbers are names of kinds, not quantities, and

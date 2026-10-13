@@ -16,7 +16,8 @@ type SizesFormProps = Readonly<{
   /** Reports a mistake found before anything is sent. The person asked, so focus moves to it. */
   onInvalid: (key: string, message: string) => void;
   onTyping: () => void;
-  onDirty: (dirty: boolean) => void;
+  /** Must not change between draws: it is called from an effect that depends on it. */
+  onDirty: (key: string, dirty: boolean) => void;
 }>;
 
 const HINT = "Write the sizes from smallest to largest and separate them with commas, for example S, M, L.";
@@ -36,7 +37,8 @@ export function SizesForm(props: SizesFormProps) {
     setBase(initialBase);
   }
   const dirty = text.trim() !== initialText || base !== initialBase;
-  useEffect(() => onDirty(dirty), [dirty, onDirty]);
+  useEffect(() => onDirty(SIZES_KEY, dirty), [dirty, onDirty]);
+  useEffect(() => () => onDirty(SIZES_KEY, false), [onDirty]);
 
   const submit = () => {
     const result = sizingActionFromForm(text, base);

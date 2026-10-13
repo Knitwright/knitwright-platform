@@ -6,6 +6,7 @@ import { resolveAllSizes } from "@/lib/sizing";
 import { pointsInTableOrder } from "./codes";
 import { buildHowToMeasure, buildMeasurements } from "./measurements";
 import { CHARTS } from "./fixtures/charts";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import type { LengthValue, MeasureRow } from "./types";
 
 const rowOf = (rows: readonly MeasureRow[], pointId: string): MeasureRow => {
@@ -86,7 +87,7 @@ describe("the measurement table without a size chart", () => {
   ).spec;
 
   it("shows the typed value at the base size and to be confirmed at the others, never a zero", () => {
-    const section = buildMeasurements(withChest);
+    const section = buildMeasurements(withChest, NO_CHART_SET);
     const chest = rowOf(allRows(section), "chest-width");
     expect(valueTexts(chest.values)).toEqual(["TBC", "52.5", "TBC"]);
     expect(chest.values[0]).toEqual({ status: "to-be-confirmed" });
@@ -95,28 +96,53 @@ describe("the measurement table without a size chart", () => {
   });
 
   it("marks a tolerance nobody has entered as to be confirmed", () => {
-    expect(rowOf(allRows(buildMeasurements(withChest)), "chest-width").tolerance).toEqual({
+    expect(rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "chest-width").tolerance).toEqual({
       status: "to-be-confirmed",
     });
   });
 
   it("explains a missing value in the notes of its row", () => {
-    const notes = rowOf(allRows(buildMeasurements(withChest)), "chest-width").notes;
+    const notes = rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "chest-width").notes;
     expect(notes.length).toBeGreaterThan(0);
     expect(notes.join(" ")).toMatch(/size chart/i);
   });
 
+  it("says once for all the sizes what it would otherwise say for each size in turn", () => {
+    const five = accepted(
+      applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["XS", "S", "M", "L", "XL"], baseSize: "M" } }),
+    ).spec;
+    const notes = rowOf(allRows(buildMeasurements(five)), "chest-width").notes;
+    expect(notes).toEqual([
+      "Chest width was typed in for size M. With no size chart it cannot be worked out for sizes XS, S, L and XL. Type a value for these sizes.",
+      "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
+    ]);
+  });
+
+  it("keeps a note for one size as it is", () => {
+    const two = accepted(applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["M", "L"], baseSize: "M" } })).spec;
+    expect(rowOf(allRows(buildMeasurements(two)), "chest-width").notes).toEqual([
+      "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
+      "Chest width was typed in for size M. With no size chart it cannot be worked out for size L. Type a value for this size.",
+    ]);
+  });
+
+  it("says a note that names no size once", () => {
+    const notes = rowOf(allRows(buildMeasurements(withChest)), "body-length").notes;
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toMatch(/^Body length has no value\./);
+  });
+
   it("has only to be confirmed cells for a point with nothing typed", () => {
-    const row = rowOf(allRows(buildMeasurements(withChest)), "body-length");
+    const row = rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "body-length");
     expect(row.values.every((value) => value.status === "to-be-confirmed")).toBe(true);
   });
 
   it("says which values are missing in the note of the section", () => {
-    expect(buildMeasurements(withChest).note).toBe("Some measurements are still to be confirmed.");
+    expect(buildMeasurements(withChest, NO_CHART_SET).note).toBe("Some measurements are still to be confirmed.");
   });
 
   it("holds no zero anywhere a value is missing", () => {
-    const text = JSON.stringify(buildMeasurements(withChest).groups);
+    const text = JSON.stringify(buildMeasurements(withChest, NO_CHART_SET).groups);
     expect(text).not.toMatch(/"tenthsMm":0[,}]/);
     expect(text).not.toMatch(/"value":"0\.0"/);
   });
@@ -124,7 +150,7 @@ describe("the measurement table without a size chart", () => {
 
 describe("the measurement table with no sizes at all", () => {
   it("has one column that says the size is not set, and every value to be confirmed", () => {
-    const section = buildMeasurements(start("crew-tee"));
+    const section = buildMeasurements(start("crew-tee"), NO_CHART_SET);
     expect(section.columns).toEqual([{ size: null, label: "Size not set", isBase: false }]);
     expect(section.sizesFrom).toBeNull();
     expect(allRows(section)).toHaveLength(11);
@@ -136,7 +162,7 @@ describe("the measurement table with no sizes at all", () => {
   });
 
   it("still shows a typed value, with its source, when the sizes are not set", () => {
-    const row = rowOf(allRows(buildMeasurements(typed("chest-width", 5200))), "chest-width");
+    const row = rowOf(allRows(buildMeasurements(typed("chest-width", 5200), NO_CHART_SET)), "chest-width");
     expect(row.values[0]).toMatchObject({ status: "set", value: "52.0", provenance: "user-edited" });
   });
 });
@@ -167,5 +193,26 @@ describe("the how to measure page", () => {
     const section = buildHowToMeasure({ ...start("crew-tee"), typeId: "kilt" });
     expect(section.rows).toEqual([]);
     expect(section.note).toBe("This garment type has no measurements to explain.");
+  });
+});
+
+describe("the measurement table with the Knitwright starter charts", () => {
+  const spec = accepted(
+    applyAction(start("crew-tee", "men"), { type: "set-sizing", sizing: { sizes: ["S", "M", "L"], baseSize: "M" } }),
+  ).spec;
+
+  it("grades every size from the starter chart, with a tolerance on every row", () => {
+    const section = buildMeasurements(spec);
+    expect(section.columns.map((column) => column.label)).toEqual(["S", "M", "L"]);
+    for (const row of allRows(section)) {
+      expect(row.values.every((value) => value.status === "set")).toBe(true);
+      expect(row.tolerance.status).toBe("set");
+    }
+  });
+
+  it("says the values are Knitwright suggestions to check with the factory", () => {
+    expect(buildMeasurements(spec).note).toBe(
+      "These measurements are suggestions from the Knitwright starter chart, not a factory's numbers. Check them with your factory before you order.",
+    );
   });
 });

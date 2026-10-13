@@ -2252,6 +2252,63 @@
           "type": "add-names-numbers"
         }
       ]
+    },
+    "tops-211": {
+      "kind": "question",
+      "question": "Which colour should the hoops be?",
+      "choices": [
+        { "label": "Gold hoops", "actions": [{ "type": "set-kit-pattern", "style": "hoops", "colours": [{ "colour": "gold", "swatch": "#d4af37" }] }] },
+        { "label": "White hoops", "actions": [{ "type": "set-kit-pattern", "style": "hoops", "colours": [{ "colour": "white", "swatch": "#ffffff" }] }] }
+      ],
+      "recommended": 0
+    },
+    "tops-212": {
+      "kind": "changes",
+      "actions": [
+        { "type": "set-colour", "panels": ["body-front", "body-back", "sleeve-left", "sleeve-right"], "colour": "navy", "swatch": "#1b2a49" },
+        { "type": "set-kit-pattern", "style": "stripes", "colours": [{ "colour": "gold", "swatch": "#d4af37" }] }
+      ]
+    },
+    "tops-213": {
+      "kind": "changes",
+      "actions": [{ "type": "set-kit-pattern", "style": "sash", "colours": [{ "colour": "red", "swatch": "#c8102e" }] }]
+    },
+    "tops-214": {
+      "kind": "changes",
+      "actions": [{ "type": "set-kit-pattern", "style": "pinstripes", "colours": [{ "colour": "white", "swatch": "#ffffff" }] }]
+    },
+    "tops-215": {
+      "kind": "changes",
+      "actions": [
+        { "type": "set-colour", "panels": ["body-front", "body-back", "sleeve-left", "sleeve-right"], "colour": "green", "swatch": "#00843d" },
+        { "type": "set-kit-pattern", "style": "hoops", "colours": [{ "colour": "white", "swatch": "#ffffff" }] }
+      ]
+    },
+    "tops-216": {
+      "kind": "changes",
+      "actions": [{ "type": "set-kit-pattern", "style": "chest-band", "colours": [{ "colour": "black", "swatch": "#111111" }] }]
+    },
+    "tops-217": {
+      "kind": "changes",
+      "actions": [
+        { "type": "set-colour", "panels": ["body-front", "body-back", "sleeve-left", "sleeve-right"], "colour": "navy", "swatch": "#1b2a49" },
+        { "type": "set-kit-pattern", "style": "fade", "colours": [{ "colour": "sky blue", "swatch": "#6cabdd" }] }
+      ]
+    },
+    "tops-218": {
+      "kind": "question",
+      "question": "Do you want sewn side panels, or side panels printed on the body?",
+      "choices": [
+        {
+          "label": "Sewn side panels, a contrast insert, in gold",
+          "actions": [
+            { "type": "set-option", "optionId": "side-panels", "choiceId": "contrast-insert" },
+            { "type": "set-colour", "panels": ["side-panels"], "colour": "gold", "swatch": "#d4af37" }
+          ]
+        },
+        { "label": "Gold side panels printed on the body", "actions": [{ "type": "set-kit-pattern", "style": "side-panels", "colours": [{ "colour": "gold", "swatch": "#d4af37" }] }] }
+      ],
+      "recommended": 0
     }
   },
   "faults": [

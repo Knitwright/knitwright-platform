@@ -45,10 +45,17 @@ describe("three-way test: one measurement changes the flat, the table and the do
     expect(panelsOf(newPack.flats.views[1]?.model ?? null)).not.toBe(panelsOf(oldPack.flats.views[1]?.model ?? null));
   });
 
-  it("changes the callout on the flat, and it still carries the code and the new value", () => {
-    expect(calloutsOf(oldPack.flats.views[0]?.model ?? null)).toContain("A 52.0 cm");
-    expect(calloutsOf(newPack.flats.views[0]?.model ?? null)).toContain("A 56.0 cm");
-    expect(calloutsOf(newPack.flats.views[0]?.model ?? null)).not.toContain("A 52.0 cm");
+  it("changes the callout line on the flat, which still carries the code of its row in the table", () => {
+    const lineOf = (pack: TechPack) =>
+      JSON.stringify(
+        (pack.flats.views[0]?.model?.layers ?? [])
+          .flatMap((layer) => layer.elements)
+          .find((element) => element.kind === "path" && element.name === "A line"),
+      );
+    expect(calloutsOf(oldPack.flats.views[0]?.model ?? null)).toContain("A");
+    expect(calloutsOf(newPack.flats.views[0]?.model ?? null)).toContain("A");
+    expect(lineOf(newPack)).not.toBe(lineOf(oldPack));
+    expect(chestRow(newPack).code).toBe("A");
   });
 
   it("changes the row of the table, and no other row", () => {

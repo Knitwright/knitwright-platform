@@ -4,11 +4,12 @@ import type { LengthUnit } from "@/lib/units/length";
 
 /**
  * The guided flow (plan step 15): one path from a sentence, a sketch or a garment picker to
- * the files a factory needs. Start, review, adjust, download. Everything the screens decide
- * is here; the components hold markup and wiring.
+ * the files a factory needs, and on to a committee and a quote. Start, review, adjust, download,
+ * then share and get it made. Everything the screens decide is here; the components hold
+ * markup and wiring.
  */
 
-export const STEP_IDS = ["start", "review", "adjust", "download"] as const;
+export const STEP_IDS = ["start", "review", "adjust", "download", "make"] as const;
 export type StepId = (typeof STEP_IDS)[number];
 
 export interface GuidedStep {
@@ -23,6 +24,7 @@ export const GUIDED_STEPS: readonly GuidedStep[] = [
   { id: "review", label: "Review", hint: "Check the drawing and the measurements the design has now." },
   { id: "adjust", label: "Adjust", hint: "Change any option, or ask for a change in your own words." },
   { id: "download", label: "Download", hint: "Get the factory file as a PDF and a spreadsheet, and the drawings." },
+  { id: "make", label: "Share and get it made", hint: "Show the design to your committee, see it in photos, and ask for a price." },
 ];
 
 export const START_METHODS = ["text", "sketch", "picker"] as const;
@@ -35,6 +37,17 @@ export const stepFrom = (value: unknown): StepId =>
 /** How the person started. The garment picker for anything else. */
 export const startMethodFrom = (value: unknown): StartMethod =>
   typeof value === "string" && (START_METHODS as readonly string[]).includes(value) ? (value as StartMethod) : "picker";
+
+/**
+ * What the start step says above the assistant. A design reopened later may have come from
+ * words or from the picker, and the address no longer says which, so only what is known is
+ * said: the words just sent, or the conversation kept so far, or neither.
+ */
+export function startLead(from: StartMethod, say: string | undefined, kept: number): string {
+  if (from === "text" && say) return "Your words were sent to the assistant. Its answer is below; the drawing and measurements change with it.";
+  if (kept > 0) return "Your conversation with the assistant so far is below. Describe anything else you want, or go on to review.";
+  return "Describe anything you want to change, or go on to review.";
+}
 
 export function neighbours(step: StepId): { previous: StepId | null; next: StepId | null } {
   const index = STEP_IDS.indexOf(step);

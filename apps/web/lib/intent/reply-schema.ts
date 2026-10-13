@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SWATCH_PATTERN, fabricChangesSchema, labellingFieldSchema, wearerSchema } from "@/lib/garment";
+import { removeKitPatternWire, setKitPatternWire } from "./kit-pattern";
 
 /**
  * The reply a model must give, as JSON. Every object is strict: a field the contract does
@@ -22,7 +23,7 @@ const shownText = (max: number) =>
 
 const id = z.string().min(1).max(64);
 
-/** The changes a model may ask for. Each becomes one editor `SpecAction`. */
+/** The changes a model may ask for. Each becomes one editor `SpecAction`, except `ask-amount`. */
 export const WIRE_ACTION_TYPES = [
   "set-option",
   "change-type",
@@ -33,6 +34,9 @@ export const WIRE_ACTION_TYPES = [
   "change-fabric",
   "set-labelling",
   "add-names-numbers",
+  "ask-amount",
+  "set-kit-pattern",
+  "remove-kit-pattern",
 ] as const;
 export type WireActionType = (typeof WIRE_ACTION_TYPES)[number];
 
@@ -60,6 +64,14 @@ export const wireActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("set-labelling"), field: labellingFieldSchema, text: z.string().max(TEXT_MAX_LENGTH) }),
   /** Player names and numbers at the usual places of the garment (decision 0027). */
   z.strictObject({ type: z.literal("add-names-numbers") }),
+  /**
+   * A length asked for without an amount, such as "a bit longer". It changes nothing: the
+   * person is asked how much, so the number is theirs, while the rest of the request is made.
+   */
+  z.strictObject({ type: z.literal("ask-amount"), pointId: id, direction: z.enum(["longer", "shorter"]) }),
+  /** A kit pattern printed over the body (owner decision 2026-10-13). */
+  setKitPatternWire,
+  removeKitPatternWire,
 ]);
 export type WireAction = z.output<typeof wireActionSchema>;
 

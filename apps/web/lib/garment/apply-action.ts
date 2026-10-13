@@ -3,6 +3,7 @@ import type { Dropped } from "./dropped";
 import { fabricChanges } from "./fabric-changes";
 import { changeFabric } from "./fabric-edit";
 import { panelName } from "./labels";
+import { withoutKitPattern } from "./kit-pattern";
 import { withoutMarks } from "./names-numbers";
 import { nonEmpty } from "./non-empty";
 import { reconcile, retype } from "./reconcile";
@@ -161,6 +162,10 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return accept({ ...spec, namesAndNumbers: action.namesAndNumbers });
     case "remove-names-numbers":
       return spec.namesAndNumbers === undefined ? reject("There are no names and numbers to remove.") : accept(withoutMarks(spec));
+    case "set-kit-pattern":
+      return accept({ ...spec, kitPattern: action.kitPattern });
+    case "remove-kit-pattern":
+      return spec.kitPattern === undefined ? reject("There is no kit pattern to remove.") : accept(withoutKitPattern(spec));
     case "set-component":
       return setComponent(spec, action.component);
     case "remove-component":

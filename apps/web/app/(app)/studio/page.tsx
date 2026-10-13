@@ -15,18 +15,23 @@ export const metadata: Metadata = { title: "Your designs" };
 /** How many designs one page of the studio shows. */
 const DESIGNS_PER_PAGE = 12;
 
+/** The two ways to start a design. The guided way comes first and is the one primary action. */
 const WAYS = [
   {
+    id: "guided",
     href: "/studio/start",
-    title: "Start a design, step by step",
-    text: "Pick a garment, then the fit, the colours and the sizes, one question at a time.",
+    title: "Start a design",
+    text: "Step by step, from your own words, a sketch or a garment, through to sharing it and a quote.",
+    primary: true,
   },
   {
+    id: "blank",
     href: "/studio/new",
-    title: "New design",
-    text: "Name it and pick the garment. You go straight to the editor.",
+    title: "Blank design",
+    text: "Pick a garment and go straight to the full editor.",
+    primary: false,
   },
-] as const satisfies readonly { href: Route; title: string; text: string }[];
+] as const satisfies readonly { id: string; href: Route; title: string; text: string; primary: boolean }[];
 
 export default async function StudioPage({ searchParams }: PageProps<"/studio">) {
   const { brand } = await requireMember();
@@ -47,19 +52,29 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
         <ul className="mt-8 grid gap-3 sm:grid-cols-2">
           {WAYS.map((way, index) => (
             <li key={way.href} className="rise" style={{ "--i": index + 2 } as CSSProperties}>
-              <Link
-                href={way.href}
-                className="lift flex min-h-36 flex-col gap-4 rounded-[1.6rem] border border-white/12 bg-white/5 p-5 text-ink no-underline"
+              <div
+                className={`lift flex min-h-36 flex-col gap-4 rounded-[1.6rem] border border-white/12 p-5 text-ink ${
+                  way.primary ? "thread-ring bg-white/[0.08]" : "bg-white/5"
+                }`}
               >
                 <span className="fill-layer" aria-hidden="true" />
                 <span className="flex items-center justify-between gap-4">
-                  <span className="text-lg font-medium tracking-[-0.01em]">{way.title}</span>
-                  <span className="chip-disc size-9 bg-white" aria-hidden="true">
+                  {/* The link covers the whole card; its name is the title alone. */}
+                  <Link
+                    href={way.href}
+                    aria-describedby={`way-${way.id}`}
+                    className="text-lg font-medium tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:rounded-[1.6rem] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-cobalt-soft"
+                  >
+                    {way.title}
+                  </Link>
+                  <span className={`chip-disc size-9 ${way.primary ? "" : "bg-white"}`} aria-hidden="true">
                     <ArrowMark />
                   </span>
                 </span>
-                <span className="mt-auto text-[13.5px] leading-relaxed text-ink-2">{way.text}</span>
-              </Link>
+                <span id={`way-${way.id}`} className="mt-auto text-[13.5px] leading-relaxed text-ink-2">
+                  {way.text}
+                </span>
+              </div>
             </li>
           ))}
         </ul>

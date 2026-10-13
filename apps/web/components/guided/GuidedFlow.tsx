@@ -4,12 +4,13 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useOptimistic, useRef } from "react";
 import { LinkButton } from "@/components/ui/LinkButton";
+import type { AssistantInfo } from "@/components/studio/Editor";
 import { SaveStatus } from "@/components/studio/EditorParts";
 import { useEditor } from "@/components/studio/useEditor";
 import { GUIDED_STEPS, guideAddress, neighbours, type StartMethod, type StepId } from "@/lib/guided/flow";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { LengthUnit } from "@/lib/units/length";
-import { AdjustStep, DownloadStep, ReviewStep, StartStep } from "./GuidedSteps";
+import { AdjustStep, DownloadStep, MakeStep, ReviewStep, StartStep } from "./GuidedSteps";
 import { LivePreview } from "./LivePreview";
 import { StepNav } from "./StepNav";
 
@@ -19,14 +20,14 @@ type Props = Readonly<{
   from: StartMethod;
   say: string | undefined;
   unit: LengthUnit;
-  assistant: Readonly<{ available: boolean }>;
+  assistant: AssistantInfo;
   /** The server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
   show3d?: boolean;
 }>;
 
 /**
- * The guided flow (plan step 15): start, review, adjust, download, with the drawing and the
- * measurements in view at every step. Each step has its own address, so the browser's back
+ * The guided flow (plan step 15): start, review, adjust, download, then share and get it made,
+ * with the drawing and the measurements in view at every step. Each step has its own address, so the browser's back
  * button works and a step can be shared. Focus moves to the step's heading when it changes.
  */
 export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = false }: Props) {
@@ -52,7 +53,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = fa
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-3">
         <p className="font-mono text-xs uppercase tracking-wider text-muted">
-          {data.typeLabel} for {data.wearerLabel.toLowerCase()} · Version <span data-testid="version">{data.version}</span>
+          {data.typeLabel} for {data.wearerLabel.toLowerCase()} · Version <span data-testid="version">{editor.state.version}</span>
         </p>
         <h1 className="text-3xl font-semibold tracking-tight text-ink">{data.name}</h1>
         <StepNav projectId={data.projectId} current={step} unit={unit} />
@@ -77,6 +78,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = fa
           {step === "review" ? <ReviewStep /> : null}
           {step === "adjust" ? <AdjustStep data={data} editor={editor} assistant={assistant} /> : null}
           {step === "download" ? <DownloadStep data={data} /> : null}
+          {step === "make" ? <MakeStep data={data} /> : null}
           <div className="mt-2 flex flex-wrap gap-3">
             {previous ? (
               <LinkButton href={address(previous)} variant="secondary">

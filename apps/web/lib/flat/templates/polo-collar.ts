@@ -3,23 +3,35 @@ import type { Point } from "../model";
 import { bothSides, type Frame } from "./pieces";
 
 const KAPPA = 0.5522847498;
-/** Shares of the collar height, and of the chest width, for the parts of a polo collar. */
+/**
+ * Shares of the collar height, and of the chest width, for the parts of a polo collar. The
+ * collar lies flat: from the front, the leaves spread over the shoulders and the back of the
+ * collar is a band behind the neck whose top edge, the fold, runs almost level a little above
+ * the shoulder line. It never rises round the head.
+ */
 export const POLO_TIP_DROP = 0.5;
-const POLO_REACH = 0.9;
-const POLO_STAND_INNER = 0.42;
-const POLO_STAND_OUTER = 0.8;
+const POLO_REACH = 0.8;
+/** How far the fold at the top of the collar sits above the back neck seam, at the centre back. */
+const POLO_FOLD_RISE = 0.6;
+/** How far the fall of the collar hangs below the back neck seam, seen from the back. */
+const POLO_FALL = 0.2;
 const POLO_GAP = 0.008;
-const FOLD_BOW = 0.06;
+/** How far each collar point sits out from the centre front, so the two points spread apart over the placket. */
+const POLO_TIP_SPREAD = 0.065;
+const FOLD_BOW = 0.14;
 const ROLL_SHARE = 0.4;
-const BACK_END_RISE = 0.1;
-const BACK_END_FLARE = 0.15;
-const BACK_TOP = 0.7;
 
-/** The height of the inside edge of the collar stand at the back, above the shoulder line (a negative number). */
-export const poloStandInnerTop = (frame: Frame): number => -POLO_STAND_INNER * frame.collarHeight;
+/** The foot of the collar stand at the centre back: the back neck seam, seen from the front through the opening. */
+export const poloStandFoot = (frame: Frame): number => frame.backDrop;
+
+/** The fold at the top of the collar at the centre back (a negative number is above the shoulder line). */
+const foldTop = (frame: Frame): number => frame.backDrop - POLO_FOLD_RISE * frame.collarHeight;
 
 /** How far the two collar leaves stand apart at the centre front. */
 const gapOf = (frame: Frame): number => POLO_GAP * frame.basis.chest;
+
+/** Where the point of the right leaf is: below the neckline and a little out from the centre front. */
+const tipOf = (frame: Frame): Point => pt(POLO_TIP_SPREAD * frame.basis.chest, frame.drop + poloTipDepth(frame));
 
 /** How far below the neckline the tips of the leaves hang. */
 export const poloTipDepth = (frame: Frame): number => POLO_TIP_DROP * frame.collarHeight;
@@ -53,26 +65,27 @@ export function poloFrontChain(frame: Frame): Chain {
   return joinChains(inner, reverseChain(bothSides(outerRight)));
 }
 
-/** The inner edge of the collar on the right: the neck seam down the front, and the inside of the stand at the back. */
+/** The inner edge of the collar on the right: the neck seam down the front, and the foot of the stand at the back neck seam. */
 export function poloSeamRight(frame: Frame): Chain {
   const a = frame.basis.neckHalf;
   const b = frame.drop;
   const gap = gapOf(frame);
-  const innerTop = poloStandInnerTop(frame);
+  const foot = poloStandFoot(frame);
   return chain(
     pt(gap, b),
     curveTo(pt(gap + (a - gap) * KAPPA, b), pt(a, b * KAPPA), pt(a, 0)),
-    curveTo(pt(a, innerTop * KAPPA), pt(a * KAPPA, innerTop), pt(0, innerTop)),
+    curveTo(pt(a, foot * KAPPA), pt(a * KAPPA, foot), pt(0, foot)),
   );
 }
 
 /** The points and the curve behind the neck that shape the outside of a leaf on the right. */
 export function poloFrontEdges(frame: Frame): { tip: Point; corner: Point; behind: Piece } {
   const a = frame.basis.neckHalf;
-  const tip = pt(gapOf(frame), frame.drop + poloTipDepth(frame));
+  const tip = tipOf(frame);
   const corner = cornerOf(frame);
-  const outerTop = -POLO_STAND_OUTER * frame.collarHeight;
-  return { tip, corner, behind: curveTo(pt(corner.x * 0.85, corner.y - (corner.y - outerTop) * 0.55), pt(a * 0.7, outerTop), pt(0, outerTop)) };
+  const top = foldTop(frame);
+  // The fold rises from the shoulder close to the neck, then runs nearly level across the back.
+  return { tip, corner, behind: curveTo(pt(a * 1.05, corner.y + (top - corner.y) * 0.8), pt(a * 0.6, top), pt(0, top)) };
 }
 
 const lerp = (from: Point, to: Point, share: number): Point => pt(from.x + (to.x - from.x) * share, from.y + (to.y - from.y) * share);
@@ -86,7 +99,7 @@ export function poloFoldLine(frame: Frame): Chain {
   const a = frame.basis.neckHalf;
   const b = frame.drop;
   const gap = gapOf(frame);
-  const tip = pt(gap, b + poloTipDepth(frame));
+  const tip = tipOf(frame);
   const corner = cornerOf(frame);
   const edge = foldEdge(tip, corner);
   const seamStart = pt(gap, b);
@@ -103,19 +116,23 @@ export function poloFoldLine(frame: Frame): Chain {
 }
 
 /**
- * The back of a polo collar: a band that follows the back neckline, arching up behind the
- * neck, with its ends flaring out over the shoulder.
+ * The back of a polo collar, seen from behind: the fall of the collar, folded down over the
+ * back neck seam. Its top edge is the fold and its lower edge hangs a little below the seam.
+ * Both run out to the corner on each shoulder where the collar turns to the front, as the
+ * front view's leaves do.
  */
 export function poloBackChain(frame: Frame): Chain {
   const a = frame.basis.neckHalf;
-  const bottom = bothSides(chain(pt(a, 0), curveTo(pt(a, frame.drop * KAPPA), pt(a * KAPPA, frame.drop), pt(0, frame.drop))));
+  const corner = cornerOf(frame);
+  const fall = frame.backDrop + POLO_FALL * frame.collarHeight;
+  const bottom = bothSides(chain(corner, curveTo(pt(a * 1.05, corner.y + (fall - corner.y) * 0.7), pt(a * 0.6, fall), pt(0, fall))));
   return joinChains(bottom, reverseChain(bothSides(poloBackTop(frame))));
 }
 
-/** The top edge of the back of the collar on the right: from its end over the shoulder up to the middle. */
+/** The top edge of the back of the collar on the right, the fold: from the corner on the shoulder up to the middle. */
 export function poloBackTop(frame: Frame): Chain {
-  const h = frame.collarHeight;
-  const end = pt(frame.basis.neckHalf + BACK_END_FLARE * h, -BACK_END_RISE * h);
-  const middle = frame.drop - BACK_TOP * h;
-  return chain(end, curveTo(pt(end.x * 0.85, end.y + (middle - end.y) * 0.6), pt(end.x * 0.4, middle), pt(0, middle)));
+  const a = frame.basis.neckHalf;
+  const corner = cornerOf(frame);
+  const top = foldTop(frame);
+  return chain(corner, curveTo(pt(a * 1.05, corner.y + (top - corner.y) * 0.8), pt(a * 0.6, top), pt(0, top)));
 }

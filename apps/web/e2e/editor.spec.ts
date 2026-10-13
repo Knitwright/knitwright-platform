@@ -31,7 +31,7 @@ test.describe("the design list", () => {
     await signedIn(page, "list");
     await expect(page.getByRole("heading", { name: "Start your first design" })).toBeVisible();
 
-    await page.getByRole("link", { name: "New design" }).click();
+    await page.getByRole("link", { name: "Blank design" }).click();
     await expect(page).toHaveURL(/\/studio\/new$/);
     await page.getByLabel("Garment type").selectOption({ label: "Polo shirt" });
     await page.getByLabel("Made for").selectOption({ label: "Men" });
@@ -88,15 +88,15 @@ test.describe("the editor", () => {
     await expect(page.getByText("Chest width set to 52.5 cm.")).toBeVisible();
   });
 
-  test("shows a value that nobody has typed as missing, never as a number", async ({ page }) => {
+  test("starts a new design with the Knitwright starter chart, shown as suggestions to check with the factory", async ({ page }) => {
     await signedIn(page, "missing");
     await startDesign(page, "Crew neck tee");
 
-    await expect(chest(page)).toHaveValue("");
+    await expect(chest(page)).toHaveValue("51");
     const row = page.getByRole("row", { name: /Chest width/ });
-    await expect(row).toContainText("No value yet");
-    await expect(row).toContainText("To be confirmed");
-    await expect(page.getByText("There is no size chart yet")).toBeVisible();
+    await expect(row).toContainText("Suggested from a size chart");
+    await expect(row).toContainText("±1 cm");
+    await expect(page.getByText("These measurements are suggestions from the Knitwright starter chart")).toBeVisible();
   });
 
   test("undo puts the measurement back", async ({ page }) => {
@@ -110,7 +110,7 @@ test.describe("the editor", () => {
     await page.getByRole("button", { name: "Undo" }).click();
 
     await saved(page, 3);
-    await expect(chest(page)).toHaveValue("");
+    await expect(chest(page)).toHaveValue("51");
     await expect(page.getByText("Restored version 1.")).toBeVisible();
     await expect(page.getByText("Chest width set to 48 cm.")).toBeVisible();
   });
@@ -123,6 +123,8 @@ test.describe("the editor", () => {
     await choice(page, "Fit", /^Relaxed/).check();
     await saved(page, 3);
 
+    // Two quick edits by one person are one entry in the history, with each version inside it.
+    await page.getByText("Show each change").click();
     await page.getByRole("button", { name: "Restore version 2" }).click();
 
     await saved(page, 4);
@@ -324,7 +326,7 @@ test.describe("the editor", () => {
     await chest(page).press("Enter");
 
     await saved(page, 3);
-    await expect(chest(page)).toHaveValue("");
+    await expect(chest(page)).toHaveValue("51");
     await expect(page.getByText("Your value for Chest width was removed.")).toBeVisible();
   });
 

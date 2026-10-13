@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { LeadOwnerForm } from "@/components/leads/LeadOwnerForm";
 import { QuoteStatusForm } from "@/components/leads/QuoteStatusForm";
 import { Pagination } from "@/components/ui/Pagination";
+import { loadAccessRequests, type AccessRequestRow } from "@/lib/leads/access";
 import { pageCount, pageHref, pageOf, pageRequest } from "@/lib/pagination/pages";
 import { buildLeadList, type LeadListItem } from "@/lib/leads/admin";
 import { buyerKindLabel } from "@/lib/leads/buyer-kind";
@@ -28,7 +29,9 @@ const LEADS_PER_PAGE = 20;
  */
 export default async function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
   await requirePlatformAdmin();
-  const leads = buildLeadList(await loadLeadRows(await sessionClient()), new Date());
+  const client = await sessionClient();
+  const [rows, requests] = await Promise.all([loadLeadRows(client), loadAccessRequests(client)]);
+  const leads = buildLeadList(rows, new Date());
   const request = pageRequest(await searchParams, LEADS_PER_PAGE);
   const totalPages = pageCount(leads.length, LEADS_PER_PAGE);
   if (request.page > totalPages) redirect(pageHref("/admin/leads", totalPages) as Route);
@@ -52,7 +55,40 @@ export default async function LeadsPage({ searchParams }: PageProps<"/admin/lead
         </ol>
       )}
       <Pagination path="/admin/leads" page={request.page} totalPages={totalPages} label="Pages of leads" />
+      <AccessRequests requests={requests} />
     </main>
+  );
+}
+
+/** People with no account who asked for access while sign-up is by invitation. Newest first. */
+function AccessRequests({ requests }: Readonly<{ requests: readonly AccessRequestRow[] }>) {
+  return (
+    <section aria-labelledby="access-requests" className="mt-12">
+      <h2 id="access-requests" className="text-xl font-semibold text-ink">
+        Requests for access
+      </h2>
+      <p className="mt-2 text-[15px] text-muted">
+        From the sign-up page. To let someone in, add their address to the allow list (docs/launch/sign-up-switch.md), then tell them to sign up.
+      </p>
+      {requests.length === 0 ? (
+        <p className="mt-4 text-[15px] text-muted">No requests yet.</p>
+      ) : (
+        <ul className="glass mt-4 flex flex-col divide-y divide-hairline rounded-[1.75rem]">
+          {requests.map((request) => (
+            <li key={request.id} className="px-6 py-4 text-sm text-ink-2" data-testid="access-request">
+              <p className="text-[15px] font-medium text-ink">
+                {request.name}, {request.email}
+              </p>
+              <p className="text-muted">
+                {request.organisation || "No organisation given"} · {organisationTypeLabel(request.organisationType)} · Asked{" "}
+                {formatDateTime(request.createdAt)}
+              </p>
+              {request.message ? <p className="mt-1">Message: {request.message}</p> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

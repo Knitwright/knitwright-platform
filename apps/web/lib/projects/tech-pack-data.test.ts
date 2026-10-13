@@ -72,6 +72,23 @@ describe("buildTechPackPage", () => {
     expect(data.pack.cover.revisions.map((entry) => entry.by)).toEqual(["Ada Lovelace", "Not recorded", "Not recorded"]);
   });
 
+  it("lists a run of quick edits by one person as one revision, under its newest version", () => {
+    const ADA = "11111111-1111-4111-8111-111111111111";
+    const quick: VersionsPage = {
+      versions: [
+        { version: 3, note: "Chest width set to 52 cm.", restoredFrom: null, createdAt: "2026-09-03T10:01:00Z", createdBy: ADA },
+        { version: 2, note: "Body length set to 70 cm.", restoredFrom: null, createdAt: "2026-09-03T10:00:00Z", createdBy: ADA },
+        { version: 1, note: "Design created.", restoredFrom: null, createdAt: "2026-09-01T10:00:00Z", createdBy: ADA },
+      ],
+      hasMore: false,
+    };
+    const data = page(start("crew-tee"), { history: quick, memberNames: new Map([[ADA, "Ada Lovelace"]]) });
+    expect(data.pack.cover.revisions.map((entry) => [entry.version, entry.note, entry.by])).toEqual([
+      [3, "Versions 2 to 3. The last change: Chest width set to 52 cm.", "Ada Lovelace"],
+      [1, "Design created.", "Ada Lovelace"],
+    ]);
+  });
+
   it("dates a version older than the listed history by the day that version was saved, not the day the design last changed", () => {
     const old = project(start("crew-tee"), { currentVersion: 3, versionSavedAt: "2026-08-15T10:00:00Z", updatedAt: "2026-09-20T10:00:00Z" });
     const data = buildTechPackPage({
@@ -97,7 +114,8 @@ describe("buildTechPackPage", () => {
     for (const flat of data.flats) {
       expect(flat.src).toMatch(/^data:image\/svg\+xml/);
       expect(flat.alt.length).toBeGreaterThan(10);
-      expect(flat.toScale).toBe(false);
+      // A new design is drawn to scale from the Knitwright starter chart.
+      expect(flat.toScale).toBe(true);
     }
   });
 
@@ -106,8 +124,8 @@ describe("buildTechPackPage", () => {
     const data = page(spec);
     expect(data.flats.every((flat) => flat.toScale)).toBe(true);
     const svg = decodeURIComponent(data.flats[0]?.src?.split(",")[1] ?? "");
-    expect(svg).toContain("A 52.0 cm");
-    expect(svg).not.toContain("Chest width 52.0 cm");
+    expect(svg).toContain(">A</text>");
+    expect(svg).not.toContain("Chest width");
   });
 
   it("gives no picture when the type has no drawing", () => {

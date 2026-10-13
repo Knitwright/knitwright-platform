@@ -7,13 +7,14 @@
  * Tops use MADE-UP sizes and made-up colours, and say so in a visible line. The sizes are
  * not real garment data. They only give the drawing a realistic shape. The other families
  * are drawn with no sizes at all, from the proportions of their templates, and say so.
- * Pass family ids to draw only those families, for example `bottoms outerwear`.
+ * Pass family ids to draw only those families, for example `bottoms outerwear`. Pass
+ * `kit-styles` to draw every kit pattern on a jersey and a polo into docs/owner/flats/kit-styles/.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { getType, type GarmentSpec } from "@/lib/garment";
+import { getType, KIT_PATTERN_STYLES, type GarmentSpec, type KitPatternStyle } from "@/lib/garment";
 import { buildFlat } from "@/lib/flat/build";
 import { designWith, madeUpForType, typedIn } from "@/lib/flat/fixtures/designs";
 import { renderSvg } from "@/lib/flat/render-svg";
@@ -125,8 +126,50 @@ function coloured(spec: GarmentSpec): GarmentSpec {
   return { ...spec, colourways: [{ ...spec.colourways[0], colours }] } as GarmentSpec;
 }
 
+/** Made-up club colours for the kit style review: navy ground, gold and white pattern. Not a colour scheme. */
+const KIT_GROUND = "#1b2a49";
+const KIT_COLOURS = [
+  { colour: "Made-up gold", swatch: "#d4af37" },
+  { colour: "Made-up white", swatch: "#ffffff" },
+] as const;
+
+/** Every kit pattern style on a jersey and a polo, before (plain) and after, into docs/owner/flats/kit-styles. */
+async function renderKitStyles(): Promise<void> {
+  const folder = join(OUTPUT, "kit-styles");
+  mkdirSync(folder, { recursive: true });
+  const garments: readonly { name: string; typeId: string; choices: Readonly<Record<string, string>> }[] = [
+    { name: "team-jersey", typeId: "team-jersey", choices: {} },
+    { name: "team-jersey-raglan", typeId: "team-jersey", choices: { "sleeve-type": "raglan", "hem-shape": "curved", neckline: "v-neck" } },
+    { name: "polo", typeId: "polo", choices: {} },
+  ];
+  for (const garment of garments) {
+    const base = coloured(designWith(garment.typeId, garment.choices, madeUpForType(garment.typeId, garment.choices)));
+    const ground = base.colourways[0].colours.map((entry) =>
+      entry.panelId.startsWith("body") || entry.panelId.startsWith("sleeve") ? { ...entry, swatch: KIT_GROUND } : entry,
+    );
+    const plain = { ...base, colourways: [{ ...base.colourways[0], colours: ground }] } as GarmentSpec;
+    const styles: readonly (KitPatternStyle | "plain")[] = ["plain", ...KIT_PATTERN_STYLES];
+    for (const style of styles) {
+      for (const count of style === "plain" ? [1] : [1, 2]) {
+        const spec: GarmentSpec =
+          style === "plain" ? plain : { ...plain, kitPattern: { style, colours: KIT_COLOURS.slice(0, count), provenance: "user-edited" } };
+        for (const view of VIEWS) {
+          const model = buildFlat({ spec, measurements: typedIn(spec), view, colourwayId: "main" });
+          if (!model) throw new Error(`No drawing for ${garment.name}.`);
+          const svg = renderSvg(withReviewNote(model, NOTE));
+          const png = await sharp(Buffer.from(svg), { density: 96 }).flatten({ background: "#ffffff" }).resize({ width: PNG_WIDTH / 2 }).png().toBuffer();
+          const name = `${garment.name}-${style}${style === "plain" ? "" : `-${count}`}-${view}.png`;
+          writeFileSync(join(folder, name), png);
+          process.stdout.write(`${name}\n`);
+        }
+      }
+    }
+  }
+}
+
 async function main(): Promise<void> {
   mkdirSync(OUTPUT, { recursive: true });
+  if (process.argv.includes("kit-styles")) return renderKitStyles();
   const families = process.argv.slice(2);
   const chosen = families.length === 0 ? VARIANTS : VARIANTS.filter((variant) => families.includes(getType(variant.typeId)?.family ?? ""));
   for (const variant of chosen) {

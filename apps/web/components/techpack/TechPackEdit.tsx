@@ -2,10 +2,14 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { DesignProblem, DroppedNotice, SaveStatus } from "@/components/studio/EditorParts";
+import { SaveRetry } from "@/components/studio/SaveRetry";
 import { useEditorEngine } from "@/components/studio/useEditorEngine";
 import type { GarmentSpec, SpecAction } from "@/lib/garment";
-import { effectiveSpec, pendingActions } from "@/lib/projects/effective-spec";
+import { workingSpec } from "@/lib/projects/effective-spec";
 import { isBusy } from "@/lib/projects/editor-state";
+
+/** The tech pack page keeps no typed text of its own in the queue's warning. */
+const NO_DIRTY_FIELDS: readonly boolean[] = [];
 
 /** What the forms on the tech pack page can do. They send changes through the same queue as the editor. */
 export interface TechPackEditApi {
@@ -40,9 +44,12 @@ type TechPackEditProps = Readonly<{ projectId: string; version: number; spec: Ga
  * checked before anything else is sent. The page shows what is happening.
  */
 export function TechPackEdit({ projectId, version, spec, children }: TechPackEditProps) {
-  const { state, dispatch } = useEditorEngine(projectId, version, []);
-  const { inFlight, queue } = state;
-  const working = useMemo(() => effectiveSpec(spec, pendingActions({ inFlight, queue })), [spec, inFlight, queue]);
+  const { state, dispatch } = useEditorEngine(projectId, version, NO_DIRTY_FIELDS, spec);
+  const { saved, inFlight, queue } = state;
+  const working = useMemo(
+    () => workingSpec(spec, version, { saved, inFlight, queue }),
+    [spec, version, saved, inFlight, queue],
+  );
   const api = useMemo<TechPackEditApi>(
     () => ({
       save: (key, action) => dispatch({ type: "enqueue", key, request: { kind: "action", action }, focus: true }),
@@ -65,6 +72,7 @@ export function TechPackEdit({ projectId, version, spec, children }: TechPackEdi
       <div className="sticky top-0 z-10 flex flex-col gap-2 bg-shell/90 py-2 backdrop-blur">
         <SaveStatus busy={api.busy} status={state.status} />
         <DesignProblem message={state.conflict} conflict={state.conflict !== null} />
+        <SaveRetry retry={state.retry} onRetry={() => dispatch({ type: "retry" })} />
       </div>
       <DroppedNotice dropped={state.dropped ?? []} />
       {children}

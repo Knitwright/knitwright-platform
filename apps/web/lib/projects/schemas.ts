@@ -67,6 +67,9 @@ export const restoreVersionSchema = z.object({
 
 export const designIdSchema = z.object({ projectId });
 
+/** Reading a design's version again. `since` asks, too, whether anyone else saved after it. */
+export const versionCheckSchema = z.object({ projectId, since: expectedVersion.optional() });
+
 export const undoDesignSchema = z.object({ projectId, expectedVersion });
 
 /** A proposal the assistant made, handed back to be applied. It is signed by the server. */

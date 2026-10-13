@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useReducer, useRef, type Dispatch } from "react";
+import type { GarmentSpec } from "@/lib/garment";
 import {
   applyDesignActionAction,
   applyDesignActionsAction,
@@ -14,17 +15,21 @@ import {
   editorReducer,
   initialEditorState,
   isBusy,
+  waitingForPage,
+  type Check,
   type EditorEvent,
   type EditorState,
   type InFlight,
 } from "@/lib/projects/editor-state";
 import { hasUnsavedWork } from "@/lib/projects/field-text";
+import { PAGE_TIME_LIMIT_MS, SAVE_TIME_LIMIT_MS, withTimeLimit } from "@/lib/projects/time-limit";
 import { focusField } from "./focus-field";
 
 /**
  * Wires the editor's reducer to the server and the page: it sends the change that is on
- * its way, reads the design again after a lost reply, moves focus when asked, and warns
- * before the page is left with work unsaved. The rules themselves live in the reducer.
+ * its way, reads the design again after a lost reply or a conflict, waits for the page to
+ * show a version it was told about, moves focus when asked, and warns before the page is
+ * left with work unsaved. The rules themselves live in the reducer.
  */
 
 const UNREACHABLE = "We could not reach the server. Check your connection and try again.";
@@ -43,17 +48,20 @@ const send = (projectId: string, change: InFlight) => {
       return restoreVersionAction({ projectId, expectedVersion, version: request.version });
     case "undo":
       return undoDesignAction({ projectId, expectedVersion });
+    case "colour":
+      // The reducer works a colour out before it is sent, so this never happens.
+      return Promise.reject(new Error("A colour change was sent before it was worked out."));
   }
 };
 
-/** Sends the change that is on its way, once, and reports how it went. */
-const useSending = (projectId: string, state: EditorState, dispatch: Dispatch<EditorEvent>): void => {
+/** Sends the change that is on its way, once, and reports how it went. A save that takes too long counts as lost. */
+const useSending = (projectId: string, inFlight: InFlight | null, dispatch: Dispatch<EditorEvent>): void => {
   const sent = useRef(new Set<number>());
   useEffect(() => {
-    const change = state.inFlight;
+    const change = inFlight;
     if (!change || sent.current.has(change.id)) return;
     sent.current.add(change.id);
-    send(projectId, change).then(
+    withTimeLimit(send(projectId, change), SAVE_TIME_LIMIT_MS).then(
       (result) =>
         startTransition(() =>
           dispatch(
@@ -64,31 +72,45 @@ const useSending = (projectId: string, state: EditorState, dispatch: Dispatch<Ed
         ),
       (error: unknown) => dispatch({ type: "lost", id: change.id, message: UNREACHABLE, detail: describe(error) }),
     );
-  }, [projectId, state.inFlight, dispatch]);
+  }, [projectId, inFlight, dispatch]);
 };
 
-/** After a lost reply the server may have saved. Read the design before sending anything else. */
-const useRefreshAfterLostReply = (projectId: string, needsRefresh: boolean, dispatch: Dispatch<EditorEvent>): void => {
+/**
+ * After a lost reply the server may have saved, and after a conflict the newer versions may
+ * be the person's own. Read the design before sending anything else.
+ */
+const useCheck = (projectId: string, check: Check | null, dispatch: Dispatch<EditorEvent>): void => {
+  useEffect(() => {
+    if (!check) return;
+    withTimeLimit(readVersionAction({ projectId, since: check.since }), SAVE_TIME_LIMIT_MS).then(
+      (result) =>
+        dispatch(
+          result.success
+            ? { type: "verified", version: result.data.version, others: result.data.others }
+            : { type: "verifyFailed", message: CANNOT_CHECK },
+        ),
+      () => dispatch({ type: "verifyFailed", message: CANNOT_CHECK }),
+    );
+  }, [projectId, check, dispatch]);
+};
+
+/** A change waits for the page to show a version this screen cannot work out. Ask for it, and give up after a while. */
+const useCatchUp = (waiting: boolean, dispatch: Dispatch<EditorEvent>): void => {
   const router = useRouter();
   useEffect(() => {
-    if (!needsRefresh) return;
-    readVersionAction({ projectId }).then(
-      (result) => {
-        if (!result.success) return dispatch({ type: "refreshFailed", message: CANNOT_CHECK });
-        dispatch({ type: "refreshed", version: result.data.version });
-        router.refresh();
-      },
-      () => dispatch({ type: "refreshFailed", message: CANNOT_CHECK }),
-    );
-  }, [projectId, needsRefresh, dispatch, router]);
+    if (!waiting) return;
+    router.refresh();
+    const timer = setTimeout(() => dispatch({ type: "verifyFailed", message: CANNOT_CHECK }), PAGE_TIME_LIMIT_MS);
+    return () => clearTimeout(timer);
+  }, [waiting, dispatch, router]);
 };
 
-const useFocusRequests = (state: EditorState, dispatch: Dispatch<EditorEvent>): void => {
+const useFocusRequests = (focusKey: string | null, dispatch: Dispatch<EditorEvent>): void => {
   useEffect(() => {
-    if (!state.focusKey) return;
-    focusField(state.focusKey);
+    if (!focusKey) return;
+    focusField(focusKey);
     dispatch({ type: "focused" });
-  }, [state.focusKey, dispatch]);
+  }, [focusKey, dispatch]);
 };
 
 const useLeaveWarning = (unsaved: boolean): void => {
@@ -103,18 +125,28 @@ const useLeaveWarning = (unsaved: boolean): void => {
   }, [unsaved]);
 };
 
-export const useEditorEngine = (projectId: string, version: number, dirtyFields: readonly boolean[]) => {
+/**
+ * `version` and `spec` are the design the page holds. Without `spec` (the tech pack page)
+ * only ready-made changes can be sent, not colour changes.
+ */
+export const useEditorEngine = (
+  projectId: string,
+  version: number,
+  dirtyFields: readonly boolean[],
+  spec?: GarmentSpec,
+): { state: EditorState; dispatch: Dispatch<EditorEvent> } => {
   const [state, dispatch] = useReducer(editorReducer, version, initialEditorState);
 
-  // A newer version arriving from the server ends a conflict and drops choices not yet saved.
+  // The page shows a version: a newer one ends a conflict, and saved changes it holds are forgotten.
   useEffect(() => dispatch({ type: "seen", version }), [version]);
   useEffect(() => {
-    if (canStart(state)) dispatch({ type: "start" });
-  }, [state]);
+    if (canStart(state)) dispatch({ type: "start", spec });
+  }, [state, spec]);
 
-  useSending(projectId, state, dispatch);
-  useRefreshAfterLostReply(projectId, state.needsRefresh, dispatch);
-  useFocusRequests(state, dispatch);
+  useSending(projectId, state.inFlight, dispatch);
+  useCheck(projectId, state.check, dispatch);
+  useCatchUp(waitingForPage(state), dispatch);
+  useFocusRequests(state.focusKey, dispatch);
   useLeaveWarning(hasUnsavedWork(isBusy(state), dirtyFields));
   return { state, dispatch };
 };

@@ -105,7 +105,8 @@ describe("a version conflict", () => {
   const conflicted = () => {
     let state = run([enqueue("a"), enqueue("b"), enqueue("c"), { type: "start" }]);
     state = run([{ type: "choose", key: "a", value: "slim" }, failed(state.inFlight!.id, "Changed elsewhere.", "conflict")], state);
-    return state;
+    // Someone else saved in between, so it is a conflict. Own saves are tested in editor-rebase.test.ts.
+    return run([{ type: "verified", version: 2, others: 1 }], state);
   };
 
   it("drops the rest of the queue and stops, with one message", () => {
@@ -148,39 +149,45 @@ describe("a reply that never came", () => {
     return run([{ type: "lost", id: state.inFlight!.id, message: "We could not reach the server.", detail: "fetch failed" }], state);
   };
 
-  it("refreshes the design before anything else is sent", () => {
+  it("reads the design again before anything else is sent", () => {
     const state = lost();
 
-    expect(state.needsRefresh).toBe(true);
+    expect(state.check).toMatchObject({ reason: "lost", since: 1, message: "We could not reach the server." });
     expect(state.inFlight).toBeNull();
     expect(state.queue.map((change) => change.key)).toEqual(["b"]);
     expect(canStart(state)).toBe(false);
+    expect(isBusy(state)).toBe(true);
     expect(run([{ type: "start" }], state).inFlight).toBeNull();
   });
 
-  it("keeps the reason and shows the general sentence beside the control", () => {
-    expect(lost().problems.a).toEqual({ message: "We could not reach the server.", detail: "fetch failed", focus: false });
-  });
+  it("carries on at the version the server holds once the page shows it", () => {
+    let state = run([{ type: "verified", version: 2, others: 0 }, { type: "start" }], lost());
+    expect(state.check).toBeNull();
+    expect(state.inFlight).toBeNull();
 
-  it("carries on, at the version the server holds, once the design has been read", () => {
-    const state = run([{ type: "refreshed", version: 2 }, { type: "start" }], lost());
-
-    expect(state.needsRefresh).toBe(false);
+    state = run([{ type: "seen", version: 2 }, { type: "start" }], state);
     expect(state.inFlight).toMatchObject({ key: "b", expectedVersion: 2 });
   });
 
-  it("carries on at the same version when the lost change was never saved", () => {
-    const state = run([{ type: "refreshed", version: 1 }, { type: "start" }], lost());
+  it("carries on at the same version, and offers the lost change again, when it was never saved", () => {
+    const state = run([{ type: "verified", version: 1, others: 0 }, { type: "start" }], lost());
 
     expect(state.inFlight).toMatchObject({ key: "b", expectedVersion: 1 });
+    expect(state.retry?.change.key).toBe("a");
   });
 
   it("stops with one message when the design cannot be read either", () => {
-    const state = run([{ type: "refreshFailed", message: "Reload the page." }], lost());
+    const state = run([{ type: "verifyFailed", message: "Reload the page." }], lost());
 
     expect(state.conflict).toBe("Reload the page.");
     expect(state.queue).toEqual([]);
-    expect(state.needsRefresh).toBe(false);
+    expect(state.check).toBeNull();
+  });
+
+  it("ignores a reading when nothing was waiting for one", () => {
+    const state = initialEditorState(1);
+
+    expect(run([{ type: "verified", version: 5, others: 0 }], state)).toBe(state);
   });
 });
 

@@ -4,7 +4,7 @@
  */
 export { buildTechPack } from "./build";
 export { calloutCodes, codeFor, pointsInTableOrder, type CalloutCode } from "./codes";
-export { TBC, TO_BE_CONFIRMED, isSet, textCell } from "./cell";
+export { STANDARD_CHOICE, TBC, TO_BE_CONFIRMED, isSet, sourceLabel, textCell } from "./cell";
 export {
   completenessReport,
   confirmSentence,

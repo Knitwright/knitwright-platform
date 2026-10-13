@@ -59,6 +59,8 @@ export const stampUserEdited = (raw: unknown): unknown => {
       return { ...action, artwork: stamped(action.artwork) };
     case "set-names-numbers":
       return { ...action, namesAndNumbers: stamped(action.namesAndNumbers) };
+    case "set-kit-pattern":
+      return { ...action, kitPattern: stamped(action.kitPattern) };
     case "add-colourway":
     case "update-colourway":
       return { ...action, colourway: stampColourway(action.colourway) };

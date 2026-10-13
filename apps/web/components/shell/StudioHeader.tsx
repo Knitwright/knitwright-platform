@@ -33,23 +33,20 @@ export function StudioHeader({ email, brandName }: StudioHeaderProps) {
               {brandName}
             </span>
           </Link>
-          <div className="hidden items-center gap-1 md:flex">
-            <Link
-              href="/settings"
-              className="nav-pill max-w-56 truncate rounded-full px-3 py-1.5 text-sm text-muted"
-              data-testid="account-email"
-            >
-              {email ?? "Settings"}
-            </Link>
+          <span className="hidden max-w-56 truncate px-1 text-sm text-muted md:inline" data-testid="account-email">
+            {email}
+          </span>
+          {/* Shown at every width, phones too: Settings was once reachable only through the email. */}
+          <Link href="/settings" className="nav-pill shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium text-ink-2">
+            Settings
+          </Link>
+          <div className="hidden md:block">
             <SignOutButton />
           </div>
           <PhoneMenu>
             <StudioNav stacked />
             <div className="my-1 h-px bg-white/10" aria-hidden="true" />
-            <Link href="/settings" className="nav-pill rounded-full px-4 py-2 text-[15px] text-ink">
-              Settings
-              {email ? <span className="block truncate text-xs text-muted">{email}</span> : null}
-            </Link>
+            {email ? <p className="truncate px-4 py-1 text-xs text-muted">{email}</p> : null}
             <SignOutButton />
           </PhoneMenu>
         </div>
