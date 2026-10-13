@@ -260,10 +260,18 @@ describe("defineRoute", () => {
   describe("a form with a file", () => {
     const upload = z.object({ kind: z.enum(["artwork", "sketch"]), file: z.instanceof(File) });
 
-    const formRequest = (fields: Record<string, string | File>) => {
+    // The form is encoded to bytes first. Sent as FormData, Node's fetch streams it from a
+    // generator that can write into the body after the route has cancelled it (the over-limit
+    // test), which surfaces after the test as "ReadableStream is already closed".
+    const formRequest = async (fields: Record<string, string | File>) => {
       const form = new FormData();
       for (const [name, value] of Object.entries(fields)) form.set(name, value);
-      return new Request("http://localhost/api/files", { method: "POST", body: form });
+      const encoded = new Response(form);
+      return new Request("http://localhost/api/files", {
+        method: "POST",
+        headers: { "content-type": encoded.headers.get("content-type") ?? "" },
+        body: await encoded.arrayBuffer(),
+      });
     };
 
     const uploadRoute = (maxBodyBytes?: number) => {
@@ -285,7 +293,7 @@ describe("defineRoute", () => {
     it("passes the file and the other fields to the handler", async () => {
       const file = new File(["pixels"], "logo.png", { type: "image/png" });
 
-      const response = await uploadRoute()(formRequest({ kind: "artwork", file }), noParams);
+      const response = await uploadRoute()(await formRequest({ kind: "artwork", file }), noParams);
 
       expect(await response.json()).toEqual({
         success: true,
@@ -294,7 +302,7 @@ describe("defineRoute", () => {
     });
 
     it("names the field when the file is missing", async () => {
-      const response = await uploadRoute()(formRequest({ kind: "artwork" }), noParams);
+      const response = await uploadRoute()(await formRequest({ kind: "artwork" }), noParams);
       const json = await response.json();
 
       expect(response.status).toBe(400);
@@ -303,7 +311,7 @@ describe("defineRoute", () => {
 
     it("refuses a field that should be a file but is text", async () => {
       const response = await uploadRoute()(
-        formRequest({ kind: "artwork", file: "not a file" }),
+        await formRequest({ kind: "artwork", file: "not a file" }),
         noParams,
       );
 
@@ -313,7 +321,7 @@ describe("defineRoute", () => {
     it("refuses a form larger than the limit", async () => {
       const file = new File(["x".repeat(2000)], "big.png", { type: "image/png" });
 
-      const response = await uploadRoute(1000)(formRequest({ kind: "artwork", file }), noParams);
+      const response = await uploadRoute(1000)(await formRequest({ kind: "artwork", file }), noParams);
 
       expect(response.status).toBe(413);
     });
