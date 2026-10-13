@@ -6,8 +6,9 @@ import { PDF_FONT_FAMILY } from "@/lib/flat/pdf-font";
 import { renderPdf } from "@/lib/flat/render-pdf";
 import type { FlatViewSection, TechPack } from "../../types";
 import { PICTURE_LEFT_OUT } from "../limits";
-import type { ExportSection } from "../tables";
+import type { ExportSection, ExportTable } from "../tables";
 import { keepsSectionWhole, keepsTableWhole } from "./keep";
+import type { SourceMarks } from "./marks";
 import { dataTable, heading, paragraph, type Safe } from "./parts";
 import { COLOURS, CONTENT_WIDTH, SIZES } from "./styles";
 
@@ -17,6 +18,8 @@ export interface Context {
   readonly safe: Safe;
   /** True when a picture was left out for size, so the document says so in words. */
   readonly pictureLeftOut: boolean;
+  /** The mark printed after each value for its source. */
+  readonly marks: SourceMarks;
 }
 
 const DRAWING_GAP = 16;
@@ -67,30 +70,46 @@ const colourwayDrawings = (context: Context): ReactElement =>
   );
 
 /** A table with its heading and sentence. A short table is not split across pages. */
-function tableGroup(table: ExportSection["tables"][number], index: number, safe: Safe): ReactElement {
+export function tableGroup(table: ExportTable, index: number, safe: Safe, marks: SourceMarks): ReactElement {
   return h(
     View,
     { key: `t${index}`, wrap: !keepsTableWhole(table) },
     ...(table.title === null ? [] : [heading(3, table.title, safe)]),
     ...(table.intro === null ? [] : [paragraph(table.intro, safe, `i${index}`)]),
-    ...(table.rows.length === 0 ? [] : [dataTable(table, safe)]),
+    ...(table.rows.length === 0 ? [] : [dataTable(table, safe, marks)]),
+  );
+}
+
+/**
+ * The heading of the flats, its sentences and the drawings, as one block that is never split, so
+ * the heading is never left alone at the foot of a page. The block is shorter than a page.
+ */
+function flatsLead(section: ExportSection, context: Context, leftOut: boolean): ReactElement {
+  const { safe } = context;
+  return h(
+    View,
+    { key: "lead", wrap: false },
+    heading(2, section.title, safe),
+    ...section.paragraphs.map((text, index) => paragraph(text, safe, `p${index}`)),
+    ...(leftOut ? [paragraph(PICTURE_LEFT_OUT, safe, "left-out")] : []),
+    drawings(context),
   );
 }
 
 /** One section: its title, its sentences, its drawings when it is the flats, then its tables. */
 export function sectionElement(section: ExportSection, context: Context): ReactElement {
-  const { safe } = context;
+  const { safe, marks } = context;
   const leftOut = context.pictureLeftOut && (section.id === "flats" || section.id === "artwork");
+  const tables = section.tables.map((table, index) => tableGroup(table, index, safe, marks));
+  if (section.id === "flats") return h(View, { key: section.id }, flatsLead(section, context, leftOut), ...tables);
   const [first, ...others] = section.paragraphs;
   return h(
     View,
-    // The drawings cannot be split, so the flats start on a page of their own rather than leave a heading alone.
-    { key: section.id, break: section.id === "flats", wrap: !keepsSectionWhole(section) },
+    { key: section.id, wrap: !keepsSectionWhole(section) },
     h(View, { key: "lead", wrap: false }, heading(2, section.title, safe), ...(first === undefined ? [] : [paragraph(first, safe, "p0")])),
     ...others.map((text, index) => paragraph(text, safe, `p${index + 1}`)),
     ...(leftOut ? [paragraph(PICTURE_LEFT_OUT, safe, "left-out")] : []),
-    ...(section.id === "flats" ? [drawings(context)] : []),
     ...(section.id === "colourways" ? [colourwayDrawings(context)] : []),
-    ...section.tables.map((table, index) => tableGroup(table, index, safe)),
+    ...tables,
   );
 }

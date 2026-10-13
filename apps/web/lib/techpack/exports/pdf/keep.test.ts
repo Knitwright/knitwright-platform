@@ -28,16 +28,18 @@ describe("which tables are kept whole on a page", () => {
     expect(tableHeight(table(null, [lengthColumn("A")], []))).toBe(0);
   });
 
-  it("counts a value and its source as two lines, so a row with a source is taller than one without", () => {
+  it("counts a value and the short mark of its source on one line, as tall as the value alone", () => {
     const plain = table(null, [textColumn("A"), textColumn("B")], [[text("Chest"), text("52.0 cm")]]);
     const sourced = table(null, [textColumn("A"), valueColumn("B")], [[text("Chest"), value({ status: "set", value: "52.0 cm", provenance: "user-edited" })]]);
-    expect(tableHeight(sourced)).toBeGreaterThan(tableHeight(plain));
+    expect(tableHeight(sourced)).toBe(tableHeight(plain));
   });
 
-  it("counts a missing value as one line, and a length as a value with its source", () => {
-    const missing = table(null, [textColumn("A"), lengthColumn("L")], [[text("x"), length({ status: "to-be-confirmed" })]]);
-    const set = table(null, [textColumn("A"), lengthColumn("L")], [[text("x"), length({ status: "set", value: "52.0", tenthsMm: 5200, provenance: "user-edited" })]]);
-    expect(tableHeight(set)).toBeGreaterThan(tableHeight(missing));
+  it("counts a missing value by its words, which may wrap in a narrow column, so it is never shorter than a length", () => {
+    const narrow = (cell: Parameters<typeof length>[0]) =>
+      table(null, [textColumn("A"), ...Array.from({ length: 7 }, (_, index) => lengthColumn(`L${index}`))], [[text("x"), ...Array.from({ length: 7 }, () => length(cell))]]);
+    const missing = narrow({ status: "to-be-confirmed" });
+    const set = narrow({ status: "set", value: "52.0", tenthsMm: 5200, provenance: "user-edited" });
+    expect(tableHeight(missing)).toBeGreaterThan(tableHeight(set));
   });
 
   it("makes a table with many narrow columns taller than one with few, for the same words", () => {
@@ -46,11 +48,10 @@ describe("which tables are kept whole on a page", () => {
     expect(tableHeight(narrow)).toBeGreaterThan(tableHeight(wide));
   });
 
-  it("counts the explanation of a class, which makes a row of classes tall", () => {
-    const cell = { status: "set" as const, value: "Lockstitch", provenance: "derived" as const, iso: "301", explanation: "word ".repeat(40), proposal: true };
-    const narrow = table(null, [classColumn("A"), classColumn("B"), classColumn("C"), classColumn("D")], [[classed(cell), classed(cell), classed(cell), classed(cell)]]);
-    expect(tableHeight(narrow)).toBeGreaterThan(80);
-    expect(tableHeight(narrow)).toBeGreaterThan(tableHeight(table(null, [classColumn("A")], [[classed(cell)]])));
+  it("leaves the explanation of a class out of the row, because the appendix says it once", () => {
+    const cell = (explanation: string) => ({ status: "set" as const, value: "Lockstitch", provenance: "derived" as const, iso: "301", explanation, proposal: true });
+    const row = (explanation: string) => table(null, [classColumn("A"), classColumn("B")], [[classed(cell(explanation)), classed(cell(explanation))]]);
+    expect(tableHeight(row("word ".repeat(40)))).toBe(tableHeight(row("short")));
   });
 
   it("never keeps the flats whole, because they start a page of their own", () => {
@@ -63,7 +64,8 @@ describe("which tables are kept whole on a page", () => {
     const kept = (id: string) => sections.filter((section) => section.id === id).map(keepsSectionWhole)[0];
     expect(kept("sign-off")).toBe(true);
     expect(kept("labelling")).toBe(true);
-    expect(kept("construction")).toBe(false);
+    // With a short mark in place of the source words, the seams of a polo fit in one block.
+    expect(kept("construction")).toBe(true);
     expect(kept("how-to-measure")).toBe(false);
     for (const section of sections) expect(sectionHeight(section)).toBeGreaterThan(0);
   });

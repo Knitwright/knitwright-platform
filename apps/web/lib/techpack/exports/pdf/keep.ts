@@ -1,5 +1,5 @@
-import { sourceWords } from "../contents";
 import type { Datum, ExportSection, ExportTable } from "../tables";
+import { TO_BE_CONFIRMED } from "../../cell";
 import { CONTENT_WIDTH } from "./styles";
 
 /**
@@ -17,11 +17,9 @@ export const KEPT_SECTION_POINTS = 560;
 
 /** Average width of a character at the sizes used, in points. It is on the wide side, so lines are counted high. */
 const CELL_CHARACTER = 4.6;
-const SMALL_CHARACTER = 3.9;
 const BODY_CHARACTER = 5;
 
 const CELL_LINE = 10;
-const SMALL_LINE = 8;
 const BODY_LINE = 12;
 const CELL_PADDING = 6;
 const HEADING_TWO = 38;
@@ -30,25 +28,24 @@ const HEADING_THREE = 26;
 const linesOf = (characters: number, width: number, character: number): number =>
   Math.max(1, Math.ceil((characters * character) / Math.max(20, width)));
 
-/** How tall a datum is in a column of this width, in points. */
+/** The characters a mark such as " [1]" adds after a value, on the same line. */
+const MARK_CHARACTERS = 4;
+
+/** How tall a datum is in a column of this width, in points. A missing value may wrap onto two lines. */
 function datumHeight(datum: Datum, width: number): number {
   const main = (characters: number) => linesOf(characters, width, CELL_CHARACTER) * CELL_LINE;
-  const small = (characters: number) => linesOf(characters, width, SMALL_CHARACTER) * SMALL_LINE;
+  const missing = main(TO_BE_CONFIRMED.length);
   switch (datum.kind) {
     case "text":
       return main(datum.text.length);
     case "value":
       if (datum.cell === null) return 0;
-      return datum.cell.status === "set" ? main(datum.cell.value.length) + small((sourceWords(datum.cell) ?? "").length) : CELL_LINE;
+      return datum.cell.status === "set" ? main(datum.cell.value.length + MARK_CHARACTERS) : missing;
     case "length":
     case "number":
-      return datum.cell.status === "set" ? main(datum.cell.value.length + 3) + small((sourceWords(datum.cell) ?? "").length) : CELL_LINE;
+      return datum.cell.status === "set" ? main(datum.cell.value.length + 3 + MARK_CHARACTERS) : missing;
     case "class":
-      return (
-        main(datum.cell.value.length + 10) +
-        small((sourceWords(datum.cell) ?? "").length) +
-        small(datum.cell.explanation.length)
-      );
+      return main(datum.cell.value.length + 10 + MARK_CHARACTERS);
   }
 }
 

@@ -1,6 +1,7 @@
 import type { TechPack } from "../types";
 import { SECTION_TITLES } from "../types";
 import { EXCEL_SHEETS } from "./contents";
+import { measurementNotes } from "./measurement-notes";
 import {
   length,
   lengthColumn,
@@ -17,7 +18,7 @@ export const sentences = (...lines: readonly (string | null)[]): readonly string
   lines.filter((line): line is string => line !== null && line !== "");
 
 const MEASURE_HELP =
-  "Lengths are in centimetres. Each value says where it came from. The tolerance is how far a measurement may be out, in either direction.";
+  "Lengths are in centimetres. The tolerance is how far a measurement may be out, in either direction. Each value says where it came from, and notes on single measurements are listed by code under Measurement notes.";
 const NO_REVISIONS = "No revisions have been recorded yet.";
 
 export function coverSection(pack: TechPack): ExportSection {
@@ -103,15 +104,14 @@ export function measurementsSection(pack: TechPack): ExportSection {
       group.rows.map((row) => [text(row.code), text(row.label), length(row.tolerance), ...row.values.map(length)]),
     ),
   );
-  const notes = measurements.groups.flatMap((group) =>
-    group.rows.flatMap((row) => row.notes.map((note) => `${row.code} ${row.label}: ${note}`)),
-  );
+  const notes = measurementNotes(measurements.groups);
   return {
     id: "measurements",
     title: measurements.title,
     sheet: EXCEL_SHEETS.measurements,
-    paragraphs: sentences(measurements.note, MEASURE_HELP, ...notes),
+    paragraphs: sentences(measurements.note, MEASURE_HELP),
     tables: groups,
+    notes: notes === null ? [] : [notes],
   };
 }
 

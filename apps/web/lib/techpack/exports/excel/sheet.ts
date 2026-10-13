@@ -84,9 +84,9 @@ function tableBlock(table: ExportTable): Block {
   return { rows: [...heading, ...body], measured: body.map((row) => row.map(plain)), frozen: heading.length + 1 };
 }
 
-/** One sheet: the tables of a section one after another with a blank row between, then its sentences. */
+/** One sheet: the tables of a section one after another with a blank row between, then its notes by code, then its sentences. */
 export function sheetOf(section: ExportSection): SheetLayout {
-  const blocks = section.tables.map(tableBlock);
+  const blocks = [...section.tables, ...(section.notes ?? [])].map(tableBlock);
   const tableRows = blocks.flatMap((block, index) => (index === 0 ? block.rows : [[], ...block.rows]));
   const sentences: Row[] = section.paragraphs.map((paragraph) => [noteCell(paragraph)]);
   const spacer: Row[] = tableRows.length > 0 && sentences.length > 0 ? [[]] : [];

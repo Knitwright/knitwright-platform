@@ -65,12 +65,24 @@ describe("the tables every format is made from", () => {
     expect(table?.columns.slice(2).every((column) => column.kind === "length")).toBe(true);
   });
 
-  it("puts the row notes under the measurement table as sentences, not in a column", () => {
+  it("puts the row notes in a table of notes by code, kept apart from the measurement table and its sentences", () => {
     const pack = packFor(start("crew-tee"));
     const measurements = exportSections(pack).find((section) => section.id === "measurements");
-    const notes = pack.measurements.groups.flatMap((group) => group.rows.flatMap((row) => row.notes.map((note) => `${row.code} ${row.label}: ${note}`)));
+    const notes = pack.measurements.groups.flatMap((group) => group.rows.flatMap((row) => row.notes));
     expect(notes.length).toBeGreaterThan(0);
-    for (const note of notes) expect(measurements?.paragraphs).toContain(note);
+    const [table] = measurements?.notes ?? [];
+    expect(table?.title).toBe("Measurement notes");
+    expect(table?.columns.map((column) => column.header)).toEqual(["Code", "Measurement", "Note"]);
+    const codes = table?.rows.flatMap((row) => (row[0]?.kind === "text" ? row[0].text.split(", ") : [])) ?? [];
+    for (const row of pack.measurements.groups.flatMap((group) => group.rows)) expect(codes).toContain(row.code);
+    for (const note of notes) expect(measurements?.paragraphs).not.toContain(note);
+    for (const section of exportSections(pack).filter((entry) => entry.id !== "measurements")) expect(section.notes ?? []).toEqual([]);
+  });
+
+  it("has no table of notes when no row has a note", () => {
+    const pack = packFor(fullDesign("crew-tee"), { charts: CHARTS });
+    const empty = { ...pack, measurements: { ...pack.measurements, groups: pack.measurements.groups.map((group) => ({ ...group, rows: group.rows.map((row) => ({ ...row, notes: [] })) })) } };
+    expect(exportSections(empty).find((section) => section.id === "measurements")?.notes).toEqual([]);
   });
 
   it("says a part that is not described is to be confirmed, and prints the proposal words for a proposal", () => {

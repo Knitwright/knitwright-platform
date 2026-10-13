@@ -8,7 +8,9 @@ import { assertEverySetCellHasSource } from "../guard";
 import { drawable, hasUndrawable } from "../pdf-text";
 import type { ExportIllustrations } from "../illustrations";
 import { exportSections } from "../tables";
+import { appendixElement } from "./appendix";
 import { illustrationsElement } from "./illustrations";
+import { sourceMarks } from "./marks";
 import { paragraph } from "./parts";
 import { sectionElement } from "./sections";
 import { COLOURS, MARGIN, SIZES } from "./styles";
@@ -85,8 +87,11 @@ export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfO
   registerPdfFont();
   switchHyphenationOff();
   const { safe, replaced } = safety();
-  const context = { pack, images, safe, pictureLeftOut: options.pictureLeftOut === true };
-  const sections = exportSections(pack).map((section) => sectionElement(section, context));
+  const exported = exportSections(pack);
+  const marks = sourceMarks(exported);
+  const context = { pack, images, safe, pictureLeftOut: options.pictureLeftOut === true, marks };
+  const sections = exported.map((section) => sectionElement(section, context));
+  const appendix = appendixElement(exported, marks, safe);
   const head = titleBlock(pack, safe);
   const pictures = options.illustrations ? [illustrationsElement(options.illustrations, safe)] : [];
   const note = replaced() ? [paragraph(CHARACTERS_REPLACED, safe, "replaced")] : [];
@@ -109,6 +114,7 @@ export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfO
       head,
       ...note,
       ...sections,
+      appendix,
       ...pictures,
       footer(pack, safe),
     ),
