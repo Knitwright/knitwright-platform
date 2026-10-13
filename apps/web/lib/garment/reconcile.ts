@@ -4,6 +4,7 @@ import { choiceName, panelName, pointName } from "./labels";
 import { nonEmpty } from "./non-empty";
 import type { OptionChoice } from "./parts";
 import type { ResolvedType } from "./registry";
+import { KIT_PATTERN_LABELS, kitPatternFits, withoutKitPattern } from "./kit-pattern";
 import { fittingMarks, PLACE_DEFINITIONS, withoutMarks } from "./names-numbers";
 import { artworkProblem } from "./spec-checks";
 import { keepApplyingSizeValues } from "./size-values";
@@ -120,10 +121,11 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
     dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
     return false;
   });
-  const rest = withoutMarks(spec);
+  const rest = withoutKitPattern(withoutMarks(spec));
   const marks = keptMarks(spec, type, dropped);
+  const pattern = keptKitPattern(spec, type, dropped);
   const kept = keepApplyingSizeValues(
-    { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks },
+    { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks, ...pattern },
     type,
     dropped,
   );
@@ -142,6 +144,16 @@ function keptMarks(spec: GarmentSpec, type: ResolvedType, dropped: Dropped[]): P
     dropped.push({ kind: "names-numbers", id: entry.place, message: `${label} was removed, because ${type.label} has no place for it.` });
   }
   return fitting === null ? {} : { namesAndNumbers: fitting };
+}
+
+/** The kit pattern, while the garment can still carry one. A pattern dropped is reported. */
+function keptKitPattern(spec: GarmentSpec, type: ResolvedType, dropped: Dropped[]): Pick<GarmentSpec, "kitPattern"> {
+  const pattern = spec.kitPattern;
+  if (pattern === undefined) return {};
+  if (kitPatternFits(type.id)) return { kitPattern: pattern };
+  const label = KIT_PATTERN_LABELS[pattern.style];
+  dropped.push({ kind: "kit-pattern", id: pattern.style, message: `The kit pattern (${label}) was removed, because ${type.label} cannot carry one.` });
+  return {};
 }
 
 /**

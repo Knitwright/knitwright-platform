@@ -13,6 +13,7 @@ import {
   type Provenance,
   type ResolvedType,
 } from "@/lib/garment";
+import { explainKitPattern } from "./kit-pattern";
 
 const WEARER_LABELS: Readonly<Record<string, string>> = { men: "Men", women: "Women", youth: "Youth" };
 
@@ -208,6 +209,7 @@ export function explainChanges(before: GarmentSpec, after: GarmentSpec): readonl
     ...explainFabrics(before, after),
     ...explainLabelling(before, after),
     ...explainMarks(before, after),
+    ...explainKitPattern(before, after),
   );
   for (const [key, sentence] of Object.entries(OTHER_PARTS) as [keyof typeof OTHER_PARTS, string][]) {
     if (!same(before[key], after[key])) said.push(sentence);

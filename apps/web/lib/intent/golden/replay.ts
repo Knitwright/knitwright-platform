@@ -36,6 +36,8 @@ export const expectedSchema = z.discriminatedUnion("kind", [
     labelling: z.record(z.string(), z.string()).optional(),
     /** The places of player names and numbers, in order (decision 0027). */
     namesNumbers: z.array(z.string()).optional(),
+    /** The kit pattern's style, or null when the kit must be plain (owner decision 2026-10-13). */
+    kitPattern: z.string().nullable().optional(),
   }),
   z.strictObject({ kind: z.literal("question") }),
   z.strictObject({ kind: z.literal("rejection") }),
@@ -148,6 +150,9 @@ function appliedProblems(expected: Extract<Expected, { kind: "applied" }>, spec:
     ...mismatches("fabric", expected.fabric, (key) => fabric[key]),
     ...mismatches("labelling", expected.labelling, (key) => spec.labelling[key as keyof GarmentSpec["labelling"]]?.text),
     ...marksProblems(expected.namesNumbers, spec),
+    ...(expected.kitPattern !== undefined && expected.kitPattern !== (spec.kitPattern?.style ?? null)
+      ? [`kit pattern: expected ${expected.kitPattern ?? "none"}, got ${spec.kitPattern?.style ?? "none"}`]
+      : []),
   ];
   return { type, options, rest };
 }

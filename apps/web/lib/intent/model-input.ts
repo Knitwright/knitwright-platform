@@ -10,6 +10,7 @@ import {
   type GarmentSpec,
   type ResolvedType,
 } from "@/lib/garment";
+import { KIT_PATTERN_PROMPT } from "./kit-pattern";
 import { MAX_ACTIONS, MAX_CHOICES } from "./reply-schema";
 
 export interface ModelInput {
@@ -45,6 +46,7 @@ export function describeSpec(spec: GarmentSpec) {
     })),
     labelling: Object.fromEntries(Object.entries(spec.labelling).map(([field, value]) => [field, value?.text ?? ""])),
     namesAndNumbers: spec.namesAndNumbers?.places.map((entry) => entry.place) ?? [],
+    kitPattern: spec.kitPattern ? { style: spec.kitPattern.style, colours: spec.kitPattern.colours.map((entry) => entry.colour || entry.swatch || "") } : null,
   };
 }
 
@@ -90,6 +92,7 @@ Actions, with no other fields:
 {"type": "set-labelling", "field": "${LABELLING_FIELDS.join('" | "')}", "text": "..."}
 {"type": "add-names-numbers"}  adds player names and numbers at the usual places; each player's own name and number come later with the team order
 {"type": "ask-amount", "pointId": "...", "direction": "longer" | "shorter"}  for a length asked for without an amount, such as "a bit longer"; the customer is then asked how much
+${KIT_PATTERN_PROMPT}
 
 Garment types, with the choices each one offers:
 ${typeLines(types)}

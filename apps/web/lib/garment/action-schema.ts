@@ -11,6 +11,7 @@ import {
   toleranceSchema,
 } from "./parts";
 import { fabricChangesSchema } from "./fabric-edit";
+import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { freeText, kebabId, localId, wearerSchema } from "./primitives";
 import { provenanceSchema } from "./provenance";
@@ -57,6 +58,8 @@ export const specActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("remove-artwork"), id: localId }),
   z.strictObject({ type: z.literal("set-names-numbers"), namesAndNumbers: namesAndNumbersSchema }),
   z.strictObject({ type: z.literal("remove-names-numbers") }),
+  z.strictObject({ type: z.literal("set-kit-pattern"), kitPattern: kitPatternSchema }),
+  z.strictObject({ type: z.literal("remove-kit-pattern") }),
   z.strictObject({ type: z.literal("set-component"), component: componentSchema }),
   z.strictObject({ type: z.literal("remove-component"), id: kebabId }),
   z.strictObject({ type: z.literal("set-construction"), entry: constructionEntrySchema }),

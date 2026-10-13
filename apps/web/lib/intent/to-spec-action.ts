@@ -9,6 +9,7 @@ import {
   type SpecAction,
 } from "@/lib/garment";
 import { readSwatch, swatchForName } from "./colour-names";
+import { kitPatternAction } from "./kit-pattern";
 import type { WireAction } from "./reply-schema";
 
 /** Everything a model sets is a suggestion until a person changes it (criterion M4). */
@@ -116,5 +117,9 @@ export function toSpecAction(spec: GarmentSpec, wire: WireAction, source: ModelS
     case "ask-amount":
       // Nothing to change until the person gives the amount. The resolver asks for it.
       return { ok: false, reason: "That needs an amount first." };
+    case "set-kit-pattern":
+      return kitPatternAction(spec, wire, source);
+    case "remove-kit-pattern":
+      return done({ type: "remove-kit-pattern" });
   }
 }

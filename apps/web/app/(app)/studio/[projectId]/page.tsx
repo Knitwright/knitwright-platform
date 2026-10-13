@@ -15,6 +15,7 @@ import { assistantAvailable } from "@/lib/projects/assistant";
 import { conversationFor } from "@/lib/projects/chat-history";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { AppError } from "@/lib/server/core/errors";
 import { imageProvider, sessionClient } from "@/lib/server/deps";
 import { log } from "@/lib/server/log";
@@ -52,6 +53,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
 
   return (
     <div className="flex flex-col gap-10">
+      <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />
       <Editor
         data={buildEditorData(project, history, charts, pictures, colourway)}
         assistant={{ available: assistantAvailable(), conversation }}

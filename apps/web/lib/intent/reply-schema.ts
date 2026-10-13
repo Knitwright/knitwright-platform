@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SWATCH_PATTERN, fabricChangesSchema, labellingFieldSchema, wearerSchema } from "@/lib/garment";
+import { removeKitPatternWire, setKitPatternWire } from "./kit-pattern";
 
 /**
  * The reply a model must give, as JSON. Every object is strict: a field the contract does
@@ -34,6 +35,8 @@ export const WIRE_ACTION_TYPES = [
   "set-labelling",
   "add-names-numbers",
   "ask-amount",
+  "set-kit-pattern",
+  "remove-kit-pattern",
 ] as const;
 export type WireActionType = (typeof WIRE_ACTION_TYPES)[number];
 
@@ -66,6 +69,9 @@ export const wireActionSchema = z.discriminatedUnion("type", [
    * person is asked how much, so the number is theirs, while the rest of the request is made.
    */
   z.strictObject({ type: z.literal("ask-amount"), pointId: id, direction: z.enum(["longer", "shorter"]) }),
+  /** A kit pattern printed over the body (owner decision 2026-10-13). */
+  setKitPatternWire,
+  removeKitPatternWire,
 ]);
 export type WireAction = z.output<typeof wireActionSchema>;
 

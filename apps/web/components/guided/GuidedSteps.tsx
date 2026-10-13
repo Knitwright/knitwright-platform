@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChatPanel } from "@/components/studio/ChatPanel";
 import { ImageReview } from "@/components/studio/ImageReview";
 import type { AssistantInfo } from "@/components/studio/Editor";
+import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { OptionControls } from "@/components/studio/OptionControls";
 import type { Editor as EditorApi } from "@/components/studio/useEditor";
 import { TechPackDownloads } from "@/components/techpack/TechPackDownloads";
@@ -40,6 +41,7 @@ export function StartStep({ data, from, say, assistant, busy, onSaid }: StartPro
   return (
     <>
       <p className="text-[15px] leading-relaxed text-muted">{startLead(from, say, assistant.conversation.length)}</p>
+      <KitStylesLink projectId={data.projectId} typeId={data.spec.typeId} from="guide" />
       <ChatPanel
         projectId={data.projectId}
         version={data.version}

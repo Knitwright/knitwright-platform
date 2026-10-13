@@ -3043,6 +3043,118 @@
         ]
       },
       "approved": false
+    },
+    {
+      "id": "tops-211",
+      "category": "kit-pattern",
+      "utterance": "add hoops",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "question"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-212",
+      "category": "kit-pattern",
+      "utterance": "navy and gold stripes",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "applied",
+        "colours": {
+          "body-front": "navy",
+          "body-back": "navy"
+        },
+        "kitPattern": "stripes"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-213",
+      "category": "kit-pattern",
+      "utterance": "give it a red sash",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "applied",
+        "kitPattern": "sash"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-214",
+      "category": "kit-pattern",
+      "utterance": "white pinstripes please",
+      "start": {
+        "typeId": "polo"
+      },
+      "expected": {
+        "kind": "applied",
+        "kitPattern": "pinstripes"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-215",
+      "category": "kit-pattern",
+      "utterance": "green and white hoops",
+      "start": {
+        "typeId": "polo"
+      },
+      "expected": {
+        "kind": "applied",
+        "colours": {
+          "body-front": "green"
+        },
+        "kitPattern": "hoops"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-216",
+      "category": "kit-pattern",
+      "utterance": "a black chest band across the front",
+      "start": {
+        "typeId": "crew-tee"
+      },
+      "expected": {
+        "kind": "applied",
+        "kitPattern": "chest-band"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-217",
+      "category": "kit-pattern",
+      "utterance": "sublimated fade from navy into sky blue",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "applied",
+        "colours": {
+          "body-front": "navy"
+        },
+        "kitPattern": "fade"
+      },
+      "approved": false
+    },
+    {
+      "id": "tops-218",
+      "category": "kit-pattern",
+      "utterance": "add gold side panels",
+      "start": {
+        "typeId": "team-jersey"
+      },
+      "expected": {
+        "kind": "question"
+      },
+      "approved": false
     }
   ]
 }
