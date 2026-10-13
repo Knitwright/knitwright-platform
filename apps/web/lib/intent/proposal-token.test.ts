@@ -14,6 +14,11 @@ describe("proposal tokens", () => {
     expect(verifyProposal(token, KEY, WHO, NOW + 10)).toEqual({ ok: true, proposal: PROPOSAL });
   });
 
+  it("carries the label of the button with it, when there is one", () => {
+    const labelled = { ...PROPOSAL, label: "Switch to V neck (no collar)" };
+    expect(verifyProposal(signProposal(labelled, KEY, NOW), KEY, WHO, NOW)).toEqual({ ok: true, proposal: labelled });
+  });
+
   it("refuses a token for another design, brand or person", () => {
     const token = signProposal(PROPOSAL, KEY, NOW);
     for (const who of [{ ...WHO, projectId: "p-2" }, { ...WHO, brandId: "b-2" }, { ...WHO, userId: "u-2" }]) {
