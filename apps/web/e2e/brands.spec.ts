@@ -26,9 +26,11 @@ test.describe("brands", () => {
 
     await page.goto("/brands");
     await expect(page).toHaveURL(/\/welcome$/);
+    await expect(page.getByRole("group", { name: "Who are you designing for?" })).toBeVisible();
 
-    await page.getByLabel("Brand name").fill("Harbour Rowing Club");
-    await page.getByRole("button", { name: "Create brand" }).click();
+    // Before a type is chosen the words are general.
+    await page.getByLabel("Name of your club, school or brand").fill("Harbour Rowing Club");
+    await page.getByRole("button", { name: "Continue" }).click();
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Harbour Rowing Club");
   });
@@ -44,6 +46,7 @@ test.describe("brands", () => {
   test("a brand name that is empty is refused beside the field", async ({ page }) => {
     await signedIn(page, "empty-name", null);
 
+    await page.getByRole("radio", { name: "Brand", exact: true }).check();
     await page.getByLabel("Brand name").fill("   ");
     await page.getByRole("button", { name: "Create brand" }).click();
 
@@ -210,6 +213,7 @@ test("a form failure still shows in the summary", async ({ page }) => {
   // Two brands cannot be told apart by the summary test above, so this checks it alone.
   await signedIn(page, "summary", null);
 
+  await page.getByRole("radio", { name: "Brand", exact: true }).check();
   await page.getByLabel("Brand name").fill("   ");
   await page.getByRole("button", { name: "Create brand" }).click();
 
