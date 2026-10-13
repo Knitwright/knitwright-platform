@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createSpec } from "@/lib/garment";
 import {
   PROJECTS_LISTED,
+  checkVersion,
   createProject,
   currentVersion,
   getProject,
@@ -213,6 +214,24 @@ describe("the version a design is at", () => {
     expect(await currentVersion(alice.client, aliceBrand, id)).toBe(2);
     expect((await failureOf(currentVersion(bob.client, bobBrand, id))).code).toBe("not_found");
     expect((await failureOf(currentVersion(alice.client, aliceBrand, "not-an-id"))).code).toBe("not_found");
+  });
+
+  it("is checked against a conflict: the person's own newer versions are not someone else's", async () => {
+    const id = await make();
+    saved(await change(id, 1, setOption("fit", "slim")));
+    saved(await change(id, 2, setOption("fit", "relaxed")));
+    const check = (since: number) =>
+      checkVersion(alice.client, { brandId: aliceBrand, projectId: id, userId: alice.userId, since });
+
+    expect(await check(1)).toEqual({ version: 3, others: 0 });
+    expect(await check(3)).toEqual({ version: 3, others: 0 });
+    // Read as if by somebody else: both newer versions are by another person.
+    expect(await checkVersion(alice.client, { brandId: aliceBrand, projectId: id, userId: bob.userId, since: 1 })).toEqual({
+      version: 3,
+      others: 2,
+    });
+    const bobs = checkVersion(bob.client, { brandId: bobBrand, projectId: id, userId: bob.userId, since: 1 });
+    expect((await failureOf(bobs)).code).toBe("not_found");
   });
 });
 
