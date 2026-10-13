@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { LeadOwnerForm } from "@/components/leads/LeadOwnerForm";
 import { QuoteStatusForm } from "@/components/leads/QuoteStatusForm";
+import { loadAccessRequests, type AccessRequestRow } from "@/lib/leads/access";
 import { buildLeadList, type LeadListItem } from "@/lib/leads/admin";
 import { buyerKindLabel } from "@/lib/leads/buyer-kind";
 import { organisationTypeLabel, placeOf } from "@/lib/leads/organisation";
@@ -22,7 +23,9 @@ export const metadata: Metadata = { title: "Leads", robots: { index: false, foll
  */
 export default async function LeadsPage() {
   await requirePlatformAdmin();
-  const leads = buildLeadList(await loadLeadRows(await sessionClient()), new Date());
+  const client = await sessionClient();
+  const [rows, requests] = await Promise.all([loadLeadRows(client), loadAccessRequests(client)]);
+  const leads = buildLeadList(rows, new Date());
 
   return (
     <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
@@ -41,7 +44,40 @@ export default async function LeadsPage() {
           ))}
         </ol>
       )}
+      <AccessRequests requests={requests} />
     </main>
+  );
+}
+
+/** People with no account who asked for access while sign-up is by invitation. Newest first. */
+function AccessRequests({ requests }: Readonly<{ requests: readonly AccessRequestRow[] }>) {
+  return (
+    <section aria-labelledby="access-requests" className="mt-12">
+      <h2 id="access-requests" className="text-xl font-semibold text-ink">
+        Requests for access
+      </h2>
+      <p className="mt-2 text-[15px] text-muted">
+        From the sign-up page. To let someone in, add their address to the allow list (docs/launch/sign-up-switch.md), then tell them to sign up.
+      </p>
+      {requests.length === 0 ? (
+        <p className="mt-4 text-[15px] text-muted">No requests yet.</p>
+      ) : (
+        <ul className="mt-4 flex flex-col divide-y divide-hairline rounded-2xl border border-hairline bg-surface">
+          {requests.map((request) => (
+            <li key={request.id} className="px-6 py-4 text-sm text-ink-2" data-testid="access-request">
+              <p className="text-[15px] font-medium text-ink">
+                {request.name}, {request.email}
+              </p>
+              <p className="text-muted">
+                {request.organisation || "No organisation given"} · {organisationTypeLabel(request.organisationType)} · Asked{" "}
+                {formatDateTime(request.createdAt)}
+              </p>
+              {request.message ? <p className="mt-1">Message: {request.message}</p> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
