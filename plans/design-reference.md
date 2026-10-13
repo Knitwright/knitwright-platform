@@ -107,3 +107,24 @@ The platform should match these, or the landing page should change.
 | Specs are never shown to another brand | In the MVP (step 3) |
 | Export the full tech pack and DXF at any time | Tech pack in the MVP. DXF in layer A. |
 | Sampling, bulk production, escrow, reorder | Not in this plan |
+
+## Finish and motion (read from the live site, 2026-10-13)
+
+The platform screenshots on knitwright.com are placeholders. Take the finish and motion below,
+never the pictured screens. The studio app uses the dark side of this system throughout.
+
+| Piece | Exact values |
+|---|---|
+| Glass panel | `backdrop-filter: blur(28px) saturate(1.6)`; background `rgba(12,13,18,.42)`; border `1px solid rgba(255,255,255,.22)` (use `.14` on busy app screens); `box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 30px 80px -30px rgba(0,0,0,.6)`. The inset line is the glossy top edge. |
+| Header pill | Glass at `rgba(23,24,27,.52)`, `blur(24px) saturate(1.5)`, border white 12%, fully rounded, 64–70 px tall; background, border and shadow transition over 450 ms. |
+| Thread ring | A 1.5 px border painted with `--thread`: a `::before` with `padding:1.5px`, `background:var(--thread)`, masked with `linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)`. On primary buttons and the brand card. |
+| Primary button | Pill, `rgba(255,255,255,.05)`, thread ring. A white `chip-fill` layer grows from the arrow: `clip-path: circle(0 at calc(100% - 28px) 50%)` → `circle(150% …)`, 600 ms `cubic-bezier(.4,0,.2,1)`. Label turns ink over 500 ms. The arrow disc (`--thread` fill) turns 45° over 500 ms. |
+| Card hover | Cobalt `fill-layer` grows from the pointer or bottom centre: `clip-path: circle(0 at var(--fx,50%) var(--fy,100%))` → `circle(160% …)`, 700 ms. Cards grow or lift with `cubic-bezier(.25,1,.5,1)` over 600 ms; captions slide up 20 px and fade in over 600 ms. |
+| Headline reveal | `morph-reveal` 1 s `cubic-bezier(.25,.46,.45,.94)` 0.2 s delay: from `scaleY(0) scaleX(.8)`, opacity 0, overshoot to `scaleY(1.05)` at 60%, origin bottom centre. Gradient words use `--thread` clipped to text. |
+| Background drift | `hero-drift` 24 s ease-in-out infinite alternate: `scale(1.02)` → `scale(1.1) translate(-1.5%,-1%)`. In the app: blurred thread-colour aurora behind the glass. |
+| Status dots | `pulse-ring`: opacity .7 → 0, `scale(.9)` → `scale(1.9)`. |
+| Marquee | 40–60 s linear, `translate(-50%)`. |
+| Small links | Opacity .9 → 1 over 150 ms. |
+| Reduced motion | Every animation off; reveals show at rest; fills show without movement. |
+
+Mockup canvas: https://claude.ai/artifact/PFjUdQGjFuSeHyN3ceHD3U
