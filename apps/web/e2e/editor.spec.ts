@@ -31,7 +31,7 @@ test.describe("the design list", () => {
     await signedIn(page, "list");
     await expect(page.getByRole("heading", { name: "Start your first design" })).toBeVisible();
 
-    await page.getByRole("link", { name: "New design" }).click();
+    await page.getByRole("link", { name: "Blank design" }).click();
     await expect(page).toHaveURL(/\/studio\/new$/);
     await page.getByLabel("Garment type").selectOption({ label: "Polo shirt" });
     await page.getByLabel("Made for").selectOption({ label: "Men" });
@@ -123,6 +123,8 @@ test.describe("the editor", () => {
     await choice(page, "Fit", /^Relaxed/).check();
     await saved(page, 3);
 
+    // Two quick edits by one person are one entry in the history, with each version inside it.
+    await page.getByText("Show each change").click();
     await page.getByRole("button", { name: "Restore version 2" }).click();
 
     await saved(page, 4);

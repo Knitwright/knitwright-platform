@@ -28,6 +28,8 @@ import { resolveRequest, savedBase } from "./effective-spec";
 
 export type Request =
   | Readonly<{ kind: "action"; action: SpecAction }>
+  /** Several changes saved as one version, so one undo takes them all back. */
+  | Readonly<{ kind: "actions"; actions: readonly SpecAction[] }>
   /** A change to the colour of one part. It is made into a colourway change when it is sent. */
   | Readonly<{ kind: "colour"; panelId: string; change: ColourChange; colourwayId?: string }>
   | Readonly<{ kind: "restore"; version: number }>
@@ -205,7 +207,8 @@ const joined = (earlier: Change | undefined, request: Request): Request =>
 
 const enqueue = (state: EditorState, event: Extract<EditorEvent, { type: "enqueue" }>): EditorState => {
   if (state.conflict !== null) return { ...state, optimistic: without(state.optimistic, event.key) };
-  const replaces = event.request.kind === "action" || event.request.kind === "colour";
+  const { kind } = event.request;
+  const replaces = kind === "action" || kind === "actions" || kind === "colour";
   const earlier = replaces ? state.queue.find((change) => change.key === event.key) : undefined;
   const kept = replaces ? state.queue.filter((change) => change.key !== event.key) : state.queue;
   const change: Change = { id: state.nextId, key: event.key, request: joined(earlier, event.request), focus: event.focus };
@@ -232,7 +235,10 @@ const start = (state: EditorState, spec: GarmentSpec | undefined): EditorState =
 /** Keeps what the server saved until the page shows it, so the next change is worked out on top of it. */
 const remember = (state: EditorState, change: InFlight, version: number): Partial<EditorState> => {
   if (version <= Math.max(state.version, state.shown)) return {};
-  if (change.request.kind === "action") return { saved: [...state.saved, { version, action: change.request.action }] };
+  const { request } = change;
+  if (request.kind === "action") return { saved: [...state.saved, { version, action: request.action }] };
+  // A batch is one version: each of its changes is kept under it, in order.
+  if (request.kind === "actions") return { saved: [...state.saved, ...request.actions.map((action) => ({ version, action }))] };
   // An undo or a restore cannot be worked out here, so the page is waited for.
   return { catchUp: Math.max(state.catchUp, version) };
 };

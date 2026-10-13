@@ -26,16 +26,9 @@ export default async function StudioPage() {
           <Link href="/studio/charts" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
             Size charts
           </Link>
-          {projects.length > 0 ? (
-            <>
-              <LinkButton href="/studio/new" variant="secondary">
-                New design
-              </LinkButton>
-              <LinkButton href="/studio/start">Start a design, step by step</LinkButton>
-            </>
-          ) : null}
         </div>
       </header>
+      {projects.length > 0 ? <StartChoices /> : null}
       {projects.length === 0 ? <FirstDesign brandName={brand.name} /> : <ProjectsTable brandName={brand.name} projects={projects} />}
       {hasMore ? (
         <p className="mt-4 text-sm text-muted">
@@ -53,15 +46,34 @@ function FirstDesign({ brandName }: Readonly<{ brandName: string }>) {
         Start your first design
       </h2>
       <p className="mt-2 text-[15px] leading-relaxed text-muted">
-        Pick a garment, say who it is for, and give it a name. Only members of {brandName} can see your designs.
+        Only members of {brandName} can see your designs.
       </p>
-      <div className="mt-5 flex flex-wrap gap-3">
-        <LinkButton href="/studio/start">Start a design, step by step</LinkButton>
-        <LinkButton href="/studio/new" variant="secondary">
-          New design
-        </LinkButton>
-      </div>
+      <StartChoices />
     </section>
+  );
+}
+
+/** The two ways to start a design, each with one line on what it does. The guided way comes first. */
+function StartChoices() {
+  return (
+    <ul className="mt-5 flex flex-col gap-4 sm:flex-row sm:gap-8">
+      <li className="flex max-w-sm flex-col gap-2">
+        <div>
+          <LinkButton href="/studio/start">Start a design</LinkButton>
+        </div>
+        <p className="text-sm leading-relaxed text-muted">
+          Step by step, from your own words, a sketch or a garment, through to sharing it and a quote.
+        </p>
+      </li>
+      <li className="flex max-w-sm flex-col gap-2">
+        <div>
+          <LinkButton href="/studio/new" variant="secondary">
+            Blank design
+          </LinkButton>
+        </div>
+        <p className="text-sm leading-relaxed text-muted">Pick a garment and go straight to the full editor.</p>
+      </li>
+    </ul>
   );
 }
 

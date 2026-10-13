@@ -15,6 +15,8 @@ export interface SetRow {
   readonly value: number;
   /** Plus or minus, in tenths of a millimetre. Null means "to be confirmed". */
   readonly tolerance: number | null;
+  /** Present when a person typed the tolerance. Otherwise a tolerance comes from the chart. */
+  readonly toleranceFrom?: Provenance;
   readonly provenance: Provenance;
   /** A plain sentence when there is something to explain, otherwise null. */
   readonly note: string | null;

@@ -1,4 +1,4 @@
-import { applyAction, type GarmentSpec } from "@/lib/garment";
+import { applyAction, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { colourAction } from "./colour-controls";
 import type { EditorState, Request, SavedChange } from "./editor-state";
 
@@ -19,6 +19,18 @@ export function resolveRequest(base: GarmentSpec | null, request: Request): Reso
   return made.kind === "action" ? { kind: "ready", request: made } : made;
 }
 
+/** The changes a ready request makes, in order. Undo and restore make none that can be worked out here. */
+const actionsOf = (request: Request): readonly SpecAction[] => {
+  if (request.kind === "action") return [request.action];
+  return request.kind === "actions" ? request.actions : [];
+};
+
+/** The design with one change applied, or as it was when the rules refuse the change. */
+const applied = (current: GarmentSpec, action: SpecAction): GarmentSpec => {
+  const result = applyAction(current, action);
+  return result.ok ? result.spec : current;
+};
+
 /**
  * The design as it will be once the given changes are saved, oldest first. A change that
  * builds on another, such as a second colour, is worked out from this, so it does not undo
@@ -28,9 +40,7 @@ export function resolveRequest(base: GarmentSpec | null, request: Request): Reso
 export function effectiveSpec(spec: GarmentSpec, waiting: readonly Request[]): GarmentSpec {
   return waiting.reduce<GarmentSpec>((current, request) => {
     const resolved = resolveRequest(current, request);
-    if (resolved.kind !== "ready" || resolved.request.kind !== "action") return current;
-    const result = applyAction(current, resolved.request.action);
-    return result.ok ? result.spec : current;
+    return resolved.kind === "ready" ? actionsOf(resolved.request).reduce(applied, current) : current;
   }, spec);
 }
 

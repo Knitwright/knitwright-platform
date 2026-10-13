@@ -6,7 +6,9 @@ import {
   measurementSchema,
   optionChoiceSchema,
   panelFabricSchema,
+  sizeMeasurementSchema,
   sizingSchema,
+  toleranceSchema,
 } from "./parts";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
@@ -23,6 +25,8 @@ export const MAX_FABRICS = LIST_LIMITS.fabrics;
 export const MAX_PANEL_FABRICS = 32;
 export const MAX_COMPONENTS = 24;
 export const MAX_CONSTRUCTION = 32;
+/** Far more than a real size run needs: a design measured at every size has a few dozen. */
+export const MAX_SIZE_MEASUREMENTS = 512;
 
 /**
  * The shape of a design, with no check against the registry. A design saved under
@@ -40,6 +44,12 @@ export const garmentSpecStructureSchema = z
     /** Null until the person sets a size run. Measurements are values at the base size. */
     sizing: sizingSchema.nullable(),
     measurements: z.array(measurementSchema).max(MAX_MEASUREMENTS).readonly(),
+    /**
+     * Values typed for sizes other than the base size, and tolerances typed by a person.
+     * Optional and added after version 6 without a bump, so every design saved before still reads.
+     */
+    sizeMeasurements: z.array(sizeMeasurementSchema).max(MAX_SIZE_MEASUREMENTS).readonly().optional(),
+    tolerances: z.array(toleranceSchema).max(MAX_MEASUREMENTS).readonly().optional(),
     /** Never empty. Panels with no entry in `panelFabrics` use the first. */
     fabrics: z.tuple([fabricSchema], fabricSchema).readonly(),
     panelFabrics: z.array(panelFabricSchema).max(MAX_PANEL_FABRICS).readonly(),

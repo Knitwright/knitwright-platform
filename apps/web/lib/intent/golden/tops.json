@@ -1847,7 +1847,12 @@
         "typeId": "v-neck-tee"
       },
       "expected": {
-        "kind": "rejection"
+        "kind": "applied",
+        "typeId": "team-jersey",
+        "options": {
+          "neckline": "v-neck",
+          "collar": "none"
+        }
       },
       "approved": false
     },

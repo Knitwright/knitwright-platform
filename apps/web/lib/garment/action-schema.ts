@@ -5,7 +5,10 @@ import {
   COMPONENT_TEXT_MAX_LENGTH,
   fabricSchema,
   measurementShape,
+  sizeLabelSchema,
+  sizeMeasurementSchema,
   sizingSchema,
+  toleranceSchema,
 } from "./parts";
 import { fabricChangesSchema } from "./fabric-edit";
 import { namesAndNumbersSchema } from "./names-numbers";
@@ -30,6 +33,11 @@ export const specActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("set-measurement"), ...measurementShape }),
   z.strictObject({ type: z.literal("remove-measurement"), pointId: kebabId }),
   z.strictObject({ type: z.literal("set-sizing"), sizing: sizingSchema.nullable() }),
+  /** A value for a size other than the base size, typed because nothing can work it out. */
+  z.strictObject({ type: z.literal("set-size-measurement"), entry: sizeMeasurementSchema }),
+  z.strictObject({ type: z.literal("remove-size-measurement"), pointId: kebabId, size: sizeLabelSchema }),
+  z.strictObject({ type: z.literal("set-tolerance"), entry: toleranceSchema }),
+  z.strictObject({ type: z.literal("remove-tolerance"), pointId: kebabId }),
   z.strictObject({ type: z.literal("add-fabric"), fabric: fabricSchema }),
   z.strictObject({ type: z.literal("update-fabric"), fabric: fabricSchema }),
   z.strictObject({

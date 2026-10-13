@@ -6,6 +6,7 @@ import type { OptionChoice } from "./parts";
 import type { ResolvedType } from "./registry";
 import { fittingMarks, PLACE_DEFINITIONS, withoutMarks } from "./names-numbers";
 import { artworkProblem } from "./spec-checks";
+import { keepApplyingSizeValues } from "./size-values";
 import { dropStaleTechFields } from "./tech-reconcile";
 import type { GarmentSpec } from "./spec-schema";
 
@@ -121,7 +122,11 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
   });
   const rest = withoutMarks(spec);
   const marks = keptMarks(spec, type, dropped);
-  const kept = { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks };
+  const kept = keepApplyingSizeValues(
+    { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks },
+    type,
+    dropped,
+  );
   const tech = dropStaleTechFields(kept, type);
   return { value: tech.value, dropped: [...dropped, ...tech.dropped] };
 }

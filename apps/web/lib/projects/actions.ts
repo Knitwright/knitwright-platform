@@ -16,8 +16,10 @@ import { log } from "@/lib/server/log";
 import { verifyProposal } from "@/lib/intent/proposal-token";
 import { nowSeconds, proposalSigningKey } from "./assistant";
 import { applySignedProposal } from "./assistant-request";
+import { recordLines } from "./chat-history";
 import {
   applyDesignActionSchema,
+  applyDesignActionsSchema,
   applyProposalSchema,
   createProjectSchema,
   projectDetailsSchema,
@@ -31,6 +33,7 @@ import {
   renameProject,
   restoreVersion,
   saveAction,
+  saveActions,
   saveTrustedActions,
   undoDesign,
   type SaveOutcome,
@@ -107,6 +110,23 @@ export const applyDesignActionAction = defineAction({
   schema: applyDesignActionSchema,
   handler: async ({ input, session }) => {
     const outcome = await saveAction(adminClient(), await sessionClient(), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      ...input,
+    });
+    const answer = savedOrRefused(outcome);
+    refreshDesign(input.projectId);
+    return answer;
+  },
+});
+
+/** Applies several changes to a design, all or none, and stores them as one version. */
+export const applyDesignActionsAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.editDesign,
+  schema: applyDesignActionsSchema,
+  handler: async ({ input, session }) => {
+    const outcome = await saveActions(adminClient(), await sessionClient(), {
       brandId: session.brand.id,
       userId: session.userId,
       ...input,
@@ -199,6 +219,8 @@ export const applyProposalAction = defineAction({
       verify: () => verifyProposal(input.token, proposalSigningKey(), who, nowSeconds()),
       save: (batch) => saveTrustedActions(adminClient(), client, { ...who, ...batch }),
       expectedVersion: input.expectedVersion,
+      record: (lines) => recordLines(adminClient(), who, lines),
+      log,
     });
     if (!outcome.ok) throw new AppError("invalid_input", outcome.reason);
     refreshDesign(input.projectId);

@@ -5,29 +5,45 @@ import {
   guideAddress,
   neighbours,
   startFromSentence,
+  startLead,
   startMethodFrom,
   stepFrom,
   suggestedName,
 } from "./flow";
 
 describe("the steps of the guided flow", () => {
-  it("is one path: start, review, adjust, download", () => {
-    expect(GUIDED_STEPS.map((step) => step.id)).toEqual(["start", "review", "adjust", "download"]);
+  it("is one path: start, review, adjust, download, then share and get it made", () => {
+    expect(GUIDED_STEPS.map((step) => step.id)).toEqual(["start", "review", "adjust", "download", "make"]);
+    expect(GUIDED_STEPS.at(-1)?.label).toBe("Share and get it made");
     expect(GUIDED_STEPS.every((step) => step.label.length > 0 && step.hint.length > 0)).toBe(true);
   });
 
   it("reads the step from the address, and starts at the start for anything else", () => {
     expect(stepFrom("review")).toBe("review");
     expect(stepFrom("download")).toBe("download");
+    expect(stepFrom("make")).toBe("make");
     expect(stepFrom(undefined)).toBe("start");
     expect(stepFrom("admin")).toBe("start");
     expect(stepFrom(["adjust"])).toBe("start");
   });
 
+  it("says above the assistant only what it knows of how the design started", () => {
+    expect(startLead("text", "a slim polo", 0)).toMatch(/^Your words were sent/);
+    expect(startLead("text", undefined, 2)).toMatch(/^Your conversation with the assistant so far is below/);
+    expect(startLead("picker", undefined, 2)).toMatch(/^Your conversation with the assistant so far is below/);
+    for (const from of ["text", "picker"] as const) {
+      expect(startLead(from, undefined, 0)).toBe("Describe anything you want to change, or go on to review.");
+    }
+    for (const lead of [startLead("text", "x", 0), startLead("text", undefined, 1), startLead("picker", undefined, 0)]) {
+      expect(lead).not.toMatch(/picked the garment/);
+    }
+  });
+
   it("knows the step before and after each one", () => {
     expect(neighbours("start")).toEqual({ previous: null, next: "review" });
     expect(neighbours("adjust")).toEqual({ previous: "review", next: "download" });
-    expect(neighbours("download")).toEqual({ previous: "adjust", next: null });
+    expect(neighbours("download")).toEqual({ previous: "adjust", next: "make" });
+    expect(neighbours("make")).toEqual({ previous: "download", next: null });
   });
 
   it("reads how the person started, and a garment picker for anything else", () => {

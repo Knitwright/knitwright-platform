@@ -14,7 +14,7 @@ import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { refuseUnreadableArtwork, dropUnreadableArtwork } from "./artwork-files";
 import { browserActionSchema } from "./browser-action";
 import { CONFLICT_MESSAGE } from "./database-errors";
-import { describeAction, describeProposal, restoreNote, type ProposalSource } from "./notes";
+import { describeAction, describeActions, describeProposal, restoreNote, type ProposalSource } from "./notes";
 import { historyRows, loadRow, loadVersion, readSpec, throwIfFailed, type ReadSpec } from "./project-reads";
 import { sameDesign } from "./same-design";
 import { undoTarget } from "./undo";
@@ -160,6 +160,43 @@ export const saveAction = async (
   const notOffered = notOfferedChange(current.read.spec, [action.data]);
   if (notOffered) return { ok: false, reason: notOffered };
   return storeAction(admin, client, input, current, action.data);
+};
+
+export type BatchInput = Omit<SaveInput, "action"> & Readonly<{ actions: readonly unknown[] }>;
+
+/**
+ * Applies several changes from a browser to the current design, all or none, and stores the
+ * result as ONE version, so one undo takes them all back. Each change is read as `saveAction`
+ * reads one: whatever source the browser claims is thrown away and `user-edited` is written.
+ * This is how a person confirms every suggestion in a section with one press.
+ */
+export const saveActions = async (admin: SupabaseClient, client: SupabaseClient, input: BatchInput): Promise<SaveOutcome> => {
+  const current = await loadCurrent(client, input);
+  const parsed = input.actions.map((raw) => browserActionSchema.safeParse(raw));
+  const actions = parsed.flatMap((result) => (result.success ? [result.data] : []));
+  if (actions.length !== input.actions.length) return { ok: false, reason: NOT_UNDERSTOOD };
+  const notOffered = notOfferedChange(current.read.spec, actions);
+  if (notOffered) return { ok: false, reason: notOffered };
+  let spec = current.read.spec;
+  const dropped: Dropped[] = [...current.read.dropped];
+  for (const action of actions) {
+    const refusal = await refuseUnreadableArtwork(client, input.brandId, action);
+    if (refusal) return { ok: false, reason: refusal };
+    const applied = applyAction(spec, action);
+    if (!applied.ok) return applied;
+    dropped.push(...applied.dropped);
+    spec = applied.spec;
+  }
+  if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
+  const version = await appendVersion(admin, {
+    userId: input.userId,
+    projectId: input.projectId,
+    expectedVersion: input.expectedVersion,
+    spec,
+    note: describeActions(current.read.spec, actions),
+    restoredFrom: null,
+  });
+  return { ok: true, spec, version, dropped };
 };
 
 /**

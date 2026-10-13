@@ -11,6 +11,11 @@ const colour = (spec: ReturnType<typeof start>, panel: string, swatch: string): 
   return request;
 };
 
+const actionOf = (request: Request): SpecAction => {
+  if (request.kind !== "action") throw new Error("Expected an action");
+  return request.action;
+};
+
 describe("effectiveSpec", () => {
   const spec = start("crew-tee");
 
@@ -79,5 +84,24 @@ describe("resolveRequest", () => {
   it("says why a colour cannot be used", () => {
     const resolved = resolveRequest(spec, { kind: "colour", panelId: "body-front", change: { swatch: "blue" } });
     expect(resolved).toEqual({ kind: "problem", reason: "Pick a colour, such as #1b2a49." });
+  });
+
+  it("lists every change of a batch in its order, and a newer batch for the same control replaces the older", () => {
+    const spec = start("crew-tee");
+    const a = actionOf(colour(spec, "body-front", "#111111"));
+    const b = actionOf(colour(spec, "body-back", "#222222"));
+    let state = initialEditorState(1);
+    state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a] }, focus: true });
+    state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a, b] }, focus: true });
+    expect(pendingRequests(state, 1)).toEqual([{ kind: "actions", actions: [a, b] }]);
+  });
+
+  it("applies every change of a batch to the design being worked on", () => {
+    const spec = start("crew-tee");
+    const a = actionOf(colour(spec, "body-front", "#111111"));
+    const b = actionOf(colour(effectiveSpec(spec, [{ kind: "action", action: a }]), "body-back", "#222222"));
+    const one = effectiveSpec(spec, [{ kind: "action", action: a }, { kind: "action", action: b }]);
+
+    expect(effectiveSpec(spec, [{ kind: "actions", actions: [a, b] }])).toEqual(one);
   });
 });

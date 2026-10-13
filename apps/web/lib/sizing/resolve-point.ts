@@ -4,6 +4,8 @@ import {
   formatCm,
   type Measurement,
   type PointOfMeasure,
+  type SizeMeasurement,
+  type Tolerance,
 } from "@/lib/garment";
 import type { GradedRow } from "./grading";
 import { must } from "./invariant";
@@ -35,6 +37,39 @@ const missing = (point: PointOfMeasure, message: string): MissingRow => ({
   message,
 });
 
+/** What a person typed beyond the base size value: a value for one size, and a tolerance. */
+export interface Typed {
+  readonly atSize?: SizeMeasurement | undefined;
+  readonly tolerance?: Tolerance | undefined;
+}
+
+/** A value typed for this very size, which is not the base size. Nothing worked out can beat it. */
+function typedAtSize(
+  point: PointOfMeasure,
+  typed: Typed,
+  where: Readonly<{ size: string; baseSize: string | null }>,
+  chartTolerance: number | null,
+): SetRow | null {
+  const entry = typed.atSize;
+  if (!entry || entry.size !== where.size || where.size === where.baseSize) return null;
+  return {
+    status: "set",
+    pointId: point.id,
+    label: point.label,
+    ...section(point),
+    value: entry.value,
+    tolerance: chartTolerance,
+    provenance: entry.provenance,
+    note: null,
+  };
+}
+
+/** A tolerance a person typed wins over the chart's, and says so. A row with no value keeps none. */
+function withTolerance(row: ResolutionRow, typed: Typed): ResolutionRow {
+  if (row.status !== "set" || !typed.tolerance) return row;
+  return { ...row, tolerance: typed.tolerance.value, toleranceFrom: typed.tolerance.provenance };
+}
+
 /**
  * A row when no chart can be used. A typed value is the value at the design base size and
  * nowhere else, because nothing can work it out for another size. When the design has no
@@ -42,6 +77,18 @@ const missing = (point: PointOfMeasure, message: string): MissingRow => ({
  * Its tolerance stays empty until someone confirms one.
  */
 export function userOnlyRow(
+  point: PointOfMeasure,
+  user: Measurement | undefined,
+  reason: string,
+  size: string,
+  baseSize: string | null,
+  typed: Typed = {},
+): ResolutionRow {
+  const own = typedAtSize(point, typed, { size, baseSize }, null);
+  return withTolerance(own ?? userOnly(point, user, reason, size, baseSize), typed);
+}
+
+function userOnly(
   point: PointOfMeasure,
   user: Measurement | undefined,
   reason: string,
@@ -112,13 +159,21 @@ function fromUser(point: PointOfMeasure, user: Measurement, chartRow: GradedRow 
 /**
  * The value of one point at one size. The order is the chart, then the user. A value the
  * user set is the value at the design base size, and the other sizes are graded from it.
+ * A value the user typed for one other size wins for that size, and a tolerance the user
+ * typed wins over the chart's.
  */
 export function resolvePoint(
   point: PointOfMeasure,
   user: Measurement | undefined,
   chartRow: GradedRow | undefined,
   where: Where,
+  typed: Typed = {},
 ): ResolutionRow {
+  const own = typedAtSize(point, typed, where, chartRow?.tolerance ?? null);
+  return withTolerance(own ?? fromChartOrUser(point, user, chartRow, where), typed);
+}
+
+function fromChartOrUser(point: PointOfMeasure, user: Measurement | undefined, chartRow: GradedRow | undefined, where: Where): ResolutionRow {
   if (user) return fromUser(point, user, chartRow, where);
   if (chartRow && where.sizeIndex < 0) {
     return missing(

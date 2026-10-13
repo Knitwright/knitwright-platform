@@ -2,8 +2,11 @@ import {
   POINT_GROUPS,
   POINT_GROUP_LABELS,
   formatCm,
+  toleranceFor,
   type GarmentSpec,
   type PointOfMeasure,
+  type Provenance,
+  type Tolerance,
 } from "@/lib/garment";
 import {
   resolveAllSizes,
@@ -34,12 +37,21 @@ function lengthOf(row: ResolutionRow | undefined): LengthValue {
   return { status: "set", value: formatCm(row.value), tenthsMm: row.value, provenance: row.provenance };
 }
 
-/** The tolerance for a point. It only ever comes from a size chart, so the chart's source is its source. */
-function toleranceOf(rows: readonly (ResolutionRow | undefined)[], source: ChartProvenance): LengthValue {
+const toleranceCell = (tenthsMm: number, provenance: Provenance): LengthValue => ({
+  status: "set",
+  value: `±${formatCm(tenthsMm)}`,
+  tenthsMm,
+  provenance,
+});
+
+/**
+ * The tolerance for a point. One a person typed is theirs, and stands even before any value
+ * is filled in. Otherwise it comes from a size chart, so the chart's source is its source.
+ */
+function toleranceOf(typed: Tolerance | undefined, rows: readonly (ResolutionRow | undefined)[], source: ChartProvenance): LengthValue {
+  if (typed) return toleranceCell(typed.value, typed.provenance);
   for (const row of rows) {
-    if (row?.status === "set" && row.tolerance !== null) {
-      return { status: "set", value: `±${formatCm(row.tolerance)}`, tenthsMm: row.tolerance, provenance: source };
-    }
+    if (row?.status === "set" && row.tolerance !== null) return toleranceCell(row.tolerance, source);
   }
   return TBC;
 }
@@ -62,6 +74,7 @@ function rowFor(
   code: string,
   resolutions: readonly Resolution[],
   columns: readonly SizeColumn[],
+  typed: Tolerance | undefined,
 ): MeasureRow {
   const found = resolutions.map((resolution) => resolution.rows.find((row) => row.pointId === point.id));
   const baseFirst = [...found.slice(columns.findIndex((column) => column.isBase)), ...found];
@@ -69,7 +82,7 @@ function rowFor(
     pointId: point.id,
     code,
     label: point.label,
-    tolerance: toleranceOf(columns.some((column) => column.isBase) ? baseFirst : found, chartSourceOf(resolutions)),
+    tolerance: toleranceOf(typed, columns.some((column) => column.isBase) ? baseFirst : found, chartSourceOf(resolutions)),
     values: found.map(lengthOf),
     notes: notesOf(found),
   };
@@ -90,7 +103,7 @@ export function buildMeasurements(spec: GarmentSpec, charts?: ChartSet): Measure
   const resolutions = hasSizes ? all.entries.map((entry) => entry.resolution) : [resolveMeasurements(spec, "", charts)];
   const rows = pointsInTableOrder(spec).map((point, index) => ({
     group: point.group,
-    row: rowFor(point, codeFor(index), resolutions, columns),
+    row: rowFor(point, codeFor(index), resolutions, columns, toleranceFor(spec, point.id)),
   }));
   const groups: readonly MeasureGroup[] = POINT_GROUPS.map((group) => ({
     group,

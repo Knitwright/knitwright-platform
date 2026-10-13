@@ -25,6 +25,8 @@ export interface Proposal {
   readonly source: "assistant" | "picture";
   /** One sentence for each difference the changes make, for the version note. */
   readonly explanations: readonly string[];
+  /** The words on the button the person tapped, kept in the conversation when it is chosen. */
+  readonly label?: string;
 }
 
 const payloadSchema = z.strictObject({
@@ -35,6 +37,7 @@ const payloadSchema = z.strictObject({
   actions: z.array(specActionSchema).min(1).max(MAX_PROPOSAL_ACTIONS),
   source: z.enum(["assistant", "picture"]),
   explanations: z.array(z.string().max(400)).max(MAX_PROPOSAL_ACTIONS * 2),
+  label: z.string().max(400).optional(),
   expires: z.number().int(),
 });
 

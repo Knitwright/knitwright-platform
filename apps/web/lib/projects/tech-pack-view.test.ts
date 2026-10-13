@@ -2,7 +2,16 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { TBC } from "@/lib/techpack";
-import { cellView, classView, sectionHasForms, sectionLink, summaryTone, toleranceView } from "./tech-pack-view";
+import {
+  SECTION_GUIDANCE,
+  cellView,
+  classView,
+  fieldFor,
+  sectionHasForms,
+  sectionLink,
+  summaryTone,
+  toleranceView,
+} from "./tech-pack-view";
 
 describe("cellView", () => {
   it("shows a missing value as To be confirmed in the attention style, with no source", () => {
@@ -98,10 +107,49 @@ describe("sectionHasForms", () => {
     expect(sectionHasForms("labelling")).toBe(true);
   });
 
-  it("is false for the sections that are always open, and for those filled in in the editor", () => {
-    for (const id of ["cover", "flats", "measurements", "how-to-measure", "colourways", "artwork", "suggested", "sign-off"] as const) {
+  it("is true for every section the confirm list can name, so each has something to fill in", () => {
+    for (const id of ["cover", "measurements", "components", "construction", "colourways", "labelling"] as const) {
+      expect(sectionHasForms(id)).toBe(true);
+      expect(SECTION_GUIDANCE[id], id).toMatch(/^[A-Z][^.]+, (because|so) [^.]+\.$/);
+    }
+  });
+
+  it("is false for the sections that have nothing to fill in on this page", () => {
+    for (const id of ["flats", "how-to-measure", "artwork", "suggested", "sign-off"] as const) {
       expect(sectionHasForms(id)).toBe(false);
     }
+  });
+});
+
+describe("fieldFor", () => {
+  const item = (sectionId: Parameters<typeof fieldFor>[0]["sectionId"], target: string, detail: string | null = null) => ({
+    sectionId,
+    target,
+    detail,
+  });
+
+  it("takes each item of the confirm list to the field that fills it", () => {
+    expect(fieldFor(item("cover", "season"))).toEqual({ form: "cover:details", field: "season" });
+    expect(fieldFor(item("cover", "sizeRun"))).toEqual({ form: "sizes:list", field: null });
+    expect(fieldFor(item("measurements", "chest-width"))).toEqual({ form: "measurement:chest-width", field: null });
+    expect(fieldFor(item("components", "fabric:main"))).toEqual({ form: "fabric:main", field: null });
+    expect(fieldFor(item("components", "main-thread"))).toEqual({ form: "component:main-thread", field: null });
+    expect(fieldFor(item("construction", "body-hem"))).toEqual({ form: "seam:body-hem", field: "stitchDensity" });
+    expect(fieldFor(item("labelling", "care"))).toEqual({ form: "labelling:care", field: "text" });
+  });
+
+  it("goes to the colour code when it is missing, and else to the screen colour", () => {
+    expect(fieldFor(item("colourways", "main:body-front", "Colour code and screen colour"))).toEqual({
+      form: "colourway:main",
+      field: "code:body-front",
+    });
+    expect(fieldFor(item("colourways", "main:body-front", "Screen colour"))).toEqual({ form: "colourway:main", field: "screen:body-front" });
+  });
+
+  it("has no field for what is set elsewhere", () => {
+    expect(fieldFor(item("cover", "brand"))).toBeNull();
+    expect(fieldFor(item("cover", "garmentType"))).toBeNull();
+    expect(fieldFor(item("artwork", "crest"))).toBeNull();
   });
 });
 

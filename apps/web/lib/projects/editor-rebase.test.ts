@@ -260,3 +260,37 @@ describe("a choice picked while the design is in conflict", () => {
     expect(isBusy(state)).toBe(false);
   });
 });
+
+describe("a batch of changes saved as one version", () => {
+  const setOption = (optionId: string, choiceId: string): SpecAction => ({
+    type: "set-option",
+    optionId,
+    choiceId,
+    provenance: "user-edited",
+  });
+  const batch: Request = { kind: "actions", actions: [setOption("neckline", "v-neck"), setOption("sleeve", "raglan")] };
+
+  it("is kept until the page shows it, so the next change is worked out on top of every part of it", () => {
+    let state = run([enqueue("confirm:all", batch), begin()]);
+    state = run([succeeded(state, 2)], state);
+
+    expect(state.saved.map((entry) => entry.version)).toEqual([2, 2]);
+    expect(run([{ type: "seen", version: 2 }], state).saved).toEqual([]);
+  });
+
+  it("is sent again, whole and on top, after a conflict with the person's own save", () => {
+    let state = run([enqueue("confirm:all", batch), begin()]);
+    state = run([{ type: "failed", id: state.inFlight!.id, code: "conflict", message: "Changed." }], state);
+    state = run([{ type: "verified", version: 2, others: 0 }, { type: "seen", version: 2 }, begin()], state);
+
+    expect(state.conflict).toBeNull();
+    expect(state.inFlight).toMatchObject({ key: "confirm:all", expectedVersion: 2, request: batch });
+  });
+
+  it("replaces an older batch for the same control that is still waiting", () => {
+    const older: Request = { kind: "actions", actions: [setOption("neckline", "crew")] };
+    const state = run([enqueue("confirm:all", older), enqueue("confirm:all", batch)]);
+
+    expect(state.queue.map((change) => change.request)).toEqual([batch]);
+  });
+});

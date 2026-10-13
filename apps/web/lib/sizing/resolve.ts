@@ -1,8 +1,8 @@
-import { pointsOfMeasureFor, type GarmentSpec } from "@/lib/garment";
+import { pointsOfMeasureFor, sizeValueFor, toleranceFor, type GarmentSpec } from "@/lib/garment";
 import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET } from "./charts";
 import { gradeChart } from "./grading";
-import { resolvePoint, userOnlyRow } from "./resolve-point";
+import { resolvePoint, userOnlyRow, type Typed } from "./resolve-point";
 import type { ChartProvenance, Resolution, ResolutionRow } from "./resolution-types";
 import type { SizeChart } from "./schemas";
 import { selectChart } from "./select-chart";
@@ -19,6 +19,12 @@ export type {
 export const chartProvenanceOf = (chart: SizeChart): ChartProvenance =>
   chart.supplier === "brand" ? "brand-supplied" : "suggested-chart";
 
+/** What a person typed for this point beyond its base size value. */
+const typedFor = (spec: GarmentSpec, pointId: string, size: string): Typed => ({
+  atSize: sizeValueFor(spec, pointId, size),
+  tolerance: toleranceFor(spec, pointId),
+});
+
 function withoutChart(spec: GarmentSpec, size: string, message: string): Resolution {
   const rows: ResolutionRow[] = pointsOfMeasureFor(spec).map((point) =>
     userOnlyRow(
@@ -27,6 +33,7 @@ function withoutChart(spec: GarmentSpec, size: string, message: string): Resolut
       message,
       size,
       spec.sizing?.baseSize ?? null,
+      typedFor(spec, point.id, size),
     ),
   );
   return { status: "no-chart", message, size, rows };
@@ -83,6 +90,7 @@ export function resolveMeasurements(
       spec.measurements.find((entry) => entry.pointId === point.id),
       graded.rows.find((row) => row.pointId === point.id),
       where,
+      typedFor(spec, point.id, size),
     ),
   );
   return {

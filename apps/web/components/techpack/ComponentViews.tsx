@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import type { ComponentsSection, ConstructionSection } from "@/lib/techpack";
-import { Cellular, CellText, ClassText, DocSection, DocTable, RowHead } from "./parts";
+import { Cellular, CellText, ClassText, DocSection, DocTable, FillIn, RowHead } from "./parts";
 
 const panelNames = (panels: readonly { label: string }[]): string => panels.map((panel) => panel.label).join(", ");
 
-type ComponentsProps = Readonly<{ section: ComponentsSection; forms: ReactNode }>;
+type ComponentsProps = Readonly<{ section: ComponentsSection; forms: ReactNode; confirm?: ReactNode }>;
 
-export function ComponentsView({ section, forms }: ComponentsProps) {
+export function ComponentsView({ section, forms, confirm }: ComponentsProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <h3 className="text-sm font-semibold text-ink">Fabric</h3>
@@ -68,17 +68,15 @@ export function ComponentsView({ section, forms }: ComponentsProps) {
           </tr>
         ))}
       </DocTable>
-      <details className="rounded-xl border border-hairline p-4">
-        <summary className="cursor-pointer text-[15px] font-medium text-ink">Fill in fabrics and components</summary>
-        <div className="mt-4">{forms}</div>
-      </details>
+      {confirm}
+      <FillIn summary="Fill in fabrics and components">{forms}</FillIn>
     </DocSection>
   );
 }
 
-type ConstructionProps = Readonly<{ section: ConstructionSection; forms: ReactNode }>;
+type ConstructionProps = Readonly<{ section: ConstructionSection; forms: ReactNode; confirm?: ReactNode }>;
 
-export function ConstructionView({ section, forms }: ConstructionProps) {
+export function ConstructionView({ section, forms, confirm }: ConstructionProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <DocTable caption="Seams, and how each is sewn" heads={["Seam", "Joins", "Seam class", "Stitch class", "Stitch density"]}>
@@ -101,10 +99,8 @@ export function ConstructionView({ section, forms }: ConstructionProps) {
           </tr>
         ))}
       </DocTable>
-      <details className="rounded-xl border border-hairline p-4">
-        <summary className="cursor-pointer text-[15px] font-medium text-ink">Fill in the stitching</summary>
-        <div className="mt-4">{forms}</div>
-      </details>
+      {confirm}
+      <FillIn summary="Fill in the stitching">{forms}</FillIn>
     </DocSection>
   );
 }

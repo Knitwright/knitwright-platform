@@ -3,6 +3,7 @@ import { signProposal } from "@/lib/intent/proposal-token";
 import { answeredWithoutModel } from "@/lib/intent/text-flow";
 import { MODEL_TIMEOUT_MS, assistantModels, nowSeconds, proposalSigningKey } from "@/lib/projects/assistant";
 import { eventStream, textCost, textRequestEvents } from "@/lib/projects/assistant-request";
+import { recordLines } from "@/lib/projects/chat-history";
 import { assistantMessageSchema } from "@/lib/projects/schemas";
 import { loadCurrentDesign, saveTrustedActions } from "@/lib/projects/service";
 import { defineRoute } from "@/lib/server/define-route";
@@ -19,6 +20,7 @@ const MAX_BODY_BYTES = 8 * 1024;
  * nothing; any other is priced at the most it can use and reserved before it runs. The
  * answer is a stream of JSON lines: progress, then one outcome. A change is saved here, as
  * one version marked as suggested by the assistant; a question's choices come back signed.
+ * The words and the answer are kept with the design, so the conversation is there next time.
  */
 export const POST = defineRoute({
   auth: "member",
@@ -46,8 +48,9 @@ export const POST = defineRoute({
           usage,
           save: (actions, explanations) =>
             saveTrustedActions(adminClient(), client, { ...who, expectedVersion, actions, source: "assistant", explanations }),
-          sign: (actions, explanations) =>
-            signProposal({ ...who, version: expectedVersion, actions, source: "assistant", explanations }, key, issued),
+          sign: (actions, explanations, at) =>
+            signProposal({ ...who, version: at.version ?? expectedVersion, actions, source: "assistant", explanations, label: at.label }, key, issued),
+          record: (lines) => recordLines(adminClient(), who, lines),
           log,
           timeoutMs: MODEL_TIMEOUT_MS,
         },

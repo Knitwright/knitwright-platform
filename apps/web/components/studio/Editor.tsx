@@ -1,5 +1,6 @@
 "use client";
 
+import type { StoredLine } from "@/lib/projects/chat";
 import type { EditorData } from "@/lib/projects/editor-data";
 import { ArtworkControls } from "./ArtworkControls";
 import { ChatPanel } from "./ChatPanel";
@@ -25,8 +26,8 @@ import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
 
 type PartProps = Readonly<{ data: EditorData; editor: EditorApi }>;
 
-/** What the page knows about the assistant. */
-export type AssistantInfo = Readonly<{ available: boolean }>;
+/** What the page knows about the assistant: whether a model is on, and the conversation kept so far. */
+export type AssistantInfo = Readonly<{ available: boolean; conversation: readonly StoredLine[] }>;
 
 /** `show3d` is the server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
 export function Editor({ data, assistant, show3d = false }: Readonly<{ data: EditorData; assistant: AssistantInfo; show3d?: boolean }>) {
@@ -35,7 +36,7 @@ export function Editor({ data, assistant, show3d = false }: Readonly<{ data: Edi
 
   return (
     <div className="flex flex-col gap-6">
-      <EditorHeader data={data} busy={editor.busy} onUndo={editor.undo} />
+      <EditorHeader data={data} version={state.version} busy={editor.busy} onUndo={editor.undo} />
       <SaveStatus busy={editor.busy} status={state.status} />
       <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
       <SaveRetry retry={state.retry} onRetry={editor.retry} />
@@ -163,11 +164,11 @@ function SideColumn({ data, editor, assistant }: PartProps & Readonly<{ assistan
   return (
     <aside className="flex min-w-0 flex-col gap-6">
       <Section id="assistant" title="Assistant">
-        <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} />
+        <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} conversation={assistant.conversation} />
       </Section>
       <Section id="history" title="History">
         <History
-          versions={data.versions}
+          entries={data.history}
           olderHidden={data.olderVersionsHidden}
           busy={editor.busy}
           onRestore={editor.restore}

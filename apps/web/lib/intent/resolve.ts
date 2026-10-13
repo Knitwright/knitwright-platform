@@ -1,10 +1,12 @@
 import { getType, listTypes, type GarmentSpec, type SpecAction } from "@/lib/garment";
-import { applyBatch, NOTHING_CHANGED, readActions, type BatchResult } from "./batch";
+import { applyBatch, applyEach, NOTHING_CHANGED, readActions, type BatchResult, type EachResult } from "./batch";
 import { extractJsonObject } from "./extract-json";
 import { explainChanges } from "./explain";
+import { amountFollowUp, skippedFollowUp, type SkippedPart } from "./follow-ups";
 import { unstatedChanges } from "./gates";
 import { numberProblem } from "./numbers";
-import { rejection, type IntentOutcome, type QuestionChoice } from "./outcome";
+import { rejection, type FollowUp, type IntentOutcome, type QuestionChoice } from "./outcome";
+import { plainIds } from "./plain-ids";
 import { replySchema, type Reply, type WireAction } from "./reply-schema";
 
 /** A longer reply is refused unread. A real reply is a few hundred characters. */
@@ -80,32 +82,107 @@ function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** Applies a batch the person asked for, asking first about anything they did not name. */
+const NONE_MADE = `None of that could be made. ${NOTHING_CHANGED}`;
+
+/** A reason without its own "Nothing was changed.", for a part of a request that may have changed other things. */
+const partReason = (reason: string): string => reason.replace(` ${NOTHING_CHANGED}`, "").trim();
+
+type AskAmount = Extract<WireAction, { type: "ask-amount" }>;
+const isAskAmount = (wire: WireAction): wire is AskAmount => wire.type === "ask-amount";
+
+/** What a request made of its parts, and the ways on from each part it could not make. */
+interface Parts {
+  readonly made: EachResult;
+  readonly followUps: readonly FollowUp[];
+}
+
+/**
+ * Makes every part of a request that can be made. A number the person did not give, a choice
+ * that clashes or that the garment lacks, and a length with no amount are each kept aside
+ * with a plain reason and the ways on, worked out on the design after the other parts.
+ */
+function makeParts(utterance: string, spec: GarmentSpec, actions: readonly WireAction[]): Parts {
+  const changes = actions.filter((wire) => !isAskAmount(wire));
+  const numbered = changes.map((wire) => ({ wire, problem: numberProblem(utterance, spec, [wire]) }));
+  const made = applyEach(spec, numbered.filter((entry) => entry.problem === null).map((entry) => entry.wire));
+  const guessed = numbered.flatMap((entry) => (entry.problem === null ? [] : [{ wire: entry.wire, reason: partReason(entry.problem) }]));
+  const followUps = [
+    ...guessed.map((part) => numberFollowUp(made.spec, part)),
+    ...made.skipped.map((part) => skippedFollowUp(made.spec, { wire: part.wire, reason: partReason(part.reason) })),
+    ...actions.filter(isAskAmount).map((wire) => amountFollowUp(made.spec, wire)),
+  ];
+  return { made, followUps };
+}
+
+/** A number the person did not give: why, and the box to type it in. */
+function numberFollowUp(spec: GarmentSpec, part: SkippedPart): FollowUp {
+  if (part.wire.type !== "set-measurement") return { text: part.reason, choices: [] };
+  const { pointId } = part.wire;
+  const label = getType(spec.typeId)?.pointsOfMeasure.find((point) => point.id === pointId)?.label;
+  if (!label) return { text: part.reason, choices: [] };
+  const name = label.charAt(0).toLowerCase() + label.slice(1);
+  return { text: part.reason, choices: [{ kind: "fill", label: `Type the ${name}`, text: `Set the ${name} to ` }] };
+}
+
+/**
+ * Nothing could be made. One part that a garment of another type has becomes the question
+ * about changing the type, as before; otherwise each part is explained with its ways on.
+ */
+function noneMade(spec: GarmentSpec, actions: readonly WireAction[], parts: Parts): IntentOutcome {
+  const { made, followUps } = parts;
+  if (followUps.length === 0) return rejection(ALREADY);
+  const [only] = made.skipped;
+  if (followUps.length === 1 && only) {
+    const asked = otherTypesQuestion(spec, actions, { wire: only.wire, spec: made.spec });
+    if (asked) return asked;
+  }
+  // One part: its reason is the answer, with its ways on beneath it.
+  if (followUps.length === 1) return rejection(`${followUps[0].text} ${NOTHING_CHANGED}`, followUps);
+  return rejection(NONE_MADE, followUps);
+}
+
+/**
+ * The reason when two parts of the same request can never go together, such as "a V neck with
+ * a zip", or null. Making one part and not the other would be a guess at which one was meant,
+ * so neither is made. A part that clashes only with the design as it is can still be explained
+ * on its own, with a way on.
+ */
+function requestClash(spec: GarmentSpec, actions: readonly WireAction[]): string | null {
+  const asked = new Map(actions.flatMap((wire) => (wire.type === "set-option" ? [[wire.optionId, wire.choiceId] as const] : [])));
+  const typeIds = [spec.typeId, ...actions.flatMap((wire) => (wire.type === "change-type" ? [wire.typeId] : []))];
+  const rules = typeIds.flatMap((typeId) => getType(typeId)?.rules ?? []);
+  const clash = rules.find((rule) => rule.when.every((condition) => condition.in.includes(asked.get(condition.option) ?? "")));
+  return clash?.reason ?? null;
+}
+
+/** Applies what the person asked for, asking first about anything they did not name. */
 function resolveChanges(utterance: string, spec: GarmentSpec, raw: readonly unknown[]): IntentOutcome {
   const read = readActions(raw);
   if (!read.ok) return rejection(read.reason);
-  const numbers = numberProblem(utterance, spec, read.actions);
-  if (numbers) return rejection(numbers);
-  const batch = applyBatch(spec, read.actions);
-  if (!batch.ok) {
-    return (batch.failed && otherTypesQuestion(spec, read.actions, batch.failed)) ?? rejection(batch.reason);
-  }
-  const explanations = explainChanges(spec, batch.spec);
-  if (explanations.length === 0) return rejection(ALREADY);
-  const gated = unstatedChanges(utterance, batch.steps);
+  const clash = requestClash(spec, read.actions);
+  if (clash) return rejection(`${clash} ${NOTHING_CHANGED}`);
+  const parts = makeParts(utterance, spec, read.actions);
+  const { made, followUps } = parts;
+  const explanations = explainChanges(spec, made.spec);
+  if (explanations.length === 0) return noneMade(spec, read.actions, parts);
+  const actions = made.steps.map((step) => step.action);
+  const gated = unstatedChanges(utterance, made.steps);
   if (gated.phrases.length === 0) {
-    return { kind: "applied", spec: batch.spec, actions: actionsOf(batch), explanations, notes: batch.notes };
+    const applied = { kind: "applied", spec: made.spec, actions, explanations, notes: made.notes } as const;
+    return followUps.length === 0 ? applied : { ...applied, followUps };
   }
   const others = applyBatch(
     spec,
-    batch.steps.filter((step) => !gated.steps.includes(step)).map((step) => step.wire),
+    made.steps.filter((step) => !gated.steps.includes(step)).map((step) => step.wire),
   );
   const keep = others.ok && explainChanges(spec, others.spec).length > 0 ? actionsOf(others) : [];
+  // The parts not made are said first, so the question is the last thing read.
+  const notMade = followUps.map((followUp) => `${followUp.text} `).join("");
   return {
     kind: "question",
-    question: `${capitalise(`this would change ${gated.phrases.join(", and ")}.`)} You did not ask for that outright. Make the change?`,
+    question: `${notMade}${capitalise(`this would change ${gated.phrases.join(", and ")}.`)} You did not ask for that outright. Make the change?`,
     choices: [
-      { label: "Yes, make the change", actions: actionsOf(batch) },
+      { label: "Yes, make the change", actions },
       { label: keep.length > 0 ? "No, only make the other changes" : "No, leave the design as it is", actions: keep },
     ],
     recommended: 0,
@@ -135,11 +212,13 @@ function checkedChoice(utterance: string, spec: GarmentSpec, choice: ModelChoice
  * alone, with nothing to apply.
  */
 function resolveQuestion(utterance: string, spec: GarmentSpec, reply: Extract<Reply, { kind: "question" }>): IntentOutcome {
-  const checked = reply.choices.map((choice) => checkedChoice(utterance, spec, choice));
+  // A model may write ids in its words; a person only ever reads labels.
+  const question = plainIds(reply.question);
+  const checked = reply.choices.map((choice) => checkedChoice(utterance, spec, { ...choice, label: plainIds(choice.label) }));
   const choices = checked.filter((choice): choice is QuestionChoice => choice !== null);
-  if (choices.length < 2) return rejection(`${reply.question} ${NOTHING_CHANGED}`);
+  if (choices.length < 2) return rejection(`${question} ${NOTHING_CHANGED}`);
   const picked = checked[reply.recommended];
-  return { kind: "question", question: reply.question, choices, recommended: picked ? choices.indexOf(picked) : 0 };
+  return { kind: "question", question, choices, recommended: picked ? choices.indexOf(picked) : 0 };
 }
 
 /**
@@ -156,6 +235,6 @@ export function resolveIntent({ utterance, spec, raw }: IntentInput): IntentOutc
     case "question":
       return resolveQuestion(utterance, spec, reply);
     case "rejection":
-      return rejection(reply.reason);
+      return rejection(plainIds(reply.reason));
   }
 }
