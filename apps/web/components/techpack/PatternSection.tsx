@@ -86,7 +86,7 @@ function Ready({ job, currentVersion }: Readonly<{ job: PatternJobView; currentV
 /**
  * Sewing patterns of the design: a DXF of the pieces for a cutting room or CAD, and a picture
  * of them. Asked for one size at a time. A pattern is a draft from a standard block until a
- * pattern maker has checked it, and the section says so.
+ * pattern maker has looked at it, and the section says so.
  */
 export function PatternSection({ projectId, sizes, currentVersion }: PatternSectionProps) {
   const [available, setAvailable] = useState<boolean | null>(null);
@@ -140,7 +140,7 @@ export function PatternSection({ projectId, sizes, currentVersion }: PatternSect
         </h2>
         <p className="text-sm text-muted">
           The pieces to cut, as a DXF file for a cutting room or pattern software. Each pattern is drafted from a standard block for the
-          size you choose. It is a draft until a pattern maker has checked it.
+          size you choose. Treat it as a draft: no pattern maker has looked at it yet.
         </p>
       </div>
 
