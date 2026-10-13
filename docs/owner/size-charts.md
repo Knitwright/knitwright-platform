@@ -1,7 +1,10 @@
 # Owner action A5: size charts for every garment family
 
-The platform needs your numbers before it can show a measurement table. It will not make
-them up. This page says exactly what to send.
+Since 2026-10-13 every garment offered at launch starts from a **Knitwright starter chart**:
+published, industry-typical garment measurements, shown as suggestions to check with the
+factory. `docs/sizing/starter-charts.md` lists every chart and its sources. Your own numbers,
+sent as below, replace a starter chart for the same garment and wearer, and a brand's own
+imported chart replaces both. This page says exactly what to send.
 
 These are **garment measurements**: what a factory checks on a finished garment laid
 flat. They are not body measurements.
