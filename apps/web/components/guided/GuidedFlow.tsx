@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect, useOptimistic, useRef } from "react";
 import { LinkButton } from "@/components/ui/LinkButton";
+import type { AssistantInfo } from "@/components/studio/Editor";
 import { SaveStatus } from "@/components/studio/EditorParts";
 import { useEditor } from "@/components/studio/useEditor";
 import { GUIDED_STEPS, guideAddress, neighbours, type StartMethod, type StepId } from "@/lib/guided/flow";
@@ -19,7 +20,7 @@ type Props = Readonly<{
   from: StartMethod;
   say: string | undefined;
   unit: LengthUnit;
-  assistant: Readonly<{ available: boolean }>;
+  assistant: AssistantInfo;
   /** The server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
   show3d?: boolean;
 }>;

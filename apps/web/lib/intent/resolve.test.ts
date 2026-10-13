@@ -75,10 +75,21 @@ describe("reading a model reply", () => {
     expect(outcome.reason).toMatch(/V neck already opens down the chest/);
   });
 
-  it("applies all of a batch or none of it", () => {
+  it("makes the parts that can be made, and explains the part that clashes with the design, with a way on", () => {
     const spec = start("team-jersey", { type: "set-option", optionId: "neckline", choiceId: "v-neck", provenance: "user-edited" });
     const raw = changes(option("fit", "slim"), option("placket", "zip"));
-    expectKind(run("slim fit with a zip", spec, raw), "rejection");
+    const outcome = expectKind(run("slim fit with a zip", spec, raw), "applied");
+    expect(outcome.spec.options.fit.choiceId).toBe("slim");
+    expect(outcome.spec.options.placket.choiceId).toBe("none");
+    expect(outcome.followUps).toHaveLength(1);
+    expect(outcome.followUps?.[0].text).toMatch(/V neck already opens down the chest/);
+    expect(outcome.followUps?.[0].choices.map((choice) => choice.label)).toEqual(["Switch to Zip (round neck)"]);
+  });
+
+  it("makes neither part when the two parts asked for can never go together", () => {
+    const outcome = expectKind(run("v neck with a zip", start("team-jersey"), changes(option("neckline", "v-neck"), option("placket", "zip"))), "rejection");
+    expect(outcome.reason).toMatch(/V neck already opens down the chest/);
+    expect(outcome.followUps).toBeUndefined();
   });
 
   it("says so when the change asks for nothing new", () => {
@@ -313,6 +324,83 @@ describe("numbers the person did not give", () => {
   });
 });
 
+describe("a request made of several parts", () => {
+  const SLEEVES_AND_V_NECK = "make the sleeves a bit longer and add a V-neck";
+  const vNeck = option("neckline", "v-neck");
+  const askLonger = { type: "ask-amount", pointId: "sleeve-length", direction: "longer" };
+  const IDS = /\b(?:none|band-collar|polo-collar|v-neck|sleeve-length|team-jersey|v-neck-tee)\b/;
+
+  function forWomen(typeId: string): GarmentSpec {
+    const made = createSpec(typeId, "women");
+    if (!made.ok) throw new Error(made.reason);
+    return made.spec;
+  }
+
+  function shownWords(outcome: IntentOutcome): string[] {
+    const followUps = outcome.kind === "question" ? [] : (outcome.followUps ?? []);
+    const own = outcome.kind === "rejection" ? [outcome.reason] : outcome.kind === "question" ? [outcome.question] : [...outcome.explanations, ...outcome.notes];
+    return [...own, ...followUps.flatMap((followUp) => [followUp.text, ...followUp.choices.map((choice) => choice.label)])];
+  }
+
+  it("makes the longer sleeves on a women's polo and explains the V neck it does not come with, with garments to switch to", () => {
+    const spec = forWomen("polo");
+    const outcome = expectKind(run("long sleeves and add a V-neck", spec, changes(option("sleeve-length", "long"), vNeck)), "applied");
+    expect(outcome.spec.options["sleeve-length"].choiceId).toBe("long");
+    expect(outcome.followUps).toHaveLength(1);
+    const [followUp] = outcome.followUps ?? [];
+    expect(followUp.text).toBe("A Polo shirt does not come with V neck for Neckline.");
+    expect(followUp.choices.map((choice) => choice.label)).toContain("Change to Team jersey (no placket)");
+    for (const words of shownWords(outcome)) expect(words).not.toMatch(IDS);
+  });
+
+  it("still asks before long sleeves that were not named, and says first what could not be made", () => {
+    const outcome = expectKind(run(SLEEVES_AND_V_NECK, forWomen("polo"), changes(option("sleeve-length", "long"), vNeck)), "question");
+    expect(outcome.question).toMatch(/^A Polo shirt does not come with V neck for Neckline\. This would change Sleeve length/);
+    expect(outcome.question).not.toMatch(IDS);
+  });
+
+  it("makes the V neck on a team jersey and asks how much longer the sleeves should be, instead of dropping either part", () => {
+    const spec = start("team-jersey", { type: "set-measurement", pointId: "sleeve-length", value: 2200, provenance: "user-edited" });
+    const outcome = expectKind(run(SLEEVES_AND_V_NECK, spec, changes(askLonger, vNeck)), "applied");
+    expect(outcome.spec.options.neckline.choiceId).toBe("v-neck");
+    const [followUp] = outcome.followUps ?? [];
+    expect(followUp.text).toMatch(/^How much longer should the sleeve length be\?/);
+    expect(followUp.choices.map((choice) => choice.label)).toEqual(["+1 cm", "+2 cm", "+3 cm", "Long sleeve"]);
+  });
+
+  it("says plainly when there is no sleeve length to add to, and changes nothing else it was not asked for", () => {
+    const outcome = expectKind(run("make the sleeves a bit longer", start("team-jersey"), changes(askLonger)), "rejection");
+    expect(outcome.reason).toMatch(/has no value yet/);
+    expect(outcome.reason).toMatch(/Nothing was changed/);
+    expect(outcome.followUps?.[0].choices[0]).toEqual({ kind: "fill", label: "Type the sleeve length", text: "Set the sleeve length to " });
+  });
+
+  it("explains each part when none can be made", () => {
+    const outcome = expectKind(run(SLEEVES_AND_V_NECK, forWomen("polo"), changes(askLonger, vNeck)), "rejection");
+    expect(outcome.reason).toBe("None of that could be made. Nothing was changed.");
+    expect(outcome.followUps?.map((followUp) => followUp.text)).toEqual([
+      "A Polo shirt does not come with V neck for Neckline.",
+      "The sleeve length has no value yet, so it cannot be made longer by an amount. Type the sleeve length you want.",
+    ]);
+  });
+
+  it("makes the rest when one number was guessed, and offers the box to type it", () => {
+    const raw = changes(option("fit", "slim"), { type: "set-measurement", pointId: "chest-width", cm: 52 });
+    const outcome = expectKind(run("slim fit with a standard chest", start("crew-tee"), raw), "applied");
+    expect(outcome.spec.measurements).toEqual([]);
+    const [followUp] = outcome.followUps ?? [];
+    expect(followUp.text).toMatch(/never guessed/);
+    expect(followUp.text).not.toMatch(/Nothing was changed/);
+    expect(followUp.choices).toEqual([{ kind: "fill", label: "Type the chest width", text: "Set the chest width to " }]);
+  });
+
+  it("never shows the ids a model wrote in its own words", () => {
+    const refusal = JSON.stringify({ kind: "rejection", reason: "V-neck needs collar none/band-collar first." });
+    const outcome = expectKind(run(SLEEVES_AND_V_NECK, forWomen("polo"), refusal), "rejection");
+    expect(outcome.reason).toBe("V neck needs No collar or Band collar first.");
+  });
+});
+
 describe("colours, fabric and labels", () => {
   it("colours the named panels in the first colourway, keeping the others", () => {
     const spec = start("crew-tee");
@@ -322,8 +410,8 @@ describe("colours, fabric and labels", () => {
     );
     const outcome = expectKind(run("navy body, white sleeves", spec, raw), "applied");
     expect(outcome.spec.colourways[0].colours).toEqual([
-      { panelId: "body-front", colour: "navy", provenance: "ai-suggested" },
-      { panelId: "body-back", colour: "navy", provenance: "ai-suggested" },
+      { panelId: "body-front", colour: "navy", swatch: "#1b2a49", provenance: "ai-suggested" },
+      { panelId: "body-back", colour: "navy", swatch: "#1b2a49", provenance: "ai-suggested" },
       { panelId: "sleeve-left", colour: "white", swatch: "#ffffff", provenance: "ai-suggested" },
       { panelId: "sleeve-right", colour: "white", swatch: "#ffffff", provenance: "ai-suggested" },
     ]);

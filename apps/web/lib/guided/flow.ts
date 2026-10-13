@@ -36,6 +36,17 @@ export const stepFrom = (value: unknown): StepId =>
 export const startMethodFrom = (value: unknown): StartMethod =>
   typeof value === "string" && (START_METHODS as readonly string[]).includes(value) ? (value as StartMethod) : "picker";
 
+/**
+ * What the start step says above the assistant. A design reopened later may have come from
+ * words or from the picker, and the address no longer says which, so only what is known is
+ * said: the words just sent, or the conversation kept so far, or neither.
+ */
+export function startLead(from: StartMethod, say: string | undefined, kept: number): string {
+  if (from === "text" && say) return "Your words were sent to the assistant. Its answer is below; the drawing and measurements change with it.";
+  if (kept > 0) return "Your conversation with the assistant so far is below. Describe anything else you want, or go on to review.";
+  return "Describe anything you want to change, or go on to review.";
+}
+
 export function neighbours(step: StepId): { previous: StepId | null; next: StepId | null } {
   const index = STEP_IDS.indexOf(step);
   return { previous: STEP_IDS[index - 1] ?? null, next: STEP_IDS[index + 1] ?? null };

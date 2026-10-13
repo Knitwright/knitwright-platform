@@ -6,6 +6,7 @@ import { OVERRIDE_REASON, looksLikeOverride } from "./injection";
 import { namedNotOffered, withinLaunch } from "./launch-scope";
 import { buildModelInput, type ModelInput } from "./model-input";
 import { rejection, type IntentOutcome } from "./outcome";
+import { looksRelative, relativeReply } from "./relative";
 import { UNREADABLE, resolveIntent } from "./resolve";
 import { ruleReply } from "./rules";
 
@@ -52,7 +53,7 @@ export interface TextFlowDeps {
 
 /** True when the request is answered without a model, so it costs nothing. Pure. */
 export const answeredWithoutModel = (utterance: string, spec?: GarmentSpec): boolean =>
-  looksLikeOverride(utterance) || namedNotOffered(utterance, spec) !== null || ruleReply(utterance) !== null;
+  looksLikeOverride(utterance) || namedNotOffered(utterance, spec) !== null || looksRelative(utterance) || ruleReply(utterance) !== null;
 
 const isUnreadable = (outcome: IntentOutcome): boolean => outcome.kind === "rejection" && outcome.reason === UNREADABLE;
 
@@ -106,6 +107,9 @@ async function answer(
   if (looksLikeOverride(utterance)) return { outcome: rejection(OVERRIDE_REASON), answeredBy: "guard", calls: [] };
   const notOffered = namedNotOffered(utterance, spec);
   if (notOffered) return { outcome: rejection(notOffered), answeredBy: "guard", calls: [] };
+  // Always answered here when the words match, so a request priced as free never reaches a model.
+  const relative = relativeReply(utterance, spec);
+  if (relative) return { outcome: resolveIntent({ utterance, spec, raw: JSON.stringify(relative) }), answeredBy: "rules", calls: [] };
   const rule = ruleReply(utterance, spec);
   if (rule) return { outcome: resolveIntent({ utterance, spec, raw: JSON.stringify(rule) }), answeredBy: "rules", calls: [] };
   if (!deps.primary) return { outcome: rejection(UNAVAILABLE_REASON), answeredBy: "unavailable", calls: [] };

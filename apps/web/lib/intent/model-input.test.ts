@@ -52,6 +52,14 @@ describe("the model input", () => {
     expect(system).toMatch(/Never invent a number/);
   });
 
+  it("asks for every part of a request, an amount instead of a guess, colours by name, and no ids in words", () => {
+    const { system } = buildModelInput({ utterance: "x", spec: start() });
+    expect(system).toContain('{"type": "ask-amount", "pointId": "...", "direction": "longer" | "shorter"}');
+    expect(system).toMatch(/still give the changes for the parts that can/);
+    expect(system).toMatch(/only when the customer gave a colour code/);
+    expect(system).toMatch(/never an id/);
+  });
+
   it("is the same for the same input", () => {
     expect(buildModelInput({ utterance: "a", spec: start() })).toEqual(buildModelInput({ utterance: "a", spec: start() }));
   });

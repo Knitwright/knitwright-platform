@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSpec, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import { applyAction, createSpec, type GarmentSpec, type SpecAction } from "@/lib/garment";
 import { OVERRIDE_REASON } from "@/lib/intent/injection";
 import { parseEvent, splitLines, type StreamEvent } from "@/lib/intent/stream";
 import { modelEntry } from "@/lib/providers/catalog";
@@ -137,6 +137,64 @@ describe("a text request on the server", () => {
     expect(given.logs).toHaveLength(1);
   });
 
+  it("signs each way on at the version just saved, with its label, so a tap applies to that version", async () => {
+    const signed: unknown[] = [];
+    const reply = changes(fit("slim"), { type: "set-option", optionId: "sleeve-length", choiceId: "long" });
+    const given = deps({
+      models: models([reply]),
+      sign: (actions, _explanations, at) => {
+        signed.push(at);
+        return `signed:${actions.length}`;
+      },
+    });
+    const events = await run("slim fit and long sleeves please, as a bit of a test", given);
+    const outcome = events.at(-1);
+    expect(outcome).toMatchObject({ type: "outcome", outcome: { kind: "applied", version: 7, followUps: [{ text: "A Crew neck tee does not come with Long sleeve for Sleeve length." }] } });
+    expect(signed.length).toBeGreaterThan(0);
+    expect(signed.every((at) => (at as { version: number }).version === 7)).toBe(true);
+    expect(signed.map((at) => (at as { label: string }).label)).toContain("Change to Long sleeve tee");
+  });
+
+  it("signs the ways on of a reason at the version the person was looking at", async () => {
+    const signed: unknown[] = [];
+    const vNeck = applyAction(spec("team-jersey"), { type: "set-option", optionId: "neckline", choiceId: "v-neck", provenance: "user-edited" });
+    if (!vNeck.ok) throw new Error(vNeck.reason);
+    const given = deps({
+      spec: vNeck.spec,
+      models: models([changes({ type: "set-option", optionId: "placket", choiceId: "zip" })]),
+      sign: (_actions, _explanations, at) => {
+        signed.push(at);
+        return "signed";
+      },
+    });
+    const events = await run("a zip at the neck, if you can manage it", given);
+    expect(events.at(-1)).toMatchObject({ type: "outcome", outcome: { kind: "rejection", followUps: [{ choices: [{ kind: "apply", label: "Switch to Zip (round neck)", token: "signed" }] }] } });
+    expect(signed).toEqual([{ version: null, label: "Switch to Zip (round neck)" }]);
+  });
+
+  it("keeps the words and the answer for the design, after the answer is sent", async () => {
+    const kept: unknown[] = [];
+    const given = deps({ record: async (lines) => void kept.push(lines) });
+    await run("slim fit", given);
+    expect(kept).toEqual([
+      [
+        { role: "person", kind: "text", body: "slim fit", lines: [] },
+        { role: "assistant", kind: "applied", body: "Done. The design is saved as a new version.", lines: ["Fit changed from Regular to Slim."] },
+      ],
+    ]);
+  });
+
+  it("still answers when the conversation cannot be kept, and logs it", async () => {
+    const given = deps({
+      record: async () => {
+        throw new Error("down");
+      },
+    });
+    const events = await run("slim fit", given);
+    expect(events.at(-1)).toMatchObject({ type: "outcome", outcome: { kind: "applied" } });
+    expect(given.logs).toHaveLength(1);
+  });
+
   it("prices a text request at the most it can use", () => {
     expect(textCost(modelEntry("claude-haiku-4-5"))).toEqual({ feature: "ai", microdollars: 5000 + 1024 * 5 });
   });
@@ -187,6 +245,33 @@ describe("choosing a proposal", () => {
     };
     expect(await applySignedProposal({ verify: () => ({ ok: false, reason: "No." }), save, expectedVersion: 3 })).toEqual({ ok: false, reason: "No." });
     expect(await applySignedProposal({ verify: () => ({ ok: true, proposal }), save, expectedVersion: 4 })).toEqual({ ok: false, reason: CHANGED_MEANWHILE });
+  });
+
+  it("keeps a choice of the assistant's in the conversation, with its label, but not a picture's", async () => {
+    const save = async () => ({ ok: true as const, spec: spec(), version: 4, dropped: [] });
+    const kept: unknown[] = [];
+    const record = async (lines: unknown) => void kept.push(lines);
+    const labelled = { ...proposal, label: "Change to Polo shirt" };
+    await applySignedProposal({ verify: () => ({ ok: true, proposal: labelled }), save, expectedVersion: 3, record });
+    expect(kept).toEqual([
+      [
+        { role: "person", kind: "text", body: "Change to Polo shirt", lines: [] },
+        { role: "assistant", kind: "applied", body: "Done. The design is saved as a new version.", lines: ["Fit changed."] },
+      ],
+    ]);
+    await applySignedProposal({ verify: () => ({ ok: true, proposal: { ...labelled, source: "picture" } }), save, expectedVersion: 3, record });
+    expect(kept).toHaveLength(1);
+  });
+
+  it("still applies the choice when the conversation cannot be kept", async () => {
+    const save = async () => ({ ok: true as const, spec: spec(), version: 4, dropped: [] });
+    const logs: unknown[] = [];
+    const record = async () => {
+      throw new Error("down");
+    };
+    const outcome = await applySignedProposal({ verify: () => ({ ok: true, proposal }), save, expectedVersion: 3, record, log: (event) => void logs.push(event) });
+    expect(outcome).toEqual({ ok: true, version: 4 });
+    expect(logs).toHaveLength(1);
   });
 
   it("passes on a refusal at save time", async () => {

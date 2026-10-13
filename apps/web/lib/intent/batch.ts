@@ -62,6 +62,20 @@ function restates(spec: GarmentSpec, wire: WireAction): boolean {
   return false;
 }
 
+type OneResult =
+  | { readonly ok: true; readonly spec: GarmentSpec; readonly step: Step | null; readonly notes: readonly string[] }
+  | { readonly ok: false; readonly reason: string };
+
+/** One change through the editor's own apply path. A change that restates the design makes no step. */
+function applyOne(spec: GarmentSpec, wire: WireAction, source: ModelSource): OneResult {
+  if (restates(spec, wire)) return { ok: true, spec, step: null, notes: [] };
+  const converted = toSpecAction(spec, wire, source);
+  if (!converted.ok) return converted;
+  const result = applyAction(spec, converted.action);
+  if (!result.ok) return result;
+  return { ok: true, spec: result.spec, step: { wire, action: converted.action, before: spec }, notes: result.dropped.map((item) => item.message) };
+}
+
 /**
  * Applies every change through the editor's own apply path, or none of them. The first
  * change that cannot be made stops the batch and its reason is returned.
@@ -71,14 +85,43 @@ export function applyBatch(spec: GarmentSpec, actions: readonly WireAction[], so
   const steps: Step[] = [];
   const notes: string[] = [];
   for (const wire of typeFirst(actions)) {
-    if (restates(current, wire)) continue;
-    const converted = toSpecAction(current, wire, source);
-    if (!converted.ok) return { ok: false, reason: `${converted.reason} ${NOTHING_CHANGED}`, failed: { wire, spec: current } };
-    const result = applyAction(current, converted.action);
-    if (!result.ok) return { ok: false, reason: `${result.reason} ${NOTHING_CHANGED}`, failed: { wire, spec: current } };
-    steps.push({ wire, action: converted.action, before: current });
-    notes.push(...result.dropped.map((item) => item.message));
-    current = result.spec;
+    const one = applyOne(current, wire, source);
+    if (!one.ok) return { ok: false, reason: `${one.reason} ${NOTHING_CHANGED}`, failed: { wire, spec: current } };
+    if (one.step) steps.push(one.step);
+    notes.push(...one.notes);
+    current = one.spec;
   }
   return { ok: true, spec: current, steps, notes: [...new Set(notes)] };
+}
+
+/** What a request made of its parts: the design after every part that could be made, and the rest. */
+export interface EachResult {
+  readonly spec: GarmentSpec;
+  readonly steps: readonly Step[];
+  readonly notes: readonly string[];
+  /** The parts that could not be made, each with the editor's reason. */
+  readonly skipped: readonly { readonly wire: WireAction; readonly reason: string }[];
+}
+
+/**
+ * Applies each change that can be made, in order, and keeps the others aside with their
+ * reasons. One part that cannot be made no longer stops the parts that can (the assistant
+ * audit, item 1): the person is told about each one instead.
+ */
+export function applyEach(spec: GarmentSpec, actions: readonly WireAction[], source: ModelSource = AI_SOURCE): EachResult {
+  let current = spec;
+  const steps: Step[] = [];
+  const notes: string[] = [];
+  const skipped: { wire: WireAction; reason: string }[] = [];
+  for (const wire of typeFirst(actions)) {
+    const one = applyOne(current, wire, source);
+    if (!one.ok) {
+      skipped.push({ wire, reason: one.reason });
+      continue;
+    }
+    if (one.step) steps.push(one.step);
+    notes.push(...one.notes);
+    current = one.spec;
+  }
+  return { spec: current, steps, notes: [...new Set(notes)], skipped };
 }
