@@ -77,7 +77,7 @@ const setOption = (optionId: string, choiceId: string) => ({
 });
 
 describe("creating and opening a design", () => {
-  it("creates a design that starts with the type's own choices and no sizes or measurements", async () => {
+  it("creates a design that starts with the type's own choices, the starter chart's sizes and no measurements", async () => {
     const id = await make();
 
     const project = await open(id);
@@ -92,7 +92,12 @@ describe("creating and opening a design", () => {
       currentVersion: 1,
       dropped: [],
     });
-    expect(project.spec).toMatchObject({ typeId: "crew-tee", wearer: "women", sizing: null, measurements: [] });
+    expect(project.spec).toMatchObject({
+      typeId: "crew-tee",
+      wearer: "women",
+      sizing: { baseSize: "M", sizes: ["XS", "S", "M", "L", "XL", "2XL"] },
+      measurements: [],
+    });
   });
 
   it("stores the first version with its note", async () => {

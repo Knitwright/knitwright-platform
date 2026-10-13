@@ -56,7 +56,8 @@ describe("keeping the conversation", () => {
     await recordLines(adminClient(), { brandId: bobBrand, projectId: theirs }, SLIM);
 
     expect(await loadChatHistory(alice.client, { brandId: bobBrand, projectId: theirs })).toEqual([]);
-    expect(await loadChatHistory(anonClient(), { brandId: bobBrand, projectId: theirs })).toEqual([]);
+    // Someone signed out has no read grant at all, so the read is refused rather than empty.
+    await expect(loadChatHistory(anonClient(), { brandId: bobBrand, projectId: theirs })).rejects.toThrow();
   });
 
   it("refuses a line for a design of another brand, and a line that breaks the rules", async () => {
