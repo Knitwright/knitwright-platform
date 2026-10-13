@@ -214,7 +214,7 @@ export function SuggestedView({ section }: SuggestedProps) {
             <li key={`suggestion-${index}`} className="text-[15px] text-ink-2">
               <span className="rounded-md bg-warn-wash px-2 py-0.5 text-warn">{PROVENANCE_LABELS[item.provenance]}</span>{" "}
               {item.label}. Found in{" "}
-              <a href={sectionLink(item.sectionId)} className="text-cobalt underline-offset-4 hover:underline">
+              <a href={sectionLink(item.sectionId)} className="text-cobalt-soft underline-offset-4 hover:underline">
                 {item.sectionTitle}
               </a>
               .
@@ -229,7 +229,7 @@ export function SuggestedView({ section }: SuggestedProps) {
           {section.proposals.map((item, index) => (
             <li key={`proposal-${index}`} className="text-[15px] text-ink-2">
               <span className="rounded-md bg-warn-wash px-2 py-0.5 text-warn">{PROPOSAL_WORDS}</span> {item.label}. Found in{" "}
-              <a href={sectionLink(item.sectionId)} className="text-cobalt underline-offset-4 hover:underline">
+              <a href={sectionLink(item.sectionId)} className="text-cobalt-soft underline-offset-4 hover:underline">
                 {item.sectionTitle}
               </a>
               .

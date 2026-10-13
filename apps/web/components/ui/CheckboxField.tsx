@@ -24,7 +24,7 @@ export function CheckboxField({ label, hint, errors = [], ...rest }: CheckboxFie
           type="checkbox"
           aria-invalid={errors.length > 0 || undefined}
           aria-describedby={describedBy}
-          className="mt-0.5 size-5 shrink-0 accent-ink"
+          className="mt-0.5 size-5 shrink-0 accent-cobalt-soft"
         />
         <label htmlFor={id} className="text-[15px] leading-snug text-ink">
           {label}
