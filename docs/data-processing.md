@@ -52,6 +52,14 @@ What each call asks of fal, to narrow the gap in its terms:
 - A picture is only ever fetched back from fal's file host (`*.fal.media`), never from another
   address an answer names.
 
+**Text models through fal (2026-10-13).** With `FAL_KEY` set, a call to Anthropic or OpenAI
+that fails (for example when the account's credit has run out) is sent once more to the same
+model through fal's OpenRouter endpoint, `openrouter/router/openai/v1/chat/completions`
+(`lib/providers/fal-text.ts`). With no Anthropic or OpenAI key, fal is used alone. The request
+carries `X-Fal-Store-IO: 0`. A live test showed the price equal to Anthropic's own. The design
+and instruction then pass through fal and OpenRouter as well as the model's vendor; both are
+listed as processors.
+
 What remains: fal's terms still do not promise that de-identified data is not used to develop
 models. fal is listed as a processor in the privacy notice and the data-processing terms. The
 lawyer reviewing them should see this paragraph.

@@ -1,4 +1,5 @@
 import { createAnthropicProvider } from "./anthropic";
+import { createFalTextProvider, withFallback } from "./fal-text";
 import { modelEntry, type ModelEntry, type ModelId } from "./catalog";
 import { createOpenAiProvider } from "./openai";
 import type { Fetch, TextModelProvider } from "./text-model";
@@ -19,18 +20,32 @@ export interface ModelChoice {
 export interface ModelSettings {
   readonly ANTHROPIC_API_KEY?: string;
   readonly OPENAI_API_KEY?: string;
+  /** With it, a failed call to Anthropic or OpenAI is tried once more through fal. */
+  readonly FAL_KEY?: string;
   readonly INTENT_MODEL: ModelId;
   readonly INTENT_RETRY_MODEL: ModelId;
 }
 
-function priced(id: ModelId, settings: ModelSettings, fetch?: Fetch): PricedProvider | null {
+function direct(id: ModelId, settings: ModelSettings, fetch?: Fetch): TextModelProvider | null {
   const entry = modelEntry(id);
   if (entry.vendor === "anthropic") {
     const apiKey = settings.ANTHROPIC_API_KEY;
-    return apiKey ? { entry, provider: createAnthropicProvider({ apiKey, model: id, forcedTool: entry.forcedTool, fetch }) } : null;
+    return apiKey ? createAnthropicProvider({ apiKey, model: id, forcedTool: entry.forcedTool, fetch }) : null;
   }
   const apiKey = settings.OPENAI_API_KEY;
-  return apiKey ? { entry, provider: createOpenAiProvider({ apiKey, model: id, fetch }) } : null;
+  return apiKey ? createOpenAiProvider({ apiKey, model: id, fetch }) : null;
+}
+
+/**
+ * The model from its own vendor, falling back to the same model through fal when a fal key is
+ * set (owner's choice, 2026-10-13). fal charges the vendor's price, so the entry is the same.
+ */
+function priced(id: ModelId, settings: ModelSettings, fetch?: Fetch): PricedProvider | null {
+  const entry = modelEntry(id);
+  const own = direct(id, settings, fetch);
+  const viaFal = settings.FAL_KEY ? createFalTextProvider({ apiKey: settings.FAL_KEY, model: id, forcedTool: entry.forcedTool, fetch }) : null;
+  const provider = own && viaFal ? withFallback(own, viaFal) : (own ?? viaFal);
+  return provider ? { entry, provider } : null;
 }
 
 /**

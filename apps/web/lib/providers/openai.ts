@@ -31,9 +31,19 @@ export interface OpenAiOptions {
   readonly apiKey: string;
   readonly model: string;
   readonly fetch?: Fetch;
+  /**
+   * For another service that speaks the same API (fal, lib/providers/fal-text.ts): its address,
+   * the whole authorization header, any extra headers and the name it is logged under.
+   */
+  readonly url?: string;
+  readonly authorization?: string;
+  readonly headers?: Readonly<Record<string, string>>;
+  readonly providerName?: string;
+  /** False where the model refuses a forced tool choice: it is then left to choose the tool. */
+  readonly forcedTool?: boolean;
 }
 
-export function openAiBody(model: string, request: ModelRequest) {
+export function openAiBody(model: string, request: ModelRequest, forcedTool = true) {
   const image = request.image
     ? [{ type: "image_url", image_url: { url: `data:${request.image.mediaType};base64,${request.image.base64}` } }]
     : [];
@@ -51,22 +61,26 @@ export function openAiBody(model: string, request: ModelRequest) {
         function: { name: REPLY_TOOL_NAME, description: REPLY_TOOL_DESCRIPTION, parameters: replyToolSchema() },
       },
     ],
-    tool_choice: { type: "function", function: { name: REPLY_TOOL_NAME } },
+    tool_choice: forcedTool ? { type: "function", function: { name: REPLY_TOOL_NAME } } : "auto",
   };
 }
 
 export function createOpenAiProvider(options: OpenAiOptions): TextModelProvider {
   const send = options.fetch ?? ((input, init) => fetch(input, init));
   return {
-    provider: "openai",
+    provider: options.providerName ?? "openai",
     model: options.model,
     async complete(request: ModelRequest): Promise<ModelReply> {
       let response: Response;
       try {
-        response = await send(OPENAI_URL, {
+        response = await send(options.url ?? OPENAI_URL, {
           method: "POST",
-          headers: { "content-type": "application/json", authorization: `Bearer ${options.apiKey}` },
-          body: JSON.stringify(openAiBody(options.model, request)),
+          headers: {
+            ...options.headers,
+            "content-type": "application/json",
+            authorization: options.authorization ?? `Bearer ${options.apiKey}`,
+          },
+          body: JSON.stringify(openAiBody(options.model, request, options.forcedTool ?? true)),
           signal: request.signal,
         });
       } catch (error) {

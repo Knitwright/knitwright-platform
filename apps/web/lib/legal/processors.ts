@@ -43,8 +43,15 @@ export const PROCESSORS: readonly Processor[] = [
   },
   {
     name: "Features & Labels, Inc. (fal.ai)",
-    purpose: "Making photoreal pictures of a design on request, in place of Google (AI features)",
-    data: "A description and drawing of the design, which we ask fal not to store",
+    purpose:
+      "Making photoreal pictures of a design on request, in place of Google, and reading text instructions and sketches when Anthropic or OpenAI cannot (AI features)",
+    data: "The instruction, picture, description or drawing sent, and the design it applies to, which we ask fal not to store",
+    location: "United States",
+  },
+  {
+    name: "OpenRouter, Inc. (through fal.ai)",
+    purpose: "Passing text instructions and sketches on to Anthropic or OpenAI when fal is used (AI features)",
+    data: "The instruction or picture sent, and the design it applies to",
     location: "United States",
   },
   {

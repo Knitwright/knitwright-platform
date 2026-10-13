@@ -59,7 +59,8 @@ The customer gives general authorisation for Knitwright to use the sub-processor
 | Anthropic PBC | Reading text instructions and sketches (AI features) | The instruction or picture sent, and the design it applies to | United States |
 | OpenAI, L.L.C. | Reading text instructions and sketches when the first model cannot (AI features) | The instruction or picture sent, and the design it applies to | United States |
 | Google LLC (Gemini API) | Making photoreal pictures of a design on request (AI features) | A description and drawing of the design | United States |
-| Features & Labels, Inc. (fal.ai) | Making photoreal pictures of a design on request, in place of Google (AI features) | A description and drawing of the design, which we ask fal not to store | United States |
+| Features & Labels, Inc. (fal.ai) | Making photoreal pictures of a design on request, in place of Google, and reading text instructions and sketches when Anthropic or OpenAI cannot (AI features) | The instruction, picture, description or drawing sent, and the design it applies to, which we ask fal not to store | United States |
+| OpenRouter, Inc. (through fal.ai) | Passing text instructions and sketches on to Anthropic or OpenAI when fal is used (AI features) | The instruction or picture sent, and the design it applies to | United States |
 | Cloudflare, Inc. (Turnstile) | Telling people from automated sign-ups | Browser and network signals during sign-up, sign-in and password reset | United States, with servers worldwide |
 | Resend, Inc. | Sending sign-up, sign-in and password emails | Email address and the message | United States |
 | Functional Software, Inc. (Sentry) | Recording unexpected errors so they can be fixed | Error details, with keys, tokens and email addresses removed before sending | European Union (Frankfurt, Germany): Sentry's EU data region |
