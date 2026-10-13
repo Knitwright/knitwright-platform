@@ -1,4 +1,6 @@
 import {
+  KIT_PATTERN_LABELS,
+  describeKitPattern,
   LETTERING_LABELS,
   PLACE_DEFINITIONS,
   formatCm,
@@ -53,6 +55,32 @@ function itemOf(spec: GarmentSpec, art: Artwork): ArtworkItem {
   };
 }
 
+/**
+ * A kit pattern as one line of the artwork: printed over the whole of the body, front and back.
+ * The band size is given only when someone gave one; nothing is measured from the drawing.
+ */
+function kitPatternItems(spec: GarmentSpec): ArtworkItem[] {
+  const pattern = spec.kitPattern;
+  if (!pattern) return [];
+  const from = (text: string) => textCell(text, pattern.provenance);
+  const zero: LengthCell = { status: "set", value: formatCm(0), tenthsMm: 0, provenance: pattern.provenance };
+  return [
+    {
+      id: "kit-pattern",
+      name: from(`Kit pattern: ${KIT_PATTERN_LABELS[pattern.style]}`),
+      panel: from(`${panelLabelOf(spec, "body-front")} and ${panelLabelOf(spec, "body-back")}`),
+      anchor: from("Whole panel"),
+      across: zero,
+      down: zero,
+      width: pattern.size === undefined ? TBC : { status: "set", value: formatCm(pattern.size), tenthsMm: pattern.size, provenance: pattern.provenance },
+      height: TBC,
+      rotation: numberCell(0, "degrees", "degrees", pattern.provenance),
+      technique: pattern.technique === undefined ? TBC : from(TECHNIQUE_LABELS[pattern.technique]),
+      content: { kind: "text", text: from(describeKitPattern(pattern)) },
+    },
+  ];
+}
+
 export const PLAYER_MARKS_NOTE =
   "Each player's own name and number come from the team order. The sample shows where they go and how they look. A height nobody has typed is still to be given.";
 
@@ -83,7 +111,7 @@ function markOf(spec: GarmentSpec, marks: NamesAndNumbers, entry: PlayerMarkPlac
  * then each place for player names and numbers.
  */
 export function buildArtwork(spec: GarmentSpec): ArtworkSection {
-  const items = spec.artwork.map((art) => itemOf(spec, art));
+  const items = [...kitPatternItems(spec), ...spec.artwork.map((art) => itemOf(spec, art))];
   const marks = spec.namesAndNumbers;
   const playerMarks = marks ? marks.places.map((entry) => markOf(spec, marks, entry)) : [];
   return {
