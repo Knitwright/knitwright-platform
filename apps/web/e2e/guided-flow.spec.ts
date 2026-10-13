@@ -23,9 +23,9 @@ const accessible = async (page: Page): Promise<void> => {
   expect(serious.map((entry) => `${entry.id}: ${entry.help}`)).toEqual([]);
 };
 
-const next = async (page: Page, step: string): Promise<void> => {
+const next = async (page: Page, step: string, id = step.toLowerCase()): Promise<void> => {
   await page.getByRole("link", { name: `Next: ${step}` }).click();
-  await expect(page).toHaveURL(new RegExp(`step=${step.toLowerCase()}`));
+  await expect(page).toHaveURL(new RegExp(`step=${id}`));
   await expect(page.getByRole("heading", { level: 2, name: step })).toBeFocused();
   await accessible(page);
 };
@@ -54,6 +54,16 @@ const reviewAdjustDownload = async (page: Page): Promise<void> => {
   expect((await bytesOf(await press(page, "Download Excel"))).subarray(0, 2).toString("latin1")).toBe("PK");
   expect((await bytesOf(await press(page, "Download SVG front"))).toString("utf8")).toContain("<svg");
   expect((await bytesOf(await press(page, "Download SVG back"))).toString("utf8")).toContain("<svg");
+
+  // The flow does not end at the files: each way on is a button with one sentence.
+  await next(page, "Share and get it made", "make");
+  const ways = page.getByRole("list", { name: "What to do next" });
+  for (const name of ["Share with your committee", "Make photoreal images", "Ask for a quote", "Open the full editor", "See the tech pack"]) {
+    await expect(ways.getByRole("link", { name })).toBeVisible();
+  }
+  await ways.getByRole("link", { name: "Share with your committee" }).click();
+  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}#share-heading$/);
+  await expect(page.getByRole("heading", { name: "Share with your committee" })).toBeVisible();
 };
 
 const SENTENCES = [
@@ -67,7 +77,7 @@ test.describe("the guided flow", () => {
   for (const { family, sentence, garment } of SENTENCES) {
     test(`goes from one sentence to all four downloads (${family})`, async ({ page }) => {
       await signedIn(page, `guided-${family}`);
-      await page.getByRole("link", { name: "Start a design, step by step" }).click();
+      await page.getByRole("link", { name: "Start a design", exact: true }).click();
       await expect(page).toHaveURL(/\/studio\/start$/);
       await accessible(page);
 
