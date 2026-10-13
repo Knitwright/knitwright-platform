@@ -3,7 +3,11 @@ import { applyAction, pointsOfMeasureFor, type GarmentSpec } from "@/lib/garment
 import { start } from "@/lib/garment/fixtures/specs";
 import { sizingFromChart } from "@/lib/sizing";
 import { MADE_UP_CHART_SET } from "@/lib/sizing/fixtures/made-up-charts";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import { measurementTable, type TableRow } from "./measurement-table";
+
+/** No chart at all, as before the starter charts, so the no-chart wording can be seen. */
+const NO_CHARTS = NO_CHART_SET;
 
 const apply = (spec: GarmentSpec, action: unknown): GarmentSpec => {
   const result = applyAction(spec, action);
@@ -32,7 +36,7 @@ describe("measurementTable with no size chart", () => {
   it("has a row for every point that applies, all missing, with an empty value", () => {
     const spec = start("crew-tee", "women");
 
-    const table = measurementTable(spec);
+    const table = measurementTable(spec, NO_CHARTS);
 
     expect(rowsOf(table).map((entry) => entry.pointId).sort()).toEqual(pointsOfMeasureFor(spec).map((point) => point.id).sort());
     for (const entry of rowsOf(table)) {
@@ -43,23 +47,23 @@ describe("measurementTable with no size chart", () => {
   });
 
   it("says once that no chart applies, and asks for no size", () => {
-    const table = measurementTable(start("crew-tee", "women"));
+    const table = measurementTable(start("crew-tee", "women"), NO_CHARTS);
 
     expect(table.notice).toBe(
-      "There is no size chart yet for Crew neck tee for women. Nothing is filled in for you, so type each measurement in.",
+      "There is no Knitwright starter chart yet for Crew neck tee for women, so no measurements are suggested. Type each measurement in, or import your own size chart.",
     );
     expect(table.size).toBe("");
   });
 
   it("groups the rows into sections with their names, in a fixed order", () => {
-    const table = measurementTable(start("polo", "men"));
+    const table = measurementTable(start("polo", "men"), NO_CHARTS);
 
     expect(table.groups.map((group) => group.label)).toEqual(["Body", "Sleeve", "Neck and collar", "Placket"]);
     expect(table.groups.every((group) => group.rows.length > 0)).toBe(true);
   });
 
   it("leaves out a section that has no rows", () => {
-    const table = measurementTable(start("crew-tee", "women"));
+    const table = measurementTable(start("crew-tee", "women"), NO_CHARTS);
 
     expect(table.groups.map((group) => group.label)).not.toContain("Placket");
   });
@@ -67,7 +71,7 @@ describe("measurementTable with no size chart", () => {
   it("shows a typed value in centimetres, with its source in plain words", () => {
     const spec = typed(start("crew-tee", "women"), "chest-width", 5250);
 
-    const entry = row(measurementTable(spec), "chest-width");
+    const entry = row(measurementTable(spec, NO_CHARTS), "chest-width");
 
     expect(entry).toMatchObject({
       hasValue: true,
@@ -84,7 +88,7 @@ describe("measurementTable with no size chart", () => {
   it("shows the words of the supplier for a brand's own value", () => {
     const spec = typed(start("crew-tee", "women"), "chest-width", 5250, "brand-supplied");
 
-    expect(row(measurementTable(spec), "chest-width")).toMatchObject({
+    expect(row(measurementTable(spec, NO_CHARTS), "chest-width")).toMatchObject({
       provenanceLabel: "Supplied by your brand",
       tone: "person",
     });
@@ -93,7 +97,7 @@ describe("measurementTable with no size chart", () => {
   it("styles a value from the assistant as a suggestion, never as a person's", () => {
     const spec = typed(start("crew-tee", "women"), "chest-width", 5250, "ai-suggested");
 
-    expect(row(measurementTable(spec), "chest-width")).toMatchObject({
+    expect(row(measurementTable(spec, NO_CHARTS), "chest-width")).toMatchObject({
       provenanceLabel: "Suggested by the assistant",
       tone: "suggested",
     });
@@ -156,8 +160,29 @@ describe("measurementTable with a size chart", () => {
   });
 
   it("never gives a zero for a value that is missing", () => {
-    const table = measurementTable(start("crew-tee", "women"));
+    const table = measurementTable(start("crew-tee", "women"), NO_CHARTS);
 
     expect(rowsOf(table).some((entry) => entry.valueCm === "0")).toBe(false);
+  });
+});
+
+describe("measurementTable with the Knitwright starter charts", () => {
+  it("fills a new design and says once that the values are suggestions to check with the factory", () => {
+    const table = measurementTable(start("crew-tee", "men"));
+
+    expect(table.size).toBe("M");
+    expect(table.notice).toBe(
+      "These measurements are suggestions from the Knitwright starter chart, not a factory's numbers. Check them with your factory before you order. This chart does not depend on fit, so it is used for the regular fit as well.",
+    );
+    expect(row(table, "chest-width")).toMatchObject({ valueCm: "53", provenanceLabel: "Suggested from a size chart", tone: "suggested", tolerance: "±1 cm" });
+  });
+
+  it("adds the fit note after the suggestion note when the design has a fit", () => {
+    const spec = applyAction(start("crew-tee", "men"), { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "user-edited" });
+    if (!spec.ok) throw new Error(spec.reason);
+
+    expect(measurementTable(spec.spec).notice).toBe(
+      "These measurements are suggestions from the Knitwright starter chart, not a factory's numbers. Check them with your factory before you order. This chart does not depend on fit, so it is used for the slim fit as well.",
+    );
   });
 });

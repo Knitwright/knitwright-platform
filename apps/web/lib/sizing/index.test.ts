@@ -16,13 +16,27 @@ describe("the sizing public surface", () => {
       "sizeChartSchema",
       "sizeRunSchema",
       "DEFAULT_CHARTS",
+      "STARTER_CHART_NAME",
+      "withChartValues",
     ]) {
       expect(sizing).toHaveProperty(name);
     }
   });
 
-  it("ships no default charts and says so through the completeness report", () => {
-    expect(sizing.DEFAULT_CHARTS).toEqual([]);
-    expect(sizing.chartCompleteness().withChart).toBe(0);
+  it("ships the Knitwright starter charts and says what is still missing through the completeness report", () => {
+    const report = sizing.chartCompleteness();
+    expect(sizing.DEFAULT_CHARTS.length).toBe(39);
+    expect(report.withChart).toBe(39);
+    // Leggings, the sports bra and the compression top are not offered at launch and have no starter chart yet.
+    expect(report.entries.filter((entry) => !entry.hasChart).map((entry) => `${entry.typeId}/${entry.wearer}`)).toEqual([
+      "leggings/men",
+      "leggings/women",
+      "leggings/youth",
+      "sports-bra/women",
+      "sports-bra/youth",
+      "compression-top/men",
+      "compression-top/women",
+      "compression-top/youth",
+    ]);
   });
 });
