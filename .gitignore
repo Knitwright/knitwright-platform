@@ -37,3 +37,8 @@ Thumbs.db
 *.pem
 npm-debug.log*
 .pnpm-debug.log*
+
+# Owner reference files, kept out of git (large; stored in Drive)
+/PATTRENS.cdr/
+/PATTRENS.cdr.zip
+/*.pdf
