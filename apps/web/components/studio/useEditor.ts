@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SpecAction } from "@/lib/garment";
 import { createSettler } from "@/lib/projects/debounce";
+import { anyDirty, markDirty, type DirtyFields } from "@/lib/projects/dirty-fields";
 import { effectiveSpec, pendingActions } from "@/lib/projects/effective-spec";
 import type { EditorData } from "@/lib/projects/editor-data";
 import { isBusy, shownChoice, type Request } from "@/lib/projects/editor-state";
@@ -24,15 +25,14 @@ const setOption = ({ optionId, choiceId }: Pick): SpecAction => ({
   provenance: "user-edited",
 });
 
-/** Which fields hold text that was not saved, by name. */
+/**
+ * Which fields hold text that was not saved, by name. `mark` never changes, and marking a
+ * field as it already is draws nothing, so a field may report itself on every draw.
+ */
 const useDirtyFields = () => {
-  const [dirty, setDirty] = useState<Readonly<Record<string, boolean>>>({});
-  const mark = useCallback(
-    (key: string, isDirty: boolean) =>
-      setDirty((before) => (before[key] === isDirty ? before : { ...before, [key]: isDirty })),
-    [],
-  );
-  return { flags: Object.values(dirty), mark };
+  const [dirty, setDirty] = useState<DirtyFields>({});
+  const mark = useCallback((key: string, isDirty: boolean) => setDirty((before) => markDirty(before, key, isDirty)), []);
+  return { flags: [anyDirty(dirty)], mark };
 };
 
 /** Everything the editor screen does, as plain functions for its parts to call. */

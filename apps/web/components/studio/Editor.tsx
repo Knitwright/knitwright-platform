@@ -151,7 +151,7 @@ function SizesSection({ data, editor }: PartProps) {
           editor.clearProblem(SIZES_KEY);
           editor.clearProblem(BASE_KEY);
         }}
-        onDirty={(dirty) => editor.markDirty("sizes", dirty)}
+        onDirty={editor.markDirty}
       />
     </>
   );
