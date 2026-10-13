@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { BotCheck, useBotCheck } from "@/components/auth/BotCheck";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
-import { useFormAction } from "@/components/forms/useFormAction";
+import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
@@ -22,14 +22,14 @@ const VOTES = [
  * address is not. What is typed is kept as plain text and shown as plain text.
  */
 export function ResponseForm({ token, siteKey }: ResponseFormProps) {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(respondToShareAction);
+  const { form, state, onSubmit, pending, sent, summary, fieldErrors } = useSendForm(respondToShareAction);
   const { guard, widget } = useBotCheck(state.attempt);
   const voteId = useId();
   const commentId = useId();
   const voteErrors = fieldErrors("vote");
   const commentErrors = fieldErrors("comment");
 
-  if (state.result?.success) {
+  if (sent) {
     return (
       <FormDone>
         <strong className="font-semibold">Thank you.</strong> Your answer is saved. If you answer again from this
@@ -39,7 +39,15 @@ export function ResponseForm({ token, siteKey }: ResponseFormProps) {
   }
 
   return (
-    <form ref={form} action={submit} onSubmit={guard} className="flex flex-col gap-4" noValidate>
+    <form
+      ref={form}
+      onSubmit={(event) => {
+        guard(event);
+        void onSubmit(event);
+      }}
+      className="flex flex-col gap-4"
+      noValidate
+    >
       <FormSummary message={summary} />
       <input type="hidden" name="token" value={token} />
       <Field

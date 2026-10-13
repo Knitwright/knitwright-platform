@@ -1,11 +1,34 @@
 import { describe, expect, it, vi } from "vitest";
 import { LOGO_RIGHTS_MISSING } from "@/lib/storage/rights";
-import { checkUploadFile, uploadArtworkFile, uploadImageFile, UPLOAD_MAX_BYTES } from "./artwork-upload";
+import {
+  LOGO_RIGHTS_WAITING,
+  checkUploadFile,
+  logoStep,
+  uploadArtworkFile,
+  uploadImageFile,
+  UPLOAD_MAX_BYTES,
+} from "./artwork-upload";
 
 const FILE_ID = "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11";
 const png = (size = 1000) => new File([new Uint8Array(size)], "logo.png", { type: "image/png" });
 
 const reply = (body: unknown, status = 200) => async () => Response.json(body, { status });
+
+describe("logoStep", () => {
+  it("keeps a logo chosen before the box is ticked, and asks for the tick", () => {
+    expect(logoStep(png(), false)).toBe("wait-for-rights");
+    expect(LOGO_RIGHTS_WAITING).toMatch(/Your file is kept/);
+  });
+
+  it("uploads the kept logo once the box is ticked", () => {
+    expect(logoStep(png(), true)).toBe("upload");
+  });
+
+  it("does nothing without a file", () => {
+    expect(logoStep(null, true)).toBe("nothing");
+    expect(logoStep(null, false)).toBe("nothing");
+  });
+});
 
 describe("checkUploadFile", () => {
   it("lets a PNG, a JPEG and a WebP through", () => {

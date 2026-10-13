@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
-import { useFormAction } from "@/components/forms/useFormAction";
+import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { requestQuoteAction } from "@/lib/leads/actions";
@@ -24,8 +24,7 @@ type Props = Readonly<{
  */
 export function QuoteRequest({ projectId, version, firstDate, earlier }: Props) {
   const [open, setOpen] = useState(false);
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(requestQuoteAction);
-  const sent = state.result?.success === true;
+  const { form, state, onSubmit, pending, sent, summary, fieldErrors } = useSendForm(requestQuoteAction);
   const kept = (name: string): string => state.values[name] ?? "";
 
   return (
@@ -49,7 +48,7 @@ export function QuoteRequest({ projectId, version, firstDate, earlier }: Props) 
         </div>
       ) : null}
       {open && !sent ? (
-        <form ref={form} action={submit} className="mt-4 flex flex-col gap-4" noValidate>
+        <form ref={form} onSubmit={(event) => void onSubmit(event)} className="mt-4 flex flex-col gap-4" noValidate>
           <FormSummary message={summary} />
           <input type="hidden" name="projectId" value={projectId} />
           <input type="hidden" name="version" value={version} />

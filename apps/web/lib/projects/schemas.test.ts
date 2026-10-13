@@ -7,6 +7,7 @@ import {
   designIdSchema,
   restoreVersionSchema,
   undoDesignSchema,
+  versionCheckSchema,
 } from "./schemas";
 
 const ID = "11111111-1111-4111-8111-111111111111";
@@ -88,6 +89,18 @@ describe("restoreVersionSchema", () => {
     });
     expect(restoreVersionSchema.safeParse({ projectId: ID, expectedVersion: 4, version: 0 }).success).toBe(false);
     expect(restoreVersionSchema.safeParse({ projectId: ID, expectedVersion: 4, version: MAX_VERSION + 1 }).success).toBe(false);
+  });
+});
+
+describe("versionCheckSchema", () => {
+  it("takes a design, and the version a check starts from when there is one", () => {
+    expect(versionCheckSchema.parse({ projectId: ID })).toEqual({ projectId: ID });
+    expect(versionCheckSchema.parse({ projectId: ID, since: 4 })).toEqual({ projectId: ID, since: 4 });
+  });
+
+  it("refuses a version that cannot exist", () => {
+    expect(versionCheckSchema.safeParse({ projectId: ID, since: 0 }).success).toBe(false);
+    expect(versionCheckSchema.safeParse({ projectId: ID, since: MAX_VERSION + 1 }).success).toBe(false);
   });
 });
 

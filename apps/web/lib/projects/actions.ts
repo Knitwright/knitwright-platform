@@ -22,14 +22,14 @@ import {
   applyDesignActionsSchema,
   applyProposalSchema,
   createProjectSchema,
-  designIdSchema,
   projectDetailsSchema,
   restoreVersionSchema,
   undoDesignSchema,
+  versionCheckSchema,
 } from "./schemas";
 import {
+  checkVersion,
   createProject,
-  currentVersion,
   renameProject,
   restoreVersion,
   saveAction,
@@ -171,14 +171,21 @@ export const undoDesignAction = defineAction({
   },
 });
 
-/** The version a design is at now. The editor asks after a reply was lost, to see if a save went through. */
+/**
+ * The version a design is at now. The editor asks after a reply was lost, to see if a save
+ * went through, and after a conflict, to see whether anyone but the person saved since.
+ */
 export const readVersionAction = defineAction({
   auth: "member",
   rateLimit: LIMITS.read,
-  schema: designIdSchema,
-  handler: async ({ input, session }) => ({
-    version: await currentVersion(await sessionClient(), session.brand.id, input.projectId),
-  }),
+  schema: versionCheckSchema,
+  handler: async ({ input, session }) =>
+    checkVersion(await sessionClient(), {
+      brandId: session.brand.id,
+      projectId: input.projectId,
+      userId: session.userId,
+      since: input.since ?? Number.MAX_SAFE_INTEGER,
+    }),
 });
 
 export const renameProjectAction = defineAction({

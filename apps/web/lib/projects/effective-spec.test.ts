@@ -2,11 +2,16 @@ import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import type { SpecAction } from "@/lib/garment";
 import { colourAction } from "./colour-controls";
-import { effectiveSpec, pendingActions } from "./effective-spec";
-import { initialEditorState, editorReducer } from "./editor-state";
+import { effectiveSpec, pendingRequests, resolveRequest } from "./effective-spec";
+import { initialEditorState, editorReducer, type Request } from "./editor-state";
 
-const colour = (spec: ReturnType<typeof start>, panel: string, swatch: string): SpecAction => {
+const colour = (spec: ReturnType<typeof start>, panel: string, swatch: string): Request => {
   const request = colourAction(spec, panel, { swatch });
+  if (request.kind !== "action") throw new Error("Expected an action");
+  return request;
+};
+
+const actionOf = (request: Request): SpecAction => {
   if (request.kind !== "action") throw new Error("Expected an action");
   return request.action;
 };
@@ -27,7 +32,7 @@ describe("effectiveSpec", () => {
   });
 
   it("skips a change the rules refuse and keeps going", () => {
-    const refused: SpecAction = { type: "remove-artwork", id: "nothing-here" };
+    const refused: Request = { kind: "action", action: { type: "remove-artwork", id: "nothing-here" } as SpecAction };
     const first = colour(spec, "body-front", "#111111");
     expect(effectiveSpec(spec, [refused, first]).colourways[0].colours).toHaveLength(1);
   });
@@ -39,27 +44,64 @@ describe("effectiveSpec", () => {
   });
 });
 
-describe("pendingActions", () => {
-  it("lists the change on its way and the changes waiting, oldest first, and ignores undo and restore", () => {
+describe("pendingRequests", () => {
+  it("lists what was saved but not shown, the change on its way and the changes waiting, oldest first", () => {
     const spec = start("crew-tee");
     const a = colour(spec, "body-front", "#111111");
     const b = colour(spec, "body-back", "#222222");
     let state = initialEditorState(1);
-    state = editorReducer(state, { type: "enqueue", key: "colour:body-front", request: { kind: "action", action: a }, focus: false });
-    state = editorReducer(state, { type: "start" });
-    state = editorReducer(state, { type: "enqueue", key: "colour:body-back", request: { kind: "action", action: b }, focus: false });
+    state = editorReducer(state, { type: "enqueue", key: "colour:body-front", request: a, focus: false });
+    state = editorReducer(state, { type: "start", spec });
+    state = editorReducer(state, { type: "enqueue", key: "colour:body-back", request: b, focus: false });
     state = editorReducer(state, { type: "enqueue", key: "history", request: { kind: "undo" }, focus: true });
-    expect(pendingActions(state)).toEqual([a, b]);
-    expect(pendingActions(initialEditorState(1))).toEqual([]);
+    expect(pendingRequests(state, 1)).toEqual([a, b, { kind: "undo" }]);
+    expect(pendingRequests(initialEditorState(1), 1)).toEqual([]);
+
+    state = editorReducer(state, { type: "succeeded", id: state.inFlight!.id, version: 2, dropped: [] });
+    expect(pendingRequests(state, 1)).toEqual([a, b, { kind: "undo" }]);
+    // Once the page shows version 2, the saved colour is part of its design and is not counted again.
+    expect(pendingRequests(state, 2)).toEqual([b, { kind: "undo" }]);
+  });
+});
+
+describe("resolveRequest", () => {
+  const spec = start("crew-tee");
+
+  it("sends an ordinary change as it is", () => {
+    const undo: Request = { kind: "undo" };
+    expect(resolveRequest(null, undo)).toEqual({ kind: "ready", request: undo });
+  });
+
+  it("cannot work out a colour without a design", () => {
+    expect(resolveRequest(null, { kind: "colour", panelId: "body-front", change: { swatch: "#111111" } }).kind).toBe("problem");
+  });
+
+  it("works out a colour on top of the design given", () => {
+    const resolved = resolveRequest(spec, { kind: "colour", panelId: "body-front", change: { swatch: "#111111" } });
+    expect(resolved).toMatchObject({ kind: "ready", request: { kind: "action", action: { type: "update-colourway" } } });
+  });
+
+  it("says why a colour cannot be used", () => {
+    const resolved = resolveRequest(spec, { kind: "colour", panelId: "body-front", change: { swatch: "blue" } });
+    expect(resolved).toEqual({ kind: "problem", reason: "Pick a colour, such as #1b2a49." });
   });
 
   it("lists every change of a batch in its order, and a newer batch for the same control replaces the older", () => {
     const spec = start("crew-tee");
-    const a = colour(spec, "body-front", "#111111");
-    const b = colour(spec, "body-back", "#222222");
+    const a = actionOf(colour(spec, "body-front", "#111111"));
+    const b = actionOf(colour(spec, "body-back", "#222222"));
     let state = initialEditorState(1);
     state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a] }, focus: true });
     state = editorReducer(state, { type: "enqueue", key: "confirm:all", request: { kind: "actions", actions: [a, b] }, focus: true });
-    expect(pendingActions(state)).toEqual([a, b]);
+    expect(pendingRequests(state, 1)).toEqual([{ kind: "actions", actions: [a, b] }]);
+  });
+
+  it("applies every change of a batch to the design being worked on", () => {
+    const spec = start("crew-tee");
+    const a = actionOf(colour(spec, "body-front", "#111111"));
+    const b = actionOf(colour(effectiveSpec(spec, [{ kind: "action", action: a }]), "body-back", "#222222"));
+    const one = effectiveSpec(spec, [{ kind: "action", action: a }, { kind: "action", action: b }]);
+
+    expect(effectiveSpec(spec, [{ kind: "actions", actions: [a, b] }])).toEqual(one);
   });
 });
