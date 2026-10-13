@@ -5,6 +5,7 @@ import {
   guideAddress,
   neighbours,
   startFromSentence,
+  startLead,
   startMethodFrom,
   stepFrom,
   suggestedName,
@@ -22,6 +23,18 @@ describe("the steps of the guided flow", () => {
     expect(stepFrom(undefined)).toBe("start");
     expect(stepFrom("admin")).toBe("start");
     expect(stepFrom(["adjust"])).toBe("start");
+  });
+
+  it("says above the assistant only what it knows of how the design started", () => {
+    expect(startLead("text", "a slim polo", 0)).toMatch(/^Your words were sent/);
+    expect(startLead("text", undefined, 2)).toMatch(/^Your conversation with the assistant so far is below/);
+    expect(startLead("picker", undefined, 2)).toMatch(/^Your conversation with the assistant so far is below/);
+    for (const from of ["text", "picker"] as const) {
+      expect(startLead(from, undefined, 0)).toBe("Describe anything you want to change, or go on to review.");
+    }
+    for (const lead of [startLead("text", "x", 0), startLead("text", undefined, 1), startLead("picker", undefined, 0)]) {
+      expect(lead).not.toMatch(/picked the garment/);
+    }
   });
 
   it("knows the step before and after each one", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { encodeEvent } from "@/lib/intent/stream";
-import { chatReducer, initialChat, pendingText, readEvents, refusalMessage, type ChatState } from "./chat";
+import { chatFromHistory, chatReducer, initialChat, pendingText, readEvents, refusalMessage, type ChatState } from "./chat";
 
 const play = (...events: Parameters<typeof chatReducer>[1][]): ChatState => events.reduce(chatReducer, initialChat);
 
@@ -45,6 +45,63 @@ describe("the chat panel", () => {
     expect(failed.pending).toBeNull();
     const applied = chatReducer(failed, { type: "choiceApplied", text: "Polo" });
     expect(applied.messages[3]).toMatchObject({ kind: "applied", text: "Done. The design is saved as a new version.", lines: ["Polo"] });
+  });
+
+  it("shows each part of a request that was not made under what was, with its ways on", () => {
+    const followUps = [
+      { text: "A Polo shirt does not come with V neck for Neckline.", choices: [{ kind: "apply" as const, label: "Change to Team jersey (no placket)", token: "t1" }] },
+      {
+        text: "How much longer should the sleeve length be?",
+        choices: [
+          { kind: "say" as const, label: "+1 cm", text: "Make the sleeve length 1 cm longer" },
+          { kind: "fill" as const, label: "Type the sleeve length", text: "Set the sleeve length to " },
+        ],
+      },
+    ];
+    const done = play({ type: "sent", text: "x" }, { type: "outcome", outcome: { kind: "applied", explanations: ["Fit changed."], notes: [], version: 3, followUps } });
+    expect(done.messages.map((message) => message.kind)).toEqual(["text", "applied", "question", "question"]);
+    expect(done.messages[2]).toMatchObject({
+      text: "A Polo shirt does not come with V neck for Neckline.",
+      choices: [{ label: "Change to Team jersey (no placket)", token: "t1", words: null, recommended: false }],
+    });
+    expect(done.messages[3].choices.map((choice) => choice.words)).toEqual([
+      { kind: "say", text: "Make the sleeve length 1 cm longer" },
+      { kind: "fill", text: "Set the sleeve length to " },
+    ]);
+  });
+
+  it("puts the ways on of a single reason under the reason itself", () => {
+    const followUps = [{ text: "The sleeve length has no value yet.", choices: [{ kind: "fill" as const, label: "Type the sleeve length", text: "Set the sleeve length to " }] }];
+    const refused = play({ type: "sent", text: "x" }, { type: "outcome", outcome: { kind: "rejection", reason: "The sleeve length has no value yet. Nothing was changed.", followUps } });
+    expect(refused.messages).toHaveLength(2);
+    expect(refused.messages[1]).toMatchObject({ kind: "rejection", choices: [{ label: "Type the sleeve length" }] });
+    const many = play({ type: "sent", text: "x" }, { type: "outcome", outcome: { kind: "rejection", reason: "None of that could be made.", followUps: [...followUps, ...followUps] } });
+    expect(many.messages.map((message) => message.kind)).toEqual(["text", "rejection", "question", "question"]);
+  });
+
+  it("marks words that are sent as answered without saying them twice", () => {
+    const asked = play(
+      { type: "sent", text: "x" },
+      { type: "outcome", outcome: { kind: "rejection", reason: "How much?", followUps: [{ text: "How much?", choices: [{ kind: "say", label: "+2 cm", text: "Make the sleeve length 2 cm longer" }] }] } },
+    );
+    const chosen = chatReducer(asked, { type: "chose", id: 2, index: 0 });
+    expect(chosen.messages).toHaveLength(2);
+    expect(chosen.messages[1].answered).toBe(0);
+    expect(chosen.pending).toBeNull();
+  });
+
+  it("starts from the conversation kept for the design", () => {
+    const state = chatFromHistory([
+      { role: "person", kind: "text", body: "slim fit", lines: [] },
+      { role: "assistant", kind: "applied", body: "Done.", lines: ["Fit changed."] },
+    ]);
+    expect(state.pending).toBeNull();
+    expect(state.messages).toEqual([
+      { id: 1, from: "person", kind: "text", text: "slim fit", lines: [], choices: [], answered: null },
+      { id: 2, from: "assistant", kind: "applied", text: "Done.", lines: ["Fit changed."], choices: [], answered: null },
+    ]);
+    const next = chatReducer(state, { type: "sent", text: "long sleeves" });
+    expect(next.messages[2]).toMatchObject({ id: 3, text: "long sleeves" });
   });
 
   it("has a sentence for every stage", () => {

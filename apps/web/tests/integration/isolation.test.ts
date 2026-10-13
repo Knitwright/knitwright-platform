@@ -237,6 +237,24 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
   },
+  // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
+  // line, and none is ever changed or removed.
+  assistant_messages: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      return must(
+        await adminClient()
+          .from("assistant_messages")
+          .insert({ brand_id: brandId, project_id: projectId, role: "person", kind: "text", body: "slim fit" })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId) => ({ brand_id: brandId, project_id: randomUUID(), role: "person", kind: "text", body: "Made directly." }),
+    change: { body: "Changed by a stranger." },
+  },
   // Decision 0025: a person reads their own consent records; only the server adds one, and none
   // is ever changed or removed.
   consent_events: {

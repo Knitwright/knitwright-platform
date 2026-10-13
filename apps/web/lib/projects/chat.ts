@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { parseEvent, splitLines, type BrowserOutcome, type StreamEvent } from "@/lib/intent/stream";
+import { parseEvent, splitLines, type BrowserFollowUp, type BrowserOutcome, type StreamEvent } from "@/lib/intent/stream";
 
 /**
  * What the assistant's chat panel shows, as a pure reducer (plan step 12, task 5). The
@@ -13,6 +13,16 @@ export interface ChatChoice {
   /** The signed proposal to apply, or null for a choice that changes nothing. */
   readonly token: string | null;
   readonly recommended: boolean;
+  /** Words to send as a new message, or to put in the box to finish. Null for a choice that applies changes. */
+  readonly words: { readonly kind: "say" | "fill"; readonly text: string } | null;
+}
+
+/** One line of the conversation as it is kept for the design (lib/projects/chat-history). */
+export interface StoredLine {
+  readonly role: "person" | "assistant";
+  readonly kind: ChatMessage["kind"];
+  readonly body: string;
+  readonly lines: readonly string[];
 }
 
 export interface ChatMessage {
@@ -57,19 +67,36 @@ function add(state: ChatState, message: Omit<ChatMessage, "id" | "lines" | "choi
   return { pending, messages: [...state.messages, { lines: [], choices: [], answered: null, ...message, id }] };
 }
 
+const followUpChoices = (followUp: BrowserFollowUp): ChatChoice[] =>
+  followUp.choices.map((choice) =>
+    choice.kind === "apply"
+      ? { label: choice.label, token: choice.token, recommended: false, words: null }
+      : { label: choice.label, token: null, recommended: false, words: { kind: choice.kind, text: choice.text } },
+  );
+
+/** Each part of a request that was not made, as its own bubble with its ways on. */
+const withFollowUps = (state: ChatState, followUps: readonly BrowserFollowUp[]): ChatState =>
+  followUps.reduce((current, followUp) => add(current, { from: "assistant", kind: "question", text: followUp.text, choices: followUpChoices(followUp) }), state);
+
 function fromOutcome(state: ChatState, outcome: BrowserOutcome): ChatState {
   switch (outcome.kind) {
-    case "applied":
-      return add(state, { from: "assistant", kind: "applied", text: SAVED_TEXT, lines: [...outcome.explanations, ...outcome.notes] });
+    case "applied": {
+      const saved = add(state, { from: "assistant", kind: "applied", text: SAVED_TEXT, lines: [...outcome.explanations, ...outcome.notes] });
+      return withFollowUps(saved, outcome.followUps ?? []);
+    }
     case "question":
       return add(state, {
         from: "assistant",
         kind: "question",
         text: outcome.question,
-        choices: outcome.choices.map((choice, index) => ({ ...choice, recommended: index === outcome.recommended })),
+        choices: outcome.choices.map((choice, index) => ({ ...choice, recommended: index === outcome.recommended, words: null })),
       });
-    case "rejection":
-      return add(state, { from: "assistant", kind: "rejection", text: outcome.reason });
+    case "rejection": {
+      const followUps = outcome.followUps ?? [];
+      // A single part's reason is the answer itself, so its ways on go under it.
+      if (followUps.length === 1) return add(state, { from: "assistant", kind: "rejection", text: outcome.reason, choices: followUpChoices(followUps[0]) });
+      return withFollowUps(add(state, { from: "assistant", kind: "rejection", text: outcome.reason }), followUps);
+    }
   }
 }
 
@@ -78,8 +105,14 @@ function chose(state: ChatState, id: number, index: number): ChatState {
   const choice = message?.choices[index];
   if (!message || !choice || message.answered !== null) return state;
   const answered = { ...state, messages: state.messages.map((entry) => (entry.id === id ? { ...entry, answered: index } : entry)) };
+  // Words are said as a message of their own, so the label is not said as well.
+  if (choice.words) return answered;
   return add(answered, { from: "person", kind: "text", text: choice.label }, choice.token ? "sending" : null);
 }
+
+/** The panel as it opens: the conversation kept for the design, oldest first. */
+export const chatFromHistory = (lines: readonly StoredLine[]): ChatState =>
+  lines.reduce<ChatState>((state, line) => add(state, { from: line.role, kind: line.kind, text: line.body, lines: [...line.lines] }), initialChat);
 
 export function chatReducer(state: ChatState, event: ChatEvent): ChatState {
   switch (event.type) {

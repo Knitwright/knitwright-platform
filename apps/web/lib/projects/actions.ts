@@ -16,6 +16,7 @@ import { log } from "@/lib/server/log";
 import { verifyProposal } from "@/lib/intent/proposal-token";
 import { nowSeconds, proposalSigningKey } from "./assistant";
 import { applySignedProposal } from "./assistant-request";
+import { recordLines } from "./chat-history";
 import {
   applyDesignActionSchema,
   applyProposalSchema,
@@ -192,6 +193,8 @@ export const applyProposalAction = defineAction({
       verify: () => verifyProposal(input.token, proposalSigningKey(), who, nowSeconds()),
       save: (batch) => saveTrustedActions(adminClient(), client, { ...who, ...batch }),
       expectedVersion: input.expectedVersion,
+      record: (lines) => recordLines(adminClient(), who, lines),
+      log,
     });
     if (!outcome.ok) throw new AppError("invalid_input", outcome.reason);
     refreshDesign(input.projectId);
