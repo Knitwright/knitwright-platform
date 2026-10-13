@@ -64,3 +64,18 @@ async function send(
     return { ok: false, reason: UNREACHABLE };
   }
 }
+
+/** Said when a logo was chosen before the box was ticked. The file is kept, and uploaded once the box is ticked. */
+export const LOGO_RIGHTS_WAITING =
+  "Tick the box below to say you own this logo or have permission to use it on garments. Your file is kept and is uploaded as soon as you tick it.";
+
+export type LogoStep = "upload" | "wait-for-rights" | "nothing";
+
+/**
+ * What to do with a chosen logo. Without the box ticked the file is kept, not thrown away,
+ * and the person is asked for the tick. Ticking the box then sends the kept file.
+ */
+export const logoStep = (file: Readonly<{ name: string }> | null, rightsTicked: boolean): LogoStep => {
+  if (!file) return "nothing";
+  return rightsTicked ? "upload" : "wait-for-rights";
+};
