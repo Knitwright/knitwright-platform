@@ -83,10 +83,11 @@ export interface StandardCell extends SetCell {
 }
 
 /** The cell for the choice of an option. A choice nobody made says it is the standard choice. */
-export const choiceCell = (label: string, provenance: Provenance): Cell =>
-  provenance === "derived" && label.trim() !== ""
-    ? ({ status: "set", value: label.trim(), provenance, standard: true } satisfies StandardCell)
-    : textCell(label, provenance);
+export function choiceCell(label: string, provenance: Provenance): Cell {
+  if (provenance !== "derived" || label.trim() === "") return textCell(label, provenance);
+  const standard: StandardCell = { status: "set", value: label.trim(), provenance, standard: true };
+  return standard;
+}
 
 /**
  * Where a set value came from, in words. A proposal says it is a proposal and never reads as a
