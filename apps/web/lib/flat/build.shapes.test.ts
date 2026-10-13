@@ -131,6 +131,17 @@ describe("a polo, seen from the front", () => {
   });
 });
 
+describe("the silhouette of a polo", () => {
+  it.each(["front", "back"] as const)("has no step of no length from the %s, so the 3D form can be made from it", (view) => {
+    const { model } = drawn("polo", {}, view);
+    const [run] = flatten(model.outline.silhouette);
+    const points = run?.points ?? [];
+    expect(points.length).toBeGreaterThan(3);
+    const repeats = points.slice(1).filter((point, index) => point.x === points[index]?.x && point.y === points[index]?.y);
+    expect(repeats).toEqual([]);
+  });
+});
+
 describe("a polo, seen from the back", () => {
   const { model, values } = drawn("polo", {}, "back");
   const collar = panel(model, "collar");
