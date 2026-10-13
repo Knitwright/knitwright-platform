@@ -1,6 +1,6 @@
 import { chain, curveTo, joinChains, pt, quarterDown, reverseChain, type Chain } from "../chain";
 import { standTop } from "./collar";
-import { poloStandInnerTop } from "./polo-collar";
+import { poloStandFoot } from "./polo-collar";
 import { bothSides, isV, neckEndY, neckOpening, type Frame } from "./pieces";
 
 const KAPPA = 0.5522847498;
@@ -30,7 +30,7 @@ export function insideBackChain(frame: Frame): Chain | null {
   const y0 = neckEndY(frame);
   const front = collar === "polo-collar" ? chain(pt(a, 0), quarterDown(a, frame.drop)) : neckOpening(frame);
   const start = pt(a, y0);
-  const round = collar === "polo-collar" ? arc(pt(a, 0), poloStandInnerTop(frame)) : arc(start, frame.backDrop);
+  const round = collar === "polo-collar" ? arc(pt(a, 0), poloStandFoot(frame)) : arc(start, frame.backDrop);
   // Seen through a V, the back neckline is drawn as a shallow curve that stays above the V edges.
   const back = isV(frame) ? shallowArc(start, frame.backDrop) : round;
   return joinChains(bothSides(front), reverseChain(bothSides(back)));

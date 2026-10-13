@@ -67,21 +67,23 @@ describe("a polo, seen from the front", () => {
     expect(ratio).toBeLessThan(0.38);
   });
 
-  it("has two collar leaves whose points lie below the neckline, one each side of the centre line", () => {
+  it("has two collar leaves whose points lie below the neckline, one each side of the centre line, spread apart over the placket", () => {
     const lowest = pointsOf(collar).reduce((best, point) => (point.y > best.y ? point : best));
     expect(lowest.y).toBeGreaterThan(neckBottom.y + 0.3 * height);
     const right = pointsOf(collar).filter((point) => point.x > 0).reduce((best, point) => (point.y > best.y ? point : best));
     const left = pointsOf(collar).filter((point) => point.x < 0).reduce((best, point) => (point.y > best.y ? point : best));
     expect(right.y).toBeCloseTo(left.y, 0);
     expect(right.x).toBeCloseTo(-left.x, 0);
-    expect(Math.abs(right.x)).toBeLessThan(0.05 * chest);
+    expect(Math.abs(right.x)).toBeGreaterThan((values["placket-width"] as number) / 2);
+    expect(Math.abs(right.x)).toBeLessThan(0.1 * chest);
   });
 
   it("comes to a point at each tip and leaves a gap between the leaves", () => {
     const y = neckBottom.y + 0.25 * height;
     const across = crossings(collar, y);
     expect(across).toHaveLength(4);
-    expect((across[2] as number) - (across[1] as number)).toBeLessThan(0.05 * chest);
+    expect((across[2] as number) - (across[1] as number)).toBeGreaterThan(0);
+    expect((across[2] as number) - (across[1] as number)).toBeLessThan(0.1 * chest);
     // Pointed: a short way above the tip the leaf is much wider than it is close to the tip.
     const widthAt = (y: number) => {
       const xs = crossings(collar, y);
@@ -90,9 +92,13 @@ describe("a polo, seen from the front", () => {
     expect(widthAt(neckBottom.y + 0.1 * height)).toBeGreaterThan(2.5 * widthAt(neckBottom.y + 0.45 * height));
   });
 
-  it("has a collar stand that rises behind the neck, higher than the shoulder line", () => {
-    expect(Math.min(...pointsOf(collar).map((point) => point.y))).toBeLessThan(-0.4 * height);
-    expect(Math.min(...pointsOf(collar).map((point) => point.y))).toBeGreaterThanOrEqual(-height);
+  it("lies flat: the back of the collar sits a little above the shoulder line and does not rise round the head like a hood", () => {
+    const highest = Math.min(...pointsOf(collar).map((point) => point.y));
+    expect(highest).toBeLessThan(-0.15 * height);
+    expect(highest).toBeGreaterThan(-0.5 * height);
+    // What shows through the opening is the inside of the back below the back neck seam, never above the shoulder line.
+    const inside = paths(model, "panels").find((path) => path.name === "Inside of the neck") as FlatPath;
+    expect(Math.min(...pointsOf(inside).map((point) => point.y))).toBeGreaterThanOrEqual(-0.5);
   });
 
   it("has a visible fold line on each leaf", () => {
@@ -129,14 +135,19 @@ describe("a polo, seen from the back", () => {
   const { model, values } = drawn("polo", {}, "back");
   const collar = panel(model, "collar");
 
-  it("has a band that follows the back neckline, arching up behind the neck", () => {
+  it("is the fall of the collar: folded at the top, hanging just over the back neck seam, and out to each shoulder", () => {
     const neckBottom = landmark(model, "neck-bottom");
+    const height = values["collar-height"] as number;
     const top = pointsOf(collar).reduce((best, point) => (point.y < best.y ? point : best));
     expect(Math.abs(top.x)).toBeLessThan(0.05 * (values["chest-width"] as number));
-    expect(top.y).toBeLessThan(neckBottom.y - 0.5 * (values["collar-height"] as number));
-    // Its lower edge is the back neckline: the bottom of the band is the bottom of the neckline.
+    expect(top.y).toBeLessThan(neckBottom.y - 0.5 * height);
+    expect(top.y).toBeGreaterThan(neckBottom.y - height);
+    // The fall covers the back neck seam, and hangs only a little below it.
     const lowest = pointsOf(collar).reduce((best, point) => (point.y > best.y ? point : best));
-    expect(lowest.y).toBeCloseTo(neckBottom.y, 0);
+    expect(lowest.y).toBeGreaterThan(neckBottom.y);
+    expect(lowest.y).toBeLessThan(neckBottom.y + 0.5 * height);
+    const widest = Math.max(...pointsOf(collar).map((point) => Math.abs(point.x)));
+    expect(widest).toBeGreaterThan((values["neck-width"] as number) / 2 + 0.5 * height);
   });
 
   it("is a curved band and not a rectangle: its top edge is higher in the middle than at the ends", () => {
