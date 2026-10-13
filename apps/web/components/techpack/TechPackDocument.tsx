@@ -94,7 +94,7 @@ function Contents({ data }: Readonly<{ data: TechPackPageData }>) {
       <ol className="flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
         {data.pack.sections.map((section) => (
           <li key={section.id}>
-            <a href={sectionLink(section.id)} className="text-cobalt underline-offset-4 hover:underline">
+            <a href={sectionLink(section.id)} className="text-cobalt-soft underline-offset-4 hover:underline">
               {section.title}
             </a>
           </li>

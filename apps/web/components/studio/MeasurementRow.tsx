@@ -121,7 +121,7 @@ function SourceCell({ row, onReset }: Readonly<{ row: TableRow; onReset: () => v
           type="button"
           onClick={onReset}
           aria-label={`Use the chart value for ${row.label}`}
-          className="mt-2 block rounded-md text-sm font-medium text-cobalt underline-offset-4 hover:underline"
+          className="mt-2 block rounded-md text-sm font-medium text-cobalt-soft underline-offset-4 hover:underline"
         >
           Use the chart value
         </button>
