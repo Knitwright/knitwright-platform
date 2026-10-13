@@ -135,24 +135,50 @@ export interface ProjectsPage {
   readonly projects: ProjectSummary[];
   /** True when the brand has more designs than were read. */
   readonly hasMore: boolean;
+  /** How many designs the brand has in all. */
+  readonly total: number;
 }
 
-/** The brand's newest designs, up to the limit. It reads one more, to know if there are others. */
+/** PostgREST's code for a range that starts after the last row. */
+const RANGE_PAST_THE_END = "PGRST103";
+
+const countProjects = async (client: SupabaseClient, brandId: string): Promise<number> => {
+  const { count, error } = await client
+    .from("projects")
+    .select("id", { count: "exact", head: true })
+    .eq("brand_id", brandId);
+  throwIfFailed(error);
+  return count ?? 0;
+};
+
+/**
+ * The brand's newest designs, up to the limit, after skipping `offset` of them. It reads one
+ * more, to know if there are others, and counts them all, so the list can be split into pages.
+ */
 export const listProjects = async (
   client: SupabaseClient,
   brandId: string,
   limit: number = PROJECTS_LISTED,
+  offset: number = 0,
 ): Promise<ProjectsPage> => {
-  const { data, error } = await client
+  const { data, error, count } = await client
     .from("projects")
-    .select(PROJECT_COLUMNS)
+    .select(PROJECT_COLUMNS, { count: "exact" })
     .eq("brand_id", brandId)
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
-    .limit(limit + 1);
+    .range(offset, offset + limit);
+  // A page past the end of the list is a range the database cannot satisfy: it is empty.
+  if (error?.code === RANGE_PAST_THE_END) {
+    return { projects: [], hasMore: false, total: await countProjects(client, brandId) };
+  }
   throwIfFailed(error);
   const rows = z.array(projectRowSchema).parse(data);
-  return { projects: rows.slice(0, limit).map(summaryOf), hasMore: rows.length > limit };
+  return {
+    projects: rows.slice(0, limit).map(summaryOf),
+    hasMore: rows.length > limit,
+    total: count ?? offset + rows.length,
+  };
 };
 
 /**
