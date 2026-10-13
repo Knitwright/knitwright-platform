@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SpecAction } from "@/lib/garment";
 import { type IntentOutcome } from "./outcome";
-import { encodeEvent, parseEvent, questionForBrowser, splitLines, type StreamEvent } from "./stream";
+import { encodeEvent, followUpsForBrowser, parseEvent, questionForBrowser, splitLines, type StreamEvent } from "./stream";
 
 const slim: SpecAction = { type: "set-option", optionId: "fit", choiceId: "slim", provenance: "ai-suggested" };
 
@@ -31,6 +31,52 @@ describe("the stream of a text request", () => {
     const first = splitLines("", '{"a":1}\n{"b"');
     expect(first).toEqual({ lines: ['{"a":1}'], rest: '{"b"' });
     expect(splitLines(first.rest, ':2}\n\n')).toEqual({ lines: ['{"b":2}'], rest: "" });
+  });
+});
+
+describe("ways on for the browser", () => {
+  it("signs the changes of each way on with its label, and passes words to send or finish as they are", () => {
+    const signed: string[] = [];
+    const shown = followUpsForBrowser(
+      [
+        {
+          text: "How much longer?",
+          choices: [
+            { kind: "say", label: "+1 cm", text: "Make the sleeve length 1 cm longer" },
+            { kind: "fill", label: "Type the sleeve length", text: "Set the sleeve length to " },
+            { kind: "apply", label: "Long sleeve", actions: [slim] },
+          ],
+        },
+      ],
+      (actions, label) => {
+        signed.push(label);
+        return `token-${actions.length}`;
+      },
+    );
+    expect(shown).toEqual({
+      followUps: [
+        {
+          text: "How much longer?",
+          choices: [
+            { kind: "say", label: "+1 cm", text: "Make the sleeve length 1 cm longer" },
+            { kind: "fill", label: "Type the sleeve length", text: "Set the sleeve length to " },
+            { kind: "apply", label: "Long sleeve", token: "token-1" },
+          ],
+        },
+      ],
+    });
+    expect(signed).toEqual(["Long sleeve"]);
+  });
+
+  it("adds nothing when there are no ways on", () => {
+    expect(followUpsForBrowser(undefined, () => "x")).toEqual({});
+    expect(followUpsForBrowser([], () => "x")).toEqual({});
+  });
+
+  it("reads an outcome with ways on, and one without", () => {
+    const line = encodeEvent({ type: "outcome", outcome: { kind: "rejection", reason: "No.", followUps: [{ text: "Try this.", choices: [{ kind: "say", label: "+1 cm", text: "Make it 1 cm longer" }] }] } });
+    expect(parseEvent(line.trim())).toMatchObject({ outcome: { followUps: [{ text: "Try this." }] } });
+    expect(parseEvent(encodeEvent({ type: "outcome", outcome: { kind: "rejection", reason: "No." } }).trim())).toEqual({ type: "outcome", outcome: { kind: "rejection", reason: "No." } });
   });
 });
 

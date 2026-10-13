@@ -113,5 +113,8 @@ export function toSpecAction(spec: GarmentSpec, wire: WireAction, source: ModelS
       return done({ type: "set-labelling", field: wire.field, text: wire.text, provenance: source });
     case "add-names-numbers":
       return addNamesNumbers(spec, source);
+    case "ask-amount":
+      // Nothing to change until the person gives the amount. The resolver asks for it.
+      return { ok: false, reason: "That needs an amount first." };
   }
 }
