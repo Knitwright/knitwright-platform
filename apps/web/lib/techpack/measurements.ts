@@ -69,6 +69,10 @@ const chartSourceOf = (resolutions: readonly Resolution[]): ChartProvenance =>
   resolutions.flatMap((resolution) => (resolution.status === "resolved" ? [resolution.chartProvenance] : []))[0] ??
   "suggested-chart";
 
+/** The chart's own note, which says a platform chart's values are suggestions to check with the factory. */
+const chartNoteOf = (resolutions: readonly Resolution[]): string | null =>
+  resolutions.flatMap((resolution) => (resolution.status === "resolved" ? [resolution.chartNote] : []))[0] ?? null;
+
 function rowFor(
   point: PointOfMeasure,
   code: string,
@@ -111,7 +115,7 @@ export function buildMeasurements(spec: GarmentSpec, charts?: ChartSet): Measure
     rows: rows.filter((entry) => entry.group === group).map((entry) => entry.row),
   })).filter((group) => group.rows.length > 0);
   const missing = groups.some((group) => group.rows.some((row) => row.values.some((value) => value.status !== "set")));
-  const note = !hasSizes ? NO_SIZES : missing ? SOME_MISSING : null;
+  const note = !hasSizes ? NO_SIZES : missing ? SOME_MISSING : chartNoteOf(resolutions);
   return {
     id: "measurements",
     title: SECTION_TITLES.measurements,

@@ -114,7 +114,8 @@ describe("buildTechPackPage", () => {
     for (const flat of data.flats) {
       expect(flat.src).toMatch(/^data:image\/svg\+xml/);
       expect(flat.alt.length).toBeGreaterThan(10);
-      expect(flat.toScale).toBe(false);
+      // A new design is drawn to scale from the Knitwright starter chart.
+      expect(flat.toScale).toBe(true);
     }
   });
 

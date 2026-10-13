@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { brandChartSet } from "@/lib/charts/service";
 import { signProposal } from "@/lib/intent/proposal-token";
 import { answeredWithoutModel } from "@/lib/intent/text-flow";
 import { MODEL_TIMEOUT_MS, assistantModels, nowSeconds, proposalSigningKey } from "@/lib/projects/assistant";
@@ -10,6 +11,7 @@ import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
+import { withChartValues } from "@/lib/sizing";
 
 /** Room for the message and the version around it. The message itself is limited by the schema. */
 const MAX_BODY_BYTES = 8 * 1024;
@@ -21,6 +23,7 @@ const MAX_BODY_BYTES = 8 * 1024;
  * answer is a stream of JSON lines: progress, then one outcome. A change is saved here, as
  * one version marked as suggested by the assistant; a question's choices come back signed.
  * The words and the answer are kept with the design, so the conversation is there next time.
+ * The design is read with the size chart's suggested values filled in where it has none.
  */
 export const POST = defineRoute({
   auth: "member",
@@ -36,7 +39,13 @@ export const POST = defineRoute({
     const { utterance, expectedVersion } = input.body;
     const who = { projectId, brandId: session.brand.id, userId: session.userId };
     const client = await sessionClient();
-    const spec = await loadCurrentDesign(client, { ...who, expectedVersion });
+    const [stored, charts] = await Promise.all([
+      loadCurrentDesign(client, { ...who, expectedVersion }),
+      brandChartSet(client, session.brand.id),
+    ]);
+    // The assistant reads the values the person sees, chart suggestions included, so "2 cm
+    // longer" starts from them. Only the assistant's own changes are saved.
+    const spec = withChartValues(stored, charts);
     const key = proposalSigningKey();
     const issued = nowSeconds();
     return eventStream((emit) =>

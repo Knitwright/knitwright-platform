@@ -5,7 +5,7 @@
  * tests have something to work with. They are not garment measurements. Nobody should
  * use them for a real garment. They must never be loaded as the default charts, and
  * nothing under `lib/sizing/charts/` may import from this folder. A test checks that.
- * The real size runs and charts arrive with owner action A5.
+ * The default size runs and charts are the Knitwright starter charts in `lib/sizing/charts/`.
  */
 import type { SizeRun } from "../schemas";
 

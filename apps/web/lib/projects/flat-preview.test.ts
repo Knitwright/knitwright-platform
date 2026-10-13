@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import { designWith, madeUpValues } from "@/lib/flat/fixtures/designs";
 import { start } from "@/lib/garment/fixtures/specs";
 import type { GarmentSpec } from "@/lib/garment";
@@ -46,7 +47,7 @@ describe("flatPreview", () => {
   });
 
   it("marks a new design not to scale, in plain words, and says what is missing", () => {
-    const preview = flatPreview(start("crew-tee"), new Map());
+    const preview = flatPreview(start("crew-tee"), new Map(), NO_CHART_SET);
     expect(preview?.toScale).toBe(false);
     expect(preview?.notice).toBe("Not to scale. Some measurements are missing.");
     expect(preview?.missingSentence).toMatch(/^To draw this to scale, add these measurements: Chest width, /);
@@ -69,7 +70,11 @@ describe("flatPreview", () => {
     const women = designWith("crew-tee", {});
     const withChart = flatPreview({ ...women, sizing: { sizes: ["U1", "U2", "U3", "U4"], baseSize: "U2" } }, new Map(), MADE_UP_CHART_SET);
     expect(withChart?.views).toHaveLength(2);
-    expect(flatPreview(women, new Map())?.toScale).toBe(false);
+    expect(flatPreview(women, new Map(), NO_CHART_SET)?.toScale).toBe(false);
+  });
+
+  it("draws a new design to scale from the Knitwright starter chart", () => {
+    expect(flatPreview(start("crew-tee", "men"), new Map())?.toScale).toBe(true);
   });
 
   it("gives nothing for a garment type it cannot draw", () => {

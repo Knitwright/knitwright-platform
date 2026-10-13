@@ -50,7 +50,7 @@ describe("resolveMeasurements with no chart", () => {
         const spec = specFor(type.id, wearer);
         const result = resolveMeasurements(spec, "M", NO_CHARTS);
         expect(result.status).toBe("no-chart");
-        expect(result.message).toContain("no size chart");
+        expect(result.message).toContain("no Knitwright starter chart");
         expect(result.rows.map((row) => row.pointId)).toEqual(pointsOfMeasureFor(spec).map((point) => point.id));
         for (const row of result.rows) {
           expect(row.status).toBe("missing");
@@ -61,9 +61,10 @@ describe("resolveMeasurements with no chart", () => {
     }
   });
 
-  it("uses the shipped default charts when none are given, and there are none", () => {
+  it("uses the shipped Knitwright starter charts when none are given, as suggestions", () => {
     const result = resolveMeasurements(specFor("crew-tee", "men"), "M");
-    expect(result.status).toBe("no-chart");
+    expect(result.status).toBe("resolved");
+    if (result.status === "resolved") expect(result.chartProvenance).toBe("suggested-chart");
   });
 
   it("still shows a value the user typed, in their own words, with no tolerance", () => {

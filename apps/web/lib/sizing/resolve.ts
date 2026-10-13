@@ -1,6 +1,6 @@
 import { pointsOfMeasureFor, sizeValueFor, toleranceFor, type GarmentSpec } from "@/lib/garment";
 import type { ChartSet } from "./chart-set";
-import { DEFAULT_CHART_SET } from "./charts";
+import { DEFAULT_CHART_SET, STARTER_CHART_NAME } from "./charts";
 import { gradeChart } from "./grading";
 import { resolvePoint, userOnlyRow, type Typed } from "./resolve-point";
 import type { ChartProvenance, Resolution, ResolutionRow } from "./resolution-types";
@@ -24,6 +24,14 @@ const typedFor = (spec: GarmentSpec, pointId: string, size: string): Typed => ({
   atSize: sizeValueFor(spec, pointId, size),
   tolerance: toleranceFor(spec, pointId),
 });
+const CHECK_WITH_FACTORY = "not a factory's numbers. Check them with your factory before you order.";
+
+/** What to say about where a chart's values come from. A brand's own chart needs no warning. */
+export const chartNoteOf = (chart: SizeChart): string | null => {
+  if (chart.supplier === "brand") return null;
+  const from = chart.source.person === STARTER_CHART_NAME ? `the ${STARTER_CHART_NAME}` : "a Knitwright size chart";
+  return `These measurements are suggestions from ${from}, ${CHECK_WITH_FACTORY}`;
+};
 
 function withoutChart(spec: GarmentSpec, size: string, message: string): Resolution {
   const rows: ResolutionRow[] = pointsOfMeasureFor(spec).map((point) =>
@@ -104,6 +112,7 @@ export function resolveMeasurements(
     fitNote: choice.fitNote,
     source: chart.source,
     chartProvenance: where.chartProvenance,
+    chartNote: chartNoteOf(chart),
     rows,
     message: null,
   };
