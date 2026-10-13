@@ -14,6 +14,7 @@ import { BASE_KEY, NAMES_NUMBERS_KEY, SIZES_KEY, measurementKey } from "./keys";
 import { MeasurementTables } from "./MeasurementTables";
 import { NamesNumbersControls } from "./NamesNumbersControls";
 import { OptionControls } from "./OptionControls";
+import { SaveRetry } from "./SaveRetry";
 import { SizesForm } from "./SizesForm";
 import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
 
@@ -37,6 +38,7 @@ export function Editor({ data, assistant, show3d = false }: Readonly<{ data: Edi
       <EditorHeader data={data} busy={editor.busy} onUndo={editor.undo} />
       <SaveStatus busy={editor.busy} status={state.status} />
       <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
+      <SaveRetry retry={state.retry} onRetry={editor.retry} />
       <DroppedNotice dropped={state.dropped ?? data.dropped} />
       <FlatPreview flat={data.flat} show3d={show3d} />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">

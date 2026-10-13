@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { DesignProblem, DroppedNotice, SaveStatus } from "@/components/studio/EditorParts";
+import { SaveRetry } from "@/components/studio/SaveRetry";
 import { useEditorEngine } from "@/components/studio/useEditorEngine";
 import type { SpecAction } from "@/lib/garment";
 import { isBusy } from "@/lib/projects/editor-state";
@@ -45,6 +46,7 @@ export function TechPackEdit({ projectId, version, children }: TechPackEditProps
       <div className="sticky top-0 z-10 flex flex-col gap-2 bg-shell/90 py-2 backdrop-blur">
         <SaveStatus busy={api.busy} status={state.status} />
         <DesignProblem message={state.conflict} conflict={state.conflict !== null} />
+        <SaveRetry retry={state.retry} onRetry={() => dispatch({ type: "retry" })} />
       </div>
       <DroppedNotice dropped={state.dropped ?? []} />
       {children}
