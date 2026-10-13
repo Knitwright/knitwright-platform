@@ -322,8 +322,8 @@ describe("colours, fabric and labels", () => {
     );
     const outcome = expectKind(run("navy body, white sleeves", spec, raw), "applied");
     expect(outcome.spec.colourways[0].colours).toEqual([
-      { panelId: "body-front", colour: "navy", provenance: "ai-suggested" },
-      { panelId: "body-back", colour: "navy", provenance: "ai-suggested" },
+      { panelId: "body-front", colour: "navy", swatch: "#1b2a49", provenance: "ai-suggested" },
+      { panelId: "body-back", colour: "navy", swatch: "#1b2a49", provenance: "ai-suggested" },
       { panelId: "sleeve-left", colour: "white", swatch: "#ffffff", provenance: "ai-suggested" },
       { panelId: "sleeve-right", colour: "white", swatch: "#ffffff", provenance: "ai-suggested" },
     ]);

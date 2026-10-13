@@ -5,8 +5,10 @@ import {
   getType,
   usualPlaces,
   type GarmentSpec,
+  type PanelColour,
   type SpecAction,
 } from "@/lib/garment";
+import { readSwatch, swatchForName } from "./colour-names";
 import type { WireAction } from "./reply-schema";
 
 /** Everything a model sets is a suggestion until a person changes it (criterion M4). */
@@ -22,19 +24,33 @@ export type Converted = { readonly ok: true; readonly action: SpecAction } | { r
 
 const done = (action: SpecAction): Converted => ({ ok: true, action });
 
-function setColour(spec: GarmentSpec, wire: Extract<WireAction, { type: "set-colour" }>, source: ModelSource): Converted {
+type SetColour = Extract<WireAction, { type: "set-colour" }>;
+
+/**
+ * One panel's colour after the change. A colour given by name sets the factory name and a
+ * drawn colour from the table of common names, so the flat shows it. A colour given as a code
+ * sets only the drawn colour and keeps the factory name already there: a code picked for the
+ * screen is not a colour reference for a factory.
+ */
+function panelColour(existing: PanelColour | undefined, panelId: string, wire: SetColour, source: ModelSource): PanelColour {
+  const said = wire.colour.trim();
+  const code = readSwatch(said);
+  const named = said !== "" && code === null;
+  const colour = named ? said : (existing?.colour ?? "");
+  // A new name with no known colour drops the old drawn colour, which would show the wrong one.
+  const swatch = wire.swatch ?? code ?? (named ? swatchForName(said) : existing?.swatch);
+  return { panelId, colour, ...(swatch === undefined ? {} : { swatch }), provenance: source };
+}
+
+function setColour(spec: GarmentSpec, wire: SetColour, source: ModelSource): Converted {
   const colourway = wire.colourwayId
     ? spec.colourways.find((entry) => entry.id === wire.colourwayId)
     : spec.colourways[0];
-  if (!colourway) return { ok: false, reason: `There is no colourway with the id ${wire.colourwayId}.` };
+  if (!colourway) return { ok: false, reason: "This design has no such colourway." };
   const named = new Set(wire.panels);
-  const colour = wire.colour.trim();
-  const added = [...named].map((panelId) => ({
-    panelId,
-    colour,
-    ...(wire.swatch === undefined ? {} : { swatch: wire.swatch }),
-    provenance: source,
-  }));
+  const added = [...named].map((panelId) =>
+    panelColour(colourway.colours.find((entry) => entry.panelId === panelId), panelId, wire, source),
+  );
   const kept = colourway.colours.filter((entry) => !named.has(entry.panelId));
   return done({ type: "update-colourway", colourway: { ...colourway, colours: [...kept, ...added] } });
 }
