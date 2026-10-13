@@ -342,9 +342,9 @@ describe("saving several of a person's changes together", () => {
 
   it("stores no version when nothing changed, and refuses a batch made against an older version", async () => {
     const id = await make();
-    const same = saved(await together(id, 1, [setOption("fit", "regular")]));
-    expect(same.version).toBe(1);
     saved(await change(id, 1, setOption("fit", "slim")));
+    const same = saved(await together(id, 2, [setOption("fit", "slim")]));
+    expect(same.version).toBe(2);
     expect((await failureOf(together(id, 1, [setOption("fit", "relaxed")]))).code).toBe("conflict");
   });
 });
