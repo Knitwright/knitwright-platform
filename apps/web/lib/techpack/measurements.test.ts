@@ -111,7 +111,7 @@ describe("the measurement table without a size chart", () => {
     const five = accepted(
       applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["XS", "S", "M", "L", "XL"], baseSize: "M" } }),
     ).spec;
-    const notes = rowOf(allRows(buildMeasurements(five)), "chest-width").notes;
+    const notes = rowOf(allRows(buildMeasurements(five, NO_CHART_SET)), "chest-width").notes;
     expect(notes).toEqual([
       "Chest width was typed in for size M. With no size chart it cannot be worked out for sizes XS, S, L and XL. Type a value for these sizes.",
       "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
@@ -120,14 +120,14 @@ describe("the measurement table without a size chart", () => {
 
   it("keeps a note for one size as it is", () => {
     const two = accepted(applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["M", "L"], baseSize: "M" } })).spec;
-    expect(rowOf(allRows(buildMeasurements(two)), "chest-width").notes).toEqual([
+    expect(rowOf(allRows(buildMeasurements(two, NO_CHART_SET)), "chest-width").notes).toEqual([
       "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
       "Chest width was typed in for size M. With no size chart it cannot be worked out for size L. Type a value for this size.",
     ]);
   });
 
   it("says a note that names no size once", () => {
-    const notes = rowOf(allRows(buildMeasurements(withChest)), "body-length").notes;
+    const notes = rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "body-length").notes;
     expect(notes).toHaveLength(1);
     expect(notes[0]).toMatch(/^Body length has no value\./);
   });
