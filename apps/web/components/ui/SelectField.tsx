@@ -1,4 +1,5 @@
 import { useId, type SelectHTMLAttributes } from "react";
+import { FIELD_CONTROL } from "./field-styles";
 
 type Option = Readonly<{ id: string; label: string }>;
 type Group = Readonly<{ label: string; options: readonly Option[] }>;
@@ -40,7 +41,7 @@ export function SelectField({ name, label, hint, errors = [], options, placehold
         name={name}
         aria-invalid={errors.length > 0 || undefined}
         aria-describedby={describedBy}
-        className="h-11 rounded-lg border border-hairline bg-surface px-3 text-[15px] text-ink aria-[invalid]:border-warn"
+        className={FIELD_CONTROL}
       >
         {placeholder ? <option value="">{placeholder}</option> : null}
         {options.map((entry) =>
