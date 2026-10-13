@@ -5,6 +5,7 @@ import { fullDesign } from "../../fixtures/designs";
 import type { ImageMap } from "@/lib/flat/images";
 import type { TechPack } from "../../types";
 import { buildPdf, type PdfOptions } from "../pdf/document";
+import { SOURCES_AND_NOTES } from "../pdf/appendix";
 import { readPages, type ReadPage } from "./pdf-pages";
 
 export const noSpace = (text: string): string => text.replace(/\s+/g, "");
@@ -19,6 +20,17 @@ export const printed = (cell: Record<string, unknown>): string => {
 /** The words for where a set cell came from. */
 export const sourceOf = (cell: Record<string, unknown>): string =>
   sourceLabel(cell as unknown as SetCell);
+
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The mark the PDF gives a source, read from its "Sources and notes" key, where each mark is
+ * printed before the words of its source. The text is read with the spaces taken out.
+ */
+export function markOf(squashed: string, words: string): string | undefined {
+  const key = squashed.slice(squashed.lastIndexOf(noSpace(SOURCES_AND_NOTES)));
+  return new RegExp(`\\[(\\d+)\\]${escapeRegExp(noSpace(words))}`).exec(key)?.[1];
+}
 
 interface Built {
   readonly bytes: Uint8Array;

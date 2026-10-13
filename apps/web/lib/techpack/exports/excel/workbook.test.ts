@@ -136,6 +136,20 @@ describe("the Excel file equals the document (T2)", () => {
     expect(text.has(String(pack.cover.version))).toBe(true);
   });
 
+  it("puts the code first in the measurement table, and the notes on single measurements in a table by code under it", async () => {
+    const pack = packFor(start("polo"));
+    const sheets = await readWorkbook(await buildWorkbook(pack));
+    const sheet = sheets.find((entry) => entry.sheet === EXCEL_SHEETS.measurements);
+    const rows = sheet?.data ?? [];
+    const header = rows.findIndex((row) => row[0] === "Code" && row[1] === "Measurement");
+    expect(rows[header + 1]?.[0]).toBe("A");
+    const notesAt = rows.findIndex((row) => row[0] === "Measurement notes");
+    expect(notesAt).toBeGreaterThan(header);
+    expect(rows[notesAt + 1]?.slice(0, 3)).toEqual(["Code", "Measurement", "Note"]);
+    const first = pack.measurements.groups[0]?.rows[0];
+    expect(rows[notesAt + 2]?.slice(0, 3)).toEqual([first?.code, first?.label, first?.notes[0]]);
+  });
+
   it("freezes the header row and makes it bold", async () => {
     const bytes = await buildWorkbook(packFor(fullDesign("crew-tee")));
     const files = unzipText(bytes);
