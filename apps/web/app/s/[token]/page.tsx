@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import { Logo } from "@/components/brand/Logo";
+import { PublicHeader } from "@/components/shell/PublicHeader";
 import { ResponseForm } from "@/components/share/ResponseForm";
 import { SharedDesign } from "@/components/share/SharedDesign";
 import { brandChartSet } from "@/lib/charts/service";
@@ -49,12 +49,8 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
 
   return (
     <>
-      <header className="border-b border-hairline bg-surface">
-        <div className="mx-auto flex h-14 w-full max-w-4xl items-center px-5">
-          <Logo />
-        </div>
-      </header>
-      <main id="main" className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-5 py-10">
+      <PublicHeader width="max-w-4xl" linkHome={false} />
+      <main id="main" className="rise mx-auto flex w-full max-w-4xl flex-col gap-10 px-5 py-10">
         {loaded ? (
           <>
             <SharedDesign page={loaded.page} picturesNote={loaded.picturesNote} />
@@ -66,7 +62,7 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
                 <p className="text-sm text-muted">
                   Your name, vote and comment are seen by {loaded.page.brandName}. We do not ask for your email
                   and we will not contact you. See the{" "}
-                  <Link href="/legal/privacy" className="text-cobalt underline-offset-4 hover:underline">
+                  <Link href="/legal/privacy" className="text-cobalt-soft underline-offset-4 hover:underline">
                     privacy notice
                   </Link>
                   .
