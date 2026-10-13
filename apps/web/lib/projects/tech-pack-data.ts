@@ -13,6 +13,7 @@ import {
 import { formatDate, isoDay } from "./dates";
 import { madeBy, type MemberNames } from "./member-names";
 import type { OpenProject, VersionsPage } from "./service";
+import { groupVersions, revisionNote } from "./version-groups";
 import {
   componentRows,
   fabricRows,
@@ -88,17 +89,18 @@ export const STALE_SENTENCE = "This design was changed while the page was loadin
 export const historyIsNewer = (project: OpenProject, history: VersionsPage): boolean =>
   history.versions.some((entry) => entry.version > project.currentVersion);
 
-/** Only versions up to the design that was read are listed, so the document never mixes two versions. */
+/**
+ * Only versions up to the design that was read are listed, so the document never mixes two versions.
+ * A run of quick edits by one person is one revision, listed under its newest version.
+ */
 const revisionsOf = (history: VersionsPage, current: number, names: MemberNames): readonly RevisionInput[] =>
-  history.versions
-    .filter((entry) => entry.version <= current)
-    .map((entry) => ({
-      version: entry.version,
-      date: formatDate(entry.createdAt),
-      dateIso: isoDay(entry.createdAt),
-      note: entry.note,
-      by: madeBy(entry.createdBy ?? null, names),
-    }));
+  groupVersions(history.versions.filter((entry) => entry.version <= current)).map((group) => ({
+    version: group.newest.version,
+    date: formatDate(group.newest.createdAt),
+    dateIso: isoDay(group.newest.createdAt),
+    note: revisionNote(group),
+    by: madeBy(group.newest.createdBy ?? null, names),
+  }));
 
 const NO_NAMES: MemberNames = new Map();
 
