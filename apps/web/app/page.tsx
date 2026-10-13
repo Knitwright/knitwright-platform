@@ -1,19 +1,24 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
+import { LinkButton } from "@/components/ui/LinkButton";
 import { PRODUCT } from "@/lib/config/product";
 
 const STEPS = [
   {
-    label: "Describe",
-    body: "Say what you want to make, or upload a sketch.",
+    label: "Design",
+    body: "Say what you want to make, upload a sketch or pick a garment. Change the fit, colours and logos.",
   },
   {
-    label: "Adjust",
-    body: "Change the fit, the sleeve or the colours. Every number moves with it.",
+    label: "Committee vote",
+    body: "Send your club or team committee a link. They see the design and vote, no account needed.",
   },
   {
-    label: "Download",
-    body: "Take the tech pack to your factory as PDF, Excel and drawings.",
+    label: "Factory pack",
+    body: "Get the tech pack a factory works from, as PDF, Excel and drawings, with graded measurements.",
+  },
+  {
+    label: "Quote",
+    body: "Tell us how many and by when, and the Knitwright team replies with a price.",
   },
 ] as const;
 
@@ -36,6 +41,12 @@ export default function HomePage() {
             >
               Sign in
             </Link>
+            <Link
+              href="/sign-up"
+              className="inline-flex h-9 items-center rounded-lg bg-cobalt px-3.5 text-sm font-semibold text-white transition-colors hover:bg-cobalt-hover"
+            >
+              Get started
+            </Link>
           </nav>
         </div>
       </header>
@@ -46,18 +57,24 @@ export default function HomePage() {
           A spec a factory can build from.
         </h1>
         <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted">
-          Describe a garment in plain words or start from a sketch. {PRODUCT.name} drafts the
-          drawings, the graded measurements and the construction details.
+          Kit for your club, school or team, or clothing for your own brand. Describe a garment in plain
+          words or start from a sketch. {PRODUCT.name} drafts the drawings, the graded measurements and the
+          construction details, then helps you get it made.
         </p>
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <LinkButton href="/sign-up">Get started</LinkButton>
+          <p className="text-sm text-muted">Sign-up is by invitation for now. You can ask for access.</p>
+        </div>
         <div className="thread-line mt-10 max-w-xs rounded-full" aria-hidden="true" />
 
-        <ol className="mt-10 grid gap-4 sm:grid-cols-3">
+        <h2 className="mt-10 text-xl font-semibold tracking-tight text-ink">From an idea to a quote, in four steps</h2>
+        <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
             <li key={step.label} className="rounded-2xl border border-hairline bg-surface p-5">
               <span className="font-mono text-xs text-faint">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <h2 className="mt-2 text-base font-semibold text-ink">{step.label}</h2>
+              <h3 className="mt-2 text-base font-semibold text-ink">{step.label}</h3>
               <p className="mt-1 text-sm leading-relaxed text-muted">{step.body}</p>
             </li>
           ))}

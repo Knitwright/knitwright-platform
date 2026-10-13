@@ -62,13 +62,35 @@ describe("buildEditorData", () => {
   it("marks the current version and writes each date in words", () => {
     const data = buildEditorData(project(), page(versions));
 
-    expect(data.versions.map((entry) => [entry.version, entry.isCurrent])).toEqual([
+    expect(data.history.map((entry) => [entry.newest, entry.isCurrent])).toEqual([
       [3, true],
       [2, false],
       [1, false],
     ]);
-    expect(data.versions[0].when).toBe("29 Sep 2026, 14:05 UTC");
-    expect(data.versions[1]).toMatchObject({ note: "Restored version 1.", restoredFrom: 1 });
+    expect(data.history[0].when).toBe("29 Sep 2026, 14:05 UTC");
+    expect(data.history[1].versions[0]).toMatchObject({ note: "Restored version 1.", restoredFrom: 1 });
+  });
+
+  it("shows a run of quick edits by one person as one entry, keeping each version inside it", () => {
+    const by = "0b7c1f7e-5a43-4c1e-9b1a-1f0a9c3e2d11";
+    const quick: readonly VersionSummary[] = [
+      { version: 4, note: "Chest width set to 52 cm.", restoredFrom: null, createdAt: "2026-09-29T14:06:30Z", createdBy: by },
+      { version: 3, note: "Body length set to 70 cm.", restoredFrom: null, createdAt: "2026-09-29T14:05:30Z", createdBy: by },
+      { version: 2, note: "Fit changed to Slim.", restoredFrom: null, createdAt: "2026-09-29T14:05:00Z", createdBy: by },
+      { version: 1, note: "Design created.", restoredFrom: null, createdAt: "2026-09-29T14:04:50Z", createdBy: by },
+    ];
+    const data = buildEditorData(project({ currentVersion: 4 }), page(quick));
+
+    expect(data.history.map((entry) => [entry.title, entry.note, entry.isCurrent])).toEqual([
+      ["Versions 2 to 4", "3 changes in a row. The last: Chest width set to 52 cm.", true],
+      ["Version 1", "Design created.", false],
+    ]);
+    expect(data.history[0].versions.map((entry) => [entry.version, entry.isCurrent])).toEqual([
+      [4, true],
+      [3, false],
+      [2, false],
+    ]);
+    expect(data.undoTo).toBe(3);
   });
 
   it("offers no undo for the first version, and undoes to the one before otherwise", () => {

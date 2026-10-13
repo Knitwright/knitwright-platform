@@ -10,6 +10,8 @@ type Values = Readonly<{ organisationType: string; country: string; region: stri
 type Props = Readonly<{
   values: Values;
   errors: (name: string) => readonly string[];
+  /** False where the form asks for the type itself, as the welcome page does. */
+  withType?: boolean;
 }>;
 
 const COUNTRIES = countryOptions();
@@ -18,19 +20,21 @@ const COUNTRIES = countryOptions();
  * The organisation type, country and state or region. Australia asks for a state from a list;
  * every other country takes a region in the person's own words. All three are optional.
  */
-export function OrganisationFields({ values, errors }: Props) {
+export function OrganisationFields({ values, errors, withType = true }: Props) {
   const [country, setCountry] = useState(values.country);
   return (
     <>
-      <SelectField
-        name="organisationType"
-        label="Type of organisation"
-        hint="Optional."
-        options={ORGANISATION_TYPES}
-        placeholder="Choose a type"
-        defaultValue={values.organisationType}
-        errors={errors("organisationType")}
-      />
+      {withType ? (
+        <SelectField
+          name="organisationType"
+          label="Type of organisation"
+          hint="Optional."
+          options={ORGANISATION_TYPES}
+          placeholder="Choose a type"
+          defaultValue={values.organisationType}
+          errors={errors("organisationType")}
+        />
+      ) : null}
       <SelectField
         name="country"
         label="Country"

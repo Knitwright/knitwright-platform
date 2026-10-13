@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import type { Dropped } from "@/lib/garment";
+import { jumpLinks } from "@/lib/projects/design-actions";
 import type { EditorData } from "@/lib/projects/editor-data";
 
 export function Section({ id, title, children }: Readonly<{ id: string; title: string; children: ReactNode }>) {
@@ -19,9 +20,18 @@ export function Section({ id, title, children }: Readonly<{ id: string; title: s
   );
 }
 
-type HeaderProps = Readonly<{ data: EditorData; busy: boolean; onUndo: () => void }>;
+type HeaderProps = Readonly<{
+  data: EditorData;
+  /** The newest version the editor knows of. It moves on as soon as a change is saved. */
+  version: number;
+  busy: boolean;
+  onUndo: () => void;
+}>;
 
-export function EditorHeader({ data, busy, onUndo }: HeaderProps) {
+const HEADER_LINK =
+  "inline-flex h-11 items-center justify-center rounded-lg border border-hairline bg-surface px-4 text-[15px] font-semibold text-ink transition-colors hover:bg-shell";
+
+export function EditorHeader({ data, version, busy, onUndo }: HeaderProps) {
   const details = [data.styleNumber ? `Style ${data.styleNumber}` : null, data.season || null].filter(Boolean);
   return (
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -31,17 +41,22 @@ export function EditorHeader({ data, busy, onUndo }: HeaderProps) {
         </p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{data.name}</h1>
         <p className="mt-2 text-sm text-muted">
-          <span data-testid="version">Version {data.version}</span>
+          <span data-testid="version">Version {version}</span>
           {details.length > 0 ? <span>, {details.join(", ")}</span> : null}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href={`/studio/${data.projectId}/tech-pack`}
-          className="inline-flex h-11 items-center justify-center rounded-lg border border-hairline bg-surface px-5 text-[15px] font-semibold text-ink transition-colors hover:bg-shell"
-        >
-          Tech pack
-        </Link>
+        <nav aria-label="Next steps for this design" className="flex flex-wrap items-center gap-3">
+          <Link href={`/studio/${data.projectId}/tech-pack`} className={HEADER_LINK}>
+            Tech pack
+          </Link>
+          {/* Plain links: they move down this page, to sections the page itself draws. */}
+          {jumpLinks().map((link) => (
+            <a key={link.id} href={link.href} className={HEADER_LINK}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
         <Button type="button" variant="secondary" disabled={data.undoTo === null || busy} onClick={onUndo}>
           Undo
         </Button>

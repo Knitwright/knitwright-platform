@@ -1,50 +1,107 @@
 "use client";
 
-import type { VersionView } from "@/lib/projects/editor-data";
+import { useState } from "react";
+import type { HistoryEntry, VersionView } from "@/lib/projects/editor-data";
 import { VERSIONS_LISTED } from "@/lib/projects/limits";
 
+/** How many entries show before the person asks for the rest. */
+export const HISTORY_SHOWN = 3;
+
 type HistoryProps = Readonly<{
-  versions: readonly VersionView[];
+  entries: readonly HistoryEntry[];
   olderHidden: boolean;
   /** Restoring waits while a change is still on its way. */
   busy: boolean;
   onRestore: (version: number) => void;
 }>;
 
-/** Every saved version, newest first. Restoring one saves it again as the newest. */
-export function History({ versions, olderHidden, busy, onRestore }: HistoryProps) {
+/**
+ * The saved versions, newest first. A run of quick edits by one person is one entry, and each of
+ * its versions is listed inside it. The newest few show at first; the rest are a click away.
+ * Restoring a version saves it again as the newest.
+ */
+export function History({ entries, olderHidden, busy, onRestore }: HistoryProps) {
+  const [all, setAll] = useState(false);
+  const shown = all ? entries : entries.slice(0, HISTORY_SHOWN);
+  const hidden = entries.length - shown.length;
   return (
     <>
       <ol className="flex flex-col divide-y divide-hairline">
-        {versions.map((entry) => (
-          <li key={entry.version} className="flex items-start justify-between gap-3 py-3">
-            <div className="min-w-0">
-              <p className="text-[15px] font-medium text-ink">
-                Version {entry.version}
-                {entry.isCurrent ? <span className="ml-2 text-sm font-normal text-muted">Current</span> : null}
-              </p>
-              <p className="mt-0.5 text-sm text-ink-2">{entry.note}</p>
-              <p className="mt-0.5 text-sm text-muted">{entry.when}</p>
-            </div>
-            {entry.isCurrent ? null : (
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onRestore(entry.version)}
-                aria-label={`Restore version ${entry.version}`}
-                className="shrink-0 rounded-md border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:bg-shell disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Restore
-              </button>
-            )}
+        {shown.map((entry) => (
+          <li key={entry.newest} className="py-3">
+            <EntryRow entry={entry} busy={busy} onRestore={onRestore} />
           </li>
         ))}
       </ol>
-      {olderHidden ? (
+      {entries.length > HISTORY_SHOWN ? (
+        <button
+          type="button"
+          onClick={() => setAll(!all)}
+          aria-expanded={all}
+          className="mt-3 text-sm font-medium text-ink underline underline-offset-4"
+        >
+          {all ? "Show fewer" : `Show all (${hidden} more)`}
+        </button>
+      ) : null}
+      {olderHidden && all ? (
         <p className="mt-3 text-sm text-muted">
           This list shows the newest {VERSIONS_LISTED} versions. Older versions are kept but are not listed here.
         </p>
       ) : null}
     </>
+  );
+}
+
+type EntryProps = Readonly<{ entry: HistoryEntry; busy: boolean; onRestore: (version: number) => void }>;
+
+function EntryRow({ entry, busy, onRestore }: EntryProps) {
+  if (entry.versions.length === 1) return <VersionRow version={entry.versions[0]} busy={busy} onRestore={onRestore} />;
+  return (
+    <div className="min-w-0">
+      <p className="text-[15px] font-medium text-ink">
+        {entry.title}
+        {entry.isCurrent ? <span className="ml-2 text-sm font-normal text-muted">Current</span> : null}
+      </p>
+      <p className="mt-0.5 text-sm text-ink-2">{entry.note}</p>
+      <p className="mt-0.5 text-sm text-muted">{entry.when}</p>
+      <details className="mt-2">
+        <summary className="cursor-pointer text-sm font-medium text-ink">Show each change</summary>
+        <ol className="mt-2 flex flex-col divide-y divide-hairline border-l border-hairline pl-3">
+          {entry.versions.map((version) => (
+            <li key={version.version} className="py-2">
+              <VersionRow version={version} busy={busy} onRestore={onRestore} />
+            </li>
+          ))}
+        </ol>
+      </details>
+    </div>
+  );
+}
+
+type VersionProps = Readonly<{ version: VersionView; busy: boolean; onRestore: (version: number) => void }>;
+
+function VersionRow({ version, busy, onRestore }: VersionProps) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="text-[15px] font-medium text-ink">
+          Version {version.version}
+          {version.isCurrent ? <span className="ml-2 text-sm font-normal text-muted">Current</span> : null}
+        </p>
+        <p className="mt-0.5 text-sm text-ink-2">{version.note}</p>
+        <p className="mt-0.5 text-sm text-muted">{version.when}</p>
+      </div>
+      {version.isCurrent ? null : (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onRestore(version.version)}
+          aria-label={`Restore version ${version.version}`}
+          className="shrink-0 rounded-md border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:bg-shell disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Restore
+        </button>
+      )}
+    </div>
   );
 }

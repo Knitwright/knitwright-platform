@@ -35,7 +35,7 @@ export function Editor({ data, assistant, show3d = false }: Readonly<{ data: Edi
 
   return (
     <div className="flex flex-col gap-6">
-      <EditorHeader data={data} busy={editor.busy} onUndo={editor.undo} />
+      <EditorHeader data={data} version={state.version} busy={editor.busy} onUndo={editor.undo} />
       <SaveStatus busy={editor.busy} status={state.status} />
       <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
       <DroppedNotice dropped={state.dropped ?? data.dropped} />
@@ -166,7 +166,7 @@ function SideColumn({ data, editor, assistant }: PartProps & Readonly<{ assistan
       </Section>
       <Section id="history" title="History">
         <History
-          versions={data.versions}
+          entries={data.history}
           olderHidden={data.olderVersionsHidden}
           busy={editor.busy}
           onRestore={editor.restore}

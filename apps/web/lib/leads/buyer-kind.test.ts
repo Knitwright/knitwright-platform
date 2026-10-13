@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUYER_KINDS, buyerKindLabel } from "./buyer-kind";
+import { BUYER_KINDS, buyerKindLabel, defaultBuyerKind } from "./buyer-kind";
 import { guidedStartWithKindSchema } from "./guided-start";
 
 describe("guidedStartWithKindSchema", () => {
@@ -19,6 +19,24 @@ describe("guidedStartWithKindSchema", () => {
     expect(result.error?.issues.map((issue) => [issue.path, issue.message])).toEqual([
       [["buyerKind"], "Choose which path fits you first."],
     ]);
+  });
+});
+
+describe("defaultBuyerKind", () => {
+  it("keeps the path the brand took before", () => {
+    expect(defaultBuyerKind({ organisationType: "club", segment: "creator_merch" })).toBe("creator_merch");
+  });
+
+  it("starts a club, school, gym or event on team kit, and a brand on launching a brand", () => {
+    for (const type of ["club", "school", "gym", "event"]) {
+      expect(defaultBuyerKind({ organisationType: type, segment: null })).toBe("team_kit");
+    }
+    expect(defaultBuyerKind({ organisationType: "brand", segment: null })).toBe("launch_brand");
+  });
+
+  it("chooses nothing when the brand has not said who it is", () => {
+    expect(defaultBuyerKind({ organisationType: null, segment: null })).toBe("");
+    expect(defaultBuyerKind({ organisationType: "other", segment: null })).toBe("");
   });
 });
 

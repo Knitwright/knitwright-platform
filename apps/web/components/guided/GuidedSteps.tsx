@@ -8,8 +8,10 @@ import type { AssistantInfo } from "@/components/studio/Editor";
 import { OptionControls } from "@/components/studio/OptionControls";
 import type { Editor as EditorApi } from "@/components/studio/useEditor";
 import { TechPackDownloads } from "@/components/techpack/TechPackDownloads";
+import { LinkButton } from "@/components/ui/LinkButton";
 import { withPlain } from "@/lib/copy/vocabulary";
 import { startLead, type StartMethod } from "@/lib/guided/flow";
+import { designActions } from "@/lib/projects/design-actions";
 import type { EditorData } from "@/lib/projects/editor-data";
 
 type Assistant = AssistantInfo;
@@ -102,5 +104,24 @@ export function DownloadStep({ data }: Readonly<{ data: EditorData }>) {
         </Link>
       </p>
     </div>
+  );
+}
+
+/** Step 5: no dead end. Each next step is a button with one sentence on what it does. */
+export function MakeStep({ data }: Readonly<{ data: EditorData }>) {
+  const actions = designActions(data.projectId);
+  return (
+    <ul className="flex flex-col divide-y divide-hairline" aria-label="What to do next">
+      {actions.map((action, index) => (
+        <li key={action.id} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0">
+          <div>
+            <LinkButton href={action.href as Route} variant={index === 0 ? "primary" : "secondary"}>
+              {action.label}
+            </LinkButton>
+          </div>
+          <p className="text-[15px] leading-relaxed text-muted">{action.sentence}</p>
+        </li>
+      ))}
+    </ul>
   );
 }

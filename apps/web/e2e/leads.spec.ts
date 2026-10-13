@@ -43,6 +43,21 @@ test.describe("the lead engine", () => {
     await expect(page).toHaveURL(/\/guide\?step=start&from=sketch/);
   });
 
+  test("keeps the garment and wearer when the path is still to be chosen", async ({ page }) => {
+    await signedIn(page, "leads-kept");
+    await page.goto("/studio/start");
+    await page.getByLabel("Garment type").selectOption({ label: "Team jersey" });
+    await page.getByLabel("Made for").selectOption({ label: "Men" });
+    await page.getByRole("button", { name: "Start from this garment" }).click();
+    await expect(page.getByText("Choose which path fits you first.")).toBeVisible();
+    await expect(page.getByLabel("Garment type")).toHaveValue("team-jersey");
+    await expect(page.getByLabel("Made for")).toHaveValue("men");
+
+    await page.getByRole("radio", { name: /Team kit/ }).check();
+    await page.getByRole("button", { name: "Start from this garment" }).click();
+    await expect(page).toHaveURL(/\/guide\?step=start&from=picker/);
+  });
+
   test("asks for the organisation once a design is saved, and lets a member request a quote", async ({ page }) => {
     await signedIn(page, "leads-quote");
     const design = await newDesign(page);

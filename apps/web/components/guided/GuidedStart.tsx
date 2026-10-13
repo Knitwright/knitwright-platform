@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { BuyerKindChoice } from "@/components/leads/BuyerKindChoice";
 import { FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
@@ -12,16 +12,21 @@ import { startGuidedAction } from "@/lib/projects/actions";
 import type { TypeGroup } from "@/lib/projects/type-groups";
 
 type Choice = Readonly<{ id: string; label: string }>;
-type Props = Readonly<{ types: readonly TypeGroup[]; wearers: readonly Choice[] }>;
+type Props = Readonly<{
+  types: readonly TypeGroup[];
+  wearers: readonly Choice[];
+  /** The path ticked at first, from the brand's type of organisation. Empty for none. */
+  initialKind?: string;
+}>;
 type Fields = Readonly<{ kept: (name: string) => string; errors: (name: string) => readonly string[] }>;
 
 /**
  * The first page of the guided flow: three ways to start, each one form. Whatever is chosen,
  * the design is made at once and the guide opens. Rules live in lib/guided.
  */
-export function GuidedStart({ types, wearers }: Props) {
+export function GuidedStart({ types, wearers, initialKind = "" }: Props) {
   // The path is asked first (decision 0024) and sent with whichever way to start is chosen.
-  const [buyerKind, setBuyerKind] = useState("");
+  const [buyerKind, setBuyerKind] = useState(initialKind);
   return (
     <div className="grid gap-6">
       <BuyerKindChoice value={buyerKind} onChange={setBuyerKind} />
@@ -82,7 +87,8 @@ function StartForm({ buyerKind, method, title, lead, submit, children }: StartFo
         <input type="hidden" name="method" value={method} />
         <input type="hidden" name="buyerKind" value={buyerKind} />
         {fieldErrors("buyerKind").length > 0 ? <p className="text-sm text-warn">{fieldErrors("buyerKind").join(" ")}</p> : null}
-        {children?.({ kept: (name) => state.values[name] ?? "", errors: fieldErrors })}
+        {/* Drawn again after each attempt, so a refused form shows what was chosen, not the empty first choice. */}
+        <Fragment key={state.attempt}>{children?.({ kept: (name) => state.values[name] ?? "", errors: fieldErrors })}</Fragment>
         <div>
           <Button type="submit" pending={pending}>
             {pending ? "Starting" : submit}

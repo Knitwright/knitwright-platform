@@ -11,6 +11,7 @@ import { namesNumbersPanel, type NamesNumbersPanel } from "./names-numbers-contr
 import type { OpenProject, VersionsPage } from "./service";
 import { sizesText } from "./sizing-form";
 import { undoTarget } from "./undo";
+import { groupNote, groupTitle, groupVersions } from "./version-groups";
 import { wearerLabel } from "./wearers";
 
 export interface VersionView {
@@ -19,6 +20,20 @@ export interface VersionView {
   readonly restoredFrom: number | null;
   readonly when: string;
   readonly isCurrent: boolean;
+}
+
+/** One entry of the history: a single version, or a run of quick edits by one person. */
+export interface HistoryEntry {
+  /** "Version 7", or "Versions 3 to 16". */
+  readonly title: string;
+  readonly note: string;
+  /** When the newest version of the entry was saved. */
+  readonly when: string;
+  /** The newest version of the entry. */
+  readonly newest: number;
+  readonly isCurrent: boolean;
+  /** Each version of the entry, newest first, so any of them can still be restored. */
+  readonly versions: readonly VersionView[];
 }
 
 export interface EditorData {
@@ -46,13 +61,29 @@ export interface EditorData {
   readonly namesNumbers: NamesNumbersPanel | null;
   readonly table: MeasurementTable;
   readonly sizes: Readonly<{ text: string; baseSize: string; set: boolean }>;
-  readonly versions: readonly VersionView[];
+  readonly history: readonly HistoryEntry[];
   /** True when the design has older versions than the history lists. */
   readonly olderVersionsHidden: boolean;
   /** The version an undo goes back to, or null when there is nothing before the current design. */
   readonly undoTo: number | null;
   readonly dropped: readonly Dropped[];
 }
+
+const historyEntries = (history: VersionsPage, current: number): HistoryEntry[] =>
+  groupVersions(history.versions).map((group) => ({
+    title: groupTitle(group),
+    note: groupNote(group),
+    when: formatDateTime(group.newest.createdAt),
+    newest: group.newest.version,
+    isCurrent: group.newest.version === current,
+    versions: group.versions.map((entry) => ({
+      version: entry.version,
+      note: entry.note,
+      restoredFrom: entry.restoredFrom,
+      when: formatDateTime(entry.createdAt),
+      isCurrent: entry.version === current,
+    })),
+  }));
 
 /**
  * Everything the editor shows, worked out on the server as plain data. Nothing here names
@@ -88,13 +119,7 @@ export const buildEditorData = (
     set: project.spec.sizing !== null,
   },
   olderVersionsHidden: history.hasMore,
-  versions: history.versions.map((entry) => ({
-    version: entry.version,
-    note: entry.note,
-    restoredFrom: entry.restoredFrom,
-    when: formatDateTime(entry.createdAt),
-    isCurrent: entry.version === project.currentVersion,
-  })),
+  history: historyEntries(history, project.currentVersion),
   undoTo: undoTarget(history.versions),
   dropped: project.dropped,
 });
