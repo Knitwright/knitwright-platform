@@ -25,6 +25,8 @@ export type StoredKind = ImageKind | "render";
 const bucketFor = (kind: StoredKind | typeof CHART_KIND): "uploads" | "images" =>
   kind === "render" ? "images" : "uploads";
 
+type Bucket = "uploads" | "images" | "exports";
+
 export type StoreImageInput = Readonly<{
   /** Full access. Used to write the file and its record. */
   admin: SupabaseClient;
@@ -52,7 +54,9 @@ type FileRecord = Readonly<{
   admin: SupabaseClient;
   brandId: string;
   userId: string;
-  kind: StoredKind | typeof CHART_KIND;
+  kind: StoredKind | typeof CHART_KIND | typeof PATTERN_KIND;
+  /** Where it goes when the kind alone does not say: a pattern's DXF and its picture differ. */
+  bucket?: Bucket;
   extension: string;
   contentType: string;
   bytes: Uint8Array;
@@ -78,7 +82,7 @@ const writeFile = async (file: FileRecord): Promise<string> => {
   await ensureStorageRoom(file.admin, file.brandId, file.bytes.byteLength);
   const id = randomUUID();
   const path = `${file.brandId}/${file.kind}/${id}.${file.extension}`;
-  const bucket = bucketFor(file.kind);
+  const bucket = file.bucket ?? bucketFor(file.kind === PATTERN_KIND ? "render" : file.kind);
   const files = file.admin.storage.from(bucket);
 
   const upload = await files.upload(path, file.bytes, { contentType: file.contentType, upsert: false });
@@ -181,4 +185,55 @@ export const storeChartFile = async (input: StoreChartFileInput): Promise<Stored
     height: null,
   });
   return { id, brandId: input.brandId, contentType, bytes: input.bytes.byteLength };
+};
+
+export const PATTERN_KIND = "pattern" as const;
+
+/** The largest pattern file kept. A DXF of a full garment is tens of kilobytes. */
+export const MAX_PATTERN_DXF_BYTES = 10 * 1024 * 1024;
+
+/** A DXF file starts with a group code 0 and a SECTION, after any white space. */
+const looksLikeDxf = (bytes: Uint8Array): boolean =>
+  /^\s*0\s*\r?\n\s*SECTION\b/.test(new TextDecoder("utf-8", { fatal: false }).decode(bytes.subarray(0, 64)));
+
+export type StorePatternInput = Readonly<{
+  admin: SupabaseClient;
+  brandId: string;
+  userId: string;
+  dxf: Uint8Array;
+  /** A picture of the pieces, when there is one. */
+  preview: Uint8Array | null;
+}>;
+
+/**
+ * Stores a drafted pattern: the DXF with the exports, checked to be one and kept as it came,
+ * and its picture with the generated images, checked and rewritten like any picture. A DXF is
+ * only ever downloaded, never shown or run. Returns the files' ids.
+ */
+export const storePatternFiles = async (input: StorePatternInput): Promise<{ dxf: string; preview: string | null }> => {
+  if (input.dxf.byteLength === 0 || input.dxf.byteLength > MAX_PATTERN_DXF_BYTES || !looksLikeDxf(input.dxf)) {
+    throw new AppError("invalid_input", "The pattern file is not a DXF file.");
+  }
+  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind: PATTERN_KIND, rights: null };
+  const dxf = await writeFile({
+    ...common,
+    bucket: "exports",
+    extension: "dxf",
+    contentType: "application/dxf",
+    bytes: input.dxf,
+    width: null,
+    height: null,
+  });
+  if (!input.preview) return { dxf, preview: null };
+  const image = await checkImage(input.preview);
+  const preview = await writeFile({
+    ...common,
+    bucket: "images",
+    extension: image.extension,
+    contentType: image.contentType,
+    bytes: image.bytes,
+    width: image.width,
+    height: image.height,
+  });
+  return { dxf, preview };
 };

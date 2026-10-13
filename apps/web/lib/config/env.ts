@@ -64,6 +64,10 @@ const envSchema = z.object({
   // The same image model resold by fal.ai (owner's choice, 2026-10-13). Optional. Server only.
   // fal's terms do not rule out training on de-identified data; see docs/data-processing.md.
   FAL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  // Who drafts sewing patterns. "claude-bridge": the owner's own Claude session picks the
+  // requests up and drafts them through FashionInsta, on this machine only. Unset: patterns are
+  // shown as not available yet. FashionInsta's own API will be a third value once there is one.
+  PATTERN_PROVIDER: z.enum(["claude-bridge"]).optional(),
   // Which image provider to use when both keys are set. Without it Google directly comes first.
   IMAGE_PROVIDER: z.enum(["gemini", "fal"]).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
@@ -131,6 +135,10 @@ const guardedSchema = envSchema.superRefine((env, context) => {
   }
   if (!env.UNSUBSCRIBE_SECRET && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["UNSUBSCRIBE_SECRET"], message: "missing" });
+  }
+  if (env.PATTERN_PROVIDER === "claude-bridge" && servesRealPeople(env)) {
+    // Nobody would ever pick a live site's requests up.
+    context.addIssue({ code: "custom", path: ["PATTERN_PROVIDER"], message: "local only" });
   }
   if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });

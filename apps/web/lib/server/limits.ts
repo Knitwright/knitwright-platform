@@ -39,6 +39,8 @@ export const LIMITS = {
   startImages: { name: "start-images", limit: 10, windowSeconds: HOUR },
   // The browser asks every 2 seconds while images are being made.
   pollJob: { name: "poll-job", limit: 90, windowSeconds: MINUTE },
+  // A pattern is drafted outside the app and can take minutes; a few an hour is plenty.
+  startPattern: { name: "start-pattern", limit: 20, windowSeconds: HOUR },
   // Uploading a chart file and importing it are counted together.
   importChart: { name: "import-chart", limit: 30, windowSeconds: 10 * MINUTE },
   // Deleting cannot be undone and removes stored files, so a slip or a script can do little harm.

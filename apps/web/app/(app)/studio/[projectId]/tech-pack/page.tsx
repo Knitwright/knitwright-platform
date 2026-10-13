@@ -4,7 +4,9 @@ import { DesignLeads } from "@/components/leads/DesignLeads";
 import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
 import { IllustrationsSection } from "@/components/techpack/Illustrations";
+import { PatternSection } from "@/components/techpack/PatternSection";
 import { loadDesignLeads } from "@/lib/leads/service";
+import { sizeChoices } from "@/lib/patterns/request";
 import { picturesNote } from "@/lib/projects/artwork-images";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { buildTechPackPage } from "@/lib/projects/tech-pack-data";
@@ -50,6 +52,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
     <TechPackEdit projectId={data.projectId} version={data.version}>
       <TechPackDocument data={data} colourwayId={colourwayId} />
       {illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
+      <PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />
       <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />
     </TechPackEdit>
   );
