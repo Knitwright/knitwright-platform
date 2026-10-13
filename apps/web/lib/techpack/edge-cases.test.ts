@@ -101,6 +101,7 @@ describe("a design that no longer matches the registry", () => {
 describe("withCalloutCodes", () => {
   it("leaves alone text and lines in the callout layer that do not start with a known label", () => {
     const model = {
+      bounds: { minX: -1000, minY: -1000, maxX: 1000, maxY: 1000 },
       layers: [
         {
           id: "measurements",
@@ -117,8 +118,9 @@ describe("withCalloutCodes", () => {
     expect(coded).toEqual(model);
   });
 
-  it("renames the line of a callout as well as its text", () => {
+  it("renames the line of a callout, and draws it wide enough to print", () => {
     const model = {
+      bounds: { minX: -1000, minY: -1000, maxX: 1000, maxY: 1000 },
       layers: [
         {
           id: "measurements",
@@ -128,7 +130,7 @@ describe("withCalloutCodes", () => {
       ],
     } as unknown as FlatModel;
     const coded = withCalloutCodes(model, [{ pointId: "chest-width", code: "A", label: "Chest width" }], new Map());
-    expect(coded.layers[0]?.elements[0]).toMatchObject({ name: "A line" });
+    expect(coded.layers[0]?.elements[0]).toMatchObject({ name: "A line", stroke: { width: 3.6 } });
   });
 });
 
