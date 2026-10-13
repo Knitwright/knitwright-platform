@@ -12,13 +12,10 @@ const chartFiles = (): readonly string[] =>
   readdirSync(CHARTS_FOLDER).filter((name) => name.endsWith(".ts") && name !== "index.ts" && !name.endsWith(".test.ts"));
 
 describe("the default charts that ship with the app", () => {
-  it("are empty until a chart file with a named source is added", () => {
-    if (chartFiles().length === 0) {
-      expect(DEFAULT_CHARTS).toEqual([]);
-      expect(DEFAULT_SIZE_RUNS).toEqual([]);
-    } else {
-      expect(DEFAULT_CHARTS.length).toBeGreaterThan(0);
-    }
+  it("come from chart files in the charts folder, with their size runs", () => {
+    expect(chartFiles().length).toBeGreaterThan(0);
+    expect(DEFAULT_CHARTS.length).toBeGreaterThan(0);
+    expect(DEFAULT_SIZE_RUNS.length).toBeGreaterThan(0);
   });
 
   it("all name a person and a date as their source, and pass the full check", () => {

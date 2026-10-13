@@ -115,7 +115,7 @@ test.describe("the tech pack page", () => {
     const row = page.locator('tr[data-point="chest-width"]');
     await expect(row).toContainText("52.5 cm");
     await expect(row).toContainText("Typed in by you");
-    await expect(page.locator('tr[data-point="body-length"]')).toContainText("To be confirmed");
+    await expect(page.locator('tr[data-point="body-length"]')).toContainText("66.0");
     await expect(page.locator('tr[data-point="body-length"]')).not.toContainText("Typed in by you");
   });
 

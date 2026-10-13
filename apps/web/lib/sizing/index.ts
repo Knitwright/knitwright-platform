@@ -5,7 +5,8 @@
 export { pointsAlwaysApplying, pointsThatCanApply } from "./applicable-points";
 export { withBrandCharts, type BrandChart } from "./brand-charts";
 export { chartCompleteness, type CompletenessEntry, type CompletenessReport } from "./completeness";
-export { DEFAULT_CHARTS, DEFAULT_CHART_SET, DEFAULT_SIZE_RUNS } from "./charts";
+export { DEFAULT_CHARTS, DEFAULT_CHART_SET, DEFAULT_SIZE_RUNS, STARTER_CHART_NAME } from "./charts";
+export { withChartValues } from "./chart-values";
 export { type ChartSet } from "./chart-set";
 export { editMeasurementAction, resetMeasurementAction, type EditResult, type Editor } from "./edit";
 export {

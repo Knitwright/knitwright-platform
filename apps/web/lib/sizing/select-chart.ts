@@ -37,7 +37,7 @@ export function selectChart(set: ChartSet, wanted: Wanted): ChartChoice {
     const others = candidates.map((candidate) => candidate.fit).join(", ");
     const message =
       candidates.length === 0
-        ? `There is no size chart yet for ${type.label} for ${wanted.wearer}. Nothing is filled in for you, so type each measurement in.`
+        ? `There is no Knitwright starter chart yet for ${type.label} for ${wanted.wearer}, so no measurements are suggested. Type each measurement in, or import your own size chart.`
         : `There are size charts for ${type.label} for ${wanted.wearer} only for the ${others} fit, and this design is ${fit ?? "not set to a fit"}. Nothing is guessed, so type each measurement in.`;
     return { kind: "none", message };
   }

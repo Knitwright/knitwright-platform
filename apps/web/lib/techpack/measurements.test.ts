@@ -6,6 +6,7 @@ import { resolveAllSizes } from "@/lib/sizing";
 import { pointsInTableOrder } from "./codes";
 import { buildHowToMeasure, buildMeasurements } from "./measurements";
 import { CHARTS } from "./fixtures/charts";
+import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
 import type { LengthValue, MeasureRow } from "./types";
 
 const rowOf = (rows: readonly MeasureRow[], pointId: string): MeasureRow => {
@@ -86,7 +87,7 @@ describe("the measurement table without a size chart", () => {
   ).spec;
 
   it("shows the typed value at the base size and to be confirmed at the others, never a zero", () => {
-    const section = buildMeasurements(withChest);
+    const section = buildMeasurements(withChest, NO_CHART_SET);
     const chest = rowOf(allRows(section), "chest-width");
     expect(valueTexts(chest.values)).toEqual(["TBC", "52.5", "TBC"]);
     expect(chest.values[0]).toEqual({ status: "to-be-confirmed" });
@@ -95,28 +96,28 @@ describe("the measurement table without a size chart", () => {
   });
 
   it("marks a tolerance nobody has entered as to be confirmed", () => {
-    expect(rowOf(allRows(buildMeasurements(withChest)), "chest-width").tolerance).toEqual({
+    expect(rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "chest-width").tolerance).toEqual({
       status: "to-be-confirmed",
     });
   });
 
   it("explains a missing value in the notes of its row", () => {
-    const notes = rowOf(allRows(buildMeasurements(withChest)), "chest-width").notes;
+    const notes = rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "chest-width").notes;
     expect(notes.length).toBeGreaterThan(0);
     expect(notes.join(" ")).toMatch(/size chart/i);
   });
 
   it("has only to be confirmed cells for a point with nothing typed", () => {
-    const row = rowOf(allRows(buildMeasurements(withChest)), "body-length");
+    const row = rowOf(allRows(buildMeasurements(withChest, NO_CHART_SET)), "body-length");
     expect(row.values.every((value) => value.status === "to-be-confirmed")).toBe(true);
   });
 
   it("says which values are missing in the note of the section", () => {
-    expect(buildMeasurements(withChest).note).toBe("Some measurements are still to be confirmed.");
+    expect(buildMeasurements(withChest, NO_CHART_SET).note).toBe("Some measurements are still to be confirmed.");
   });
 
   it("holds no zero anywhere a value is missing", () => {
-    const text = JSON.stringify(buildMeasurements(withChest).groups);
+    const text = JSON.stringify(buildMeasurements(withChest, NO_CHART_SET).groups);
     expect(text).not.toMatch(/"tenthsMm":0[,}]/);
     expect(text).not.toMatch(/"value":"0\.0"/);
   });
@@ -124,7 +125,7 @@ describe("the measurement table without a size chart", () => {
 
 describe("the measurement table with no sizes at all", () => {
   it("has one column that says the size is not set, and every value to be confirmed", () => {
-    const section = buildMeasurements(start("crew-tee"));
+    const section = buildMeasurements(start("crew-tee"), NO_CHART_SET);
     expect(section.columns).toEqual([{ size: null, label: "Size not set", isBase: false }]);
     expect(section.sizesFrom).toBeNull();
     expect(allRows(section)).toHaveLength(11);
@@ -136,7 +137,7 @@ describe("the measurement table with no sizes at all", () => {
   });
 
   it("still shows a typed value, with its source, when the sizes are not set", () => {
-    const row = rowOf(allRows(buildMeasurements(typed("chest-width", 5200))), "chest-width");
+    const row = rowOf(allRows(buildMeasurements(typed("chest-width", 5200), NO_CHART_SET)), "chest-width");
     expect(row.values[0]).toMatchObject({ status: "set", value: "52.0", provenance: "user-edited" });
   });
 });

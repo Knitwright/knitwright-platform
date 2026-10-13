@@ -110,8 +110,9 @@ const toTableRow = (
 };
 
 const noticeOf = (resolution: Resolution): string | null => {
-  if (resolution.status === "resolved") return resolution.fitNote;
-  return resolution.message;
+  if (resolution.status !== "resolved") return resolution.message;
+  const notes = [resolution.chartNote, resolution.fitNote].filter((note): note is string => note !== null);
+  return notes.length > 0 ? notes.join(" ") : null;
 };
 
 /**
