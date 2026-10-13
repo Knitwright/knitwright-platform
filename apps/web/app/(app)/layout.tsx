@@ -29,13 +29,13 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
               </span>
             </Link>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Link
-              href="/settings"
-              className="hidden text-sm text-muted hover:text-ink sm:inline"
-              data-testid="account-email"
-            >
+          <div className="flex shrink-0 items-center gap-3">
+            <span className="hidden text-sm text-muted md:inline" data-testid="account-email">
               {email}
+            </span>
+            {/* Shown at every width, phones too: Settings was once reachable only through the email. */}
+            <Link href="/settings" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
+              Settings
             </Link>
             <SignOutButton />
           </div>
