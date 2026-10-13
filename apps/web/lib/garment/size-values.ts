@@ -43,6 +43,13 @@ const withList = <K extends "sizeMeasurements" | "tolerances">(
 };
 
 /**
+ * The list with the entry in place of the one it replaces, or added at the end. Keeping the
+ * place means saving the same value again leaves the design exactly as it was.
+ */
+const replaced = <T>(list: readonly T[], entry: T, same: (old: T) => boolean): readonly T[] =>
+  list.some(same) ? list.map((old) => (same(old) ? entry : old)) : [...list, entry];
+
+/**
  * Sets the value of one point at one size. The base size keeps its value in the measurement
  * itself, so a value for it here is refused with a plain reason.
  */
@@ -50,8 +57,8 @@ export function setSizeMeasurement(spec: GarmentSpec, entry: SizeMeasurement): A
   if (spec.sizing?.baseSize === entry.size) {
     return reject(`Size ${entry.size} is the base size. Set ${nameOf(spec, entry.pointId)} for it in the measurement itself.`);
   }
-  const others = sizeValuesOf(spec).filter((old) => !(old.pointId === entry.pointId && old.size === entry.size));
-  return accept(withList(spec, "sizeMeasurements", [...others, entry]));
+  const same = (old: SizeMeasurement): boolean => old.pointId === entry.pointId && old.size === entry.size;
+  return accept(withList(spec, "sizeMeasurements", replaced(sizeValuesOf(spec), entry, same)));
 }
 
 export function removeSizeMeasurement(spec: GarmentSpec, pointId: string, size: string): ActionResult {
@@ -61,8 +68,7 @@ export function removeSizeMeasurement(spec: GarmentSpec, pointId: string, size: 
 }
 
 export function setTolerance(spec: GarmentSpec, entry: Tolerance): ActionResult {
-  const others = tolerancesOf(spec).filter((old) => old.pointId !== entry.pointId);
-  return accept(withList(spec, "tolerances", [...others, entry]));
+  return accept(withList(spec, "tolerances", replaced(tolerancesOf(spec), entry, (old) => old.pointId === entry.pointId)));
 }
 
 export function removeTolerance(spec: GarmentSpec, pointId: string): ActionResult {

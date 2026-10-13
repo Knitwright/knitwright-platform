@@ -25,6 +25,11 @@ describe("values typed for other sizes", () => {
     expect(sizeValuesOf(spec)).toHaveLength(2);
   });
 
+  it("keep their place when set again, so saving the same value twice leaves the design as it was", () => {
+    const spec = apply(jersey(), atSize("chest-width", "L", 5400), atSize("chest-width", "S"), tolerance("chest-width"), tolerance("body-length"));
+    expect(apply(spec, atSize("chest-width", "L", 5400), tolerance("chest-width"))).toEqual(spec);
+  });
+
   it("are refused for the base size, which keeps its value in the measurement itself", () => {
     expect(rejected(applyAction(jersey(), atSize("chest-width", "M")))).toBe(
       "Size M is the base size. Set Chest width for it in the measurement itself.",
