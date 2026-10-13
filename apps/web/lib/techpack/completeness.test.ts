@@ -62,6 +62,7 @@ describe("completenessReport", () => {
       sectionTitle: "Measurement table",
       label: "Chest width",
       detail: "The value and the tolerance",
+      target: "chest-width",
     });
     const components = report.sections.find((section) => section.id === "components");
     expect(components?.items[0]).toMatchObject({
@@ -137,6 +138,36 @@ describe("completenessReport", () => {
     expect(report.suggested).toBe(0);
     const withChart = completenessReport(packFor(fullDesign("crew-tee"), { charts: CHARTS }));
     expect(withChart.suggested).toBeGreaterThan(0);
+  });
+
+  it("names the thing each item is about, so a screen can go to its field", () => {
+    const targets = Object.fromEntries(report.sections.map((section) => [section.id, section.items.map((item) => item.target)]));
+    expect(targets.cover).toEqual(["styleNumber", "season", "baseSize", "sizeRun"]);
+    expect(targets.measurements?.[0]).toBe("chest-width");
+    expect(targets.components?.slice(0, 2)).toEqual(["main", "main-thread"]);
+    expect(targets.construction?.[0]).toBe("shoulder-seam");
+    expect(targets.colourways?.[0]).toBe("main:body-front");
+    expect(targets.labelling?.[0]).toBe("care");
+  });
+
+  it("is filled for every size and the tolerance when a person types them, with no chart", () => {
+    const steps = [
+      { type: "set-sizing", sizing: { sizes: ["S", "M"], baseSize: "M" } },
+      { type: "set-measurement", pointId: "chest-width", value: 5200, provenance: "user-edited" },
+      { type: "set-size-measurement", entry: { pointId: "chest-width", size: "S", value: 5000, provenance: "user-edited" } },
+      { type: "set-tolerance", entry: { pointId: "chest-width", value: 100, provenance: "user-edited" } },
+    ];
+    const spec = steps.reduce((current, step) => {
+      const result = applyAction(current, step);
+      if (!result.ok) throw new Error(result.reason);
+      return result.spec;
+    }, start("crew-tee"));
+    const pack = packFor(spec);
+    const row = pack.measurements.groups.flatMap((group) => group.rows).find((entry) => entry.pointId === "chest-width");
+    expect(row?.tolerance).toMatchObject({ status: "set", value: "±1.0", provenance: "user-edited" });
+    expect(row?.values.map((value) => value.status === "set" && value.provenance)).toEqual(["user-edited", "user-edited"]);
+    const items = completenessReport(pack).sections.find((section) => section.id === "measurements")?.items ?? [];
+    expect(items.some((item) => item.target === "chest-width")).toBe(false);
   });
 
   it("finds less to confirm in a full design than in a new one, for every tops type", () => {

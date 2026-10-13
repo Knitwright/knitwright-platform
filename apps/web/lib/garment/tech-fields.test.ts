@@ -141,6 +141,15 @@ describe("set-component and remove-component", () => {
     );
   });
 
+  it("accepts an entry that only says the part is used, and refuses one that is both used and not used", () => {
+    const empty = { name: "", details: "", quantity: "" };
+    const spec = accepted(applyAction(start("crew-tee"), setComponent("main-thread", { ...empty, used: true }))).spec;
+    expect(spec.components[0]).toMatchObject({ id: "main-thread", used: true, name: "" });
+    expect(rejected(applyAction(start("crew-tee"), setComponent("main-thread", { ...empty, used: true, notUsed: true })))).toBe(
+      "That change is not understood.",
+    );
+  });
+
   it("refuses text that is too long and text with a line break", () => {
     expect(rejected(applyAction(start("crew-tee"), setComponent("main-thread", { details: "x".repeat(300) })))).toBe(
       "That change is not understood.",

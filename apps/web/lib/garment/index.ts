@@ -71,8 +71,11 @@ export {
   type OptionChoice,
   type PanelColour,
   type PanelFabric,
+  type SizeMeasurement,
   type Sizing,
+  type Tolerance,
 } from "./parts";
+export { sizeValueFor, sizeValuesOf, toleranceFor, tolerancesOf } from "./size-values";
 export { fabricFor } from "./fabric";
 export { fabricChangesSchema, type FabricChanges } from "./fabric-edit";
 export {

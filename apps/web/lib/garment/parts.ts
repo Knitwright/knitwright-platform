@@ -186,7 +186,8 @@ export type Artwork = z.output<typeof artworkSchema>;
 export const optionChoiceSchema = z.object({ choiceId: kebabId, provenance: provenanceSchema }).readonly();
 export type OptionChoice = z.output<typeof optionChoiceSchema>;
 
-const sizeLabel = freeText(SIZE_LABEL_MAX_LENGTH).min(1, "Enter a size label.");
+export const sizeLabelSchema = freeText(SIZE_LABEL_MAX_LENGTH).min(1, "Enter a size label.");
+const sizeLabel = sizeLabelSchema;
 
 /**
  * The size run of a design, smallest first. Measurements in the spec are the values
@@ -207,3 +208,30 @@ export const sizingSchema = z
     path: ["baseSize"],
   });
 export type Sizing = z.output<typeof sizingSchema>;
+
+/**
+ * A value a person typed for one size other than the base size. With no size chart nothing
+ * can work such a value out, so the person types it. The base size keeps its value in
+ * `measurements`, as before.
+ */
+export const sizeMeasurementSchema = z
+  .object({
+    pointId: kebabId,
+    size: sizeLabel,
+    /** Whole tenths of a millimetre. */
+    value: z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM),
+    provenance: provenanceSchema,
+  })
+  .readonly();
+export type SizeMeasurement = z.output<typeof sizeMeasurementSchema>;
+
+/** How far a measurement may be out, in either direction, as a person gave it. It wins over a chart's. */
+export const toleranceSchema = z
+  .object({
+    pointId: kebabId,
+    /** Whole tenths of a millimetre, plus or minus. */
+    value: z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM),
+    provenance: provenanceSchema,
+  })
+  .readonly();
+export type Tolerance = z.output<typeof toleranceSchema>;

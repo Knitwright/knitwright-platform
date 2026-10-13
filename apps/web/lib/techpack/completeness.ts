@@ -10,6 +10,12 @@ export interface ConfirmItem {
   readonly label: string;
   /** Which part of it is missing, or null when the label says it all. */
   readonly detail: string | null;
+  /**
+   * Names the thing within its section, so a screen can take the person to the field that
+   * fills it: a cover field, a point of measure, a fabric or component id, a seam id, a
+   * colourway id and panel id joined by a colon, or a labelling field.
+   */
+  readonly target: string;
 }
 
 export interface ConfirmSection {
@@ -48,26 +54,27 @@ const named = (parts: readonly (readonly [Cell, string])[]): string | null => {
   return words.length === 0 ? null : sentenceCase(listOf(words));
 };
 
-const item = (sectionId: SectionId, label: string, detail: string | null): ConfirmItem => ({
+const item = (sectionId: SectionId, target: string, label: string, detail: string | null): ConfirmItem => ({
   sectionId,
   sectionTitle: SECTION_TITLES[sectionId],
   label,
   detail,
+  target,
 });
 
 function coverItems(pack: TechPack): ConfirmItem[] {
   const { cover } = pack;
-  const fields: readonly (readonly [Cell, string])[] = [
-    [cover.styleNumber, "Style number"],
-    [cover.season, "Season"],
-    [cover.brand, "Brand"],
-    [cover.designName, "Design name"],
-    [cover.garmentType, "Garment type"],
-    [cover.wearer, "Wearer"],
-    [cover.baseSize, "Base size"],
-    [cover.sizeRun, "Size run"],
+  const fields: readonly (readonly [Cell, string, string])[] = [
+    [cover.styleNumber, "styleNumber", "Style number"],
+    [cover.season, "season", "Season"],
+    [cover.brand, "brand", "Brand"],
+    [cover.designName, "designName", "Design name"],
+    [cover.garmentType, "garmentType", "Garment type"],
+    [cover.wearer, "wearer", "Wearer"],
+    [cover.baseSize, "baseSize", "Base size"],
+    [cover.sizeRun, "sizeRun", "Size run"],
   ];
-  return fields.filter(([cell]) => missing(cell)).map(([, label]) => item("cover", label, null));
+  return fields.filter(([cell]) => missing(cell)).map(([, target, label]) => item("cover", target, label, null));
 }
 
 function measurementItems(pack: TechPack): ConfirmItem[] {
@@ -80,7 +87,7 @@ function measurementItems(pack: TechPack): ConfirmItem[] {
       const tolerance = missing(row.tolerance) ? "the tolerance" : null;
       if (value === null && tolerance === null) return [];
       const joined = value !== null && tolerance !== null ? `${value}${sizes.length > 0 ? ", and " : " and "}${tolerance}` : (value ?? sentenceCase(tolerance ?? ""));
-      return [item("measurements", row.label, joined)];
+      return [item("measurements", row.pointId, row.label, joined)];
     }),
   );
 }
@@ -95,7 +102,8 @@ function componentItems(pack: TechPack): ConfirmItem[] {
       [line.stretch, "stretch"],
       [line.consumption, "consumption"],
     ]);
-    return detail === null ? [] : [item("components", `Fabric for ${listOf(line.panels.map((panel) => panel.label))}`, detail)];
+    const label = `Fabric for ${listOf(line.panels.map((panel) => panel.label))}`;
+    return detail === null ? [] : [item("components", line.fabricId, label, detail)];
   });
   const others = pack.components.others.flatMap((line) => {
     const detail = named([
@@ -103,13 +111,15 @@ function componentItems(pack: TechPack): ConfirmItem[] {
       [line.details, "details"],
       [line.quantity, "quantity"],
     ]);
-    return detail === null ? [] : [item("components", line.label, detail)];
+    return detail === null ? [] : [item("components", line.slotId, line.label, detail)];
   });
   return [...fabrics, ...others];
 }
 
 const constructionItems = (pack: TechPack): ConfirmItem[] =>
-  pack.construction.seams.filter((seam) => missing(seam.stitchDensity)).map((seam) => item("construction", seam.label, "Stitch density"));
+  pack.construction.seams
+    .filter((seam) => missing(seam.stitchDensity))
+    .map((seam) => item("construction", seam.seamId, seam.label, "Stitch density"));
 
 const colourwayItems = (pack: TechPack): ConfirmItem[] =>
   pack.colourways.colourways.flatMap((block) =>
@@ -118,12 +128,12 @@ const colourwayItems = (pack: TechPack): ConfirmItem[] =>
         [row.code, "colour code"],
         [row.screenColour, "screen colour"],
       ]);
-      return detail === null ? [] : [item("colourways", `${block.name}: ${row.label}`, detail)];
+      return detail === null ? [] : [item("colourways", `${block.id}:${row.panelId}`, `${block.name}: ${row.label}`, detail)];
     }),
   );
 
 const labellingItems = (pack: TechPack): ConfirmItem[] =>
-  pack.labelling.rows.filter((row) => missing(row.value)).map((row) => item("labelling", row.label, null));
+  pack.labelling.rows.filter((row) => missing(row.value)).map((row) => item("labelling", row.field, row.label, null));
 
 /**
  * What is still to be confirmed, section by section, so a screen or an export can say

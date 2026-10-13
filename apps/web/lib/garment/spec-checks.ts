@@ -9,6 +9,9 @@ import type {
   Measurement,
   OptionChoice,
   PanelFabric,
+  SizeMeasurement,
+  Sizing,
+  Tolerance,
 } from "./parts";
 import type { Wearer } from "./primitives";
 import { getType, type ResolvedType } from "./registry";
@@ -27,6 +30,9 @@ export interface CheckedSpec {
   readonly wearer: Wearer;
   readonly options: Readonly<Record<string, OptionChoice>>;
   readonly measurements: readonly Measurement[];
+  readonly sizing?: Sizing | null;
+  readonly sizeMeasurements?: readonly SizeMeasurement[];
+  readonly tolerances?: readonly Tolerance[];
   readonly fabrics: readonly FabricSpec[];
   readonly panelFabrics: readonly PanelFabric[];
   readonly colourways: readonly Colourway[];
@@ -87,6 +93,42 @@ function measurementProblems(spec: CheckedSpec, type: ResolvedType): SpecProblem
   });
   for (const id of repeats(spec.measurements.map((measurement) => measurement.pointId))) {
     found.push(problem(["measurements"], `${pointName(type, id)} is listed more than once.`));
+  }
+  return found;
+}
+
+/** Says why a point cannot be measured on this design, or null when it can. */
+function pointProblem(spec: CheckedSpec, type: ResolvedType, pointId: string): string | null {
+  const point = type.pointsOfMeasure.find((entry) => entry.id === pointId);
+  if (!point) return `${pointId} is not a measurement for ${type.label}.`;
+  if (!conditionsHold(point.appliesWhen, spec.options)) return point.unavailableReason ?? `${point.label} does not apply to this garment.`;
+  return null;
+}
+
+/** Values typed for other sizes, and tolerances: each for a point that applies, once, and for a size the design has. */
+function sizeValueProblems(spec: CheckedSpec, type: ResolvedType): SpecProblem[] {
+  const found: SpecProblem[] = [];
+  const sizeValues = spec.sizeMeasurements ?? [];
+  sizeValues.forEach((entry, index) => {
+    const path = ["sizeMeasurements", index];
+    const message = pointProblem(spec, type, entry.pointId);
+    if (message) found.push(problem([...path, "pointId"], message));
+    else if (spec.sizing && (!spec.sizing.sizes.includes(entry.size) || entry.size === spec.sizing.baseSize)) {
+      const why = entry.size === spec.sizing.baseSize ? "is the base size" : "is not one of the sizes";
+      found.push(problem([...path, "size"], `The value for ${pointName(type, entry.pointId)} is for size ${entry.size}, which ${why}.`));
+    }
+  });
+  for (const key of repeats(sizeValues.map((entry) => `${entry.pointId}|${entry.size}`))) {
+    const [pointId = "", size = ""] = key.split("|");
+    found.push(problem(["sizeMeasurements"], `${pointName(type, pointId)} at size ${size} is listed more than once.`));
+  }
+  const tolerances = spec.tolerances ?? [];
+  tolerances.forEach((entry, index) => {
+    const message = pointProblem(spec, type, entry.pointId);
+    if (message) found.push(problem(["tolerances", index, "pointId"], message));
+  });
+  for (const id of repeats(tolerances.map((entry) => entry.pointId))) {
+    found.push(problem(["tolerances"], `The tolerance for ${pointName(type, id)} is listed more than once.`));
   }
   return found;
 }
@@ -188,6 +230,7 @@ export function specProblems(spec: CheckedSpec): SpecProblem[] {
     ...options,
     ...rules.map((violation) => problem(["options"], violation.reason)),
     ...measurementProblems(spec, type),
+    ...sizeValueProblems(spec, type),
     ...limitProblems(spec),
     ...fabricProblems(spec, type, panels),
     ...colourwayProblems(spec, type, panels),

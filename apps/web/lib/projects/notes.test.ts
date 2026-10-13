@@ -80,6 +80,19 @@ describe("describeAction", () => {
     expect(describeAction(jersey(), action({ type: "set-sizing", sizing: null }))).toBe("Sizes removed.");
   });
 
+  it("describes a value for one size and a tolerance, set and removed", () => {
+    const entry = { pointId: "body-length", size: "L", value: 7250, provenance: "user-edited" };
+    expect(describeAction(jersey(), action({ type: "set-size-measurement", entry }))).toBe("Body length at size L set to 72.5 cm.");
+    expect(describeAction(jersey(), action({ type: "remove-size-measurement", pointId: "body-length", size: "L" }))).toBe(
+      "Your value for Body length at size L was removed.",
+    );
+    const tolerance = { pointId: "body-length", value: 100, provenance: "user-edited" };
+    expect(describeAction(jersey(), action({ type: "set-tolerance", entry: tolerance }))).toBe("Tolerance for Body length set to 1 cm.");
+    expect(describeAction(jersey(), action({ type: "remove-tolerance", pointId: "body-length" }))).toBe(
+      "Your tolerance for Body length was removed.",
+    );
+  });
+
   it("counts the sizes instead of listing a very long run", () => {
     const many = Array.from({ length: 24 }, (_, index) => `SIZE-${index + 1}`);
 

@@ -63,6 +63,14 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Your value for ${pointLabel(type, action.pointId)} was removed.`);
     case "set-sizing":
       return clipNote(sizingNote(action.sizing));
+    case "set-size-measurement":
+      return clipNote(`${pointLabel(type, action.entry.pointId)} at size ${action.entry.size} set to ${cmText(action.entry.value)} cm.`);
+    case "remove-size-measurement":
+      return clipNote(`Your value for ${pointLabel(type, action.pointId)} at size ${action.size} was removed.`);
+    case "set-tolerance":
+      return clipNote(`Tolerance for ${pointLabel(type, action.entry.pointId)} set to ${cmText(action.entry.value)} cm.`);
+    case "remove-tolerance":
+      return clipNote(`Your tolerance for ${pointLabel(type, action.pointId)} was removed.`);
     case "add-fabric":
       return clipNote(`Fabric ${action.fabric.name} added.`);
     case "update-fabric":
