@@ -230,11 +230,9 @@ describe("defineRoute", () => {
         controller.close();
       },
     });
-    const request = new Request("http://localhost/api/thing", {
-      method: "POST",
-      body,
-      duplex: "half",
-    } as RequestInit);
+    // Handed to the route directly, for the same reason as the endless body above.
+    const request = new Request("http://localhost/api/thing", { method: "POST" });
+    Object.defineProperty(request, "body", { value: body });
 
     expect(await (await route(request, noParams)).json()).toEqual({
       success: true,
