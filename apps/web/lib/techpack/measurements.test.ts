@@ -106,6 +106,31 @@ describe("the measurement table without a size chart", () => {
     expect(notes.join(" ")).toMatch(/size chart/i);
   });
 
+  it("says once for all the sizes what it would otherwise say for each size in turn", () => {
+    const five = accepted(
+      applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["XS", "S", "M", "L", "XL"], baseSize: "M" } }),
+    ).spec;
+    const notes = rowOf(allRows(buildMeasurements(five)), "chest-width").notes;
+    expect(notes).toEqual([
+      "Chest width was typed in for size M. With no size chart it cannot be worked out for sizes XS, S, L and XL. Type a value for these sizes.",
+      "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
+    ]);
+  });
+
+  it("keeps a note for one size as it is", () => {
+    const two = accepted(applyAction(withChest, { type: "set-sizing", sizing: { sizes: ["M", "L"], baseSize: "M" } })).spec;
+    expect(rowOf(allRows(buildMeasurements(two)), "chest-width").notes).toEqual([
+      "No size chart applies, so this is the value that was typed in for size M, with no tolerance.",
+      "Chest width was typed in for size M. With no size chart it cannot be worked out for size L. Type a value for this size.",
+    ]);
+  });
+
+  it("says a note that names no size once", () => {
+    const notes = rowOf(allRows(buildMeasurements(withChest)), "body-length").notes;
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toMatch(/^Body length has no value\./);
+  });
+
   it("has only to be confirmed cells for a point with nothing typed", () => {
     const row = rowOf(allRows(buildMeasurements(withChest)), "body-length");
     expect(row.values.every((value) => value.status === "to-be-confirmed")).toBe(true);
