@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { useRouter } from "next/navigation";
 import { useEffect, useReducer, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
@@ -150,7 +151,7 @@ export function ChatPanel({ projectId, version, available, busy, conversation = 
           rows={2}
           onChange={(event) => setText(event.target.value)}
           placeholder="For example: slim fit with long sleeves"
-          className="rounded-lg border border-hairline bg-surface px-3 py-2 text-[15px] text-ink"
+          className={TEXT_AREA}
         />
         <Button type="submit" pending={waiting} disabled={busy || text.trim() === ""}>
           Send

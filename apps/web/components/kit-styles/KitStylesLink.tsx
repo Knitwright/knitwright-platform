@@ -14,7 +14,7 @@ export function KitStylesLink({ projectId, typeId, from }: LinkProps) {
   return (
     <p className="text-[15px] leading-relaxed text-muted" data-testid="kit-styles-link">
       Making club kit?{" "}
-      <Link href={galleryAddress(projectId, from) as Route} className="font-medium text-cobalt underline-offset-4 hover:underline">
+      <Link href={galleryAddress(projectId, from) as Route} className="font-medium text-cobalt-soft underline-offset-4 hover:underline">
         Choose a kit style
       </Link>{" "}
       such as hoops, stripes or a sash, in your club&apos;s colours.

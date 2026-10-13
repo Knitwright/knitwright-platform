@@ -30,7 +30,7 @@ export function WelcomeForm() {
           {ORGANISATION_TYPES.map((option) => (
             <label
               key={option.id}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-hairline px-3 py-2.5 text-[15px] text-ink has-[:checked]:border-cobalt has-[:checked]:bg-shell"
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-hairline px-3 py-2.5 text-[15px] text-ink has-[:checked]:border-cobalt-soft has-[:checked]:bg-shell"
             >
               <input
                 type="radio"

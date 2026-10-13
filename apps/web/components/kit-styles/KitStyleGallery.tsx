@@ -32,12 +32,12 @@ function ColourRow({ slot }: Readonly<{ slot: Slot }>) {
             <label
               key={id}
               htmlFor={id}
-              className="flex cursor-pointer items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 text-sm text-ink-2 has-[:checked]:border-cobalt has-[:checked]:bg-cobalt-wash has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-cobalt"
+              className="flex cursor-pointer items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 text-sm text-ink-2 has-[:checked]:border-cobalt-soft has-[:checked]:bg-cobalt-wash has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-cobalt-soft"
             >
               <input id={id} type="radio" name={slot.name} value={choice.swatch} defaultChecked={checked} className="sr-only" />
               <span
                 aria-hidden="true"
-                className="inline-block size-5 rounded-full border border-hairline"
+                className="inline-block size-5 rounded-full border border-white/45"
                 style={choice.swatch === "none" ? undefined : { backgroundColor: choice.swatch }}
               />
               {choice.name}
@@ -69,7 +69,7 @@ export function KitStyleGallery({ projectId, version, typeLabel, tiles, colours,
           colours here are screen colours; add the colour references your factory matches in the editor.
         </p>
       </header>
-      <form method="get" className="flex flex-col gap-4 rounded-2xl border border-hairline bg-surface p-6">
+      <form method="get" className="glass flex flex-col gap-4 rounded-[1.75rem] p-6">
         <input type="hidden" name="from" value={from} />
         {slots.map((slot) => (
           <ColourRow key={slot.name} slot={slot} />
@@ -84,16 +84,16 @@ export function KitStyleGallery({ projectId, version, typeLabel, tiles, colours,
         {tiles.map((tile) => (
           <li
             key={tile.id}
-            className={`flex flex-col gap-3 rounded-2xl border bg-surface p-3 ${tile.current ? "border-cobalt" : "border-hairline"}`}
+            className={`glass flex flex-col gap-3 rounded-[1.75rem] p-3 ${tile.current ? "[--glass-edge:var(--cobalt-soft)] border-cobalt-soft" : ""}`}
             data-testid={`kit-style-${tile.id}`}
           >
             {/* A data address cannot go through next/image, and this is a drawing, not a photo. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={tile.src} alt={tile.alt} className="mx-auto h-auto max-h-48 w-full object-contain" />
+            <img src={tile.src} alt={tile.alt} className="mx-auto h-auto max-h-48 w-full rounded-2xl bg-white object-contain p-2" />
             <div>
               <p className="text-[15px] font-semibold text-ink">
                 {tile.label}
-                {tile.current ? <span className="ml-2 text-sm font-normal text-cobalt">Now</span> : null}
+                {tile.current ? <span className="ml-2 text-sm font-normal text-cobalt-soft">Now</span> : null}
               </p>
               <p className="text-sm text-muted">{tile.hint}</p>
             </div>
@@ -110,7 +110,7 @@ export function KitStyleGallery({ projectId, version, typeLabel, tiles, colours,
         ))}
       </ul>
       <div>
-        <Link href={backHref} className="text-[15px] font-medium text-cobalt underline-offset-4 hover:underline">
+        <Link href={backHref} className="text-[15px] font-medium text-cobalt-soft underline-offset-4 hover:underline">
           Back without changing the style
         </Link>
       </div>

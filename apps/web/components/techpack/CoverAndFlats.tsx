@@ -94,7 +94,7 @@ export function FlatsView({ flats, pictures, picturesNote }: FlatsProps) {
             ) : (
               <p className="p-6 text-center text-sm text-warn">{picture.notice}</p>
             )}
-            <figcaption className="mt-1 text-center text-sm text-muted">{picture.label}</figcaption>
+            <figcaption className="mt-1 text-center text-sm text-[#4b4f58]">{picture.label}</figcaption>
           </figure>
         ))}
       </div>

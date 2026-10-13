@@ -97,7 +97,7 @@ function VersionRow({ version, busy, onRestore }: VersionProps) {
           disabled={busy}
           onClick={() => onRestore(version.version)}
           aria-label={`Restore version ${version.version}`}
-          className="shrink-0 rounded-md border border-hairline px-3 py-1.5 text-sm font-medium text-ink hover:bg-shell disabled:cursor-not-allowed disabled:opacity-60"
+          className="chip-btn shrink-0 rounded-full border border-white/20 px-3.5 py-1.5 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-55"
         >
           Restore
         </button>

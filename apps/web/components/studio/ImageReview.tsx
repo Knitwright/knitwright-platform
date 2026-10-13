@@ -137,7 +137,7 @@ function Review({ state, busy, onTick, onApply, onDiscard }: ReviewProps) {
           {/* A local picture the person chose; next/image cannot take a blob address. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {state.previewUrl ? <img src={state.previewUrl} alt="Your picture" className="mx-auto h-auto max-h-[18rem] w-full object-contain" /> : null}
-          <figcaption className="mt-1 text-center text-sm text-muted">Your picture</figcaption>
+          <figcaption className="mt-1 text-center text-sm text-[#4b4f58]">Your picture</figcaption>
         </figure>
         <figure className="m-0 rounded-xl border border-hairline bg-white p-2">
           {front ? (
@@ -146,7 +146,7 @@ function Review({ state, busy, onTick, onApply, onDiscard }: ReviewProps) {
           ) : (
             <p className="p-4 text-sm text-muted">There is no drawing for this garment type.</p>
           )}
-          <figcaption className="mt-1 text-center text-sm text-muted">The design as it was read (not saved)</figcaption>
+          <figcaption className="mt-1 text-center text-sm text-[#4b4f58]">The design as it was read (not saved)</figcaption>
         </figure>
       </div>
       <ul className="list-disc pl-5 text-[15px] text-ink">
