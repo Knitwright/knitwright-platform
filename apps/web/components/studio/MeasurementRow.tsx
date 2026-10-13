@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useReducer } from "react";
+import { useEffect, useId, useReducer, useState } from "react";
 import { fieldReduce, initialField, intentFromText, isDirty, sameCm, type FieldState } from "@/lib/projects/field-text";
 import type { TableRow } from "@/lib/projects/measurement-table";
 import { measurementKey } from "./keys";
@@ -28,15 +28,14 @@ export function MeasurementRow({ row, error, onEdit, onReset, onTyping, onDirty 
     onEdit(pointId, intent, asked);
   };
 
+  // Below the sm breakpoint the row is a card and the cells stack. The table returns from sm up.
   return (
-    <tr>
-      <th scope="row" className="max-w-md px-4 py-3 align-top font-medium text-ink">
+    <tr className="block py-2 sm:table-row sm:py-0">
+      <th scope="row" className="block px-4 pt-2 align-top font-medium text-ink sm:table-cell sm:max-w-md sm:py-3">
         {row.label}
-        <span id={`${id}-how`} className="mt-1 block text-sm font-normal text-muted">
-          {row.howToMeasure}
-        </span>
+        <HowToMeasure id={`${id}-how`} text={row.howToMeasure} />
       </th>
-      <td className="px-4 py-3 align-top">
+      <td className="block px-4 py-2 align-top sm:table-cell sm:py-3">
         <ValueCell
           id={id}
           row={row}
@@ -49,11 +48,35 @@ export function MeasurementRow({ row, error, onEdit, onReset, onTyping, onDirty 
           onSubmit={submit}
         />
       </td>
-      <td className="px-4 py-3 align-top font-mono text-sm text-ink-2">{row.tolerance}</td>
-      <td className="px-4 py-3 align-top">
+      <td className="block px-4 py-1 align-top font-mono text-sm text-ink-2 sm:table-cell sm:py-3">
+        <span className="font-sans text-muted sm:hidden">Tolerance </span>
+        {row.tolerance}
+      </td>
+      <td className="block px-4 pt-1 pb-2 align-top sm:table-cell sm:py-3">
         <SourceCell row={row} onReset={() => onReset(pointId)} />
       </td>
     </tr>
+  );
+}
+
+/** How to take the measurement. On a phone it waits behind a button, so the field stays near its name. */
+function HowToMeasure({ id, text }: Readonly<{ id: string; text: string }>) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen((before) => !before)}
+        className="mt-1 block rounded-md text-sm font-normal text-cobalt underline-offset-4 hover:underline sm:hidden"
+      >
+        {open ? "Hide how to measure" : "How to measure"}
+      </button>
+      <span id={id} className={`mt-1 text-sm font-normal text-muted sm:block ${open ? "block" : "hidden"}`}>
+        {text}
+      </span>
+    </>
   );
 }
 

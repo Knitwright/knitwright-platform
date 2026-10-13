@@ -19,7 +19,11 @@ type MeasurementTablesProps = Readonly<{ table: MeasurementTable }> & Measuremen
 
 const HEADINGS = ["Measurement", "Value", "Tolerance", "Where the value came from"] as const;
 
-/** One real table for each section, with header cells, so a screen reader can walk it. */
+/**
+ * One real table for each section, with header cells, so a screen reader can walk it. On a
+ * phone each row becomes a card: the name, the field, and the rest below, with nothing off
+ * the side of the screen.
+ */
 export function MeasurementTables({ table, ...handlers }: MeasurementTablesProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -35,12 +39,12 @@ type GroupTableProps = Readonly<{ group: TableGroup }> & MeasurementHandlers;
 
 function GroupTable({ group, errorFor, ...handlers }: GroupTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-hairline">
-      <table className="w-full min-w-[44rem] text-left text-[15px]">
-        <caption className="border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-ink">
+    <div className="rounded-xl border border-hairline sm:overflow-x-auto">
+      <table className="block w-full text-left text-[15px] sm:table sm:min-w-[44rem]">
+        <caption className="block border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-ink sm:table-caption">
           {group.label}
         </caption>
-        <thead>
+        <thead className="sr-only sm:not-sr-only sm:table-header-group">
           <tr className="text-sm text-muted">
             {HEADINGS.map((heading) => (
               <th key={heading} scope="col" className="px-4 py-2 font-medium">
@@ -49,7 +53,7 @@ function GroupTable({ group, errorFor, ...handlers }: GroupTableProps) {
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-hairline">
+        <tbody className="block divide-y divide-hairline sm:table-row-group">
           {group.rows.map((row: TableRow) => (
             <MeasurementRow key={row.pointId} row={row} error={errorFor(measurementKey(row.pointId))} {...handlers} />
           ))}
