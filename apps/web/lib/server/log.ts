@@ -31,8 +31,24 @@ export const scrub = (text: string): string =>
 
 type Described = Readonly<Record<string, unknown>>;
 
+/**
+ * The fields a thrown object that is not an Error may carry, such as a database error from
+ * Supabase. Only these are kept, so nothing else the object holds can reach the log.
+ */
+const KNOWN_FIELDS = ["code", "message", "details", "hint", "status", "name"] as const;
+
+const describeObject = (value: object): Described =>
+  Object.fromEntries(
+    KNOWN_FIELDS.filter((field) => field in value).map((field) => {
+      const held: unknown = (value as Record<string, unknown>)[field];
+      return [field, typeof held === "string" ? scrub(held) : held];
+    }),
+  );
+
 const describe = (error: unknown, depth = 0): Described => {
-  if (!(error instanceof Error)) return { value: scrub(String(error)) };
+  if (!(error instanceof Error)) {
+    return typeof error === "object" && error !== null ? describeObject(error) : { value: scrub(String(error)) };
+  }
   const base = {
     name: error.name,
     message: scrub(error.message),

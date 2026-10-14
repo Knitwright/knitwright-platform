@@ -54,6 +54,31 @@ describe("formatLogEvent", () => {
     expect(JSON.parse(line).error).toEqual({ value: "boom" });
   });
 
+  it("keeps the code, message, details and hint of a database error that caused an error", () => {
+    const database = {
+      code: "42501",
+      message: "permission denied for function rate_limit_hit",
+      details: null,
+      hint: "Ask with key sb_secret_abc123",
+    };
+    const error = new Error("The rate limit could not be counted.", { cause: database });
+
+    const cause = JSON.parse(formatLogEvent({ level: "error", message: "Failed", where: "x", error })).error.cause;
+
+    expect(cause).toEqual({
+      code: "42501",
+      message: "permission denied for function rate_limit_hit",
+      details: null,
+      hint: "Ask with key [removed]",
+    });
+  });
+
+  it("keeps only the known fields of an object, never the rest", () => {
+    const line = formatLogEvent({ level: "error", message: "Odd", where: "x", error: { status: 401, password: "hunter2" } });
+
+    expect(JSON.parse(line).error).toEqual({ status: 401 });
+  });
+
   it("removes keys and tokens that appear in an error message", () => {
     const line = formatLogEvent({
       level: "error",
