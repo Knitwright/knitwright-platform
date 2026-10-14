@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { BrandMark } from "@/components/brand/Logo";
 import { PRODUCT } from "@/lib/config/product";
+import { PAGE_WIDTH } from "./page-width";
 import { PhoneMenu } from "./PhoneMenu";
 import { StudioNav } from "./StudioNav";
 
@@ -14,7 +15,7 @@ type StudioHeaderProps = Readonly<{ email: string | null; brandName: string }>;
  */
 export function StudioHeader({ email, brandName }: StudioHeaderProps) {
   return (
-    <div className="sticky top-3 z-40 mx-auto w-full max-w-6xl px-3 pt-3 sm:px-5">
+    <div className={`sticky top-3 z-40 mx-auto w-full ${PAGE_WIDTH.content} px-3 pt-3 sm:px-5`}>
       <header className="glass-strong rise flex h-16 items-center gap-3 rounded-full pl-5 pr-2 sm:gap-6 sm:pl-6">
         <Link href="/studio" className="flex shrink-0 items-center gap-2.5 rounded-full text-white">
           <BrandMark />

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GuidedStart } from "@/components/guided/GuidedStart";
+import { FormPage } from "@/components/shell/PageIntro";
 import { defaultBuyerKind } from "@/lib/leads/buyer-kind";
 import { getBrandDetails } from "@/lib/leads/service";
 import { garmentTypeGroups } from "@/lib/projects/type-groups";
@@ -14,22 +15,21 @@ export const metadata: Metadata = { title: "Start a design" };
 export default async function StartPage() {
   const { brand } = await requireMember();
   // The path ticked at first. Without the brand's details the person simply chooses it.
-  const initialKind = await getBrandDetails(await sessionClient(), brand.id).then(defaultBuyerKind, (error: unknown) => {
-    log({ level: "warn", message: "The brand details could not be read", where: "page studio-start", error });
-    return "";
-  });
+  const initialKind = await getBrandDetails(await sessionClient(), brand.id).then(
+    defaultBuyerKind,
+    (error: unknown) => {
+      log({ level: "warn", message: "The brand details could not be read", where: "page studio-start", error });
+      return "";
+    },
+  );
 
   return (
-    <div className="max-w-2xl">
-      <p className="font-mono text-xs uppercase tracking-wider text-muted">{brand.name}</p>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Start a design</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        Start, check the drawing and measurements, adjust, and download the files a factory needs. Then share the
-        design with your committee and ask for a quote.
-      </p>
-      <div className="mt-6">
-        <GuidedStart types={garmentTypeGroups()} wearers={WEARER_OPTIONS} initialKind={initialKind} />
-      </div>
-    </div>
+    <FormPage
+      eyebrow={brand.name}
+      title="Start a design"
+      lead="Start, check the drawing and measurements, adjust, and download the files a factory needs. Then share the design with your committee and ask for a quote."
+    >
+      <GuidedStart types={garmentTypeGroups()} wearers={WEARER_OPTIONS} initialKind={initialKind} />
+    </FormPage>
   );
 }

@@ -1,4 +1,5 @@
 import { StudioHeader } from "@/components/shell/StudioHeader";
+import { pageFrame } from "@/components/shell/page-width";
 import { requireMember } from "@/lib/server/page-guards";
 
 /**
@@ -12,7 +13,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <StudioHeader email={email} brandName={brand.name} />
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
+      <main id="main" className={`${pageFrame("content")} flex-1 py-10`}>
         {children}
       </main>
     </>
