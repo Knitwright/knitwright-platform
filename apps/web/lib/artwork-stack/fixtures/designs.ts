@@ -16,6 +16,9 @@ export const kitPatternOf = (style: KitPatternStyle, patch: Partial<KitPattern> 
   ...patch,
 });
 
+/** The benchmark polka-dot jersey's numbers: 30 mm dots, 70 mm apart, rows 35 mm apart, half drop, 10 mm clear. */
+export const BENCHMARK_DOTS: KitPattern = kitPatternOf("dots", { size: 300, dots: { pitch: 700, rowStep: 350, halfDrop: true, clearSpace: 100 } });
+
 export const MARKS: NamesAndNumbers = {
   places: [{ place: "back-name", height: 600 }, { place: "back-number" }, { place: "front-number" }],
   style: "block",
@@ -97,6 +100,8 @@ export function allDesigns(): readonly { readonly name: string; readonly spec: G
     { name: "plain", spec: jersey() },
     ...styles,
     { name: "with artwork and marks", spec: jersey({ kitPattern: kitPatternOf("hoops"), artwork: LOGO_AND_TEXT, namesAndNumbers: MARKS }) },
+    { name: "dots with spacing, artwork and marks", spec: jersey({ kitPattern: BENCHMARK_DOTS, artwork: LOGO_AND_TEXT, namesAndNumbers: MARKS }) },
+    { name: "dots lined up", spec: jersey({ kitPattern: kitPatternOf("dots", { size: 300, dots: { pitch: 700, halfDrop: false } }) }) },
     { name: "long sleeve", spec: jersey({ kitPattern: kitPatternOf("sash") }, { "sleeve-length": "long" }) },
   ];
 }

@@ -1,6 +1,6 @@
-import type { PointMm, BoundsMm } from "./units";
-import { roundMm } from "./units";
+import type { FlatElement } from "@/lib/flat/model";
 import type { ViewId } from "./anchors";
+import { roundMm, type BoundsMm, type PointMm } from "./units";
 
 /** A shape in design millimetres. Fills are `#rrggbb`: the generator is handed resolved colours, so a colourway needs a new render, not a new layer. */
 export interface DisplayPolygon {
@@ -26,7 +26,7 @@ export interface DisplayList {
 }
 
 export type ParamValue = number | string | boolean;
-export const PARAM_UNITS = ["mm", "degrees", "count", "ratio", "none"] as const;
+export const PARAM_UNITS = ["mm", "degrees", "count", "ratio", "yes-no", "none"] as const;
 
 /** One setting of a generator. `words` are the plain words the assistant maps to a step up or down; it never invents a number. */
 export interface ParamSpec {
@@ -61,6 +61,8 @@ export interface GeneratorContext {
   readonly ground: string;
   readonly params: Readonly<Record<string, ParamValue>>;
   readonly seed: number;
+  /** The marks already drawn on this view, in flat units. Only the seven older styles and polka dots read it, to keep clear of them. */
+  readonly decoration?: readonly FlatElement[];
 }
 
 /** The interface every pattern implements. Pure and deterministic: the same context gives the same list. */
@@ -79,6 +81,7 @@ export function paramProblems(generator: Pick<PatternGenerator, "label" | "param
   return Object.entries(values).flatMap(([id, value]) => {
     const spec = generator.params.find((entry) => entry.id === id);
     if (spec === undefined) return [`${generator.label} has no setting called ${id}.`];
+    if (spec.unit === "yes-no") return typeof value === "boolean" ? [] : [`${spec.label} must be yes or no.`];
     if (typeof value !== "number") return [`${spec.label} must be a number.`];
     return value < spec.min || value > spec.max ? [`${spec.label} must be between ${spec.min} and ${spec.max} ${spec.unit === "none" ? "" : spec.unit}`.trim() + "."] : [];
   });

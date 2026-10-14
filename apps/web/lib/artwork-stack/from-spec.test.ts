@@ -4,7 +4,7 @@ import { typedIn } from "@/lib/flat/fixtures/designs";
 import { renderSvg } from "@/lib/flat/render-svg";
 import type { FlatModel, View } from "@/lib/flat/model";
 import { validateSpec, type GarmentSpec } from "@/lib/garment";
-import { allDesigns, jersey, kitPatternOf, LOGO_AND_TEXT, MARKS, withStack } from "./fixtures/designs";
+import { allDesigns, BENCHMARK_DOTS, jersey, kitPatternOf, LOGO_AND_TEXT, MARKS, withStack } from "./fixtures/designs";
 import { currentStack, deriveStack, inStep, writeStack } from "./from-spec";
 import { toLegacy } from "./legacy/to-legacy";
 import { artworkStackSchema, parseArtworkStack } from "./schema";
@@ -44,6 +44,15 @@ describe("deriving a stack from a design saved before stacks", () => {
       }
     });
   }
+
+  it("keeps the benchmark dots' spacing as settings, in millimetres", () => {
+    const stack = deriveStack(jersey({ kitPattern: BENCHMARK_DOTS }));
+    const layer = stack.layers.find((entry) => entry.kind === "pattern");
+    expect(layer).toMatchObject({
+      generatorId: "kit-dots",
+      params: { dotWidthMm: 30, pitchMm: 70, rowStepMm: 35, halfDrop: true, clearSpaceMm: 10 },
+    });
+  });
 
   it("gives a ground-only stack for a design with no pattern, no artwork and no marks", () => {
     const stack = deriveStack(jersey());

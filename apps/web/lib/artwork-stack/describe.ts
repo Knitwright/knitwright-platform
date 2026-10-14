@@ -4,7 +4,7 @@ import type { Layer } from "./layers";
 import type { PatternGenerator } from "./generator";
 import { BUILT_IN_GENERATORS, findGenerator } from "./registry";
 import type { ArtworkStack } from "./schema";
-import { BAND_PARAM } from "./legacy/kit-styles";
+import { BAND_PARAM, DOT_PARAM } from "./legacy/kit-styles";
 
 const spaced = (id: string): string => id.replaceAll("-", " ");
 const mm = (value: number): string => `${Math.round(value * 10) / 10} mm`;
@@ -35,7 +35,14 @@ function patternSentence(layer: Extract<Layer, { kind: "pattern" }>, words: Word
   const generator = findGenerator(layer.generatorId, words.generators);
   const colours = layer.colourIds.map((id) => colourText(words, id)).join(" and ");
   const band = layer.params[BAND_PARAM];
-  const bits = [typeof band === "number" ? `bands ${mm(band)}` : "", layer.seed === undefined ? "" : `seed ${layer.seed}`].filter((bit) => bit !== "");
+  const dot = layer.params[DOT_PARAM];
+  const bits = [
+    typeof band === "number" ? `bands ${mm(band)}` : "",
+    typeof dot === "number" ? `dots ${mm(dot)} wide` : "",
+    typeof layer.params.pitchMm === "number" ? `${mm(layer.params.pitchMm)} between centres` : "",
+    layer.params.halfDrop === true ? "every other row shifted" : "",
+    layer.seed === undefined ? "" : `seed ${layer.seed}`,
+  ].filter((bit) => bit !== "");
   return `${generator?.label ?? spaced(layer.generatorId)} in ${colours}${bits.length === 0 ? "" : `, ${bits.join(", ")}`}.`;
 }
 

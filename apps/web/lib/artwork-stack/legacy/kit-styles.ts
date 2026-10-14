@@ -1,4 +1,5 @@
 import { KIT_PATTERN_LABELS, KIT_PATTERN_STYLES, MAX_PATTERN_COLOURS, type KitPattern, type KitPatternStyle } from "@/lib/garment";
+import type { DotsLayout } from "@/lib/garment/kit-pattern";
 import { kitPatternElements, PATTERN_FALLBACK } from "@/lib/flat/kit-pattern";
 import type { FlatPath, PathCommand, Point } from "@/lib/flat/model";
 import type { DisplayPolygon, GeneratorContext, DisplayList, ParamSpec, PatternGenerator } from "../generator";
@@ -19,6 +20,12 @@ export function kitStyleOf(generatorId: string): KitPatternStyle | null {
 }
 
 export const BAND_PARAM = "bandWidthMm";
+export const DOT_PARAM = "dotWidthMm";
+
+/** The setting that holds the pattern's `size`: a band's width, or a dot's. */
+export const sizeParamOf = (style: KitPatternStyle): string => (style === "dots" ? DOT_PARAM : BAND_PARAM);
+
+const spacing = (id: string, label: string, min: number): ParamSpec => ({ id, label, unit: "mm", min, max: MM_LIMIT, step: 0.5, default: null });
 
 const BAND_WIDTH: ParamSpec = {
   id: BAND_PARAM,
@@ -30,6 +37,37 @@ const BAND_WIDTH: ParamSpec = {
   default: null,
   words: { up: ["wider", "bigger", "thicker"], down: ["narrower", "smaller", "thinner"] },
 };
+
+/** The dots' own settings, one for each that the older design can hold. Their layout is in tenths of a millimetre there. */
+const DOT_PARAMS: readonly ParamSpec[] = [
+  { ...BAND_WIDTH, id: DOT_PARAM, label: "Dot width" },
+  spacing("pitchMm", "Centre to centre", 5),
+  spacing("rowStepMm", "Row to row", 5),
+  { id: "halfDrop", label: "Every other row shifted", unit: "yes-no", min: 0, max: 1, step: 1, default: null },
+  spacing("clearSpaceMm", "Clear space around marks", 0),
+];
+
+/** The dot spacing a design holds, as settings. */
+export function dotParamsOf(layout: DotsLayout | undefined): Record<string, number | boolean> {
+  if (layout === undefined) return {};
+  return {
+    ...(layout.pitch === undefined ? {} : { pitchMm: mmFromTenths(layout.pitch) }),
+    ...(layout.rowStep === undefined ? {} : { rowStepMm: mmFromTenths(layout.rowStep) }),
+    ...(layout.halfDrop === undefined ? {} : { halfDrop: layout.halfDrop }),
+    ...(layout.clearSpace === undefined ? {} : { clearSpaceMm: mmFromTenths(layout.clearSpace) }),
+  };
+}
+
+/** The dot spacing as a design holds it, or undefined when no setting is given. */
+export function dotsLayoutOf(params: Readonly<Record<string, number | string | boolean>>): DotsLayout | undefined {
+  const layout = {
+    ...(typeof params.pitchMm === "number" ? { pitch: tenthsFromMm(params.pitchMm) } : {}),
+    ...(typeof params.rowStepMm === "number" ? { rowStep: tenthsFromMm(params.rowStepMm) } : {}),
+    ...(typeof params.halfDrop === "boolean" ? { halfDrop: params.halfDrop } : {}),
+    ...(typeof params.clearSpaceMm === "number" ? { clearSpace: tenthsFromMm(params.clearSpaceMm) } : {}),
+  };
+  return Object.keys(layout).length === 0 ? undefined : layout;
+}
 
 const toTenths = (point: PointMm): Point => ({ x: point.x * 10, y: point.y * 10 });
 
@@ -48,11 +86,13 @@ function underarmOf(context: GeneratorContext): Point {
 }
 
 function kitPatternOf(style: KitPatternStyle, context: GeneratorContext): KitPattern {
-  const band = context.params[BAND_PARAM];
+  const size = context.params[sizeParamOf(style)];
+  const dots = style === "dots" ? dotsLayoutOf(context.params) : undefined;
   return {
     style,
     colours: context.colours.map((swatch) => ({ colour: "", swatch })),
-    ...(typeof band === "number" ? { size: tenthsFromMm(band) } : {}),
+    ...(typeof size === "number" ? { size: tenthsFromMm(size) } : {}),
+    ...(dots === undefined ? {} : { dots }),
     provenance: "derived",
   };
 }
@@ -60,7 +100,7 @@ function kitPatternOf(style: KitPatternStyle, context: GeneratorContext): KitPat
 function render(style: KitPatternStyle, context: GeneratorContext): DisplayList {
   const body: FlatPath = { kind: "path", name: "Body", panelId: null, commands: outlineOf(context), fill: context.ground, stroke: null };
   const view = context.view === "back" ? "back" : "front";
-  const drawn = kitPatternElements(kitPatternOf(style, context), body, { view, underarm: underarmOf(context) });
+  const drawn = kitPatternElements(kitPatternOf(style, context), body, { view, underarm: underarmOf(context), decoration: context.decoration });
   const shapes = drawn.map((path): DisplayPolygon => ({
     kind: "polygon",
     name: path.name,
@@ -73,7 +113,7 @@ function render(style: KitPatternStyle, context: GeneratorContext): DisplayList 
 const generator = (style: KitPatternStyle): PatternGenerator => ({
   id: kitGeneratorId(style),
   label: KIT_PATTERN_LABELS[style],
-  params: style === "fade" ? [] : [BAND_WIDTH],
+  params: style === "fade" ? [] : style === "dots" ? DOT_PARAMS : [BAND_WIDTH],
   repeat: { kind: "field" },
   maxColours: MAX_PATTERN_COLOURS,
   render: (context) => render(style, context),

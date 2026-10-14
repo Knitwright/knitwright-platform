@@ -3,7 +3,7 @@ import { withoutKitPattern } from "@/lib/garment/kit-pattern";
 import { withoutMarks } from "@/lib/garment/names-numbers";
 import { viewOfPanel, VIEW_IDS, type ViewId } from "./anchors";
 import type { StackColour, StackColourway } from "./colours";
-import { BAND_PARAM, kitGeneratorId } from "./legacy/kit-styles";
+import { dotParamsOf, kitGeneratorId, sizeParamOf } from "./legacy/kit-styles";
 import { panelColourId, toLegacy } from "./legacy/to-legacy";
 import { DEFAULT_DATUM } from "./datum";
 import type { GraphicLayer, GroundLayer, Layer, PatternLayer, PlayerMarkLayer, TextLayer } from "./layers";
@@ -66,7 +66,7 @@ function patternLayer(spec: GarmentSpec): { layer: PatternLayer; colours: StackC
     id: "kit-pattern",
     views: FLAT_VIEWS,
     generatorId: kitGeneratorId(pattern.style),
-    params: pattern.size === undefined ? {} : { [BAND_PARAM]: mmFromTenths(pattern.size) },
+    params: { ...(pattern.size === undefined ? {} : { [sizeParamOf(pattern.style)]: mmFromTenths(pattern.size) }), ...dotParamsOf(pattern.dots) },
     datum: DEFAULT_DATUM,
     colourIds: colours.map((entry) => entry.id),
     ...(pattern.technique === undefined ? {} : { technique: pattern.technique }),

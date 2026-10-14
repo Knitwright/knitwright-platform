@@ -73,6 +73,7 @@ function layerPaths(layer: PatternLayer, generator: PatternGenerator, body: Flat
     ground: safeColour(body.fill) ?? NEUTRAL_FILL,
     params: layer.params,
     seed: layer.seed ?? 0,
+    decoration: input.place.decoration,
   });
   return list.shapes.map((shape) => pathOf(shape, generator.label));
 }

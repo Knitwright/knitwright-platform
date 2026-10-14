@@ -4,7 +4,7 @@ import { typedIn } from "@/lib/flat/fixtures/designs";
 import type { FlatElement, FlatPath, PathCommand } from "@/lib/flat/model";
 import { describeStack } from "./describe";
 import { withStackPatterns } from "./draw-flat";
-import { jersey, kitPatternOf, LOGO_AND_TEXT, MARKS } from "./fixtures/designs";
+import { BENCHMARK_DOTS, jersey, kitPatternOf, LOGO_AND_TEXT, MARKS } from "./fixtures/designs";
 import { deriveStack } from "./from-spec";
 import type { PatternGenerator } from "./generator";
 import { KIT_STYLE_GENERATORS, kitGeneratorId, kitStyleOf } from "./legacy/kit-styles";
@@ -94,8 +94,9 @@ describe("drawing a stack on a flat", () => {
 });
 
 describe("the styles that exist today as generators", () => {
-  it("has the seven, each found by its id", () => {
-    expect(KIT_STYLE_GENERATORS).toHaveLength(7);
+  it("has the seven and polka dots, each found by its id", () => {
+    expect(KIT_STYLE_GENERATORS).toHaveLength(8);
+    expect(findGenerator("kit-dots")?.params.map((entry) => entry.id)).toEqual(["dotWidthMm", "pitchMm", "rowStepMm", "halfDrop", "clearSpaceMm"]);
     expect(kitStyleOf(kitGeneratorId("hoops"))).toBe("hoops");
     expect(kitStyleOf("camo")).toBeNull();
     expect(findGenerator("kit-fade")?.params).toEqual([]);
@@ -147,6 +148,11 @@ describe("describing a stack in words", () => {
     expect(describeStack({ ...stack, layers: [] })).toBe("");
   });
 
+  it("says the dots of the benchmark jersey in the stack's own words", () => {
+    const words = describeStack(deriveStack(jersey({ kitPattern: BENCHMARK_DOTS })), "main");
+    expect(words).toContain("Polka dots in Gold and screen colour #ffffff, dots 30 mm wide, 70 mm between centres, every other row shifted.");
+  });
+
   it("describes pictures, zones, free text style and a design read from a picture", () => {
     const stack = parseArtworkStack({
       schemaVersion: 1,
@@ -166,6 +172,19 @@ describe("describing a stack in words", () => {
       "A repeating picture in half-drop. A full-panel picture. Graphic at left chest, 90 mm. Number on the front. Read from a picture: compare it with the picture.",
     );
     expect(artworkStackSchema.safeParse(stack.stack).success).toBe(true);
+  });
+});
+
+describe("polka dots keep clear of marks on a flat drawn from a stack", () => {
+  const dotCount = (spec: ReturnType<typeof jersey>): number => {
+    const stacked = { ...spec, artworkStack: deriveStack(spec) };
+    const model = buildFlat({ spec: stacked, measurements: typedIn(stacked), view: "front", colourwayId: "main" });
+    const elements = model?.layers.find((layer) => layer.id === "panels")?.elements ?? [];
+    return elements.filter((element) => element.kind === "path" && element.name.startsWith("Kit pattern")).length;
+  };
+
+  it("leaves out dots near the crest and the sponsor line", () => {
+    expect(dotCount(jersey({ kitPattern: BENCHMARK_DOTS, artwork: LOGO_AND_TEXT }))).toBeLessThan(dotCount(jersey({ kitPattern: BENCHMARK_DOTS })));
   });
 });
 

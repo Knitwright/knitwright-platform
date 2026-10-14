@@ -174,7 +174,7 @@ export function buildFlat(input: BuildInput): FlatModel | null {
     nameOf: (id) => type.panels.find((panel) => panel.id === id)?.label ?? id,
     fillOf: (id) => panelFill(spec, active, id),
   });
-  const place = { view, underarm: basis.underarm };
+  const place = { view, underarm: basis.underarm, decoration: artworkElements(spec, frame) };
   const panels = spec.artworkStack ? withStackPatterns(plain, currentStack(spec), place, active) : withKitPattern(plain, spec.kitPattern, place);
   const callouts = input.callouts && resolved.toScale
     ? calloutElements(points.map((point) => ({ id: point.id, label: point.label, value: need(resolved.dims, point.id) })), frame, resolved.dims)

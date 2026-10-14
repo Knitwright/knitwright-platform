@@ -12,7 +12,7 @@ import type { ColourValue } from "../colours";
 import type { GraphicLayer, Layer, PatternLayer, PlayerMarkLayer, TextLayer } from "../layers";
 import type { ArtworkStack } from "../schema";
 import { tenthsFromMm } from "../units";
-import { BAND_PARAM, kitStyleOf } from "./kit-styles";
+import { dotsLayoutOf, kitStyleOf, sizeParamOf } from "./kit-styles";
 
 /** The fields of the older design that a stack stands in for. */
 export interface LegacyFields {
@@ -39,11 +39,13 @@ function kitPatternOf(stack: ArtworkStack): KitPattern | undefined {
   const layer = stack.layers.find((entry): entry is PatternLayer => entry.kind === "pattern" && kitStyleOf(entry.generatorId) !== null);
   const style = layer === undefined ? null : kitStyleOf(layer.generatorId);
   if (layer === undefined || style === null) return undefined;
-  const band = layer.params[BAND_PARAM];
+  const size = layer.params[sizeParamOf(style)];
+  const dots = style === "dots" ? dotsLayoutOf(layer.params) : undefined;
   const candidate = {
     style,
     colours: layer.colourIds.map((id) => ({ colour: textOf(colourOf(stack, id)), ...swatchOf(colourOf(stack, id)) })),
-    ...(typeof band === "number" ? { size: tenthsFromMm(band) } : {}),
+    ...(typeof size === "number" ? { size: tenthsFromMm(size) } : {}),
+    ...(dots === undefined ? {} : { dots }),
     ...techniqueOf(layer),
     provenance: layer.provenance,
   };

@@ -89,7 +89,7 @@ describe("the repeat datum", () => {
 describe("generators", () => {
   const generator: Pick<PatternGenerator, "label" | "params"> = {
     label: "Dots",
-    params: [{ id: "diameterMm", label: "Dot size", unit: "mm", min: 5, max: 100, step: 1, default: 30 }, { id: "ratio", label: "Spread", unit: "none", min: 0, max: 1, step: 0.1, default: 0.5 }],
+    params: [{ id: "flip", label: "Flip", unit: "yes-no", min: 0, max: 1, step: 1, default: null }, { id: "diameterMm", label: "Dot size", unit: "mm", min: 5, max: 100, step: 1, default: 30 }, { id: "ratio", label: "Spread", unit: "none", min: 0, max: 1, step: 0.1, default: 0.5 }],
   };
 
   it("names settings that are unknown, not numbers or out of range", () => {
@@ -98,6 +98,8 @@ describe("generators", () => {
     expect(paramProblems(generator, { diameterMm: "big" })).toEqual(["Dot size must be a number."]);
     expect(paramProblems(generator, { diameterMm: 500 })).toEqual(["Dot size must be between 5 and 100 mm."]);
     expect(paramProblems(generator, { ratio: 2 })).toEqual(["Spread must be between 0 and 1."]);
+    expect(paramProblems(generator, { flip: true })).toEqual([]);
+    expect(paramProblems(generator, { flip: 1 })).toEqual(["Flip must be yes or no."]);
   });
 
   it("writes a display list as the same text on any machine", () => {
