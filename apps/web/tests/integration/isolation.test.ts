@@ -364,6 +364,7 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     },
     attempt: (brandId, userId) => artworkRow(brandId, userId, randomUUID(), randomUUID()),
     change: { name: "Changed by a stranger" },
+  },
   // The pattern library (W1): a member reads the brand's blocks, their sizes and reviews; only the server writes.
   pattern_blocks: {
     privileges: ["SELECT"],
