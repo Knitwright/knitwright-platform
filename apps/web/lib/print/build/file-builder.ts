@@ -1,0 +1,110 @@
+import { createHash } from "node:crypto";
+import { BUILT_IN_GENERATORS, type ArtworkStack, type AssetReader, type PatternGenerator } from "@/lib/artwork-stack";
+import type { GradedPattern, PrintFileBuilder, PrintFileResult, PrintFileSpec, PrintRuleSet, RosterRow, TeamOrder } from "@/lib/production/contract";
+import { frameFor } from "../frames/frame";
+import { buildPieceScene, type BuiltScene } from "../layout/build-scene";
+import { fieldBoundsFor } from "../layout/field";
+import { createPieceMapper, type PrintMapper } from "../layout/mapper";
+import type { PrintSettings } from "../layout/types";
+import { renderPdf, renderSvgAsync, renderTiff } from "../render";
+import { pageSizeMm } from "../scene";
+import { buildZones } from "../zones/build";
+import { zoneTemplatesFor } from "../zones/templates";
+
+export interface BuilderDeps {
+  readonly pattern: GradedPattern;
+  readonly stack: ArtworkStack;
+  readonly colourwayId: string;
+  readonly assets: AssetReader;
+  readonly rules: PrintRuleSet;
+  readonly roster: TeamOrder | null;
+  readonly garment: string;
+  readonly minDpi: number;
+  readonly scaleNote: string | null;
+  readonly defaultsNote: string | null;
+  readonly patternReviewed: boolean;
+  readonly generators?: readonly PatternGenerator[];
+  readonly mapper?: PrintMapper;
+  /** The print house's ICC profile bytes, when the brand has uploaded one. */
+  readonly icc?: Uint8Array;
+}
+
+export interface BuiltFile extends PrintFileResult {
+  readonly bytes: Uint8Array;
+  readonly scene: BuiltScene;
+}
+
+export interface FileOptions {
+  readonly transferOnly?: boolean;
+}
+
+export const sha256Of = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
+
+const rowFor = (roster: TeamOrder | null, number: string | undefined): RosterRow | null =>
+  number === undefined ? null : (roster?.rows.find((row) => row.number === number) ?? null);
+
+/**
+ * Builds print files for one design on one pattern. It implements the contract's `PrintFileBuilder` (what a release
+ * hashes) and adds `buildFile`, which also hands back the scene for the checks. Scenes are kept so the PDF, SVG and
+ * TIFF of one piece are made from one layout. Deterministic: the same inputs give the same bytes.
+ */
+export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { buildFile(spec: PrintFileSpec, options?: FileOptions): Promise<BuiltFile>; readonly mapper: PrintMapper } {
+  const mapper = deps.mapper ?? createPieceMapper(deps.pattern);
+  const zones = buildZones(zoneTemplatesFor(deps.garment), deps.pattern, mapper.anchors);
+  const generators = deps.generators ?? BUILT_IN_GENERATORS;
+  const scenes = new Map<string, Promise<BuiltScene>>();
+
+  const sceneFor = (spec: PrintFileSpec, options: FileOptions): Promise<BuiltScene> => {
+    const key = JSON.stringify([spec.pieceId, spec.size, spec.playerNumber ?? null, spec.bleedMm, spec.scaleX, spec.scaleY, spec.dpi, options.transferOnly ?? false]);
+    const known = scenes.get(key);
+    if (known) return known;
+    const placed = mapper.placed(spec.size);
+    const mine = placed.find((entry) => entry.instance.id === spec.pieceId);
+    if (!mine) return Promise.reject(new RangeError(`There is no piece ${spec.pieceId} in size ${spec.size}.`));
+    const settings: PrintSettings = {
+      bleedMm: spec.bleedMm,
+      dpi: spec.dpi,
+      minDpi: deps.minDpi,
+      scaleX: spec.scaleX,
+      scaleY: spec.scaleY,
+      scaleNote: spec.scaleX === 1 && spec.scaleY === 1 ? deps.scaleNote : null,
+      defaultsNote: deps.defaultsNote,
+      patternReviewed: deps.patternReviewed,
+    };
+    const made = buildPieceScene({
+      stack: deps.stack,
+      colourwayId: deps.colourwayId,
+      instance: mine.instance,
+      frame: frameFor(mine.instance, mapper.anchors),
+      anchors: (mapper.anchors[mine.instance.view] ?? {}) as never,
+      zones,
+      field: fieldBoundsFor(placed, mapper.anchors.front?.underarm?.y ?? 0),
+      settings,
+      rules: deps.rules,
+      generators,
+      assets: deps.assets,
+      player: rowFor(deps.roster, spec.playerNumber),
+      ...(options.transferOnly ? { transferOnly: true } : {}),
+    });
+    scenes.set(key, made);
+    return made;
+  };
+
+  const buildFile = async (spec: PrintFileSpec, options: FileOptions = {}): Promise<BuiltFile> => {
+    const scene = await sceneFor(spec, options);
+    const art = scene.scene;
+    const warnings = art.issues.map((issue) => issue.text.slice(0, 300));
+    let bytes: Uint8Array;
+    if (spec.format === "pdf") bytes = await renderPdf(art);
+    else if (spec.format === "svg") bytes = new TextEncoder().encode(await renderSvgAsync(art));
+    else {
+      const tiff = await renderTiff(art, deps.icc ? { icc: deps.icc } : {});
+      bytes = tiff.bytes;
+      if (tiff.dpiNote) warnings.push(tiff.dpiNote);
+    }
+    const page = pageSizeMm(art);
+    return { sha256: sha256Of(bytes), pageWidthMm: Math.round(page.width * 100) / 100, pageHeightMm: Math.round(page.height * 100) / 100, warnings: warnings.slice(0, 50), bytes, scene };
+  };
+
+  return { mapper, buildFile, build: (spec) => buildFile(spec) };
+}

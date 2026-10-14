@@ -405,6 +405,31 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
     change: { pattern_size: "52" },
   },
+  // Print files (W3, migration 20261015030000): a member reads the brand's print profile and league rule sets; only the server writes.
+  print_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().from("print_profiles").insert({ brand_id: brandId, source: "print-house", updated_by: ownerId }).select("brand_id"));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, source: "print-house", updated_by: userId }),
+    change: { bleed_mm: 30 },
+  },
+  league_rule_sets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("league_rule_sets")
+          .insert({ brand_id: brandId, name: "Seeded league", source: "League handbook", rules: {}, created_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", source: "Nowhere", rules: {}, created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
   // Production outputs, W7d (migration 20261015060200): a member reads the brand's design imports; only the
   // server writes them, and an import that was accepted or discarded is never changed again.
   design_imports: {

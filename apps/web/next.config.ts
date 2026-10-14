@@ -64,6 +64,8 @@ const nextConfig: NextConfig = {
   // when this entry is missing or names another route.
   outputFileTracingIncludes: {
     "/api/projects/\\[projectId\\]/exports/\\[format\\]": ["./assets/fonts/**"],
+    // The print files outline names and numbers from the same font.
+    "/api/projects/\\[projectId\\]/print-files": ["./assets/fonts/**"],
     // Reading an uploaded PDF draws a page with pdfjs-dist and its native canvas package, which are loaded by name at
     // run time, so the host cannot see them in the code. Ship the canvas binaries and the PDF reader's own fonts.
     "/api/artwork": ["../../node_modules/.pnpm/@napi-rs+canvas{,-linux-x64-gnu}@*/node_modules/@napi-rs/canvas{,-linux-x64-gnu}/*.{js,cjs,mjs,json,node}", "./node_modules/pdfjs-dist/standard_fonts/**"],
