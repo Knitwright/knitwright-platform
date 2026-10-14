@@ -8,6 +8,8 @@ const row = (patch: Partial<PatternJobRow> = {}): PatternJobRow => ({
   version: 3,
   status: "queued",
   size_label: "M",
+  kind: "single",
+  block_id: null,
   draft: null,
   pieces: null,
   notes: [],
