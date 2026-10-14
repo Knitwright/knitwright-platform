@@ -27,6 +27,11 @@ export type Member = MemberSession & Readonly<{ brands: readonly Brand[] }>;
  * This is `verifySession()` in the plan.
  */
 export const requireMember = async (): Promise<Member> => {
+  // The brands are asked for while the session is checked, not after it: one wait, not two.
+  // They are read with the visitor's own token, so row security answers for them either way,
+  // and nothing is shown unless the session check passes first. A visitor with no session is
+  // sent to sign in, and a failed read of the brands is then of no interest.
+  currentBrands().catch(() => undefined);
   const session = await requireSession();
   const brand = await activeBrand();
   if (!brand) redirect(WELCOME_PATH);
@@ -38,7 +43,10 @@ export const requireMember = async (): Promise<Member> => {
  * not, gets the page that does not exist, so nobody learns the page is there.
  */
 export const requirePlatformAdmin = async (): Promise<Session> => {
+  // Asked side by side, as in requireMember. The database answers "admin" only for a valid token.
+  const admin = sessionClient().then(amPlatformAdmin);
+  admin.catch(() => undefined);
   const session = await currentSession();
-  if (!session || !(await amPlatformAdmin(await sessionClient()))) notFound();
+  if (!session || !(await admin)) notFound();
   return session;
 };
