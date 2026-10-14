@@ -360,6 +360,41 @@ body {
   }
 }
 
+/*
+ * A loading placeholder: a soft white bar on glass. `shimmer` sweeps a faint light across it;
+ * use it as `motion-safe:shimmer`, so a person who asks for less motion sees a still bar.
+ */
+@utility skeleton-bar {
+  background-color: rgba(233, 234, 238, 0.07);
+  border-radius: 999px;
+}
+@utility shimmer {
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: kw-shimmer 1.6s var(--ease) infinite;
+}
+
+/* A loading screen fades in after a short wait, so a quick page never flashes it. */
+@utility skeleton-in {
+  animation: kw-skeleton-in 300ms var(--ease) 150ms both;
+}
+
+/*
+ * The line across the top of the window while the next page loads: it appears after a short
+ * wait and creeps towards the end. With less motion it shows still, most of the way across.
+ */
+@utility nav-progress {
+  background: var(--thread);
+  transform-origin: 0 50%;
+  animation: kw-nav-progress 12s cubic-bezier(0.1, 0.7, 0.2, 1) 120ms both;
+}
+
 /* The slow drift of the background. */
 @utility hero-drift {
   animation: kw-hero-drift 24s ease-in-out infinite alternate;
@@ -434,6 +469,38 @@ body {
   100% {
     opacity: 0;
     transform: scale(1.9);
+  }
+}
+
+@keyframes kw-shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes kw-skeleton-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes kw-nav-progress {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.04);
+  }
+  2% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(0.92);
   }
 }
 
