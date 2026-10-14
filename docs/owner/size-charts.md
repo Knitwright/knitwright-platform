@@ -122,3 +122,15 @@ fit choice, so leave `fit` empty for them. Sports bras are made for women and yo
 Send what you have. A chart for one wearer and one garment type is enough to finish the
 measurement table for that pair and to test everything else. The other pairs stay empty,
 and the editor says so, until their numbers arrive.
+
+## Australian labels and pattern sizes (owner input P3)
+
+Knitwright now shows Australian size labels (men XS to 3XL, women XS to 3XL, junior 6 to 16) and
+a pattern size for each. Everything is a suggestion until you say otherwise. Please tell us:
+
+1. **Women's 3XL.** The sources we read stop at 2XL, so there are no starter measurements for it.
+   Send women's 3XL measurements for each garment, or your own chart.
+2. **Junior labels.** Is a club's 8 cut like our YS (ages 6 to 8), a 12 like YM, a 16 like YL? Send
+   the measurements you use if not.
+3. **Which pattern size each label is cut from.** We suggest men's XS to 3XL from EU 44 to 56, with
+   M as the benchmark's EU 48. Change any of them under Brands, Fabrics and sizes.
