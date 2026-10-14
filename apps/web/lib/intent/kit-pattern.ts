@@ -13,7 +13,7 @@ import {
 /**
  * The assistant's side of kit patterns (owner decision 2026-10-13): "add hoops", "navy and
  * gold stripes", "make it plain". A model names the style and, when the person said them, the
- * colours of the pattern; the body colour stays a `set-colour`. A size is never set by a model.
+ * colours of the pattern; the body colour stays a `set-colour`. A size or dot spacing is never set by a model.
  */
 
 const COLOUR_TEXT_MAX = 60;
@@ -35,7 +35,7 @@ export const removeKitPatternWire = z.strictObject({ type: z.literal("remove-kit
 export type SetKitPatternWire = z.output<typeof setKitPatternWire>;
 
 /** The lines that tell a model about kit patterns. */
-export const KIT_PATTERN_PROMPT = `{"type": "set-kit-pattern", "style": "${KIT_PATTERN_STYLES.join('" | "')}", "colours": [{"colour": "gold", "swatch": "#d4af37"}]}  a pattern printed over the body (tops only); colours are the pattern's, one or two, swatch optional; leave colours out if the customer named none; set the body colour with set-colour
+export const KIT_PATTERN_PROMPT = `{"type": "set-kit-pattern", "style": "${KIT_PATTERN_STYLES.join('" | "')}", "colours": [{"colour": "gold", "swatch": "#d4af37"}]}  a pattern printed over the body (tops only); colours are the pattern's, one or two, swatch optional; leave colours out if the customer named none; set the body colour with set-colour; "dots" is polka dots, row one in the first colour and row two in the second
 {"type": "remove-kit-pattern"}  makes the kit plain`;
 
 export const NO_PATTERN_COLOUR = "Say which colour the pattern should be.";
@@ -68,6 +68,7 @@ export function kitPatternAction(spec: GarmentSpec, wire: SetKitPatternWire, sou
         style: wire.style,
         colours,
         ...(kept?.size === undefined ? {} : { size: kept.size }),
+        ...(kept?.dots === undefined ? {} : { dots: kept.dots }),
         ...(kept?.technique === undefined ? {} : { technique: kept.technique }),
         provenance: source,
       },

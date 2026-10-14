@@ -13,7 +13,7 @@ import { formatCm, MEASUREMENT_MAX_TENTHS_MM } from "./units";
  * A plain kit has no pattern at all.
  */
 
-export const KIT_PATTERN_STYLES = ["hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade"] as const;
+export const KIT_PATTERN_STYLES = ["hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade", "dots"] as const;
 export type KitPatternStyle = (typeof KIT_PATTERN_STYLES)[number];
 
 export const KIT_PATTERN_LABELS: Readonly<Record<KitPatternStyle, string>> = {
@@ -24,6 +24,7 @@ export const KIT_PATTERN_LABELS: Readonly<Record<KitPatternStyle, string>> = {
   "side-panels": "Side panels",
   "chest-band": "Chest band",
   fade: "Fade",
+  dots: "Polka dots",
 };
 
 /** The families whose drawings can carry a kit pattern. */
@@ -42,6 +43,27 @@ const patternColourSchema = z
   .refine((entry) => entry.colour !== "" || entry.swatch !== undefined, { message: "Enter a colour.", path: ["colour"] });
 export type PatternColour = z.output<typeof patternColourSchema>;
 
+/**
+ * How polka dots are laid out, in tenths of a millimetre. The dot's width is the pattern's `size`.
+ * Anything left out is drawn with a stand-in on the flats and written as "to be confirmed".
+ */
+/** The closest dots may be drawn, 5 mm, so a typo cannot ask for millions of dots. */
+const MIN_DOT_SPACING = 50;
+
+const dotsSchema = z
+  .object({
+    /** Centre to centre along a row. */
+    pitch: z.number().int().min(MIN_DOT_SPACING).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+    /** Distance from one row to the next. */
+    rowStep: z.number().int().min(MIN_DOT_SPACING).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+    /** Every other row shifted along by half a pitch. */
+    halfDrop: z.boolean().optional(),
+    /** Dots stay this far from a name, number, crest or sponsor mark. */
+    clearSpace: z.number().int().min(0).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+  })
+  .readonly();
+export type DotsLayout = z.output<typeof dotsSchema>;
+
 export const kitPatternSchema = z
   .object({
     style: z.enum(KIT_PATTERN_STYLES),
@@ -49,10 +71,17 @@ export const kitPatternSchema = z
     colours: z.array(patternColourSchema).min(1, "Choose a colour for the pattern.").max(MAX_PATTERN_COLOURS).readonly(),
     /** The width of a band or stripe, in tenths of a millimetre. Left out until someone gives one. */
     size: z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+    /** Only for polka dots: the spacing. Row A takes the first colour and row B the second. */
+    dots: dotsSchema.optional(),
     technique: z.enum(TECHNIQUES).optional(),
     provenance: provenanceSchema,
   })
-  .readonly();
+  .readonly()
+  .refine((pattern) => pattern.dots === undefined || pattern.style === "dots", { message: "Dot spacing only goes with polka dots.", path: ["dots"] })
+  .refine((pattern) => pattern.size === undefined || pattern.dots?.pitch === undefined || pattern.dots.pitch >= pattern.size, {
+    message: "Dots cannot be wider than the space between them.",
+    path: ["dots", "pitch"],
+  });
 export type KitPattern = z.output<typeof kitPatternSchema>;
 
 /** True when a garment of this type can carry a kit pattern. */
@@ -85,7 +114,24 @@ const SIZE_WORDS: Readonly<Record<KitPatternStyle, string>> = {
   "side-panels": "panels",
   "chest-band": "band",
   fade: "fade",
+  dots: "dots",
 };
+
+const cm = (tenths: number | undefined, what: string): string => (tenths === undefined ? `${what} to be confirmed` : `${what} ${formatCm(tenths)} cm`);
+
+/** The spacing of polka dots in plain words; a number nobody gave is "to be confirmed". */
+function dotsDetail(pattern: KitPattern): string {
+  const layout = pattern.dots;
+  const parts = [
+    cm(pattern.size, "dots"),
+    cm(layout?.pitch, "centres"),
+    cm(layout?.rowStep, "rows"),
+    layout?.halfDrop === false ? "rows line up" : "every other row shifted half a step",
+    ...(pattern.colours.length > 1 ? ["colour changes row by row"] : []),
+    ...(layout?.clearSpace === undefined ? [] : [`${formatCm(layout.clearSpace)} cm clear around names, numbers and marks`]),
+  ];
+  return `, ${parts.join(", ")}`;
+}
 
 /** One sentence a factory can print from: the style, the colours, the size when given, and where it goes. */
 export function describeKitPattern(pattern: KitPattern): string {
@@ -95,6 +141,7 @@ export function describeKitPattern(pattern: KitPattern): string {
     pattern.style === "fade"
       ? `${label}, a printed gradient from the body colour into ${colours}`
       : `${label} in ${colours} over the body colour`;
+  if (pattern.style === "dots") return `${head}${dotsDetail(pattern)}, on the front and back of the body.`;
   const size = pattern.size === undefined || pattern.style === "fade" ? "" : `, ${SIZE_WORDS[pattern.style]} ${formatCm(pattern.size)} cm`;
   return `${head}${size}, on the front and back of the body.`;
 }
