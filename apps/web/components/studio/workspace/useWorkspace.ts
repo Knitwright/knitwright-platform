@@ -47,9 +47,13 @@ export const useWorkspace = () => {
       dispatch({ type: "revealHash", id, tool: next });
       choose(next);
     };
-    follow();
+    // After the router has written its own first entry, which would otherwise undo this one.
+    const first = window.setTimeout(follow, 0);
     window.addEventListener("hashchange", follow);
-    return () => window.removeEventListener("hashchange", follow);
+    return () => {
+      window.clearTimeout(first);
+      window.removeEventListener("hashchange", follow);
+    };
   }, [choose]);
 
   const scrollTo = idToScroll(layout, tool);

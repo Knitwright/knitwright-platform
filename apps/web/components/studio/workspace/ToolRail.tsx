@@ -37,14 +37,14 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
   const rail = (
     <nav
       aria-label="Design tools"
-      className="glass-strong fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-1 rounded-t-3xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:flex-col lg:rounded-3xl lg:p-2"
+      className="glass-strong fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-1 rounded-t-3xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:min-h-0 lg:flex-col lg:rounded-3xl lg:p-1.5"
     >
       <div
         role="tablist"
         aria-label="Tools"
         aria-orientation={wide ? "vertical" : "horizontal"}
         onKeyDown={move}
-        className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] lg:flex-none lg:flex-col lg:overflow-visible"
+        className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] lg:min-h-0 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto"
       >
         {RAIL_TOOLS.map((id, index) => {
           const selected = id === tool;
@@ -62,7 +62,7 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
               aria-controls={panelId(id)}
               tabIndex={selected || (!onRail && index === 0) ? 0 : -1}
               onClick={() => onChoose(id)}
-              className={`group flex min-w-[4.25rem] flex-none flex-col items-center gap-1.5 rounded-2xl px-1 py-2 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${
+              className={`group flex min-w-[4.25rem] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${
                 selected ? "bg-tile-2 text-white" : "text-chalk-muted hover:text-ink"
               }`}
             >
