@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { createAccount, signIn, standInForBotCheck, test } from "./support";
+import { createAccount, leaveWithoutChart, signIn, standInForBotCheck, test } from "./support";
 
 /**
  * Plan step 8: the tech pack on screen. It is built from the one saved version of the design,
@@ -53,12 +53,14 @@ test.describe("the tech pack page", () => {
       await expect(page.getByRole("heading", { level: 2, name: heading, exact: true })).toBeVisible();
     }
     await expect(page.getByTestId("confirm-count")).toHaveText(/^\d+ things to confirm\.$/);
-    await expect(page.getByTestId("confirm-list").getByRole("link", { name: "Measurement table" })).toBeVisible();
+    // The measurements come from the Knitwright starter chart, so they are suggestions to confirm, not gaps.
+    await expect(page.getByRole("link", { name: /^\d+ suggestions and \d+ proposals by Knitwright$/ })).toBeVisible();
+    await expect(page.getByTestId("confirm-list").getByRole("link", { name: "Construction" })).toBeVisible();
     await expect(page.getByTestId("sign-off-statement")).toHaveText("Nobody has checked this specification yet.");
     await expect(page.getByText("To be confirmed").first()).toBeVisible();
 
-    await page.getByTestId("confirm-list").getByRole("link", { name: "Measurement table" }).click();
-    await expect(page).toHaveURL(/#measurements$/);
+    await page.getByTestId("confirm-list").getByRole("link", { name: "Construction" }).click();
+    await expect(page).toHaveURL(/#construction$/);
 
     await page.getByRole("link", { name: "Back to the design" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
@@ -90,8 +92,11 @@ test.describe("the tech pack page", () => {
     await expect(page.locator("#components details").locator("input, select").first()).toBeFocused();
   });
 
-  test("shows the drawings of a new design as not to scale, with no measurement values", async ({ page }) => {
-    await signedIn(page, "pack-flats");
+  test("shows the drawings of a design with no size chart as not to scale, with no measurement values", async ({ page }) => {
+    const email = await createAccount("pack-flats");
+    await leaveWithoutChart(email, "crew-tee", "women");
+    await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
 

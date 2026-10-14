@@ -277,3 +277,33 @@ export const createColleagueOf = async (email: string, label: string): Promise<s
   return colleague;
 };
 
+/**
+ * Leaves one garment of the brand of `email` with no size chart, as every design had before
+ * the Knitwright starter charts. The brand is given its own chart for that garment for the
+ * slim fit only. A brand's chart takes the place of the starter chart, and no chart is
+ * borrowed from another fit, so a design of that garment at the regular fit starts with no
+ * measurements at all.
+ */
+export const leaveWithoutChart = async (email: string, garmentType: string, wearer: string): Promise<void> => {
+  const run = { id: "e2e-slim-only", wearer, sizes: ["S", "M", "L"] };
+  const chart = {
+    wearer,
+    garmentType,
+    fit: "slim",
+    sizeRunId: run.id,
+    baseSize: "M",
+    points: [{ pointId: "chest-width", baseValue: 5000, grade: { kind: "even", step: 200 }, tolerance: 100 }],
+    source: { person: "End to end tests", date: "2026-10-14" },
+  };
+  const { error } = await admin().rpc("replace_brand_chart", {
+    p_brand_id: await brandIdOf(email),
+    p_user_id: await userIdOf(email),
+    p_wearer: wearer,
+    p_garment_type: garmentType,
+    p_fit: "slim",
+    p_chart: chart,
+    p_run: run,
+    p_file_id: null,
+  });
+  if (error) throw new Error(error.message);
+};
