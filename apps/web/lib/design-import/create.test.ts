@@ -79,7 +79,8 @@ describe("createFromFile", () => {
     const odd = await setup(["nope", "nope"]);
     const result = await createFromFile(odd.deps, { fileId });
     expect(result.kind).toBe("rejection");
-    expect(odd.refund).toHaveBeenCalledOnce();
+    // Two calls were made and paid for, so nothing is given back.
+    expect(odd.refund).not.toHaveBeenCalled();
     expect(odd.db.rows).toHaveLength(0);
   });
 

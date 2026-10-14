@@ -61,7 +61,8 @@ export async function createFromFile(deps: CreateDeps, input: { readonly fileId:
     deps.log({ level: "error", message: "A picture could not be read into a design", where: "design import", error });
     return refused(deps, FAILED);
   }
-  if (!outcome.ok) return refused(deps, outcome.reason);
+  // A reading that was made and could not be used was still paid for, so only a request that made no call is given back.
+  if (!outcome.ok) return outcome.spend.visionCalls > 0 || outcome.spend.imageEdits > 0 ? { kind: "rejection", reason: outcome.reason } : refused(deps, outcome.reason);
   const entry = deps.vision?.entry;
   const id = await createImport(deps.admin, deps.who, {
     sourceFileId: input.fileId,

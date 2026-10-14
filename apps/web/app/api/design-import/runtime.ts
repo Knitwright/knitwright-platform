@@ -20,8 +20,9 @@ export function requireEnabled(): void {
 
 export const visionModel = (): PricedProvider | null => (designImportEnabled() ? pickVisionModel(assistantModels()) : null);
 
-export function pipelineFor(vision: PricedProvider | null) {
+/** `edits` is false for a redone fit: it makes no vision call and no image edit, so it spends nothing. */
+export function pipelineFor(vision: PricedProvider | null, edits = true) {
   const key = getEnv().FAL_KEY;
-  const image = key ? createFalProvider({ apiKey: key }) : null;
+  const image = edits && key ? createFalProvider({ apiKey: key }) : null;
   return (usage: RouteUsage | null) => buildPipelineDeps({ vision, image, usage });
 }

@@ -21,7 +21,7 @@ export const POST = defineRoute({
         client,
         admin: adminClient(),
         who: { brandId: session.brand.id, userId: session.userId },
-        pipeline: pipelineFor(null),
+        pipeline: pipelineFor(null, false),
         readFile: (id, maxBytes) => createFileReader(client, session.brand.id).read(id, maxBytes),
         log,
         timeoutMs: TIMEOUT_MS,
