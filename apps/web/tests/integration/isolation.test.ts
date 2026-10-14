@@ -328,6 +328,31 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
     change: { pattern_size: "52" },
   },
+  // Print files (W3, migration 20261015030000): a member reads the brand's print profile and league rule sets; only the server writes.
+  print_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().from("print_profiles").insert({ brand_id: brandId, source: "print-house", updated_by: ownerId }).select("brand_id"));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, source: "print-house", updated_by: userId }),
+    change: { bleed_mm: 30 },
+  },
+  league_rule_sets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("league_rule_sets")
+          .insert({ brand_id: brandId, name: "Seeded league", source: "League handbook", rules: {}, created_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", source: "Nowhere", rules: {}, created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
   // The pattern library (W1): a member reads the brand's blocks, their sizes and reviews; only the server writes.
   pattern_blocks: {
     privileges: ["SELECT"],
