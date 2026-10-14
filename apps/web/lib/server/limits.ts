@@ -81,4 +81,8 @@ export const LIMITS = {
   // Reading a design from a picture reaches a vision model and sometimes an image model (W7d). A daily cap per
   // person and address; the per-brand daily cap is counted in lib/design-import/service.ts. Proposed low (owner item P16).
   designImport: { name: "design-import", limit: 10, windowSeconds: 24 * HOUR },
+  // Artwork intake (W7b). Reading a 100 megapixel picture or a PDF page costs seconds of processor time.
+  artworkIntake: { name: "artwork-intake", limit: 20, windowSeconds: 10 * MINUTE },
+  // Checking a tile, removing a white box, making a tile seamless: each reads the full size picture again.
+  artworkConvert: { name: "artwork-convert", limit: 40, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
