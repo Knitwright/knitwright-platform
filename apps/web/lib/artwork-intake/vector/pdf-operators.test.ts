@@ -10,7 +10,7 @@ describe("pdf drawing operators", () => {
   it("reads line width, caps, joins, miter limit and dashes, and scales them by the page transform", async () => {
     const { doc } = await read("[3 2] 0 d 1 J 1 j 4 M 2 w 0 0 1 RG 10 10 m 50 10 l 50 40 l s");
     expect(strokeOf(doc.nodes[0])).toMatchObject({ width: 2, cap: "round", join: "round", miterLimit: 4, dash: [3, 2] });
-    expect((doc.nodes[0] as { cmds: unknown[] }).cmds.at(-1)).toEqual(["Z"]);
+    expect((doc.nodes[0] as unknown as { cmds: unknown[] }).cmds.at(-1)).toEqual(["Z"]);
   });
 
   it("reads every fill and stroke combination, and even-odd rules", async () => {
@@ -38,7 +38,7 @@ describe("pdf drawing operators", () => {
     expect(doc.clips).toHaveLength(2);
     const outer = doc.nodes[0];
     expect(outer).toMatchObject({ t: "g", clip: "c1" });
-    const children = (outer as { children: { t: string; clip?: string }[] }).children;
+    const children = (outer as unknown as { children: { t: string; clip?: string }[] }).children;
     expect(children.map((c) => c.t)).toEqual(["g", "path"]);
     expect(children[0].clip).toBe("c2");
   });
