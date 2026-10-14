@@ -1,7 +1,6 @@
 import { PLACE_DEFINITIONS } from "@/lib/garment";
 import type { PlayerMarkLayer, PointMm, TextLayer, ViewId } from "@/lib/artwork-stack";
 import type { Shape } from "../geometry/boolean";
-import { boundsOf, type Pt } from "../geometry/vec";
 import { colourProblem, numberProblems, textHeightProblem } from "../rules";
 import { STANDARD_CLEAR_SPACE_MM } from "../zones";
 import { textShapes } from "../text/font";
@@ -144,6 +143,3 @@ export async function planPlayerMark(env: BuildEnv, layer: PlayerMarkLayer, wher
     lowestDpi: null,
   };
 }
-
-export const boundsOfInk = (plan: MarkPlan): ReturnType<typeof boundsOf> | null =>
-  plan.shapes.length === 0 ? null : boundsOf(plan.shapes.flatMap((s) => s.shape.flat() as Pt[]));

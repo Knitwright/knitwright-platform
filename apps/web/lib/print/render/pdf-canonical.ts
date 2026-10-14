@@ -47,28 +47,33 @@ function parse(bytes: Uint8Array, from: number): { objects: Map<number, RawObjec
 
 const REF = /(\d+) 0 R/g;
 
+/** The objects in the order they are first reached from the roots, and the number each now has. */
+function numbering(objects: ReadonlyMap<number, RawObject>, roots: readonly number[]): { order: number[]; newNumber: Map<number, number> } | null {
+  const order: number[] = [];
+  const newNumber = new Map<number, number>();
+  const visit = (n: number): boolean => {
+    if (newNumber.has(n)) return true;
+    const object = objects.get(n);
+    if (object === undefined) return false;
+    newNumber.set(n, order.length + 1);
+    order.push(n);
+    return [...object.dict.matchAll(REF)].every((m) => visit(Number(m[1])));
+  };
+  return roots.every(visit) ? { order, newNumber } : null;
+}
+
 export function canonicalPdf(bytes: Uint8Array): Uint8Array {
   const headerEnd = latin(bytes, 0, 64).search(/\d+ 0 obj/);
   if (headerEnd < 0) return bytes;
   const parsed = parse(bytes, headerEnd);
   if (parsed === null) return bytes;
   const trailer = /trailer\r?\n(<<[\s\S]*?>>)\r?\nstartxref/.exec(latin(bytes, parsed.after, bytes.length));
-  if (trailer === null) return bytes;
-  const roots = [...trailer[1].matchAll(REF)].map((m) => Number(m[1]));
-  if (roots.length === 0) return bytes;
+  const roots = trailer === null ? [] : [...trailer[1].matchAll(REF)].map((m) => Number(m[1]));
+  if (trailer === null || roots.length === 0) return bytes;
+  const numbered = numbering(parsed.objects, roots);
+  if (numbered === null) return bytes;
 
-  const order: number[] = [];
-  const newNumber = new Map<number, number>();
-  const visit = (n: number): boolean => {
-    if (newNumber.has(n)) return true;
-    const object = parsed.objects.get(n);
-    if (object === undefined) return false;
-    newNumber.set(n, order.length + 1);
-    order.push(n);
-    return [...object.dict.matchAll(REF)].every((m) => visit(Number(m[1])));
-  };
-  if (!roots.every(visit)) return bytes;
-
+  const { order, newNumber } = numbered;
   const renumber = (text: string): string => text.replace(REF, (_all, n: string) => `${newNumber.get(Number(n))} 0 R`);
   const encoder = new TextEncoder();
   const parts: Uint8Array[] = [bytes.subarray(0, headerEnd)];
@@ -91,8 +96,7 @@ export function canonicalPdf(bytes: Uint8Array): Uint8Array {
   });
   const table = `xref\n0 ${order.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}`;
   const dict = renumber(trailer[1]).replace(/\/Size \d+/, `/Size ${order.length + 1}`);
-  const startxref = size;
-  push(encoder.encode(`${table}trailer\n${dict}\nstartxref\n${startxref}\n%%EOF`));
+  push(encoder.encode(`${table}trailer\n${dict}\nstartxref\n${size}\n%%EOF`));
   const out = new Uint8Array(size);
   let at = 0;
   for (const p of parts) {

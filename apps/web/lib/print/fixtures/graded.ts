@@ -35,3 +35,16 @@ export function testGraded(base: GradedPattern = JERSEY_EU48, factors: Readonly<
 
 export const TEST_GRADED_JERSEY: GradedPattern = testGraded();
 export const TEST_BASE_SIZE = "48";
+
+/** The test pattern with some landmarks taken off one piece, to see what code does when a pattern is short of them. */
+export function withoutLandmarks(pieceId: string, ids: readonly string[], base: GradedPattern = TEST_GRADED_JERSEY): GradedPattern {
+  return gradedPatternSchema.parse({
+    ...base,
+    piecesBySize: Object.fromEntries(
+      Object.entries(base.piecesBySize).map(([size, pieces]) => [
+        size,
+        pieces.map((p) => (p.id === pieceId ? { ...p, landmarks: Object.fromEntries(Object.entries(p.landmarks).filter(([id]) => !ids.includes(id))) } : p)),
+      ]),
+    ),
+  });
+}

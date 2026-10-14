@@ -38,25 +38,23 @@ export interface RasterLayer {
 
 export type SceneLayer = VectorLayer | RasterLayer;
 
-export const ISSUE_CODES = [
-  "below-min-dpi",
-  "name-does-not-fit",
-  "number-does-not-fit",
-  "outside-zones",
-  "larger-than-zone",
-  "not-placed",
-  "missing-glyph",
-  "rule",
-  "colour-avoid",
-  "shape-budget",
-  "dpi-lowered",
-  "asset-missing",
-  "pattern-missing",
-  "no-colour",
-  "no-ground",
-  "text-too-small",
-] as const;
-export type IssueCode = (typeof ISSUE_CODES)[number];
+export type IssueCode =
+  | "below-min-dpi"
+  | "name-does-not-fit"
+  | "number-does-not-fit"
+  | "outside-zones"
+  | "larger-than-zone"
+  | "not-placed"
+  | "missing-glyph"
+  | "rule"
+  | "colour-avoid"
+  | "shape-budget"
+  | "dpi-lowered"
+  | "asset-missing"
+  | "pattern-missing"
+  | "no-colour"
+  | "no-ground"
+  | "text-too-small";
 
 /** Something unmet, in plain words, with a code so code can tell what it is. */
 export interface Issue {
@@ -100,5 +98,3 @@ export interface PieceScene {
   /** Artwork that is the name and number alone, with no ground (the transfer set). */
   readonly transferOnly: boolean;
 }
-
-export const hasRaster = (scene: Pick<PieceScene, "layers">): boolean => scene.layers.some((l) => l.kind === "raster");

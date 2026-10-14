@@ -1,4 +1,3 @@
-import { NOT_SCALED_FOR_SHRINK } from "@/lib/production/contract";
 import { DEFAULT_LABEL, type BuildEnv, type PieceRequest } from "./context";
 import type { Issue } from "./scene";
 

@@ -35,8 +35,9 @@ export function iccName(bytes: Uint8Array): string | null {
         return String.fromCharCode(...bytes.subarray(offset + 12, offset + 12 + Math.max(0, length - 1))).trim() || null;
       }
       if (type === "mluc") {
-        const [first, length, from] = [view.getUint32(offset + 12), view.getUint32(offset + 20), view.getUint32(offset + 24)];
-        if (first < 1) return null;
+        // Records start at byte 16: language, country, length and offset of the first name.
+        const [count, length, from] = [view.getUint32(offset + 8), view.getUint32(offset + 20), view.getUint32(offset + 24)];
+        if (count < 1) return null;
         const text: number[] = [];
         for (let k = 0; k < length; k += 2) text.push(view.getUint16(offset + from + k));
         return String.fromCharCode(...text).trim() || null;

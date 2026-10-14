@@ -72,3 +72,37 @@ describe("print settings", () => {
     expect(iccName(new Uint8Array(200))).toBeNull();
   });
 });
+
+describe("a version 4 profile name", () => {
+  it("reads the first name in a multi-language description tag", () => {
+    const text = new TextEncoder().encode("sRGB v4");
+    const utf16 = new Uint8Array(text.length * 2);
+    text.forEach((c, i) => new DataView(utf16.buffer).setUint16(i * 2, c));
+    const body = new Uint8Array(28 + utf16.length);
+    const v = new DataView(body.buffer);
+    body.set(new TextEncoder().encode("mluc"), 0);
+    v.setUint32(8, 1);
+    v.setUint32(12, 12);
+    v.setUint32(20, utf16.length);
+    v.setUint32(24, 28);
+    body.set(utf16, 28);
+    const bytes = new Uint8Array(144 + body.length);
+    const view = new DataView(bytes.buffer);
+    bytes.set(new TextEncoder().encode("acsp"), 36);
+    view.setUint32(128, 1);
+    bytes.set(new TextEncoder().encode("desc"), 132);
+    view.setUint32(136, 144);
+    view.setUint32(140, body.length);
+    bytes.set(body, 144);
+    expect(iccName(bytes)).toBe("sRGB v4");
+    view.setUint32(144 + 8, 0);
+    expect(iccName(bytes)).toBeNull();
+  });
+  it("skips tags that are not the description", () => {
+    const bytes = new Uint8Array(200);
+    bytes.set(new TextEncoder().encode("acsp"), 36);
+    new DataView(bytes.buffer).setUint32(128, 1);
+    bytes.set(new TextEncoder().encode("wtpt"), 132);
+    expect(iccName(bytes)).toBeNull();
+  });
+});

@@ -170,17 +170,9 @@ export async function loadBundledFont(): Promise<Font> {
   return parseFont(new Uint8Array(await readFile(file)));
 }
 
-export function parseFont(bytes: Uint8Array): Font {
-  const r = new Reader(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength));
-  const t = tablesOf(r);
-  const unitsPerEm = r.u16(t.head + 18);
-  const long = r.i16(t.head + 50) === 1;
-  const glyphCount = r.u16(t.maxp + 4);
-  const metrics = r.u16(t.hhea + 34);
-  const cmap = readCmap(r, t.cmap);
+/** The outline of a glyph by number, simple or built from other glyphs, in font units. */
+function outliner(r: Reader, t: Tables, long: boolean, glyphCount: number): (g: number, depth?: number) => Pt[][] {
   const locaAt = (g: number): number => (long ? r.u32(t.loca + g * 4) : r.u16(t.loca + g * 2) * 2);
-  const advanceOf = (g: number): number => r.u16(t.hmtx + Math.min(g, metrics - 1) * 4);
-
   const outline = (g: number, depth = 0): Pt[][] => {
     if (g >= glyphCount || depth > 4) return [];
     const [from, to] = [locaAt(g), locaAt(g + 1)];
@@ -188,34 +180,46 @@ export function parseFont(bytes: Uint8Array): Font {
     const at = t.glyf + from;
     const contours = r.i16(at);
     if (contours >= 0) return contours === 0 ? [] : simpleGlyph(r, at, contours);
-    return compositeGlyph(at, depth);
+    return compositeGlyph(r, at, (child) => outline(child, depth + 1));
   };
+  return outline;
+}
 
-  const compositeGlyph = (at: number, depth: number): Pt[][] => {
-    const rings: Pt[][] = [];
-    let o = at + 10;
-    for (;;) {
-      const [flags, child] = [r.u16(o), r.u16(o + 2)];
+/** A glyph made of other glyphs (an accented letter): each part moved, and scaled when the font says so. */
+function compositeGlyph(r: Reader, at: number, outlineOf: (glyph: number) => Pt[][]): Pt[][] {
+  const rings: Pt[][] = [];
+  let o = at + 10;
+  for (;;) {
+    const [flags, child] = [r.u16(o), r.u16(o + 2)];
+    o += 4;
+    let [dx, dy] = [0, 0];
+    if (flags & 1) {
+      [dx, dy] = [r.i16(o), r.i16(o + 2)];
       o += 4;
-      let [dx, dy] = [0, 0];
-      if (flags & 1) {
-        [dx, dy] = [r.i16(o), r.i16(o + 2)];
-        o += 4;
-      } else {
-        [dx, dy] = [(r.u8(o) << 24) >> 24, (r.u8(o + 1) << 24) >> 24];
-        o += 2;
-      }
-      if (!(flags & 2)) [dx, dy] = [0, 0];
-      let scale = 1;
-      if (flags & 8) {
-        scale = r.i16(o) / 16384;
-        o += 2;
-      } else if (flags & 0x40) o += 4;
-      else if (flags & 0x80) o += 8;
-      for (const ring of outline(child, depth + 1)) rings.push(ring.map(([x, y]): Pt => [x * scale + dx, y * scale + dy]));
-      if (!(flags & 0x20)) return rings;
+    } else {
+      [dx, dy] = [(r.u8(o) << 24) >> 24, (r.u8(o + 1) << 24) >> 24];
+      o += 2;
     }
-  };
+    if (!(flags & 2)) [dx, dy] = [0, 0];
+    let scale = 1;
+    if (flags & 8) {
+      scale = r.i16(o) / 16384;
+      o += 2;
+    } else if (flags & 0x40) o += 4;
+    else if (flags & 0x80) o += 8;
+    for (const ring of outlineOf(child)) rings.push(ring.map(([x, y]): Pt => [x * scale + dx, y * scale + dy]));
+    if (!(flags & 0x20)) return rings;
+  }
+}
+
+export function parseFont(bytes: Uint8Array): Font {
+  const r = new Reader(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength));
+  const t = tablesOf(r);
+  const unitsPerEm = r.u16(t.head + 18);
+  const metrics = r.u16(t.hhea + 34);
+  const cmap = readCmap(r, t.cmap);
+  const outline = outliner(r, t, r.i16(t.head + 50) === 1, r.u16(t.maxp + 4));
+  const advanceOf = (g: number): number => r.u16(t.hmtx + Math.min(g, metrics - 1) * 4);
 
   const glyphs = new Map<number, Glyph>();
   const glyphOf = (g: number): Glyph => {

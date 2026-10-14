@@ -108,72 +108,69 @@ function basisOf(view: ViewId, opened: OpenedPiece): Basis | null {
 const pieceOf = (pattern: GradedPattern, size: string, id: string): PatternPiece | undefined =>
   (Object.hasOwn(pattern.piecesBySize, size) ? pattern.piecesBySize[size] : []).find((p) => p.id === id);
 
-export function createLayoutMapper(input: MapperInput): LayoutMapper {
-  const bindings = { ...DEFAULT_BINDINGS, ...input.bindings };
-  const cache = new Map<string, ViewFrame | null>();
+type Framer = (view: ViewId, size: string) => ViewFrame | null;
 
-  const rawFrame = (view: ViewId, size: string, wornOrigin: Pt): ViewFrame | null => {
-    const bound = bindings[view];
-    const piece = pieceOf(input.pattern, size, bound.pieceId);
-    if (piece === undefined) return null;
-    const opened = openPiece(piece, bound.variant);
-    const basis = basisOf(view, opened);
-    if (basis === null) return null;
-    return { view, pieceId: piece.id, size, opened, origin: basis.origin, down: basis.down, right: rightOf(basis.down), wornOrigin };
-  };
-
-  // The worn sheet is laid out for each size from that size's own pieces: the back lies beside the front, the sleeves hang at
-  // the shoulders. The scale is 1 in every size, so a field defined on the sheet runs through the side seam in every size.
-  const originCache = new Map<string, Record<ViewId, Pt>>();
-  const originsFor = (size: string): Record<ViewId, Pt> => {
-    let found = originCache.get(size);
-    if (found === undefined) {
-      found = wornOrigins(size, (view, sz) => rawFrame(view, sz, [0, 0]));
-      originCache.set(size, found);
-    }
-    return found;
-  };
-
-  const frame = (view: ViewId, size: string): ViewFrame | null => {
-    const key = `${view}|${size}`;
-    if (!cache.has(key)) cache.set(key, rawFrame(view, size, originsFor(size)[view]));
-    return cache.get(key) ?? null;
-  };
-
+/** The pure coordinate maps of a mapper, over any way of finding a view's frame. */
+function planeMaps(frame: Framer): Pick<LayoutMapper, "planeToPiece" | "pieceToPlane" | "landmarkPlane"> {
   const planeToPiece = (view: ViewId, point: PointMm, size: string): Pt | null => {
     const f = frame(view, size);
     if (f === null) return null;
     const [x, y] = [point.x - f.wornOrigin[0], point.y - f.wornOrigin[1]];
     return [f.origin[0] + f.right[0] * x + f.down[0] * y, f.origin[1] + f.right[1] * x + f.down[1] * y];
   };
-
   const pieceToPlane = (view: ViewId, point: Pt, size: string): PointMm | null => {
     const f = frame(view, size);
     if (f === null) return null;
     const rel = sub(point, f.origin);
     return { x: dot(rel, f.right) + f.wornOrigin[0], y: dot(rel, f.down) + f.wornOrigin[1] };
   };
-
   const landmarkPlane = (view: ViewId, id: LandmarkId, size: string): PointMm | undefined => {
-    const f = frame(view, size);
-    const at = f?.opened.landmarks[id];
+    const at = frame(view, size)?.opened.landmarks[id];
     return at === undefined ? undefined : (pieceToPlane(view, at, size) ?? undefined);
   };
+  return { planeToPiece, pieceToPlane, landmarkPlane };
+}
 
+/** Builds frames for a pattern, laying the worn sheet out for each size from that size's own pieces and remembering the answers. */
+function framer(input: MapperInput): Framer {
+  const bindings = { ...DEFAULT_BINDINGS, ...input.bindings };
+  const frames = new Map<string, ViewFrame | null>();
+  const origins = new Map<string, Record<ViewId, Pt>>();
+  const raw = (view: ViewId, size: string, wornOrigin: Pt): ViewFrame | null => {
+    const bound = bindings[view];
+    const piece = pieceOf(input.pattern, size, bound.pieceId);
+    if (piece === undefined) return null;
+    const opened = openPiece(piece, bound.variant);
+    const basis = basisOf(view, opened);
+    return basis === null ? null : { view, pieceId: piece.id, size, opened, origin: basis.origin, down: basis.down, right: rightOf(basis.down), wornOrigin };
+  };
+  // The scale is 1 in every size, so a field defined on the sheet runs through the side seam in every size.
+  const originsFor = (size: string): Record<ViewId, Pt> => {
+    if (!origins.has(size)) origins.set(size, wornOrigins(size, (view, sz) => raw(view, sz, [0, 0])));
+    return origins.get(size)!;
+  };
+  return (view, size) => {
+    const key = `${view}|${size}`;
+    if (!frames.has(key)) frames.set(key, raw(view, size, originsFor(size)[view]));
+    return frames.get(key) ?? null;
+  };
+}
+
+export function createLayoutMapper(input: MapperInput): LayoutMapper {
+  const frame = framer(input);
+  const maps = planeMaps(frame);
   return {
-    views: (size) => VIEW_ORDER.filter((view) => frame(view, size) !== null),
+    ...maps,
     frame,
-    planeToPiece,
-    pieceToPlane,
-    landmarkPlane,
+    views: (size) => VIEW_ORDER.filter((view) => frame(view, size) !== null),
     toPiece(view, point, size) {
-      const at = planeToPiece(view, point, size);
+      const at = maps.planeToPiece(view, point, size);
       const f = frame(view, size);
       if (at === null || f === null || !pointInPolygon(at, f.opened.outline)) return null;
       const hit: PieceHit = { pieceId: f.pieceId, xMm: at[0], yMm: at[1] };
       return hit;
     },
-    rowAgreement: (size) => rowAgreementOf(size, landmarkPlane),
+    rowAgreement: (size) => rowAgreementOf(size, maps.landmarkPlane),
   };
 }
 

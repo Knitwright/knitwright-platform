@@ -38,7 +38,7 @@ Copy `0000-template.md` to start.
 | 0028 | [The production contract](0028-production-contract.md) | Proposed |
 | 0029 | Pattern library (W1) | Planned |
 | 0030 | Fabrics, sizes and the cut list (W2) | Proposed |
-| 0031 | Print files (W3) | Planned |
+| 0031 | [Print files per piece, size and player, for any design (W3)](0031-print-files.md) | Accepted for phase A. Phase B and owner inputs P1, P5, P7, P8 and P14 are owed. |
 | 0032 | Orders, releases and proofs (W4) | Planned |
 | 0033 | [Tech pack v2 and "Ready for the factory" (W5)](0033-tech-pack-v2.md) | Proposed |
 | 0034 | One coordinate system for 3D and pattern pieces (W6) | Planned |

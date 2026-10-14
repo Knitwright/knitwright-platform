@@ -55,7 +55,7 @@ export interface FillInput {
  * the piece's panel, covering the page including its bleed so the art continues into the bleed.
  */
 export async function planImageFill(input: FillInput): Promise<ImageFillPlan> {
-  const { env, layer, view, size, space } = input;
+  const { env, layer, size, space } = input;
   const asset = await env.assets.getAsset(layer.assetId);
   const label = "The picture fill";
   if (asset === null) return none([{ code: "asset-missing", layerId: layer.id, text: `${label} is not available to the print files, so it is left out of this file.` }]);

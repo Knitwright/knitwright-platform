@@ -51,3 +51,19 @@ describe("league rule sets", () => {
     await expectApp(createRuleSet(db2.client, who, input), "conflict");
   });
 });
+
+describe("league rule set failures", () => {
+  it("reports a database that cannot count, read or remove", async () => {
+    const a = fakeDb();
+    a.failOn("league_rule_sets", "select", { message: "boom" });
+    await expect(createRuleSet(a.client, who, input)).rejects.toThrow(/could not be counted/);
+    await expect(deleteRuleSet(a.client, who, "44444444-4444-4444-8444-444444444444")).rejects.toThrow(/could not be read/);
+    const b = fakeDb();
+    const id = await createRuleSet(b.client, who, input);
+    b.failOn("league_rule_sets", "delete", { message: "boom" });
+    await expect(deleteRuleSet(b.client, who, id)).rejects.toThrow(/could not be removed/);
+    const c = fakeDb();
+    c.failOn("league_rule_sets", "insert", { message: "boom" });
+    await expect(createRuleSet(c.client, who, input)).rejects.toThrow(/could not be saved/);
+  });
+});

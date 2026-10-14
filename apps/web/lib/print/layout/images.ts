@@ -44,9 +44,10 @@ export function dpiSentence(layerName: string, dpi: number, minDpi: number, sour
 export async function resampleToPng(bytes: Uint8Array, widthPx: number, heightPx: number, recolour: string | null): Promise<Uint8Array> {
   let image = sharp(Buffer.from(bytes), { limitInputPixels: false }).rotate().ensureAlpha();
   if (recolour !== null) {
-    const alpha = await image.clone().extractChannel(3).toBuffer();
-    const { width, height } = await image.metadata();
-    image = sharp({ create: { width: width ?? 1, height: height ?? 1, channels: 4, background: recolour } }).joinChannel(alpha, { raw: { width: width ?? 1, height: height ?? 1, channels: 1 } }).ensureAlpha();
+    // Keep the picture's shape (its alpha) and print it in one colour.
+    const { data, info } = await image.clone().extractChannel(3).raw().toBuffer({ resolveWithObject: true });
+    const flat = { width: info.width, height: info.height };
+    image = sharp({ create: { ...flat, channels: 3, background: recolour } }).joinChannel(data, { raw: { ...flat, channels: 1 } });
   }
   const out = await image.resize(Math.max(1, widthPx), Math.max(1, heightPx), { fit: "fill", kernel: "lanczos3" }).png({ compressionLevel: 6, adaptiveFiltering: false }).toBuffer();
   return new Uint8Array(out);

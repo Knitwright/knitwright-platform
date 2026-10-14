@@ -45,6 +45,28 @@ interface Prepared {
   readonly jobs: readonly PlayerJob[];
 }
 
+const NOT_TESTED = { shrinkLengthPct: { value: null, source: "not-set" }, shrinkWidthPct: { value: null, source: "not-set" } } as const;
+
+/** The fabric named in the address and the print scale it gives, or no scale when none is named. */
+async function scaleFor(deps: PrintDeps, fabricId: string | undefined) {
+  const fabric = fabricId === undefined ? null : await deps.fabric(fabricId);
+  if (fabricId !== undefined && fabric === null) throw new AppError("not_found", "That fabric is not in your library.");
+  const scale = printScale(fabric?.profile ?? NOT_TESTED);
+  return { scale, source: fabric === null || scale.notScaled ? null : `fabric ${fabric.name}` };
+}
+
+/** One set per roster row, with the rows that could not be planned set aside to be listed. */
+async function playersFor(deps: PrintDeps, roster: PrintFilesBody, project: OpenProject, source: PatternSource, stack: ArtworkStack) {
+  const planned = planPlayers({
+    order: { id: "00000000-0000-4000-8000-000000000000", projectId: project.id, name: roster.name ?? "Roster", rows: roster.rows },
+    stack,
+    sizeMaps: await deps.sizeMaps(),
+    patternSizes: source.pattern.sizes,
+  });
+  if (planned.jobs.length === 0) throw new AppError("invalid_input", planned.problems[0] ?? "There is nobody to make files for.");
+  return planned;
+}
+
 /** Everything a download or a summary starts from: the design, its stack, the pattern and the settings. */
 export async function prepare(deps: PrintDeps, input: PrintInput): Promise<Prepared> {
   const parsed = printFilesQuerySchema.safeParse(input.query);
@@ -60,9 +82,7 @@ export async function prepare(deps: PrintDeps, input: PrintInput): Promise<Prepa
   const missing = sizes.find((s) => !source.pattern.sizes.includes(s));
   if (missing !== undefined) throw new AppError("invalid_input", `This pattern has no size ${missing}. It has ${source.pattern.sizes.join(", ")}.`);
 
-  const fabric = query.fabric === undefined ? null : await deps.fabric(query.fabric);
-  if (query.fabric !== undefined && fabric === null) throw new AppError("not_found", "That fabric is not in your library.");
-  const scale = printScale(fabric?.profile ?? { shrinkLengthPct: { value: null, source: "not-set" }, shrinkWidthPct: { value: null, source: "not-set" } });
+  const { scale, source: scaleSource } = await scaleFor(deps, query.fabric);
   const [settings, rules, font] = await Promise.all([deps.settings(), deps.rules(), deps.font()]);
   const env: BuildEnv = {
     stack,
@@ -76,29 +96,17 @@ export async function prepare(deps: PrintDeps, input: PrintInput): Promise<Prepa
     scale: { length: scale.length, width: scale.width, note: scale.note },
     font,
     patternReviewed: source.reviewed,
-    scaleSource: fabric === null || scale.notScaled ? null : `fabric ${fabric.name}`,
+    scaleSource,
   };
-  let jobs: readonly PlayerJob[] = [];
-  let problems: readonly string[] = [];
-  if (input.roster !== undefined) {
-    const planned = planPlayers({
-      order: { id: "00000000-0000-4000-8000-000000000000", projectId: project.id, name: input.roster.name ?? "Roster", rows: input.roster.rows },
-      stack,
-      sizeMaps: await deps.sizeMaps(),
-      patternSizes: source.pattern.sizes,
-    });
-    if (planned.jobs.length === 0) throw new AppError("invalid_input", planned.problems[0] ?? "There is nobody to make files for.");
-    jobs = planned.jobs;
-    problems = planned.problems;
-  }
+  const players = input.roster === undefined ? null : await playersFor(deps, input.roster, project, source, stack);
   const request: PrintRequest = {
     sizes,
     formats: (query.format ?? ["pdf"]) as PrintFormat[],
     ...(query.view === undefined ? {} : { views: query.view }),
-    ...(jobs.length === 0 ? {} : { players: jobs }),
+    ...(players === null ? {} : { players: players.jobs }),
     ...(query.guides === "off" ? { guides: false } : {}),
   };
-  return { project, source, stack, env, request, problems, jobs };
+  return { project, source, stack, env, request, problems: players?.problems ?? [], jobs: players?.jobs ?? [] };
 }
 
 /**
