@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { getBlock, listBlocks } from "@/lib/pattern-library/service";
 import type { BlockDetail } from "@/lib/pattern-library/records";
 import { reviewLine } from "@/lib/pattern-library/review";
@@ -37,6 +38,7 @@ export interface PatternAsk {
  * library holds one row per version, so a block id names one version exactly. The note is said in every file's margin.
  */
 export async function loadDesignPattern(client: SupabaseClient, brandId: string, ask: PatternAsk): Promise<DesignPattern> {
+  if (ask.blockId !== undefined && !z.uuid().safeParse(ask.blockId).success) return { ok: false, reason: PATTERN_NOT_FOUND };
   const blockId = ask.blockId ?? (await listBlocks(client, brandId)).find((block) => block.productKey === ask.typeId && block.kind === "pieces")?.id;
   if (blockId === undefined) return { ok: false, reason: NO_LIBRARY_PATTERN };
   const detail = await getBlock(client, brandId, blockId);

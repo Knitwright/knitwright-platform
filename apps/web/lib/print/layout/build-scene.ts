@@ -130,6 +130,7 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
     defaultsNote: settings.defaultsNote,
     lowestDpi,
     patternReviewed: settings.patternReviewed,
+    patternNote: settings.patternNote ?? null,
     readFromPicture: stack.layers.some((layer) => layer.provenance === "read-from-image"),
     rasterReason,
     issues: all,

@@ -16,6 +16,7 @@ export interface NoteInput {
   readonly defaultsNote: string | null;
   readonly lowestDpi: number | null;
   readonly patternReviewed: boolean;
+  readonly patternNote?: string | null;
   readonly readFromPicture: boolean;
   readonly rasterReason: string | null;
   readonly issues: readonly PrintIssue[];
@@ -27,7 +28,8 @@ export function noteLines(n: NoteInput): string[] {
   const lines = [`${n.pieceName}, size ${n.size}${n.player ? `, ${n.player}` : ""}. Printed 1:1.`];
   lines.push(n.scaleNote ?? `Scaled ${n.scaleX.toFixed(4)} x ${n.scaleY.toFixed(4)} for shrink (length x width).`);
   if (n.lowestDpi !== null) lines.push(`Lowest picture on this piece: ${Math.round(n.lowestDpi)} dpi.`);
-  if (!n.patternReviewed) lines.push("Draft pattern, not reviewed.");
+  if (n.patternNote) lines.push(n.patternNote);
+  else if (!n.patternReviewed) lines.push("Draft pattern, not reviewed.");
   if (n.defaultsNote) lines.push(n.defaultsNote);
   if (n.readFromPicture) lines.push("Read from a picture. Compare with the picture before printing.");
   if (n.rasterReason) lines.push(n.rasterReason);

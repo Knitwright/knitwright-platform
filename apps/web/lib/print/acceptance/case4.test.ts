@@ -3,7 +3,7 @@ import { getGenerator } from "@/lib/pattern-generators";
 import type { FillItem, PieceScene } from "../scene";
 import { apply, type Pt } from "../geometry/affine";
 import { pointInRing } from "../geometry/polygon";
-import { realWorld, specOf, type RealWorld } from "../fixtures/real";
+import { realWorld, specOf } from "../fixtures/real";
 import { polkaStack } from "../fixtures/stacks";
 
 /** Plan W3, acceptance case 4, for real: W7c's camo generator, seed 7, drawn by the real registry. */

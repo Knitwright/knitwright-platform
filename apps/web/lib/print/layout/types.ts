@@ -20,6 +20,8 @@ export interface PrintSettings {
   /** Said in the margin when bleed, dpi or avoid list are Knitwright's own defaults. */
   readonly defaultsNote: string | null;
   readonly patternReviewed: boolean;
+  /** Said in the margin about the pattern: which one, and who reviewed it. Without it the margin says only whether it was reviewed. */
+  readonly patternNote?: string | null;
 }
 
 export interface LayoutInput {

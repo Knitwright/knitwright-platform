@@ -13,6 +13,7 @@ const spy = (seen: Box[]): PatternGenerator => ({
   label: "Spy dots",
   params: [],
   repeat: { kind: "field" },
+  maxColours: 2,
   render: (context) => {
     seen.push(context.bounds as Box);
     return { shapes: [] };

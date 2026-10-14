@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { vectorModelSchema, type VectorModel, type VectorNode } from "@/lib/artwork-intake";
-import type { Ring } from "../scene";
 import { HEX } from "../rules/colour";
 
 /**
@@ -112,7 +111,7 @@ function runsOf(segments: PathNode["segments"], matrix: Matrix): Run[] {
 
 interface Walk {
   readonly model: VectorModel;
-  readonly shapes: z.input<typeof shapeSchema>[];
+  readonly shapes: { fill: string | null; stroke: { colour: string; widthMm: number } | null; closed: boolean; rings: (readonly Point[])[] }[];
   readonly notes: Set<string>;
 }
 
@@ -135,12 +134,12 @@ function addPath(walk: Walk, node: PathNode, matrix: Matrix): void {
   const runs = runsOf(node.segments, own).filter((run) => run.points.length >= MIN_AREA_POINTS);
   const fill = flatColour(walk, node.fill);
   const stroke = flatColour(walk, node.stroke);
-  if (fill && runs.length > 0) walk.shapes.push({ fill, stroke: null, closed: true, rings: runs.map((run) => run.points as Ring) });
+  if (fill && runs.length > 0) walk.shapes.push({ fill, stroke: null, closed: true, rings: runs.map((run) => run.points) });
   const width = node.strokeWidth * lengthScale(own);
-  if (stroke && width > 0) for (const run of runs) walk.shapes.push({ fill: null, stroke: { colour: stroke, widthMm: width }, closed: run.closed, rings: [run.points as Ring] });
+  if (stroke && width > 0) for (const run of runs) walk.shapes.push({ fill: null, stroke: { colour: stroke, widthMm: width }, closed: run.closed, rings: [run.points] });
 }
 
-function walkNodes(walk: Walk, nodes: VectorModel["nodes"], matrix: Matrix): void {
+function walkNodes(walk: Walk, nodes: readonly VectorNode[], matrix: Matrix): void {
   for (const node of nodes) {
     if (node.kind === "image") walk.notes.add(VECTOR_NOTES.image);
     else if (node.kind === "path") addPath(walk, node, matrix);

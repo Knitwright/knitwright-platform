@@ -17,8 +17,8 @@ import { releaseView, type ReleaseView } from "./view";
 type Who = Readonly<{ brandId: string; userId: string }>;
 type Clients = Readonly<{ client: SupabaseClient; admin: SupabaseClient }>;
 
-/** The builder is made from the team list, which the player files are made from. */
-export type BuilderFor = (context: { projectId: string; roster: StoredOrder["rows"] | null }) => PrintFileBuilder;
+/** The builder is made from the team list, which the player files are made from, and the pattern the release names. */
+export type BuilderFor = (context: { projectId: string; roster: StoredOrder["rows"] | null; patternBlockId: string; patternBlockVersion: number }) => PrintFileBuilder;
 
 /**
  * Freezes a release. A team list with problems is refused first, because a release is for good.
@@ -35,7 +35,7 @@ export async function freezeRelease(clients: Clients, who: Who, projectId: strin
   const roster = order?.rows ?? null;
   const snapshot = await buildSnapshot(
     { specVersion: project.currentVersion, patternBlockId: body.patternBlockId, patternBlockVersion: body.patternBlockVersion, fabricTestIds: body.fabricTestIds, printProfile: body.printProfile, roster, files: body.files },
-    builderFor({ projectId, roster }),
+    builderFor({ projectId, roster, patternBlockId: body.patternBlockId, patternBlockVersion: body.patternBlockVersion }),
   );
   const created = await createRelease(clients.admin, { ...who, projectId, label: body.label, snapshot, fileSpecs: body.files, orderId: body.orderId ?? null });
   return { ...created, files: snapshot.files.length };
@@ -71,7 +71,7 @@ export async function checkReorder(client: SupabaseClient, brandId: string, proj
       printProfile: body.printProfile,
       rosterHash: roster === null ? null : rosterHash(roster),
     },
-    builderFor({ projectId, roster }),
+    builderFor({ projectId, roster, patternBlockId: body.patternBlockId, patternBlockVersion: body.patternBlockVersion }),
   );
 }
 

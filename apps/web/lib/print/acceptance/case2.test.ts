@@ -92,7 +92,7 @@ describe("case 2: a user's full panel picture, read through the real intake and 
       expect(picture.minY).toBeLessThanOrEqual(bleed.minY + 0.5);
       expect(picture.maxY).toBeGreaterThanOrEqual(bleed.maxY - 0.5);
       // And in the pixels: between 2 and 13 mm outside the cut line the file shows the card's own checker, cell for cell.
-      const source = await sharp(await world.assets.getAsset(assetId).then((a) => a!.readPrintCopy())).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const source = await sharp(Buffer.from(await world.assets.getAsset(assetId).then((a) => a!.readPrintCopy()))).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
       const inner = growRing(scene.cut, 2, "miter");
       const outer = growRing(scene.cut, 13, "miter");
       const back = invert(image.matrix);

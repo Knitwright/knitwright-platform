@@ -33,7 +33,7 @@ async function derivedStack(world: RealWorld, withCrest: boolean): Promise<{ sta
   const crop = out.crops[0];
   const png = crop && (await sharp(tee.png).extract({ left: Math.round(crop.rect.x0), top: Math.round(crop.rect.y0), width: Math.max(1, Math.round(crop.rect.x1 - crop.rect.x0)), height: Math.max(1, Math.round(crop.rect.y1 - crop.rect.y0)) }).png().toBuffer());
   const artwork = png ? await world.upload(new Uint8Array(png), "Crest from picture.png") : "";
-  const layers = out.stack.layers.flatMap((layer) => {
+  const layers = out.stack.layers.flatMap((layer): unknown[] => {
     if (layer.id === "ground") {
       return [layer, { id: "recorded-hoops", name: "Hoops (recorded choice)", views: ["front"], opacity: 1, blend: "normal", provenance: "read-from-image", kind: "pattern", generatorId: RECORDED_CHOICE.generatorId, params: RECORDED_CHOICE.params, datum: { anchor: "chest-line", offsetMm: { x: 0, y: 0 } }, colourIds: [RECORDED_CHOICE.colourId] }];
     }

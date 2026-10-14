@@ -92,7 +92,15 @@ describe("builder options", () => {
 describe("service options", () => {
   it("says the profile is the print house's own when it is, and names a colourway", async () => {
     const profile = { ...DEFAULT_PRINT_PROFILE, source: "print-house" as const };
-    const response = await servePrintFiles({ project: { name: "###", version: 1, spec: jersey() }, profile, rules: NO_RULES, icc: null }, printQuerySchema.parse({ formats: "svg", size: "48", colourway: "away" }));
+    const response = await servePrintFiles(
+      {
+        project: { name: "###", version: 1, spec: jersey() },
+        pattern: { ok: true, pattern: gradedJersey(["48"]), reviewed: true, note: "Pattern: Team jersey, version 1. Reviewed by Sam Cutter (technician) on 2026-10-12." },
+        context: { profile, icc: null, rules: NO_RULES, assets: createFakeAssetReader([]) },
+        roster: null,
+      },
+      printQuerySchema.parse({ formats: "svg", size: "48", colourway: "away" }),
+    );
     expect(response.headers.get("content-disposition")).toContain('filename="design-v1-print-files.zip"');
   }, 60_000);
 });

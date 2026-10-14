@@ -26,6 +26,8 @@ export interface BuilderDeps {
   readonly scaleNote: string | null;
   readonly defaultsNote: string | null;
   readonly patternReviewed: boolean;
+  /** Which pattern and who reviewed it, said in every margin. */
+  readonly patternNote?: string;
   /** Every pattern style the platform can draw (W7c). Tests may pass their own. */
   readonly generators?: readonly PatternGenerator[];
   readonly mapper?: PrintMapper;
@@ -83,6 +85,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
       scaleNote: spec.scaleX === 1 && spec.scaleY === 1 ? deps.scaleNote : null,
       defaultsNote: deps.defaultsNote,
       patternReviewed: deps.patternReviewed,
+      patternNote: deps.patternNote ?? null,
     };
     const made = buildPieceScene({
       stack: deps.stack,

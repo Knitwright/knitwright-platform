@@ -37,6 +37,10 @@ describe("loadDesignPattern", () => {
     expect(await loadDesignPattern(client, BRAND, { typeId: "team-jersey", blockId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd" })).toEqual({ ok: false, reason: PATTERN_NOT_FOUND });
   });
 
+  it("does not ask the database about a pattern id that is not an id", async () => {
+    expect(await loadDesignPattern(libraryClient(tables()), BRAND, { typeId: "team-jersey", blockId: "jersey" })).toEqual({ ok: false, reason: PATTERN_NOT_FOUND });
+  });
+
   it("says so when the library has no pattern for the garment, or only a knitting programme", async () => {
     expect(await loadDesignPattern(libraryClient(tables({ pattern_blocks: [] })), BRAND, { typeId: "team-jersey" })).toEqual({ ok: false, reason: NO_LIBRARY_PATTERN });
     expect(await loadDesignPattern(libraryClient(tables({ pattern_blocks: [blockRow({ kind: "knit-programme" })] })), BRAND, { typeId: "team-jersey" })).toEqual({ ok: false, reason: NO_LIBRARY_PATTERN });

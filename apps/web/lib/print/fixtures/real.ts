@@ -10,6 +10,7 @@ import { BLOCK_ID, BRAND, blockRow, libraryClient, sizeRows } from "./library-cl
 import { NO_RULES } from "./setup";
 
 /** The real inputs, with only the database and the storage bucket in memory: W7b's intake and reader, W1's pattern library. */
+export { BRAND };
 export const USER = "22222222-2222-4222-8222-222222222222";
 export const NOW = new Date("2026-10-14T10:00:00Z");
 
