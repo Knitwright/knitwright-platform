@@ -18,10 +18,10 @@ describe("pickVisionModel", () => {
 });
 
 describe("buildPipelineDeps", () => {
-  it("fits to the stand-in pattern until the real pieces are connected, and reads no patterns yet", () => {
+  it("fits to the stand-in pattern until the real pieces are connected, and reads all-over patterns", () => {
     const deps = buildPipelineDeps({ vision: priced(5), image: null, usage: null });
     expect(deps.standIn).toBe(true);
-    expect(deps.pattern.reads).toBe(false);
+    expect(deps.pattern.reads).toBe(true);
     expect(deps.cleanup).toBeNull();
     expect(deps.provider?.model).toBe("stub-model");
   });

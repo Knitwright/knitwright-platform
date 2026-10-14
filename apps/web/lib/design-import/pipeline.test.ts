@@ -8,7 +8,7 @@ import { SYNTHETIC_TEMPLATE } from "./fixtures/template";
 import { FRONT_ONLY_REPLY, INJECTION_REPLY, MARKS_REPLY, asText, withGuesses } from "./fixtures/replies";
 import { TEE_TRUTH, renderTee } from "./fixtures/synthetic";
 import { NO_PROVIDER, NOTHING_FITTED, runImport, type PipelineDeps } from "./pipeline";
-import { pendingPatternStage, type PatternStage } from "./pattern";
+import { dpiWarning, pendingPatternStage, type PatternStage } from "./pattern";
 import { FORBIDDEN_WORDS, reportSentences } from "./report";
 import { STAND_IN_MAPPER, STAND_IN_TEMPLATE } from "./template";
 import { readingSchema } from "./read";
@@ -108,13 +108,16 @@ describe("runImport", () => {
         note: "A repeating picture fits.",
         repeat: { widthMm: 70, heightMm: 35, label: "estimated, check it" },
         alternative: null,
+        cuts: [],
         effectiveDpi: 60,
+        dpiWarning: dpiWarning(60, 25.4),
+        match: { generatorId: null, error: null, limit: 0.15 },
       }),
     };
     const out = await runImport(await input(), deps([asText(FRONT_ONLY_REPLY)], { pattern: stage }));
     if (!out.ok) throw new Error(out.reason);
     expect(out.stack.layers.map((l) => l.kind)).toEqual(["ground", "image-fill"]);
-    expect(out.report.dpiWarnings[0]).toMatch(/Knitwright default, not from your print house/);
+    expect(out.report.dpiWarnings[0]).toMatch(/Knitwright's default, not from your print house/);
     expect(out.report.notes.join(" ")).toMatch(/repeat is estimated/);
     expect(out.report.notes.join(" ")).not.toMatch(/not read yet/);
   });
@@ -129,6 +132,33 @@ describe("runImport", () => {
     expect(out.report.generatedPixels).toBe(true);
     expect(out.report.spend.imageEdits).toBe(1);
     expect(out.report.notes.join(" ")).toMatch(/generated pixels/);
+  });
+
+  it("cuts pictures for a proposal from the clean-up's own pixels and flags them generated", async () => {
+    const tee = await renderTee();
+    const noisy = await sharp(Buffer.from(tee.png)).composite([{ input: await sharp({ create: { width: 400, height: 400, channels: 4, background: { r: 120, g: 120, b: 120, alpha: 1 } } }).png().toBuffer() }]).png().toBuffer();
+    const provider: ImageProvider = { name: "fake", generate: async () => ({ bytes: tee.png, contentType: "image/png" }) };
+    const stage: PatternStage = {
+      reads: true,
+      find: async ({ view }) => ({
+        layer: { id: "pattern-front", kind: "image-fill", name: "Tile", views: [view], opacity: 1, blend: "normal", provenance: "read-from-image", assetId: "tile-front", mode: "tile", scale: 1, rotationDeg: 0, offsetMm: { x: 0, y: 0 }, halfDrop: false, fit: "cover" },
+        kind: "tile",
+        confidence: 0.6,
+        note: "A repeating picture fits.",
+        repeat: null,
+        alternative: null,
+        cuts: [{ assetId: "tile-front", view, area: { minX: -50, minY: 50, maxX: 50, maxY: 150 }, clip: false }],
+        effectiveDpi: null,
+        dpiWarning: null,
+        match: { generatorId: null, error: null, limit: 0.15 },
+      }),
+    };
+    const d = deps([asText(FRONT_ONLY_REPLY)], { pattern: stage });
+    const out = await runImport({ bytes: new Uint8Array(noisy), mediaType: "image/png" }, { ...d, cleanup: createCleanUp(provider, d.budget) });
+    if (!out.ok) throw new Error(out.reason);
+    expect(out.pictures).toHaveLength(1);
+    expect(out.pictures[0]).toMatchObject({ assetId: "tile-front", generated: true });
+    expect(out.stack.layers.find((l) => l.id === "pattern-front")).toMatchObject({ scale: out.pictures[0].scale });
   });
 
   it("fails plainly with no provider, an unreadable reply, or no garment", async () => {

@@ -29,4 +29,8 @@ export const acceptSchema = z
   .strict();
 export type AcceptInput = z.output<typeof acceptSchema>;
 
+/** A layer redrawn from the picture, and the person's own artwork (already taken in through /api/artwork) to put in its place. */
+export const replaceSchema = z.object({ layerId: z.string().min(1).max(64), artworkId: z.uuid() }).strict();
+export type ReplaceInput = z.output<typeof replaceSchema>;
+
 export const importIdParams = z.object({ importId: z.uuid() });

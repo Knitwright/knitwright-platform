@@ -5,7 +5,7 @@ import type { PricedProvider } from "@/lib/providers/select";
 import { AppError } from "@/lib/server/core/errors";
 import type { RouteUsage } from "@/lib/server/core/metered";
 import { TOO_LARGE } from "@/lib/storage/read";
-import { FAILED, NOT_FOUND, NOT_READABLE_TYPE, TOO_LARGE_TO_READ, createFromFile, refitImport, type CreateDeps } from "./create";
+import { FAILED, NOT_FOUND, TOO_LARGE_TO_READ, createFromFile, refitImport, type CreateDeps } from "./create";
 import { buildPipelineDeps } from "./deps";
 import { fakeDb } from "./fixtures/fake-db";
 import { FRONT_ONLY_REPLY, MARKS_REPLY, asText } from "./fixtures/replies";
@@ -16,6 +16,7 @@ import { createBudget } from "./budget";
 import { SYNTHETIC_TEMPLATE } from "./fixtures/template";
 import { createFakePieceMapper } from "@/lib/artwork-stack";
 import { pendingPatternStage } from "./pattern";
+import { fakeStore } from "./fixtures/fake-store";
 
 const who = { brandId: "11111111-1111-4111-8111-111111111111", userId: "22222222-2222-4222-8222-222222222222" };
 const fileId = "55555555-5555-4555-8555-555555555555";
@@ -38,6 +39,7 @@ async function setup(replies: readonly StubAnswer[], over: Partial<CreateDeps> =
     log,
     timeoutMs: 5000,
     readFile: async () => ({ bytes: png, contentType: "image/png" }),
+    store: () => fakeStore().store,
     pipeline: () => ({ provider: stub, template: SYNTHETIC_TEMPLATE, mapper: createFakePieceMapper(), pattern: pendingPatternStage, cleanup: null, budget: createBudget(), standIn: false }),
     ...over,
   };
@@ -63,9 +65,9 @@ describe("createFromFile", () => {
   });
 
   it("refuses and gives the reservation back for a missing, large or odd file", async () => {
-    for (const [file, reason] of [[null, NOT_FOUND], [TOO_LARGE, TOO_LARGE_TO_READ], [{ bytes: new Uint8Array(1), contentType: "image/gif" }, NOT_READABLE_TYPE]] as const) {
+    for (const [file, reason] of [[null, NOT_FOUND], [TOO_LARGE, TOO_LARGE_TO_READ], [{ bytes: new Uint8Array(1), contentType: "image/gif" }, /Nothing was changed\.$/]] as const) {
       const { deps, refund, db } = await setup([], { readFile: async () => file });
-      expect(await createFromFile(deps, { fileId })).toEqual({ kind: "rejection", reason });
+      expect(await createFromFile(deps, { fileId })).toEqual({ kind: "rejection", reason: typeof reason === "string" ? reason : expect.stringMatching(reason) });
       expect(refund).toHaveBeenCalledOnce();
       expect(db.rows).toHaveLength(0);
     }
@@ -125,6 +127,6 @@ describe("refitImport", () => {
     const none = await refitImport({ ...first.deps, readFile: async () => ({ bytes: blank, contentType: "image/png" }) }, created.view.id, {});
     expect(none.kind).toBe("rejection");
     const broken = await refitImport({ ...first.deps, readFile: async () => ({ bytes: new Uint8Array([1, 2]), contentType: "image/png" }) }, created.view.id, {});
-    expect(broken).toEqual({ kind: "rejection", reason: FAILED });
+    expect(broken).toEqual({ kind: "rejection", reason: NOT_FOUND });
   });
 });

@@ -55,6 +55,8 @@ export async function uploadPicture(file: File): Promise<Answer<string>> {
 export const readPicture = async (fileId: string): Promise<Reading> => readingFrom(await send("/api/design-import", { fileId, rights: true }));
 export const refit = async (importId: string, edits: ViewLandmarks): Promise<Reading> => readingFrom(await send(`/api/design-import/${importId}/refit`, { edits }));
 
+export const replaceLayer = async (importId: string, layerId: string, artworkId: string): Promise<Reading> => readingFrom(await send(`/api/design-import/${importId}/replace`, { layerId, artworkId }));
+
 export interface Accepted {
   readonly layerIds: readonly string[];
   readonly needsOwnFile: readonly string[];
