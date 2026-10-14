@@ -200,7 +200,7 @@ test.describe("the editor", () => {
     await saved(page, 2);
     await expect(page.getByTestId("garment-3d-toggle")).toHaveCount(0);
 
-    await page.goto(`${address}/tech-pack`);
+    await page.goto(`${address}/tech-pack?section=artwork`);
     const table = page.getByTestId("player-marks");
     await expect(table).toContainText("Name across the upper back");
     await expect(table).toContainText("Name, sample SMITH");
