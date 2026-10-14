@@ -15,6 +15,8 @@ import {
 } from "./table-types";
 import { sentences } from "./tables-front";
 
+export { artworkAndColourSection } from "./tables-artwork";
+
 /** The sections added by tech pack v2: readiness, pattern and cutting, fabric, artwork and colour, order of work. */
 
 export function readinessSection(pack: TechPack): ExportSection {
@@ -27,9 +29,9 @@ export function readinessSection(pack: TechPack): ExportSection {
     tables: [
       table(
         null,
-        [textColumn("Group"), textColumn("What"), textColumn("Done"), textColumn("Who acts")],
+        [textColumn("Group"), textColumn("What"), textColumn("Done"), textColumn("Who acts"), textColumn("Open owner input and what is used until then")],
         readiness.groups.flatMap((group) =>
-          group.items.map((entry) => [text(group.title), text(entry.sentence), text(entry.met ? "Yes" : "Not yet"), text(entry.met ? "" : entry.actorLabel)]),
+          group.items.map((entry) => [text(group.title), text(entry.sentence), text(entry.met ? "Yes" : "Not yet"), text(entry.met ? "" : entry.actorLabel), text(entry.ownerInput?.sentence ?? "")]),
         ),
       ),
     ],
@@ -98,43 +100,6 @@ export function fabricSection(pack: TechPack): ExportSection {
       ),
     ],
   };
-}
-
-export function artworkAndColourSection(pack: TechPack): ExportSection {
-  const s = pack.artworkAndColour;
-  const repeat = s.repeat;
-  const tables: ExportTable[] = [
-    table(
-      "Colour standards",
-      [textColumn("Colour"), textColumn("Role"), valueColumn("Name"), valueColumn("Factory code"), valueColumn("Screen colour (screen only)")],
-      s.colours.map((row) => [text(row.id), text(row.role), value(row.name), value(row.factoryCode), value(row.screenColour)]),
-      s.colourNote,
-    ),
-    ...(repeat === null
-      ? []
-      : [
-          table("Repeat sizes", [textColumn("Item"), lengthColumn("Size")], [...repeat.lengths.map((row) => [text(row.label), length(row.measure)]), [text("Closest gap between two dots, edge to edge"), length(repeat.gap)]], repeat.checks.join(" ")),
-          table("Repeat settings", [textColumn("Item"), valueColumn("Setting")], repeat.settings.map((row) => [text(row.label), value(row.setting)])),
-        ]),
-    table(
-      "Zones and clear space",
-      [textColumn("Zone"), textColumn("Piece"), lengthColumn("Clear space"), textColumn("Sizes")],
-      s.zones.map((row) => [text(row.purpose), text(row.pieceName), length(row.clearSpace), text(row.sizes)]),
-    ),
-    table(
-      "Placement on every size",
-      [textColumn("Size"), textColumn("Zone"), textColumn("Piece"), lengthColumn("Down from the high point of shoulder or cap"), lengthColumn("Across from centre")],
-      s.placements.map((row) => [text(row.size), text(row.zone), text(row.pieceName), length(row.down), length(row.across)]),
-    ),
-    table("Print rules", [textColumn("Rule"), valueColumn("Value")], s.printRules.map((row) => [text(row.label), value(row.text)])),
-    table(
-      "Settings the print files were made with",
-      [textColumn("Piece"), textColumn("Size"), textColumn("For"), lengthColumn("Bleed"), numberColumn("Scale across", "times"), numberColumn("Scale down", "times")],
-      s.printParameters.map((row) => [text(row.pieceName), text(row.size), text(row.player), length(row.bleed), number(row.scaleAcross), number(row.scaleDown)]),
-      s.printParametersNote,
-    ),
-  ];
-  return { id: "artwork-and-colour", title: s.title, sheet: EXCEL_SHEETS["artwork-and-colour"], paragraphs: sentences(s.note), tables };
 }
 
 export function operationsSection(pack: TechPack): ExportSection {

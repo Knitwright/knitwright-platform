@@ -3,6 +3,7 @@ import { start } from "@/lib/garment/fixtures/specs";
 import { PROVENANCE_LABELS } from "@/lib/garment";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "../fixtures/designs";
 import { benchmarkJerseyInput, completeProduction, targetedJersey } from "../fixtures/production";
+import { ALL_KINDS_STACK, ASSETS, PICTURE_ACCEPTED, PICTURE_STACK, SMALL_CREST, withStack } from "../fixtures/stacks";
 import { SECTION_IDS, SECTION_TITLES, type TechPack } from "../types";
 import { PROPOSAL_WORDS } from "../text";
 import { STANDARD_CHOICE } from "../cell";
@@ -17,12 +18,44 @@ const cellsOf = (sections: readonly ExportSection[]): unknown[] =>
 
 const designs = (): readonly (readonly [string, TechPack])[] => [
   ["jersey with every production record", packFor(targetedJersey(), { production: completeProduction() })],
+  ["jersey with a stack of every layer kind", packFor(withStack(ALL_KINDS_STACK), { production: { ...completeProduction(), assets: ASSETS } })],
+  ["jersey with a small picture", packFor(withStack(ALL_KINDS_STACK), { production: { ...completeProduction(), assets: [SMALL_CREST] } })],
+  ["jersey read from a picture", packFor(withStack(PICTURE_STACK), { production: { ...completeProduction(), assets: ASSETS, picture: PICTURE_ACCEPTED } })],
   ["jersey with a pattern and nothing else", packFor(targetedJersey(), { production: benchmarkJerseyInput() })],
   ...TOPS_IDS.flatMap((typeId) => [
     [`${typeId} empty`, packFor(start(typeId))] as const,
     [`${typeId} full`, packFor(fullDesign(typeId), { history: revisions(3), charts: CHARTS })] as const,
   ]),
 ];
+
+describe("the artwork and colour tables of a design with a stack", () => {
+  const section = (pack: TechPack) => exportSections(pack).find((entry) => entry.id === "artwork-and-colour")!;
+  const titles = (pack: TechPack) => section(pack).tables.map((table) => table.title);
+
+  it("hold the layers, their placement, the repeat spec and the pictures, and the sentence that describes the design", () => {
+    const pack = packFor(withStack(ALL_KINDS_STACK), { production: { ...completeProduction(), assets: ASSETS } });
+    expect(titles(pack)).toEqual([
+      "Colour standards", "Layers, bottom to top", "Clear space around placed pictures", "Placement of layers on every size", "Repeat spec", "Pictures and their resolution", "Repeat sizes", "Repeat settings",
+      "Zones and clear space", "Placement on every size", "Print rules", "Settings the print files were made with",
+    ]);
+    expect(section(pack).paragraphs.join(" ")).toContain("Polka dots in");
+    const repeat = section(pack).tables.find((table) => table.title === "Repeat spec")!;
+    expect(repeat.rows).toHaveLength(2);
+    expect(JSON.parse((repeat.rows[0]?.[5] as { text: string }).text).generatorId).toBe("kit-dots");
+  });
+
+  it("add the read-from-a-picture table, with the limits and the acceptance, when the design was read from a picture", () => {
+    const pack = packFor(withStack(PICTURE_STACK), { production: { ...completeProduction(), assets: ASSETS, picture: PICTURE_ACCEPTED } });
+    const table = section(pack).tables.find((entry) => entry.title === "Read from a picture")!;
+    const labels = table.rows.map((row) => (row[0] as { text: string }).text);
+    expect(labels).toEqual(expect.arrayContaining(["What this is", "Limit", "Left empty", "Guessed"]));
+    expect(titles(packFor(targetedJersey()))).not.toContain("Read from a picture");
+  });
+
+  it("have no layer tables for a design without a stack", () => {
+    expect(titles(packFor(targetedJersey(), { production: completeProduction() }))).not.toContain("Layers, bottom to top");
+  });
+});
 
 describe("the tables every format is made from", () => {
   it("has a section for each one of the document, in order, with the title of the document", () => {
