@@ -39,6 +39,7 @@ describe("the kit styles a garment offers", () => {
       "side-panels",
       "chest-band",
       "fade",
+      "dots",
     ]);
     expect(kitStylesFor("polo")).toHaveLength(7);
     expect(kitStylesFor("crew-tee").length).toBeGreaterThanOrEqual(4);
@@ -46,7 +47,7 @@ describe("the kit styles a garment offers", () => {
     for (const typeId of ["team-jersey", "polo", "crew-tee", "v-neck-tee", "long-sleeve-tee"]) {
       const count = kitStylesFor(typeId).length;
       expect(count).toBeGreaterThanOrEqual(4);
-      expect(count).toBeLessThanOrEqual(8);
+      expect(count).toBeLessThanOrEqual(9);
     }
   });
 
@@ -132,5 +133,18 @@ describe("club colours", () => {
   it("names every colour in the palette once", () => {
     expect(new Set(CLUB_PALETTE.map((entry) => entry.swatch)).size).toBe(CLUB_PALETTE.length);
     expect(CLUB_PALETTE.length).toBeGreaterThanOrEqual(10);
+  });
+});
+
+describe("the polka dots kit style", () => {
+  it("prints the second and third colours as rows, and gives no size nobody chose", () => {
+    const dotted = applied(start("team-jersey"), "dots", { main: WHITE, second: "#c8102e", third: "#1f4fbf" });
+    expect(dotted.kitPattern).toMatchObject({ style: "dots", colours: [{ swatch: "#c8102e" }, { swatch: "#1f4fbf" }], provenance: "user-edited" });
+    expect(dotted.kitPattern?.size).toBeUndefined();
+    expect(dotted.kitPattern?.dots).toBeUndefined();
+  });
+
+  it("is offered on jerseys only", () => {
+    expect(kitStylesFor("polo").some((style) => style.id === "dots")).toBe(false);
   });
 });
