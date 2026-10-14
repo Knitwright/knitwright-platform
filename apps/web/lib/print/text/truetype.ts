@@ -1,6 +1,7 @@
 /**
  * A small reader for the outlines in a TrueType font (the glyf table), enough to turn text into paths.
- * It reads the character map (format 4 and 12), advance widths, simple and composite glyphs.
+ * It reads the character map (format 4, which covers the Basic Multilingual Plane), advance widths, simple and composite glyphs.
+ * A composite part is moved but not scaled or turned, which is how accents are built in the fonts we ship.
  * It reads only; a font that does not parse is refused with a plain error rather than guessed at.
  */
 
@@ -30,18 +31,13 @@ class Reader {
   u16 = (at: number): number => this.view.getUint16(at);
   i16 = (at: number): number => this.view.getInt16(at);
   u32 = (at: number): number => this.view.getUint32(at);
-  get length(): number {
-    return this.view.byteLength;
-  }
 }
 
 function tableDirectory(r: Reader): Map<string, { offset: number; length: number }> {
-  if (r.length < 12) throw new Error(FONT_ERROR);
   const count = r.u16(4);
   const tables = new Map<string, { offset: number; length: number }>();
   for (let i = 0; i < count; i += 1) {
     const at = 12 + i * 16;
-    if (at + 16 > r.length) throw new Error(FONT_ERROR);
     const tag = String.fromCharCode(r.u8(at), r.u8(at + 1), r.u8(at + 2), r.u8(at + 3));
     tables.set(tag, { offset: r.u32(at + 8), length: r.u32(at + 12) });
   }
@@ -56,24 +52,11 @@ function cmapReader(r: Reader, base: number): (codePoint: number) => number {
     const encoding = r.u16(base + 6 + i * 8);
     const offset = base + r.u32(base + 8 + i * 8);
     const format = r.u16(offset);
-    const unicode = platform === 0 || (platform === 3 && (encoding === 1 || encoding === 10));
-    if (unicode && (format === 12 || (format === 4 && chosen < 0))) chosen = offset;
-    if (unicode && format === 12) break;
+    const unicode = platform === 0 || (platform === 3 && encoding === 1);
+    if (unicode && format === 4 && chosen < 0) chosen = offset;
   }
   if (chosen < 0) throw new Error(FONT_ERROR);
-  return r.u16(chosen) === 12 ? format12(r, chosen) : format4(r, chosen);
-}
-
-function format12(r: Reader, at: number): (codePoint: number) => number {
-  const groups = r.u32(at + 12);
-  return (code) => {
-    for (let i = 0; i < groups; i += 1) {
-      const g = at + 16 + i * 12;
-      const start = r.u32(g);
-      if (code >= start && code <= r.u32(g + 4)) return r.u32(g + 8) + (code - start);
-    }
-    return 0;
-  };
+  return format4(r, chosen);
 }
 
 function format4(r: Reader, at: number): (codePoint: number) => number {
@@ -83,7 +66,6 @@ function format4(r: Reader, at: number): (codePoint: number) => number {
   const deltas = starts + segments * 2;
   const rangeOffsets = deltas + segments * 2;
   return (code) => {
-    if (code > 0xffff) return 0;
     for (let i = 0; i < segments; i += 1) {
       if (code > r.u16(ends + i * 2)) continue;
       const start = r.u16(starts + i * 2);
@@ -105,7 +87,7 @@ interface Tables {
 
 function simpleContours(r: Reader, at: number, count: number): Contour[] {
   const ends = Array.from({ length: count }, (_, i) => r.u16(at + 10 + i * 2));
-  const total = (ends[count - 1] ?? -1) + 1;
+  const total = (ends[count - 1] as number) + 1;
   let p = at + 10 + count * 2;
   p += 2 + r.u16(p);
   const flags: number[] = [];
@@ -149,29 +131,17 @@ function compositeContours(r: Reader, at: number, load: Loader, depth: number): 
     let dx = 0;
     let dy = 0;
     if (flags & 1) {
-      dx = flags & 2 ? r.i16(p) : 0;
-      dy = flags & 2 ? r.i16(p + 2) : 0;
+      dx = r.i16(p);
+      dy = r.i16(p + 2);
       p += 4;
     } else {
-      dx = flags & 2 ? (r.u8(p) << 24) >> 24 : 0;
-      dy = flags & 2 ? (r.u8(p + 1) << 24) >> 24 : 0;
+      dx = (r.u8(p) << 24) >> 24;
+      dy = (r.u8(p + 1) << 24) >> 24;
       p += 2;
     }
-    let [a, b, c, d] = [1, 0, 0, 1];
-    const f2 = (o: number): number => r.i16(o) / 16384;
-    if (flags & 8) {
-      a = d = f2(p);
-      p += 2;
-    } else if (flags & 0x40) {
-      a = f2(p);
-      d = f2(p + 2);
-      p += 4;
-    } else if (flags & 0x80) {
-      [a, b, c, d] = [f2(p), f2(p + 2), f2(p + 4), f2(p + 6)];
-      p += 8;
-    }
+    p += flags & 8 ? 2 : flags & 0x40 ? 4 : flags & 0x80 ? 8 : 0;
     for (const contour of load(part, depth + 1)) {
-      out.push(contour.map((pt) => ({ x: a * pt.x + c * pt.y + dx, y: b * pt.x + d * pt.y + dy, onCurve: pt.onCurve })));
+      out.push(contour.map((pt) => ({ x: pt.x + dx, y: pt.y + dy, onCurve: pt.onCurve })));
     }
     if (!(flags & 0x20)) return out;
   }
@@ -179,7 +149,7 @@ function compositeContours(r: Reader, at: number, load: Loader, depth: number): 
 
 function glyphLoader(r: Reader, tables: Tables): Loader {
   const load: Loader = (glyph, depth) => {
-    if (depth > 6 || glyph < 0 || glyph >= tables.glyphCount) return [];
+    if (depth > 6 || glyph >= tables.glyphCount) return [];
     const [start, end] = tables.loca(glyph);
     if (end <= start) return [];
     const at = tables.glyf + start;
@@ -211,9 +181,8 @@ export function readTrueType(bytes: Uint8Array): TrueTypeFont {
     const metrics = r.u16(hhea + 34);
     const hmtx = need("hmtx").offset;
     const glyphIndex = cmapReader(r, need("cmap").offset);
-    const os2 = dir.get("OS/2");
-    const fromTable = os2 && os2.length >= 90 && r.u16(os2.offset) >= 2 ? r.i16(os2.offset + 88) : 0;
-    const capHeight = fromTable > 0 ? fromTable : Math.max(0, ...load(glyphIndex(72), 0).flat().map((pt) => pt.y));
+    // The capital height is in the OS/2 table from version 2; a font without it is refused.
+    const capHeight = r.i16(need("OS/2").offset + 88);
     if (unitsPerEm <= 0 || capHeight <= 0) throw new Error(FONT_ERROR);
     return {
       unitsPerEm,
@@ -223,7 +192,6 @@ export function readTrueType(bytes: Uint8Array): TrueTypeFont {
       contours: (glyph) => load(glyph, 0),
     };
   } catch (error) {
-    if (error instanceof RangeError) throw new Error(FONT_ERROR);
-    throw error;
+    throw error instanceof RangeError ? new Error(FONT_ERROR) : error;
   }
 }

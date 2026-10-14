@@ -50,7 +50,6 @@ export async function imageFillLayer(layer: ImageFillLayer, space: LayerSpace): 
   if (!asset || asset.kind !== "raster") return stop(`The picture for layer ${layer.id} is not available, so it was left off.`);
   const own = asset.dpiMeta ?? ASSUMED_DPI;
   const naturalW = (asset.widthPx / own) * 25.4;
-  const naturalH = (asset.heightPx / own) * 25.4;
   const issues: PrintIssue[] = asset.dpiMeta === null ? [{ severity: "note", text: `The picture states no resolution, so ${ASSUMED_DPI} dpi was assumed to work out its size.` }] : [];
   const panel = layer.mode === "panel";
   const box = designBox(space);

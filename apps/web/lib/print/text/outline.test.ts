@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { boundsOf } from "../geometry/polygon";
-import { bundledFont, outlineText, textWidthMm } from "./outline";
+import { readFileSync } from "node:fs";
+import { OUTLINE_FONT_FILE, bundledFont, outlineText, textWidthMm } from "./outline";
 import { readTrueType } from "./truetype";
 
 describe("outlineText", () => {
@@ -43,6 +44,8 @@ describe("outlineText", () => {
     expect(() => outlineText("A", 0)).toThrow(RangeError);
     expect(() => readTrueType(new Uint8Array(40))).toThrow("could not be read");
     expect(() => readTrueType(new Uint8Array(3))).toThrow("could not be read");
+    const real = readFileSync(OUTLINE_FONT_FILE);
+    expect(() => readTrueType(new Uint8Array(real.subarray(0, 4000)))).toThrow("could not be read");
     expect(bundledFont().unitsPerEm).toBeGreaterThan(0);
   });
 });

@@ -22,11 +22,11 @@ export interface TiffResult {
 }
 
 /** The profile reaches sharp as a file: a unique name in the temp folder, removed afterwards. */
-async function withProfileFile<T>(icc: Uint8Array, use: (file: string) => Promise<T>): Promise<T> {
+async function withProfileFile<T>(icc: Uint8Array, run: (file: string) => Promise<T>): Promise<T> {
   const file = path.join(tmpdir(), `knitwright-${randomUUID()}.icc`);
   await writeFile(file, icc);
   try {
-    return await use(file);
+    return await run(file);
   } finally {
     await rm(file, { force: true });
   }

@@ -59,7 +59,11 @@ const nextConfig: NextConfig = {
   // The PDF font is read from disk when a PDF is made (decision 0008), so the host must ship it with
   // the export route. The brackets are escaped because the key is a picomatch glob. A test fails
   // when this entry is missing or names another route.
-  outputFileTracingIncludes: { "/api/projects/\\[projectId\\]/exports/\\[format\\]": ["./assets/fonts/**"] },
+  outputFileTracingIncludes: {
+    "/api/projects/\\[projectId\\]/exports/\\[format\\]": ["./assets/fonts/**"],
+    // The print files outline names and numbers from the same font.
+    "/api/projects/\\[projectId\\]/print-files": ["./assets/fonts/**"],
+  },
   headers: async () => [
     { source: "/:path*", headers: SECURITY_HEADERS },
     { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },

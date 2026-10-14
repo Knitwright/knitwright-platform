@@ -20,7 +20,7 @@ export interface RasterOptions {
   readonly margin: boolean;
 }
 
-export interface RasterResult extends FlatArt {}
+export type RasterResult = FlatArt;
 
 type SharpBlend = "over" | "multiply" | "screen" | "overlay";
 
