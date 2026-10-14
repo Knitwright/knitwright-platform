@@ -19,6 +19,7 @@ import {
 } from "./model";
 import { tidy } from "./chain";
 import { FAMILY_DRAWERS } from "./families";
+import { currentStack, withStackPatterns } from "@/lib/artwork-stack";
 import { withKitPattern } from "./kit-pattern";
 import { basisOf, fitProblems, type Basis } from "./templates/basis";
 import { calloutElements } from "./templates/callouts";
@@ -173,7 +174,8 @@ export function buildFlat(input: BuildInput): FlatModel | null {
     nameOf: (id) => type.panels.find((panel) => panel.id === id)?.label ?? id,
     fillOf: (id) => panelFill(spec, active, id),
   });
-  const panels = withKitPattern(plain, spec.kitPattern, { view, underarm: basis.underarm });
+  const place = { view, underarm: basis.underarm };
+  const panels = spec.artworkStack ? withStackPatterns(plain, currentStack(spec), place, active) : withKitPattern(plain, spec.kitPattern, place);
   const callouts = input.callouts && resolved.toScale
     ? calloutElements(points.map((point) => ({ id: point.id, label: point.label, value: need(resolved.dims, point.id) })), frame, resolved.dims)
     : null;
