@@ -47,7 +47,7 @@ const openTechPack = async (page: Page): Promise<void> => {
 
 /** Shows one section of the factory file from the list at the side. */
 const section = async (page: Page, label: string): Promise<void> => {
-  const link = page.getByRole("navigation", { name: "Sections of the tech pack" }).getByRole("link", { name: new RegExp(`^${label}, `) });
+  const link = page.getByRole("navigation", { name: "Sections of the tech pack" }).getByRole("link", { name: new RegExp(`^${label} ?, `) });
   await link.click();
   await expect(link).toHaveAttribute("aria-current", "page");
 };
@@ -83,7 +83,7 @@ test.describe("the tech pack page", () => {
     await page.getByTestId("confirm-list").getByRole("link", { name: "Construction" }).click();
     await expect(page).toHaveURL(/\?section=construction#construction$/);
     await expect(page.getByRole("heading", { level: 2, name: "Construction", exact: true })).toBeVisible();
-    await expect(page.getByText("To be confirmed").first()).toBeVisible();
+    await expect(page.locator("#construction").getByText("To be confirmed").first()).toBeVisible();
 
     await page.getByRole("link", { name: "Back to the design" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
