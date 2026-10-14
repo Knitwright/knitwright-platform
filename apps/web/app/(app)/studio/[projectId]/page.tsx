@@ -1,3 +1,4 @@
+import { countryOptions } from "@/lib/leads/organisation";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
@@ -70,7 +71,7 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
         ),
         share: <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />,
         quote: <QuoteRequest projectId={projectId} version={project.currentVersion} firstDate={leads.firstDate} earlier={leads.quotes} />,
-        organisation: leads.askDetails ? <OrganisationPrompt details={leads.details} /> : null,
+        organisation: leads.askDetails ? <OrganisationPrompt details={leads.details} countries={countryOptions()} /> : null,
       }}
     />
   );

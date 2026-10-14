@@ -66,7 +66,7 @@ describe("needsYou", () => {
         kind: "share",
         text: "Home jersey: the factory file has no empty fields. Show it to your committee",
         action: "Share",
-        href: "/studio/d1#share-heading",
+        href: "/studio/d1?tool=share#share-heading",
       }),
     ]);
   });
@@ -83,7 +83,7 @@ describe("needsYou", () => {
         kind: "vote",
         text: "Home jersey: committee vote open, 7 yes, 1 not yet",
         action: "See votes",
-        href: "/studio/d1#share-heading",
+        href: "/studio/d1?tool=share#share-heading",
       }),
     ]);
   });
@@ -98,8 +98,8 @@ describe("needsYou", () => {
       quotes: [quote({ id: "a", status: "new", quantity: 1200 }), quote({ id: "b", status: "quoted" })],
     });
     expect(items.map((item) => [item.kind, item.text, item.action, item.href])).toEqual([
-      ["quote-sent", "Quote for 25 of Home jersey sent. Look in your email", "Open", "/studio/d1#quote-request"],
-      ["quote-waiting", "Quote for 1,200 of Home jersey asked for. We reply by email", "Open", "/studio/d1#quote-request"],
+      ["quote-sent", "Quote for 25 of Home jersey sent. Look in your email", "Open", "/studio/d1?tool=quote#quote-request"],
+      ["quote-waiting", "Quote for 1,200 of Home jersey asked for. We reply by email", "Open", "/studio/d1?tool=quote#quote-request"],
     ]);
   });
 
