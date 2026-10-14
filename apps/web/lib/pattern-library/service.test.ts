@@ -25,8 +25,15 @@ function fake(tables: Record<string, unknown[]>, rpcResult: Result = { data: nul
       const call = { table, filters: [] as unknown[][] };
       calls.push(call);
       const builder: Record<string, unknown> = {};
-      for (const method of ["select", "eq", "order", "limit"]) builder[method] = (...args: unknown[]) => { call.filters.push([method, ...args]); return builder; };
-      const answer = (): Result => (table === failTable ? { data: null, error: { message: "boom" } } : { data: tables[table] ?? [], error: null });
+      for (const method of ["select", "eq", "order", "limit", "range"]) builder[method] = (...args: unknown[]) => { call.filters.push([method, ...args]); return builder; };
+      const answer = (): Result => {
+        if (table === failTable) return { data: null, error: { message: "boom" } };
+        const range = call.filters.find((f) => f[0] === "range");
+        const rows = tables[table] ?? [];
+        const limit = call.filters.find((f) => f[0] === "limit");
+        if (range) return { data: rows.slice(range[1] as number, (range[2] as number) + 1), error: null };
+        return { data: limit ? rows.slice(0, limit[1] as number) : rows, error: null };
+      };
       builder.maybeSingle = async () => ({ ...answer(), data: (answer().data as unknown[] | null)?.[0] ?? null });
       builder.then = (resolve: (r: Result) => unknown) => Promise.resolve(answer()).then(resolve);
       return builder;
@@ -62,6 +69,15 @@ describe("listBlocks", () => {
     const blocks = await listBlocks(client, "brand");
     expect(blocks.map((b) => [b.productKey, b.state, b.review?.reviewerName ?? null])).toEqual([["crew-tee", "reviewed", "Newest"], ["polo", "draft", null]]);
     expect(blocks[0].sources).toBe("Uploaded by a technician");
+  });
+
+  it("reads every page of reviews, so a block whose review is far back is still reviewed", async () => {
+    const filler = Array.from({ length: 1200 }, (_, at) => ({ ...reviewRow(`00000000-0000-4000-8000-${String(at).padStart(12, "0")}`, "Filler"), block_id: "99999999-9999-4999-8999-999999999999" }));
+    const far = reviewRow("55555555-5555-4555-8555-555555555555", "Far back");
+    const { client } = fake({ pattern_blocks: [blockRow], pattern_reviews: [...filler, far] });
+    const [block] = await listBlocks(client, "brand");
+    expect(block.review?.reviewerName).toBe("Far back");
+    expect(block.state).toBe("reviewed");
   });
 
   it("says plainly when the library cannot be read", async () => {
