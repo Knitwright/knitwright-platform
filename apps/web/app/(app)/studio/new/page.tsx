@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FormPage } from "@/components/shell/PageIntro";
 import { NewDesignForm } from "@/components/studio/NewDesignForm";
 import { garmentTypeGroups } from "@/lib/projects/type-groups";
 import { WEARER_OPTIONS } from "@/lib/projects/wearers";
@@ -11,15 +12,14 @@ export default async function NewDesignPage() {
   const types = garmentTypeGroups();
 
   return (
-    <div className="max-w-xl">
-      <p className="font-mono text-xs uppercase tracking-wider text-muted">{brand.name}</p>
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">New design</h1>
-      <p className="mt-3 text-[15px] leading-relaxed text-muted">
-        Choose a garment and who it is for. You can change every option afterwards.
-      </p>
-      <div className="mt-6 rounded-2xl border border-hairline bg-surface p-6">
+    <FormPage
+      eyebrow={brand.name}
+      title="New design"
+      lead="Choose a garment and who it is for. You can change every option afterwards."
+    >
+      <div className="max-w-2xl rounded-2xl border border-hairline bg-surface p-6 md:p-8">
         <NewDesignForm types={types} wearers={WEARER_OPTIONS} />
       </div>
-    </div>
+    </FormPage>
   );
 }

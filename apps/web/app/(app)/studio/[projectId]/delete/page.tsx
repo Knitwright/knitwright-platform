@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DeleteForm } from "@/components/deletion/DeleteForm";
+import { PageIntro } from "@/components/shell/PageIntro";
+import { PageSection } from "@/components/shell/PageSection";
 import { deleteDesignAction } from "@/lib/deletion/actions";
 import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
@@ -22,16 +24,14 @@ export default async function DeleteDesignPage({ params }: PageProps<"/studio/[p
   const project = await getProject(await sessionClient(), brand.id, projectId).catch(orNotFound);
 
   return (
-    <div className="flex max-w-2xl flex-col gap-8">
-      <header>
-        <p className="font-mono text-xs uppercase tracking-wider text-muted">Delete design</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{project.name}</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          This deletes the design, every saved version of it, its download records, and the
-          uploaded pictures that no other design uses. It cannot be undone.
-        </p>
-      </header>
-      <section className="rounded-2xl border border-hairline bg-surface p-6">
+    <div className="flex flex-col gap-8">
+      <PageIntro eyebrow="Delete design" title={project.name} />
+      <PageSection
+        id="delete-design"
+        title="What this deletes"
+        tone="warn"
+        description="This deletes the design, every saved version of it, its download records, and the uploaded pictures that no other design uses. It cannot be undone."
+      >
         <DeleteForm
           action={deleteDesignAction}
           hidden={{ projectId }}
@@ -43,7 +43,7 @@ export default async function DeleteDesignPage({ params }: PageProps<"/studio/[p
             Keep it and go back
           </Link>
         </p>
-      </section>
+      </PageSection>
     </div>
   );
 }

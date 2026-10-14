@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { LeadOwnerForm } from "@/components/leads/LeadOwnerForm";
+import { pageFrame } from "@/components/shell/page-width";
 import { QuoteStatusForm } from "@/components/leads/QuoteStatusForm";
 import { Pagination } from "@/components/ui/Pagination";
 import { loadAccessRequests, type AccessRequestRow } from "@/lib/leads/access";
@@ -38,7 +39,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/admin/lead
   const shown = pageOf(leads, request);
 
   return (
-    <main id="main" className="rise mx-auto w-full max-w-6xl flex-1 px-5 py-10">
+    <main id="main" className={`rise ${pageFrame("content")} flex-1 py-10`}>
       <p className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright team</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Leads</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">

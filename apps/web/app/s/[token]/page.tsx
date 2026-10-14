@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { PublicHeader } from "@/components/shell/PublicHeader";
+import { PAGE_WIDTH, pageFrame } from "@/components/shell/page-width";
 import { ResponseForm } from "@/components/share/ResponseForm";
 import { SharedDesign } from "@/components/share/SharedDesign";
 import { brandChartSet } from "@/lib/charts/service";
@@ -49,12 +50,12 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
 
   return (
     <>
-      <PublicHeader width="max-w-4xl" linkHome={false} />
-      <main id="main" className="rise mx-auto flex w-full max-w-4xl flex-col gap-10 px-5 py-10">
+      <PublicHeader linkHome={false} />
+      <main id="main" className={`rise ${pageFrame("content")} flex flex-col gap-10 py-10`}>
         {loaded ? (
           <>
             <SharedDesign page={loaded.page} picturesNote={loaded.picturesNote} />
-            <section aria-labelledby="share-answer" className="flex max-w-xl flex-col gap-4">
+            <section aria-labelledby="share-answer" className={`flex ${PAGE_WIDTH.form} flex-col gap-4`}>
               <div className="flex flex-col gap-1">
                 <h2 id="share-answer" className="text-lg font-semibold text-ink">
                   What do you think?
