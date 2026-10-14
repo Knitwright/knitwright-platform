@@ -72,6 +72,12 @@ describe("writeDxf", () => {
     expect(text).toContain("QUANTITY: 1,1");
   });
 
+  it("keeps a line break in a name from starting a new line of the file", () => {
+    const text = writeDxf(JERSEY_EU48.piecesBySize["48"], { styleName: "Club\n0\nSECTION" });
+    expect(text).toContain("STYLE NAME: Club 0 SECTION");
+    expect(readDxf(text).info.styleName).toBe("Club 0 SECTION");
+  });
+
   it("never writes minus zero", () => {
     const p = { ...JERSEY_EU48.piecesBySize["48"][3], landmarks: {} };
     expect(writeDxf([p], options)).not.toContain("-0.00");

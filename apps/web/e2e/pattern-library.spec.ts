@@ -12,8 +12,10 @@ const BENCHMARK_DXF = join(__dirname, "../../../docs/owner/reference/fashioninst
 
 const openMakeIt = async (page: Page, name: string): Promise<void> => {
   await signIn(page, await createAccount("pattern-library"));
+  await expect(page).toHaveURL(/\/studio$/);
   await page.goto("/studio/new");
   await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
+  await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();

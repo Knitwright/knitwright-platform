@@ -29,7 +29,9 @@ class Writer {
     body();
     this.pair(0, "ENDSEC");
   }
-  text(layer: string, at: Point, value: string): void {
+  text(layer: string, at: Point, rawValue: string): void {
+    // A line break in a name would start a new line of the file, so it is made a space.
+    const value = rawValue.replace(/[\r\n]+/g, " ");
     this.pair(0, "TEXT");
     this.pair(8, layer);
     this.pair(10, fmt(at[0]));
