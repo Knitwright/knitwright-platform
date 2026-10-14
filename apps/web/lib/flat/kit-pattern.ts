@@ -3,6 +3,7 @@ import { tidy } from "./chain";
 import { NEUTRAL_FILL, safeColour } from "./colour";
 import { boundsOfPoints, flatten } from "./geometry";
 import type { Bounds, FlatElement, FlatPath, PathCommand, Point, View } from "./model";
+import { BASELINE_SHIFT } from "./player-marks";
 
 /**
  * A kit pattern drawn on the body of a top: hoops, stripes, a sash and so on. Each band is a
@@ -24,7 +25,16 @@ const DRAWN_SIZES = {
   "side-panels": 800,
   "chest-band": 900,
   fade: 0,
+  dots: 300,
 } as const;
+
+/** How far apart dots are drawn when the design gives no spacing: the pitch is this many dot widths, the row step half a pitch. */
+const DRAWN_PITCH_PER_DOT = 7 / 3;
+/** How far dots stay from a mark when the design gives no clear space, in tenths of a millimetre. */
+const DRAWN_CLEAR_SPACE = 100;
+/** How many corners a dot is drawn with, and how wide a letter is against its height when working out where text ends. */
+const DOT_CORNERS = 32;
+const LETTER_WIDTH = 0.65;
 
 /** How wide a pinstripe is drawn, and the share of a band each sash edging takes. */
 const PIN_WIDTH = 28;
@@ -37,6 +47,8 @@ export interface PatternPlace {
   readonly view: View;
   /** The lowest point of the armhole on the right of the page, which side panels and a chest band start from. */
   readonly underarm: Point;
+  /** What is already on this view (artwork, names and numbers), which polka dots keep clear of. */
+  readonly decoration?: readonly FlatElement[];
 }
 
 interface Band {
@@ -217,6 +229,52 @@ function fade(area: Bounds, ground: string, inks: readonly string[]): Band[] {
   });
 }
 
+/** The space a mark takes on the drawing, as a box, or null for a path (which has no mark of its own). */
+function markBox(element: FlatElement): Bounds | null {
+  if (element.kind === "path") return null;
+  const [width, height, centre] =
+    element.kind === "image"
+      ? [element.width, element.height, element.at]
+      : [
+          element.text.length * element.size * LETTER_WIDTH,
+          element.size,
+          { x: element.at.x + (element.anchor === "start" ? 1 : element.anchor === "end" ? -1 : 0) * (element.text.length * element.size * LETTER_WIDTH) / 2, y: element.at.y - element.size * BASELINE_SHIFT },
+        ];
+  const reach = element.rotation % 180 === 0 ? { x: width / 2, y: height / 2 } : { x: Math.hypot(width, height) / 2, y: Math.hypot(width, height) / 2 };
+  return { minX: centre.x - reach.x, maxX: centre.x + reach.x, minY: centre.y - reach.y, maxY: centre.y + reach.y };
+}
+
+/**
+ * Polka dots in rows. A row's colour is the next of the pattern's colours; with half drop every
+ * other row is shifted along by half a pitch. A dot whose edge would come within the clear space
+ * of a mark is left out whole, so a number or crest sits on plain ground. A dot at the body's
+ * edge is cut to it like any other piece.
+ */
+function dots(pattern: KitPattern, area: Bounds, inks: readonly string[], place: PatternPlace): Band[] {
+  const width = sizeOf(pattern);
+  const radius = width / 2;
+  const layout = pattern.dots;
+  const pitch = layout?.pitch ?? Math.round(width * DRAWN_PITCH_PER_DOT);
+  const rowStep = layout?.rowStep ?? Math.round(pitch / 2);
+  const shifted = layout?.halfDrop ?? true;
+  const keep = radius + (layout?.clearSpace ?? DRAWN_CLEAR_SPACE);
+  const marks = (place.decoration ?? []).flatMap((element) => markBox(element) ?? []);
+  const blocked = (at: Point): boolean => marks.some((box) => at.x > box.minX - keep && at.x < box.maxX + keep && at.y > box.minY - keep && at.y < box.maxY + keep);
+  const corners = Array.from({ length: DOT_CORNERS }, (_, index) => (index / DOT_CORNERS) * Math.PI * 2);
+  const bands: Band[] = [];
+  for (let row = 0; area.minY + row * rowStep - radius < area.maxY; row += 1) {
+    const y = area.minY + rowStep / 2 + row * rowStep;
+    const offset = shifted && row % 2 === 1 ? pitch / 2 : 0;
+    const first = Math.ceil((area.minX - radius - offset) / pitch);
+    for (let column = first; offset + column * pitch - radius < area.maxX; column += 1) {
+      const at = { x: offset + column * pitch, y };
+      if (blocked(at)) continue;
+      bands.push({ shape: corners.map((angle) => ({ x: at.x + Math.cos(angle) * radius, y: at.y + Math.sin(angle) * radius })), colour: pick(inks, row) });
+    }
+  }
+  return bands;
+}
+
 function bandsFor(pattern: KitPattern, area: Bounds, ground: string, place: PatternPlace): Band[] {
   const inks = inkOf(pattern);
   const size = sizeOf(pattern);
@@ -235,6 +293,8 @@ function bandsFor(pattern: KitPattern, area: Bounds, ground: string, place: Patt
       return chestBand(area, size, inks, place);
     case "fade":
       return fade(area, ground, inks);
+    case "dots":
+      return dots(pattern, area, inks, place);
   }
 }
 
