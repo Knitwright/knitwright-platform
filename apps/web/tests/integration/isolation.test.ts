@@ -430,6 +430,40 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", source: "Nowhere", rules: {}, created_by: userId }),
     change: { name: "Changed by a stranger" },
   },
+  // Production outputs, W7d (migration 20261015060200): a member reads the brand's design imports; only the
+  // server writes them, and an import that was accepted or discarded is never changed again.
+  design_imports: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("design_imports")
+          .insert({
+            brand_id: brandId,
+            source_file_id: randomUUID(),
+            rights_accepted_at: "2026-10-15T00:00:00Z",
+            reading: {},
+            report: {},
+            overlay: {},
+            result: {},
+            created_by: ownerId,
+          })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      source_file_id: randomUUID(),
+      rights_accepted_at: "2026-10-15T00:00:00Z",
+      reading: {},
+      report: {},
+      overlay: {},
+      result: {},
+      created_by: userId,
+    }),
+    change: { status: "discarded" },
+  },
   // The pattern library (W1): a member reads the brand's blocks, their sizes and reviews; only the server writes.
   pattern_blocks: {
     privileges: ["SELECT"],

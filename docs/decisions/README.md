@@ -45,4 +45,4 @@ Copy `0000-template.md` to start.
 | 0035 | [One artwork layer model for any design (W7a)](0035-artwork-layer-model.md) | Accepted |
 | 0036 | [Artwork intake: the club's own files, never storing an SVG (W7b)](0036-artwork-intake.md) | Accepted |
 | 0037 | [Pattern generators (W7c)](0037-pattern-generators.md) | Accepted |
-| 0038 | Design from the user's image (W7d) | Planned |
+| 0038 | [Design from the user's image (W7d)](0038-design-from-image.md) | Proposed |

@@ -78,6 +78,9 @@ export const LIMITS = {
   // A release freezes a design for good, so a slip or a script can do little harm.
   releaseCreate: { name: "release-create", limit: 20, windowSeconds: HOUR },
   proofWrite: { name: "proof-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // Reading a design from a picture reaches a vision model and sometimes an image model (W7d). A daily cap per
+  // person and address; the per-brand daily cap is counted in lib/design-import/service.ts. Proposed low (owner item P16).
+  designImport: { name: "design-import", limit: 10, windowSeconds: 24 * HOUR },
   // Artwork intake (W7b). Reading a 100 megapixel picture or a PDF page costs seconds of processor time.
   artworkIntake: { name: "artwork-intake", limit: 20, windowSeconds: 10 * MINUTE },
   // Checking a tile, removing a white box, making a tile seamless: each reads the full size picture again.
