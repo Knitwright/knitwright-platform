@@ -13,6 +13,13 @@ export interface ModelImage {
   readonly base64: string;
 }
 
+/** A reply tool of the caller's own, for a call whose answer is not a garment change (W7d reads a picture into one). */
+export interface ReplyToolSpec {
+  readonly name: string;
+  readonly description: string;
+  readonly inputSchema: Record<string, unknown>;
+}
+
 export interface ModelRequest {
   /** The fixed instructions. */
   readonly system: string;
@@ -22,6 +29,8 @@ export interface ModelRequest {
   readonly image?: ModelImage;
   /** A hard limit on the reply. Fixed by the caller, never by the person. */
   readonly maxOutputTokens: number;
+  /** Replaces the garment reply tool for this call. Left out, the garment reply tool is used. */
+  readonly replyTool?: ReplyToolSpec;
   readonly signal?: AbortSignal;
 }
 

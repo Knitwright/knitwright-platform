@@ -47,6 +47,7 @@ export function openAiBody(model: string, request: ModelRequest, forcedTool = tr
   const image = request.image
     ? [{ type: "image_url", image_url: { url: `data:${request.image.mediaType};base64,${request.image.base64}` } }]
     : [];
+  const tool = request.replyTool ?? { name: REPLY_TOOL_NAME, description: REPLY_TOOL_DESCRIPTION, inputSchema: replyToolSchema() };
   return {
     model,
     // Includes any reasoning the model does, so the limit holds for the whole reply.
@@ -58,10 +59,10 @@ export function openAiBody(model: string, request: ModelRequest, forcedTool = tr
     tools: [
       {
         type: "function",
-        function: { name: REPLY_TOOL_NAME, description: REPLY_TOOL_DESCRIPTION, parameters: replyToolSchema() },
+        function: { name: tool.name, description: tool.description, parameters: tool.inputSchema },
       },
     ],
-    tool_choice: forcedTool ? { type: "function", function: { name: REPLY_TOOL_NAME } } : "auto",
+    tool_choice: forcedTool ? { type: "function", function: { name: tool.name } } : "auto",
   };
 }
 
@@ -90,7 +91,7 @@ export function createOpenAiProvider(options: OpenAiOptions): TextModelProvider 
       const parsed = responseSchema.safeParse(await response.json().catch(() => null));
       if (!parsed.success) throw new ModelCallError("The model's answer was not in the expected form.");
       const message = parsed.data.choices[0].message;
-      const call = message.tool_calls?.find((entry) => entry.function.name === REPLY_TOOL_NAME);
+      const call = message.tool_calls?.find((entry) => entry.function.name === (request.replyTool?.name ?? REPLY_TOOL_NAME));
       return {
         text: call ? call.function.arguments : (message.content ?? ""),
         model: parsed.data.model,

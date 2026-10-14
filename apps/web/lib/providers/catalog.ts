@@ -65,3 +65,25 @@ export function callCost(entry: ModelEntry, inputTokens: number, outputTokens: n
 /** What a call really cost, from the tokens the vendor reported. For evaluation records. */
 export const spentMicrodollars = (entry: ModelEntry, usage: { inputTokens: number; outputTokens: number }): number =>
   callCost(entry, usage.inputTokens, usage.outputTokens);
+
+/**
+ * Reading a design from a picture (plan W7d). The most one import may use: three vision reads and two image
+ * edits. The edit price is fal's published price for `fal-ai/nano-banana-2/edit`, $0.08 an image, as recorded in
+ * docs/data-processing.md on 2026-10-13: read it again before relying on it. The vision read is priced from the
+ * model's per-token entry above, like any other picture reading.
+ */
+export const DESIGN_IMPORT_MAX_VISION_CALLS = 3;
+export const DESIGN_IMPORT_MAX_IMAGE_EDITS = 2;
+export const IMAGE_EDIT_MICRODOLLARS = 80_000;
+
+/** The reply to a picture reading is a list of views, marks and guesses: longer than a chat reply. */
+export const DESIGN_READ_OUTPUT_TOKENS = 2048;
+
+/** The instructions, the reading tool's schema and the picture, counted high. */
+export const DESIGN_READ_INPUT_TOKENS = 2500 + IMAGE_INPUT_TOKENS;
+
+/** The most one import can cost: every read and every edit it is allowed, in whole microdollars. */
+export function designImportCost(entry: ModelEntry, options: { readonly withEdits: boolean }): number {
+  const reads = DESIGN_IMPORT_MAX_VISION_CALLS * callCost(entry, DESIGN_READ_INPUT_TOKENS, DESIGN_READ_OUTPUT_TOKENS);
+  return reads + (options.withEdits ? DESIGN_IMPORT_MAX_IMAGE_EDITS * IMAGE_EDIT_MICRODOLLARS : 0);
+}

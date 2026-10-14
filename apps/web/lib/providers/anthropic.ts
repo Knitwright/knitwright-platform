@@ -38,21 +38,22 @@ export function anthropicBody(options: Pick<AnthropicOptions, "model" | "forcedT
   const image = request.image
     ? [{ type: "image", source: { type: "base64", media_type: request.image.mediaType, data: request.image.base64 } }]
     : [];
+  const tool = request.replyTool ?? { name: REPLY_TOOL_NAME, description: REPLY_TOOL_DESCRIPTION, inputSchema: replyToolSchema() };
   return {
     model: options.model,
     max_tokens: request.maxOutputTokens,
     // Cached where the prompt is long enough to qualify; ignored otherwise (plan cost rule 8).
     system: [{ type: "text", text: request.system, cache_control: { type: "ephemeral" } }],
-    tools: [{ name: REPLY_TOOL_NAME, description: REPLY_TOOL_DESCRIPTION, input_schema: replyToolSchema() }],
-    tool_choice: options.forcedTool ? { type: "tool", name: REPLY_TOOL_NAME } : { type: "auto" },
+    tools: [{ name: tool.name, description: tool.description, input_schema: tool.inputSchema }],
+    tool_choice: options.forcedTool ? { type: "tool", name: tool.name } : { type: "auto" },
     messages: [{ role: "user", content: [...image, { type: "text", text: request.user }] }],
   };
 }
 
 /** The reply tool's input as JSON, or the answer's text when the tool was not used. */
-export function anthropicReplyText(content: z.output<typeof responseSchema>["content"]): string {
+export function anthropicReplyText(content: z.output<typeof responseSchema>["content"], toolName: string = REPLY_TOOL_NAME): string {
   for (const block of content) {
-    if (block.type === "tool_use" && "name" in block && block.name === REPLY_TOOL_NAME) {
+    if (block.type === "tool_use" && "name" in block && block.name === toolName) {
       return JSON.stringify(block.input) ?? "";
     }
   }
@@ -84,7 +85,7 @@ export function createAnthropicProvider(options: AnthropicOptions): TextModelPro
       const parsed = responseSchema.safeParse(await response.json().catch(() => null));
       if (!parsed.success) throw new ModelCallError("The model's answer was not in the expected form.");
       return {
-        text: anthropicReplyText(parsed.data.content),
+        text: anthropicReplyText(parsed.data.content, request.replyTool?.name),
         model: parsed.data.model,
         usage: { inputTokens: parsed.data.usage.input_tokens, outputTokens: parsed.data.usage.output_tokens },
       };

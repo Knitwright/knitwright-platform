@@ -146,3 +146,32 @@ describe("the stub provider", () => {
     expect(stub.requests).toHaveLength(4);
   });
 });
+
+describe("a reply tool of the caller's own", () => {
+  const tool = { name: "describe_picture", description: "Describe a picture.", inputSchema: { type: "object", properties: {} } };
+  const custom: ModelRequest = { ...REQUEST, replyTool: tool };
+
+  it("is offered to Claude in place of the garment tool, and its input is the reply", async () => {
+    const http = recorder(claudeAnswer([{ type: "tool_use", id: "t", name: "describe_picture", input: { kind: "flat" } }]));
+    const provider = createAnthropicProvider({ apiKey: "k", model: "claude-haiku-4-5", forcedTool: true, fetch: http.fetch });
+    expect((await provider.complete(custom)).text).toBe('{"kind":"flat"}');
+    expect(http.body()).toMatchObject({ tools: [{ name: "describe_picture", input_schema: tool.inputSchema }], tool_choice: { type: "tool", name: "describe_picture" } });
+  });
+
+  it("is offered to OpenAI in place of the garment function", async () => {
+    const http = recorder(gptAnswer({ content: null, tool_calls: [{ function: { name: "describe_picture", arguments: '{"kind":"flat"}' } }] }));
+    const provider = createOpenAiProvider({ apiKey: "k", model: "gpt-5-nano", fetch: http.fetch });
+    expect((await provider.complete(custom)).text).toBe('{"kind":"flat"}');
+    expect(http.body()).toMatchObject({ tool_choice: { type: "function", function: { name: "describe_picture" } } });
+  });
+});
+
+describe("the cost of reading a design from a picture", () => {
+  it("is every read plus, when a clean-up is wired, every edit", async () => {
+    const { designImportCost, IMAGE_EDIT_MICRODOLLARS, DESIGN_IMPORT_MAX_IMAGE_EDITS } = await import("./catalog");
+    const entry = modelEntry("claude-haiku-4-5");
+    const without = designImportCost(entry, { withEdits: false });
+    expect(without).toBeGreaterThan(0);
+    expect(designImportCost(entry, { withEdits: true })).toBe(without + DESIGN_IMPORT_MAX_IMAGE_EDITS * IMAGE_EDIT_MICRODOLLARS);
+  });
+});
