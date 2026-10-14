@@ -32,7 +32,7 @@ function layerSvg(layer: SceneLayer, to: PageMap, page: Box, region: Box): strin
   if (layer.kind === "vector") {
     const body = layer.shapes
       .filter((s) => inRegion(s.shape, region))
-      .map((s) => `<path fill="${s.fill}" fill-rule="evenodd" d="${pathData(s.shape, to)}"/>`)
+      .map((s) => `<path fill="${s.fill}"${s.opacity === undefined ? "" : ` fill-opacity="${n(s.opacity)}"`} fill-rule="evenodd" d="${pathData(s.shape, to)}"/>`)
       .join("");
     return `<g id="layer-${escape(layer.layerId)}"${attrs}>${body}</g>`;
   }

@@ -1,4 +1,5 @@
-import { BUILT_IN_GENERATORS, currentStack, type ArtworkStack, type AssetReader } from "@/lib/artwork-stack";
+import { currentStack, type ArtworkStack, type AssetReader } from "@/lib/artwork-stack";
+import { GENERATORS } from "@/lib/pattern-generators";
 import { printScale, type FabricProfile, type PrintRuleSet, type SizeLabelMap } from "@/lib/production/contract";
 import type { OpenProject } from "@/lib/projects/project-reads";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
@@ -89,7 +90,7 @@ export async function prepare(deps: PrintDeps, input: PrintInput): Promise<Prepa
     colourwayId: colourway,
     mapper: createLayoutMapper({ pattern: source.pattern, baseSize: source.baseSize }),
     zoneTemplates: ZONE_TEMPLATES,
-    generators: BUILT_IN_GENERATORS,
+    generators: GENERATORS,
     assets: deps.assets,
     settings,
     rules,

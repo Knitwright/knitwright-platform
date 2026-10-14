@@ -32,6 +32,8 @@ describe("print dependencies", () => {
     expect(await deps.fabric("44444444-4444-4444-8444-444444444444")).toBeNull();
     expect((await deps.sizeMaps()).find((m) => m.label === "M" && m.cut === "mens")?.patternSize).toBe("48");
     expect(await deps.assets.getAsset("nothing")).toBeNull();
+    const withUploads = printDeps({ client: db.client, admin: db.client, brandId: who.brandId, load: async () => project });
+    expect(await withUploads.assets.getAsset("44444444-4444-4444-8444-444444444444")).toBeNull();
     expect((await deps.font()).unitsPerEm).toBeGreaterThan(0);
   });
 });

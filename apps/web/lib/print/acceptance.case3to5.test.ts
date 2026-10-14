@@ -2,6 +2,7 @@ import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { BUILT_IN_GENERATORS } from "@/lib/artwork-stack";
+import { GENERATORS } from "@/lib/pattern-generators";
 import { buildPrintSet } from "./build";
 import { vectorLogo } from "./fixtures/assets";
 import { testCamo } from "./fixtures/generators";
@@ -132,3 +133,30 @@ describe("case 5: a design read from a picture (fake reader)", () => {
 });
 
 export { blendStack, colourRun };
+
+describe("case 4 again, on the real camo from the generator library (W7c has merged)", () => {
+  const camoLayer = (seed: number) => {
+    const base = camoStack(seed);
+    return { ...base, layers: base.layers.map((l) => (l.kind === "pattern" ? { ...l, generatorId: "camo", params: { scale: 60 } } : l)) } as typeof base;
+  };
+  it("runs through the side seam, gives the same bytes twice and different bytes for another seed", async () => {
+    const env = await makeEnv(camoLayer(7), { generators: GENERATORS });
+    let [same, total] = [0, 0];
+    for (const size of SIZES) {
+      const [front, back] = [(await buildPieceScene(env, { view: "front", size }))!, (await buildPieceScene(env, { view: "back", size }))!];
+      const [ff, fb] = [env.mapper.frame("front", size)!, env.mapper.frame("back", size)!];
+      const half = (f: typeof ff): number => Math.abs((f.opened.landmarks.underarm![1] - f.origin[1]) * f.right[1] + (f.opened.landmarks.underarm![0] - f.origin[0]) * f.right[0]);
+      for (let y = -10; y <= 10; y += 0.5) {
+        const a = env.mapper.planeToPiece("front", { x: half(ff) - 0.25, y }, size)!;
+        const b = env.mapper.planeToPiece("back", { x: fb.wornOrigin[0] - half(fb) + 0.25, y }, size)!;
+        total += 1;
+        if (colourAt(front, a as Pt) === colourAt(back, b as Pt)) same += 1;
+      }
+    }
+    expect(same / total).toBeGreaterThan(0.9);
+    const hash = async (seed: number): Promise<string[]> => (await buildPrintSet(await makeEnv(camoLayer(seed), { generators: GENERATORS }), { sizes: ["48"], formats: ["pdf", "svg"], views: ["back"] })).files.map((f) => f.sha256);
+    const [a, b, other] = [await hash(7), await hash(7), await hash(8)];
+    expect(a).toEqual(b);
+    expect(other[0]).not.toBe(a[0]);
+  }, 180_000);
+});

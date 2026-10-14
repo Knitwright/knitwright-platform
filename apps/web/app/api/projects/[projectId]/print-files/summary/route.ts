@@ -3,7 +3,7 @@ import { printDeps } from "@/lib/print/server/deps";
 import { printSummary } from "@/lib/print/server/summary";
 import { getProjectAt } from "@/lib/projects/project-reads";
 import { defineRoute } from "@/lib/server/define-route";
-import { sessionClient } from "@/lib/server/deps";
+import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 
 /**
@@ -18,6 +18,7 @@ export const GET = defineRoute({
     const client = await sessionClient();
     const deps = printDeps({
       client,
+      admin: adminClient(),
       brandId: session.brand.id,
       load: (options) => getProjectAt(client, session.brand.id, input.params.projectId, options.version),
     });

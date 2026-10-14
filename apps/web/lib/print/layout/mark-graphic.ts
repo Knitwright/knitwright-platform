@@ -7,7 +7,7 @@ import { emptyPlan, grownBox, insideRect, turnedRect, type MarkPlan } from "./ma
 import { OUTSIDE_ZONES_SENTENCE, isProblem, resolvePlace, type ResolvedPlace } from "./placement";
 import type { PrintSpace } from "./print-space";
 import type { FilledShape, Issue } from "./scene";
-import { parseVectorCopy, ringsOf } from "./vector-asset";
+import { readVectorAsset, ringsOfCopy, type VectorRead } from "./vector-asset";
 import { zoneRectangle } from "../zones";
 
 interface Where {
@@ -37,17 +37,17 @@ function placeIssues(layer: GraphicLayer, env: BuildEnv, where: Where, place: Re
   return inAny ? [] : [{ code: "outside-zones", layerId: layer.id, text: OUTSIDE_ZONES_SENTENCE(label) }];
 }
 
-function vectorShapes(layer: GraphicLayer, bytes: Uint8Array, corners: readonly PointMm[], space: PrintSpace): { shapes: FilledShape[] } | null {
-  const copy = parseVectorCopy(bytes);
-  if (copy === null) return null;
+function vectorShapes(read: VectorRead, corners: readonly PointMm[], space: PrintSpace): FilledShape[] {
+  const { copy } = read;
   const [tl, tr, , bl] = corners;
   const [ux, uy, vx, vy] = [(tr.x - tl.x) / copy.width, (tr.y - tl.y) / copy.width, (bl.x - tl.x) / copy.height, (bl.y - tl.y) / copy.height];
-  const shapes = ringsOf(copy).map(({ fill, rings }): FilledShape => ({
-    fill,
-    shape: rings.map((ring) => ring.map(([x, y]) => space.toPrint({ x: tl.x + x * ux + y * vx, y: tl.y + x * uy + y * vy }))) as Shape,
-  }));
-  void layer;
-  return { shapes };
+  return ringsOfCopy(copy).map(
+    ({ fill, opacity, shape }): FilledShape => ({
+      fill,
+      ...(opacity === undefined ? {} : { opacity }),
+      shape: shape.map((ring) => ring.map(([x, y]) => space.toPrint({ x: tl.x + x * ux + y * vx, y: tl.y + x * uy + y * vy }))) as Shape,
+    }),
+  );
 }
 
 async function rasterSet(env: BuildEnv, layer: GraphicLayer, bytes: Uint8Array, corners: readonly PointMm[], space: PrintSpace): Promise<ImageSet> {
@@ -79,9 +79,10 @@ export async function planGraphic(env: BuildEnv, layer: GraphicLayer, where: Whe
   const bytes = await asset.readPrintCopy();
   const base = { layerId: layer.id, index, core: grownBox(corners, 0), ownClearMm: layer.clearSpaceMm, cuts: layer.knockOut, paintsNothing: layer.blend === "knock-out", notes: [] as string[] };
   if (asset.kind === "vector") {
-    const vector = vectorShapes(layer, bytes, corners, space);
-    if (vector === null) return emptyPlan(layer.id, index, [...issues, { code: "asset-missing", layerId: layer.id, text: `${name(layer)} could not be read as a vector, so it is left out of this file.` }]);
-    return { ...base, shapes: vector.shapes, images: null, issues, lowestDpi: null };
+    const read = readVectorAsset(bytes);
+    if (read === null) return emptyPlan(layer.id, index, [...issues, { code: "asset-missing", layerId: layer.id, text: `${name(layer)} could not be read as a vector, so it is left out of this file.` }]);
+    const partly: Issue[] = read.notDrawn.length === 0 ? [] : [{ code: "not-drawn", layerId: layer.id, text: `${name(layer)} holds ${read.notDrawn.join(", ")}, which the print files do not draw yet. Check this file against your logo.` }];
+    return { ...base, shapes: vectorShapes(read, corners, space), images: null, issues: [...issues, ...partly], lowestDpi: null };
   }
   const dpi = effectiveDpi(asset.widthPx, widthMm);
   const notes = asset.dpiMeta === null ? [`${name(layer)} states no resolution; it was sized as ${ASSUMED_PICTURE_DPI} dpi.`] : [];

@@ -76,7 +76,8 @@ design one artwork stack; W3 turns a stack into files and must never ask what ma
 16. **For releases (W4).** `lib/print/builder.ts` exports `createPrintFileBuilder(deps): PrintFileBuilder` (the W0 interface). The
     spec names a view or a one-view piece id (`front`, `back`, `sleeve-left`, `sleeve-right`, `collar`); `scaleX` is across the piece
     and `scaleY` along its length; the spec's bleed, dpi and scale replace the live settings so a reorder rebuilds the bytes its
-    hashes name.
+    hashes name. `lib/print/server/release-builder.ts` exports `releasePrintBuilder(input)`, which has W4's `BuilderFor` shape
+    (`(context: { projectId, roster }) => PrintFileBuilder`) and reads the design lazily on the first file.
 17. **Data.** Migration `20261015030000_print_profiles_and_rules.sql`: `print_profiles` (one row per brand: bleed, dpi, lowest dpi,
     widest print, ICC file) and `league_rule_sets` (each with a required source). Members read their own brand's rows; only the
     server writes. Both are in the isolation suite.
@@ -111,13 +112,23 @@ neighbouring piece only at the named places and the files say how far they diffe
 and the piece disagree by more than 3 %, or when the pattern library (W1) supplies real graded sets (the pattern source in
 `lib/print/server/pattern-source.ts` is the one function that changes).
 
+### Since this branch was cut
+
+W1 (pattern library), W4 (orders and releases), W7b (artwork intake) and W7c (generator library) have merged. The download route now draws with W7c's
+generator library and reads uploaded artwork through W7b's asset reader (a raster's print copy is an sRGB TIFF; `sharp` reads it as it
+reads a PNG); `lib/print/layout/vector-asset.ts` reads W7b's restricted vector model (groups, transforms, curves, solid fills, even-odd
+and non-zero fill rules, opacity). Case 4 was also run on the real camo: the field is continuous across the side seam in 99.2 % of
+samples and two runs give the same bytes (`acceptance.case3to5.test.ts`, last block).
+
 ### Phase B needs
 
-- W7b: replace the stand-in vector model (`lib/print/layout/vector-asset.ts`) with the intake's restricted model and compose the
-  intake's reader first (`composeAssetReaders`); upload an ICC profile (a file kind is W0's to add); re-run case 2 and 3.
-- W7c: re-run case 4 on the real camo; check that a field generator is continuous when its datum differs per view (the layout
-  passes one datum for all views and draws the sheet in one coordinate system).
-- W7d: re-run case 5 on a recorded reading.
-- W1: the real graded pattern and its review state.
-- W4: wire `createPrintFileBuilder` into `lib/releases/builder.ts`, and send the roster to `POST .../print-files`.
+- W7b: the vector model has more than the print files draw. Outline strokes, gradients as gradients, clip paths and embedded pictures
+  are listed on the file ("... holds outline strokes, which the print files do not draw yet") and not drawn; gradients print as their
+  first stop. Raster uploads go through W7b's reader, which needs a database, so the integration run is owed to CI; upload an ICC
+  profile (a file kind is W0's to add); re-run cases 2 and 3 on the intake's output files.
+- W7d: re-run case 5 on a recorded reading (the stand-in reader marks a design "read from a picture" and moves its colours).
+- W1: the real graded pattern and its review state. `lib/print/server/pattern-source.ts` (`patternFor`) is the one function that
+  changes: it still returns the two benchmark patterns at EU 48. The library's `getBlock` gives a graded set to build from.
+- W4: wire `createPrintFileBuilder` (or `releasePrintBuilder`, which loads the design) into `lib/releases/builder.ts`, and send the
+  roster to `POST .../print-files`.
 - Owner: P1 (technician review), P5 and P14 (print house profile and lowest dpi), P7 (league rules), P8 (lettering fonts).

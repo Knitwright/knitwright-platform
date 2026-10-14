@@ -7,6 +7,8 @@ import type { Shape } from "../geometry/boolean";
 export interface FilledShape {
   readonly shape: Shape;
   readonly fill: string;
+  /** How solid the shape is, from 0 to 1. Missing means fully. */
+  readonly opacity?: number;
 }
 
 /** Vector artwork of one stack layer. Normal and knock-out blends stay vector. */
@@ -54,7 +56,8 @@ export type IssueCode =
   | "pattern-missing"
   | "no-colour"
   | "no-ground"
-  | "text-too-small";
+  | "text-too-small"
+  | "not-drawn";
 
 /** Something unmet, in plain words, with a code so code can tell what it is. */
 export interface Issue {

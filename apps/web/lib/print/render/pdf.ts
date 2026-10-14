@@ -19,7 +19,7 @@ const pt = (mm: number): number => mm * PT_PER_MM;
 function vectorLayer(layer: VectorLayer, scene: PieceScene, key: string): ReactElement {
   const to = pageMap(scene.box);
   const [w, hgt] = [scene.box.maxX - scene.box.minX, scene.box.maxY - scene.box.minY];
-  const paths = layer.shapes.map((s, i) => h(Path, { key: `${key}-${i}`, d: pathData(s.shape, to), fill: s.fill, fillRule: "evenodd" }));
+  const paths = layer.shapes.map((s, i) => h(Path, { key: `${key}-${i}`, d: pathData(s.shape, to), fill: s.fill, fillRule: "evenodd", ...(s.opacity === undefined ? {} : { fillOpacity: s.opacity }) }));
   return h(Svg, { key, width: pt(w), height: pt(hgt), viewBox: `0 0 ${num(w)} ${num(hgt)}`, style: { position: "absolute", left: 0, top: 0 } }, h(G, { opacity: layer.opacity }, ...paths));
 }
 

@@ -60,6 +60,16 @@ describe("placed logos", () => {
     expect(codes(fine)).toEqual([]);
     expect(fine.lowestDpi).toBeGreaterThan(150);
   });
+  it("draws a logo stored as the intake's vector model, and says what it cannot draw", async () => {
+    const none = { type: "none" } as const;
+    const path = { kind: "path", opacity: 1, strokeWidth: 3, lineCap: "butt", lineJoin: "miter", miterLimit: 4, fillRule: "nonzero", stroke: { type: "colour", hex: "#000000", opacity: 1 }, fill: { type: "colour", hex: "#102a56", opacity: 1 }, segments: [["M", 0, 0], ["L", 100, 0], ["L", 100, 100], ["L", 0, 100], ["Z"]] };
+    const model = { schemaVersion: 1, viewBox: { x: 0, y: 0, width: 100, height: 100 }, statedSizeMm: null, gradients: [], clips: [], nodes: [path, { ...path, stroke: none, strokeWidth: 0, opacity: 0.5 }] };
+    const asset = { ...vectorLogo("logo"), bytes: new TextEncoder().encode(JSON.stringify(model)) };
+    const s = await front(stackOf([graphic({ widthMm: 60 })], [], ["front"]), { assets: [asset] });
+    expect(layerOf(s, "crest").shapes).toHaveLength(2);
+    expect(layerOf(s, "crest").shapes[1].opacity).toBe(0.5);
+    expect(s.issues.find((i) => i.code === "not-drawn")?.text).toMatch(/holds outline strokes, which the print files do not draw yet/);
+  });
   it("accepts a logo kept the older way, by file", async () => {
     const stack = stackOf([graphic({ source: { kind: "file", fileId: "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f" } })], [], ["front"]);
     const s = await front(stack, { assets: [vectorLogo("6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f")] });

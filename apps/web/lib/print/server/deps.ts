@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createAssetReader } from "@/lib/artwork-intake";
 import { listFabrics, listSavedSizeMaps } from "@/lib/fabrics/service";
 import { profileWithTests } from "@/lib/fabrics/profile";
 import { effectiveSizeMaps } from "@/lib/fabrics/size-maps";
@@ -13,6 +14,8 @@ import { loadPrintSettings } from "./settings";
 export interface DepsInput {
   /** The person's own client: reads go through the database's rules. */
   readonly client: SupabaseClient;
+  /** The server's own client, for reading a brand's uploaded artwork files. Without it only older logo files print. */
+  readonly admin?: SupabaseClient;
   readonly brandId: string;
   /** Reads the design (a version, else the current one). The route joins it to the project functions. */
   readonly load: (options: { version?: number }) => Promise<OpenProject>;
@@ -39,7 +42,7 @@ export function printDeps(input: DepsInput): PrintDeps {
       return found === undefined ? null : { name: found.name, profile: profileWithTests(found.sheet, found.tests).profile };
     },
     sizeMaps: async () => effectiveSizeMaps(await listSavedSizeMaps(input.client, input.brandId)),
-    assets: composeAssetReaders(createLegacyAssetReader(reader)),
+    assets: input.admin === undefined ? createLegacyAssetReader(reader) : composeAssetReaders(createAssetReader(input.admin, input.brandId), createLegacyAssetReader(reader)),
     font: sharedFont,
   };
 }

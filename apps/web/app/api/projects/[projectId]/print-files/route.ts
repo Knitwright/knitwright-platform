@@ -4,7 +4,7 @@ import { printDeps } from "@/lib/print/server/deps";
 import { servePrintFiles } from "@/lib/print/server/serve";
 import { getProjectAt } from "@/lib/projects/project-reads";
 import { defineRoute } from "@/lib/server/define-route";
-import { sessionClient } from "@/lib/server/deps";
+import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 
 /** A zip of print files takes a few seconds to draw. No handler may rely on more than 60 seconds (decision 0002). */
@@ -27,6 +27,7 @@ export const GET = defineRoute({
     const client = await sessionClient();
     const deps = printDeps({
       client,
+      admin: adminClient(),
       brandId: session.brand.id,
       load: (options) => getProjectAt(client, session.brand.id, input.params.projectId, options.version),
     });
@@ -44,6 +45,7 @@ export const POST = defineRoute({
     const client = await sessionClient();
     const deps = printDeps({
       client,
+      admin: adminClient(),
       brandId: session.brand.id,
       load: (options) => getProjectAt(client, session.brand.id, input.params.projectId, options.version),
     });
