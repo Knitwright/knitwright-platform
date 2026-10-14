@@ -36,6 +36,28 @@ describe("parseEnv", () => {
     }
   });
 
+  it("rejects a Supabase URL with a path after the address, which sends every call to a wrong path", () => {
+    for (const value of [
+      "https://abc.supabase.co/rest/v1",
+      "https://abc.supabase.co/rest/v1/",
+      "https://abc.supabase.co/project/abc",
+      "https://abc.supabase.co?x=1",
+    ]) {
+      expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: value }), value).toThrow(
+        /NEXT_PUBLIC_SUPABASE_URL is not valid/,
+      );
+    }
+  });
+
+  it("accepts a Supabase URL that is only the address, with or without a closing slash", () => {
+    expect(parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co" }).NEXT_PUBLIC_SUPABASE_URL).toBe(
+      "https://abc.supabase.co",
+    );
+    expect(parseEnv({ ...valid, NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co/" }).NEXT_PUBLIC_SUPABASE_URL).toBe(
+      "https://abc.supabase.co/",
+    );
+  });
+
   it("rejects a site URL that is not a URL", () => {
     expect(() => parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "not a url" })).toThrow(
       /NEXT_PUBLIC_SITE_URL is not valid/,

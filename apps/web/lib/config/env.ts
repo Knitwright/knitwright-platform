@@ -11,7 +11,12 @@ const microdollars = z.string().regex(/^\d{1,15}$/).transform(Number);
 
 const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
+  // Only the project's address, such as https://abc.supabase.co. The client adds /rest/v1 and
+  // the rest itself, so a path here sends every call to a wrong one (PGRST125).
+  NEXT_PUBLIC_SUPABASE_URL: z.url().refine((value) => {
+    const url = new URL(value);
+    return url.pathname === "/" && url.search === "" && url.hash === "";
+  }),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
   // Full database access. Read on the server only, never sent to a browser.
   SUPABASE_SECRET_KEY: z.string().min(1),
@@ -183,6 +188,7 @@ const describeIssue = (issue: z.core.$ZodIssue): string => {
   const name = issue.path.join(".") || "(root)";
   if (issue.code === "custom" && issue.message === "missing") return `${name} is missing`;
   if (issue.code === "custom" && name === "PATTERN_PROVIDER") return `${name}=claude-bridge needs OWNER_EMAIL on a deploy, so only the owner can use it`;
+  if (issue.code === "custom" && name === "NEXT_PUBLIC_SUPABASE_URL") return `${name} is not valid: give only the address, such as https://abc.supabase.co, with nothing after it`;
   if (issue.code === "custom" && name === "AI_PROVIDER_STUB") return `${name} is for browser tests, which a deploy may not use`;
   if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;
