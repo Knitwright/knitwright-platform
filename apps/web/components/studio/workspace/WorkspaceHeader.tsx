@@ -4,6 +4,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
 import { ArrowMark } from "@/components/ui/ArrowMark";
+import { JourneySteps } from "@/components/ui/JourneySteps";
 import type { EditorData } from "@/lib/projects/editor-data";
 import { journeySteps, toolHref, type ToolId } from "@/lib/workspace/tools";
 import { SaveStatus } from "../EditorParts";
@@ -39,7 +40,7 @@ export function WorkspaceHeader({ data, version, busy, status, tool, onChoose, o
         </p>
         <SaveStatus busy={busy} status={status} className="min-h-4 truncate text-xs text-ink-2" />
       </div>
-      <Journey projectId={data.projectId} tool={tool} onChoose={onChoose} />
+      <Journey projectId={data.projectId} tool={tool} />
       <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-nowrap">
         <button type="button" className={CHIP} disabled={data.undoTo === null || busy} onClick={onUndo}>
           Undo
@@ -70,8 +71,8 @@ type ToolLinkProps = Readonly<{
   tool: ToolId;
   onChoose: (tool: ToolId) => void;
   className: string;
-  /** "step" for the journey's current step, "true" for the action whose panel is open. */
-  current?: "step" | "true" | undefined;
+  /** "true" for the action whose panel is open. */
+  current?: "true" | undefined;
   children: ReactNode;
 }>;
 
@@ -94,38 +95,15 @@ function ToolLink({ projectId, tool, onChoose, className, current, children }: T
   );
 }
 
-const STEP = "flex h-9 items-center justify-center gap-1.5 rounded-full px-1.5 text-[11px] whitespace-nowrap sm:px-3.5 sm:text-[13px]";
-
 /** Design, factory file, committee, quote: where the design is on its way to being made. */
-function Journey({ projectId, tool, onChoose }: Readonly<{ projectId: string; tool: ToolId; onChoose: (tool: ToolId) => void }>) {
+function Journey({ projectId, tool }: Readonly<{ projectId: string; tool: ToolId }>) {
+  const steps = journeySteps(projectId, tool);
   return (
-    <nav aria-label="Journey" className="order-last w-full lg:order-none lg:mx-auto lg:w-auto">
-      <ol className="grid grid-cols-4 gap-1 rounded-full bg-tile p-1">
-        {journeySteps(projectId, tool).map((step, index) => {
-          const tone = step.current ? "bg-chalk font-medium text-[#0b0c0e]" : "nav-pill text-chalk-muted";
-          const label = (
-            <>
-              <span aria-hidden="true" className="hidden font-mono sm:inline">
-                {index + 1}
-              </span>
-              {step.label}
-            </>
-          );
-          return (
-            <li key={step.id} className="min-w-0">
-              {step.tool ? (
-                <ToolLink projectId={projectId} tool={step.tool} onChoose={onChoose} current={step.current ? "step" : undefined} className={`${STEP} ${tone}`}>
-                  {label}
-                </ToolLink>
-              ) : (
-                <Link href={step.href as Route} className={`${STEP} ${tone}`}>
-                  {label}
-                </Link>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+    <nav aria-label="Journey" className="order-last w-full min-w-0 lg:order-none lg:mx-auto lg:w-auto">
+      <JourneySteps
+        steps={steps.map((step) => ({ label: step.label, href: step.href as Route }))}
+        current={Math.max(0, steps.findIndex((step) => step.current))}
+      />
     </nav>
   );
 }

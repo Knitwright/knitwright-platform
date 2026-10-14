@@ -6,7 +6,7 @@ import { fabricSummary, labellingSummary, trimSummary, type Fact } from "@/lib/w
 type SummaryProps = Readonly<{ projectId: string; spec: GarmentSpec }>;
 
 const factoryFile = (projectId: string, section: string): Route =>
-  `/studio/${encodeURIComponent(projectId)}/tech-pack#${section}` as Route;
+  `/studio/${encodeURIComponent(projectId)}/tech-pack?section=${section}` as Route;
 
 /** Where the details are typed: the factory file, which keeps them with their source. */
 function FillInLink({ href, children }: Readonly<{ href: Route; children: string }>) {
