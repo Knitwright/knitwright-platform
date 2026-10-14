@@ -1,3 +1,5 @@
+import type { ArtworkStack } from "@/lib/artwork-stack";
+import type { ImportReport } from "@/lib/design-import/report";
 import type {
   FabricProfile,
   GradedPattern,
@@ -49,6 +51,14 @@ export interface ColourStandard {
   readonly screenColour: string | null;
   /** The person who accepted that this colour is used though the print house avoids it, or null. */
   readonly avoidAcceptedBy: string | null;
+  /** Every code a person typed for the colour, each with its system in words. Shown as typed; Knitwright ships no Pantone data. */
+  readonly typedCodes?: readonly TypedCode[];
+}
+
+/** A colour code as a person typed it, with the system they named, such as "Pantone TCX". */
+export interface TypedCode {
+  readonly system: string;
+  readonly value: string;
 }
 
 export interface RepeatSpec {
@@ -73,6 +83,36 @@ export interface PrintFileReport {
   readonly markProblems: readonly string[];
   /** True when text and lines are at or above the profile's minimums. */
   readonly minimumsMet: boolean;
+}
+
+/** One uploaded picture as the artwork intake (W7b) records it. The pixels are not here. */
+export interface PlacedAsset {
+  readonly id: string;
+  readonly label: string;
+  readonly kind: "raster" | "vector";
+  readonly widthPx: number;
+  readonly heightPx: number;
+  /** The resolution the file states, or null when it states none. */
+  readonly dpiMeta: number | null;
+}
+
+/** Someone accepted, by name, that a placed picture is below the minimum resolution. */
+export interface LowDpiAcceptance extends NamedRecord {
+  readonly layerId: string;
+}
+
+/** The lowest resolution the print house accepts, and where that came from (open owner input P14). */
+export interface MinDpiSetting {
+  readonly value: number;
+  readonly source: "print-house" | "knitwright-default";
+}
+
+/** A design read from a picture (W7d): the report, and the user's acceptance of it. Null acceptance means nobody has accepted it. */
+export interface PictureRead {
+  readonly report: ImportReport;
+  /** The layers the user accepted, or null when the reading was not accepted. */
+  readonly acceptedLayerIds: readonly string[] | null;
+  readonly acceptedBy: NamedRecord | null;
 }
 
 export type SignOffRole = "pattern" | "print" | "production" | "club";
@@ -127,6 +167,15 @@ export interface ProductionInput {
   readonly printFiles?: readonly PrintFileReport[];
   readonly colours?: readonly ColourStandard[];
   readonly repeat?: RepeatSpec | null;
+  /** The artwork stack of the design (W7a). When absent the design's own stack is used, and only a design with none falls back to the older fields. */
+  readonly stack?: ArtworkStack | null;
+  /** The colourway the colour list and the placements are shown for. The stack's first when missing. */
+  readonly colourwayId?: string;
+  /** The uploaded pictures the stack places, with their pixel sizes. */
+  readonly assets?: readonly PlacedAsset[];
+  readonly minDpi?: MinDpiSetting | null;
+  readonly lowDpiAcceptances?: readonly LowDpiAcceptance[];
+  readonly picture?: PictureRead | null;
   /** The technique used for the artwork, such as "sublimation". */
   readonly technique?: string | null;
   readonly signOffs?: readonly SignOffRecord[];
