@@ -1,6 +1,6 @@
 # 0033: Tech pack v2 and "Ready for the factory"
 
-Status: Proposed (phase A built; phase B waits for the pattern, fabric, print and release services)
+Status: Proposed (phase A built; phase B built for the artwork stack, pictures, readings, strike-off by release and owner-input notes; the pattern, fabric and print records still wait for their services)
 Date: 2026-10-14
 Plan step: `plans/production-outputs.md`, workstream W5
 
@@ -29,7 +29,7 @@ cutting, fabric-test or print sections, no measured-against-pattern table and no
    tolerance, areas of pieces from their outlines, a placement from the high point of shoulder and the
    centre line, and the closest gap in a dot repeat. A value a record does not give is "To be confirmed".
 4. **The definition of "Ready for the factory"** is `lib/techpack/production/readiness.ts`: 8 groups and
-   25 items, each met or a sentence naming who acts (owner, technician, print house, factory, club).
+   27 items (25 in phase A), each met or a sentence naming who acts (owner, technician, print house, factory, club).
    The list is ready only when every item is met. Operations are proposals by design and do not block it.
 5. **Defaults are not values.** A Knitwright default (bleed, dpi, marker efficiency) is never shown as a
    setting from the print house or factory, and counts as open in the list. A suggested fabric value
