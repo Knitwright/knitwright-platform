@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const rosterRowSchema = z.object({
   /** Empty when the design has no name place. */
-  name: z.string().max(40),
+  name: z.string().max(40).regex(/^[^\p{C}]*$/u, "A name holds no control characters."),
   /** Digits as printed, so "07" and "7" stay different. */
   number: z.string().regex(/^[0-9]{1,3}$/),
   sizeLabel: z.string().min(1).max(16),

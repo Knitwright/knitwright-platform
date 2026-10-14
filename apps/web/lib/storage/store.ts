@@ -248,7 +248,7 @@ const PRODUCTION_RULES: Readonly<
   Record<Exclude<ProductionKind, "proof">, { types: Readonly<Record<string, string>>; maxBytes: number }>
 > = {
   print: {
-    types: { "application/pdf": "pdf", "image/tiff": "tiff", "image/svg+xml": "svg" },
+    types: { "application/pdf": "pdf", "image/tiff": "tiff" },
     maxBytes: 40 * 1024 * 1024,
   },
   roster: { types: { "text/csv": "csv" }, maxBytes: 2 * 1024 * 1024 },
@@ -264,12 +264,6 @@ const TIFF_BIG = [0x4d, 0x4d, 0x00, 0x2a];
 const isTiff = (bytes: Uint8Array): boolean =>
   [TIFF_LITTLE, TIFF_BIG].some((magic) => magic.every((byte, i) => bytes[i] === byte));
 
-/** An SVG a browser would open must hold no script. These files are built by the server, so this is a second lock. */
-const isSafeSvg = (bytes: Uint8Array): boolean => {
-  const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-  return /^\s*(<\?xml[^>]*\?>\s*)?<svg[\s>]/.test(text) && !/<script|javascript:|\son[a-z]+\s*=|<foreignObject/i.test(text);
-};
-
 const isPlainText = (bytes: Uint8Array): boolean => {
   if (bytes.includes(0)) return false;
   try {
@@ -283,7 +277,6 @@ const isPlainText = (bytes: Uint8Array): boolean => {
 const LOOKS_RIGHT: Readonly<Record<string, (bytes: Uint8Array) => boolean>> = {
   "application/pdf": (bytes) => startsWith(bytes, "%PDF-"),
   "image/tiff": isTiff,
-  "image/svg+xml": isSafeSvg,
   "text/csv": isPlainText,
   "application/dxf": looksLikeDxf,
 };

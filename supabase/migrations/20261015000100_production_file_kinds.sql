@@ -12,8 +12,8 @@ alter table public.files add constraint files_kind_check
     'print', 'proof', 'roster', 'pattern-source'
   ));
 
--- SVG is allowed here for print files the server builds and checks for scripts before storing
--- (lib/storage/store.ts). Files are downloaded from this bucket, never shown inline.
+-- Print files are stored as PDF or TIFF. SVG stays out of this bucket: a stored SVG can run script
+-- in a browser (tests/integration/isolation.test.ts). Any SVG output is built on download.
 update storage.buckets
 set allowed_mime_types = array[
   'application/pdf',
@@ -21,7 +21,6 @@ set allowed_mime_types = array[
   'application/zip',
   'application/dxf',
   'image/tiff',
-  'image/svg+xml',
   'text/csv'
 ]
 where id = 'exports';

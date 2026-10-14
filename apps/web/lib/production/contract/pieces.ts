@@ -96,11 +96,11 @@ export const gradedPatternSchema = z
     piecesBySize: z.record(z.string(), z.array(patternPieceSchema).min(1).max(200)),
   })
   .refine(
-    (g) => g.sizes.length === Object.keys(g.piecesBySize).length && g.sizes.every((s) => s in g.piecesBySize),
+    (g) => g.sizes.length === Object.keys(g.piecesBySize).length && g.sizes.every((s) => Object.hasOwn(g.piecesBySize, s)),
     { message: "Every size has pieces, and no other size has." },
   )
   .refine(
-    (g) => g.sizes.every((s) => (g.piecesBySize[s] ?? []).every((p) => p.sizeLabel === s)),
+    (g) => g.sizes.every((s) => (Object.hasOwn(g.piecesBySize, s) ? g.piecesBySize[s] : []).every((p) => p.sizeLabel === s)),
     { message: "Every piece carries the size it is listed under." },
   );
 export type GradedPattern = z.output<typeof gradedPatternSchema>;

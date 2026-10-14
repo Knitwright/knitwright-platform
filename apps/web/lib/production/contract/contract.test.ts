@@ -158,3 +158,28 @@ describe("records of the rest of the contract", () => {
     expect(readinessItemSchema.safeParse({ ...item, whoActs: "nobody" }).success).toBe(false);
   });
 });
+
+describe("hardening", () => {
+  it("does not scale on a shrink of 100 % or more", () => {
+    const scale = printScale({ shrinkLengthPct: tested(100), shrinkWidthPct: tested(150) });
+    expect(scale).toMatchObject({ length: 1, width: 1, notScaled: true });
+  });
+
+  it("refuses control characters in a roster name", () => {
+    const row = { name: "OKAFOR", number: "7", sizeLabel: "48", cut: "mens", quantity: 1 };
+    expect(rosterRowSchema.safeParse(row).success).toBe(true);
+    expect(rosterRowSchema.safeParse({ ...row, name: "A\u0000B" }).success).toBe(false);
+    expect(rosterRowSchema.safeParse({ ...row, name: "A\nB" }).success).toBe(false);
+  });
+
+  it("refuses a release file path that leaves the release", () => {
+    const file = (path: string) => releaseSnapshotSchema.shape.files.element.safeParse({ path, sha256: "a".repeat(64) }).success;
+    expect(file("print/front-48.pdf")).toBe(true);
+    for (const bad of ["../x.pdf", "/etc/x", "a//b", "./a"]) expect(file(bad)).toBe(false);
+  });
+
+  it("does not take a size name from the object prototype", () => {
+    const result = gradedPatternSchema.safeParse({ blockId: "b", blockVersion: 1, sizes: ["toString"], piecesBySize: { other: [{ ...piece, sizeLabel: "other" }] } });
+    expect(result.success).toBe(false);
+  });
+});

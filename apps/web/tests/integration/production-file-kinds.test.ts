@@ -19,10 +19,9 @@ beforeAll(async () => {
 });
 
 describe("the production file kinds", () => {
-  it("accepts a print PDF, an SVG and a TIFF in the exports bucket", async () => {
+  it("accepts a print PDF and a TIFF in the exports bucket", async () => {
     const tiff = await sharp({ create: { width: 4, height: 4, channels: 3, background: "#fff" } }).tiff().toBuffer();
     await store("print", text("%PDF-1.7\n"), "application/pdf");
-    await store("print", text('<svg xmlns="http://www.w3.org/2000/svg"></svg>'), "image/svg+xml");
     await store("print", tiff, "image/tiff");
   });
 

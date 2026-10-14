@@ -42,9 +42,12 @@ export type PrintScale = Readonly<{
   note: string | null;
 }>;
 
-/** Only a test or a supplier's sheet may scale artwork. A suggestion or an empty value may not. */
+/**
+ * Only a test or a supplier's sheet may scale artwork. A suggestion or an empty value may not.
+ * A shrink of 100 % or more cannot be real and would divide by zero, so it does not scale either.
+ */
 const usable = (v: FabricValue): v is FabricValue & { value: number } =>
-  v.value !== null && (v.source === "fabric-test" || v.source === "supplier-sheet");
+  v.value !== null && v.value < 100 && (v.source === "fabric-test" || v.source === "supplier-sheet");
 
 const axisScale = (shrinkPct: number): number => 1 / (1 - shrinkPct / 100);
 

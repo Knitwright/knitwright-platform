@@ -40,12 +40,11 @@ describe("storeProductionFile", () => {
     expect([...PRODUCTION_KINDS]).toEqual(["print", "proof", "roster", "pattern-source"]);
   });
 
-  it("stores a print PDF, TIFF and SVG with the exports, in the brand's folder under the kind", async () => {
+  it("stores a print PDF and TIFF with the exports, in the brand's folder under the kind", async () => {
     const tiff = await sharp({ create: { width: 4, height: 4, channels: 3, background: "#fff" } }).tiff().toBuffer();
     const files = [
       { contentType: "application/pdf", bytes: text("%PDF-1.7\n"), ext: "pdf" },
       { contentType: "image/tiff", bytes: tiff, ext: "tiff" },
-      { contentType: "image/svg+xml", bytes: text(SVG), ext: "svg" },
     ];
     for (const file of files) {
       const { admin, uploads, records } = recording();
@@ -89,17 +88,9 @@ describe("storeProductionFile", () => {
     expect(uploads).toEqual([]);
   });
 
-  it("refuses an SVG that holds a script, an event handler or a foreign object", async () => {
+  it("refuses an SVG for any kind, so a script never reaches the exports", async () => {
     const { admin, uploads } = recording();
-    const bad = [
-      '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"></svg>',
-      '<svg xmlns="http://www.w3.org/2000/svg"><foreignObject/></svg>',
-      "<html><svg></svg></html>",
-    ];
-    for (const svg of bad) {
-      await refuses(storeProductionFile("print", { admin, brandId, userId, bytes: text(svg), contentType: "image/svg+xml" }));
-    }
+    await refuses(storeProductionFile("print", { admin, brandId, userId, bytes: text(SVG), contentType: "image/svg+xml" }));
     expect(uploads).toEqual([]);
   });
 

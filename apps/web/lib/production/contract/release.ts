@@ -3,7 +3,13 @@ import { printProfileSchema, sha256Schema } from "./print";
 
 export const releaseFileSchema = z.object({
   /** A name that says what the file is, such as "print/front-48.pdf". */
-  path: z.string().min(1).max(200),
+  path: z
+    .string()
+    .min(1)
+    .max(200)
+    .refine((p) => !p.startsWith("/") && !p.split("/").some((part) => part === ".." || part === "" || part === "."), {
+      message: "A file path is relative and stays inside the release.",
+    }),
   sha256: sha256Schema,
 });
 
