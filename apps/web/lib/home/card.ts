@@ -27,7 +27,7 @@ export interface CardFacts {
 
 export function cardFacts(project: OpenProject, brandName: string, charts: ChartSet, now: Date): CardFacts {
   const pack = buildPackFor(
-    { project, history: { versions: [], hasMore: false }, brandName, images: new Map(), now, charts },
+    { project, history: { versions: [], hasMore: false }, brandName, now, charts },
     { drawFlats: false },
   );
   const front = pack.colourways.colourways[0]?.drawing.model;

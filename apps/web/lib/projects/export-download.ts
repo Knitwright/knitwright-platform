@@ -76,7 +76,6 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     project: source.project,
     history: source.history,
     brandName: deps.brandName,
-    images: source.pictures.images,
     now: deps.now(),
     charts: source.charts,
     memberNames: source.memberNames,
