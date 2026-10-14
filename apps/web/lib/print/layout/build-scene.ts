@@ -130,7 +130,7 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
     defaultsNote: settings.defaultsNote,
     lowestDpi,
     patternReviewed: settings.patternReviewed,
-    readFromPicture: layers.some((layer) => layer.provenance === "read-from-image"),
+    readFromPicture: stack.layers.some((layer) => layer.provenance === "read-from-image"),
     rasterReason,
     issues: all,
     playerNote: input.player || !layers.some((l) => l.kind === "player-mark") ? null : "Names and numbers are in the player files.",
