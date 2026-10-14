@@ -73,11 +73,12 @@ export function CoverView({ cover, forms, confirm }: CoverProps) {
   );
 }
 
-type FlatsProps = Readonly<{ flats: FlatsSection; pictures: readonly FlatPicture[]; picturesNote: string | null }>;
+type FlatPicturesProps = Readonly<{ pictures: readonly FlatPicture[]; picturesNote: string | null }>;
 
-export function FlatsView({ flats, pictures, picturesNote }: FlatsProps) {
+/** The front and back drawings, with the note about pictures that are not shown. */
+export function FlatPictures({ pictures, picturesNote }: FlatPicturesProps) {
   return (
-    <DocSection id={flats.id} title={flats.title} note={flats.note}>
+    <>
       {picturesNote ? <p className="text-sm text-muted">{picturesNote}</p> : null}
       <div className="grid gap-4 sm:grid-cols-2">
         {pictures.map((picture) => (
@@ -98,6 +99,15 @@ export function FlatsView({ flats, pictures, picturesNote }: FlatsProps) {
           </figure>
         ))}
       </div>
+    </>
+  );
+}
+
+/** The flats section. `pictures` is the drawings, which may arrive after the rest of the section. */
+export function FlatsView({ flats, pictures }: Readonly<{ flats: FlatsSection; pictures: ReactNode }>) {
+  return (
+    <DocSection id={flats.id} title={flats.title} note={flats.note}>
+      {pictures}
       {flats.callouts.length > 0 ? (
         <div>
           <h3 className="text-sm font-semibold text-ink">Codes on the drawing</h3>

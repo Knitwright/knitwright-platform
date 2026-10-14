@@ -100,7 +100,7 @@ export function RowForm(props: RowFormProps) {
         </p>
       ) : null}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" variant="secondary" pending={edit.busy}>
+        <Button type="submit" variant="secondary" pending={edit.saving(formKey)} disabled={edit.busy}>
           {submitLabel}
         </Button>
         {extra}

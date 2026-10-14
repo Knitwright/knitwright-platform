@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { ArrowMark } from "@/components/ui/ArrowMark";
-import { FILE_SECTION_IDS, parseSection, sectionSearch, type FileSection, type FileSectionId } from "@/lib/projects/tech-pack-sections";
+import { FILE_SECTION_IDS, parseSection, sectionOfLink, sectionSearch, type FileSection, type FileSectionId } from "@/lib/projects/tech-pack-sections";
 import { FileSectionNav } from "./FileSectionNav";
 
 type FileTabsProps = Readonly<{
@@ -46,12 +46,18 @@ export function FileTabs({ sections, initial, baseSearch, summary, panels }: Fil
   }, []);
 
   useEffect(() => {
+    const available = [...sections.map((section) => section.id), "left" as const];
+    const sameFileSection = (link: HTMLAnchorElement): FileSectionId | null =>
+      link.target === "" && !link.hasAttribute("download") ? sectionOfLink(link.href, new URL(window.location.href), available) : null;
     const onClick = (event: MouseEvent) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const link = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>("a");
       if (!link) return;
-      const named = link.dataset.fileSectionLink;
-      if (isSection(named)) {
+      // A link of the page itself names its section; a link elsewhere on the page, such as the
+      // "Quote" step of the journey, may be an address of this file with a section in it.
+      const tagged = link.dataset.fileSectionLink;
+      const named = isSection(tagged) ? tagged : sameFileSection(link);
+      if (named) {
         event.preventDefault();
         show(named, "push");
         if (!link.closest("[data-file-nav]")) document.querySelector(`[data-file-section="${named}"]`)?.scrollIntoView({ block: "start" });
@@ -66,7 +72,7 @@ export function FileTabs({ sections, initial, baseSearch, summary, panels }: Fil
     // Capture, so the section is shown before the form opener looks for the form in it.
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [show]);
+  }, [show, sections]);
 
   useEffect(() => {
     const fromAddress = () => {

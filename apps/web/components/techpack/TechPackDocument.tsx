@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Notice } from "@/components/ui/Notice";
-import type { TechPackPageData } from "@/lib/projects/tech-pack-data";
+import type { TechPackCoreData, TechPackPictures } from "@/lib/projects/tech-pack-data";
 import { fileProgress, fileSections, parseSection, type FileSectionId } from "@/lib/projects/tech-pack-sections";
 import { ComponentsView, ConstructionView } from "./ComponentViews";
 import { ConfirmPanel } from "./ConfirmPanel";
@@ -9,6 +9,8 @@ import { CoverView, FlatsView } from "./CoverAndFlats";
 import { ComponentForms, LabellingForms, SeamForms } from "./DetailForms";
 import { FabricForms } from "./FabricForms";
 import { FileHeader } from "./FileHeader";
+import { DrawingSkeleton, FlatPicturesSkeleton } from "./FileSkeleton";
+import { StreamedColourwayDrawing, StreamedFlatPictures } from "./FileStreamed";
 import { FileSummary } from "./FileSummary";
 import { FileTabs } from "./FileTabs";
 import { FormOpener } from "./FormOpener";
@@ -17,7 +19,9 @@ import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView 
 import { ColourwayForms, CoverForms, MeasurementForms } from "./ValueForms";
 
 type DocumentProps = Readonly<{
-  data: TechPackPageData;
+  data: TechPackCoreData;
+  /** The drawings as pictures. They wait for the artwork's pictures, so they fill in after the rest. */
+  pictures: Promise<TechPackPictures>;
   /** The colourway named in the address, so a download is the drawing the page shows. */
   colourwayId?: string | undefined;
   /** The section named in the address. */
@@ -31,12 +35,29 @@ type DocumentProps = Readonly<{
 }>;
 
 /** The sections of the document itself, each with its forms and its list of things to confirm. */
-function documentPanels(data: TechPackPageData): Partial<Record<FileSectionId, ReactNode>> {
+function documentPanels(data: TechPackCoreData, pictures: Promise<TechPackPictures>): Partial<Record<FileSectionId, ReactNode>> {
   const { pack, forms, confirmables } = data;
   const confirm = (sectionId: Parameters<typeof ConfirmPanel>[0]["sectionId"]) => <ConfirmPanel sectionId={sectionId} items={confirmables} />;
+  const drawings = Object.fromEntries(
+    pack.colourways.colourways.map((block) => [
+      block.id,
+      <Suspense key={block.id} fallback={<DrawingSkeleton className="mb-3 max-w-sm" />}>
+        <StreamedColourwayDrawing pictures={pictures} colourwayId={block.id} />
+      </Suspense>,
+    ]),
+  );
   return {
     cover: <CoverView cover={pack.cover} forms={<CoverForms projectId={data.projectId} cover={forms.cover} />} confirm={confirm("cover")} />,
-    flats: <FlatsView flats={pack.flats} pictures={data.flats} picturesNote={data.picturesNote} />,
+    flats: (
+      <FlatsView
+        flats={pack.flats}
+        pictures={
+          <Suspense fallback={<FlatPicturesSkeleton />}>
+            <StreamedFlatPictures pictures={pictures} />
+          </Suspense>
+        }
+      />
+    ),
     measurements: <MeasurementsView table={pack.measurements} forms={<MeasurementForms rows={forms.measurements} />} confirm={confirm("measurements")} />,
     "how-to-measure": <HowToMeasureView section={pack.howToMeasure} />,
     construction: <ConstructionView section={pack.construction} forms={<SeamForms rows={forms.seams} />} confirm={confirm("construction")} />,
@@ -56,7 +77,7 @@ function documentPanels(data: TechPackPageData): Partial<Record<FileSectionId, R
     artwork: <ArtworkView section={pack.artwork} confirm={confirm("artwork")} />,
     labelling: <LabellingView section={pack.labelling} forms={<LabellingForms rows={forms.labelling} />} confirm={confirm("labelling")} />,
     colourways: (
-      <ColourwaysView section={pack.colourways} pictures={data.colourwayFlats} forms={<ColourwayForms rows={forms.colourways} />} confirm={confirm("colourways")} />
+      <ColourwaysView section={pack.colourways} drawings={drawings} forms={<ColourwayForms rows={forms.colourways} />} confirm={confirm("colourways")} />
     ),
     sources: (
       <>
@@ -73,7 +94,7 @@ const keepColourway = (colourwayId: string | undefined): string => (colourwayId 
  * The factory file on screen: a header with the downloads, a list of sections with what each still
  * needs, and one section at a time, with the forms to fill in what is missing.
  */
-export function TechPackDocument({ data, colourwayId, section, illustrations, patterns, quote }: DocumentProps) {
+export function TechPackDocument({ data, pictures, colourwayId, section, illustrations, patterns, quote }: DocumentProps) {
   const sections = fileSections(data.report, data.confirmables, { illustrations: illustrations !== null });
   const available: FileSectionId[] = [...sections.map((entry) => entry.id), "left"];
   const initial = parseSection(section, available);
@@ -88,7 +109,7 @@ export function TechPackDocument({ data, colourwayId, section, illustrations, pa
         <ConfirmSummary data={data} />
       </section>
     ),
-    ...documentPanels(data),
+    ...documentPanels(data, pictures),
     illustrations,
     patterns,
     quote: (

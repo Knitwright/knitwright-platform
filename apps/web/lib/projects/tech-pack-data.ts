@@ -47,7 +47,17 @@ export interface ColourwayPicture extends FlatPicture {
   readonly colourwayId: string;
 }
 
-export interface TechPackPageData {
+/** The drawings of the page as pictures. They wait for the artwork's pictures to be read. */
+export interface TechPackPictures {
+  readonly flats: readonly FlatPicture[];
+  /** One drawing for each colourway, in the order of the colourways. */
+  readonly colourwayFlats: readonly ColourwayPicture[];
+  /** One sentence saying some pictures are not shown, or null. */
+  readonly picturesNote: string | null;
+}
+
+/** Everything the page shows but the pictures. It needs no stored picture, so it is ready first. */
+export interface TechPackCoreData {
   readonly projectId: string;
   readonly name: string;
   readonly version: number;
@@ -55,11 +65,6 @@ export interface TechPackPageData {
   readonly report: CompletenessReport;
   /** "12 things to confirm." */
   readonly sentence: string;
-  readonly flats: readonly FlatPicture[];
-  /** One drawing for each colourway, in the order of the colourways. */
-  readonly colourwayFlats: readonly ColourwayPicture[];
-  /** One sentence saying some pictures are not shown, or null. */
-  readonly picturesNote: string | null;
   /** Says the design changed while the page was loading, or null. */
   readonly staleNote: string | null;
   readonly forms: Readonly<{
@@ -77,6 +82,8 @@ export interface TechPackPageData {
   /** The design the page was made from. The forms work out changes from it and the changes waiting. */
   readonly spec: GarmentSpec;
 }
+
+export type TechPackPageData = TechPackCoreData & TechPackPictures;
 
 /** What the cover's forms hold: the design's details, and its sizes. */
 export interface CoverFormData {
@@ -105,6 +112,9 @@ export interface TechPackPageInput {
   readonly memberNames?: MemberNames;
 }
 
+/** What the document is made from. The artwork's pictures are not: only the drawings show them. */
+export type PackInput = Omit<TechPackPageInput, "images" | "picturesNote">;
+
 export const STALE_SENTENCE = "This design was changed while the page was loading. Reload the page to see the latest version.";
 
 /** True when a saved version is newer than the design that was read. The page then reads again. */
@@ -126,14 +136,25 @@ const revisionsOf = (history: VersionsPage, current: number, names: MemberNames)
 
 const NO_NAMES: MemberNames = new Map();
 
+/** Front and back left undrawn, for a count that never shows them. */
+const UNDRAWN: ReturnType<typeof flatsForTechPack> = { front: null, back: null };
+
+export interface PackOptions {
+  /**
+   * False leaves the front and back flats undrawn. Nothing that is counted or confirmed is read
+   * from a drawing, so the studio home counts empty fields without drawing them. True by default.
+   */
+  readonly drawFlats?: boolean;
+}
+
 /**
  * The document for one version of a design. The screen and every export are made by this one
  * function from the same inputs, so they cannot disagree: the drawings, the table and the
  * document all come from the one version that was read.
  */
-export function buildPackFor(input: TechPackPageInput): TechPack {
+export function buildPackFor(input: PackInput, options: PackOptions = {}): TechPack {
   const { project, history, charts } = input;
-  const flats = flatsForTechPack(project.spec, charts, input.colourwayId);
+  const flats = options.drawFlats === false ? UNDRAWN : flatsForTechPack(project.spec, charts, input.colourwayId);
   return buildTechPack({
     project: { name: project.name, styleNumber: project.styleNumber, season: project.season, brandName: input.brandName },
     version: project.currentVersion,
@@ -149,22 +170,11 @@ export function buildPackFor(input: TechPackPageInput): TechPack {
 }
 
 /**
- * Everything the tech pack page shows, worked out on the server as plain data: the document,
- * the count of what is left to confirm, the two drawings as pictures, and what each form holds.
- * The document is built from the one version of the design, so the drawings, the table and the
- * document cannot disagree.
+ * The drawings of a document as pictures, with the artwork's pictures in them. They are made from
+ * the document itself, so they show what its table says.
  */
-export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
-  const { project, history, images } = input;
-  const pack = buildPackFor(input);
-  const report = completenessReport(pack);
+export function techPackPictures(pack: TechPack, images: ImageMap, picturesNote: string | null): TechPackPictures {
   return {
-    projectId: project.id,
-    name: project.name,
-    version: project.currentVersion,
-    pack,
-    report,
-    sentence: confirmSentence(report),
     flats: pack.flats.views.map((view) => ({
       view: view.view,
       label: view.label,
@@ -182,7 +192,33 @@ export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
       toScale: block.drawing.toScale,
       notice: block.drawing.notice,
     })),
-    picturesNote: input.picturesNote ?? null,
+    picturesNote,
+  };
+}
+
+/**
+ * Everything the tech pack page shows, worked out on the server as plain data: the document,
+ * the count of what is left to confirm, the two drawings as pictures, and what each form holds.
+ * The document is built from the one version of the design, so the drawings, the table and the
+ * document cannot disagree.
+ */
+export function buildTechPackPage(input: TechPackPageInput): TechPackPageData {
+  const core = buildTechPackCore(input);
+  return { ...core, ...techPackPictures(core.pack, input.images, input.picturesNote ?? null) };
+}
+
+/** The page without its pictures. Nothing here reads the artwork's pictures. */
+export function buildTechPackCore(input: PackInput): TechPackCoreData {
+  const { project, history } = input;
+  const pack = buildPackFor(input);
+  const report = completenessReport(pack);
+  return {
+    projectId: project.id,
+    name: project.name,
+    version: project.currentVersion,
+    pack,
+    report,
+    sentence: confirmSentence(report),
     staleNote: historyIsNewer(project, history) ? STALE_SENTENCE : null,
     forms: {
       cover: {

@@ -53,7 +53,7 @@ export function ConfirmPanel({ sectionId, items }: ConfirmPanelProps) {
                   </span>
                 ) : null}
               </span>
-              <Button type="button" variant="secondary" pending={edit.busy} onClick={() => confirm(item)} aria-label={`Confirm ${item.label}`}>
+              <Button type="button" variant="secondary" pending={edit.saving(item.key)} disabled={edit.busy} onClick={() => confirm(item)} aria-label={`Confirm ${item.label}`}>
                 Confirm
               </Button>
             </li>
@@ -62,7 +62,7 @@ export function ConfirmPanel({ sectionId, items }: ConfirmPanelProps) {
       </ul>
       {shown.length > 1 ? (
         <div className="mt-4 flex flex-wrap items-center gap-3" data-field={allKey}>
-          <Button type="button" variant="secondary" pending={edit.busy} onClick={confirmAll}>
+          <Button type="button" variant="secondary" pending={edit.saving(allKey)} disabled={edit.busy} onClick={confirmAll}>
             {`Confirm all ${shown.length} in this section`}
           </Button>
           {edit.errorFor(allKey) ? (

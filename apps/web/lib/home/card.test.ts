@@ -1,10 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import type { GarmentSpec } from "@/lib/garment";
 import type { OpenProject } from "@/lib/projects/service";
 import { buildTechPackPage } from "@/lib/projects/tech-pack-data";
 import { NO_CHART_SET } from "@/lib/sizing/fixtures/no-charts";
+import { flatsForTechPack } from "@/lib/techpack/flats";
 import { cardFacts } from "./card";
+
+vi.mock("@/lib/techpack/flats", async (original) => {
+  const actual = await original<typeof import("@/lib/techpack/flats")>();
+  return { ...actual, flatsForTechPack: vi.fn(actual.flatsForTechPack) };
+});
 
 const NOW = new Date("2026-10-14T12:00:00.000Z");
 
@@ -45,5 +51,33 @@ describe("cardFacts", () => {
     const facts = cardFacts(project(start("crew-tee")), "Audit Rovers", NO_CHART_SET, NOW);
 
     expect(facts.thumbnail?.src).toMatch(/^data:image\/svg\+xml;charset=utf-8,/);
+  });
+
+  it.each(["crew-tee", "polo", "pullover-hoodie", "shorts", "track-jacket"])(
+    "gives a %s the same count and the same drawing of its first colourway as the factory file page",
+    (typeId) => {
+      const open = project(start(typeId, "men"));
+      const page = buildTechPackPage({
+        project: open,
+        history: { versions: [], hasMore: false },
+        brandName: "Audit Rovers",
+        images: new Map(),
+        now: NOW,
+        charts: NO_CHART_SET,
+      });
+
+      const facts = cardFacts(open, "Audit Rovers", NO_CHART_SET, NOW);
+
+      expect(facts.toConfirm).toBe(page.report.total);
+      expect(facts.thumbnail?.src ?? null).toBe(page.colourwayFlats[0]?.src ?? null);
+    },
+  );
+
+  it("draws no flats of the front and back, which the card does not show", () => {
+    vi.mocked(flatsForTechPack).mockClear();
+
+    cardFacts(project(start("crew-tee")), "Audit Rovers", NO_CHART_SET, NOW);
+
+    expect(flatsForTechPack).not.toHaveBeenCalled();
   });
 });

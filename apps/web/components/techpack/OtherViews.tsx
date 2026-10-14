@@ -14,7 +14,7 @@ import { Cellular, CellText, DocSection, DocTable, FillIn, LengthText, RowHead }
 
 const SWATCH = /^#[0-9a-f]{6}$/;
 
-function ColourwayDrawing({ picture }: Readonly<{ picture: ColourwayPicture | undefined }>) {
+export function ColourwayDrawing({ picture }: Readonly<{ picture: ColourwayPicture | undefined }>) {
   if (!picture) return null;
   return (
     <figure className="m-0 mb-3 max-w-sm rounded-xl border border-hairline bg-white p-2">
@@ -37,12 +37,13 @@ function ColourwayDrawing({ picture }: Readonly<{ picture: ColourwayPicture | un
 
 type ColourwaysProps = Readonly<{
   section: ColourwaysSection;
-  pictures?: readonly ColourwayPicture[];
+  /** The drawing of each colourway, by its id. A drawing may arrive after the rest of the section. */
+  drawings?: Readonly<Record<string, ReactNode>>;
   forms?: ReactNode;
   confirm?: ReactNode;
 }>;
 
-export function ColourwaysView({ section, pictures = [], forms, confirm }: ColourwaysProps) {
+export function ColourwaysView({ section, drawings = {}, forms, confirm }: ColourwaysProps) {
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
       <p className="text-sm text-muted">
@@ -51,7 +52,7 @@ export function ColourwaysView({ section, pictures = [], forms, confirm }: Colou
       {section.colourways.map((block) => (
         <div key={block.id}>
           <h3 className="text-sm font-semibold text-ink">{block.name}</h3>
-          <ColourwayDrawing picture={pictures.find((picture) => picture.colourwayId === block.id)} />
+          {drawings[block.id] ?? null}
           <DocTable caption={`Colours of ${block.name}`} heads={["Part", "Colour code", "Screen colour"]}>
             {block.rows.map((row) => (
               <tr key={row.panelId}>

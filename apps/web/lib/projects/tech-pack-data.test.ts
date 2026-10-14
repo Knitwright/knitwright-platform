@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { designWith, madeUpForType } from "@/lib/flat/fixtures/designs";
 import { applyAction, type GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
-import { buildPackFor, buildTechPackPage, historyIsNewer, STALE_SENTENCE } from "./tech-pack-data";
+import { completenessReport } from "@/lib/techpack";
+import { buildPackFor, buildTechPackCore, buildTechPackPage, historyIsNewer, STALE_SENTENCE, techPackPictures } from "./tech-pack-data";
 import type { OpenProject, VersionsPage } from "./service";
 
 const project = (spec: GarmentSpec, patch: Partial<OpenProject> = {}): OpenProject => ({
@@ -237,5 +238,44 @@ describe("buildPackFor", () => {
     const old = buildPackFor(input(spec, { project: project(spec, { currentVersion: 1 }) }));
     expect(old.cover.version).toBe(1);
     expect(old.cover.revisions.map((entry) => entry.version)).toEqual([1]);
+  });
+
+  it("leaves the front and back undrawn when asked, and nothing else changes", () => {
+    const spec = designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
+    const drawn = buildPackFor(input(spec));
+    const undrawn = buildPackFor(input(spec), { drawFlats: false });
+    const withoutFlats = (pack: typeof drawn) => ({ ...pack, flats: null, sections: pack.sections.filter((head) => head.id !== "flats") });
+    expect(undrawn.flats.views.map((view) => view.model)).toEqual([null, null]);
+    expect(withoutFlats(undrawn)).toEqual(withoutFlats(drawn));
+    expect(completenessReport(undrawn)).toEqual(completenessReport(drawn));
+  });
+});
+
+describe("buildTechPackCore and techPackPictures", () => {
+  const input = (spec: GarmentSpec) => ({
+    project: project(spec),
+    history: history(3),
+    brandName: "Test Brand",
+    images: new Map(),
+    now: new Date("2026-09-30T10:00:00Z"),
+    picturesNote: "One picture is not shown.",
+  });
+
+  it("is the page without its pictures, so the page can be sent before the pictures are read", () => {
+    const spec = designWith("crew-tee", {}, madeUpForType("crew-tee", {}));
+    const { flats, colourwayFlats, picturesNote, ...rest } = buildTechPackPage(input(spec));
+    expect([flats.length, colourwayFlats.length, picturesNote]).toEqual([2, 1, "One picture is not shown."]);
+    expect(buildTechPackCore(input(spec))).toEqual(rest);
+  });
+
+  it("draws the same pictures as the page, from the document the core made", () => {
+    const spec = designWith("polo", {}, madeUpForType("polo", {}));
+    const whole = buildTechPackPage(input(spec));
+    const core = buildTechPackCore(input(spec));
+    expect(techPackPictures(core.pack, new Map(), "One picture is not shown.")).toEqual({
+      flats: whole.flats,
+      colourwayFlats: whole.colourwayFlats,
+      picturesNote: whole.picturesNote,
+    });
   });
 });
