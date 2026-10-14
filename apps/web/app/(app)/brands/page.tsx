@@ -6,6 +6,7 @@ import { PageIntro } from "@/components/shell/PageIntro";
 import { PageSection } from "@/components/shell/PageSection";
 import { createBrandAction, renameBrandAction } from "@/lib/brands/actions";
 import { MAX_BRANDS } from "@/lib/brands/limits";
+import { countryOptions } from "@/lib/leads/organisation";
 import { getBrandDetails } from "@/lib/leads/service";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
@@ -42,7 +43,12 @@ export default async function BrandsPage() {
         title="About your organisation"
         description="What kind of organisation this brand is, and where. It helps us make and deliver your kit."
       >
-        <OrganisationForm details={details} submitLabel="Save details" doneMessage="The details are saved." />
+        <OrganisationForm
+          details={details}
+          submitLabel="Save details"
+          doneMessage="The details are saved."
+          countries={countryOptions()}
+        />
       </PageSection>
 
       {others.length > 0 ? (
@@ -71,6 +77,7 @@ export default async function BrandsPage() {
             submitLabel="Create brand"
             busyLabel="Creating"
             withDetails
+            countries={countryOptions()}
           />
         ) : null}
       </PageSection>

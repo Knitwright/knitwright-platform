@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import type { OrganisationDetails } from "@/lib/leads/organisation";
+import type { CountryOption, OrganisationDetails } from "@/lib/leads/organisation";
 import { OrganisationForm } from "./OrganisationForm";
 
 /**
@@ -10,7 +10,10 @@ import { OrganisationForm } from "./OrganisationForm";
  * (Platform and Store Guide, page 9: asked for when a design is saved). It never blocks the
  * design: "Not now" hides it until the page is opened again.
  */
-export function OrganisationPrompt({ details }: Readonly<{ details: OrganisationDetails }>) {
+export function OrganisationPrompt({
+  details,
+  countries,
+}: Readonly<{ details: OrganisationDetails; countries: readonly CountryOption[] }>) {
   const [hidden, setHidden] = useState(false);
   if (hidden) return null;
   return (
@@ -29,7 +32,9 @@ export function OrganisationPrompt({ details }: Readonly<{ details: Organisation
         </Button>
       </div>
       <div className="mt-4">
-        <OrganisationForm details={details} submitLabel="Save organisation details" doneMessage="Thank you. The details are saved." />
+        <OrganisationForm details={details} submitLabel="Save organisation details" doneMessage="Thank you. The details are saved."
+          countries={countries}
+        />
       </div>
     </section>
   );

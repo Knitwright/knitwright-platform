@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { BRAND_NAME_MAX } from "@/lib/brands/limits";
 import type { FormAction } from "@/lib/forms/form-state";
+import type { CountryOption } from "@/lib/leads/organisation";
 
 type BrandNameFormProps = Readonly<{
   action: FormAction<unknown>;
@@ -19,6 +20,8 @@ type BrandNameFormProps = Readonly<{
   doneMessage?: string;
   /** Also asks for the optional organisation details, when a brand is created (decision 0024). */
   withDetails?: boolean;
+  /** The countries for the organisation details, named on the server. Needed with withDetails. */
+  countries?: readonly CountryOption[];
 }>;
 
 /** Asks for a brand name. Used to create a brand and to rename one. */
@@ -31,6 +34,7 @@ export function BrandNameForm({
   busyLabel,
   doneMessage,
   withDetails = false,
+  countries = [],
 }: BrandNameFormProps) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(action);
   const saved = state.result?.success === true && doneMessage;
@@ -58,6 +62,7 @@ export function BrandNameForm({
             region: state.values.region ?? "",
           }}
           errors={fieldErrors}
+          countries={countries}
         />
       ) : null}
       <div>
