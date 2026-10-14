@@ -69,7 +69,7 @@ export function buildReport(parts: ReportParts): ImportReport {
       note: p.note,
     },
     ...(p.alternative
-      ? [{ id: `pattern-${at + 1}-alt`, layerId: p.alternative.id, label: "Alternative: the same pattern as a repeating picture", confidence: round2(p.confidence * 0.9), note: ALTERNATIVE_NOTE }]
+      ? [{ id: `pattern-${at + 1}-alt`, layerId: p.alternative.id, label: "Alternative: your pattern kept as a repeating picture", confidence: round2(p.confidence * 0.9), note: ALTERNATIVE_NOTE }]
       : []),
   ]);
   const items = [parts.groundItem, ...parts.fitItems, ...patternItems, ...parts.markItems];

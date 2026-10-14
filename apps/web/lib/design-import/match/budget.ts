@@ -30,21 +30,24 @@ export interface MatchLimits {
 }
 
 export function createMatchBudget(limits: MatchLimits = MATCH_LIMITS, clock: () => number = Date.now): MatchBudget {
-  const started = clock();
+  // The clock starts at the first drawing, so time spent reading the picture first is not counted against the matching.
+  let started: number | null = null;
   let renders = 0;
   let comparisons = 0;
   let stopped = false;
   const late = (): boolean => {
-    if (clock() - started > limits.milliseconds) stopped = true;
+    if (started !== null && clock() - started > limits.milliseconds) stopped = true;
     return stopped;
   };
   return {
     takeRender: () => {
+      started ??= clock();
       if (late() || renders >= limits.renders) return ((stopped = true), false);
       renders += 1;
       return true;
     },
     takeComparisons: (pixels) => {
+      started ??= clock();
       if (late() || comparisons + pixels > limits.comparisons) return ((stopped = true), false);
       comparisons += pixels;
       return true;

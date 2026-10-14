@@ -252,7 +252,7 @@ function generatorProposal(c: {
     movesWithDatum: found.candidate.movesWithDatum,
     label: found.generator.label,
   });
-  const alternative = pictureLayer(placed, { id: layerIds(view).alternative, name: "Alternative: the same pattern as a repeating picture", cut: { ...c.cut, assetId: `tile-${view}` }, mode: "tile", opacity: 0 });
+  const alternative = pictureLayer(placed, { id: layerIds(view).alternative, name: "Alternative: your pattern kept as a repeating picture", cut: { ...c.cut, assetId: `tile-${view}` }, mode: "tile", opacity: 0 });
   const start = found.candidate.movesWithDatum ? "Where the pattern starts is read from the picture." : "Where the first row starts follows the pattern piece, so check the rows against your picture.";
   return {
     layer,

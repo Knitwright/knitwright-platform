@@ -54,7 +54,7 @@ export interface Stored {
 }
 
 /** Stores the cut pictures and points the stack's layers at them. If one cannot be stored, the ones already stored are removed and the error is thrown. */
-export async function storeDerived(stack: ArtworkStack, pictures: readonly PictureFile[], crops: readonly CropFile[], store: DerivedStore): Promise<Stored> {
+export async function storeDerived(stack: ArtworkStack, pictures: readonly PictureFile[], crops: readonly CropFile[], store: DerivedStore, found: number = crops.length): Promise<Stored> {
   const ids = new Map<string, string>();
   const stored: string[] = [];
   const keep = crops.slice(0, MOST_STORED_CROPS);
@@ -78,7 +78,7 @@ export async function storeDerived(stack: ArtworkStack, pictures: readonly Pictu
     if (layer.kind === "graphic" && layer.source.kind === "asset") return { ...layer, source: { kind: "asset", assetId: ids.get(layer.source.assetId) ?? layer.source.assetId } };
     return layer;
   });
-  return { stack: { ...stack, layers }, ids: stored, notes: crops.length > keep.length ? [NOT_STORED] : [] };
+  return { stack: { ...stack, layers }, ids: stored, notes: found > keep.length ? [NOT_STORED] : [] };
 }
 
 /** The report with sentences added. */

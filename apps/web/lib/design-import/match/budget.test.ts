@@ -21,6 +21,17 @@ describe("match budget", () => {
     now = 0;
     expect(budget.late()).toBe(true);
   });
+  it("starts its clock at the first drawing, not when it is made", () => {
+    let now = 0;
+    const budget = createMatchBudget({ renders: 5, comparisons: 100, milliseconds: 50 }, () => now);
+    now = 10_000;
+    expect(budget.late()).toBe(false);
+    expect(budget.takeRender()).toBe(true);
+    now = 10_040;
+    expect(budget.takeComparisons(1)).toBe(true);
+    now = 10_100;
+    expect(budget.takeRender()).toBe(false);
+  });
   it("states its limits in words", () => {
     expect(budgetSentence()).toBe(`Pattern matching is limited to ${MATCH_LIMITS.renders} trial drawings, ${MATCH_LIMITS.comparisons / 1_000_000} million pixel comparisons and ${MATCH_LIMITS.milliseconds / 1000} seconds for each picture.`);
   });

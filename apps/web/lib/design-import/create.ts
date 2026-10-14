@@ -51,8 +51,10 @@ async function refused(deps: Pick<CreateDeps, "usage">, reason: string): Promise
 type Ready = Extract<Awaited<ReturnType<typeof runImport>>, { ok: true }>;
 
 /** Stores what the proposal cut from the picture and points its layers at it, so the proposal holds real assets. */
-async function withStoredPictures(outcome: Ready, store: DerivedStore): Promise<{ ready: Ready; ids: readonly string[] }> {
-  const stored = await storeDerived(outcome.stack, outcome.pictures, outcome.cropFiles, store);
+async function withStoredPictures(outcome: Ready, store: DerivedStore, replaced: ReadonlySet<string> = new Set()): Promise<{ ready: Ready; ids: readonly string[] }> {
+  // A crop for a mark the person already replaced is not stored: the replacement stays.
+  const crops = outcome.cropFiles.filter((crop) => !replaced.has(`mark-${crop.assetId.slice("crop-".length)}`));
+  const stored = await storeDerived(outcome.stack, outcome.pictures, crops, store, outcome.crops.length);
   return { ready: { ...outcome, stack: stored.stack, report: withNotes(outcome.report, stored.notes) }, ids: stored.ids };
 }
 
@@ -136,7 +138,7 @@ export async function refitImport(deps: Omit<CreateDeps, "vision" | "usage" | "n
   const store = deps.store(new Date());
   let stored: Awaited<ReturnType<typeof withStoredPictures>>;
   try {
-    stored = await withStoredPictures(outcome, store);
+    stored = await withStoredPictures(outcome, store, new Set(before.stack.layers.filter((l) => l.kind === "graphic" && l.provenance === "user-edited").map((l) => l.id)));
   } catch (error) {
     deps.log({ level: "error", message: "The pictures cut for a fit could not be stored", where: "design import refit store", error });
     return { kind: "rejection", reason: FAILED };

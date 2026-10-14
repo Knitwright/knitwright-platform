@@ -6,6 +6,7 @@ import type { CleanUp } from "./cleanup";
 import { clusterColours, colourConfidence, toStackColours } from "./colours";
 import { cropFile, type CropFile, type PictureFile } from "./cuts";
 import { fitView, onPieceFraction, type ViewFit } from "./fit";
+import { MOST_STORED_CROPS } from "./derived";
 import { findPatterns, sourceCopy } from "./patterns";
 import { markRect, readMarks, repairGround, type Crop } from "./marks";
 import { NO_OUTLINE } from "./outline";
@@ -176,7 +177,7 @@ export async function runImport(input: PipelineInput, deps: PipelineDeps): Promi
   const marks = readMarks({ marks: reading.marks, readingConfidence: reading.confidence, raster: work.raster, fits, template: deps.template, colours: toStackColours(clusters) });
   const source = await sourceCopy(input.bytes, work.raster, work.generated);
   const found = await findPatterns({ stage: deps.pattern, template: deps.template, repaired, source, generated: work.generated, marks: reading.marks, analyses: fitted, fits, colours: marks.colours });
-  const cropFiles = await Promise.all(marks.crops.map((crop) => cropFile(crop, source)));
+  const cropFiles = await Promise.all(marks.crops.slice(0, MOST_STORED_CROPS).map((crop) => cropFile(crop, source)));
   const proposals = found.proposals;
   const layers: Layer[] = [...found.layers, ...marks.layers];
   const views = fitted.map((a) => a.view);

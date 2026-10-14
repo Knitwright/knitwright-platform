@@ -110,7 +110,11 @@ export function nearby(scene: Scene, big: Labels, from: Shift, reach: number, st
   for (let dy = -reach; dy <= reach; dy += 1) {
     for (let dx = -reach; dx <= reach; dx += 1) shifts.push(clampShift(scene, { sx: from.sx + dx, sy: from.sy + dy }));
   }
-  const unique = shifts.filter((s, at) => shifts.findIndex((o) => o.sx === s.sx && o.sy === s.sy) === at);
+  const seen = new Set<string>();
+  const unique = shifts.filter((s) => {
+    const key = `${s.sx},${s.sy}`;
+    return seen.has(key) ? false : (seen.add(key), true);
+  });
   return best(scene, big, unique, stride, window, budget);
 }
 
