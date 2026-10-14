@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, type Download, type Page } from "@playwright/test";
 import { readPages } from "../lib/techpack/exports/fixtures/pdf-pages";
-import { createAccount, downloadRecords, signIn, standInForBotCheck, test } from "./support";
+import { createAccount, downloadRecords, openTool, signIn, standInForBotCheck, test } from "./support";
 
 /**
  * Plan step 9: the tech pack as a PDF, an Excel file and two SVG drawings. Each is built when it is
@@ -33,6 +33,7 @@ const openTechPack = async (page: Page): Promise<string> => {
 const designWithTechPack = async (page: Page, label: string, name: string): Promise<string> => {
   await signedIn(page, label);
   await startDesign(page, name);
+  await openTool(page, "Sizes");
   const chest = page.getByLabel("Chest width in centimetres");
   await chest.fill("52.5");
   await chest.press("Enter");

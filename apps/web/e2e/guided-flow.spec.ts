@@ -62,7 +62,7 @@ const reviewAdjustDownload = async (page: Page): Promise<void> => {
     await expect(ways.getByRole("link", { name })).toBeVisible();
   }
   await ways.getByRole("link", { name: "Share with your committee" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}#share-heading$/);
+  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}\?tool=share$/);
   await expect(page.getByRole("heading", { name: "Share with your committee" })).toBeVisible();
 };
 
