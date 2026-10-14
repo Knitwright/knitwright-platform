@@ -5,7 +5,8 @@ import { createBudget, type Budget } from "./budget";
 import { createCleanUp } from "./cleanup";
 import { meterEdits, meterVision } from "./cost";
 import type { PipelineDeps } from "./pipeline";
-import { pendingPatternStage } from "./pattern";
+import { createMatchBudget } from "./match/budget";
+import { createPatternStage } from "./match/stage";
 import { STAND_IN_MAPPER, STAND_IN_TEMPLATE } from "./template";
 
 /**
@@ -28,7 +29,7 @@ export function buildPipelineDeps(options: {
     provider: options.vision ? meterVision(options.vision.provider, options.vision.entry, options.usage) : null,
     template: STAND_IN_TEMPLATE,
     mapper: STAND_IN_MAPPER,
-    pattern: pendingPatternStage,
+    pattern: createPatternStage({ budget: createMatchBudget() }),
     cleanup: options.image ? createCleanUp(meterEdits(options.image, options.usage), budget) : null,
     budget,
     // Until W1's pattern library and W3's mapper are on main, the picture is fitted to the benchmark tee pattern.

@@ -30,10 +30,12 @@ export async function decodeRaster(bytes: Uint8Array, side: number = ANALYSIS_SI
   }
 }
 
-export async function encodePng(raster: Raster): Promise<Uint8Array> {
+/** `density` is dots per inch written into the file, so a picture cut from a garment states the size it was cut at. */
+export async function encodePng(raster: Raster, density?: number): Promise<Uint8Array> {
   const buffer = await sharp(Buffer.from(raster.data.buffer, raster.data.byteOffset, raster.data.byteLength), {
     raw: { width: raster.width, height: raster.height, channels: 4 },
   })
+    .withMetadata(density === undefined ? {} : { density })
     .png()
     .toBuffer();
   return new Uint8Array(buffer);

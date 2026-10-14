@@ -24,6 +24,19 @@ describe("screen", () => {
     expect(screenReducer(off, { type: "tick", id: "mark-1", on: true }).ticked.has("mark-1")).toBe(true);
   });
 
+  it("starts an alternative picture unticked, and makes it and its pattern one or the other", () => {
+    const withAlt = run({ type: "chosen", previewUrl: "blob:x" }, { type: "ready", importId: "i1", layerIds: ["ground", "pattern-front", "pattern-front-alt"] });
+    expect([...withAlt.ticked]).toEqual(["ground", "pattern-front"]);
+    expect(acceptBody(withAlt, ["ground", "pattern-front", "pattern-front-alt"])).toEqual({ layerIds: "all" });
+    const swapped = screenReducer(withAlt, { type: "tick", id: "pattern-front-alt", on: true });
+    expect([...swapped.ticked]).toEqual(["ground", "pattern-front-alt"]);
+    expect(acceptBody(swapped, ["ground", "pattern-front", "pattern-front-alt"])).toEqual({ layerIds: ["ground", "pattern-front-alt"] });
+    const back = screenReducer(swapped, { type: "tick", id: "pattern-front", on: true });
+    expect([...back.ticked]).toEqual(["ground", "pattern-front"]);
+    expect([...screenReducer(back, { type: "tick-all", layerIds: ["ground", "pattern-front", "pattern-front-alt"], on: true }).ticked]).toEqual(["ground", "pattern-front"]);
+    expect([...screenReducer(back, { type: "refitted", layerIds: ["ground", "pattern-front-alt"] }).ticked]).toEqual(["ground"]);
+  });
+
   it("keeps dragged landmarks inside the picture until a fit is redone", () => {
     const moved = screenReducer(ready, { type: "move", view: "front", id: "hps", x: 1.4, y: -0.2 });
     expect(moved.moved).toEqual({ front: { hps: { x: 1, y: 0 } } });

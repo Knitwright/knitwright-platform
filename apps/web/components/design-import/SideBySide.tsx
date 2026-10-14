@@ -12,13 +12,14 @@ type Props = Readonly<{
   busy: boolean;
   onTick: (id: string, on: boolean) => void;
   onMove: (view: "front" | "back", id: string, x: number, y: number) => void;
+  onReplace?: (id: string, file: File, rights: boolean) => Promise<string | null>;
 }>;
 
 /**
  * The reading beside your picture: the picture on the left, our drawing on the right, how sure we are of each layer
  * below, and the limits, which stay on screen whatever is ticked.
  */
-export function SideBySide({ view, ticked, moved, busy, onTick, onMove }: Props) {
+export function SideBySide({ view, ticked, moved, busy, onTick, onMove, onReplace }: Props) {
   return (
     <div className="flex flex-col gap-4" data-testid="design-import-review">
       <div>
@@ -30,7 +31,7 @@ export function SideBySide({ view, ticked, moved, busy, onTick, onMove }: Props)
         <PictureOverlay view={view} moved={moved} onMove={onMove} disabled={busy} />
         <StackDrawing view={view} />
       </div>
-      <LayerList rows={view.rows} ticked={ticked} disabled={busy} onTick={onTick} />
+      <LayerList rows={view.rows} ticked={ticked} disabled={busy} onTick={onTick} onReplace={onReplace} />
       {view.emptyViews.length > 0 ? (
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink-2" data-testid="design-import-empty">
           {view.emptyViews.map((empty) => (

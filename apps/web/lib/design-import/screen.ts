@@ -33,6 +33,11 @@ export type ScreenAction =
   | { readonly type: "failed"; readonly message: string }
   | { readonly type: "discard" };
 
+const ALT = "-alt";
+/** A repeating picture kept as the alternative to a pattern from our list. It starts unticked: choose it instead of the pattern. */
+const isAlternative = (id: string): boolean => id.endsWith(ALT);
+const starting = (ids: readonly string[]): Set<string> => new Set(ids.filter((id) => !isAlternative(id)));
+
 const clamp = (n: number): number => Math.min(1, Math.max(0, Math.round(n * 1000) / 1000));
 
 export function screenReducer(state: ScreenState, action: ScreenAction): ScreenState {
@@ -42,15 +47,18 @@ export function screenReducer(state: ScreenState, action: ScreenAction): ScreenS
     case "uploaded":
       return { ...state, stage: "reading", message: null };
     case "ready":
-      return { ...state, stage: "review", importId: action.importId, ticked: new Set(action.layerIds), moved: {}, message: null };
+      return { ...state, stage: "review", importId: action.importId, ticked: starting(action.layerIds), moved: {}, message: null };
     case "tick": {
       const ticked = new Set(state.ticked);
-      if (action.on) ticked.add(action.id);
-      else ticked.delete(action.id);
+      if (action.on) {
+        ticked.add(action.id);
+        // The pattern and its alternative are one or the other.
+        ticked.delete(isAlternative(action.id) ? action.id.slice(0, -ALT.length) : `${action.id}${ALT}`);
+      } else ticked.delete(action.id);
       return { ...state, ticked };
     }
     case "tick-all":
-      return { ...state, ticked: action.on ? new Set(action.layerIds) : new Set() };
+      return { ...state, ticked: action.on ? starting(action.layerIds) : new Set() };
     case "move": {
       const view = state.moved[action.view] ?? {};
       return { ...state, moved: { ...state.moved, [action.view]: { ...view, [action.id]: { x: clamp(action.x), y: clamp(action.y) } } } };
@@ -58,7 +66,7 @@ export function screenReducer(state: ScreenState, action: ScreenAction): ScreenS
     case "working":
       return { ...state, stage: "working", message: null };
     case "refitted":
-      return { ...state, stage: "review", moved: {}, ticked: new Set(action.layerIds) };
+      return { ...state, stage: "review", moved: {}, ticked: starting(action.layerIds) };
     case "done":
       return { ...state, stage: "done", message: action.message };
     case "failed":
@@ -73,6 +81,6 @@ export const canAccept = (state: ScreenState): boolean => state.stage === "revie
 
 export const hasMoves = (state: ScreenState): boolean => Object.values(state.moved).some((view) => Object.keys(view ?? {}).length > 0);
 
-/** What the server is sent to accept: every layer when all are ticked, else the ones ticked. */
+/** What the server is sent to accept: every layer (the alternatives aside) when all are ticked, else the ones ticked. */
 export const acceptBody = (state: ScreenState, allIds: readonly string[]): { layerIds: "all" | string[] } =>
-  allIds.every((id) => state.ticked.has(id)) ? { layerIds: "all" } : { layerIds: allIds.filter((id) => state.ticked.has(id)) };
+  allIds.every((id) => state.ticked.has(id) === !isAlternative(id)) ? { layerIds: "all" } : { layerIds: allIds.filter((id) => state.ticked.has(id)) };

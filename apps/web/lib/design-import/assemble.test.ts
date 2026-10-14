@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AS_READ, buildReport, buildStack } from "./assemble";
 import { toStackColours } from "./colours";
 import { analysisView } from "./view-model";
-import type { PatternProposal } from "./pattern";
+import { dpiWarning, type PatternProposal } from "./pattern";
 import { FORBIDDEN_WORDS, reportSentences } from "./report";
 import type { StoredImport } from "./service";
 import type { PictureKind } from "./types";
@@ -15,7 +15,10 @@ const proposal = (kind: PatternProposal["kind"], dpi: number | null, repeat = tr
   note: "n",
   repeat: repeat ? { widthMm: 70, heightMm: 35, label: "estimated, check it" } : null,
   alternative: null,
+  cuts: [],
   effectiveDpi: dpi,
+  dpiWarning: dpi !== null && dpi < 150 ? dpiWarning(dpi, 25.4) : null,
+  match: { generatorId: null, error: null, limit: 0.15 },
 });
 const parts = (kind: PictureKind, proposals: PatternProposal[] = []) => ({
   kind,
