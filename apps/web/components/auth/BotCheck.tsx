@@ -92,9 +92,16 @@ export function BotCheck({ siteKey, widget, errors = [] }: BotCheckProps) {
 
   return (
     <div className="flex flex-col gap-1.5" data-bot-check={status.ready ? "ready" : "waiting"}>
+      {/*
+        A page can hold two bot checks, such as the sign-up page with its access request.
+        next/script loads the script once, and a second copy that mounts while it is still
+        loading only gets onLoad, never onReady. onReady covers a copy that mounts after
+        the script has loaded. Both are needed, or the second check never starts.
+      */}
       <Script
         src={SCRIPT}
         strategy="afterInteractive"
+        onLoad={() => setLoaded(true)}
         onReady={() => setLoaded(true)}
         onError={onFailed}
       />

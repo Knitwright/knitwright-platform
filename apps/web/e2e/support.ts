@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test as base, expect, type BrowserContext, type Page } from "@playwright/test";
+import { test as base, expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 /** Helpers for end-to-end tests. They need local Supabase: `pnpm db:start`. */
@@ -177,10 +177,16 @@ export const linkFromMail = async (email: string, subject: RegExp): Promise<stri
   throw new Error(`No message matching ${subject} arrived for ${email}.`);
 };
 
-/** Waits until the bot check for the current attempt has passed. */
-export const passBotCheck = async (page: Page): Promise<void> => {
-  await expect(page.locator('[data-bot-check="ready"]')).toBeVisible();
+/**
+ * Waits until the bot check for the current attempt has passed. A page with more than one form
+ * that has a bot check, such as the sign-up page, passes the form the test uses.
+ */
+export const passBotCheck = async (scope: Page | Locator): Promise<void> => {
+  await expect(scope.locator('[data-bot-check="ready"]')).toBeVisible();
 };
+
+/** The form on the sign-up page that sends a link to a work email. */
+export const signUpLinkForm = (page: Page): Locator => page.locator("form").filter({ has: page.getByLabel("Work email") });
 
 /** The one-sentence problem at the top of a form. */
 export const summary = (page: Page) => page.locator("[data-form-summary]");

@@ -8,6 +8,7 @@ import {
   passBotCheck,
   PASSWORD,
   signIn,
+  signUpLinkForm,
   summary,
   test,
   uniqueEmail,
@@ -16,7 +17,7 @@ import {
 const askForLink = async (page: import("@playwright/test").Page, email: string) => {
   await page.goto("/sign-up");
   await page.getByLabel("Work email").fill(email);
-  await passBotCheck(page);
+  await passBotCheck(signUpLinkForm(page));
   await page.getByRole("button", { name: "Send me a link" }).click();
 };
 
@@ -65,6 +66,8 @@ test.describe("accounts", () => {
     await access.getByLabel("Email", { exact: true }).fill(uniqueEmail("access"));
     await access.getByLabel("Club, school or brand").fill("Northfield FC");
     await access.getByLabel("Type of organisation").selectOption({ label: "Club" });
+    // The page has two bot checks, one for the link and one for this form. Wait for this one.
+    await passBotCheck(access);
     await access.getByRole("button", { name: "Request access" }).click();
 
     await expect(access.getByText("We have your request.")).toBeVisible();
