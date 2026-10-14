@@ -86,15 +86,16 @@ async function firstPrintCopy(bytes: Uint8Array, dpi: number | null): Promise<{ 
 }
 
 /** Reduces the print copy step by step, only when it would not fit in storage. */
-async function fitPrintCopy(
+export async function fitPrintCopy(
   first: { bytes: Buffer; width: number; height: number },
   dpi: number | null,
   warnings: string[],
+  maxBytes: number = ARTWORK_LIMITS.maxPrintCopyBytes,
 ): Promise<{ bytes: Buffer; width: number; height: number }> {
   let current = first;
   let scale = 1;
-  for (let attempt = 0; attempt < 5 && current.bytes.length > ARTWORK_LIMITS.maxPrintCopyBytes; attempt += 1) {
-    scale *= Math.sqrt(ARTWORK_LIMITS.maxPrintCopyBytes / current.bytes.length) * 0.92;
+  for (let attempt = 0; attempt < 5 && current.bytes.length > maxBytes; attempt += 1) {
+    scale *= Math.sqrt(maxBytes / current.bytes.length) * 0.92;
     const width = Math.max(1, Math.round(first.width * scale));
     const height = Math.max(1, Math.round(first.height * scale));
     const { data } = await sharp(first.bytes, { limitInputPixels: ARTWORK_LIMITS.maxPixels })
@@ -104,7 +105,7 @@ async function fitPrintCopy(
       .toBuffer({ resolveWithObject: true });
     current = { bytes: data, width, height };
   }
-  if (current.bytes.length > ARTWORK_LIMITS.maxPrintCopyBytes) throw new AppError("too_large", TOO_LARGE_PICTURE);
+  if (current.bytes.length > maxBytes) throw new AppError("too_large", TOO_LARGE_PICTURE);
   if (current !== first) {
     warnings.push(
       `The print copy was reduced from ${formatSize(first.width, first.height)} to ${formatSize(current.width, current.height)} pixels to fit in storage.`,

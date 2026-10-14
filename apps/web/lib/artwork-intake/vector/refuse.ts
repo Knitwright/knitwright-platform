@@ -19,6 +19,10 @@ export const REFUSALS = {
   notUtf8: "That SVG is not saved as UTF-8 text. Export it again as plain UTF-8 SVG, or as a PDF.",
   notSvg: "That file is not an SVG picture. Export it again from your design app, or use a PDF.",
   empty: "That SVG has no size or nothing to draw. Check the file in your design app and export it again.",
+  notPdf: "That file could not be read as a PDF. Export it again from your design app, or use a PNG or SVG.",
+  passwordPdf: "This PDF is protected with a password, so it was not opened. Save a copy without a password, or export a PNG or SVG.",
+  pdfNeedsPixels:
+    "This PDF holds pictures, gradients or effects that cannot be read as vectors here. Export the artwork as a PNG at print size, or as an SVG, instead.",
   tooBig: (kb: number) => `That vector file is too large (over ${kb} KB). Simplify it in your design app, or use a PDF or a PNG.`,
   tooComplex: "That vector file is too complex: it has too many shapes or points. Simplify it in your design app, or use a PNG.",
   tooSlow: "That vector file took too long to read. Simplify it in your design app, or use a PNG.",

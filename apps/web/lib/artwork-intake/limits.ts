@@ -20,6 +20,8 @@ export const ARTWORK_LIMITS = {
   maxConversionsPerBrand: 2,
   vector: {
     maxFileBytes: 5 * 1024 * 1024,
+    /** A PDF is read for its drawing only; its size is held lower than a picture's. */
+    maxPdfBytes: 15 * 1024 * 1024,
     maxElements: 20_000,
     maxDepth: 32,
     maxPathCommands: 200_000,

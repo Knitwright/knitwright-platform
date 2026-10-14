@@ -78,4 +78,8 @@ export const LIMITS = {
   // A release freezes a design for good, so a slip or a script can do little harm.
   releaseCreate: { name: "release-create", limit: 20, windowSeconds: HOUR },
   proofWrite: { name: "proof-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // User artwork (W7b). Reading and rewriting an upload takes a second or two of a small function.
+  artworkIntake: { name: "artwork-intake", limit: 20, windowSeconds: 10 * MINUTE },
+  // Remove white, tile checks and make seamless re-read a stored picture.
+  artworkConvert: { name: "artwork-convert", limit: 30, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

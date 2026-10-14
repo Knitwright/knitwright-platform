@@ -36,6 +36,26 @@ const UNLIMITED = 1_000_000_000_000;
 
 const filePath = (brandId: string) => `${brandId}/artwork/${randomUUID()}.png`;
 
+/** A `user_artworks` row with every column it needs. */
+const artworkRow = (brandId: string, userId: string, printFileId: string, screenFileId: string): Row => ({
+  brand_id: brandId,
+  kind: "raster",
+  source_format: "png",
+  name: "Seeded crest",
+  source_sha256: "a".repeat(64),
+  print_sha256: "b".repeat(64),
+  print_file_id: printFileId,
+  screen_file_id: screenFileId,
+  width_px: 100,
+  height_px: 80,
+  colour_space: "srgb",
+  has_alpha: false,
+  rights_confirmed_by: userId,
+  rights_confirmed_at: "2026-10-14T00:00:00Z",
+  rights_wording_version: "logo-rights-v1",
+  created_by: userId,
+});
+
 const TABLES: Readonly<Record<string, TableSpec>> = {
   brands: {
     privileges: ["SELECT"],
@@ -304,6 +324,23 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
       ),
     attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
     change: { pattern_size: "52" },
+  },
+  // Production outputs, W7b (migration 20261015060100): a member reads the brand's uploaded artwork; only the
+  // server writes it. The files it points at are the brand's own.
+  user_artworks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const file = async (kind: string, bucket: string, extension: string, contentType: string) => {
+        const row = { id: randomUUID(), brand_id: brandId, bucket, path: `${brandId}/${kind}/${randomUUID()}.${extension}`, kind, content_type: contentType, bytes: 10, created_by: ownerId };
+        must(await adminClient().from("files").insert(row).select("id"));
+        return row.id;
+      };
+      const [print, screen] = [await file("artwork-print", "exports", "tiff", "image/tiff"), await file("artwork", "uploads", "png", "image/png")];
+      return must(await adminClient().from("user_artworks").insert(artworkRow(brandId, ownerId, print, screen)).select("id").single());
+    },
+    attempt: (brandId, userId) => artworkRow(brandId, userId, randomUUID(), randomUUID()),
+    change: { name: "Changed by a stranger" },
   },
   // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
   // line, and none is ever changed or removed.

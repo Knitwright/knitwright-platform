@@ -38,6 +38,9 @@ importers:
       next:
         specifier: 16.3.8
         version: 16.3.8(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.19.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      pdfjs-dist:
+        specifier: ^6.3.289
+        version: 6.3.289
       react:
         specifier: 19.2.8
         version: 19.2.8
@@ -99,9 +102,6 @@ importers:
       fflate:
         specifier: 0.8.3
         version: 0.8.3
-      pdfjs-dist:
-        specifier: ^6.3.289
-        version: 6.3.289
       tailwindcss:
         specifier: ^4
         version: 4.3.3

@@ -56,6 +56,9 @@ const nextConfig: NextConfig = {
     staleTimes: { dynamic: 30 },
   },
   typedRoutes: true,
+  // The PDF reader of the artwork intake loads its own worker file at run time (decision 0036), so it is
+  // left as a package on disk rather than bundled.
+  serverExternalPackages: ["pdfjs-dist"],
   // The PDF font is read from disk when a PDF is made (decision 0008), so the host must ship it with
   // the export route. The brackets are escaped because the key is a picomatch glob. A test fails
   // when this entry is missing or names another route.

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AppError } from "@/lib/server/core/errors";
 import { claimedPng, cmykTiff, logoOnWhite, solid, withDpi } from "./fixtures/images";
 import { ARTWORK_LIMITS } from "./limits";
-import { ingestRaster, NOT_READABLE, TOO_LARGE_PICTURE, TOO_MANY_BYTES } from "./raster";
+import { fitPrintCopy, ingestRaster, NOT_READABLE, TOO_LARGE_PICTURE, TOO_MANY_BYTES } from "./raster";
 
 describe("ingestRaster", () => {
   it("refuses a 100 000 x 100 000 pixel PNG from its header, before decoding it", async () => {
@@ -106,13 +106,17 @@ describe("ingestRaster", () => {
   });
 
   it("reduces a print copy that would not fit in storage, and says by how much", async () => {
-    const noisy = Buffer.alloc(1200 * 1200 * 3);
+    const noisy = Buffer.alloc(400 * 400 * 3);
     for (let i = 0; i < noisy.length; i += 1) noisy[i] = (i * 2654435761) >>> 24;
-    const png = await sharp(noisy, { raw: { width: 1200, height: 1200, channels: 3 } }).png({ compressionLevel: 0 }).toBuffer();
-    const result = await ingestRaster(png, "png");
-    // The noise compresses to about the same size as it is, so the real limit would not be hit here:
-    // this only checks the sizes are reported as made.
-    expect(result.print.length).toBeLessThanOrEqual(ARTWORK_LIMITS.maxPrintCopyBytes);
-    expect(result.widthPx).toBeGreaterThan(0);
+    const tiff = await sharp(noisy, { raw: { width: 400, height: 400, channels: 3 } }).tiff({ compression: "deflate" }).toBuffer();
+    const warnings: string[] = [];
+    const fitted = await fitPrintCopy({ bytes: tiff, width: 400, height: 400 }, 300, warnings, Math.floor(tiff.length * 0.5));
+    expect(fitted.bytes.length).toBeLessThanOrEqual(Math.floor(tiff.length * 0.5));
+    expect(fitted.width).toBeLessThan(400);
+    expect(warnings).toEqual([`The print copy was reduced from 400 x 400 to ${fitted.width} x ${fitted.height} pixels to fit in storage.`]);
+    const same = await fitPrintCopy({ bytes: tiff, width: 400, height: 400 }, null, warnings);
+    expect(same.width).toBe(400);
+    expect(warnings).toHaveLength(1);
+    await expect(fitPrintCopy({ bytes: tiff, width: 400, height: 400 }, null, [], 100)).rejects.toMatchObject({ code: "too_large" });
   });
 });
