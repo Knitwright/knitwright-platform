@@ -60,9 +60,10 @@ export async function writeArtworkFile(file: ArtworkFileInput): Promise<StoredAr
     width: file.width,
     height: file.height,
     created_by: file.userId,
-    rights_confirmed_by: file.rights.confirmedBy,
-    rights_confirmed_at: file.rights.confirmedAt,
-    rights_wording_version: file.rights.wordingVersion,
+    // The files table keeps the rights confirmation on plain artwork files only; the artwork's own row keeps it too.
+    ...(file.kind === "artwork"
+      ? { rights_confirmed_by: file.rights.confirmedBy, rights_confirmed_at: file.rights.confirmedAt, rights_wording_version: file.rights.wordingVersion }
+      : {}),
   });
   if (record.error) {
     try {

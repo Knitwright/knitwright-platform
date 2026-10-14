@@ -29,6 +29,8 @@ describe("writeArtworkFile", () => {
     expect(small.path).toMatch(new RegExp(`^${BRAND}/artwork/[0-9a-f-]{36}\\.png$`));
     expect(print.path).toMatch(/\/artwork-print\/[0-9a-f-]{36}\.tiff$/);
     expect(vector.path).toMatch(/\/artwork-vector\/[0-9a-f-]{36}\.json$/);
+    expect(fake.tables.files[1]).not.toHaveProperty("rights_confirmed_by");
+    expect(fake.tables.files[2]).not.toHaveProperty("rights_confirmed_by");
     expect(fake.tables.files[0]).toMatchObject({ brand_id: BRAND, kind: "artwork", rights_confirmed_by: rights.confirmedBy, rights_wording_version: "logo-rights-v1" });
   });
 
