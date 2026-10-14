@@ -4,6 +4,13 @@ import { ExportRefused } from "./errors";
 import type { ExportSection } from "./table-types";
 import { coverSection, flatsSection, howToMeasureSection, measurementsSection } from "./tables-front";
 import {
+  artworkAndColourSection,
+  fabricSection,
+  operationsSection,
+  patternAndCuttingSection,
+  readinessSection,
+} from "./tables-v2";
+import {
   artworkSection,
   colourwaysSection,
   componentsSection,
@@ -17,13 +24,18 @@ export type { Column, Datum, ExportSection, ExportTable } from "./table-types";
 
 const BUILDERS: Readonly<Record<SectionId, (pack: TechPack) => ExportSection>> = {
   cover: coverSection,
+  readiness: readinessSection,
   flats: flatsSection,
   measurements: measurementsSection,
   "how-to-measure": howToMeasureSection,
+  "pattern-and-cutting": patternAndCuttingSection,
   components: componentsSection,
+  fabric: fabricSection,
   construction: constructionSection,
   colourways: colourwaysSection,
   artwork: artworkSection,
+  "artwork-and-colour": artworkAndColourSection,
+  operations: operationsSection,
   labelling: labellingSection,
   suggested: suggestedSection,
   "sign-off": signOffSection,

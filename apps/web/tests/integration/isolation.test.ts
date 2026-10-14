@@ -260,6 +260,74 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
   },
+  // Production outputs, W2 (migration 20261015020000): a member reads the brand's fabrics, fabric tests
+  // and size label maps; only the server writes them, and a fabric test is never changed.
+  base_fabrics: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("base_fabrics")
+          .insert({ brand_id: brandId, name: "Seeded interlock", profile: {}, created_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", profile: {}, created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
+  fabric_tests: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const fabric = must(
+        await adminClient()
+          .from("base_fabrics")
+          .insert({ brand_id: brandId, name: "Tested interlock", profile: {}, created_by: ownerId })
+          .select("id")
+          .single(),
+      );
+      return must(
+        await adminClient()
+          .from("fabric_tests")
+          .insert({
+            brand_id: brandId,
+            fabric_id: fabric.id,
+            tested_by: "Priya Nair",
+            tested_on: "2026-10-01",
+            method: "Seeded",
+            reduction_pct: 3,
+            created_by: ownerId,
+          })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      fabric_id: randomUUID(),
+      tested_by: "Someone",
+      tested_on: "2026-10-01",
+      method: "Made directly",
+      reduction_pct: 3,
+      created_by: userId,
+    }),
+    change: { tested_by: "Changed by a stranger" },
+  },
+  size_label_maps: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("size_label_maps")
+          .insert({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "48", source: "user-edited", updated_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
+    change: { pattern_size: "52" },
+  },
   // The pattern library (W1): a member reads the brand's blocks, their sizes and reviews; only the server writes.
   pattern_blocks: {
     privileges: ["SELECT"],

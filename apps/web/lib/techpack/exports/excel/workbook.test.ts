@@ -5,6 +5,7 @@ import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
 import { TO_BE_CONFIRMED, sourceLabel, type SetCell } from "../../cell";
 import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../../fixtures/designs";
+import { benchmarkJerseyInput, completeProduction, targetedJersey } from "../../fixtures/production";
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
 import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
@@ -57,20 +58,38 @@ const readPairs = async (bytes: Uint8Array): Promise<{ sheets: readonly ReadShee
 
 const FORMULA = /<f[\s>/]/;
 
-const designs = (): readonly (readonly [string, TechPack])[] =>
-  TOPS_IDS.flatMap((typeId) => [
+const designs = (): readonly (readonly [string, TechPack])[] => [
+  ["jersey with every production record", packFor(targetedJersey(), { production: completeProduction() })],
+  ["jersey with a pattern and nothing else", packFor(targetedJersey(), { production: benchmarkJerseyInput() })],
+  ...TOPS_IDS.flatMap((typeId) => [
     [`${typeId} empty`, packFor(start(typeId))] as const,
     [`${typeId} empty, sizes from a chart`, packFor(start(typeId), { charts: CHARTS })] as const,
     [`${typeId} full`, packFor(fullDesign(typeId), { history: revisions(3) })] as const,
     [`${typeId} full, sizes from a chart`, packFor(fullDesign(typeId), { charts: CHARTS, history: revisions(10) })] as const,
-  ]);
+  ]),
+];
 
 describe("the Excel file equals the document (T2)", () => {
   it("holds one sheet for each section that holds values, in order, with names Excel accepts", async () => {
     const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee"))));
     const names = sheets.map((sheet) => sheet.sheet);
     expect(names).toEqual(Object.values(EXCEL_SHEETS).filter((name): name is string => name !== null));
-    expect(names).toEqual(["Cover", "Measurements", "Components", "Construction", "Colourways", "Artwork", "Labels and packing", "Suggested values", "Sign-off"]);
+    expect(names).toEqual([
+      "Cover",
+      "Ready for the factory",
+      "Measurements",
+      "Pattern and cutting",
+      "Components",
+      "Fabric",
+      "Construction",
+      "Colourways",
+      "Artwork",
+      "Artwork and colour",
+      "Order of work",
+      "Labels and packing",
+      "Suggested values",
+      "Sign-off",
+    ]);
     for (const name of names) expect(name).toMatch(/^[^\\/?*[\]:]{1,31}$/);
   });
 
@@ -155,9 +174,10 @@ describe("the Excel file equals the document (T2)", () => {
   it("freezes the header row and makes it bold", async () => {
     const bytes = await buildWorkbook(packFor(fullDesign("crew-tee")));
     const files = unzipText(bytes);
-    // The cover starts with a table that has no title, so its header is row 1. Measurements starts with a title.
+    // The cover and the readiness list start with a table that has no title, so their header is row 1. Measurements starts with a title.
     expect(files["xl/worksheets/sheet1.xml"]).toMatch(/<pane ySplit="1"[^>]*state="frozen"/);
-    expect(files["xl/worksheets/sheet2.xml"]).toMatch(/<pane ySplit="2"[^>]*state="frozen"/);
+    expect(files["xl/worksheets/sheet2.xml"]).toMatch(/<pane ySplit="1"[^>]*state="frozen"/);
+    expect(files["xl/worksheets/sheet3.xml"]).toMatch(/<pane ySplit="2"[^>]*state="frozen"/);
     const styles = files["xl/styles.xml"] ?? "";
     const fonts = [...(/<fonts[^>]*>([\s\S]*?)<\/fonts>/.exec(styles)?.[1] ?? "").matchAll(/<font>([\s\S]*?)<\/font>|<font\/>/g)];
     const boldFonts = fonts.flatMap((font, index) => (/<b\/>/.test(font[0]) ? [index] : []));

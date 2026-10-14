@@ -25,7 +25,7 @@ export interface KitStyle {
   readonly label: string;
   /** One short line under the tile. */
   readonly hint: string;
-  /** The band size the style starts with, in tenths of a millimetre. None for plain and fade. */
+  /** The band size the style starts with, in tenths of a millimetre. None for plain, fade and polka dots, whose sizes nobody has given yet. */
   readonly size?: number;
 }
 
@@ -37,12 +37,13 @@ const STYLES: readonly KitStyle[] = [
   { id: "sash", label: KIT_PATTERN_LABELS.sash, hint: "A band from shoulder to hip.", size: 1100 },
   { id: "side-panels", label: KIT_PATTERN_LABELS["side-panels"], hint: "A panel down each side.", size: 800 },
   { id: "chest-band", label: KIT_PATTERN_LABELS["chest-band"], hint: "One band across the chest.", size: 900 },
+  { id: "dots", label: KIT_PATTERN_LABELS.dots, hint: "Round dots in rows, in one or two colours." },
   { id: "fade", label: KIT_PATTERN_LABELS.fade, hint: "A printed fade into the second colour." },
 ];
 
 /** The styles each garment offers. A garment not listed has no kit styles. */
 const OFFERED: Readonly<Record<string, readonly KitStyleId[]>> = {
-  "team-jersey": ["plain", "hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade"],
+  "team-jersey": ["plain", "hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade", "dots"],
   polo: ["plain", "hoops", "stripes", "pinstripes", "side-panels", "chest-band", "fade"],
   "crew-tee": ["plain", "hoops", "stripes", "side-panels", "chest-band", "fade"],
   "v-neck-tee": ["plain", "hoops", "stripes", "side-panels", "chest-band", "fade"],

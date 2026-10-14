@@ -9,12 +9,17 @@ import { createAccount, leaveWithoutChart, openTool, signIn, standInForBotCheck,
 /** Each section of the list at the side, and the headings of the document shown in it. */
 const SECTIONS: readonly (readonly [string, readonly string[]])[] = [
   ["Cover", ["Cover"]],
+  ["Ready for the factory", ["Ready for the factory"]],
   ["Flats", ["Flats with callouts"]],
   ["Measurements", ["Measurement table"]],
   ["How to measure", ["How to measure"]],
+  ["Pattern and cutting", ["Pattern and cutting"]],
   ["Construction", ["Construction"]],
+  ["Order of work", ["Order of work"]],
   ["Bill of materials", ["Component list"]],
+  ["Fabric", ["Fabric"]],
   ["Artwork", ["Artwork placement"]],
+  ["Artwork and colour", ["Artwork and colour"]],
   ["Labelling", ["Labels and packing"]],
   ["Colourways", ["Colourways"]],
   ["Patterns", ["Patterns"]],
@@ -72,6 +77,12 @@ test.describe("the tech pack page", () => {
       }
     }
     await expect(page.getByTestId("sign-off-statement")).toHaveText("Nobody has checked this specification yet.");
+    // A new design has no pattern, fabric test or print files, so the list says what is missing and who acts.
+    await section(page, "Ready for the factory");
+    await expect(page.getByTestId("readiness-summary")).toHaveText(/^Not ready for the factory yet: \d+ things are left\.$/);
+    await expect(page.locator('[data-item="pattern-present"]')).toContainText("A technician adds a pattern");
+    await section(page, "Pattern and cutting");
+    await expect(page.getByTestId("pattern-review")).toHaveText(/Draft pattern, not reviewed\./);
     await expect(page.getByTestId("things-left")).toHaveText(/^\d+ things left to fill in or make your own$/);
 
     await whatIsLeft(page);

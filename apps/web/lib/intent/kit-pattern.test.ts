@@ -40,6 +40,18 @@ describe("a kit pattern from the assistant", () => {
     expect(other.ok && other.action.type === "set-kit-pattern" && Object.hasOwn(other.action.kitPattern, "size")).toBe(false);
   });
 
+  it("keeps the dot spacing when a model asks for dots again, and drops it for another style", () => {
+    const layout = { pitch: 700, rowStep: 350, halfDrop: true, clearSpace: 100 };
+    const dotted = must(start("team-jersey"), {
+      type: "set-kit-pattern",
+      kitPattern: { style: "dots", colours: [{ colour: "Red" }, { colour: "Blue" }], size: 300, dots: layout, provenance: "user-edited" },
+    });
+    const same = kitPatternAction(dotted, { type: "set-kit-pattern", style: "dots" }, "ai-suggested");
+    expect(same.ok && same.action.type === "set-kit-pattern" && same.action.kitPattern).toMatchObject({ size: 300, dots: layout });
+    const other = kitPatternAction(dotted, { type: "set-kit-pattern", style: "hoops" }, "ai-suggested");
+    expect(other.ok && other.action.type === "set-kit-pattern" && Object.hasOwn(other.action.kitPattern, "dots")).toBe(false);
+  });
+
   it("says what changed in one sentence", () => {
     const before = start("team-jersey");
     const set = must(before, { type: "set-kit-pattern", kitPattern: { style: "sash", colours: [{ colour: "Red" }], provenance: "ai-suggested" } });

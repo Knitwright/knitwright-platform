@@ -102,3 +102,41 @@ describe("describing a kit pattern for a factory", () => {
     expect(describeKitPattern(fade)).toMatch(/^Fade, a printed gradient from the body colour into Navy/);
   });
 });
+
+describe("polka dots", () => {
+  const dots: KitPattern = {
+    style: "dots",
+    colours: [{ colour: "Red", swatch: "#c8102e" }, { colour: "Royal blue", swatch: "#1f4fbf" }],
+    size: 300,
+    dots: { pitch: 700, rowStep: 350, halfDrop: true, clearSpace: 100 },
+    provenance: "user-edited",
+  };
+
+  it("takes the benchmark jersey's numbers", () => {
+    expect(kitPatternSchema.safeParse(dots).success).toBe(true);
+  });
+
+  it("refuses dot spacing on any other style, and dots wider than their pitch", () => {
+    expect(kitPatternSchema.safeParse({ ...hoops, dots: { pitch: 700 } }).success).toBe(false);
+    expect(kitPatternSchema.safeParse({ ...dots, size: 800 }).success).toBe(false);
+  });
+
+  it("says the spacing in plain words", () => {
+    expect(describeKitPattern(dots)).toBe(
+      "Polka dots in Red (#c8102e) and Royal blue (#1f4fbf) over the body colour, dots 3.0 cm, centres 7.0 cm, rows 3.5 cm, every other row shifted half a step, colour changes row by row, 1.0 cm clear around names, numbers and marks, on the front and back of the body.",
+    );
+  });
+
+  it("says a spacing nobody gave is to be confirmed", () => {
+    const bare: KitPattern = { style: "dots", colours: [{ colour: "Red" }], provenance: "user-edited" };
+    expect(describeKitPattern(bare)).toContain("dots to be confirmed, centres to be confirmed, rows to be confirmed");
+  });
+});
+
+describe("polka dot spacing limits", () => {
+  it("refuses a pitch or row step under 5 mm", () => {
+    const base: KitPattern = { style: "dots", colours: [{ colour: "Red" }], provenance: "user-edited" };
+    expect(kitPatternSchema.safeParse({ ...base, dots: { pitch: 10 } }).success).toBe(false);
+    expect(kitPatternSchema.safeParse({ ...base, dots: { rowStep: 10 } }).success).toBe(false);
+  });
+});

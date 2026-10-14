@@ -10,6 +10,7 @@ import {
   sizingSchema,
   toleranceSchema,
 } from "./parts";
+import { artworkStackSchema } from "../artwork-stack/schema";
 import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
@@ -73,6 +74,12 @@ export const garmentSpecStructureSchema = z
      * version 6 without a bump, so every design saved before still reads.
      */
     kitPattern: kitPatternSchema.optional(),
+    /**
+     * The design's artwork as one stack of layers (decision 0035). Optional and added after version 6
+     * without a bump. While it is absent the app works one out from `kitPattern`, `artwork`,
+     * `namesAndNumbers` and the panel colours; the older fields are kept in step when it is written.
+     */
+    artworkStack: artworkStackSchema.optional(),
   })
   .readonly();
 

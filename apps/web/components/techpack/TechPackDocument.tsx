@@ -1,7 +1,7 @@
 import { Suspense, type ReactNode } from "react";
 import { Notice } from "@/components/ui/Notice";
 import type { TechPackCoreData, TechPackPictures } from "@/lib/projects/tech-pack-data";
-import { fileProgress, fileSections, parseSection, type FileSectionId } from "@/lib/projects/tech-pack-sections";
+import { PRODUCTION_SECTIONS, fileProgress, fileSections, parseSection, type FileSectionId } from "@/lib/projects/tech-pack-sections";
 import { ComponentsView, ConstructionView } from "./ComponentViews";
 import { ConfirmPanel } from "./ConfirmPanel";
 import { ConfirmSummary } from "./ConfirmSummary";
@@ -16,6 +16,7 @@ import { FileTabs } from "./FileTabs";
 import { FormOpener } from "./FormOpener";
 import { HowToMeasureView, MeasurementsView } from "./MeasurementViews";
 import { ArtworkView, ColourwaysView, LabellingView, SignOffView, SuggestedView } from "./OtherViews";
+import { ArtworkAndColourView, FabricView, OperationsView, PatternAndCuttingView, ReadinessView } from "./ProductionViews";
 import { ColourwayForms, CoverForms, MeasurementForms } from "./ValueForms";
 
 type DocumentProps = Readonly<{
@@ -48,6 +49,11 @@ function documentPanels(data: TechPackCoreData, pictures: Promise<TechPackPictur
   );
   return {
     cover: <CoverView cover={pack.cover} forms={<CoverForms projectId={data.projectId} cover={forms.cover} />} confirm={confirm("cover")} />,
+    readiness: <ReadinessView section={pack.readiness} />,
+    "pattern-and-cutting": <PatternAndCuttingView section={pack.patternAndCutting} />,
+    fabric: <FabricView section={pack.fabric} />,
+    "artwork-and-colour": <ArtworkAndColourView section={pack.artworkAndColour} />,
+    operations: <OperationsView section={pack.operations} />,
     flats: (
       <FlatsView
         flats={pack.flats}
@@ -95,11 +101,11 @@ const keepColourway = (colourwayId: string | undefined): string => (colourwayId 
  * needs, and one section at a time, with the forms to fill in what is missing.
  */
 export function TechPackDocument({ data, pictures, colourwayId, section, illustrations, patterns, quote }: DocumentProps) {
-  const sections = fileSections(data.report, data.confirmables, { illustrations: illustrations !== null });
+  const sections = fileSections(data.report, data.confirmables, { illustrations: illustrations !== null }, data.pack.readiness);
   const available: FileSectionId[] = [...sections.map((entry) => entry.id), "left"];
   const initial = parseSection(section, available);
   const baseSearch = keepColourway(colourwayId);
-  const left = sections.reduce((sum, entry) => sum + entry.left, 0);
+  const left = sections.filter((entry) => !PRODUCTION_SECTIONS.includes(entry.id)).reduce((sum, entry) => sum + entry.left, 0);
   const panels: Partial<Record<FileSectionId, ReactNode>> = {
     left: (
       <section aria-labelledby="left-title" className="glass flex flex-col gap-4 rounded-3xl p-6">

@@ -257,15 +257,18 @@ describe("serving an export", () => {
     expect(await sent.text()).toContain(PICTURE_LEFT_OUT);
   });
 
-  it("tells the PDF to say a picture was left out when one was, and not otherwise", async () => {
+  // Two tests, not one: each makes a whole PDF, which now has more sections, and one test must stay inside its time.
+  it("tells the PDF to say a picture was left out when one was", async () => {
     const left = source({ pictures: { images: new Map(), skipped: 1 } });
     await ask("pdf", {}, { load: async () => left }).response;
+
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: true, illustrations: null }]);
+  });
+
+  it("tells the PDF to say nothing about a picture when none was left out", async () => {
     await ask("pdf").response;
 
-    expect(seen.pdfOptions).toEqual([
-      { pictureLeftOut: true, illustrations: null },
-      { pictureLeftOut: false, illustrations: null },
-    ]);
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: false, illustrations: null }]);
   });
 
   it.each(["pdf", "xlsx", "svg"] as const)("checks the document once before a %s is made", async (format) => {

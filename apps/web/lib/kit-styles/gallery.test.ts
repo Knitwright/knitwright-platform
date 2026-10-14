@@ -8,7 +8,7 @@ const PROJECT = "7c3e4c38-5f6a-4c55-9a4d-5b1f0b0f2a11";
 describe("the kit style gallery", () => {
   it("has one tile for each style the garment offers, each a small drawing in the club's colours", () => {
     const tiles = kitStyleTiles(start("team-jersey"), DEFAULT_CLUB_COLOURS);
-    expect(tiles.map((tile) => tile.id)).toEqual(["plain", "hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade"]);
+    expect(tiles.map((tile) => tile.id)).toEqual(["plain", "hoops", "stripes", "pinstripes", "sash", "side-panels", "chest-band", "fade", "dots"]);
     for (const tile of tiles) {
       expect(tile.src.startsWith("data:image/svg+xml")).toBe(true);
       expect(decodeURIComponent(tile.src)).toContain(DEFAULT_CLUB_COLOURS.main);

@@ -6,6 +6,7 @@ import { applyAction, type GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
 import { completenessReport } from "./completeness";
 import { CHARTS, fullDesign, packFor } from "./fixtures/designs";
+import { completeProduction, targetedJersey } from "./fixtures/production";
 import { leaves } from "./walk";
 
 /**
@@ -39,6 +40,7 @@ const listed = (dir: string, pattern: RegExp): string[] =>
 const SOURCES = [
   ...listed("components/techpack", /\.tsx?$/),
   ...listed("lib/techpack", /\.ts$/),
+  ...listed("lib/techpack/production", /\.ts$/),
   ...listed("lib/projects", /^tech-pack-.*\.ts$/),
   ...listed("lib/garment/registry", /\.ts$/),
   ...listed("lib/garment/registry/tops", /\.ts$/),
@@ -120,5 +122,37 @@ describe("the words in a finished document and its summary", () => {
     const report = completenessReport(packFor(fullDesign("polo"), { charts: CHARTS }));
     const text = report.sections.flatMap((section) => section.items).map((item) => `${item.label} ${item.detail ?? ""}`);
     for (const line of text) expect(withoutAllowed(line)).not.toMatch(SETTLED);
+  });
+});
+
+describe("the words of tech pack v2", () => {
+  const complete = () => packFor(targetedJersey(), { production: completeProduction() });
+  const sentences = (pack: ReturnType<typeof complete>): string[] =>
+    leaves({ ...pack, flats: { ...pack.flats, views: pack.flats.views.map((view) => ({ ...view, model: null })) } }).map((entry) => String(entry.leaf));
+
+  it("scan the production files too", () => {
+    expect(SOURCES.some((path) => path.includes("production/readiness.ts"))).toBe(true);
+  });
+
+  it("hold none of the settled words in a document with every record, nor in one with none", () => {
+    for (const pack of [complete(), packFor(targetedJersey())]) {
+      for (const sentence of sentences(pack)) expect(withoutAllowed(sentence), sentence).not.toMatch(SETTLED);
+    }
+  });
+
+  it("say who reviewed, accepted and signed, with a name and a date, and only from a record", () => {
+    const text = sentences(complete());
+    expect(text).toContain("Reviewed by Ana Reyes on 3 Oct 2026");
+    expect(text).toContain("The strike-off was accepted by Sam Lee on 9 Oct 2026.");
+    expect(text).toContain("Signed by 1 of 4 roles. The strike-off was accepted by Sam Lee on 9 Oct 2026.");
+    const none = sentences(packFor(targetedJersey()));
+    expect(none.filter((sentence) => /\b(reviewed by|accepted by|signed by)\b/i.test(sentence))).toEqual([]);
+    expect(none).toContain("Draft pattern, not reviewed.");
+  });
+
+  it("call the list Ready for the factory and never production-ready", () => {
+    const pack = complete();
+    expect(pack.readiness.title).toBe("Ready for the factory");
+    expect(JSON.stringify(pack)).not.toMatch(/production[- ]ready/i);
   });
 });
