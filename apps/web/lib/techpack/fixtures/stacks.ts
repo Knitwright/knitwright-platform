@@ -2,7 +2,7 @@
  * Artwork stacks for the tech pack tests: one stack for each layer kind, and one that holds them all. Each is a
  * valid W7a stack (a test parses them), so the tech pack is built from the same model the print files use.
  */
-import { DEFAULT_DATUM, writeStack, type ArtworkStack, type Layer, type StackColour } from "@/lib/artwork-stack";
+import { DEFAULT_DATUM, writeStack, type ArtworkStack, type GraphicLayer, type Layer, type StackColour } from "@/lib/artwork-stack";
 import type { GarmentSpec } from "@/lib/garment";
 import type { ImportReport } from "@/lib/design-import/report";
 import type { LowDpiAcceptance, PictureRead, PlacedAsset } from "../production/input";
@@ -84,7 +84,7 @@ export const PANEL_LAYER: Layer = {
   fit: "cover",
 };
 
-export const CREST_LAYER: Layer = {
+export const CREST_LAYER: GraphicLayer = {
   ...base,
   kind: "graphic",
   id: "crest",
@@ -100,7 +100,7 @@ export const CREST_LAYER: Layer = {
   technique: "sublimation",
 };
 
-export const OLD_LOGO_LAYER: Layer = {
+export const OLD_LOGO_LAYER: GraphicLayer = {
   ...base,
   kind: "graphic",
   id: "sleeve-logo",
