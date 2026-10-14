@@ -28,6 +28,7 @@ test.describe("the studio home", () => {
 
   test("lists what needs the member, and moves a design on once it is shared", async ({ page }) => {
     await signIn(page, await createAccount("home-needs", { brand: "Harbour Hockey" }));
+    await expect(page).toHaveURL(/\/studio$/);
     await startDesign(page, "Home kit 2027");
 
     await page.goto("/studio");
