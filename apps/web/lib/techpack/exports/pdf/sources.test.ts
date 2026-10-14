@@ -49,7 +49,10 @@ describe("every value is printed with its source (T5, invariant I5)", () => {
     }
   });
 
-  it.each([1, 2])("holds for documents built from designs made by random changes, run %i", async (seed) => {
+  // One PDF for each test, as in formats.test.ts. A PDF takes about 1.7 s to make since the v2 sections
+  // (about 1.0 s before), and CI runs slower than a laptop, so two PDFs in one test came close to the
+  // five-second limit. Four seeds of one run each cover the same number of random designs.
+  it.each([1, 2, 3, 4])("holds for documents built from designs made by random changes, run %i", async (seed) => {
     await fc.assert(
       fc.asyncProperty(fc.constantFrom(...typeIds.slice(0, -1)), fc.array(action, { maxLength: 25 }), fc.boolean(), async (typeId, actions, withCharts) => {
         let spec: GarmentSpec = start(typeId);
@@ -65,7 +68,7 @@ describe("every value is printed with its source (T5, invariant I5)", () => {
         }
         expect(warnings).toEqual([]);
       }),
-      { numRuns: 2, seed },
+      { numRuns: 1, seed },
     );
   });
 });
