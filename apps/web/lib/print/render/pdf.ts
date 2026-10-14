@@ -4,6 +4,7 @@ import { PDF_FONT_FAMILY, registerPdfFont } from "@/lib/flat/pdf-font";
 import type { Shape } from "../geometry/boolean";
 import type { Pt } from "../geometry/vec";
 import type { PieceScene, RasterLayer, SceneLayer, VectorLayer } from "../layout/scene";
+import { canonicalPdf } from "./pdf-canonical";
 import { CUT_COLOUR, BLEED_COLOUR, GUIDE_WIDTH_MM } from "./svg";
 import { num, pageMap, pathData } from "./svg-util";
 
@@ -74,5 +75,5 @@ export async function buildPdf(scene: PieceScene, options: PdfOptions): Promise<
     ...scene.notes.map((note, i) => h(View, { key: `n${i}`, style: { marginBottom: 4 } }, h(Text, null, note))),
   );
   const doc = h(Document, { title, creator: "Knitwright", producer: "Knitwright", creationDate: FIXED_DATE, language: "en" }, printPage, notesPage);
-  return new Uint8Array(await renderToBuffer(doc));
+  return canonicalPdf(new Uint8Array(await renderToBuffer(doc)));
 }

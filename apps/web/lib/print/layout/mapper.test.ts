@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { JERSEY_EU48 } from "@/lib/production/fixtures";
 import { TEST_BASE_SIZE, TEST_GRADED_JERSEY } from "../fixtures/graded";
-import { distance, dot, pointInPolygon } from "../geometry/vec";
+import { distance, dot, pointInPolygon, sub } from "../geometry/vec";
 import { createLayoutMapper } from "./mapper";
 
 const mapper = createLayoutMapper({ pattern: TEST_GRADED_JERSEY, baseSize: TEST_BASE_SIZE });
@@ -47,10 +47,14 @@ describe("layout mapper", () => {
     expect(back.wornOrigin[0]).toBeCloseTo(half(front) + half(back), 6);
     expect(front.wornOrigin).toEqual([0, 0]);
   });
-  it("keeps the worn origins the same in every size", () => {
-    const a = mapper.frame("back", "44")!.wornOrigin;
-    const b = mapper.frame("back", "52")!.wornOrigin;
-    expect(a).toEqual(b);
+  it("lays the back beside the front in every size, so a field runs through the side seam", () => {
+    for (const size of TEST_GRADED_JERSEY.sizes) {
+      const [f, b] = [mapper.frame("front", size)!, mapper.frame("back", size)!];
+      const half = (fr: typeof f): number => Math.abs(dot(sub(fr.opened.landmarks.underarm!, fr.origin), fr.right));
+      expect(b.wornOrigin[0]).toBeCloseTo(half(f) + half(b), 6);
+      // The front's right edge and the back's left edge are the same place on the sheet.
+      expect(f.wornOrigin[0] + half(f)).toBeCloseTo(b.wornOrigin[0] - half(b), 6);
+    }
   });
   it("draws both sleeves the same way up, and the left one's outline is the mirror image of the right one's", () => {
     const l = mapper.frame("sleeve-left", "48")!;

@@ -79,3 +79,14 @@ export const blendStack = (): ArtworkStack =>
     [RED, BLUE],
     BODY,
   );
+
+/** Case 7: the benchmark dots with a name (30 mm), a back number and a front number from the roster. */
+export const rosterStack = (): ArtworkStack =>
+  stackOf(
+    [
+      { ...common, kind: "pattern", id: "dots", views: BODY, generatorId: "kit-dots", params: { dotWidthMm: 30, pitchMm: 70, rowStepMm: 35, halfDrop: true, clearSpaceMm: 10 }, datum: DEFAULT_DATUM, colourIds: [RED.id, BLUE.id] },
+      ...playerMarks(),
+    ],
+    [RED, BLUE, NAVY],
+    BODY,
+  );

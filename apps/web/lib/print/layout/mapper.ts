@@ -59,7 +59,7 @@ export interface LayoutMapper extends PieceMapper {
 
 export interface MapperInput {
   readonly pattern: GradedPattern;
-  /** The size the design plane's worn sheet is laid out from. Its origins are then fixed for every size. */
+  /** The size the pattern is drawn at; kept for callers that name one. The worn sheet is laid out for each size. */
   readonly baseSize: string;
   readonly bindings?: Readonly<Partial<Record<ViewId, ViewBinding>>>;
 }
@@ -122,12 +122,21 @@ export function createLayoutMapper(input: MapperInput): LayoutMapper {
     return { view, pieceId: piece.id, size, opened, origin: basis.origin, down: basis.down, right: rightOf(basis.down), wornOrigin };
   };
 
-  // The worn sheet is laid out once, from the base size, so it is the same in every size.
-  const origins = wornOrigins(input.baseSize, (view, size) => rawFrame(view, size, [0, 0]));
+  // The worn sheet is laid out for each size from that size's own pieces: the back lies beside the front, the sleeves hang at
+  // the shoulders. The scale is 1 in every size, so a field defined on the sheet runs through the side seam in every size.
+  const originCache = new Map<string, Record<ViewId, Pt>>();
+  const originsFor = (size: string): Record<ViewId, Pt> => {
+    let found = originCache.get(size);
+    if (found === undefined) {
+      found = wornOrigins(size, (view, sz) => rawFrame(view, sz, [0, 0]));
+      originCache.set(size, found);
+    }
+    return found;
+  };
 
   const frame = (view: ViewId, size: string): ViewFrame | null => {
     const key = `${view}|${size}`;
-    if (!cache.has(key)) cache.set(key, rawFrame(view, size, origins[view]));
+    if (!cache.has(key)) cache.set(key, rawFrame(view, size, originsFor(size)[view]));
     return cache.get(key) ?? null;
   };
 
