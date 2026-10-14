@@ -36,6 +36,29 @@ const UNLIMITED = 1_000_000_000_000;
 
 const filePath = (brandId: string) => `${brandId}/artwork/${randomUUID()}.png`;
 
+const blockRow = (brandId: string, userId: string): Row => ({
+  brand_id: brandId,
+  product_key: "crew-tee",
+  wearer: "men",
+  cut: "mens",
+  name: "Crew tee",
+  kind: "pieces",
+  version: 1,
+  source: "technician-upload",
+  sizes: ["M"],
+  created_by: userId,
+});
+
+/** A block of the brand, made by the server. Each call is a new product key, so versions never clash. */
+const seedBlock = async (brandId: string, ownerId: string): Promise<Row> =>
+  must(
+    await adminClient()
+      .from("pattern_blocks")
+      .insert({ ...blockRow(brandId, ownerId), product_key: `tee-${randomUUID().slice(0, 8)}` })
+      .select("id")
+      .single(),
+  );
+
 const TABLES: Readonly<Record<string, TableSpec>> = {
   brands: {
     privileges: ["SELECT"],
@@ -236,6 +259,46 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
       created_by: userId,
     }),
     change: { status: "failed", error: "Changed by a stranger.", finished_at: "2026-01-01T00:00:00Z" },
+  },
+  // The pattern library (W1): a member reads the brand's blocks, their sizes and reviews; only the server writes.
+  pattern_blocks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => seedBlock(brandId, ownerId),
+    attempt: (brandId, userId) => ({ ...blockRow(brandId, userId), name: "Made directly" }),
+    change: { name: "Changed by a stranger" },
+  },
+  pattern_block_sizes: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const block = await seedBlock(brandId, ownerId);
+      return must(
+        await adminClient()
+          .from("pattern_block_sizes")
+          .insert({ brand_id: brandId, block_id: block.id, size_label: "M", position: 0, pieces: [{ id: "front" }], measurements: [] })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId) => ({ brand_id: brandId, block_id: randomUUID(), size_label: "M", position: 0, pieces: [{ id: "front" }], measurements: [] }),
+    change: { size_label: "XL" },
+  },
+  pattern_reviews: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const block = await seedBlock(brandId, ownerId);
+      return must(
+        await adminClient()
+          .from("pattern_reviews")
+          .insert({ brand_id: brandId, block_id: block.id, reviewer_name: "A. Tailor", reviewed_on: "2026-10-20", created_by: ownerId })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, block_id: randomUUID(), reviewer_name: "A. Tailor", reviewed_on: "2026-10-20", created_by: userId }),
+    change: { reviewer_name: "Changed by a stranger" },
   },
   // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
   // line, and none is ever changed or removed.

@@ -85,6 +85,11 @@ function curveLengths(set: SizeSet, pointId: string, ids: readonly { role: "fron
   return reading(pointId, total, words);
 }
 
+const NECKLINE_TWICE: readonly { role: "front" | "back"; seamId: string }[] = [
+  { role: "front", seamId: "neckline-front" }, { role: "back", seamId: "neckline-back" },
+  { role: "front", seamId: "neckline-front" }, { role: "back", seamId: "neckline-back" },
+];
+
 export function torsoReadings(set: SizeSet): Outcome[] {
   const note = set.front ? lineNote(set.front) : "";
   return [
@@ -98,6 +103,6 @@ export function torsoReadings(set: SizeSet): Outcome[] {
     dropBetween(set, "back-neck-drop", "back", "cb-neck"),
     acrossBack(set),
     curveLengths(set, "armhole-curve", [{ role: "front", seamId: "armhole-front" }, { role: "back", seamId: "armhole-back" }], `Front armhole curve plus back armhole curve, along the line, ${note}.`),
-    curveLengths(set, "neckline-length", [{ role: "front", seamId: "neckline-front" }, { role: "back", seamId: "neckline-back" }].flatMap((s) => [s, s]), `Front and back neckline curves, both halves, along the line, ${note}.`),
+    curveLengths(set, "neckline-length", NECKLINE_TWICE, `Front and back neckline curves, both halves, along the line, ${note}.`),
   ];
 }
