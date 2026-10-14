@@ -9,6 +9,7 @@ import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { toolHref } from "@/lib/workspace/tools";
 import { applyKitStyleSchema } from "./gallery";
 import { kitStyleActions, kitStyleSentence } from "./presets";
 
@@ -39,6 +40,6 @@ export const applyKitStyleAction = defineAction({
     revalidatePath(`/studio/${input.projectId}`);
     revalidatePath(`/studio/${input.projectId}/tech-pack`);
     revalidatePath("/studio");
-    redirect((input.from === "guide" ? guideAddress(input.projectId, "start") : `/studio/${input.projectId}`) as Route);
+    redirect((input.from === "guide" ? guideAddress(input.projectId, "start") : toolHref(input.projectId, "colours")) as Route);
   },
 });

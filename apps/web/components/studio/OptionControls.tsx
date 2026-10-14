@@ -23,7 +23,7 @@ type OptionControlsProps = Readonly<{
  */
 export function OptionControls({ controls, choiceShown, onChoose, onSettle, errorFor }: OptionControlsProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 @xl:grid-cols-2">
       {controls.map((control) => (
         <OptionGroup
           key={control.optionId}

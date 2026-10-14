@@ -63,7 +63,7 @@ export function NamesNumbersControls({ panel, error, onSave, onProblem, onClearP
         look. The drawing shows your sample. Leave a height empty if you do not know it yet.
       </p>
       <PlaceFields form={form} labels={panel.placeLabels} onChange={set} />
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 @md:grid-cols-2">
         <ChoiceField label="Lettering style" value={form.style} choices={[LATER, ...LETTERING_CHOICES]} onChange={(style) => set({ style })} />
         <ChoiceField label="How it is made" value={form.technique} choices={[LATER, ...TECHNIQUE_CHOICES]} onChange={(technique) => set({ technique })} />
         <TextField label="Colour name or code" value={form.colour} onChange={(colour) => set({ colour })} />

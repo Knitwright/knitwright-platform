@@ -50,18 +50,20 @@ export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = fa
   }, [step]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <p className="font-mono text-xs uppercase tracking-wider text-muted">
-          {data.typeLabel} for {data.wearerLabel.toLowerCase()} · Version <span data-testid="version">{editor.state.version}</span>
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight text-ink">{data.name}</h1>
+    <div className="flex flex-col gap-3">
+      <header className="glass flex flex-col gap-3 rounded-[1.75rem] px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:rounded-full lg:py-2 lg:pr-2 lg:pl-6">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-medium tracking-[-0.02em] text-ink">{data.name}</h1>
+          <p className="truncate font-mono text-xs text-chalk-muted">
+            {data.typeLabel} for {data.wearerLabel.toLowerCase()} · Version <span data-testid="version">{editor.state.version}</span>
+          </p>
+          <SaveStatus busy={editor.busy} status={editor.state.status} className="min-h-4 text-xs text-ink-2" />
+        </div>
         <StepNav projectId={data.projectId} current={step} unit={unit} />
       </header>
-      <SaveStatus busy={editor.busy} status={editor.state.status} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section aria-labelledby="step-heading" className="flex min-w-0 flex-col gap-4 rounded-2xl border border-hairline bg-surface p-6">
-          <h2 id="step-heading" ref={heading} tabIndex={-1} className="text-xl font-semibold text-ink outline-none">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,27rem)_minmax(0,1fr)] lg:items-start">
+        <section aria-labelledby="step-heading" className="glass @container flex min-w-0 flex-col gap-4 rounded-3xl p-6">
+          <h2 id="step-heading" ref={heading} tabIndex={-1} className="text-xl font-medium tracking-[-0.02em] text-ink outline-none">
             {current.label}
           </h2>
           <p className="text-[15px] text-ink-2">{current.hint}</p>
@@ -88,7 +90,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = fa
             {next ? <LinkButton href={address(next)}>Next: {GUIDED_STEPS.find((entry) => entry.id === next)?.label}</LinkButton> : null}
           </div>
         </section>
-        <div className="min-w-0">
+        <div className="min-w-0 lg:sticky lg:top-24">
           <LivePreview data={data} unit={shownUnit} onUnit={chooseUnit} show3d={show3d} />
         </div>
       </div>

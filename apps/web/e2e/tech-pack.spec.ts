@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { createAccount, leaveWithoutChart, signIn, standInForBotCheck, test } from "./support";
+import { createAccount, leaveWithoutChart, openTool, signIn, standInForBotCheck, test } from "./support";
 
 /**
  * Plan step 8: the tech pack on screen. It is built from the one saved version of the design,
@@ -141,6 +141,7 @@ test.describe("the tech pack page", () => {
   test("finds a measurement typed in the editor in the table, marked as typed in by the user", async ({ page }) => {
     await signedIn(page, "pack-measure");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     const chest = page.getByLabel("Chest width in centimetres");
     await chest.fill("52.5");
     await chest.press("Enter");

@@ -9,6 +9,7 @@ import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
+import { toolHref } from "@/lib/workspace/tools";
 
 export const metadata: Metadata = { title: "Kit styles" };
 
@@ -30,7 +31,7 @@ export default async function KitStylesPage({ params, searchParams }: PageProps<
 
   const from = fromParam(query.from);
   const colours = readClubColours(query, clubColoursFrom(project.spec));
-  const backHref = (from === "guide" ? guideAddress(projectId, "start") : `/studio/${projectId}`) as Route;
+  const backHref = (from === "guide" ? guideAddress(projectId, "start") : toolHref(projectId, "colours")) as Route;
   const tiles = kitStyleTiles(project.spec, colours, charts);
   if (tiles.length === 0) notFound();
 

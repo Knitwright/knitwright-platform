@@ -62,7 +62,7 @@ export function AddArtwork({ spec, parts, errorFor, onSave, onProblem, onClearPr
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 @xl:grid-cols-2">
         <PictureInput
           uploading={uploading}
           rights={rights}
