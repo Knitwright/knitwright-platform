@@ -65,6 +65,7 @@ create trigger design_imports_settled_are_not_changed
   before update on public.design_imports
   for each row execute function private.refuse_settled_import_change();
 
+revoke all on function private.refuse_settled_import_change() from public, anon, authenticated;
 revoke all on public.design_imports from public, anon, authenticated;
 grant select on public.design_imports to authenticated;
 revoke all on public.design_imports from service_role;
