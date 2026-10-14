@@ -198,6 +198,16 @@ describe("accepting, refitting and discarding", () => {
     expect(await acceptImport(store, who, id)).toMatchObject({ kind: "rejection", reason: expect.stringMatching(/not ready/i) });
   });
 
+  it("reads a row with empty optional columns as an open reading", async () => {
+    const { store, db, id } = await ready();
+    for (const key of ["error", "accepted_layers", "accepted_at"]) delete db.tables.design_imports[0][key];
+    Object.assign(db.tables.design_imports[0], { report: null, landmarks: null });
+    const record = await loadImport(store, BRAND, id);
+    expect(record).toMatchObject({ error: null, acceptedLayers: [], acceptedAt: null, report: null, stored: null });
+    db.tables.design_imports[0].id = "not-a-uuid";
+    expect(await store.get(BRAND, "not-a-uuid")).toBeNull();
+  });
+
   it("surfaces database faults as errors", async () => {
     const { store, db, id } = await ready();
     db.failOn("design_imports", "update", { message: "boom" });

@@ -22,6 +22,10 @@ describe("buildStack", () => {
     expect(buildStack({ views: ["front", "back"], colours })!.layers[0].views).toEqual(["front", "back"]);
   });
 
+  it("gives nothing when a colour is not a valid screen colour", () => {
+    expect(buildStack({ views: ["front"], colours: [{ hex: "red", share: 1 }] })).toBeNull();
+  });
+
   it("gives nothing when there is no view or no colour", () => {
     expect(buildStack({ views: [], colours })).toBeNull();
     expect(buildStack({ views: ["front"], colours: [] })).toBeNull();

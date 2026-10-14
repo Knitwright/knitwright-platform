@@ -157,6 +157,32 @@ describe("when things go wrong", () => {
   });
 });
 
+describe("regions that are hard to read", () => {
+  it("reads a garment that fills its whole box, such as a plain rectangle", async () => {
+    const raster = createRaster(400, 400);
+    fillRect(raster, 60, 50, 280, 300, NAVY as unknown as [number, number, number]);
+    const outcome = await importFromPicture(base({ raster }));
+    expect(outcome.stack?.colours[0].screen).toBe("#1b2a49");
+  });
+
+  it("leaves out a region it cannot trace, and says so", async () => {
+    const wide = createRaster(1300, 520);
+    const one = teePicture({ garment: NAVY });
+    for (let y = 0; y < 520; y += 1) wide.data.set(one.data.subarray(y * 640 * 4, (y + 1) * 640 * 4), y * 1300 * 4);
+    const provider = replayProvider(
+      recordedReading({ kind: "sheet-of-views", views: [{ view: "front", box: { x: 0, y: 0, w: 0.49, h: 1 } }, { view: "back", box: { x: 0.6, y: 0, w: 0.39, h: 1 } }] }),
+    );
+    const outcome = await importFromPicture(base({ raster: wide, provider }));
+    expect(outcome.stack?.views).toEqual(["front"]);
+    expect(outcome.report.warnings.join(" ")).toMatch(/could not be traced/i);
+  });
+
+  it("fails when the model names no garment colour and no view can be traced", async () => {
+    const outcome = await importFromPicture(base({ raster: createRaster(300, 300, [255, 255, 255, 255]), provider: replayProvider(recordedReading({ views: [] })) }));
+    expect(outcome.stack).toBeNull();
+  });
+});
+
 describe("marks and exclusions", () => {
   it("lists a mark seen in the picture without placing it, and keeps its colour out of the ground", async () => {
     const raster = teePicture({ garment: NAVY });

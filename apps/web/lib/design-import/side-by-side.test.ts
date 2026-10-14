@@ -57,6 +57,23 @@ describe("sideBySideOf", () => {
     expect(sideBySideOf({ ...base, landmarks: null })).toBeNull();
   });
 
+  it("falls back to plain words when a layer has no report item, and to white when no colour has a screen value", async () => {
+    const base = payloadOf(await record());
+    const noItems = { ...base, report: { ...base.report!, items: [] } };
+    const layer = sideBySideOf(noItems)!.layers[0];
+    expect(layer).toMatchObject({ confidence: 0, note: "Read from the picture." });
+    expect(layer.confidenceText).toMatch(/low/i);
+    const colourless = { ...base, stack: { ...base.stack!, colours: base.stack!.colours.map((c) => ({ ...c, screen: undefined })) } };
+    expect(sideBySideOf(colourless)!.colours[0].hex).toBe("#ffffff");
+    expect(sideBySideOf(colourless)!.views[0].ground).toBe("#ffffff");
+  });
+
+  it("labels a layer by its id when it has no name", async () => {
+    const base = payloadOf(await record());
+    const unnamed = { ...base, stack: { ...base.stack!, layers: base.stack!.layers.map((l) => ({ ...l, name: undefined })) } };
+    expect(sideBySideOf(unnamed)!.layers[0].label).toBe("ground");
+  });
+
   it("names every landmark in plain words", () => {
     for (const id of LANDMARK_IDS) expect(HANDLE_LABELS[id].length).toBeGreaterThan(3);
   });

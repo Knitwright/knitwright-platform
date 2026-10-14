@@ -72,8 +72,16 @@ interface Analysed {
   readonly source: ColourSource;
 }
 
+/** A little background round a region, so a garment that fills its box (a plain rectangle) still has corners to tell the background by. */
+const padded = (box: Box, picture: Raster): Box => {
+  const margin = Math.max(8, Math.round(Math.max(box.w, box.h) * 0.04));
+  const x = Math.max(0, box.x - margin);
+  const y = Math.max(0, box.y - margin);
+  return { x, y, w: Math.min(picture.width, box.x + box.w + margin) - x, h: Math.min(picture.height, box.y + box.h + margin) - y };
+};
+
 function analyseView(named: NamedView, input: PipelineInput, reading: PictureReading): Analysed | null {
-  const cropped = cropRaster(input.raster, named.box);
+  const cropped = cropRaster(input.raster, padded(named.box, input.raster));
   const outline = findOutline(cropped.raster);
   if (outline.value === null) return null;
   const found = outline.value;
