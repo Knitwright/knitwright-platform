@@ -12,19 +12,21 @@ vi.mock("@/lib/projects/service", () => ({ getProject }));
 const BRAND = "11111111-1111-4111-8111-111111111111";
 const PROJECT = "22222222-2222-4222-8222-222222222222";
 const ORDER = "33333333-3333-4333-8333-333333333333";
+const SO = "55555555-5555-4555-8555-555555555555";
 const REL = "44444444-4444-4444-8444-444444444444";
 const WHO = { brandId: BRAND, userId: BRAND };
 const spec = { sizing: { sizes: ["S", "M", "L", "XL", "2XL", "3XL"], baseSize: "M" }, namesAndNumbers: { places: [{ place: "back-name" }] } };
 beforeEach(() => getProject.mockResolvedValue({ currentVersion: 5, spec }));
 
 const lines = (rows = ROSTER_22.rows) => rows.map((r) => ({ name: r.name, number: r.number, size_label: r.sizeLabel, cut: r.cut, quantity: r.quantity }));
-const body = (over = {}) => ({ label: "Round 1", orderId: ORDER, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: ["t1"], printProfile: PROFILE, files: [specFor("front"), specFor("back", "XL", "10")], ...over });
+const body = (over = {}) => ({ label: "Round 1", orderId: ORDER, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: [`strike-off-${SO}`], printProfile: PROFILE, files: [specFor("front"), specFor("back", "XL", "10")], ...over });
 
 describe("freezeRelease", () => {
   const answers = (rows = ROSTER_22.rows) => ({
     team_orders: { data: { id: ORDER, name: "T", updated_at: "t" } },
     team_order_rows: { data: lines(rows) },
     create_release: { data: [{ id: REL, number: 1 }] },
+    strike_offs: { data: [{ id: SO }] },
   });
 
   it("freezes the design version it read, and a hash of the roster, never the names", async () => {
@@ -50,6 +52,12 @@ describe("freezeRelease", () => {
     await expect(freezeRelease({ client, admin: client }, WHO, PROJECT, body(), () => fakeBuilder())).rejects.toMatchObject({ code: "invalid_input", message: expect.stringContaining("team list") });
   });
 
+  it("refuses a fabric test that is not one of this brand's, and makes no release", async () => {
+    const { client, calls } = fakeClient({ ...answers(), strike_offs: { data: [] } });
+    await expect(freezeRelease({ client, admin: client }, WHO, PROJECT, body(), () => fakeBuilder())).rejects.toMatchObject({ code: "invalid_input", message: expect.stringContaining(SO) });
+    expect(calls.some((c) => c.name === "create_release")).toBe(false);
+  });
+
   it("freezes a release with no team order", async () => {
     const { client } = fakeClient(answers());
     const result = await freezeRelease({ client, admin: client }, WHO, PROJECT, body({ orderId: null, files: [specFor("front")] }), () => fakeBuilder());
@@ -58,7 +66,7 @@ describe("freezeRelease", () => {
 });
 
 describe("checkReorder", () => {
-  const freeze = (salt = "") => buildSnapshot({ specVersion: 5, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: ["t1"], printProfile: PROFILE, roster: ROSTER_22.rows, files: body().files }, fakeBuilder(salt));
+  const freeze = (salt = "") => buildSnapshot({ specVersion: 5, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: [`strike-off-${SO}`], printProfile: PROFILE, roster: ROSTER_22.rows, files: body().files }, fakeBuilder(salt));
   const setup = async (extra: Record<string, (call: Call) => never | { data: unknown }> = {}) =>
     fakeClient({
       production_releases: { data: { id: REL, number: 1, label: "R", created_at: "t", snapshot: await freeze(), file_specs: body().files, order_id: ORDER } },
@@ -66,7 +74,7 @@ describe("checkReorder", () => {
       team_order_rows: { data: lines() },
       ...extra,
     });
-  const now = (over = {}) => ({ orderId: null, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: ["t1"], printProfile: PROFILE, ...over });
+  const now = (over = {}) => ({ orderId: null, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: [`strike-off-${SO}`], printProfile: PROFILE, ...over });
 
   it("is identical when nothing changed", async () => {
     const { client } = await setup();
@@ -104,7 +112,7 @@ describe("checkReorder", () => {
   });
 
   it("works for a release with no team order", async () => {
-    const none = await buildSnapshot({ specVersion: 5, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: ["t1"], printProfile: PROFILE, roster: null, files: [specFor("front")] }, fakeBuilder());
+    const none = await buildSnapshot({ specVersion: 5, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: [`strike-off-${SO}`], printProfile: PROFILE, roster: null, files: [specFor("front")] }, fakeBuilder());
     const { client } = fakeClient({ production_releases: { data: { id: REL, number: 1, label: "R", created_at: "t", snapshot: none, file_specs: [specFor("front")], order_id: null } } });
     expect((await checkReorder(client, BRAND, PROJECT, REL, now(), () => fakeBuilder())).identical).toBe(true);
   });

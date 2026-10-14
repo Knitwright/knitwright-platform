@@ -160,6 +160,18 @@ describe("releases", () => {
     expect((await alice.client.rpc("create_release", { p_project_id: design, p_brand_id: aliceBrand, p_user_id: alice.userId, p_label: "x", p_snapshot: {}, p_file_specs: [], p_order_id: null })).error).not.toBeNull();
   });
 
+  it("refuse a team order of another design or another brand", async () => {
+    const design = await project(aliceBrand, alice);
+    const other = await project(aliceBrand, alice);
+    const sameBrandOtherDesign = await order(other, aliceBrand, alice);
+    const otherBrand = await order(await project(bobBrand, bob), bobBrand, bob);
+    for (const orderId of [sameBrandOtherDesign, otherBrand]) {
+      const result = await adminClient().rpc("create_release", { p_project_id: design, p_brand_id: aliceBrand, p_user_id: alice.userId, p_label: "x", p_snapshot: {}, p_file_specs: [], p_order_id: orderId });
+      expect(result.error?.message).toBe("That team order does not exist.");
+    }
+    expect(await release(design, aliceBrand, alice, await order(design, aliceBrand, alice))).toMatchObject({ number: 1 });
+  });
+
   it("refuse a user who is not a member of the brand", async () => {
     const design = await project(aliceBrand, alice);
     const result = await adminClient().rpc("create_release", { p_project_id: design, p_brand_id: aliceBrand, p_user_id: bob.userId, p_label: "x", p_snapshot: {}, p_file_specs: [], p_order_id: null });

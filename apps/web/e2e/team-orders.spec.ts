@@ -36,8 +36,9 @@ test.describe("team orders (W4)", () => {
     await expect(panel.getByTestId("roster-issues")).toContainText("Number 10 is used by rows 1, 3");
 
     await panel.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(panel.getByText("Round 1")).toBeVisible();
-    await expect(panel.getByText("(3 rows)")).toBeVisible();
+    const savedList = panel.getByRole("listitem").filter({ hasText: "Round 1" });
+    await expect(savedList).toBeVisible();
+    await expect(savedList.getByText("(3 rows)")).toBeVisible();
 
     await panel.getByRole("button", { name: "Open Round 1" }).click();
     const href = await panel.getByRole("link", { name: "Manifest (CSV)" }).getAttribute("href");

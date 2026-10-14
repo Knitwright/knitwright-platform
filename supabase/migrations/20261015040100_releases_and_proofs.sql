@@ -192,6 +192,12 @@ begin
   if not found or not private.belongs_to(p_user_id, p_brand_id) then
     raise exception 'That design does not exist.' using errcode = 'P0002';
   end if;
+  if p_order_id is not null and not exists (
+    select 1 from public.team_orders o
+    where o.id = p_order_id and o.brand_id = p_brand_id and o.project_id = p_project_id
+  ) then
+    raise exception 'That team order does not exist.' using errcode = 'P0002';
+  end if;
   select coalesce(max(r.number), 0) + 1 into v_number
   from public.production_releases r where r.project_id = p_project_id;
   if v_number > private.releases_limit() then

@@ -11,6 +11,7 @@ import { compareToRelease, type ReorderReport } from "./reorder";
 import type { ReleaseBody, ReorderBody } from "./schemas";
 import { listSignOffs, listStrikeOffs } from "@/lib/proofs/service";
 import { createRelease, getRelease } from "./service";
+import { checkFabricTestIds } from "./test-ids";
 import { releaseView, type ReleaseView } from "./view";
 
 type Who = Readonly<{ brandId: string; userId: string }>;
@@ -30,6 +31,7 @@ export async function freezeRelease(clients: Clients, who: Who, projectId: strin
   if (order && hasErrors(checkRoster(order.rows, rosterContextOf(project.spec)))) {
     throw new AppError("invalid_input", "The team list has problems. Fix them before the release is made.");
   }
+  await checkFabricTestIds(clients.client, who.brandId, projectId, body.fabricTestIds);
   const roster = order?.rows ?? null;
   const snapshot = await buildSnapshot(
     { specVersion: project.currentVersion, patternBlockId: body.patternBlockId, patternBlockVersion: body.patternBlockVersion, fabricTestIds: body.fabricTestIds, printProfile: body.printProfile, roster, files: body.files },
