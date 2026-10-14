@@ -102,7 +102,7 @@ describe("graphics from the older logo path", () => {
     const r = rig(["48"]);
     const common = { opacity: 1, blend: "normal", provenance: "user-edited" } as const;
     const layer = { ...common, id: "old", kind: "graphic", views: ["front"], source: { kind: "file", fileId: "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f" }, placement: { kind: "zone", zoneId: "crest" }, offsetMm: { x: 0, y: 0 }, widthMm: 40, rotationDeg: 0, clearSpaceMm: 0, knockOut: false };
-    const outline = { ...crestAsset(), id: "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f", print: new TextEncoder().encode(JSON.stringify({ version: 1, width: 10, height: 10, shapes: [{ fill: null, stroke: { colour: "#000000", widthMm: 0.1 }, closed: true, rings: [[[0, 0], [10, 0], [10, 10]]] }] })) };
+    const outline = { ...crestAsset(), id: "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f", print: new TextEncoder().encode(JSON.stringify({ schemaVersion: 1, viewBox: { x: 0, y: 0, width: 10, height: 10 }, statedSizeMm: null, gradients: [], clips: [], nodes: [{ kind: "path", opacity: 1, segments: [["M", 0, 0], ["L", 10, 0], ["L", 10, 10], ["Z"]], fill: { type: "none" }, fillRule: "nonzero", stroke: { type: "colour", hex: "#000000", opacity: 1 }, strokeWidth: 0.1, lineCap: "butt", lineJoin: "miter", miterLimit: 4 }] })) };
     const { scene } = await r.scene(polkaStack([layer]), "48", "front", { assets: assetReader([outline]), rules: { ...NO_RULES, minLineMm: 0.5 } });
     expect(scene.items.some((i) => i.kind === "stroke")).toBe(true);
     expect(scene.issues.some((i) => /thinner than/.test(i.text))).toBe(true);
