@@ -20,6 +20,22 @@ import type { SectionHead, TechPack } from "./types";
 
 const head = ({ id, title, note }: SectionHead): SectionHead => ({ id, title, note });
 
+/** The sections made from the production records: the pattern, the fabric, the artwork and colour, and the order of work. */
+function productionSections(
+  production: NonNullable<TechPackInput["production"]>,
+  colourways: TechPack["colourways"],
+  construction: TechPack["construction"],
+  technique: string | null,
+  hasPlayerMarks: boolean,
+) {
+  return {
+    patternAndCutting: buildPatternAndCutting({ pattern: production.pattern, review: production.review, fabric: production.fabric, marker: production.marker }),
+    fabric: buildFabric(production.fabric, production.blockReduction),
+    artworkAndColour: buildArtworkAndColour(production, colourways),
+    operations: buildOperations(technique, construction, hasPlayerMarks),
+  };
+}
+
 /**
  * The tech pack document for one version of a design. It is a pure function of its input:
  * no clock, no database, no network. Each section is made from the design alone, so the
@@ -43,16 +59,13 @@ export function buildTechPack(input: TechPackInput): TechPack {
     flats: buildFlatsSection(spec, input.flats, charts),
     measurements,
     howToMeasure: buildHowToMeasure(spec),
-    patternAndCutting: buildPatternAndCutting({ pattern: production.pattern, review: production.review, fabric: production.fabric, marker: production.marker }),
     components: buildComponents(spec),
-    fabric: buildFabric(production.fabric, production.blockReduction),
     construction,
     colourways,
     artwork,
-    artworkAndColour: buildArtworkAndColour(production, colourways),
-    operations: buildOperations(technique, construction, artwork.playerMarks.length > 0),
     labelling: buildLabelling(spec),
     signOff: buildSignOff(production.signOffs, production.strikeOff),
+    ...productionSections(production, colourways, construction, technique, artwork.playerMarks.length > 0),
   };
   const suggested = buildSuggested(pack);
   const readiness = buildReadiness({
