@@ -64,7 +64,12 @@ designers use, keeps a print-quality copy, and holds the line on the SVG rule.
      `@napi-rs/canvas` (MIT) arrives as its optional dependency, as a native
      binary per platform (`linux-x64-gnu` and `-musl` are in the lockfile). The deployed function must include that
      binary and a working memory of a few hundred MB for a 300 dpi page. Both packages are already listed in
-     `docs/launch/licences.md`.
+     `docs/launch/licences.md`. Two small entries in `next.config.ts` make this work once built (found by building
+     and reading the trace): `serverExternalPackages: ["pdfjs-dist"]`, because a bundled `pdfjs-dist` cannot find the
+     canvas package that sits beside it, and `outputFileTracingIncludes["/api/artwork"]`, because nothing in the code names
+     the canvas binary, so the host would not ship it (the `linux-x64-gnu` build and the PDF reader's fonts are listed). A test
+     (`tests/architecture/artwork-tracing.test.ts`) holds both. That the deployed function really loads the binary is not
+     yet tried on the host; the trace lists it.
 6. **Effective dpi** (`dpi.ts`). `effectiveDpi(asset, widthMm)` is pixels over the printed width in inches, and
    `dpiWarning` gives the plain sentence with the dpi to the nearest 1, the minimum (Knitwright default 150, owner
    input P5/P14) and the widest size at which the file still meets it. A vector never warns.

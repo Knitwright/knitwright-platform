@@ -44,7 +44,7 @@ describe("paint and style details", () => {
     const { model } = await parse(
       '<g stroke="blue" stroke-width="0" color="#101010"><rect width="1" height="1" fill-opacity=".5"/><rect width="1" height="1" stroke="currentColor" stroke-width="3" stroke-opacity=".25" fill="inherit"/><rect width="1" height="1" style="stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:2;fill-rule:evenodd;stroke-width:2"/></g>',
     );
-    const rects = (model.nodes[0].kind === "group" ? model.nodes[0].children : model.nodes) as { kind: string; stroke: unknown; fill: unknown; fillRule?: string; lineCap?: string; lineJoin?: string; miterLimit?: number }[];
+    const rects = (model.nodes[0].kind === "group" ? model.nodes[0].children : model.nodes) as unknown as { kind: string; stroke: unknown; fill: unknown; fillRule?: string; lineCap?: string; lineJoin?: string; miterLimit?: number }[];
     expect(rects[0].stroke).toEqual({ type: "none" });
     expect(rects[0].fill).toMatchObject({ opacity: 0.5 });
     expect(rects[1].stroke).toEqual({ type: "colour", hex: "#101010", opacity: 0.25 });
