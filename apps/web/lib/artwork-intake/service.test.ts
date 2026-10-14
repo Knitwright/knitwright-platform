@@ -185,6 +185,7 @@ describe("changing a picture", () => {
     if (shown.accepted) throw new Error("unreachable");
     expect(shown.summary.after!.mismatch).toBeLessThan(shown.summary.before!.mismatch);
     expect(shown.summary.previewPng).toMatch(/^data:image\/png;base64,/);
+    expect(shown.summary.method).toBe("blend");
     expect(shown.summary.limit).toContain("cannot be fixed convincingly");
     expect(fake.tables.files).toHaveLength(before);
     const done = await changeArtwork(fake.admin, actor, tile.id, { action: "make-seamless", method: "mirror" }, true);

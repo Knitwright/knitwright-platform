@@ -135,7 +135,7 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
                 void accept(
                   shown.action === "remove-white-background"
                     ? { action: "remove-white-background" }
-                    : { action: "make-seamless", method: shown.after && shown.after.mismatch === 0 ? "mirror" : "blend" },
+                    : { action: "make-seamless", method: shown.method ?? "blend" },
                 )
               }
             >

@@ -115,6 +115,8 @@ export type ChangeResult =
 
 export type ChangeSummary = Readonly<{
   action: Change["action"];
+  /** The method shown, so accepting applies exactly what was previewed. */
+  method?: SeamlessMethod;
   /** A PNG as a data address, for the person to look at. */
   previewPng: string;
   before?: SeamReport;
@@ -160,6 +162,6 @@ export const changeArtwork = (
     if (accept) return { accepted: true, artwork: await storeChange(admin, actor, row, await applySeamless(preview, dpi), "seamless") };
     return {
       accepted: false,
-      summary: { action: change.action, previewPng: dataUrl(preview.preview), before: preview.before, after: preview.after, limit: preview.limit },
+      summary: { action: change.action, method: change.method, previewPng: dataUrl(preview.preview), before: preview.before, after: preview.after, limit: preview.limit },
     };
   });
