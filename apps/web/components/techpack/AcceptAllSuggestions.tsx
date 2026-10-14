@@ -46,7 +46,7 @@ export function AcceptAllSuggestions({ items }: Readonly<{ items: readonly Confi
             {`Make all ${valuesWords(count)} your own? They are saved together as one new version, so one undo in the editor takes them all back.`}
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" pending={edit.busy} onClick={accept} className="h-10! px-4! text-sm!" data-testid="accept-all-yes">
+            <Button type="button" pending={edit.saving(KEY)} disabled={edit.busy} onClick={accept} className="h-10! px-4! text-sm!" data-testid="accept-all-yes">
               {`Accept all ${count}`}
             </Button>
             <Button type="button" variant="quiet" onClick={() => setAsking(false)} className="h-10! px-3! text-sm!">
@@ -58,7 +58,8 @@ export function AcceptAllSuggestions({ items }: Readonly<{ items: readonly Confi
         <Button
           type="button"
           arrow
-          pending={edit.busy}
+          pending={edit.saving(KEY)}
+          disabled={edit.busy}
           onClick={() => setAsking(true)}
           className="w-full justify-between!"
           aria-describedby="accept-all-count"

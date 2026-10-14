@@ -12,6 +12,7 @@ import {
   fileSections,
   parseSection,
   progressOf,
+  sectionOfLink,
   sectionSearch,
   suggestedValueCount,
   thingsLeftSentence,
@@ -121,6 +122,25 @@ describe("the section in the address", () => {
     expect(sectionSearch("", "measurements")).toBe("?section=measurements");
     expect(sectionSearch("?colourway=away", "patterns")).toBe("?colourway=away&section=patterns");
     expect(sectionSearch("?section=cover&colourway=away", "flats")).toBe("?section=flats&colourway=away");
+  });
+});
+
+describe("a link to a section of the same file", () => {
+  const here = new URL("https://app.example/studio/p1/tech-pack?colourway=away&section=cover");
+  const available = ["cover", "quote", "left"] as const;
+
+  it("names the section when the link opens this file with the same colourway", () => {
+    expect(sectionOfLink("/studio/p1/tech-pack?colourway=away&section=quote", here, available)).toBe("quote");
+    expect(sectionOfLink("https://app.example/studio/p1/tech-pack?section=quote&colourway=away", here, available)).toBe("quote");
+  });
+
+  it("names nothing for another page, another colourway, an unknown section or a place on the page", () => {
+    expect(sectionOfLink("/studio/p2/tech-pack?colourway=away&section=quote", here, available)).toBeNull();
+    expect(sectionOfLink("/studio/p1/tech-pack?section=quote", here, available)).toBeNull();
+    expect(sectionOfLink("/studio/p1/tech-pack?colourway=away&section=patterns", here, available)).toBeNull();
+    expect(sectionOfLink("/studio/p1/tech-pack?colourway=away", here, available)).toBeNull();
+    expect(sectionOfLink("/studio/p1/tech-pack?colourway=away&section=quote#quote-request", here, available)).toBeNull();
+    expect(sectionOfLink("https://elsewhere.example/studio/p1/tech-pack?colourway=away&section=quote", here, available)).toBeNull();
   });
 });
 

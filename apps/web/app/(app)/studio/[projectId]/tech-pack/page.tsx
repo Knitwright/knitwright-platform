@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DesignLeads } from "@/components/leads/DesignLeads";
+import { Suspense } from "react";
+import { BodySkeleton } from "@/components/techpack/FileSkeleton";
+import { StreamedIllustrations, StreamedQuote } from "@/components/techpack/FileStreamed";
 import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
-import { IllustrationsSection } from "@/components/techpack/Illustrations";
 import { PatternSection } from "@/components/techpack/PatternSection";
 import { loadDesignLeads } from "@/lib/leads/service";
 import { sizeChoices } from "@/lib/patterns/request";
 import { picturesNote } from "@/lib/projects/artwork-images";
 import { colourwayParam } from "@/lib/projects/colour-controls";
-import { buildTechPackPage } from "@/lib/projects/tech-pack-data";
-import { loadTechPackSource } from "@/lib/projects/tech-pack-load";
+import { buildTechPackCore, techPackPictures } from "@/lib/projects/tech-pack-data";
+import { readArtworkPictures, readIllustrations, readTechPack } from "@/lib/projects/tech-pack-load";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
@@ -24,40 +25,53 @@ const orNotFound = (error: unknown): never => {
   throw error;
 };
 
+/** A promise the page may not reach, should it stop first. Whoever reads it still sees a failure. */
+const quietly = <T,>(promise: Promise<T>): Promise<T> => {
+  promise.catch(() => undefined);
+  return promise;
+};
+
+/**
+ * The factory file. It is made from the same reads as the export route, so the screen and the
+ * files agree. The file is sent as soon as the design is read; the drawings, the illustrations and
+ * the quote fill in as their slower reads finish.
+ */
 export default async function TechPackPage({ params, searchParams }: PageProps<"/studio/[projectId]/tech-pack">) {
   const { brand } = await requireMember();
   const { projectId } = await params;
   const search = await searchParams;
   const colourwayId = colourwayParam(search.colourway);
   const client = await sessionClient();
+  const now = new Date();
 
-  // The same loader the export route uses, so the screen and the files are made from the same
-  // reads, the brand's own size charts and the illustrations included.
-  const { project, history, pictures, charts, illustrations, memberNames } = await loadTechPackSource(client, brand.id, projectId, {
-    shrink: shrinkForDrawing,
-  }).catch(orNotFound);
-  const leads = await loadDesignLeads(client, brand.id, projectId, new Date());
-  const data = buildTechPackPage({
-    project,
-    history,
-    brandName: brand.name,
-    images: pictures.images,
-    now: new Date(),
-    picturesNote: picturesNote(pictures.skipped),
-    colourwayId,
-    charts,
-    memberNames,
-  });
+  const leads = quietly(loadDesignLeads(client, brand.id, projectId, now));
+  const { project, history, charts, memberNames, latest } = await readTechPack(client, brand.id, projectId).catch(orNotFound);
+  const data = buildTechPackCore({ project, history, brandName: brand.name, now, colourwayId, charts, memberNames });
+  const pictures = quietly(
+    readArtworkPictures(client, brand.id, project.spec, { shrink: shrinkForDrawing }).then((loaded) =>
+      techPackPictures(data.pack, loaded.images, picturesNote(loaded.skipped)),
+    ),
+  );
+  const illustrations = latest ? (
+    <Suspense fallback={<BodySkeleton what="the illustrations" />}>
+      <StreamedIllustrations illustrations={readIllustrations(client, brand.id, latest)} currentVersion={project.currentVersion} />
+    </Suspense>
+  ) : null;
 
   return (
     <TechPackEdit projectId={data.projectId} version={data.version} spec={data.spec}>
       <TechPackDocument
         data={data}
+        pictures={pictures}
         colourwayId={colourwayId}
         section={search.section}
-        illustrations={illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
+        illustrations={illustrations}
         patterns={<PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />}
-        quote={<DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />}
+        quote={
+          <Suspense fallback={<BodySkeleton what="the quote request" />}>
+            <StreamedQuote projectId={projectId} version={project.currentVersion} leads={leads} />
+          </Suspense>
+        }
       />
     </TechPackEdit>
   );

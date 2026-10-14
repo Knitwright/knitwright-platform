@@ -127,6 +127,26 @@ export function sectionSearch(search: string, id: FileSectionId): string {
   return `?${params.toString()}`;
 }
 
+/** The query of an address without its section, so two addresses can be compared. */
+const withoutSection = (search: string): string => {
+  const params = new URLSearchParams(search);
+  params.delete("section");
+  params.sort();
+  return params.toString();
+};
+
+/**
+ * The section a link opens when it is an address of this same file, with the same colourway, and
+ * no place on the page; otherwise null. Such a link can show its section at once, with no new page.
+ */
+export function sectionOfLink(href: string, here: URL, available: readonly FileSectionId[]): FileSectionId | null {
+  const target = new URL(href, here);
+  if (target.origin !== here.origin || target.pathname !== here.pathname || target.hash !== "") return null;
+  if (withoutSection(target.search) !== withoutSection(here.search)) return null;
+  const named = target.searchParams.get("section");
+  return available.find((id) => id === named) ?? null;
+}
+
 /** How many values accepting every suggestion sets: each size of a measurement and its tolerance count one each. */
 export function suggestedValueCount(confirmables: readonly Pick<Confirmable, "target">[]): number {
   return confirmables.reduce((sum, { target }) => {

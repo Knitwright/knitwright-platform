@@ -1,12 +1,12 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { JourneySteps } from "@/components/ui/JourneySteps";
-import type { TechPackPageData } from "@/lib/projects/tech-pack-data";
+import type { TechPackCoreData } from "@/lib/projects/tech-pack-data";
 import { sectionSearch } from "@/lib/projects/tech-pack-sections";
 import { HeaderDownloads } from "./TechPackDownloads";
 
 type HeaderProps = Readonly<{
-  data: TechPackPageData;
+  data: TechPackCoreData;
   colourwayId?: string | undefined;
   /** The query of the page, less the section. */
   baseSearch: string;

@@ -1,11 +1,14 @@
 import type { Metadata, Route } from "next";
 import { redirect } from "next/navigation";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import { DesignCard } from "@/components/home/DesignCard";
-import { JourneyPanel, NeedsYouPanel } from "@/components/home/NeedsYouPanel";
+import { CardArtSkeleton, CardStepSkeleton, NeedsYouSkeleton } from "@/components/home/HomeSkeleton";
+import { StreamedCardArt, StreamedCardStep, StreamedNeedsYou } from "@/components/home/HomeStreamed";
+import { JourneyPanel } from "@/components/home/NeedsYouPanel";
 import { StartWays } from "@/components/home/StartWays";
 import { Pagination } from "@/components/ui/Pagination";
 import { loadStudioHome } from "@/lib/home/load";
+import { changedWhen } from "@/lib/home/when";
 import { pageCount, pageHref, pageRequest } from "@/lib/pagination/pages";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
@@ -15,12 +18,18 @@ export const metadata: Metadata = { title: "Your designs" };
 /** How many designs one page of the studio shows. */
 const DESIGNS_PER_PAGE = 12;
 
+/**
+ * The studio home. Every read starts at once; the page is sent as soon as the page of designs is
+ * read, and each card's drawing and step, and the "Needs you" list, fill in when they are ready.
+ */
 export default async function StudioPage({ searchParams }: PageProps<"/studio">) {
   const { brand } = await requireMember();
   const request = pageRequest(await searchParams, DESIGNS_PER_PAGE);
-  const home = await loadStudioHome(await sessionClient(), brand, request, new Date());
-  const totalPages = pageCount(home.total, request.perPage);
-  if (home.cards.length === 0 && request.page > totalPages) redirect(pageHref("/studio", totalPages) as Route);
+  const now = new Date();
+  const home = loadStudioHome(await sessionClient(), brand, request, now);
+  const { projects, total } = await home.listing;
+  const totalPages = pageCount(total, request.perPage);
+  if (projects.length === 0 && request.page > totalPages) redirect(pageHref("/studio", totalPages) as Route);
 
   return (
     <>
@@ -29,7 +38,13 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
           <StartWays brandName={brand.name} />
         </div>
         <div className="rise lg:col-span-5" style={{ "--i": 2 } as CSSProperties}>
-          {home.total === 0 ? <JourneyPanel /> : <NeedsYouPanel needs={home.needsYou} />}
+          {total === 0 ? (
+            <JourneyPanel />
+          ) : (
+            <Suspense fallback={<NeedsYouSkeleton />}>
+              <StreamedNeedsYou details={home.details} />
+            </Suspense>
+          )}
         </div>
       </div>
 
@@ -39,17 +54,29 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
             Your designs
           </h2>
           <p className="font-mono text-[13px] text-muted">
-            {home.total === 1 ? "1 design" : `${home.total} designs`}
+            {total === 1 ? "1 design" : `${total} designs`}
             {totalPages > 1 ? `, page ${request.page} of ${totalPages}` : ""}
           </p>
         </div>
-        {home.total === 0 ? (
+        {total === 0 ? (
           <FirstDesign brandName={brand.name} />
         ) : (
           <ul aria-label={`Designs of ${brand.name}, newest first`} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {home.cards.map((card, index) => (
-              <li key={card.id} className="rise" style={{ "--i": Math.min(index, 8) + 3 } as CSSProperties}>
-                <DesignCard card={card} />
+            {projects.map((project, index) => (
+              <li key={project.id} className="rise" style={{ "--i": Math.min(index, 8) + 3 } as CSSProperties}>
+                <DesignCard
+                  card={{ ...project, changed: changedWhen(project.updatedAt, now) }}
+                  art={
+                    <Suspense fallback={<CardArtSkeleton />}>
+                      <StreamedCardArt details={home.details} id={project.id} />
+                    </Suspense>
+                  }
+                  step={
+                    <Suspense fallback={<CardStepSkeleton />}>
+                      <StreamedCardStep details={home.details} id={project.id} />
+                    </Suspense>
+                  }
+                />
               </li>
             ))}
           </ul>

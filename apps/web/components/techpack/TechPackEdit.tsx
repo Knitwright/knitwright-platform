@@ -7,6 +7,7 @@ import { useEditorEngine } from "@/components/studio/useEditorEngine";
 import type { GarmentSpec, SpecAction } from "@/lib/garment";
 import { workingSpec } from "@/lib/projects/effective-spec";
 import { isBusy } from "@/lib/projects/editor-state";
+import { isSaving } from "@/lib/projects/saving-key";
 
 /** The tech pack page keeps no typed text of its own in the queue's warning. */
 const NO_DIRTY_FIELDS: readonly boolean[] = [];
@@ -21,6 +22,8 @@ export interface TechPackEditApi {
   readonly errorFor: (key: string) => string | null;
   readonly clearProblem: (key: string) => void;
   readonly busy: boolean;
+  /** True while the change this control asked for is on its way or waiting its turn. */
+  readonly saving: (key: string) => boolean;
   /**
    * The design as it will be once the waiting changes are saved. A change that rebuilds a whole
    * colourway, or confirms a seam, is worked out from this, so it does not undo one on its way.
@@ -63,6 +66,7 @@ export function TechPackEdit({ projectId, version, spec, children }: TechPackEdi
       errorFor: (key) => state.problems[key]?.message ?? null,
       clearProblem: (key) => dispatch({ type: "clearProblem", key }),
       busy: isBusy(state),
+      saving: (key) => isSaving(state, key),
       working,
     }),
     [state, dispatch, working],

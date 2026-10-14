@@ -8,18 +8,25 @@ import { PROJECT_COLUMNS, projectRowSchema } from "@/lib/projects/rows";
 import { listProjects, readSpec, summaryOf, throwIfFailed, type ProjectSummary } from "@/lib/projects/service";
 import { log } from "@/lib/server/log";
 import type { ChartSet } from "@/lib/sizing";
-import { cardFacts, type Thumbnail } from "./card";
-import { openVotes, type HomeAnswer, type HomeLink } from "./facts";
-import { journeyStep, type JourneyStepId } from "./journey";
-import { needsYou, type DesignFacts, type NeedsYou, type QuoteFact } from "./needs-you";
-import { changedWhen } from "./when";
+import { cardFacts } from "./card";
+import {
+  designsToRead,
+  EMPTY_DETAILS,
+  homeDetails,
+  namesToRead,
+  type ContentFacts,
+  type HomeDetails,
+  type HomeQuote,
+  type Marks,
+} from "./details";
+import type { HomeAnswer, HomeLink } from "./facts";
 
 /**
  * Everything the studio home reads, in a fixed number of bounded queries whatever the number of
- * designs: one page of designs, the designs changed most recently, their contents and their
- * share, quote and download marks, the brand's open share links and their answers, and its open
- * quote requests. All of it goes through the signed-in member's own client, so the database's
- * rules decide what they see.
+ * designs, all started at once: one page of designs, the designs changed most recently, their
+ * contents and their share, quote and download marks, the brand's open share links and their
+ * answers, and its open quote requests. All of it goes through the signed-in member's own
+ * client, so the database's rules decide what they see.
  */
 
 /** How many recently changed designs the "Needs you" list looks at for empty fields. */
@@ -30,28 +37,18 @@ export const ANSWERS_READ = 1000;
 /** The most open quote requests read for the brand. */
 export const OPEN_QUOTES_READ = 20;
 
-export interface HomeCard extends ProjectSummary {
-  readonly step: JourneyStepId;
-  /** When it was last changed, in words. */
-  readonly changed: string;
-  readonly thumbnail: Thumbnail | null;
+export interface HomeListing {
+  /** The designs on this page, newest first. */
+  readonly projects: readonly ProjectSummary[];
+  readonly total: number;
 }
 
 export interface StudioHome {
-  readonly cards: readonly HomeCard[];
-  readonly total: number;
-  readonly needsYou: NeedsYou;
+  readonly listing: Promise<HomeListing>;
+  readonly details: Promise<HomeDetails>;
 }
 
 type Brand = Readonly<{ id: string; name: string }>;
-
-interface Marks {
-  readonly shared: boolean;
-  readonly quoted: boolean;
-  readonly downloaded: boolean;
-}
-
-const NO_MARKS: Marks = { shared: false, quoted: false, downloaded: false };
 
 const recentProjects = async (client: SupabaseClient, brandId: string): Promise<ProjectSummary[]> => {
   const { data, error } = await client
@@ -94,7 +91,7 @@ const designMarks = async (client: SupabaseClient, brandId: string, ids: readonl
   );
 };
 
-const specRow = z.object({ project_id: z.uuid(), version: z.number().int(), spec: z.unknown() });
+const specRow = z.object({ project_id: z.uuid(), version: z.number().int(), spec: z.unknown(), created_at: z.string() });
 
 /** The current version of each design, in one query. */
 const currentSpecs = async (client: SupabaseClient, brandId: string, designs: readonly ProjectSummary[]) => {
@@ -106,7 +103,7 @@ const currentSpecs = async (client: SupabaseClient, brandId: string, designs: re
     .or(pairs.join(","))
     .limit(designs.length);
   throwIfFailed(error);
-  return z.array(specRow.extend({ created_at: z.string() })).parse(data ?? []);
+  return z.array(specRow).parse(data ?? []);
 };
 
 const linkRow = z.object({
@@ -161,7 +158,7 @@ const quoteRow = z.object({
   updated_at: z.string(),
 });
 
-const openQuotes = async (client: SupabaseClient, brandId: string) => {
+const openQuotes = async (client: SupabaseClient, brandId: string): Promise<HomeQuote[]> => {
   const { data, error } = await client
     .from("quote_requests")
     .select("id, project_id, quantity, status, updated_at")
@@ -170,7 +167,10 @@ const openQuotes = async (client: SupabaseClient, brandId: string) => {
     .order("updated_at", { ascending: false })
     .limit(OPEN_QUOTES_READ);
   throwIfFailed(error);
-  return z.array(quoteRow).parse(data ?? []);
+  return z
+    .array(quoteRow)
+    .parse(data ?? [])
+    .map((row) => ({ id: row.id, projectId: row.project_id, quantity: row.quantity, status: row.status, updatedAt: row.updated_at }));
 };
 
 /** The names of designs the other reads did not bring, in one query. */
@@ -186,9 +186,6 @@ const namesOf = async (client: SupabaseClient, brandId: string, ids: readonly st
   );
 };
 
-type Facts = Readonly<{ toConfirm: number | null; thumbnail: Thumbnail | null }>;
-const UNKNOWN: Facts = { toConfirm: null, thumbnail: null };
-
 /** Each design's empty fields and drawing. A design that cannot be read is logged and shown without them. */
 function contentFacts(
   designs: readonly ProjectSummary[],
@@ -196,75 +193,67 @@ function contentFacts(
   brand: Brand,
   charts: ChartSet,
   now: Date,
-): Map<string, Facts> {
+): Map<string, ContentFacts> {
   const specOf = new Map(rows.map((row) => [row.project_id, row]));
   return new Map(
-    designs.map((design) => {
+    designs.flatMap((design): [string, ContentFacts][] => {
       const row = specOf.get(design.id);
-      if (!row) return [design.id, UNKNOWN];
+      if (!row) return [];
       try {
         const { spec, dropped } = readSpec(row.spec);
-        return [design.id, cardFacts({ ...design, versionSavedAt: row.created_at, spec, dropped }, brand.name, charts, now)];
+        return [[design.id, cardFacts({ ...design, versionSavedAt: row.created_at, spec, dropped }, brand.name, charts, now)]];
       } catch (error) {
         log({ level: "warn", message: "A design could not be read for the studio home.", where: "studio-home", error });
-        return [design.id, UNKNOWN];
+        return [];
       }
     }),
   );
 }
 
-const unique = <T>(items: readonly T[]): T[] => [...new Set(items)];
-
-export async function loadStudioHome(client: SupabaseClient, brand: Brand, request: PageRequest, now: Date): Promise<StudioHome> {
-  const { projects, total } = await listProjects(client, brand.id, request.perPage, request.offset);
-  if (total === 0) return { cards: [], total, needsYou: { items: [], more: 0 } };
-
-  const [recent, charts, links, quotes] = await Promise.all([
+/**
+ * The slower part of the home, in two rounds of reads whatever the number of designs. The first
+ * round runs alongside the page of designs, so it waits only for the slowest of them.
+ */
+async function loadDetails(client: SupabaseClient, brand: Brand, listing: Promise<HomeListing>, now: Date): Promise<HomeDetails> {
+  const [{ projects, total }, recent, charts, links, quotes] = await Promise.all([
+    listing,
     recentProjects(client, brand.id),
     brandChartSet(client, brand.id),
     openLinks(client, brand.id, now),
     openQuotes(client, brand.id),
   ]);
-  const designs = [...projects, ...recent.filter((design) => !projects.some((shown) => shown.id === design.id))];
+  if (total === 0) return EMPTY_DETAILS;
+  const designs = designsToRead(projects, recent);
   const known = new Map(designs.map((design) => [design.id, design.name]));
-  const unnamed = unique([...links.map((link) => link.projectId), ...quotes.map((quote) => quote.project_id)]).filter((id) => !known.has(id));
 
   const [marks, specs, answers, names] = await Promise.all([
     designMarks(client, brand.id, designs.map((design) => design.id)),
     designs.length > 0 ? currentSpecs(client, brand.id, designs) : Promise.resolve([]),
     linkAnswers(client, brand.id, links),
-    namesOf(client, brand.id, unnamed),
+    namesOf(client, brand.id, namesToRead(known, links, quotes)),
   ]);
-  const facts = contentFacts(designs, specs, brand, charts, now);
-  const allNames = new Map([...known, ...names]);
-  const factsOf = (id: string): Facts => facts.get(id) ?? UNKNOWN;
-  const marksOf = (id: string): Marks => marks.get(id) ?? NO_MARKS;
-
-  const cards = projects.map((project) => ({
-    ...project,
-    step: journeyStep({ toConfirm: factsOf(project.id).toConfirm, ...marksOf(project.id) }),
-    changed: changedWhen(project.updatedAt, now),
-    thumbnail: factsOf(project.id).thumbnail,
-  }));
-
-  const recentFacts: DesignFacts[] = recent.map((design) => ({
-    id: design.id,
-    name: design.name,
-    updatedAt: design.updatedAt,
-    toConfirm: factsOf(design.id).toConfirm,
-    shared: marksOf(design.id).shared,
-    quoted: marksOf(design.id).quoted,
-  }));
-  const quoteFacts: QuoteFact[] = quotes.flatMap((quote) => {
-    const projectName = allNames.get(quote.project_id);
-    return projectName === undefined
-      ? []
-      : [{ id: quote.id, projectId: quote.project_id, projectName, quantity: quote.quantity, status: quote.status, updatedAt: quote.updated_at }];
+  return homeDetails({
+    shown: projects,
+    recent,
+    facts: contentFacts(designs, specs, brand, charts, now),
+    marks,
+    links,
+    answers,
+    quotes,
+    names: new Map([...known, ...names]),
+    now,
   });
+}
 
-  return {
-    cards,
-    total,
-    needsYou: needsYou({ designs: recentFacts, votes: openVotes(links, answers, allNames, now), quotes: quoteFacts }),
-  };
+/**
+ * Starts every read of the studio home at once. The page waits only for the page of designs and
+ * streams the rest: each card's step and drawing, and the "Needs you" list.
+ */
+export function loadStudioHome(client: SupabaseClient, brand: Brand, request: PageRequest, now: Date): StudioHome {
+  const listing = listProjects(client, brand.id, request.perPage, request.offset).then(({ projects, total }) => ({ projects, total }));
+  const details = loadDetails(client, brand, listing, now);
+  // A page past the end is sent elsewhere before anything reads the details, so a failure there
+  // must not go unhandled. The parts of the page that read them still see it.
+  details.catch(() => undefined);
+  return { listing, details };
 }

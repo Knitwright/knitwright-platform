@@ -1,5 +1,5 @@
 import { Notice } from "@/components/ui/Notice";
-import type { TechPackPageData } from "@/lib/projects/tech-pack-data";
+import type { TechPackCoreData } from "@/lib/projects/tech-pack-data";
 import { SECTION_GUIDANCE, fieldFor, sectionHasForms, sectionLink, summaryTone } from "@/lib/projects/tech-pack-view";
 import type { ConfirmItem, ConfirmSection } from "@/lib/techpack";
 
@@ -53,7 +53,7 @@ function ConfirmSectionEntry({ section }: Readonly<{ section: ConfirmSection }>)
  * what a factory needs from it, and a link to every field. Markup only: the count and every
  * name come from the completeness report.
  */
-export function ConfirmSummary({ data }: Readonly<{ data: TechPackPageData }>) {
+export function ConfirmSummary({ data }: Readonly<{ data: TechPackCoreData }>) {
   const { report } = data;
   return (
     <Notice tone={summaryTone(report)}>
