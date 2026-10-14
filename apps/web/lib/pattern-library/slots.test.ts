@@ -37,7 +37,7 @@ describe("describeSlots", () => {
       block({ id: "other", productKey: "polo" }),
     ]);
     const tee = states.find((s) => s.slot.productKey === "crew-tee");
-    expect(tee?.blocks.map((b) => b.id)).toEqual(["new", "women"].sort((a, b) => (a === "new" ? -1 : 1)).sort((a, b) => ["men", "women"].indexOf(a === "new" ? "men" : "women") - ["men", "women"].indexOf(b === "new" ? "men" : "women")));
+    expect(tee?.blocks.map((b) => b.id)).toEqual(["new", "women"]);
     expect(tee?.emptyText).toBeNull();
     expect(states.find((s) => s.slot.productKey === "polo")?.blocks).toHaveLength(1);
     expect(states.find((s) => s.slot.productKey === "shorts")).toMatchObject({ blocks: [], emptyText: NO_PATTERN_TEXT });

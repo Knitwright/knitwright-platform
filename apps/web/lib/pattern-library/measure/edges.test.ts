@@ -33,7 +33,7 @@ describe("pieces with parts missing", () => {
   });
 
   it("a front missing only some landmarks", () => {
-    const pieces = change("front", ({ landmarks: { hps: _hps, ...rest }, ...p }) => ({ ...p, landmarks: rest }));
+    const pieces = change("front", (p) => ({ ...p, landmarks: Object.fromEntries(Object.entries(p.landmarks).filter(([name]) => name !== "hps")) }));
     expect(reasonOf(pieces, "neck-width")).toContain("hps landmark");
     expect(reasonOf(pieces, "front-neck-drop")).toContain("hps");
   });
