@@ -57,7 +57,7 @@ export function ArtworkFields({ spec, parts, form, onChange }: FieldsProps) {
   const set = (patch: Partial<ArtworkForm>) => onChange({ ...form, ...patch });
   const words = form.source.kind === "text" ? form.source.text : null;
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid gap-3 @md:grid-cols-2">
       <TextField label="Name" value={form.name} onChange={(name) => set({ name })} />
       {words !== null ? <TextField label="Words to print" value={words} onChange={(text) => set({ source: { kind: "text", text } })} /> : null}
       <ChoiceField

@@ -18,7 +18,7 @@ type ColourControlsProps = Readonly<{
 /** A drawn colour and a colour code for each part of the design. Markup and wiring only. */
 export function ColourControls({ rows, errorFor, ...handlers }: ColourControlsProps) {
   return (
-    <ul className="grid gap-3 md:grid-cols-2">
+    <ul className="grid gap-3 @xl:grid-cols-2">
       {rows.map((row) => (
         <li key={row.panelId} className="rounded-xl border border-hairline p-4">
           <ColourRowControl row={row} error={errorFor(colourKey(row.panelId))} {...handlers} />

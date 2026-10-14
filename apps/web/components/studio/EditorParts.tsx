@@ -1,77 +1,30 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import type { Dropped } from "@/lib/garment";
-import { jumpLinks } from "@/lib/projects/design-actions";
-import type { EditorData } from "@/lib/projects/editor-data";
 
-export function Section({ id, title, children }: Readonly<{ id: string; title: string; children: ReactNode }>) {
+type SectionProps = Readonly<{ id: string; title: string | null; children: ReactNode }>;
+
+/** A part of a tool panel. A panel with one part shows no heading of its own for it. */
+export function Section({ id, title, children }: SectionProps) {
+  if (!title) return <div className="flex flex-col gap-4">{children}</div>;
   return (
-    <section aria-labelledby={id} className="rounded-2xl border border-hairline bg-surface p-6">
-      <h2 id={id} className="text-base font-semibold text-ink">
+    <section aria-labelledby={id} className="flex flex-col gap-4 border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
+      <h3 id={id} className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-chalk-muted">
         {title}
-      </h2>
-      <div className="mt-4">{children}</div>
+      </h3>
+      {children}
     </section>
   );
 }
 
-type HeaderProps = Readonly<{
-  data: EditorData;
-  /** The newest version the editor knows of. It moves on as soon as a change is saved. */
-  version: number;
-  busy: boolean;
-  onUndo: () => void;
-}>;
-
-const HEADER_LINK =
-  "chip-btn inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] px-5 text-[15px] font-medium text-ink backdrop-blur-md";
-
-export function EditorHeader({ data, version, busy, onUndo }: HeaderProps) {
-  const details = [data.styleNumber ? `Style ${data.styleNumber}` : null, data.season || null].filter(Boolean);
-  return (
-    <header className="flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <p className="font-mono text-xs uppercase tracking-wider text-muted">
-          {data.typeLabel} for {data.wearerLabel.toLowerCase()}
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{data.name}</h1>
-        <p className="mt-2 text-sm text-muted">
-          <span data-testid="version">Version {version}</span>
-          {details.length > 0 ? <span>, {details.join(", ")}</span> : null}
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <nav aria-label="Next steps for this design" className="flex flex-wrap items-center gap-3">
-          <Link href={`/studio/${data.projectId}/tech-pack`} className={HEADER_LINK}>
-            Tech pack
-          </Link>
-          {/* Plain links: they move down this page, to sections the page itself draws. */}
-          {jumpLinks().map((link) => (
-            <a key={link.id} href={link.href} className={HEADER_LINK}>
-              {link.label}
-            </a>
-          ))}
-        </nav>
-        <Button type="button" variant="secondary" disabled={data.undoTo === null || busy} onClick={onUndo}>
-          Undo
-        </Button>
-        <Link href={`/studio/${data.projectId}/delete`} className="text-sm text-muted underline hover:text-ink">
-          Delete design
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 /** Says what is happening to the design. Screen readers hear each change of it. */
-export function SaveStatus({ busy, status }: Readonly<{ busy: boolean; status: string | null }>) {
+export function SaveStatus({ busy, status, className = "min-h-5 text-sm text-ink-2" }: Readonly<{ busy: boolean; status: string | null; className?: string }>) {
   return (
-    <p role="status" className="min-h-5 text-sm text-ink-2" data-testid="save-status">
+    <p role="status" className={className} data-testid="save-status">
       {busy ? "Saving" : (status ?? "")}
     </p>
   );

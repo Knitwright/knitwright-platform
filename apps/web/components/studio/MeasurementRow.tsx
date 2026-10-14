@@ -28,14 +28,14 @@ export function MeasurementRow({ row, error, onEdit, onReset, onTyping, onDirty 
     onEdit(pointId, intent, asked);
   };
 
-  // Below the sm breakpoint the row is a card and the cells stack. The table returns from sm up.
+  // In a narrow space, a phone or a side panel, the row is a card and the cells stack. The table returns from 48rem up.
   return (
-    <tr className="block py-2 sm:table-row sm:py-0">
-      <th scope="row" className="block px-4 pt-2 align-top font-medium text-ink sm:table-cell sm:max-w-md sm:py-3">
+    <tr className="block py-2 @3xl:table-row @3xl:py-0">
+      <th scope="row" className="block px-4 pt-2 align-top font-medium text-ink @3xl:table-cell @3xl:max-w-md @3xl:py-3">
         {row.label}
         <HowToMeasure id={`${id}-how`} text={row.howToMeasure} />
       </th>
-      <td className="block px-4 py-2 align-top sm:table-cell sm:py-3">
+      <td className="block px-4 py-2 align-top @3xl:table-cell @3xl:py-3">
         <ValueCell
           id={id}
           row={row}
@@ -48,11 +48,11 @@ export function MeasurementRow({ row, error, onEdit, onReset, onTyping, onDirty 
           onSubmit={submit}
         />
       </td>
-      <td className="block px-4 py-1 align-top font-mono text-sm text-ink-2 sm:table-cell sm:py-3">
-        <span className="font-sans text-muted sm:hidden">Tolerance </span>
+      <td className="block px-4 py-1 align-top font-mono text-sm text-ink-2 @3xl:table-cell @3xl:py-3">
+        <span className="font-sans text-muted @3xl:hidden">Tolerance </span>
         {row.tolerance}
       </td>
-      <td className="block px-4 pt-1 pb-2 align-top sm:table-cell sm:py-3">
+      <td className="block px-4 pt-1 pb-2 align-top @3xl:table-cell @3xl:py-3">
         <SourceCell row={row} onReset={() => onReset(pointId)} />
       </td>
     </tr>
@@ -69,11 +69,11 @@ function HowToMeasure({ id, text }: Readonly<{ id: string; text: string }>) {
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((before) => !before)}
-        className="mt-1 block rounded-md text-sm font-normal text-cobalt-soft underline-offset-4 hover:underline sm:hidden"
+        className="mt-1 block rounded-md text-sm font-normal text-cobalt-soft underline-offset-4 hover:underline @3xl:hidden"
       >
         {open ? "Hide how to measure" : "How to measure"}
       </button>
-      <span id={id} className={`mt-1 text-sm font-normal text-muted sm:block ${open ? "block" : "hidden"}`}>
+      <span id={id} className={`mt-1 text-sm font-normal text-muted @3xl:block ${open ? "block" : "hidden"}`}>
         {text}
       </span>
     </>

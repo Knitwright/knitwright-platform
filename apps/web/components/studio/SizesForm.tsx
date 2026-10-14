@@ -53,7 +53,7 @@ export function SizesForm(props: SizesFormProps) {
         event.preventDefault();
         submit();
       }}
-      className="grid gap-4 sm:grid-cols-[1fr_12rem_auto] sm:items-start"
+      className="grid gap-4 @lg:grid-cols-[1fr_12rem_auto] @lg:items-start"
       noValidate
     >
       <SizesList
@@ -65,7 +65,7 @@ export function SizesForm(props: SizesFormProps) {
         }}
       />
       <BaseSize labels={parseSizeLabels(text)} base={base} error={props.errorFor(BASE_KEY)} onChange={setBase} />
-      <div className="sm:pt-[1.625rem]">
+      <div className="@lg:pt-[1.625rem]">
         <Button type="submit" variant="secondary" pending={busy}>
           {isSet ? "Change sizes" : "Save sizes"}
         </Button>
