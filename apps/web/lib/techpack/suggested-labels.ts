@@ -18,6 +18,11 @@ export interface CellPlace {
 
 const SECTION_OF_ROOT: Readonly<Record<string, SectionId>> = {
   cover: "cover",
+  readiness: "readiness",
+  patternAndCutting: "pattern-and-cutting",
+  fabric: "fabric",
+  artworkAndColour: "artwork-and-colour",
+  operations: "operations",
   flats: "flats",
   measurements: "measurements",
   howToMeasure: "how-to-measure",
@@ -142,6 +147,7 @@ const RULES: readonly Rule[] = [
     /^artwork\.playerMarks\[(\d+)\]\.(\w+)$/,
     (root, m) => at("artwork", text(root, `artwork.playerMarks[${m[1]}].place.value`), PLAYER_MARK_FIELDS[m[2] ?? ""] ?? m[2] ?? ""),
   ],
+  [/^fabric\.rows\[(\d+)\]\.measure$/, (root, m) => at("fabric", text(root, `fabric.rows[${m[1]}].label`))],
   [/^labelling\.rows\[(\d+)\]\.value$/, (root, m) => at("labelling", text(root, `labelling.rows[${m[1]}].label`))],
 ];
 

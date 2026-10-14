@@ -217,8 +217,8 @@ describe("the sign-off section", () => {
       title: "Sign-off",
       note: null,
       statement: "Nobody has checked this specification yet.",
-      name: TBC,
-      date: TBC,
+      lines: ["Pattern", "Print", "Production", "Club"].map((role) => ({ role, name: TBC, date: TBC })),
+      strikeOff: { acceptedBy: TBC, date: TBC, result: TBC },
     });
   });
 });

@@ -40,7 +40,7 @@ Copy `0000-template.md` to start.
 | 0030 | Fabrics, sizes and the cut list (W2) | Proposed |
 | 0031 | Print files (W3) | Planned |
 | 0032 | Orders, releases and proofs (W4) | Planned |
-| 0033 | Tech pack v2 and "Ready for the factory" (W5) | Planned |
+| 0033 | [Tech pack v2 and "Ready for the factory" (W5)](0033-tech-pack-v2.md) | Proposed |
 | 0034 | One coordinate system for 3D and pattern pieces (W6) | Planned |
 | 0035 | [One artwork layer model for any design (W7a)](0035-artwork-layer-model.md) | Accepted |
 | 0036 | Artwork intake (W7b) | Planned |

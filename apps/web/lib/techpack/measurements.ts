@@ -147,6 +147,7 @@ export function buildMeasurements(spec: GarmentSpec, charts?: ChartSet): Measure
     columns,
     groups,
     sizesFrom: hasSizes ? all.sizesFrom : null,
+    onPattern: null,
   };
 }
 

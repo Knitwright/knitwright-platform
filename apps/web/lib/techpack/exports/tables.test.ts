@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import { PROVENANCE_LABELS } from "@/lib/garment";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "../fixtures/designs";
+import { benchmarkJerseyInput, completeProduction, targetedJersey } from "../fixtures/production";
 import { SECTION_IDS, SECTION_TITLES, type TechPack } from "../types";
 import { PROPOSAL_WORDS } from "../text";
 import { STANDARD_CHOICE } from "../cell";
@@ -14,14 +15,17 @@ const cellsOf = (sections: readonly ExportSection[]): unknown[] =>
     section.tables.flatMap((table) => table.rows.flatMap((row) => row.flatMap((datum) => ("cell" in datum && datum.cell ? [datum.cell] : [])))),
   );
 
-const designs = (): readonly (readonly [string, TechPack])[] =>
-  TOPS_IDS.flatMap((typeId) => [
+const designs = (): readonly (readonly [string, TechPack])[] => [
+  ["jersey with every production record", packFor(targetedJersey(), { production: completeProduction() })],
+  ["jersey with a pattern and nothing else", packFor(targetedJersey(), { production: benchmarkJerseyInput() })],
+  ...TOPS_IDS.flatMap((typeId) => [
     [`${typeId} empty`, packFor(start(typeId))] as const,
     [`${typeId} full`, packFor(fullDesign(typeId), { history: revisions(3), charts: CHARTS })] as const,
-  ]);
+  ]),
+];
 
 describe("the tables every format is made from", () => {
-  it("has a section for each of the eleven, in order, with the title of the document", () => {
+  it("has a section for each one of the document, in order, with the title of the document", () => {
     const sections = exportSections(packFor(start("crew-tee")));
     expect(sections.map((section) => section.id)).toEqual([...SECTION_IDS]);
     expect(sections.map((section) => section.title)).toEqual(SECTION_IDS.map((id) => SECTION_TITLES[id]));

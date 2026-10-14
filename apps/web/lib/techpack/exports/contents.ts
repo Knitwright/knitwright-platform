@@ -3,20 +3,25 @@ import type { Cell, SectionId } from "../types";
 import { EXPORT_VIEWS } from "./formats";
 
 /**
- * What each format holds. The PDF holds all eleven sections. The Excel file holds one sheet for
+ * What each format holds. The PDF holds every section. The Excel file holds one sheet for
  * each section that holds values, and the two that do not (the drawings, and the words that say
  * how to measure) are in the PDF and the SVG files only. The SVG files hold one view each.
  * The names are within Excel's rules: at most 31 characters and none of \ / ? * [ ] :
  */
 export const EXCEL_SHEETS: Readonly<Record<SectionId, string | null>> = {
   cover: "Cover",
+  readiness: "Ready for the factory",
   flats: null,
   measurements: "Measurements",
   "how-to-measure": null,
+  "pattern-and-cutting": "Pattern and cutting",
   components: "Components",
+  fabric: "Fabric",
   construction: "Construction",
   colourways: "Colourways",
   artwork: "Artwork",
+  "artwork-and-colour": "Artwork and colour",
+  operations: "Order of work",
   labelling: "Labels and packing",
   suggested: "Suggested values",
   "sign-off": "Sign-off",

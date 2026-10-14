@@ -84,3 +84,18 @@ describe("describeCell", () => {
     expect(describeCell(doc, "elsewhere[0].x")).toMatchObject({ sectionId: "cover", subject: "elsewhere[0].x" });
   });
 });
+
+describe("describeCell for tech pack v2", () => {
+  const v2 = { fabric: { rows: [{ label: "Stretch, along the length" }] } };
+
+  it("names a suggested fabric value by its row, in the fabric section", () => {
+    expect(describeCell(v2, "fabric.rows[0].measure")).toMatchObject({ sectionId: "fabric", subject: "Stretch, along the length", field: "" });
+  });
+
+  it("puts any other cell of a new section in that section, named by its path", () => {
+    expect(describeCell(v2, "artworkAndColour.colours[0].name")).toMatchObject({ sectionId: "artwork-and-colour", subject: "artworkAndColour.colours[0].name" });
+    expect(describeCell(v2, "patternAndCutting.reviewStatus").sectionId).toBe("pattern-and-cutting");
+    expect(describeCell(v2, "operations.technique").sectionId).toBe("operations");
+    expect(describeCell(v2, "readiness.summary").sectionId).toBe("readiness");
+  });
+});
