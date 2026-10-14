@@ -314,6 +314,83 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { tested_by: "Changed by a stranger" },
   },
+  // Production outputs, W7b (migration 20261015060100): a member reads the brand's artwork records; only the
+  // server writes them. A vector artwork is JSON, never an SVG.
+  user_artworks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const fileId = randomUUID();
+      must(
+        await adminClient().from("files").insert({
+          id: fileId,
+          brand_id: brandId,
+          bucket: "uploads",
+          path: filePath(brandId),
+          kind: "artwork",
+          content_type: "image/png",
+          bytes: 10,
+          created_by: ownerId,
+        }),
+      );
+      const vectorId = randomUUID();
+      must(
+        await adminClient().from("files").insert({
+          id: vectorId,
+          brand_id: brandId,
+          bucket: "exports",
+          path: `${brandId}/artwork-vector/${randomUUID()}.json`,
+          kind: "artwork-vector",
+          content_type: "application/json",
+          bytes: 10,
+          created_by: ownerId,
+        }),
+      );
+      return must(
+        await adminClient()
+          .from("user_artworks")
+          .insert({
+            brand_id: brandId,
+            kind: "vector",
+            source_format: "svg",
+            label: "Seeded crest",
+            source_sha256: "a".repeat(64),
+            print_sha256: "b".repeat(64),
+            vector_file_id: vectorId,
+            screen_file_id: fileId,
+            width_px: 100,
+            height_px: 100,
+            colour_space: "srgb",
+            has_alpha: true,
+            rights_confirmed_by: ownerId,
+            rights_confirmed_at: "2026-10-14T00:00:00Z",
+            rights_wording_version: "logo-rights-v1",
+            created_by: ownerId,
+          })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      kind: "vector",
+      source_format: "svg",
+      label: "Made directly",
+      source_sha256: "a".repeat(64),
+      print_sha256: "b".repeat(64),
+      vector_file_id: randomUUID(),
+      screen_file_id: randomUUID(),
+      width_px: 100,
+      height_px: 100,
+      colour_space: "srgb",
+      has_alpha: true,
+      rights_confirmed_by: userId,
+      rights_confirmed_at: "2026-10-14T00:00:00Z",
+      rights_wording_version: "logo-rights-v1",
+      created_by: userId,
+    }),
+    change: { label: "Changed by a stranger" },
+  },
   size_label_maps: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
