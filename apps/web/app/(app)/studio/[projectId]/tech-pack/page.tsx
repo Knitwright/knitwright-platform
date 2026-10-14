@@ -35,6 +35,9 @@ const quietly = <T,>(promise: Promise<T>): Promise<T> => {
  * The factory file. It is made from the same reads as the export route, so the screen and the
  * files agree. The file is sent as soon as the design is read; the drawings, the illustrations and
  * the quote fill in as their slower reads finish.
+ *
+ * There is no loading.tsx here on purpose: one would send a 200 before the design is read, so a
+ * design of another brand could no longer answer with a real 404.
  */
 export default async function TechPackPage({ params, searchParams }: PageProps<"/studio/[projectId]/tech-pack">) {
   const { brand } = await requireMember();

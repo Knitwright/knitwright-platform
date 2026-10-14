@@ -41,6 +41,7 @@ test.describe("the studio home", () => {
     await expect(card.locator("img")).toHaveAttribute("src", /^data:image\/svg\+xml;/);
 
     await card.click();
+    await page.getByRole("link", { name: "Share", exact: true }).click();
     const panel = page.getByRole("region", { name: "Share with your committee" });
     await panel.getByRole("button", { name: "Make a share link" }).click();
     await expect(panel.getByTestId("share-link")).toHaveCount(1);
