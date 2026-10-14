@@ -21,23 +21,26 @@ export type XmlElement = {
 // Sticky patterns read at the cursor without copying the rest of the file.
 const NAME = /[A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?/y;
 const ATTR = /([A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?)\s*=\s*(?:"([^"]*)"|'([^']*)')/y;
-const NUMERIC_REF = /&#(x[0-9a-fA-F]{1,6}|[0-9]{1,7});/g;
-const PLAIN_ENTITIES: Readonly<Record<string, string>> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'" };
+const REFERENCE = /&(?:#(x[0-9a-fA-F]{1,6}|[0-9]{1,7})|([A-Za-z][A-Za-z0-9]*));|&/g;
+const PLAIN_ENTITIES: Readonly<Record<string, string>> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
 
 const isTextChar = (code: number): boolean =>
   code === 0x9 || code === 0xa || code === 0xd || (code >= 0x20 && code <= 0xd7ff) || (code >= 0xe000 && code <= 0xfffd) || (code >= 0x10000 && code <= 0x10ffff);
 
-/** Decodes the five XML entities and number references. Any other `&` is an entity we do not allow. */
+/**
+ * Decodes the five XML entities and number references in one pass, so a decoded `&` is never read again. Any
+ * other named entity is one we do not allow (it could be one the file declared); a bare `&` is not well formed.
+ */
 export const decodeEntities = (value: string): string => {
   if (!value.includes("&")) return value;
-  const numeric = value.replace(NUMERIC_REF, (_whole, code: string) => {
-    const point = code.startsWith("x") ? Number.parseInt(code.slice(1), 16) : Number.parseInt(code, 10);
-    if (!isTextChar(point)) return refuse("malformed");
-    return String.fromCodePoint(point);
+  return value.replace(REFERENCE, (_whole, code: string | undefined, name: string | undefined) => {
+    if (code !== undefined) {
+      const point = code.startsWith("x") ? Number.parseInt(code.slice(1), 16) : Number.parseInt(code, 10);
+      return isTextChar(point) ? String.fromCodePoint(point) : refuse("malformed");
+    }
+    if (name === undefined) return refuse("malformed");
+    return PLAIN_ENTITIES[name] ?? refuse("entities");
   });
-  const named = numeric.replace(/&[A-Za-z][A-Za-z0-9]*;/g, (entity) => PLAIN_ENTITIES[entity] ?? refuse("entities"));
-  // What is left is a stray `&`, which is not well formed.
-  return named.includes("&") ? refuse("malformed") : named;
 };
 
 type Cursor = { at: number };
