@@ -15,6 +15,7 @@ const TONES: Readonly<Record<Provenance, Tone>> = {
   "ai-suggested": "suggested",
   "read-from-image": "suggested",
   derived: "derived",
+  "measured-from-pattern": "derived",
 };
 
 export const toneOf = (provenance: Provenance): Tone => TONES[provenance];

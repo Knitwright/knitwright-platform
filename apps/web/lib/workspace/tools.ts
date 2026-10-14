@@ -8,7 +8,7 @@
 export const RAIL_TOOLS = ["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "history"] as const;
 
 /** Panels opened from the header's actions and journey, not from the rail. */
-export const JOURNEY_TOOLS = ["share", "photoreal", "quote"] as const;
+export const JOURNEY_TOOLS = ["share", "photoreal", "quote", "production"] as const;
 
 export type RailToolId = (typeof RAIL_TOOLS)[number];
 export type JourneyToolId = (typeof JOURNEY_TOOLS)[number];
@@ -31,7 +31,8 @@ export type SectionId =
   | "history"
   | "share"
   | "photoreal"
-  | "quote";
+  | "quote"
+  | "production";
 
 export interface ToolInfo {
   readonly id: ToolId;
@@ -123,6 +124,13 @@ export const TOOLS: Readonly<Record<ToolId, ToolInfo>> = {
     title: "Quote",
     lead: "Tell the Knitwright team how many you need and by when.",
     sections: ["quote"],
+  },
+  production: {
+    id: "production",
+    label: "Make it",
+    title: "Make it",
+    lead: "Patterns, fabrics, print files and team orders for getting this design made.",
+    sections: ["production"],
   },
 };
 

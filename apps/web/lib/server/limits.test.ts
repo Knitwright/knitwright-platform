@@ -35,3 +35,17 @@ describe("LIMITS", () => {
     expect(LIMITS.pollJob.limit).toBeGreaterThanOrEqual(pollsInWindow * 2);
   });
 });
+
+describe("LIMITS for production outputs", () => {
+  it("has a limit for each of the six production actions", () => {
+    for (const key of ["patternLibrary", "fabricWrite", "printFiles", "rosterImport", "releaseCreate", "proofWrite"] as const) {
+      expect(LIMITS[key].limit).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it("holds the dear actions, freezing a release and making print files, to no more than two a minute on average", () => {
+    for (const rule of [LIMITS.printFiles, LIMITS.releaseCreate]) {
+      expect(rule.limit / rule.windowSeconds).toBeLessThanOrEqual(2 / 60);
+    }
+  });
+});

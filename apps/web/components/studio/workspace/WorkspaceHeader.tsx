@@ -48,6 +48,9 @@ export function WorkspaceHeader({ data, version, busy, status, tool, onChoose, o
         <ToolLink projectId={data.projectId} tool="photoreal" current={tool === "photoreal" ? "true" : undefined} onChoose={onChoose} className={CHIP}>
           Photoreal
         </ToolLink>
+        <ToolLink projectId={data.projectId} tool="production" current={tool === "production" ? "true" : undefined} onChoose={onChoose} className={CHIP}>
+          Make it
+        </ToolLink>
         <ToolLink projectId={data.projectId} tool="share" current={tool === "share" ? "true" : undefined} onChoose={onChoose} className={CHIP}>
           Share
         </ToolLink>

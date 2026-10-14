@@ -22,7 +22,7 @@ export type ImageKind = (typeof IMAGE_KINDS)[number];
 export type StoredKind = ImageKind | "render";
 
 /** Uploads and generated pictures are kept apart, as the buckets were made for. */
-const bucketFor = (kind: StoredKind | typeof CHART_KIND): "uploads" | "images" =>
+const bucketFor = (kind: StoredKind | typeof CHART_KIND | ProductionKind): "uploads" | "images" =>
   kind === "render" ? "images" : "uploads";
 
 type Bucket = "uploads" | "images" | "exports";
@@ -54,7 +54,7 @@ type FileRecord = Readonly<{
   admin: SupabaseClient;
   brandId: string;
   userId: string;
-  kind: StoredKind | typeof CHART_KIND | typeof PATTERN_KIND;
+  kind: StoredKind | typeof CHART_KIND | typeof PATTERN_KIND | ProductionKind;
   /** Where it goes when the kind alone does not say: a pattern's DXF and its picture differ. */
   bucket?: Bucket;
   extension: string;
@@ -236,4 +236,91 @@ export const storePatternFiles = async (input: StorePatternInput): Promise<{ dxf
     height: image.height,
   });
   return { dxf, preview };
+};
+
+/** The kinds of file the production outputs add (plans/production-outputs.md). */
+export const PRODUCTION_KINDS = ["print", "proof", "roster", "pattern-source"] as const;
+
+export type ProductionKind = (typeof PRODUCTION_KINDS)[number];
+
+/** What each non-picture production kind may hold: its types with their extensions, and its size limit. */
+const PRODUCTION_RULES: Readonly<
+  Record<Exclude<ProductionKind, "proof">, { types: Readonly<Record<string, string>>; maxBytes: number }>
+> = {
+  print: {
+    types: { "application/pdf": "pdf", "image/tiff": "tiff" },
+    maxBytes: 40 * 1024 * 1024,
+  },
+  roster: { types: { "text/csv": "csv" }, maxBytes: 2 * 1024 * 1024 },
+  "pattern-source": { types: { "application/dxf": "dxf" }, maxBytes: MAX_PATTERN_DXF_BYTES },
+};
+
+const startsWith = (bytes: Uint8Array, text: string): boolean =>
+  text.split("").every((char, i) => bytes[i] === char.charCodeAt(0));
+
+const TIFF_LITTLE = [0x49, 0x49, 0x2a, 0x00];
+const TIFF_BIG = [0x4d, 0x4d, 0x00, 0x2a];
+
+const isTiff = (bytes: Uint8Array): boolean =>
+  [TIFF_LITTLE, TIFF_BIG].some((magic) => magic.every((byte, i) => bytes[i] === byte));
+
+const isPlainText = (bytes: Uint8Array): boolean => {
+  if (bytes.includes(0)) return false;
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const LOOKS_RIGHT: Readonly<Record<string, (bytes: Uint8Array) => boolean>> = {
+  "application/pdf": (bytes) => startsWith(bytes, "%PDF-"),
+  "image/tiff": isTiff,
+  "text/csv": isPlainText,
+  "application/dxf": looksLikeDxf,
+};
+
+export type StoreProductionFileInput = Readonly<{
+  admin: SupabaseClient;
+  brandId: string;
+  userId: string;
+  bytes: Uint8Array;
+  /** The type the server built the file as. Required except for a proof photo, which is judged by its content. */
+  contentType?: string;
+}>;
+
+export type StoredProductionFile = Readonly<{
+  id: string;
+  brandId: string;
+  kind: ProductionKind;
+  contentType: string;
+  bytes: number;
+}>;
+
+/**
+ * Stores a production file: a print file, a proof photo, a roster or a source pattern. The bytes
+ * must look like the type they are stored as, and the kind decides which types and sizes are
+ * allowed, so a mistake in the caller cannot put a script or the wrong file in the bucket. A
+ * proof photo is checked and rewritten like any picture.
+ */
+export const storeProductionFile = async (
+  kind: ProductionKind,
+  input: StoreProductionFileInput,
+): Promise<StoredProductionFile> => {
+  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind, width: null, height: null };
+  if (kind === "proof") {
+    const image = await checkImage(input.bytes);
+    const id = await writeFile({ ...common, width: image.width, height: image.height, bucket: "uploads", extension: image.extension, contentType: image.contentType, bytes: image.bytes });
+    return { id, brandId: input.brandId, kind, contentType: image.contentType, bytes: image.bytes.byteLength };
+  }
+  const rule = PRODUCTION_RULES[kind];
+  const contentType = input.contentType ?? "";
+  const extension = rule.types[contentType];
+  if (!extension) throw new AppError("invalid_input", "This kind of file cannot be stored here.");
+  if (input.bytes.byteLength === 0 || input.bytes.byteLength > rule.maxBytes || !LOOKS_RIGHT[contentType](input.bytes)) {
+    throw new AppError("invalid_input", "The file is empty, too large, or not the kind of file it says it is.");
+  }
+  const id = await writeFile({ ...common, bucket: "exports", extension, contentType, bytes: input.bytes });
+  return { id, brandId: input.brandId, kind, contentType, bytes: input.bytes.byteLength };
 };

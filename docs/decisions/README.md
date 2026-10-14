@@ -35,3 +35,10 @@ Copy `0000-template.md` to start.
 | 0025 | [Consent to marketing email, unsubscribe links and logo rights](0025-consent-and-logo-rights.md) | Accepted. Legal text is a draft (A9); Australian questions open for the owner. |
 | 0026 | [Share links with comments and votes](0026-share-links.md) | Accepted, with questions open for the owner |
 | 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments, lettering and the 3D verdict asked of the owner. |
+| 0028 | [The production contract](0028-production-contract.md) | Proposed |
+| 0029 | Pattern library (W1) | Planned |
+| 0030 | Fabrics, sizes and the cut list (W2) | Planned |
+| 0031 | Print files (W3) | Planned |
+| 0032 | Orders, releases and proofs (W4) | Planned |
+| 0033 | Tech pack v2 and "Ready for the factory" (W5) | Planned |
+| 0034 | One coordinate system for 3D and pattern pieces (W6) | Planned |

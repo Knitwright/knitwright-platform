@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { SectionId } from "@/lib/workspace/tools";
+import { ProductionPanel } from "@/components/production/ProductionPanel";
 import { ArtworkControls } from "../ArtworkControls";
 import { ColourControls } from "../ColourControls";
 import { ColourwayChooser } from "../ColourwayChooser";
@@ -129,6 +130,8 @@ function sectionBody(section: SectionId, context: SectionContext): ReactNode {
       return <LabellingSummary projectId={data.projectId} spec={data.spec} />;
     case "history":
       return <History entries={data.history} olderHidden={data.olderVersionsHidden} busy={editor.busy} onRestore={editor.restore} />;
+    case "production":
+      return <ProductionPanel />;
     case "share":
     case "photoreal":
     case "quote":

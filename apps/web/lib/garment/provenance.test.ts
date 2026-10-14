@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PROVENANCE_LABELS, PROVENANCE_VALUES, provenanceSchema } from "./provenance";
 
 describe("provenance", () => {
-  it("has exactly the six agreed values", () => {
+  it("has exactly the seven agreed values", () => {
     expect([...PROVENANCE_VALUES]).toEqual([
       "brand-supplied",
       "user-edited",
@@ -10,6 +10,7 @@ describe("provenance", () => {
       "ai-suggested",
       "read-from-image",
       "derived",
+      "measured-from-pattern",
     ]);
   });
 

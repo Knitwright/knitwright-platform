@@ -1,0 +1,75 @@
+{
+ "name": "Polka-dot jersey (benchmark)",
+ "garment": "football-jersey",
+ "size": "48",
+ "baseColour": "white",
+ "kitPattern": {
+  "style": "dots",
+  "diameterMm": 30,
+  "pitchMm": 70,
+  "rowStepMm": 35,
+  "halfDrop": true,
+  "rowColours": {
+   "A": "red",
+   "B": "royal-blue"
+  },
+  "clearSpaceMm": 10
+ },
+ "colours": [
+  {
+   "id": "C1",
+   "role": "base",
+   "name": "white"
+  },
+  {
+   "id": "C2",
+   "role": "dot-row-a",
+   "name": "red"
+  },
+  {
+   "id": "C3",
+   "role": "dot-row-b",
+   "name": "royal blue"
+  },
+  {
+   "id": "C4",
+   "role": "trim-and-number",
+   "name": "navy"
+  }
+ ],
+ "marks": [
+  {
+   "purpose": "front-number",
+   "text": "10",
+   "heightMm": 100,
+   "colour": "navy",
+   "outline": "white"
+  },
+  {
+   "purpose": "back-number",
+   "text": "10",
+   "heightMm": 250,
+   "colour": "navy",
+   "outline": "white"
+  },
+  {
+   "purpose": "back-name",
+   "text": "NAME",
+   "colour": "navy"
+  },
+  {
+   "purpose": "crest",
+   "note": "placeholder, size not set"
+  },
+  {
+   "purpose": "sponsor",
+   "widthMm": 300,
+   "heightMm": 70
+  }
+ ],
+ "trims": {
+  "collar": "navy rib, 85% of the neckline",
+  "sleeveBands": "navy"
+ },
+ "technique": "sublimation"
+}

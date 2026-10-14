@@ -20,7 +20,7 @@ describe("the tools of the design workspace", () => {
   });
 
   it("opens the share, photoreal and quote panels from the header, not the rail", () => {
-    expect(JOURNEY_TOOLS).toEqual(["share", "photoreal", "quote"]);
+    expect(JOURNEY_TOOLS).toEqual(["share", "photoreal", "quote", "production"]);
     for (const id of JOURNEY_TOOLS) expect(RAIL_TOOLS).not.toContain(id);
   });
 
@@ -44,6 +44,13 @@ describe("the tools of the design workspace", () => {
     expect(toolForSection("kit-styles")).toBe("colours");
     expect(toolForSection("artwork")).toBe("logos");
     expect(toolForSection("quote")).toBe("quote");
+    expect(toolForSection("production")).toBe("production");
+  });
+
+  it("calls the production tool \"Make it\" and opens it from the address", () => {
+    expect(TOOLS.production.label).toBe("Make it");
+    expect(parseTool("production")).toBe("production");
+    expect(toolHref(ID, "production")).toBe(`/studio/${ID}?tool=production`);
   });
 
   it("names nothing settled or approved", () => {
