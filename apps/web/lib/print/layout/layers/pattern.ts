@@ -5,6 +5,7 @@ import type { FillItem, PrintIssue, Ring } from "../../scene";
 import { screenColour, screenColours } from "../colours";
 import type { LayerResult, LayerSpace } from "../types";
 import { isSound } from "../field";
+import { joinFor, reflectBox, reflectShape } from "../seam";
 
 /** The most shapes one pattern layer may add to one piece. Over it, the layer is left off and said so. */
 export const SHAPE_BUDGET = 60_000;
@@ -27,13 +28,14 @@ export function patternLayer(layer: PatternLayer, space: LayerSpace, underBase: 
   if (!generator) {
     return stopped(`The pattern "${layer.generatorId}" is not available, so it was left off.`);
   }
-  const box = input.field;
+  const join = joinFor(input.instance.view, generator.id, input.seamJoinMm);
+  const box = join === undefined ? input.field : reflectBox(input.field, join);
   if (!isSound(box)) return stopped(`The area for the pattern "${generator.label}" could not be worked out on this piece, so it was left off.`);
   const frame: Pt[] = [[box.minX, box.minY], [box.maxX, box.minY], [box.maxX, box.maxY], [box.minX, box.maxY]];
   // The older styles want the underarm on the right of the page, whichever side the piece lies on.
   const anchors = input.anchors.underarm ? { ...input.anchors, underarm: { x: Math.abs(input.anchors.underarm.x), y: input.anchors.underarm.y } } : input.anchors;
   const inks = screenColours(input.stack, input.colourwayId, layer.colourIds);
-  const list = generator.render({
+  const drawn = generator.render({
     view: input.instance.view,
     bounds: box,
     clip: frame.map(mmPoint),
@@ -44,6 +46,7 @@ export function patternLayer(layer: PatternLayer, space: LayerSpace, underBase: 
     params: layer.params,
     seed: layer.seed ?? 0,
   });
+  const list = join === undefined ? drawn : { ...drawn, shapes: drawn.shapes.map((shape) => reflectShape(shape, join)) };
   const issues: PrintIssue[] = [...inks.issues];
   if (list.note) issues.push({ severity: "note", text: list.note });
   if (list.shapes.length > SHAPE_BUDGET) {

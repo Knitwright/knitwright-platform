@@ -3,6 +3,7 @@ import { GENERATORS } from "@/lib/pattern-generators";
 import type { GradedPattern, PrintRuleSet, PrintZone, RosterRow } from "@/lib/production/contract";
 import { frameFor } from "../frames/frame";
 import { fieldBoundsFor } from "../layout/field";
+import { seamJoinFor } from "../layout/seam";
 import { buildPieceScene, type BuiltScene } from "../layout/build-scene";
 import { createPieceMapper, type PrintMapper } from "../layout/mapper";
 import type { PrintSettings } from "../layout/types";
@@ -51,6 +52,7 @@ export function rig(sizes?: readonly string[]): Rig {
         anchors: (mapper.anchors[placed.instance.view] ?? {}) as never,
         zones,
         field: extra.field ?? fieldBoundsFor(mapper.placed(size), mapper.anchors.front?.underarm?.y ?? 0),
+        ...(seamJoinFor(mapper.placed(size)) === undefined ? {} : { seamJoinMm: seamJoinFor(mapper.placed(size)) }),
         settings: extra.settings ?? SETTINGS,
         rules: extra.rules ?? NO_RULES,
         generators: extra.generators ?? GENERATORS,

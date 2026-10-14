@@ -31,6 +31,8 @@ export interface LayoutInput {
   readonly zones: readonly PrintZone[];
   /** The design-space box every piece's pattern is drawn over (see `fieldBoundsFor`). */
   readonly field: Box;
+  /** Where the back's field is read by, so it meets the front's at the side seam (see `seamJoinFor`). Undefined: drawn as it is. */
+  readonly seamJoinMm?: number;
   readonly settings: PrintSettings;
   readonly rules: PrintRuleSet;
   readonly generators: readonly PatternGenerator[];
