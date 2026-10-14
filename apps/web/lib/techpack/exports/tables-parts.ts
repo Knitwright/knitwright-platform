@@ -231,10 +231,16 @@ export function signOffSection(pack: TechPack): ExportSection {
     tables: [
       table(
         null,
+        [textColumn("Role"), valueColumn("Name"), valueColumn("Date")],
+        section.lines.map((line) => [text(line.role), value(line.name), value(line.date)]),
+      ),
+      table(
+        "Strike-off",
         [textColumn("Field"), valueColumn("Value")],
         [
-          [text("Name"), value(section.name)],
-          [text("Date"), value(section.date)],
+          [text("Accepted by"), value(section.strikeOff.acceptedBy)],
+          [text("Date"), value(section.strikeOff.date)],
+          [text("Result"), value(section.strikeOff.result)],
         ],
       ),
     ],

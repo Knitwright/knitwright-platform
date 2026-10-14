@@ -77,11 +77,12 @@ describe("the PDF of a full design", () => {
     }
   });
 
-  it("starts the flats on a new page, so a heading is never left alone at the foot of the cover", () => {
-    const first = pages.findIndex((page) => page.text.includes("Front"));
-    expect(first).toBeGreaterThan(0);
-    expect(pages[first]?.text.includes(SECTION_TITLES.flats)).toBe(true);
-    expect(pages[first - 1]?.text.includes(SECTION_TITLES.flats)).toBe(false);
+  it("keeps the heading of the flats with the first drawing, so the heading is never left alone at the foot of a page", () => {
+    // Other sections come before the flats now, so the page is found by the title, not by the first "Front".
+    const title = pages.findIndex((page) => page.text.includes(SECTION_TITLES.flats));
+    expect(title).toBeGreaterThan(0);
+    expect(pages[title]?.text.includes("Front")).toBe(true);
+    expect(pages[title - 1]?.text.includes(SECTION_TITLES.flats)).toBe(false);
   });
 });
 

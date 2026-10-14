@@ -361,3 +361,32 @@ front neck drop 8.5 cm. Judgement.
 - Collar, placket, hood width, kangaroo pocket and singlet back values are judgement only.
 - The owner's own charts (owner action A5, `docs/owner/size-charts.md`) replace these once
   they arrive.
+
+## Australian size labels (production outputs, W2)
+
+Added 2026-10-15 for `plans/production-outputs.md`. **No new measurement was written.** The
+Australian labels reuse the starter charts above, and the code is in
+`apps/web/lib/sizing/australia.ts`. Every value shown for them is "Suggested from a size chart".
+
+| Cut | Labels | Values come from |
+|---|---|---|
+| Men's | XS, S, M, L, XL, 2XL, 3XL | The men's starter chart at the same label. |
+| Women's | XS, S, M, L, XL, 2XL, 3XL | The women's starter chart at the same label, XS to 2XL. **3XL has no values.** |
+| Junior | 6, 8, 10, 12, 14, 16 | The youth starter chart at the nearest column by age: 6 and 8 take YS (about ages 6 to 8), 10 and 12 take YM (10 to 12), 14 and 16 take YL (14 to 16). |
+
+- **Women's 3XL is left unset.** The women's sources read (S3 and S30) stop at 2XL, and S33 says
+  only that extended sizes grade by more. A 3XL value would be a guess, so none is suggested. The
+  screen says "No published source gives a women's 3XL for this garment" and asks for typed values
+  or the brand's own chart.
+- **Junior labels are a proposal.** Australian clubs label juniors by age (6 to 16). Mapping each to
+  the nearest youth column is Knitwright's reading; two labels share each column. The owner is to
+  say whether a club's 8 is really cut like a YS (owner input P3).
+- **Men's and women's cuts of one product** are two starter charts under one garment type, joined by
+  `cutsOfProduct(typeId)`; a junior cut is a third.
+- **The pattern size each label is cut from** is a separate, suggested map (`DEFAULT_SIZE_LABEL_MAPS`).
+  Men's labels map to EU 44, 46, 48, 50, 52, 54, 56 for XS to 3XL: the benchmark pattern is EU 48
+  and the plan names "AU M men's to pattern 48"; the steps of two are the usual EU men's letter
+  sizing and are not from a source read here. Women's and junior labels carry their own label as the
+  pattern size ("women M", "junior 10"), because no women's or junior pattern exists yet. All are
+  shown as "Suggested by Knitwright", the readiness list names them, and a brand's own choice
+  replaces them (table `size_label_maps`).

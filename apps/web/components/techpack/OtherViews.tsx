@@ -248,19 +248,35 @@ export function SignOffView({ section }: Readonly<{ section: SignOffSection }>) 
       <p className="text-[15px] font-medium text-ink" data-testid="sign-off-statement">
         {section.statement}
       </p>
-      <dl className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt className="text-sm text-muted">Name</dt>
-          <dd className="mt-0.5">
-            <CellText cell={section.name} />
-          </dd>
-        </div>
-        <div>
-          <dt className="text-sm text-muted">Date</dt>
-          <dd className="mt-0.5">
-            <CellText cell={section.date} />
-          </dd>
-        </div>
+      <DocTable caption="Who signed, and when" heads={["Role", "Name", "Date"]}>
+        {section.lines.map((line) => (
+          <tr key={line.role}>
+            <RowHead>{line.role}</RowHead>
+            <Cellular>
+              <CellText cell={line.name} />
+            </Cellular>
+            <Cellular>
+              <CellText cell={line.date} />
+            </Cellular>
+          </tr>
+        ))}
+      </DocTable>
+      <h3 className="text-sm font-semibold text-ink">Strike-off</h3>
+      <dl className="grid gap-4 sm:grid-cols-3">
+        {(
+          [
+            ["Accepted by", section.strikeOff.acceptedBy],
+            ["Date", section.strikeOff.date],
+            ["Result", section.strikeOff.result],
+          ] as const
+        ).map(([label, cell]) => (
+          <div key={label}>
+            <dt className="text-sm text-muted">{label}</dt>
+            <dd className="mt-0.5">
+              <CellText cell={cell} />
+            </dd>
+          </div>
+        ))}
       </dl>
     </DocSection>
   );

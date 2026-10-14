@@ -1,4 +1,4 @@
-import { SUGGESTION_SOURCES, allCells, type CompletenessReport, type SectionId, type TechPack } from "@/lib/techpack";
+import { SUGGESTION_SOURCES, allCells, type CompletenessReport, type ReadinessSection, type SectionId, type TechPack } from "@/lib/techpack";
 import type { Provenance } from "@/lib/garment";
 import type { Confirmable } from "./tech-pack-confirm";
 
@@ -11,12 +11,17 @@ import type { Confirmable } from "./tech-pack-confirm";
 export const FILE_SECTION_IDS = [
   "left",
   "cover",
+  "readiness",
   "flats",
   "measurements",
   "how-to-measure",
+  "pattern-and-cutting",
   "construction",
+  "operations",
   "components",
+  "fabric",
   "artwork",
+  "artwork-and-colour",
   "labelling",
   "colourways",
   "illustrations",
@@ -39,12 +44,17 @@ export interface NavSection {
 /** The sections in the side list, in the order of the file. "What is left" is reached from the summary above it. */
 export const NAV_SECTIONS: readonly NavSection[] = [
   { id: "cover", label: "Cover", parts: ["cover"] },
+  { id: "readiness", label: "Ready for the factory", parts: ["readiness"] },
   { id: "flats", label: "Flats", parts: ["flats"] },
   { id: "measurements", label: "Measurements", parts: ["measurements"] },
   { id: "how-to-measure", label: "How to measure", parts: ["how-to-measure"] },
+  { id: "pattern-and-cutting", label: "Pattern and cutting", parts: ["pattern-and-cutting"] },
   { id: "construction", label: "Construction", parts: ["construction"] },
+  { id: "operations", label: "Order of work", parts: ["operations"] },
   { id: "components", label: "Bill of materials", parts: ["components"] },
+  { id: "fabric", label: "Fabric", parts: ["fabric"] },
   { id: "artwork", label: "Artwork", parts: ["artwork"] },
+  { id: "artwork-and-colour", label: "Artwork and colour", parts: ["artwork-and-colour"] },
   { id: "labelling", label: "Labelling", parts: ["labelling"] },
   { id: "colourways", label: "Colourways", parts: ["colourways"] },
   { id: "illustrations", label: "Illustrations", parts: [] },
@@ -65,16 +75,32 @@ export interface SectionsAvailable {
   readonly illustrations: boolean;
 }
 
+/** The sections of tech pack v2. Their count is the open items of the readiness list, which are not all the brand's to fill in. */
+export const PRODUCTION_SECTIONS: readonly FileSectionId[] = ["readiness", "pattern-and-cutting", "fabric", "artwork-and-colour"];
+
+/** The readiness group each production section counts the open items of. "readiness" counts them all. */
+const READINESS_GROUPS: Readonly<Partial<Record<FileSectionId, readonly string[]>>> = {
+  readiness: ["pattern", "spec", "fabric", "print", "proof", "order", "release", "components"],
+  "pattern-and-cutting": ["pattern"],
+  fabric: ["fabric"],
+  "artwork-and-colour": ["print"],
+};
+
+const openIn = (readiness: Pick<ReadinessSection, "groups"> | undefined, groups: readonly string[]): number =>
+  (readiness?.groups ?? []).filter((group) => groups.includes(group.id)).reduce((sum, group) => sum + group.items.filter((entry) => !entry.met).length, 0);
+
 /** The sections of this file with what each still needs. */
 export function fileSections(
   report: Pick<CompletenessReport, "sections">,
   confirmables: readonly Pick<Confirmable, "sectionId">[],
   available: SectionsAvailable,
+  readiness?: Pick<ReadinessSection, "groups">,
 ): readonly FileSection[] {
   return NAV_SECTIONS.filter((section) => section.id !== "illustrations" || available.illustrations).map((section) => {
     const empty = report.sections.filter((entry) => section.parts.includes(entry.id)).reduce((sum, entry) => sum + entry.items.length, 0);
     const suggested = confirmables.filter((item) => section.parts.includes(item.sectionId)).length;
-    return { id: section.id, label: section.label, left: empty + suggested };
+    const readyGroups = READINESS_GROUPS[section.id];
+    return { id: section.id, label: section.label, left: readyGroups ? openIn(readiness, readyGroups) : empty + suggested };
   });
 }
 

@@ -2,6 +2,7 @@ import type { TechPack } from "../types";
 import { SECTION_TITLES } from "../types";
 import { EXCEL_SHEETS } from "./contents";
 import { measurementNotes } from "./measurement-notes";
+import { onPatternTables } from "./tables-on-pattern";
 import {
   length,
   lengthColumn,
@@ -110,7 +111,7 @@ export function measurementsSection(pack: TechPack): ExportSection {
     title: measurements.title,
     sheet: EXCEL_SHEETS.measurements,
     paragraphs: sentences(measurements.note, MEASURE_HELP),
-    tables: groups,
+    tables: [...groups, ...onPatternTables(pack)],
     notes: notes === null ? [] : [notes],
   };
 }
