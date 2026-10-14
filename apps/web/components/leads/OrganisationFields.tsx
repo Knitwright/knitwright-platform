@@ -3,24 +3,24 @@
 import { useState } from "react";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
-import { AU_STATES, ORGANISATION_TYPES, REGION_MAX, countryOptions } from "@/lib/leads/organisation";
+import { AU_STATES, ORGANISATION_TYPES, REGION_MAX, type CountryOption } from "@/lib/leads/organisation";
 
 type Values = Readonly<{ organisationType: string; country: string; region: string }>;
 
 type Props = Readonly<{
   values: Values;
   errors: (name: string) => readonly string[];
+  /** The countries, named on the server by countryOptions(), so the browser shows the same text. */
+  countries: readonly CountryOption[];
   /** False where the form asks for the type itself, as the welcome page does. */
   withType?: boolean;
 }>;
-
-const COUNTRIES = countryOptions();
 
 /**
  * The organisation type, country and state or region. Australia asks for a state from a list;
  * every other country takes a region in the person's own words. All three are optional.
  */
-export function OrganisationFields({ values, errors, withType = true }: Props) {
+export function OrganisationFields({ values, errors, countries, withType = true }: Props) {
   const [country, setCountry] = useState(values.country);
   return (
     <>
@@ -39,7 +39,7 @@ export function OrganisationFields({ values, errors, withType = true }: Props) {
         name="country"
         label="Country"
         hint="Optional."
-        options={COUNTRIES}
+        options={countries}
         placeholder="Choose a country"
         value={country}
         onChange={(event) => setCountry(event.target.value)}
