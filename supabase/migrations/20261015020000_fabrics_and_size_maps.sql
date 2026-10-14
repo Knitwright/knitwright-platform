@@ -92,7 +92,9 @@ revoke all on public.base_fabrics, public.fabric_tests, public.size_label_maps f
 grant select on public.base_fabrics, public.fabric_tests, public.size_label_maps to authenticated;
 -- A test is a record: the server can add one, never change it. Deleting a fabric removes its tests
 -- through the foreign key.
+revoke all on public.base_fabrics, public.size_label_maps from service_role;
 grant select, insert, update on public.base_fabrics to service_role;
+revoke all on public.fabric_tests from service_role;
 grant select, insert on public.fabric_tests to service_role;
 grant select, insert, update, delete on public.size_label_maps to service_role;
 
