@@ -43,7 +43,7 @@ test.describe("the design list", () => {
 
     await page.goto("/studio");
 
-    const row = page.getByRole("listitem").filter({ hasText: "Club polo" });
+    const row = page.getByRole("list", { name: /^Designs of / }).getByRole("listitem").filter({ hasText: "Club polo" });
     await expect(row).toContainText("Polo shirt");
     await expect(row).toContainText("CP-7");
     await expect(row).toContainText("SS27");

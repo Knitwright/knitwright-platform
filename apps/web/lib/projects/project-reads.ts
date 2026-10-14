@@ -65,7 +65,7 @@ export const throwIfFailed = (error: Failing): void => {
   if (error) throw failureFromDatabase(error);
 };
 
-const summaryOf = (row: ProjectRow): ProjectSummary => ({
+export const summaryOf = (row: ProjectRow): ProjectSummary => ({
   id: row.id,
   name: row.name,
   styleNumber: row.style_number,
