@@ -1,0 +1,199 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
+import { parseArtworkStack, type ArtworkStack } from "@/lib/artwork-stack";
+import { AppError } from "@/lib/server/core/errors";
+import type { ImportOutcome, Overlay } from "./pipeline";
+import { readingSchema } from "./read";
+import type { ImportReport } from "./report";
+
+/**
+ * Design imports in the database. Reads for a person go through their own client, so the database's rules decide
+ * what they see. Every write goes through the server's client and the brand always comes from the session. Nothing
+ * is the person's design until `acceptImport`: before it `accepted_stack` is null.
+ */
+
+export const DAILY_BRAND_CAP = 10;
+export const DAY_MS = 24 * 60 * 60 * 1000;
+
+export const OVER_DAILY_CAP = `Your brand has read ${DAILY_BRAND_CAP} pictures in the last day, which is the most for now. Try again tomorrow.`;
+export const IMPORT_NOT_FOUND = "That reading could not be found.";
+export const ALREADY_SETTLED = "That reading has already been accepted or discarded.";
+export const CHOOSE_A_LAYER = "Choose at least one layer to accept, or discard the reading.";
+export const NOT_A_LAYER = "One of the layers you chose is not in this reading.";
+
+type Who = Readonly<{ brandId: string; userId: string }>;
+type Ready = Extract<ImportOutcome, { ok: true }>;
+
+const failIf = (error: { message: string } | null, what: string): void => {
+  if (error) throw new Error(what, { cause: error });
+};
+
+const rowSchema = z.object({
+  id: z.uuid(),
+  brand_id: z.uuid(),
+  source_file_id: z.uuid(),
+  status: z.enum(["ready", "accepted", "discarded"]),
+  reading: z.unknown(),
+  report: z.unknown(),
+  overlay: z.unknown(),
+  result: z.unknown(),
+  accepted_stack: z.unknown().nullable(),
+  accepted_layer_ids: z.array(z.string()).nullable(),
+  accepted_at: z.string().nullable(),
+  generated_pixels: z.boolean(),
+  created_at: z.string(),
+});
+
+export interface StoredImport {
+  readonly id: string;
+  readonly sourceFileId: string;
+  readonly status: "ready" | "accepted" | "discarded";
+  readonly reading: ReturnType<typeof readingSchema.parse>;
+  readonly report: ImportReport;
+  readonly overlay: Overlay;
+  readonly stack: ArtworkStack;
+  readonly acceptedStack: ArtworkStack | null;
+  readonly acceptedLayerIds: readonly string[] | null;
+  readonly acceptedAt: string | null;
+  readonly generatedPixels: boolean;
+  readonly createdAt: string;
+}
+
+function fromRow(data: unknown): StoredImport {
+  const row = rowSchema.safeParse(data);
+  const stack = row.success ? parseArtworkStack(row.data.result) : null;
+  const reading = row.success ? readingSchema.safeParse(row.data.reading) : null;
+  if (!row.success || !stack?.ok || !reading?.success) throw new Error("The database gave an unexpected answer for a design import.");
+  const accepted = row.data.accepted_stack === null ? null : parseArtworkStack(row.data.accepted_stack);
+  return {
+    id: row.data.id,
+    sourceFileId: row.data.source_file_id,
+    status: row.data.status,
+    reading: reading.data,
+    report: row.data.report as ImportReport,
+    overlay: row.data.overlay as Overlay,
+    stack: stack.stack,
+    acceptedStack: accepted?.ok ? accepted.stack : null,
+    acceptedLayerIds: row.data.accepted_layer_ids,
+    acceptedAt: row.data.accepted_at,
+    generatedPixels: row.data.generated_pixels,
+    createdAt: row.data.created_at,
+  };
+}
+
+/** Refuses another import when the brand has already read the day's allowance of pictures. Counts failed-to-save attempts too only if they were saved. */
+export async function assertUnderDailyCap(client: SupabaseClient, brandId: string, now: Date = new Date()): Promise<void> {
+  const since = new Date(now.getTime() - DAY_MS).toISOString();
+  const { data, error } = await client.from("design_imports").select("id").eq("brand_id", brandId).gte("created_at", since);
+  failIf(error, "The design imports could not be counted.");
+  if ((data ?? []).length >= DAILY_BRAND_CAP) throw new AppError("rate_limited", OVER_DAILY_CAP);
+}
+
+export interface NewImport {
+  readonly sourceFileId: string;
+  readonly rightsAcceptedAt: Date;
+  readonly outcome: Ready;
+  readonly costMicrodollars: number;
+}
+
+export async function createImport(admin: SupabaseClient, who: Who, input: NewImport): Promise<string> {
+  const { outcome } = input;
+  const { data, error } = await admin
+    .from("design_imports")
+    .insert({
+      brand_id: who.brandId,
+      source_file_id: input.sourceFileId,
+      rights_accepted_at: input.rightsAcceptedAt.toISOString(),
+      reading: outcome.reading,
+      report: outcome.report,
+      overlay: outcome.overlay,
+      result: outcome.stack,
+      vision_calls: outcome.report.spend.visionCalls,
+      image_edits: outcome.report.spend.imageEdits,
+      cost_microdollars: input.costMicrodollars,
+      generated_pixels: outcome.report.generatedPixels,
+      created_by: who.userId,
+    })
+    .select("id")
+    .single();
+  failIf(error, "The design import could not be saved.");
+  return z.object({ id: z.uuid() }).parse(data).id;
+}
+
+export async function getImport(client: SupabaseClient, brandId: string, importId: string): Promise<StoredImport> {
+  const { data, error } = await client.from("design_imports").select("*").eq("id", importId).eq("brand_id", brandId).maybeSingle();
+  failIf(error, "The design import could not be read.");
+  if (data === null) throw new AppError("not_found", IMPORT_NOT_FOUND);
+  return fromRow(data);
+}
+
+export interface ImportSummary {
+  readonly id: string;
+  readonly status: StoredImport["status"];
+  readonly createdAt: string;
+  readonly confidence: number;
+}
+
+export async function listImports(client: SupabaseClient, brandId: string): Promise<readonly ImportSummary[]> {
+  const { data, error } = await client.from("design_imports").select("*").eq("brand_id", brandId).order("created_at", { ascending: false });
+  failIf(error, "The design imports could not be read.");
+  return (data ?? []).map((row: unknown) => {
+    const stored = fromRow(row);
+    return { id: stored.id, status: stored.status, createdAt: stored.createdAt, confidence: stored.report.confidence };
+  });
+}
+
+/** Replaces a ready proposal with a redone fit. A settled import is not changed. */
+export async function replaceProposal(admin: SupabaseClient, who: Who, importId: string, outcome: Ready): Promise<void> {
+  const current = await getImport(admin, who.brandId, importId);
+  if (current.status !== "ready") throw new AppError("conflict", ALREADY_SETTLED);
+  const { error } = await admin
+    .from("design_imports")
+    .update({ report: outcome.report, overlay: outcome.overlay, result: outcome.stack, updated_at: new Date().toISOString() })
+    .eq("id", importId)
+    .eq("brand_id", who.brandId)
+    .eq("status", "ready");
+  failIf(error, "The design import could not be updated.");
+}
+
+/** The stack with only the chosen layers. Colours stay, so the ones the chosen layers use are all there. */
+export function chooseLayers(stack: ArtworkStack, layerIds: readonly string[] | "all"): ArtworkStack {
+  if (layerIds === "all") return stack;
+  if (layerIds.length === 0) throw new AppError("invalid_input", CHOOSE_A_LAYER);
+  if (layerIds.some((id) => !stack.layers.some((layer) => layer.id === id))) throw new AppError("invalid_input", NOT_A_LAYER);
+  const chosen = parseArtworkStack({ ...stack, layers: stack.layers.filter((layer) => layerIds.includes(layer.id)) });
+  if (!chosen.ok) throw new AppError("invalid_input", chosen.reason);
+  return chosen.stack;
+}
+
+/** Layers that need the person's own file: a crest or sponsor redrawn from the picture. */
+export const needsOwnFile = (stack: ArtworkStack): readonly string[] =>
+  stack.layers.flatMap((layer) => (layer.kind === "graphic" && layer.source.kind === "asset" && layer.source.assetId.startsWith("crop-") ? [layer.id] : []));
+
+export async function acceptImport(admin: SupabaseClient, who: Who, importId: string, layerIds: readonly string[] | "all", now: Date = new Date()): Promise<{ stack: ArtworkStack; needsOwnFile: readonly string[] }> {
+  const current = await getImport(admin, who.brandId, importId);
+  if (current.status !== "ready") throw new AppError("conflict", ALREADY_SETTLED);
+  const stack = chooseLayers(current.stack, layerIds);
+  const { error } = await admin
+    .from("design_imports")
+    .update({
+      status: "accepted",
+      accepted_stack: stack,
+      accepted_layer_ids: stack.layers.map((layer) => layer.id),
+      accepted_by: who.userId,
+      accepted_at: now.toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq("id", importId)
+    .eq("brand_id", who.brandId)
+    .eq("status", "ready");
+  failIf(error, "The design import could not be accepted.");
+  return { stack, needsOwnFile: needsOwnFile(stack) };
+}
+
+export async function discardImport(admin: SupabaseClient, who: Who, importId: string): Promise<void> {
+  const current = await getImport(admin, who.brandId, importId);
+  if (current.status !== "ready") throw new AppError("conflict", ALREADY_SETTLED);
+  const { error } = await admin.from("design_imports").update({ status: "discarded", updated_at: new Date().toISOString() }).eq("id", importId).eq("brand_id", who.brandId).eq("status", "ready");
+  failIf(error, "The design import could not be discarded.");
+}
