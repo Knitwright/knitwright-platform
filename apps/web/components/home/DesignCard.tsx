@@ -29,11 +29,11 @@ export function DesignCard({ card }: Readonly<{ card: HomeCard }>) {
       className="glass lift flex h-full flex-col overflow-hidden rounded-[2rem] text-ink no-underline"
       data-testid="design-card"
     >
-      <span className="dot-grid grid h-40 place-items-center border-b border-white/8 p-4">
+      <span className="dot-grid grid h-32 place-items-center sm:h-40 border-b border-white/8 p-4">
         {card.thumbnail ? (
           // A data address made on the server, shown as a picture so nothing in it can run. The card names the design, so the drawing is decoration.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={card.thumbnail.src} alt="" className="lift-art h-32 w-auto max-w-full object-contain" />
+          <img src={card.thumbnail.src} alt="" className="lift-art h-24 w-auto sm:h-32 max-w-full object-contain" />
         ) : (
           <GarmentOutline />
         )}

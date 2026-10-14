@@ -29,7 +29,7 @@ export function JourneySteps({ step }: Readonly<{ step: JourneyStepId }>) {
           <span
             key={entry.id}
             title={entry.label}
-            className={`h-1 w-4 rounded-full ${index <= reached ? "bg-cobalt-soft" : "bg-white/12"}`}
+            className={`h-1 w-3 rounded-full ${index <= reached ? "bg-cobalt-soft" : "bg-white/12"}`}
           />
         ))}
       </span>
