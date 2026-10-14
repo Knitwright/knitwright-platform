@@ -82,6 +82,8 @@ export interface SignOffRecord extends NamedRecord {
 }
 
 export interface StrikeOffRecord extends NamedRecord {
+  /** The release the strike-off was made for. A strike-off counts only for that release. */
+  readonly releaseId: string;
   /** The shrink the strike-off measured, as a sentence, or null. */
   readonly result: string | null;
 }

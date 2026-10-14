@@ -211,7 +211,7 @@ export function completeProduction(): ProductionInput {
     repeat: POLKA_JERSEY_DESIGN.kitPattern,
     colours: POLKA_COLOURS.map((colour) => ({ ...colour, factoryCode: `Code ${colour.id}`, screenColour: "#c8102e" })),
     signOffs: [{ role: "pattern", name: "Ana Reyes", date: "3 Oct 2026", dateIso: "2026-10-03" }],
-    strikeOff: { name: "Sam Lee", date: "9 Oct 2026", dateIso: "2026-10-09", result: "Shrink 2.0 % and the colours matched" },
+    strikeOff: { releaseId: "R-1", name: "Sam Lee", date: "9 Oct 2026", dateIso: "2026-10-09", result: "Shrink 2.0 % and the colours matched" },
     rosterProblems: [],
     rosterPlayers: ROSTER_22.rows.map((row) => ({ number: row.number, size: "48" })),
     release: { id: "R-1", files: 40, createdOn: "10 Oct 2026" },

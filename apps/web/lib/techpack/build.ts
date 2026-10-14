@@ -14,6 +14,7 @@ import { buildOnPattern } from "./production/measured";
 import { buildOperations } from "./production/operations";
 import { buildPatternAndCutting } from "./production/pattern-cutting";
 import { buildReadiness } from "./production/readiness";
+import { strikeOffForRelease } from "./production/strike-off";
 import { buildSignOff } from "./sign-off";
 import { buildSuggested } from "./suggested";
 import type { SectionHead, TechPack } from "./types";
@@ -64,7 +65,7 @@ export function buildTechPack(input: TechPackInput): TechPack {
     colourways,
     artwork,
     labelling: buildLabelling(spec),
-    signOff: buildSignOff(production.signOffs, production.strikeOff),
+    signOff: buildSignOff(production.signOffs, strikeOffForRelease(production)),
     ...productionSections(production, colourways, construction, technique, artwork.playerMarks.length > 0),
   };
   const suggested = buildSuggested(pack);

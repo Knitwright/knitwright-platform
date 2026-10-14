@@ -5,6 +5,7 @@ import type { CompletenessReport } from "../completeness";
 import type { ColourStandard, ProductionInput } from "./input";
 import { patternItems } from "./readiness-pattern";
 import { printItems } from "./readiness-print";
+import { strikeOffForRelease, strikeOffMismatch } from "./strike-off";
 import type { OnPatternTable, ReadinessActor, ReadinessGroup, ReadinessLine, ReadinessSection } from "./types";
 
 type Item = ReadinessItem;
@@ -116,14 +117,16 @@ function fabricItems(input: ProductionInput): Item[] {
 }
 
 function proofItems(input: ProductionInput): Item[] {
-  const strike = input.strikeOff ?? null;
+  const strike = strikeOffForRelease(input);
+  const mismatch = strikeOffMismatch(input);
+  const asked = "A named person accepts the strike-off for this release.";
   return [
     item(
       "proof-strike-off",
       "owner",
       strike !== null,
       `The strike-off was accepted by ${strike?.name ?? ""} on ${strike?.date ?? ""}.`,
-      "A named person accepts the strike-off for this release. No strike-off has been recorded.",
+      mismatch === null ? `${asked} No strike-off has been recorded.` : mismatch.includes("not for") ? `${mismatch} ${asked}` : `${asked} ${mismatch}`,
     ),
   ];
 }

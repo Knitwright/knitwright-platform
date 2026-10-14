@@ -228,6 +228,18 @@ describe("the fabric, print, proof, order, release and component items", () => {
     expect(run(everything())["proof-strike-off"]?.sentence).toBe("The strike-off was accepted by Sam Lee on 9 Oct 2026.");
   });
 
+  it("counts a strike-off only for the release it was made for", () => {
+    const other = { ...everything(), strikeOff: { ...everything().strikeOff!, releaseId: "R-0" } };
+    expect(run(other)["proof-strike-off"]).toMatchObject({
+      met: false,
+      sentence: "The strike-off on file was made for release R-0, not for release R-1. A named person accepts the strike-off for this release.",
+    });
+    const unfrozen = { ...everything(), release: null };
+    expect(run(unfrozen)["proof-strike-off"]?.sentence).toBe(
+      "A named person accepts the strike-off for this release. The strike-off on file was made for release R-1, and no release is frozen yet.",
+    );
+  });
+
   it("want a valid team order when the design has player marks", () => {
     expect(run({ ...everything(), rosterProblems: null })["order-roster"]?.sentence).toBe("The club gives the team order: each player's name, number and size.");
     expect(run({ ...everything(), rosterProblems: ["number 7 is used twice", "no size for Ola"] })["order-roster"]?.sentence).toBe("The club fixes the team order: number 7 is used twice and no size for Ola.");
@@ -251,7 +263,7 @@ describe("the fabric, print, proof, order, release and component items", () => {
   });
 
   it("says one thing is left in the singular", () => {
-    const section = buildReadiness(ctx({ ...everything(), release: null }));
+    const section = buildReadiness(ctx({ ...everything(), marker: null }));
     expect(section.summary).toBe("Not ready for the factory yet: 1 thing is left.");
   });
 });
