@@ -65,3 +65,25 @@ export function callCost(entry: ModelEntry, inputTokens: number, outputTokens: n
 /** What a call really cost, from the tokens the vendor reported. For evaluation records. */
 export const spentMicrodollars = (entry: ModelEntry, usage: { inputTokens: number; outputTokens: number }): number =>
   callCost(entry, usage.inputTokens, usage.outputTokens);
+
+/**
+ * Image edit models (design import, W7d). The price is per picture, in whole microdollars, read from the
+ * provider's published price: fal's page for `fal-ai/nano-banana-2/edit` lists $0.08 a picture at about 1K, recorded
+ * in docs/data-processing.md on 2026-09-29. fal.ai could not be reached from the build container on 2026-10-14,
+ * so it was not re-read: re-check it before relying on it. No vision price is stated here: it is the token price
+ * of the text model chosen, from MODEL_CATALOG.
+ */
+export interface ImageEditEntry {
+  readonly id: string;
+  readonly vendor: "fal";
+  readonly microdollarsPerImage: number;
+}
+
+export const IMAGE_EDIT_CATALOG = [{ id: "fal-ai/nano-banana-2/edit", vendor: "fal", microdollarsPerImage: 80_000 }] as const satisfies readonly ImageEditEntry[];
+
+/** The most one design import can cost: three vision calls and two image edits. */
+export function designImportMaxCost(entry: ModelEntry): { vision: number; edits: number; total: number } {
+  const vision = 3 * callCost(entry, MAX_TEXT_INPUT_TOKENS + IMAGE_INPUT_TOKENS, MAX_OUTPUT_TOKENS * 2);
+  const edits = 2 * IMAGE_EDIT_CATALOG[0].microdollarsPerImage;
+  return { vision, edits, total: vision + edits };
+}
