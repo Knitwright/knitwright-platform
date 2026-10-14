@@ -4,7 +4,7 @@ import { FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { startGoogleSignInAction } from "@/lib/auth/actions";
-import { MARKETING_FIELD } from "@/lib/consent/schemas";
+import { MARKETING_FIELD } from "@/lib/consent/fields";
 
 /**
  * `marketing` is the state of the sign-up page's marketing box. The sign-in page asks

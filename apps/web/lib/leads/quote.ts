@@ -1,41 +1,37 @@
 import { z } from "zod";
-import { formatDate } from "@/lib/projects/dates";
 import { MAX_VERSION } from "@/lib/projects/schemas";
+import {
+  MESSAGE_MAX,
+  QUANTITY_MAX,
+  QUOTE_STATUSES,
+  SIZES_NOTE_MAX,
+  describeQuote,
+  firstAllowedDate,
+  isCalendarDate,
+  quoteStatusLabel,
+  type QuoteStatus,
+} from "./quote-terms";
 import { daysUntil } from "./score";
 
-/**
- * A request for a quote on one version of a design. The Knitwright team replies by email; there
- * are no prices in the platform yet. The database checks the same rules in request_quote.
- */
+export {
+  MESSAGE_MAX,
+  QUANTITY_MAX,
+  QUOTE_STATUSES,
+  SIZES_NOTE_MAX,
+  describeQuote,
+  firstAllowedDate,
+  isCalendarDate,
+  quoteStatusLabel,
+  type QuoteStatus,
+};
 
-export const QUANTITY_MAX = 1_000_000;
-export const SIZES_NOTE_MAX = 500;
-export const MESSAGE_MAX = 1000;
-
-export const QUOTE_STATUSES = [
-  { id: "new", label: "Waiting for a reply" },
-  { id: "quoted", label: "Quote sent" },
-  { id: "closed", label: "Closed" },
-] as const;
-
-export type QuoteStatus = (typeof QUOTE_STATUSES)[number]["id"];
+/** The checks on a quote request and on a change of its status, made on the server. */
 
 const STATUS_IDS = QUOTE_STATUSES.map((status) => status.id) as [QuoteStatus, ...QuoteStatus[]];
 
 export const quoteStatusSchema = z.enum(STATUS_IDS, "Choose a status.");
 
-export const quoteStatusLabel = (status: QuoteStatus): string =>
-  QUOTE_STATUSES.find((entry) => entry.id === status)?.label ?? status;
-
 const WHOLE = "Enter a whole number from 1.";
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** A real calendar date written YYYY-MM-DD. */
-export const isCalendarDate = (text: string): boolean => {
-  if (!DATE.test(text)) return false;
-  const date = new Date(`${text}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === text;
-};
 
 const note = (max: number) =>
   z.string().trim().max(max, `Keep it under ${max} characters.`).default("");
@@ -63,11 +59,3 @@ export const quoteRequestSchemaAt = (now: () => Date) =>
 export const quoteRequestSchema = quoteRequestSchemaAt(() => new Date());
 
 export type QuoteRequestInput = z.output<typeof quoteRequestSchema>;
-
-/** The earliest needed-by date a form may offer: tomorrow, in UTC, as the database counts days. */
-export const firstAllowedDate = (now: Date): string =>
-  new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)).toISOString().slice(0, 10);
-
-/** One line about a request, such as "120 pieces, needed by 1 Dec 2026. Waiting for a reply." */
-export const describeQuote = (quote: Readonly<{ quantity: number; neededBy: string; status: QuoteStatus }>): string =>
-  `${quote.quantity} ${quote.quantity === 1 ? "piece" : "pieces"}, needed by ${formatDate(quote.neededBy)}. ${quoteStatusLabel(quote.status)}.`;

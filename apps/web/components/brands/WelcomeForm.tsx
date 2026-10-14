@@ -9,7 +9,7 @@ import { Field } from "@/components/ui/Field";
 import { createBrandAction } from "@/lib/brands/actions";
 import { BRAND_NAME_MAX } from "@/lib/brands/limits";
 import { welcomeWording } from "@/lib/brands/welcome";
-import { ORGANISATION_TYPES } from "@/lib/leads/organisation";
+import { ORGANISATION_TYPES } from "@/lib/leads/organisation-options";
 
 /**
  * The first form a new person fills in. It asks who they design for first, then words the name

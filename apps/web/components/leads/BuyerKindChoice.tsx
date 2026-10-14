@@ -1,6 +1,6 @@
 "use client";
 
-import { BUYER_KINDS } from "@/lib/leads/buyer-kind";
+import { BUYER_KINDS } from "@/lib/leads/buyer-kinds";
 
 type Props = Readonly<{ value: string; onChange: (kind: string) => void }>;
 

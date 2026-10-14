@@ -1,14 +1,9 @@
 import { z } from "zod";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
+import { COMMENT_MAX, DEFAULT_LINK_DAYS, LINK_DAYS, NAME_MAX } from "./fields";
 import { isShareToken } from "./token";
 
-/** Limits on what a visitor writes. The database enforces the same ones. */
-export const NAME_MAX = 60;
-export const COMMENT_MAX = 1000;
-
-/** How long a link may last, in days. The database accepts only these. */
-export const LINK_DAYS = ["7", "30", "90"] as const;
-export const DEFAULT_LINK_DAYS = "30";
+export { COMMENT_MAX, DEFAULT_LINK_DAYS, LINK_DAYS, NAME_MAX };
 
 const projectId = z.uuid("That is not a design.");
 

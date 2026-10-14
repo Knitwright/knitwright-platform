@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DISPLAY_NAME_MAX } from "./limits";
 
 /**
  * A person's name, as the tech pack's revision history shows it (owner decision 2026-09-30).
@@ -8,7 +9,7 @@ import { z } from "zod";
  * (supabase/migrations/20260930060000_member_names.sql).
  */
 
-export const DISPLAY_NAME_MAX = 80;
+export { DISPLAY_NAME_MAX };
 
 const CONTROL = /\p{Cc}/u;
 

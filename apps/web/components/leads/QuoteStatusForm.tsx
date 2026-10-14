@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import { setQuoteStatusAction } from "@/lib/leads/actions";
-import { QUOTE_STATUSES, type QuoteStatus } from "@/lib/leads/quote";
+import { QUOTE_STATUSES, type QuoteStatus } from "@/lib/leads/quote-terms";
 
 /** Changes a quote request's status. Platform admins only. */
 export function QuoteStatusForm({ quoteId, status }: Readonly<{ quoteId: string; status: QuoteStatus }>) {

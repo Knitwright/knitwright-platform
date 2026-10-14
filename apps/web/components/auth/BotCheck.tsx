@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { botCheckStatus, type BotCheckStatus } from "@/lib/forms/bot-check-status";
 
 type Turnstile = Readonly<{

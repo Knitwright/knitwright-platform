@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-/** The field name of the marketing box, in every form that has one. */
-export const MARKETING_FIELD = "marketing_email";
+import { MARKETING_FIELD } from "./fields";
+
+export { MARKETING_FIELD };
 
 /** The box in Settings: ticked sends "yes", unticked sends nothing. */
 export const marketingChoiceSchema = z

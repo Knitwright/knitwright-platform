@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { updatePasswordAction } from "@/lib/auth/actions";
-import { PASSWORD_MIN } from "@/lib/auth/schemas";
+import { PASSWORD_MIN } from "@/lib/auth/fields";
 
 export function ResetPasswordForm() {
   const { form, submit, pending, summary, fieldErrors } = useFormAction(updatePasswordAction);

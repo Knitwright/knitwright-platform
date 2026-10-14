@@ -1,9 +1,8 @@
 import { z } from "zod";
 
-/** The word a person types to confirm a deletion, which cannot be undone. */
-export const CONFIRM_WORD = "delete";
+import { CONFIRM_MESSAGE, CONFIRM_WORD } from "./confirm";
 
-export const CONFIRM_MESSAGE = `Type "${CONFIRM_WORD}" to confirm.`;
+export { CONFIRM_MESSAGE, CONFIRM_WORD };
 
 const confirmation = z
   .string(CONFIRM_MESSAGE)

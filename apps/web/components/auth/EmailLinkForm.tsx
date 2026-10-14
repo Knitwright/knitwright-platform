@@ -5,7 +5,7 @@ import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import type { FormAction } from "@/lib/forms/form-state";
 import { BotCheck, useBotCheck } from "./BotCheck";
 

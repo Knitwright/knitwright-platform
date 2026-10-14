@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import type { FormAction } from "@/lib/forms/form-state";
-import { CONFIRM_WORD } from "@/lib/deletion/schemas";
+import { CONFIRM_WORD } from "@/lib/deletion/confirm";
 
 type DeleteFormProps = Readonly<{
   action: FormAction<unknown>;

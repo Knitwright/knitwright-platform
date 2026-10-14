@@ -4,7 +4,7 @@ import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { CheckboxField } from "@/components/ui/CheckboxField";
-import { MARKETING_FIELD } from "@/lib/consent/schemas";
+import { MARKETING_FIELD } from "@/lib/consent/fields";
 import { MARKETING_OPT_IN } from "@/lib/consent/wording";
 import type { FormAction } from "@/lib/forms/form-state";
 
