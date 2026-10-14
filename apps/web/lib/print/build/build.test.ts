@@ -155,3 +155,22 @@ describe("package", () => {
     expect(Object.keys(unzipped).some((n) => /cmd/.test(n) && !/^48\/[a-z0-9-]+\.svg$/.test(n))).toBe(false);
   }, 60_000);
 });
+
+describe("one layout per piece, kept only while it is wanted", () => {
+  it("keeps the layout of the last few pieces for their other formats, and lets older ones go, so a long release does not hold every picture", async () => {
+    let reads = 0;
+    const counting = { getAsset: async (id: string) => (reads += 1, assetReader([crestAsset()]).getAsset(id)) };
+    const stack = polkaStack([
+      { opacity: 1, blend: "normal", provenance: "user-edited", id: "crest", kind: "graphic", views: ["front"], source: { kind: "asset", assetId: "crest" }, placement: { kind: "zone", zoneId: "crest" }, offsetMm: { x: 0, y: 0 }, widthMm: 50, rotationDeg: 0, clearSpaceMm: 10, knockOut: false },
+    ]);
+    const builder = createPrintFileBuilder(deps({ stack, assets: counting }));
+    await builder.build(spec("front", "48", "svg") as never);
+    await builder.build(spec("front", "48", "pdf") as never);
+    expect(reads, "the pdf reuses the svg's layout").toBe(1);
+    for (const size of ["44", "46", "50", "52"]) for (const id of ["front", "back", "sleeve-left", "sleeve-right"]) await builder.build(spec(id, size, "svg") as never);
+    const before = reads;
+    const again = await builder.build(spec("front", "48", "svg") as never);
+    expect(reads, "an old layout was let go and is made again").toBe(before + 1);
+    expect(again.sha256).toBe((await createPrintFileBuilder(deps({ stack, assets: assetReader([crestAsset()]) })).build(spec("front", "48", "svg") as never)).sha256);
+  }, 120_000);
+});

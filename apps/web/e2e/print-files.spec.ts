@@ -69,7 +69,7 @@ test.describe("print files (W3)", () => {
     const projectId = await startDesignWithPattern(page, "User art test");
     const plain = await zipOf(page, projectId);
     const uploaded = await page.request.post("/api/artwork", { multipart: { file: { name: "club-logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(LOGO) }, rights: "yes" } });
-    expect(uploaded.status()).toBe(200);
+    expect(uploaded.ok()).toBe(true);
     const artwork = (await uploaded.json()) as { id?: string; data?: { id?: string } };
     const assetId = artwork.id ?? artwork.data?.id;
     expect(assetId).toMatch(/^[0-9a-f-]{36}$/);

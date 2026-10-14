@@ -50,6 +50,9 @@ const joinOf = (placed: Parameters<typeof seamJoinFor>[0]): { seamJoinMm?: numbe
   return join === undefined ? {} : { seamJoinMm: join };
 };
 
+/** Layouts kept so the PDF, SVG and TIFF of one piece share one. Few, because a layout holds its pictures and a release asks for thousands of files. */
+const KEPT_SCENES = 8;
+
 export const sha256Of = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
 /** What the files need of a team order (W4): its rows. */
@@ -104,6 +107,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
       ...(options.transferOnly ? { transferOnly: true } : {}),
     });
     scenes.set(key, made);
+    for (const old of [...scenes.keys()].slice(0, Math.max(0, scenes.size - KEPT_SCENES))) scenes.delete(old);
     return made;
   };
 
