@@ -142,6 +142,8 @@ export function warpToDesign(
   fit: ViewFit,
   area: { readonly minX: number; readonly minY: number; readonly maxX: number; readonly maxY: number },
   stepMm: number,
+  /** Pixels of `raster` for each pixel of the picture the fit was made on: 1, or more for a larger copy of the same picture. */
+  pictureScale = 1,
 ): Raster {
   const width = Math.max(1, Math.round((area.maxX - area.minX) / stepMm));
   const height = Math.max(1, Math.round((area.maxY - area.minY) / stepMm));
@@ -149,7 +151,7 @@ export function warpToDesign(
   for (let j = 0; j < height; j += 1) {
     for (let i = 0; i < width; i += 1) {
       const p = toPicture(fit, { x: area.minX + (i + 0.5) * stepMm, y: area.minY + (j + 0.5) * stepMm });
-      const [sx, sy] = [Math.floor(p.x), Math.floor(p.y)];
+      const [sx, sy] = [Math.floor(p.x * pictureScale), Math.floor(p.y * pictureScale)];
       const at = (j * width + i) * 4;
       if (sx < 0 || sy < 0 || sx >= raster.width || sy >= raster.height) data.set([0, 0, 0, 0], at);
       else data.set(raster.data.subarray((sy * raster.width + sx) * 4, (sy * raster.width + sx) * 4 + 4), at);

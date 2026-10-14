@@ -21,6 +21,7 @@ export const ACCURACY_LIMITS: readonly string[] = [
 
 export const REPEAT_NOTE = "The size of the repeat is estimated from the picture, so check it.";
 export const CROP_FLAG = "Redrawn from a picture, replace with your own file";
+export const ALTERNATIVE_NOTE = "Not drawn until you choose it. Choose it instead of the pattern from our list, not as well.";
 export const GENERATED_FLAG = "Pixels made by an image model. Used as print artwork only if you accept them, and flagged as generated.";
 
 export interface ReportItem {

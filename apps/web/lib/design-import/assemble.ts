@@ -2,10 +2,11 @@ import { ARTWORK_STACK_VERSION, inDefaultOrder, parseArtworkStack, type ArtworkS
 import type { Spend } from "./budget";
 import type { ViewFit } from "./fit";
 import type { PatternProposal } from "./pattern";
-import { PATTERN_NOT_READ_YET, dpiWarning } from "./pattern";
+import { PATTERN_NOT_READ_YET } from "./pattern";
 import type { PictureKind } from "./types";
-import { CLOSE_READING, REPEAT_NOTE, emptyViewSentence, type EmptyView, type ImportReport, type ReportItem, viewWords } from "./report";
+import { ALTERNATIVE_NOTE, CLOSE_READING, REPEAT_NOTE, emptyViewSentence, type EmptyView, type ImportReport, type ReportItem, viewWords } from "./report";
 import { round2 } from "./types";
+import { MATCH_BUDGET_SENTENCE } from "./match/stage";
 
 /** Step 8: the W7a stack and the report, from the stages' results. */
 
@@ -59,13 +60,18 @@ export interface ReportParts {
 }
 
 export function buildReport(parts: ReportParts): ImportReport {
-  const patternItems: ReportItem[] = parts.proposals.map((p, at) => ({
-    id: `pattern-${at + 1}`,
-    layerId: p.layer.id,
-    label: p.kind === "generator" ? "All-over pattern, as a pattern from our list" : p.kind === "tile" ? "All-over pattern, as a repeating picture" : "Full-panel picture",
-    confidence: p.confidence,
-    note: p.note,
-  }));
+  const patternItems: ReportItem[] = parts.proposals.flatMap((p, at): ReportItem[] => [
+    {
+      id: `pattern-${at + 1}`,
+      layerId: p.layer.id,
+      label: p.kind === "generator" ? "All-over pattern, as a pattern from our list" : p.kind === "tile" ? "All-over pattern, as a repeating picture" : "Full-panel picture",
+      confidence: p.confidence,
+      note: p.note,
+    },
+    ...(p.alternative
+      ? [{ id: `pattern-${at + 1}-alt`, layerId: p.alternative.id, label: "Alternative: the same pattern as a repeating picture", confidence: round2(p.confidence * 0.9), note: ALTERNATIVE_NOTE }]
+      : []),
+  ]);
   const items = [parts.groundItem, ...parts.fitItems, ...patternItems, ...parts.markItems];
   const empty: EmptyView[] = [
     ...parts.absent.map((view) => ({ view, sentence: emptyViewSentence(view, "absent") })),
@@ -73,7 +79,7 @@ export function buildReport(parts: ReportParts): ImportReport {
   ];
   const mean = [parts.readingConfidence, ...items.map((i) => i.confidence)];
   const confidence = round2(mean.reduce((a, b) => a + b, 0) / mean.length);
-  const dpi = parts.proposals.flatMap((p) => (p.effectiveDpi === null ? [] : [dpiWarning(p.effectiveDpi)])).filter((w): w is string => w !== null);
+  const dpi = parts.proposals.flatMap((p) => (p.dpiWarning === null ? [] : [p.dpiWarning]));
   const repeats = parts.proposals.filter((p) => p.repeat !== null);
   return {
     summary: `A ${CLOSE_READING}: ${parts.layerCount} ${parts.layerCount === 1 ? "layer" : "layers"} on the ${parts.fits.map((f) => viewWords(f.view)).join(" and ")}. Look at the drawing beside your picture before you accept anything.`,
@@ -81,7 +87,7 @@ export function buildReport(parts: ReportParts): ImportReport {
     confidence,
     items,
     emptyViews: empty,
-    notes: [...parts.notes, ...(parts.patternReads ? [] : [PATTERN_NOT_READ_YET]), ...(repeats.length > 0 ? [REPEAT_NOTE] : [])],
+    notes: [...parts.notes, ...(parts.patternReads ? [] : [PATTERN_NOT_READ_YET]), ...(repeats.length > 0 ? [REPEAT_NOTE] : []), ...(parts.patternReads ? [MATCH_BUDGET_SENTENCE] : [])],
     dpiWarnings: dpi,
     guessed: parts.guessed,
     fittedTo: parts.fittedTo,

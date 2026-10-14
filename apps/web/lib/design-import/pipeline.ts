@@ -1,13 +1,15 @@
-import { VIEW_IDS, type ArtworkStack, type Layer, type PieceMapper, type StackColour, type ViewId } from "@/lib/artwork-stack";
+import { VIEW_IDS, type ArtworkStack, type Layer, type PieceMapper, type ViewId } from "@/lib/artwork-stack";
 import type { ModelImageType, TextModelProvider } from "@/lib/providers/text-model";
 import { buildReport, buildStack } from "./assemble";
 import type { Budget } from "./budget";
 import type { CleanUp } from "./cleanup";
 import { clusterColours, colourConfidence, toStackColours } from "./colours";
-import { fitView, onPieceFraction, toDesign, warpToDesign, type ViewFit } from "./fit";
+import { cropFile, type CropFile, type PictureFile } from "./cuts";
+import { fitView, onPieceFraction, type ViewFit } from "./fit";
+import { findPatterns, sourceCopy } from "./patterns";
 import { markRect, readMarks, repairGround, type Crop } from "./marks";
 import { NO_OUTLINE } from "./outline";
-import type { PatternProposal, PatternStage } from "./pattern";
+import type { PatternStage } from "./pattern";
 import { readPicture, type Reading } from "./read";
 import { decodeRaster, type Raster } from "./raster";
 import type { ImportReport, ReportItem } from "./report";
@@ -42,6 +44,8 @@ export interface PipelineInput {
   /** Landmarks the user moved, as fractions of the picture. */
   readonly edits?: ViewLandmarks;
   readonly signal?: AbortSignal;
+  /** Sentences from intake (a PDF page turned into a picture, say), kept in the report's notes. */
+  readonly notes?: readonly string[];
 }
 
 export interface OverlayMark {
@@ -72,6 +76,10 @@ export type ImportOutcome =
       readonly reading: Reading;
       readonly overlay: Overlay;
       readonly crops: readonly Crop[];
+      /** Pictures cut for the all-over pattern layers, to be stored as the person's artwork. */
+      readonly pictures: readonly PictureFile[];
+      /** Crests, sponsors and badges cut from the picture, one for each of `crops`, to be stored as artwork. */
+      readonly cropFiles: readonly CropFile[];
     }
   | { readonly ok: false; readonly reason: string; readonly spend: ImportReport["spend"] };
 
@@ -130,21 +138,6 @@ const guessedWords = (analyses: readonly ViewAnalysis[]): string[] =>
     (Object.keys(a.sources) as (keyof typeof a.sources)[]).filter((id) => a.sources[id] === "guess").map((id) => `The ${id} on the ${a.view} is the model's guess, not found in the picture.`),
   );
 
-async function patternsFor(raster: Raster, fits: ReadonlyMap<ViewId, ViewFit>, analyses: readonly ViewAnalysis[], colours: readonly StackColour[], deps: PipelineDeps): Promise<PatternProposal[]> {
-  if (!deps.pattern.reads) return [];
-  const out: PatternProposal[] = [];
-  for (const a of analyses) {
-    const fit = fits.get(a.view);
-    if (!fit) continue;
-    const design = a.outline.polygon.map((p) => toDesign(fit, p));
-    const area = { minX: Math.min(...design.map((p) => p.x)), minY: Math.min(...design.map((p) => p.y)), maxX: Math.max(...design.map((p) => p.x)), maxY: Math.max(...design.map((p) => p.y)) };
-    const stepMm = Math.max(1, (area.maxX - area.minX) / 200);
-    const proposal = await deps.pattern.find({ view: a.view, flat: warpToDesign(raster, fit, area, stepMm), stepMm, colours });
-    if (proposal) out.push(proposal);
-  }
-  return out;
-}
-
 /** The raster to work on: the original, or the image model's clean-up when the outline cannot be found and the budget allows. */
 async function workingRaster(input: PipelineInput, raster: Raster, reading: Reading, deps: PipelineDeps) {
   const first = analyseViews(raster, reading, deps.template, input.edits);
@@ -181,8 +174,11 @@ export async function runImport(input: PipelineInput, deps: PipelineDeps): Promi
   if (clusters.length === 0) return { ok: false, reason: NOTHING_FITTED, spend: spend() };
   const photo = reading.kind === "worn-photo";
   const marks = readMarks({ marks: reading.marks, readingConfidence: reading.confidence, raster: work.raster, fits, template: deps.template, colours: toStackColours(clusters) });
-  const proposals = await patternsFor(repaired, fits, fitted, marks.colours, deps);
-  const layers: Layer[] = [...proposals.flatMap((p) => [p.layer]), ...marks.layers];
+  const source = await sourceCopy(input.bytes, work.raster, work.generated);
+  const found = await findPatterns({ stage: deps.pattern, template: deps.template, repaired, source, generated: work.generated, marks: reading.marks, analyses: fitted, fits, colours: marks.colours });
+  const cropFiles = await Promise.all(marks.crops.map((crop) => cropFile(crop, source)));
+  const proposals = found.proposals;
+  const layers: Layer[] = [...found.layers, ...marks.layers];
   const views = fitted.map((a) => a.view);
   const built = buildStack(views, marks.colours, layers);
   if (!built.ok) return { ok: false, reason: built.reason, spend: spend() };
@@ -200,12 +196,12 @@ export async function runImport(input: PipelineInput, deps: PipelineDeps): Promi
     patternReads: deps.pattern.reads,
     absent,
     failed: failures.filter((f) => !absent.includes(f.view)),
-    notes: [...notes, ...("note" in work && work.note ? [work.note] : []), ...(work.generated ? ["The outline was found after an image model cleaned the picture up, so the colours are from generated pixels. Generated pixels are used as print artwork only if you accept them."] : [])],
+    notes: [...(input.notes ?? []), ...notes, ...("note" in work && work.note ? [work.note] : []), ...(work.generated ? ["The outline was found after an image model cleaned the picture up, so the colours are from generated pixels. Generated pixels are used as print artwork only if you accept them."] : [])],
     guessed: [...guessedWords(fitted), ...(deps.standIn ? [STAND_IN_SENTENCE] : [])],
     fittedTo: deps.template.description,
     generatedPixels: work.generated,
     spend: spend(),
     layerCount: built.stack.layers.length,
   });
-  return { ok: true, stack: built.stack, report, reading, overlay: overlayOf(fitted, fits, work.raster, marksOverlay(reading, built.stack)), crops: marks.crops };
+  return { ok: true, stack: built.stack, report, reading, overlay: overlayOf(fitted, fits, work.raster, marksOverlay(reading, built.stack)), crops: marks.crops, pictures: found.pictures, cropFiles };
 }

@@ -51,12 +51,13 @@ describe("createCleanUp", () => {
 describe("pattern stage", () => {
   it("reads nothing until phase B, and says so", async () => {
     expect(pendingPatternStage.reads).toBe(false);
-    expect(await pendingPatternStage.find({ view: "front", flat: { width: 1, height: 1, data: new Uint8ClampedArray(4) }, stepMm: 3, colours: [] })).toBeNull();
+    const input = { view: "front" as const, flat: { width: 1, height: 1, data: new Uint8ClampedArray(4) }, mask: new Uint8Array(1), stepMm: 3, originMm: { x: 0, y: 0 }, datumMm: { x: 0, y: 0 }, sourcePxPerMm: 1, colours: [] };
+    expect(await pendingPatternStage.find(input)).toBeNull();
     expect(PATTERN_NOT_READ_YET).toMatch(/not read yet/);
   });
   it("warns under the default dpi and not above", () => {
     expect(effectiveDpi(300, 25.4)).toBe(300);
-    expect(dpiWarning(72)).toMatch(/Knitwright default, not from your print house/);
-    expect(dpiWarning(300)).toBeNull();
+    expect(dpiWarning(72, 25.4)).toMatch(/Knitwright's default, not from your print house/);
+    expect(dpiWarning(300, 25.4)).toBeNull();
   });
 });
