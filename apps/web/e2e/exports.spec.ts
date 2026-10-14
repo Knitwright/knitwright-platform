@@ -59,7 +59,13 @@ test.describe("downloading the tech pack (T12)", () => {
     const pages = await readPages(new Uint8Array(pdfBytes));
     expect(pages.map((entry) => entry.text).join(" ")).toContain("Export test");
     expect(pages[0]?.text).toContain("Version 2");
-    expect(pages.map((entry) => entry.text).join(" ")).toContain("52.5 cm Typed in by you");
+    // The PDF marks each value with the number of its source, and lists the words of each mark once,
+    // in the key of "Sources and notes" at the end.
+    const pdfText = pages.map((entry) => entry.text).join(" ");
+    const key = pdfText.slice(pdfText.lastIndexOf("Sources and notes"));
+    const typedMark = /\[(\d+)\] Typed in by you/.exec(key)?.[1];
+    expect(typedMark).toBeDefined();
+    expect(pdfText).toContain(`52.5 cm [${typedMark}]`);
 
     const excel = await press(page, "Download Excel");
     expect(excel.suggestedFilename()).toBe("Export test-v2-tech-pack.xlsx");
