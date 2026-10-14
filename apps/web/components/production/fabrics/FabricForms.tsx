@@ -1,7 +1,7 @@
 "use client";
 
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
-import { useFormAction } from "@/components/forms/useFormAction";
+import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { addFabricAction, addFabricTestAction, saveSizeMapAction } from "@/lib/fabrics/actions";
@@ -10,9 +10,9 @@ const NUMBER = { type: "number", inputMode: "decimal", step: "any" } as const;
 
 /** Adds a fabric. Only what the supplier's sheet states is filled in; the rest stays "not set". */
 export function AddFabricForm() {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(addFabricAction);
+  const { form, state, onSubmit, pending, summary, fieldErrors } = useSendForm(addFabricAction);
   return (
-    <form ref={form} action={submit} className="flex flex-col gap-4" noValidate>
+    <form ref={form} onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
       <FormSummary message={summary} />
       {state.result?.success ? <FormDone>The fabric is added.</FormDone> : null}
       <Field name="name" label="Fabric name" required maxLength={80} defaultValue={state.values.name} errors={fieldErrors("name")} />
@@ -33,9 +33,9 @@ export function AddFabricForm() {
 
 /** Records one fabric test. Stretch needs its load; shrink needs the heat and time it was pressed at. */
 export function AddTestForm({ fabricId, fabricName }: Readonly<{ fabricId: string; fabricName: string }>) {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(addFabricTestAction);
+  const { form, state, onSubmit, pending, summary, fieldErrors } = useSendForm(addFabricTestAction);
   return (
-    <form ref={form} action={submit} className="flex flex-col gap-4" noValidate aria-label={`Add a test of ${fabricName}`}>
+    <form ref={form} onSubmit={onSubmit} className="flex flex-col gap-4" noValidate aria-label={`Add a test of ${fabricName}`}>
       <FormSummary message={summary} />
       {state.result?.success ? <FormDone>The test is saved. It cannot be changed, only added to.</FormDone> : null}
       <input type="hidden" name="fabricId" value={fabricId} />
@@ -70,9 +70,9 @@ type Entry = Readonly<{ label: string; wearer: string; cut: string; patternSize:
 
 /** One size label and the pattern size it is cut from. */
 export function SizeMapRowForm({ entry }: Readonly<{ entry: Entry }>) {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(saveSizeMapAction);
+  const { form, state, onSubmit, pending, summary, fieldErrors } = useSendForm(saveSizeMapAction);
   return (
-    <form ref={form} action={submit} className="flex items-end gap-2" noValidate aria-label={`Pattern size for ${entry.label}`}>
+    <form ref={form} onSubmit={onSubmit} className="flex items-end gap-2" noValidate aria-label={`Pattern size for ${entry.label}`}>
       <input type="hidden" name="label" value={entry.label} />
       <input type="hidden" name="wearer" value={entry.wearer} />
       <input type="hidden" name="cut" value={entry.cut} />

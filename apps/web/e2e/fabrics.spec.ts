@@ -40,6 +40,7 @@ test.describe("fabrics", () => {
   test("the size labels are shown as suggested until the brand chooses", async ({ page }) => {
     const email = await createAccount("size-map");
     await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brands/fabrics");
 
     await expect(page.getByText("size labels have a suggested pattern size only")).toBeVisible();
