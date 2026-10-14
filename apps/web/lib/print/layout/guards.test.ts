@@ -47,3 +47,17 @@ describe("bounds that reach a generator", () => {
     expect(Object.values(fieldBoundsFor([], Number.NaN)).every(Number.isFinite)).toBe(true);
   });
 });
+
+describe("a layer at no opacity", () => {
+  it("prints nothing and its picture is never read, which is how the picture reader keeps its alternatives", async () => {
+    let reads = 0;
+    const assets = { getAsset: async () => (reads += 1, null) };
+    const layer = { id: "alt", kind: "image-fill", views: ["front"], opacity: 0, blend: "normal", provenance: "read-from-image", assetId: "tile-front", mode: "tile", scale: 1, rotationDeg: 0, offsetMm: { x: 0, y: 0 }, halfDrop: false, fit: "cover" };
+    const { scene } = await r.scene(polkaStack([layer]), "48", "front", { assets });
+    expect(reads).toBe(0);
+    expect(scene.issues.some((i) => /not available/.test(i.text))).toBe(false);
+    const shown = await r.scene(polkaStack([{ ...layer, opacity: 1 }]), "48", "front", { assets });
+    expect(reads).toBe(1);
+    expect(shown.scene.issues.some((i) => /not available/.test(i.text))).toBe(true);
+  });
+});

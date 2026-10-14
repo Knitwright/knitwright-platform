@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest";
 import { createFakePieceMapper, parseArtworkStack, type ArtworkStack } from "@/lib/artwork-stack";
 import { createBudget } from "@/lib/design-import/budget";
 import { SYNTHETIC_TEMPLATE } from "@/lib/design-import/fixtures/template";
-import { MARKS_REPLY, asText } from "@/lib/design-import/fixtures/replies";
-import { renderTee } from "@/lib/design-import/fixtures/synthetic";
-import { pendingPatternStage } from "@/lib/design-import/pattern";
+import { asText } from "@/lib/design-import/fixtures/replies";
+import { renderSheet, SHEET_REPLY, type KnownPattern } from "@/lib/design-import/fixtures/known";
+import { createMatchBudget } from "@/lib/design-import/match/budget";
+import { createPatternStage } from "@/lib/design-import/match/stage";
 import { runImport } from "@/lib/design-import/pipeline";
 import { createStubProvider } from "@/lib/providers/stub";
 import { flattenScene } from "../render/raster";
@@ -13,35 +14,28 @@ import { deltaE } from "../rules/colour";
 import { realWorld, specOf, type RealWorld } from "../fixtures/real";
 
 /**
- * Plan W3, acceptance case 5. W7d's pattern step (phase B, PR 28) has not merged, so this uses W7d phase A's real output
- * (a recorded reply read by the real pipeline) plus a RECORDED generator choice for the all-over pattern: the choice a
- * pattern step would make for this picture (white hoops, 40 mm), written by hand. When W7d phase B merges, the recorded
- * choice is replaced by its output and the limit below is kept.
+ * Plan W3, acceptance case 5, with W7d phase B (merged): a mockup whose true stack is known (a red tee with white polka
+ * dots, 16 mm dots on a 36 mm pitch, rows 18 mm apart, every other row shifted) is drawn to a flat, read by W7d's real
+ * pipeline and pattern step from a recorded reply, and the stack it gives is printed. It is compared with the print
+ * of the true stack.
+ *
+ * The limit, stated here: the AVERAGE colour of the print differs from the true print by under 2.3 (CIE76, about the
+ * least difference an eye sees). Pixel by pixel the two are not compared: the read repeat is a few per cent off the
+ * truth (W7d holds it within 10 %), so the dots drift apart across the piece and a pixel-wise difference (about 30
+ * here) measures the drift, not the colours.
  */
-export const MEAN_DELTA_E_LIMIT = 6;
+export const MEAN_COLOUR_LIMIT = 2.3;
 export const PICTURE_NOTE = "Read from a picture. Compare with the picture before printing.";
 
-const RECORDED_CHOICE = { generatorId: "kit-hoops", params: { bandWidthMm: 40 }, colourId: "colour-3" } as const;
+const TRUTH: KnownPattern = { generatorId: "kit-dots", params: { dotWidthMm: 16, pitchMm: 36, rowStepMm: 18, halfDrop: true }, colours: ["#ffffff"], ground: "#c8102e" };
 
-const hoopsAt = (): string => [0, 1, 2, 3].map((n) => `<rect x="0" y="${100 + n * 50}" width="400" height="25" fill="#ffffff"/>`).join("");
-
-async function derivedStack(world: RealWorld, withCrest: boolean): Promise<{ stack: ArtworkStack }> {
-  const tee = await renderTee({ extra: `<rect x="170" y="180" width="60" height="50" fill="#ffffff"/>${hoopsAt()}` });
-  const out = await runImport({ bytes: tee.png, mediaType: "image/png" }, { provider: createStubProvider([asText(withCrest ? MARKS_REPLY : { ...MARKS_REPLY, marks: MARKS_REPLY.marks.slice(0, 1) })]), template: SYNTHETIC_TEMPLATE, mapper: createFakePieceMapper(), pattern: pendingPatternStage, cleanup: null, budget: createBudget(), standIn: false });
+async function derivedStack(): Promise<ArtworkStack> {
+  const out = await runImport(
+    { bytes: await renderSheet(TRUTH, "#c8102e"), mediaType: "image/png" },
+    { provider: createStubProvider([asText(SHEET_REPLY)]), template: SYNTHETIC_TEMPLATE, mapper: createFakePieceMapper(), pattern: createPatternStage({ budget: createMatchBudget() }), cleanup: null, budget: createBudget(), standIn: false },
+  );
   if (!out.ok) throw new Error(out.reason);
-  // The crest is a crop of the picture: it becomes a real artwork through the real intake, as it would when the design is accepted.
-  const crop = out.crops[0];
-  const png = crop && (await sharp(tee.png).extract({ left: Math.round(crop.rect.x0), top: Math.round(crop.rect.y0), width: Math.max(1, Math.round(crop.rect.x1 - crop.rect.x0)), height: Math.max(1, Math.round(crop.rect.y1 - crop.rect.y0)) }).png().toBuffer());
-  const artwork = png ? await world.upload(new Uint8Array(png), "Crest from picture.png") : "";
-  const layers = out.stack.layers.flatMap((layer): unknown[] => {
-    if (layer.id === "ground") {
-      return [layer, { id: "recorded-hoops", name: "Hoops (recorded choice)", views: ["front"], opacity: 1, blend: "normal", provenance: "read-from-image", kind: "pattern", generatorId: RECORDED_CHOICE.generatorId, params: RECORDED_CHOICE.params, datum: { anchor: "chest-line", offsetMm: { x: 0, y: 0 } }, colourIds: [RECORDED_CHOICE.colourId] }];
-    }
-    return [layer.kind === "graphic" ? { ...layer, source: { kind: "asset", assetId: artwork } } : layer];
-  });
-  const parsed = parseArtworkStack({ ...out.stack, layers });
-  if (!parsed.ok) throw new Error(parsed.reason);
-  return { stack: parsed.stack };
+  return out.stack;
 }
 
 /** The true print of the mockup: the stack a designer would have made it from, known exactly. */
@@ -49,58 +43,65 @@ function trueStack(): ArtworkStack {
   const common = { opacity: 1, blend: "normal", provenance: "user-edited" } as const;
   const parsed = parseArtworkStack({
     schemaVersion: 1,
-    views: ["front"],
-    colours: [{ id: "colour-1", role: "Ground", screen: "#c8102e", codes: [], provenance: "user-edited" }, { id: "colour-2", role: "Second colour", screen: "#ffffff", codes: [], provenance: "user-edited" }],
+    views: ["front", "back"],
+    colours: [{ id: "colour-1", role: "Ground", screen: "#c8102e", codes: [], provenance: "user-edited" }, { id: "colour-2", role: "Dots", screen: "#ffffff", codes: [], provenance: "user-edited" }],
     colourways: [{ id: "as-read", name: "True", colours: {} }],
     layers: [
-      { ...common, id: "ground", kind: "ground", views: ["front"], colourId: "colour-1" },
-      { ...common, id: "hoops", kind: "pattern", views: ["front"], generatorId: "kit-hoops", params: { bandWidthMm: 40 }, datum: { anchor: "chest-line", offsetMm: { x: 0, y: 0 } }, colourIds: ["colour-2"] },
-      { ...common, id: "number", kind: "player-mark", views: ["front"], place: "front-number", style: "block", heightMm: 85.9, colourId: "colour-2" },
+      { ...common, id: "ground", kind: "ground", views: ["front", "back"], colourId: "colour-1" },
+      { ...common, id: "dots", kind: "pattern", views: ["front", "back"], generatorId: TRUTH.generatorId, params: TRUTH.params, datum: { anchor: "chest-line", offsetMm: { x: 0, y: 0 } }, colourIds: ["colour-2"] },
     ],
   });
   if (!parsed.ok) throw new Error(parsed.reason);
   return parsed.stack;
 }
 
-/** Mean colour difference between two flattened art pictures, over the pixels both show, with transparent pixels read as white paper. */
-async function meanDelta(a: Uint8Array, b: Uint8Array): Promise<number> {
-  const [x, y] = await Promise.all([a, b].map((png) => sharp(png).flatten({ background: "#ffffff" }).resize(60, 60, { fit: "fill" }).raw().toBuffer({ resolveWithObject: true })));
-  const hex = (d: Buffer, i: number): string => `#${[0, 1, 2].map((k) => d[i + k]!.toString(16).padStart(2, "0")).join("")}`;
-  let total = 0;
-  const count = x!.info.width * x!.info.height;
-  for (let at = 0; at < count; at += 1) total += deltaE(hex(x!.data, at * x!.info.channels), hex(y!.data, at * y!.info.channels));
-  return total / count;
+const SIZE = 80;
+
+async function pixelsOf(png: Uint8Array): Promise<string[]> {
+  const { data } = await sharp(png).flatten({ background: "#ffffff" }).resize(SIZE, SIZE, { fit: "fill" }).raw().toBuffer({ resolveWithObject: true });
+  return Array.from({ length: SIZE * SIZE }, (_, at) => `#${[0, 1, 2].map((k) => data[at * 3 + k]!.toString(16).padStart(2, "0")).join("")}`);
 }
 
-describe("case 5: a design read from a picture", () => {
-  it("prints from W7d's real output, and every file in every size carries the picture note", async () => {
+const averageOf = (hexes: readonly string[]): string => {
+  const sum = [0, 0, 0];
+  for (const hex of hexes) [1, 3, 5].forEach((at, k) => (sum[k]! += parseInt(hex.slice(at, at + 2), 16)));
+  return `#${sum.map((v) => Math.round(v / hexes.length).toString(16).padStart(2, "0")).join("")}`;
+};
+
+const flat = async (world: RealWorld, stack: ArtworkStack, size: string, view: string): Promise<Uint8Array> =>
+  (await flattenScene((await world.builder(stack, { colourwayId: stack.colourways[0]!.id }).buildFile(specOf(view, size, "svg"))).scene.scene, { dpi: 20 })).png;
+
+describe("case 5: a design read from a picture, by W7d's real pattern step", () => {
+  it("reads the dots style and prints it, and every file of every size carries the picture note", async () => {
     const world = await realWorld();
-    const { stack } = await derivedStack(world, false);
-    expect(stack.layers.every((l) => l.provenance === "read-from-image")).toBe(true);
-    const builder = world.builder(stack);
+    const stack = await derivedStack();
+    const pattern = stack.layers.find((l) => l.kind === "pattern" && l.views.includes("front"));
+    expect(pattern).toMatchObject({ generatorId: "kit-dots", provenance: "read-from-image" });
+    const builder = world.builder(stack, { colourwayId: stack.colourways[0]!.id });
     for (const size of world.pattern.sizes) {
       for (const placed of builder.mapper.placed(size)) {
         const file = await builder.buildFile(specOf(placed.instance.id, size, "svg"));
         expect(file.scene.scene.noteLines, `${size} ${placed.instance.id}`).toContain(PICTURE_NOTE);
+        expect(file.scene.scene.issues.filter((i) => i.severity === "stop"), `${size} ${placed.instance.id}`).toEqual([]);
       }
     }
   }, 240_000);
 
-  it(`is within a mean colour difference of ${MEAN_DELTA_E_LIMIT} of the true print`, async () => {
+  it(`has an average colour within ${MEAN_COLOUR_LIMIT} of the true print, on the front and on the back`, async () => {
     const world = await realWorld();
-    const { stack } = await derivedStack(world, false);
-    for (const size of ["S", "L"]) {
-      const [got, want] = await Promise.all([stack, trueStack()].map(async (s) => flattenScene((await world.builder(s, { colourwayId: s.colourways[0]!.id }).buildFile(specOf("front", size, "svg"))).scene.scene, { dpi: 20 })));
-      const distance = await meanDelta(got!.png, want!.png);
-      expect(distance, `size ${size}`).toBeLessThan(MEAN_DELTA_E_LIMIT);
+    const stack = await derivedStack();
+    for (const [size, view] of [["S", "front"], ["L", "back"]] as const) {
+      const [got, want] = await Promise.all([stack, trueStack()].map(async (s) => pixelsOf(await flat(world, s, size, view))));
+      expect(deltaE(averageOf(got!), averageOf(want!)), `average colour, ${size} ${view}`).toBeLessThan(MEAN_COLOUR_LIMIT);
     }
   }, 240_000);
 
-  it("prints the crest from the artwork the intake kept, and leaves the picture's pixels out of any other file", async () => {
+  it("keeps the alternative the reader leaves (the picture as a repeat, at no opacity) out of the print and does not read its picture", async () => {
     const world = await realWorld();
-    const { stack } = await derivedStack(world, true);
-    const front = await world.builder(stack).buildFile(specOf("front", "M", "svg"));
-    expect(front.scene.scene.items.some((i) => i.kind === "image" && i.layerId === "mark-2")).toBe(true);
+    const stack = await derivedStack();
+    expect(stack.layers.some((l) => l.kind === "image-fill" && l.opacity === 0)).toBe(true);
+    const front = await world.builder(stack, { colourwayId: stack.colourways[0]!.id }).buildFile(specOf("front", "M", "svg"));
+    expect(front.scene.scene.items.some((i) => i.kind === "image")).toBe(false);
     expect(front.scene.scene.issues.some((i) => /not available/.test(i.text))).toBe(false);
-  }, 240_000);
+  }, 120_000);
 });

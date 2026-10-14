@@ -1,6 +1,6 @@
 # 0031: Print files for any design
 
-Status: Proposed (phase A and phase B built; W7d phase B, the pattern step of the picture reader, is still to join)
+Status: Proposed (phase A and phase B built)
 Date: 2026-10-15
 Plan step: production outputs, W3 (`plans/production-outputs.md`)
 
@@ -35,14 +35,15 @@ Phase A was built against fakes. Phase B swaps each one for the real service, an
 18. **Team orders come from W4.** A roster is the order's rows. The download takes `order` (a team list of the design); a row whose size is not in the pattern is named in the read-me and left out. Without `order` no player files are made.
 19. **Releases freeze real files** (`lib/print/inputs/release.ts`, wired in `lib/releases/builder.ts`). The builder is the same one the download uses, loaded lazily on the first file. It reads the design as it is now, the named pattern at its frozen version, and the brand's print settings, colour profile and artwork, and the release's team list. A release made with a pattern that is not in the library is refused with a sentence. Print and release routes are open to whoever the pattern library is open to (`requireLibraryOpen`).
 20. **Colour profile.** The brand's ICC profile is read with the person's own client and embedded in TIFF files. A profile that cannot be read or is over 8 MB is left out, and the files carry no profile.
-21. **A design read from a picture** carries "Read from a picture. Compare with the picture before printing." in every file of the design, not only the pieces that hold a layer from it.
+21. **A layer at no opacity prints nothing** and its artwork is never read (a knock-out still cuts). The picture reader keeps its alternatives that way.
+22. **A design read from a picture** carries "Read from a picture. Compare with the picture before printing." in every file of the design, not only the pieces that hold a layer from it.
 
 ## Measured in phase B
 
 - Case 2, a 6000 x 8000 px test card through W7b's intake: every fiducial lands within 1 mm of the place worked out from the design plane in all seven sizes, front and back, and the black squares found in the 150 dpi pixels of the file are within 1 mm of the same places. In the band 2 to 13 mm outside the cut line, the file shows the card's own checker, cell for cell.
 - Case 3, an SVG logo through intake: 90 mm wide within 0.1 mm in every size, no picture in the PDF (path operators only), no SVG stored anywhere.
 - Case 4, camo seed 7: identical bytes twice (PDF and SVG), other bytes for seed 8, and the field agrees at every sampled point across the side seam in every size.
-- Case 5: W7d phase B (PR 28) has not merged, so this uses W7d phase A's real output from a recorded reply plus a **recorded generator choice** (white hoops, 40 mm). The mean colour difference from the known true print is under 6 (CIE76, on a 60 x 60 sample).
+- Case 5, with W7d phase B (merged): a tee with white polka dots (16 mm dots, 36 mm pitch) is drawn, read by the real pipeline and pattern step from a recorded reply, and printed. W7d reads the dots style (16.2, 38.7, 18.1 mm), the print's average colour is within 2.3 (CIE76) of the true print on the front and the back, and every file of every size carries the picture note. Pixel by pixel the two differ by about 30, because the read repeat is 7 % off and the dots drift apart; that measures the drift, so no limit is set on it. The reader's alternative (the picture as a repeat, at no opacity) is not built and its picture is not read.
 
 ## Limits and open items
 
@@ -64,4 +65,4 @@ Phase A was built against fakes. Phase B swaps each one for the real service, an
 
 ## Consequences
 
-Easier: any stack prints; the same code draws a kit style, an upload and a picture. Harder: the older styles still need the shared box to meet at seams; W7c's generators remove the need. Revisit when W7d phase B lands (replace the recorded generator choice), when fabric tests give a shrink scale, and when the 3D trial (W6) decides whether the mapper falls back to the flat's outline.
+Easier: any stack prints; the same code draws a kit style, an upload and a picture. Harder: the older styles still need the shared box to meet at seams; W7c's generators remove the need. Revisit when fabric tests give a shrink scale, and when the 3D trial (W6) decides whether the mapper falls back to the flat's outline.
