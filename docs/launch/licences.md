@@ -36,6 +36,28 @@ published.
 | `lightningcss`, `lightningcss-win32-x64-msvc` | development, via Tailwind | MPL-2.0 | File-level copyleft applies only to changes made to its own files. Build tool, not shipped. Acceptable. |
 | `axe-core` | development, via lint rules | MPL-2.0 | As above. Not shipped. Acceptable. |
 | `argparse` | development | Python-2.0 | Permissive in practice. Not shipped. Acceptable. |
+| `clipper2-ts` | production, polygon offsetting for seam allowance and bleed (added 2026-10-14, see below) | BSL-1.0 | Boost Software License: permissive, no copyleft, no attribution needed in a product, only the licence text kept with source copies. Acceptable. |
+
+## Added after this report: `clipper2-ts` (production outputs, W0a)
+
+The production outputs need a polygon offsetter: seam allowance grows a sew line outwards, and
+bleed grows a cut line, both with true rounded or mitred corners. Candidates, read on 2026-10-14
+from the npm registry:
+
+| Package | Version, last release | Licence | Size (unpacked) | Verdict |
+|---|---|---|---|---|
+| `clipper2-ts` | 2.0.1-18, 2026-07-04 | BSL-1.0 | 2.0 MB with sources; 125 kB minified module | **Chosen.** Pure TypeScript port of Clipper2, no dependencies, no native code or WASM to load on Vercel, ships types, `sideEffects: false`, released 14 times since May 2026. |
+| `clipper2-js` | 1.2.4, 2024-01-01 | BSL-1.0 | 1.9 MB | Same idea, nothing since January 2024. |
+| `clipper2-wasm` | 0.4.0, 2026-05-18 | BSL-1.0 | 1.2 MB | WASM must be fetched and initialised asynchronously; a second moving part on the server for no gain. |
+| `js-angusj-clipper` | 1.3.1, 2023-02-04 | MIT | 1.9 MB | Clipper 1 through WASM; old and unmaintained. |
+| `polygon-offset` | 0.3.2, 2022-10-05 | MIT | 0.3 MB | Small, but built on a Martinez clipper and known for failures on concave curved outlines like armholes. |
+| `clipper-lib` | 6.4.2, 2019-11-08 | BSL | 0.2 MB | Clipper 1 port, abandoned. |
+
+Boost Software License 1.0 is permissive (no copyleft, no obligation to publish our source); it
+asks only that the licence text stays with any copy of the source. It adds one production
+package and no transitive dependencies. It is used only through `apps/web/lib/production/geometry/offset.ts`,
+so replacing it later touches one file. Re-run the generation commands at the top of this file
+before launch; the counts in the summary above do not yet include it.
 
 ## Security advisories (`pnpm audit --prod`)
 

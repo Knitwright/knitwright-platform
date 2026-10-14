@@ -11,6 +11,7 @@ export const PROVENANCE_VALUES = [
   "ai-suggested",
   "read-from-image",
   "derived",
+  "measured-from-pattern",
 ] as const;
 
 export const provenanceSchema = z.enum(PROVENANCE_VALUES);
@@ -25,4 +26,5 @@ export const PROVENANCE_LABELS: Readonly<Record<Provenance, string>> = {
   "ai-suggested": "Suggested by the assistant",
   "read-from-image": "Read from a picture",
   derived: "Worked out from other values",
+  "measured-from-pattern": "Measured on the pattern",
 };

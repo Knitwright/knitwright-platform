@@ -1,0 +1,161 @@
+{
+ "id": "0b1a5c52-6f0e-4f55-9a41-6a2f7d3c9e10",
+ "projectId": "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11",
+ "name": "Sample team (fictional names)",
+ "rows": [
+  {
+   "name": "OKAFOR",
+   "number": "7",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "LINDQVIST",
+   "number": "1",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "TAUMOEPEAU",
+   "number": "9",
+   "sizeLabel": "XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "BRENNAN",
+   "number": "4",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "MARINKOVIC",
+   "number": "5",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "DELACROIX",
+   "number": "6",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "NAKAMURA",
+   "number": "8",
+   "sizeLabel": "S",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "FITZGERALD",
+   "number": "10",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "OYELARAN",
+   "number": "11",
+   "sizeLabel": "XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "KOWALSKI",
+   "number": "12",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "ABDULLAHI",
+   "number": "13",
+   "sizeLabel": "2XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "PEREIRA",
+   "number": "14",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "HARGREAVES",
+   "number": "15",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "SOLOMON",
+   "number": "16",
+   "sizeLabel": "S",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "TRAN",
+   "number": "17",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "MCALLISTER",
+   "number": "18",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "WHITEHORSE",
+   "number": "19",
+   "sizeLabel": "XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "LOVEGROVE-HUNT",
+   "number": "20",
+   "sizeLabel": "3XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "RAMACHANDRAN",
+   "number": "21",
+   "sizeLabel": "M",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "ASANTE",
+   "number": "22",
+   "sizeLabel": "L",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "GUNDERSEN",
+   "number": "23",
+   "sizeLabel": "2XL",
+   "cut": "mens",
+   "quantity": 1
+  },
+  {
+   "name": "VASQUEZ",
+   "number": "24",
+   "sizeLabel": "S",
+   "cut": "mens",
+   "quantity": 1
+  }
+ ]
+}

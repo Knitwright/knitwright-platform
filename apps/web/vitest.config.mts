@@ -53,6 +53,13 @@ export default defineConfig({
         "lib/flat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The tech pack is the product's main output, and the exports are made from it.
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
+        ...Object.fromEntries(
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs"].map((dir) => [
+            `lib/${dir}/**`,
+            { lines: 90, functions: 90, branches: 90, statements: 90 },
+          ]),
+        ),
       },
     },
     projects: [
