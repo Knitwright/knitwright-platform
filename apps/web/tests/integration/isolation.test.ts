@@ -515,6 +515,78 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { vote: "not_yet", comment: "Changed by a stranger." },
   },
+  // Plan W4 (decision 0032): members read their brand's team lists, releases, strike-offs and
+  // sign-offs; only the server writes, through functions.
+  team_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedTeamOrder(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), name: "Made directly", created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
+  team_order_rows: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ order_id: await seedTeamOrder(brandId, ownerId) }),
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", cut: "mens", quantity: 1 }),
+    change: { name: "Changed by a stranger" },
+  },
+  production_releases: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedRelease(brandId, ownerId)).releaseId }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), number: 1, label: "Made directly", snapshot: {}, file_specs: [], created_by: userId }),
+    change: { label: "Changed by a stranger" },
+  },
+  strike_offs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const { releaseId } = await seedRelease(brandId, ownerId);
+      return { id: must(await adminClient().rpc("request_strike_off", { p_release_id: releaseId, p_brand_id: brandId, p_user_id: ownerId, p_note: "" })) as string };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), release_id: randomUUID(), requested_by: userId }),
+    change: { status: "accepted" },
+  },
+  sign_offs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const { releaseId } = await seedRelease(brandId, ownerId);
+      return { id: must(await adminClient().rpc("add_sign_off", { p_release_id: releaseId, p_brand_id: brandId, p_user_id: ownerId, p_role: "club", p_signer_name: "Seeded Signer", p_signed_on: "2026-10-16", p_note: "" })) as string };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), release_id: randomUUID(), role: "club", signer_name: "X", signed_on: "2026-10-16", created_by: userId }),
+    change: { signer_name: "Changed by a stranger" },
+  },
+};
+
+/** A team list made the way the server makes one, for a new design. */
+const seedTeamOrder = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("save_team_order", {
+      p_order_id: null,
+      p_project_id: await seedProject(brandId, ownerId),
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_name: "Seeded list",
+      p_rows: [{ name: "SEEDED", number: "7", size_label: "M", cut: "mens", quantity: 1 }],
+    }),
+  ) as string;
+
+/** A release made the way the server makes one, for a new design. */
+const seedRelease = async (brandId: string, ownerId: string): Promise<{ releaseId: string }> => {
+  const rows = must(
+    await adminClient().rpc("create_release", {
+      p_project_id: await seedProject(brandId, ownerId),
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_label: "Seeded release",
+      p_snapshot: {},
+      p_file_specs: [],
+      p_order_id: null,
+    }),
+  ) as { id: string }[];
+  return { releaseId: rows[0].id };
 };
 
 /** A share link made the way the server makes one, to a new design. */
