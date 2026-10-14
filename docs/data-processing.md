@@ -96,3 +96,40 @@ remaining providers (Gemini, OpenAI), and whether the price is acceptable. See
 Not verified: the exact image-size setting on Gemini's `generateContent` endpoint (the app
 asks for a 1:1 aspect ratio only); OpenAI's own per-image price; Replicate and Stability AI
 were not compared.
+
+# Team orders, strike-offs and sign-offs (plan W4)
+
+Added 2026-10-15. No processor is involved: this data is stored in the same database and storage
+as the designs and is sent to no AI provider.
+
+## Personal data held
+
+| Data | Where | Who it is about | Kept until |
+|---|---|---|---|
+| Player names (up to 40 characters) with number, size, cut and quantity | `team_order_rows` | Players named by the brand | The brand erases the team list, deletes the design or deletes the account |
+| Names and roles of people who accept or reject a strike-off, and of people who sign a release, with a date | `strike_offs`, `sign_offs` | Staff and contacts at the brand, print house, factory or club | The design or the account is deleted. These records cannot be edited or removed one by one (they are the record of who said what) |
+| Photos of a test print (re-encoded, so location and camera details are removed) | `files` (kind `proof`), storage | None intended; a photo may show a person | The design or the account is deleted |
+
+A release keeps only a SHA-256 fingerprint of the team list, never a name, so erasing a team list
+removes every copy.
+
+## Rules the code follows
+
+- A name is cleaned on the way in (hidden and direction characters removed; letters, digits, spaces
+  and `' - . & ` only) and escaped again for each file: CSV cells that a spreadsheet would run as a
+  formula get a leading apostrophe, PDF text is limited to characters the font has, and SVG text is
+  XML-escaped.
+- Rows are brand-scoped with row level security. Members read their own brand's rows; no browser
+  role can write. Every write goes through a database function that checks the user belongs to the
+  brand.
+- Erasing a team list deletes its names at once (`DELETE .../orders/{id}`). Deleting a design or an
+  account removes team lists, releases, strike-offs and sign-offs through their keys, and the proof
+  photos with them (`private.files_of_project_alone`).
+- The manifest (CSV or PDF) is built when asked for and is not stored.
+
+## For the privacy notice and the lawyer
+
+The privacy notice (`lib/legal/privacy.ts`) and the delete-a-design page still describe designs,
+pictures and download records only. They should also name team lists with player names, and the
+names of people who sign or accept a strike-off, under "what we keep" and "what deleting removes".
+Those files are outside workstream W4 and are listed as an open item on its pull request.

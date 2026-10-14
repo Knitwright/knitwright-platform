@@ -18,6 +18,8 @@ const viewSchema = z.object({
   id: z.uuid(),
   version: z.number().int(),
   size: z.string(),
+  kind: z.enum(["single", "size-set"]),
+  blockId: z.uuid().nullable(),
   status: z.enum(["waiting", "drafting", "ready", "failed"]),
   draft: z.string().nullable(),
   pieces: z.number().int().nullable(),
@@ -37,12 +39,12 @@ const link = z.object({ success: z.literal(true), data: z.object({ url: z.string
 
 export type AskResult = Readonly<{ ok: true; job: PatternJobView }> | Readonly<{ ok: false; reason: string }>;
 
-export async function askForPattern(projectId: string, size: string, fetcher: Fetch = fetch): Promise<AskResult> {
+export async function askForPattern(projectId: string, size: string, fetcher: Fetch = fetch, kind: "single" | "size-set" = "single"): Promise<AskResult> {
   try {
     const response = await fetcher(`/api/projects/${projectId}/patterns`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ size }),
+      body: JSON.stringify(kind === "single" ? { size } : { size, kind }),
     });
     const parsed = asked.safeParse(await response.json().catch(() => null));
     if (!parsed.success) return { ok: false, reason: FAILED };

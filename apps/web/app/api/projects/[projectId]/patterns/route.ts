@@ -13,7 +13,8 @@ import { LIMITS } from "@/lib/server/limits";
 const NOT_AVAILABLE = "Patterns are not available yet.";
 
 /**
- * Asks for a sewing pattern of the design at one size. The request is recorded as a queued
+ * Asks for a sewing pattern of the design at one size, or for the whole size run (the pattern then ends in
+ * a block of the pattern library). The request is recorded as a queued
  * job with the design written out in words; whatever drafts patterns picks it up, and the
  * browser polls GET until the DXF is ready. Nothing is charged while patterns are a trial.
  */
@@ -22,7 +23,7 @@ export const POST = defineRoute({
   rateLimit: LIMITS.startPattern,
   schema: {
     params: z.object({ projectId: z.uuid() }),
-    body: z.object({ size: z.string().trim().min(1).max(12) }),
+    body: z.object({ size: z.string().trim().min(1).max(12), kind: z.enum(["single", "size-set"]).default("single") }),
   },
   handler: async ({ input, session }) => {
     const env = getEnv();
@@ -39,6 +40,7 @@ export const POST = defineRoute({
       userId: session.userId,
       provider,
       request: patternRequest(project.spec, input.body.size),
+      kind: input.body.kind,
     });
     const row = await latestPatternJob(client, brandId, input.params.projectId);
     if (!row || row.id !== id) throw new Error("The new pattern job could not be read back.");

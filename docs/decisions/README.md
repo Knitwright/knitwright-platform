@@ -36,13 +36,13 @@ Copy `0000-template.md` to start.
 | 0026 | [Share links with comments and votes](0026-share-links.md) | Accepted, with questions open for the owner |
 | 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments, lettering and the 3D verdict asked of the owner. |
 | 0028 | [The production contract](0028-production-contract.md) | Proposed |
-| 0029 | Pattern library (W1) | Planned |
+| 0029 | [The pattern library](0029-pattern-library.md) | Proposed |
 | 0030 | Fabrics, sizes and the cut list (W2) | Proposed |
 | 0031 | [Print files per piece, size and player, for any design (W3)](0031-print-files.md) | Accepted for phase A. Phase B and owner inputs P1, P5, P7, P8 and P14 are owed. |
-| 0032 | Orders, releases and proofs (W4) | Planned |
+| 0032 | Orders, releases and proofs (W4) | Proposed |
 | 0033 | [Tech pack v2 and "Ready for the factory" (W5)](0033-tech-pack-v2.md) | Proposed |
 | 0034 | One coordinate system for 3D and pattern pieces (W6) | Planned |
 | 0035 | [One artwork layer model for any design (W7a)](0035-artwork-layer-model.md) | Accepted |
-| 0036 | Artwork intake (W7b) | Planned |
-| 0037 | Pattern generators (W7c) | Planned |
+| 0036 | [Artwork intake: the club's own files, never storing an SVG (W7b)](0036-artwork-intake.md) | Accepted |
+| 0037 | [Pattern generators (W7c)](0037-pattern-generators.md) | Accepted |
 | 0038 | Design from the user's image (W7d) | Planned |

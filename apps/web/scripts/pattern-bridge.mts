@@ -10,13 +10,19 @@
  *   pnpm --filter web exec tsx scripts/pattern-bridge.mts start <job id>
  *   pnpm --filter web exec tsx scripts/pattern-bridge.mts complete <job id> --dxf <file> --draft <name>
  *        [--preview <png file>] [--pieces <n>] [--notes <json file holding a list of sentences>]
+ *   pnpm --filter web exec tsx scripts/pattern-bridge.mts complete-set <job id> (--dxf-dir <folder of DXFs, one or more sizes each> | --dxf <one DXF of every size>)
+ *        --draft <name> [--outline net|gross] [--size-order XS,S,M,L]
+ *        Reads every size, adds the seam allowance and notches a file lacks, runs the checks, measures every size, and stores a
+ *        block of the pattern library. A set whose front and back do not sew together is refused with the seam named.
  *   pnpm --filter web exec tsx scripts/pattern-bridge.mts fail <job id> "<sentence to show>"
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { buildSet } from "@/lib/pattern-library/set";
 import {
   completePatternJob,
+  completePatternSetJob,
   failPatternJob,
   markPatternRunning,
   openPatternJobs,
@@ -74,11 +80,31 @@ switch (command) {
     process.stdout.write("completed\n");
     break;
   }
+  case "complete-set": {
+    const dir = flag("dxf-dir");
+    const single = flag("dxf");
+    const files = dir
+      ? readdirSync(resolve(dir)).filter((name) => /\.dxf$/i.test(name)).sort().map((name) => ({ name, text: readFileSync(join(resolve(dir), name), "utf8") }))
+      : [{ name: need(single, "--dxf-dir <folder> or --dxf <file>"), text: readFileSync(resolve(need(single, "--dxf <file>")), "utf8") }];
+    const outline = flag("outline");
+    if (outline !== undefined && outline !== "net" && outline !== "gross") throw new Error("--outline is net or gross.");
+    const order = flag("size-order");
+    const built = buildSet({ files, outline: outline ?? null, sizeOrder: order ? order.split(",").map((size) => size.trim()) : undefined });
+    if (!built.ok) {
+      process.stdout.write(`${built.reasons.join("\n")}\n`);
+      await failPatternJob(admin, need(jobId, "a job id"), built.reasons[0]);
+      process.exitCode = 1;
+      break;
+    }
+    const made = await completePatternSetJob(admin, need(jobId, "a job id"), { set: built, draft: need(flag("draft"), "--draft <name>") });
+    process.stdout.write(`stored block ${made.blockId} version ${made.version}: ${built.sizes.length} sizes\n${built.questions.map((q) => `ask: ${q}`).join("\n")}\n`);
+    break;
+  }
   case "fail": {
     await failPatternJob(admin, need(jobId, "a job id"), need(rest.join(" "), "a sentence to show"));
     process.stdout.write("failed\n");
     break;
   }
   default:
-    throw new Error("Commands: list, start, complete, fail.");
+    throw new Error("Commands: list, start, complete, complete-set, fail.");
 }
