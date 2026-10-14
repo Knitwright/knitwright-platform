@@ -305,6 +305,36 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
     change: { pattern_size: "52" },
   },
+  // Production outputs, W3 (migration 20261015030000): a member reads the brand's print profile and league rule
+  // sets; only the server writes them.
+  print_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("print_profiles")
+          .insert({ brand_id: brandId, bleed_mm: 15, dpi: 150, min_dpi: 150, created_by: ownerId, updated_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, bleed_mm: 15, dpi: 150, min_dpi: 150, created_by: userId, updated_by: userId }),
+    change: { bleed_mm: 30 },
+  },
+  league_rule_sets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) =>
+      must(
+        await adminClient()
+          .from("league_rule_sets")
+          .insert({ brand_id: brandId, name: "Seeded league", source: "Seeded rulebook, section 1", rules: {}, created_by: ownerId })
+          .select("id")
+          .single(),
+      ),
+    attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", source: "Nowhere", rules: {}, created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
   // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
   // line, and none is ever changed or removed.
   assistant_messages: {
