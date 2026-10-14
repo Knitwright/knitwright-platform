@@ -47,9 +47,8 @@ describe("ready for the factory", () => {
   it("makes every item a valid readiness item with one sentence", () => {
     for (const input of [everything(), {}]) {
       for (const entry of buildReadiness(ctx(input)).groups.flatMap((group) => group.items)) {
-        const { actorLabel, ownerInput, ...record } = entry;
-        expect(readinessItemSchema.safeParse(record).success, entry.id).toBe(true);
-        expect(actorLabel).toBe(ACTOR_LABELS[entry.whoActs]);
+        expect(readinessItemSchema.safeParse(entry).success, entry.id).toBe(true);
+        expect(entry.actorLabel).toBe(ACTOR_LABELS[entry.whoActs]);
         expect(entry.sentence.split(/\.\s/).length, entry.sentence).toBeLessThanOrEqual(3);
       }
     }

@@ -10,6 +10,8 @@ import { loadArtworkImages, type LoadedPictures } from "./artwork-images";
 import { loadMemberNames, type MemberNames } from "./member-names";
 import { getProjectAt, listVersions, type OpenProject, type VersionsPage } from "./service";
 import { historyIsNewer } from "./tech-pack-data";
+import { loadProduction, readersFor } from "./tech-pack-production";
+import type { ProductionInput } from "@/lib/techpack/production/input";
 
 /**
  * What the tech pack page and every export are made from: the design, its history, its pictures,
@@ -26,6 +28,8 @@ export interface TechPackSource {
   readonly illustrations: LoadedIllustrations | null;
   /** The names of the brand's members, for "Made by" in the revision history. */
   readonly memberNames: MemberNames;
+  /** What the production services know about the design: its pictures, print profile, release, strike-off and the reading it came from. */
+  readonly production?: ProductionInput;
 }
 
 /** The rows a tech pack is made from, before any stored picture is read. */
@@ -34,6 +38,7 @@ export interface TechPackReads {
   readonly history: VersionsPage;
   readonly charts: ChartSet;
   readonly memberNames: MemberNames;
+  readonly production: ProductionInput;
   /** Which AI pictures were made last, not yet read, or null when none were made. */
   readonly latest: LatestImages | null;
 }
@@ -78,7 +83,8 @@ export async function readTechPack(client: SupabaseClient, brandId: string, proj
   const charts = historyIsNewer(project, history)
     ? await brandChartSet(client, brandId, project.versionSavedAt)
     : currentCharts;
-  return { project, history, charts, memberNames, latest };
+  const production = await loadProduction(readersFor(client, brandId, projectId), { spec: project.spec, names: memberNames });
+  return { project, history, charts, memberNames, production, latest };
 }
 
 /** The pictures a design's artwork uses, read from storage and shrunk. */
@@ -109,10 +115,10 @@ export async function loadTechPackSource(
   projectId: string,
   options: LoadOptions,
 ): Promise<TechPackSource> {
-  const { project, history, charts, memberNames, latest } = await readTechPack(client, brandId, projectId, options.version);
+  const { project, history, charts, memberNames, production, latest } = await readTechPack(client, brandId, projectId, options.version);
   const [pictures, illustrations] = await Promise.all([
     readArtworkPictures(client, brandId, project.spec, options),
     readIllustrations(client, brandId, latest),
   ]);
-  return { project, history, pictures, charts, illustrations, memberNames };
+  return { project, history, pictures, charts, illustrations, memberNames, production };
 }

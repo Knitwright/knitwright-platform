@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { packFor } from "../../fixtures/designs";
-import { completeProduction, targetedJersey } from "../../fixtures/production";
+import { completeProduction } from "../../fixtures/production";
 import { ASSETS, PICTURE_ACCEPTED, PICTURE_STACK, withStack } from "../../fixtures/stacks";
 import { allText, type ReadPage } from "../fixtures/pdf-pages";
 import { noSpace, readPdfOf } from "../fixtures/pdf-helpers";

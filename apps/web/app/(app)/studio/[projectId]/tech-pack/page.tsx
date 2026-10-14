@@ -48,8 +48,8 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   const now = new Date();
 
   const leads = quietly(loadDesignLeads(client, brand.id, projectId, now));
-  const { project, history, charts, memberNames, latest } = await readTechPack(client, brand.id, projectId).catch(orNotFound);
-  const data = buildTechPackCore({ project, history, brandName: brand.name, now, colourwayId, charts, memberNames });
+  const { project, history, charts, memberNames, production, latest } = await readTechPack(client, brand.id, projectId).catch(orNotFound);
+  const data = buildTechPackCore({ project, history, brandName: brand.name, now, colourwayId, charts, memberNames, production });
   const pictures = quietly(
     readArtworkPictures(client, brand.id, project.spec, { shrink: shrinkForDrawing }).then((loaded) =>
       techPackPictures(data.pack, loaded.images, picturesNote(loaded.skipped)),
