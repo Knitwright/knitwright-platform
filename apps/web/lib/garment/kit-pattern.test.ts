@@ -132,3 +132,11 @@ describe("polka dots", () => {
     expect(describeKitPattern(bare)).toContain("dots to be confirmed, centres to be confirmed, rows to be confirmed");
   });
 });
+
+describe("polka dot spacing limits", () => {
+  it("refuses a pitch or row step under 5 mm", () => {
+    const base: KitPattern = { style: "dots", colours: [{ colour: "Red" }], provenance: "user-edited" };
+    expect(kitPatternSchema.safeParse({ ...base, dots: { pitch: 10 } }).success).toBe(false);
+    expect(kitPatternSchema.safeParse({ ...base, dots: { rowStep: 10 } }).success).toBe(false);
+  });
+});

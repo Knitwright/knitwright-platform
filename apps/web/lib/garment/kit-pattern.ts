@@ -47,12 +47,15 @@ export type PatternColour = z.output<typeof patternColourSchema>;
  * How polka dots are laid out, in tenths of a millimetre. The dot's width is the pattern's `size`.
  * Anything left out is drawn with a stand-in on the flats and written as "to be confirmed".
  */
+/** The closest dots may be drawn, 5 mm, so a typo cannot ask for millions of dots. */
+const MIN_DOT_SPACING = 50;
+
 const dotsSchema = z
   .object({
     /** Centre to centre along a row. */
-    pitch: z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+    pitch: z.number().int().min(MIN_DOT_SPACING).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
     /** Distance from one row to the next. */
-    rowStep: z.number().int().min(1).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
+    rowStep: z.number().int().min(MIN_DOT_SPACING).max(MEASUREMENT_MAX_TENTHS_MM).optional(),
     /** Every other row shifted along by half a pitch. */
     halfDrop: z.boolean().optional(),
     /** Dots stay this far from a name, number, crest or sponsor mark. */
