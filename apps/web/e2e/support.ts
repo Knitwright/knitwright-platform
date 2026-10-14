@@ -252,3 +252,28 @@ export const consentRecords = async (userId: string): Promise<ConsentRecord[]> =
   if (error) throw new Error(error.message);
   return data as ConsentRecord[];
 };
+
+/** The brand an account belongs to, read with the server's own key. The account must have exactly one. */
+const brandIdOf = async (email: string): Promise<string> => {
+  const { data, error } = await admin()
+    .from("memberships")
+    .select("brand_id")
+    .eq("user_id", await userIdOf(email))
+    .single();
+  if (error) throw new Error(error.message);
+  return (data as { brand_id: string }).brand_id;
+};
+
+/**
+ * Makes a second account that belongs to the brand of `email`, as a colleague would.
+ * Its only brand is that one, so it works in it. Returns the colleague's address.
+ */
+export const createColleagueOf = async (email: string, label: string): Promise<string> => {
+  const colleague = await createAccount(label, { brand: null });
+  const membership = await admin()
+    .from("memberships")
+    .insert({ brand_id: await brandIdOf(email), user_id: await userIdOf(colleague), role: "owner" });
+  if (membership.error) throw new Error(membership.error.message);
+  return colleague;
+};
+
