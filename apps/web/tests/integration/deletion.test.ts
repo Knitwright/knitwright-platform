@@ -4,6 +4,8 @@ import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { deleteAccount, deleteDesign } from "@/lib/deletion/service";
 import type { DeletionClient } from "@/lib/deletion/client";
+import { uploadArtwork } from "@/lib/artwork-intake/service";
+import { leagueRulesInputSchema, printProfileInputSchema, saveLeagueRules, savePrintProfile } from "@/lib/print/profiles";
 import { storeImage } from "@/lib/storage/store";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
@@ -269,6 +271,35 @@ describe("deleteAccount", () => {
     expect(data.user).toBeNull();
     // Nothing of anyone else's went with it.
     expect(await count("brands", "id", bobBrand)).toBe(1);
+  });
+
+  it("removes artwork, print settings, league rules and design imports with their files, so the user can go", async () => {
+    const gina = await person("gina-del");
+    const brand = await brandOf(gina, "Gina Artwork");
+    const who = { brandId: brand, userId: gina.userId };
+    const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><circle cx="50" cy="25" r="20" fill="#c8102e"/></svg>');
+    const given = (bytes: Uint8Array, fileName: string) => uploadArtwork(adminClient(), who, { bytes, fileName, rightsConfirmed: true, now: new Date() });
+    const raster = await given(new Uint8Array(await png()), "Crest.png");
+    const vector = await given(svg, "Badge.svg");
+    await savePrintProfile(adminClient(), who, printProfileInputSchema.parse({ bleedMm: 12, dpi: 200, minDpi: 100, iccFileId: null, maxPrintWidthMm: null }));
+    await saveLeagueRules(adminClient(), who, leagueRulesInputSchema.parse({ name: "League", source: "Rule book", rules: { minTextHeightMm: 50, minLineMm: null, coloursToAvoid: [], numberRules: null } }));
+    const imports = [
+      { status: "ready" },
+      { status: "accepted", accepted_stack: {}, accepted_at: new Date().toISOString(), accepted_by: gina.userId },
+    ].map((over) => ({ brand_id: brand, source_file_id: randomUUID(), rights_accepted_at: new Date().toISOString(), reading: {}, report: {}, overlay: {}, result: {}, created_by: gina.userId, ...over }));
+    must(await adminClient().from("design_imports").insert(imports));
+
+    const copies = must(await adminClient().from("files").select("id, bucket, path, kind").eq("brand_id", brand).in("kind", ["artwork-print", "artwork-vector"])).map((row) => row as { id: string; bucket: string; path: string; kind: string });
+    expect(copies.map((copy) => copy.kind).sort()).toEqual(["artwork-print", "artwork-vector"]);
+    for (const copy of copies) expect(await objectExists(copy.path, copy.bucket)).toBe(true);
+
+    expect(await deleteAccount(admin(), { userId: gina.userId })).toEqual({ deletedBrands: 1 });
+
+    for (const table of ["user_artworks", "design_imports", "print_profiles", "league_rule_sets", "files"]) expect(await count(table, "brand_id", brand), table).toBe(0);
+    for (const copy of copies) expect(await objectExists(copy.path, copy.bucket), copy.path).toBe(false);
+    for (const record of [raster, vector]) expect(await count("user_artworks", "id", record.id)).toBe(0);
+    const { data } = await adminClient().auth.admin.getUserById(gina.userId);
+    expect(data.user).toBeNull();
   });
 
   // The allow list is in the private schema, which the API does not expose, so this reads it as

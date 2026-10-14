@@ -1,5 +1,5 @@
 import type { BoundsMm, PointMm } from "@/lib/artwork-stack/units";
-import { defineGenerator } from "../define";
+import { budgetScale, defineGenerator, SHAPE_BUDGET, SIMPLIFIED_NOTE, withinBudget } from "../define";
 import { polygon } from "../geometry";
 import type { GeneratorParam } from "../params";
 import { createRng, hashSeed } from "../prng";
@@ -32,12 +32,8 @@ function segmentAt(k: number, rhythm: number, width: number, grow: number, seed:
   return { width, ink };
 }
 
-/** Where stripe `k` starts and ends along the normal, counted from the datum. */
-function edgesOf(k: number, segmentOf: (at: number) => Segment): [number, number] {
-  const sum = (from: number, to: number): number => Array.from({ length: Math.max(0, to - from) }, (_, at) => segmentOf(from + at).width).reduce((a, b) => a + b, 0);
-  const start = k >= 0 ? sum(0, k) : -sum(k + 1, 1);
-  return [start, start + segmentOf(k).width];
-}
+/** Narrowest a stripe gets next to its setting, by rhythm, so the count of stripes can be planned. */
+const NARROWEST = [1, 1, 0.35, 0.4] as const;
 
 const reachOf = (bounds: BoundsMm, from: PointMm): number =>
   Math.max(...[bounds.minX, bounds.maxX].flatMap((x) => [bounds.minY, bounds.maxY].map((y) => Math.hypot(x - from.x, y - from.y)))) + 1;
@@ -53,22 +49,29 @@ export const stripeVariations = defineGenerator({
   period: (values) => ({ width: values.width * 2, height: values.width * 2 }),
   draw({ context, values, inks }) {
     const reach = reachOf(context.bounds, context.datum);
-    const segmentOf = (k: number): Segment => segmentAt(k, Math.round(values.rhythm), values.width, values.grow, context.seed, inks.length);
+    const rhythm = Math.round(values.rhythm);
+    // Stripes needed from edge to edge at the narrowest the rhythm gets; wider stripes keep the count inside the budget.
+    const grow = budgetScale((2 * reach) / (values.width * NARROWEST[rhythm]));
+    const width = values.width * grow;
+    const segmentOf = (k: number): Segment => segmentAt(k, rhythm, width, values.grow, context.seed, inks.length);
     const radians = (values.angle * Math.PI) / 180;
     const [dx, dy] = [Math.cos(radians), Math.sin(radians)];
     const [nx, ny] = [-dy, dx];
     const at = (n: number, s: number): PointMm => ({ x: context.datum.x + nx * n + dx * s, y: context.datum.y + ny * n + dy * s });
     const stripes: ReturnType<typeof polygon>[] = [];
-    const walk = (first: number, step: 1 | -1): void => {
-      for (let k = first; ; k += step) {
-        const [from, to] = edgesOf(k, segmentOf);
+    // One pass outwards each way, carrying the edge along, so the work grows in line with the count of stripes.
+    const walk = (first: number, step: 1 | -1, firstEdge: number): void => {
+      let edge = firstEdge;
+      for (let k = first; stripes.length < SHAPE_BUDGET; k += step) {
+        const { width: size, ink } = segmentOf(k);
+        const [from, to] = [edge, edge + size];
+        edge = step === 1 ? to : from - segmentOf(k - 1).width;
         if (step === 1 ? from > reach : to < -reach) return;
-        const { ink } = segmentOf(k);
         if (ink !== null) stripes.push(polygon([at(from, -reach), at(to, -reach), at(to, reach), at(from, reach)], inks[ink] ?? inks[0], "Stripe"));
       }
     };
-    walk(0, 1);
-    walk(-1, -1);
-    return { shapes: stripes };
+    walk(0, 1, 0);
+    walk(-1, -1, -segmentOf(0).width);
+    return withinBudget(stripes, grow > 1 ? SIMPLIFIED_NOTE : undefined);
   },
 });

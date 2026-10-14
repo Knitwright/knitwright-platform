@@ -1,6 +1,7 @@
 import type { DisplayList, DisplayShape, GeneratorContext, PatternGenerator } from "@/lib/artwork-stack/generator";
 import { MAX_PATTERN_COLOURS_GUARD } from "./limits";
 import { FALLBACK_INK } from "./colour";
+import { boundsProblem } from "./bounds";
 import { cullTo } from "./geometry";
 import { createRng, hashSeed } from "./prng";
 import { roundMm } from "@/lib/artwork-stack/units";
@@ -12,6 +13,12 @@ export const SIMPLIFIED_NOTE = "The pattern was drawn with larger shapes than as
 
 /** How much to enlarge a cell or tile so that `estimate` shapes fit the budget. 1 when they already do. */
 export const budgetScale = (estimate: number): number => (estimate <= SHAPE_BUDGET * 0.85 ? 1 : Math.sqrt(estimate / (SHAPE_BUDGET * 0.85)));
+
+/** The shapes cut to the budget as a last guard, with the note that says so when any were left out. */
+export function withinBudget(shapes: readonly DisplayShape[], note?: string): Drawn {
+  if (shapes.length <= SHAPE_BUDGET) return note === undefined ? { shapes } : { shapes, note };
+  return { shapes: shapes.slice(0, SHAPE_BUDGET), note: SIMPLIFIED_NOTE };
+}
 
 export interface Tile {
   readonly width: number;
@@ -75,6 +82,8 @@ export function defineGenerator(definition: Definition): LibraryGenerator {
     ...(tileFor === undefined ? {} : { tileFor }),
     repeat: tile === undefined ? { kind: "field" } : { kind: "tile", tileMm: { width: tile.width, height: tile.height } },
     render(context): DisplayList {
+      const problem = boundsProblem(context.bounds);
+      if (problem !== null) throw new Error(problem);
       const values = resolveParams(definition.params, context.params);
       const every = period ?? tileFor;
       const placed = every === undefined ? context : { ...context, datum: shiftDatum(context.datum, every(values), context.seed) };

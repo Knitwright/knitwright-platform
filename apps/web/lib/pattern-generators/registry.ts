@@ -1,5 +1,6 @@
 import type { PatternGenerator } from "@/lib/artwork-stack/generator";
 import { ADAPTER_GENERATORS } from "./adapters";
+import { withBoundsCheck } from "./bounds";
 import type { LibraryGenerator, Tile } from "./define";
 import { brush } from "./generators/brush";
 import { camo } from "./generators/camo";
@@ -11,7 +12,7 @@ import { stripeVariations } from "./generators/stripe-variations";
 import { resolveParams, type Values } from "./params";
 
 /** The new procedural styles. */
-export const NEW_GENERATORS: readonly LibraryGenerator[] = [camo, geometric, gradient, halftone, checks, gingham, houndstooth, brush, stripeVariations];
+export const NEW_GENERATORS: readonly LibraryGenerator[] = [camo, geometric, gradient, halftone, checks, gingham, houndstooth, brush, stripeVariations].map(withBoundsCheck);
 
 /** Every style the platform can draw: the eight that existed, then the new ones. Ids are unique. */
 export const GENERATORS: readonly PatternGenerator[] = [...ADAPTER_GENERATORS, ...NEW_GENERATORS];

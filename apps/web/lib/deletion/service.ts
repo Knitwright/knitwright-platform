@@ -10,6 +10,9 @@ import { emptyBrandFolders, removeObjects } from "./storage";
  * Storage objects are removed before the rows that point at them. If anything fails part way,
  * what is left is rows that point at missing files, which the app already treats as missing, and
  * running the deletion again finishes it. Objects that nothing points at are never left behind.
+ * A brand's artwork (and its print and vector copies), design imports, print settings and league rules all
+ * carry the brand's key with cascade, so they go with the brand, before the sign-in record their
+ * `on delete restrict` keys point at. `brand-data.test.ts` fails if a table stops doing so.
  * See supabase/migrations/20260930010000_deletion.sql.
  */
 

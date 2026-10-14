@@ -33,14 +33,27 @@ function viewOf(row: z.output<typeof blockRowSchema>, review: ReviewView | null)
   };
 }
 
+const REVIEW_PAGE = 1000;
+
+/** Every review of the brand, newest first, read a page at a time so none is dropped for being far back. */
+async function allReviews(client: SupabaseClient, brandId: string): Promise<z.output<typeof reviewRowSchema>[]> {
+  const rows: z.output<typeof reviewRowSchema>[] = [];
+  for (let from = 0; ; from += REVIEW_PAGE) {
+    const page = await client.from("pattern_reviews").select(REVIEW_COLUMNS).eq("brand_id", brandId)
+      .order("created_at", { ascending: false }).order("id", { ascending: true }).range(from, from + REVIEW_PAGE - 1);
+    failIf(page.error, "The pattern reviews could not be read.");
+    const got = z.array(reviewRowSchema).parse(page.data ?? []);
+    rows.push(...got);
+    if (got.length < REVIEW_PAGE) return rows;
+  }
+}
+
 /** Every block of the brand, newest first, each with its latest review. */
 export async function listBlocks(client: SupabaseClient, brandId: string): Promise<BlockView[]> {
   const blocks = await client.from("pattern_blocks").select(BLOCK_COLUMNS).eq("brand_id", brandId).order("created_at", { ascending: false }).limit(200);
   failIf(blocks.error, "The pattern library could not be read.");
-  const reviews = await client.from("pattern_reviews").select(REVIEW_COLUMNS).eq("brand_id", brandId).order("created_at", { ascending: false }).limit(1000);
-  failIf(reviews.error, "The pattern reviews could not be read.");
   const latest = new Map<string, ReviewView>();
-  for (const row of z.array(reviewRowSchema).parse(reviews.data ?? [])) if (!latest.has(row.block_id)) latest.set(row.block_id, reviewOf(row));
+  for (const row of await allReviews(client, brandId)) if (!latest.has(row.block_id)) latest.set(row.block_id, reviewOf(row));
   return z.array(blockRowSchema).parse(blocks.data ?? []).map((row) => viewOf(row, latest.get(row.id) ?? null));
 }
 
