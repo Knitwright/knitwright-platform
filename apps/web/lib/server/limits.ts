@@ -78,4 +78,12 @@ export const LIMITS = {
   // A release freezes a design for good, so a slip or a script can do little harm.
   releaseCreate: { name: "release-create", limit: 20, windowSeconds: HOUR },
   proofWrite: { name: "proof-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // Reading a design from a picture calls a vision model up to three times and an image model up to twice
+  // (plan W7d). The brand's daily cap is DESIGN_IMPORT_DAILY_PER_BRAND; this caps the pace of one person.
+  designImport: { name: "design-import", limit: 6, windowSeconds: HOUR },
+  // Moving a landmark, accepting and discarding a reading: no paid call, so a looser pace.
+  designImportChange: { name: "design-import-change", limit: 120, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
+
+/** The most readings of pictures one brand may start in a UTC day. A setting, proposed low until the owner sets it (open item P16). */
+export const DESIGN_IMPORT_DAILY_PER_BRAND = 20;

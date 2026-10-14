@@ -111,6 +111,12 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, SHOW_3D: "" }).SHOW_3D).toBe(false);
   });
 
+  it("keeps making a design from a picture off unless DESIGN_FROM_PICTURE is exactly true", () => {
+    expect(parseEnv(valid).DESIGN_FROM_PICTURE).toBe(false);
+    expect(parseEnv({ ...valid, DESIGN_FROM_PICTURE: "true" }).DESIGN_FROM_PICTURE).toBe(true);
+    expect(parseEnv({ ...valid, DESIGN_FROM_PICTURE: "on" }).DESIGN_FROM_PICTURE).toBe(false);
+  });
+
   it("reads the caller's address from the header Vercel writes, unless told otherwise", () => {
     expect(parseEnv(valid).CLIENT_ADDRESS_HEADER).toBe("x-vercel-forwarded-for");
     expect(parseEnv({ ...valid, CLIENT_ADDRESS_HEADER: "X-Real-IP" }).CLIENT_ADDRESS_HEADER).toBe(

@@ -90,6 +90,12 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === "true"),
+  // Making a design from a picture (plan W7d) is on only when this is exactly "true". Off until the owner
+  // turns it on (open item P12: the privacy wording for pictures sent to the vision and image providers).
+  DESIGN_FROM_PICTURE: z
+    .string()
+    .optional()
+    .transform((value) => value === "true"),
   // Read only to refuse Cloudflare's test keys where real people sign in.
   NODE_ENV: z.string().optional(),
   VERCEL_ENV: z.string().optional(),

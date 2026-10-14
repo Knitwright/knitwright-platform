@@ -64,6 +64,8 @@ export interface ImportStore {
   saveRefit(brandId: string, id: string, stored: StoredLandmarks, report: ImportReport): Promise<boolean>;
   accept(who: Who, id: string, layerIds: readonly string[]): Promise<boolean>;
   discard(brandId: string, id: string): Promise<boolean>;
+  /** How many readings the brand has started since a time. Failed ones count: they cost. */
+  countSince(brandId: string, sinceIso: string): Promise<number>;
 }
 
 const failIf = (error: { message: string } | null, what: string): void => {
@@ -90,7 +92,8 @@ function recordFrom(data: unknown): ImportRecord | null {
   };
 }
 
-export function createImportStore(admin: SupabaseClient): ImportStore {
+/** Writes go through `admin` (the server's client); reads go through `reader`, a member's own client where there is one, so the database's rules decide as well. */
+export function createImportStore(admin: SupabaseClient, reader: SupabaseClient = admin): ImportStore {
   const now = (): string => new Date().toISOString();
   return {
     async create(who, input) {
@@ -131,7 +134,7 @@ export function createImportStore(admin: SupabaseClient): ImportStore {
       failIf(result.error, "The reading could not be marked as failed.");
     },
     async get(brandId, id) {
-      const { data, error } = await admin.from("design_imports").select("*").eq("id", id).eq("brand_id", brandId).maybeSingle();
+      const { data, error } = await reader.from("design_imports").select("*").eq("id", id).eq("brand_id", brandId).maybeSingle();
       failIf(error, "The reading could not be loaded.");
       return data === null ? null : recordFrom(data);
     },
@@ -156,6 +159,15 @@ export function createImportStore(admin: SupabaseClient): ImportStore {
         .select("id");
       failIf(error, "The reading could not be accepted.");
       return (data ?? []).length === 1;
+    },
+    async countSince(brandId, sinceIso) {
+      const { count, error } = await reader
+        .from("design_imports")
+        .select("id", { count: "exact", head: true })
+        .eq("brand_id", brandId)
+        .gte("created_at", sinceIso);
+      failIf(error, "The readings could not be counted.");
+      return count ?? 0;
     },
     async discard(brandId, id) {
       const { data, error } = await admin

@@ -49,3 +49,10 @@ describe("LIMITS for production outputs", () => {
     }
   });
 });
+
+describe("LIMITS for reading a design from a picture", () => {
+  it("holds the paid reading to a few an hour, and the free changes to a looser pace", () => {
+    expect(LIMITS.designImport.limit / LIMITS.designImport.windowSeconds).toBeLessThanOrEqual(10 / 3600);
+    expect(LIMITS.designImportChange.limit).toBeGreaterThan(LIMITS.designImport.limit);
+  });
+});

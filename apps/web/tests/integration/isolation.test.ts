@@ -305,6 +305,31 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, label: "M", wearer: "men", cut: "mens", pattern_size: "50", source: "user-edited", updated_by: userId }),
     change: { pattern_size: "52" },
   },
+  // Production outputs, W7d (migration 20261015060200): a member reads the brand's readings of pictures; only
+  // the server writes them, and none is ever removed by a browser.
+  design_imports: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const file = must(
+        await adminClient()
+          .from("files")
+          .insert({ brand_id: brandId, bucket: "uploads", path: filePath(brandId), kind: "sketch", content_type: "image/png", bytes: 1000, created_by: ownerId })
+          .select("id")
+          .single(),
+      );
+      return must(
+        await adminClient()
+          .from("design_imports")
+          .insert({ brand_id: brandId, project_id: projectId, source_file_id: file.id, status: "reading", created_by: ownerId })
+          .select("id")
+          .single(),
+      );
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), source_file_id: randomUUID(), status: "reading", created_by: userId }),
+    change: { status: "accepted" },
+  },
   // The assistant audit, item 3: a member reads the brand's conversations; only the server adds a
   // line, and none is ever changed or removed.
   assistant_messages: {

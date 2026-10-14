@@ -20,6 +20,7 @@ import {
   PICTURE_TOO_LARGE,
   READ_FAILED,
   SWITCHED_OFF,
+  DAILY_CAP_REACHED,
 } from "./wording";
 import type { LandmarkHint } from "./landmarks";
 import type { ViewId } from "@/lib/artwork-stack";
@@ -51,7 +52,12 @@ export interface StartDeps {
   readonly priceOf: (budget: Budget) => number;
   readonly log: (event: LogEvent) => void;
   readonly timeoutMs: number;
+  /** The most readings a brand may start in a UTC day. */
+  readonly dailyCap: number;
+  readonly now: () => Date;
 }
+
+const startOfUtcDay = (now: Date): string => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString();
 
 const isModelType = (type: string): type is ModelImageType => (MODEL_IMAGE_TYPES as readonly string[]).includes(type);
 
@@ -68,6 +74,7 @@ export async function startImport(
 ): Promise<{ readonly kind: "ready"; readonly record: ImportRecord } | Rejection> {
   if (!deps.enabled || !deps.provider) return refused(deps, SWITCHED_OFF);
   if (!(await deps.projectInBrand(input.projectId))) return refused(deps, PICTURE_NOT_FOUND);
+  if ((await deps.store.countSince(who.brandId, startOfUtcDay(deps.now()))) >= deps.dailyCap) return refused(deps, DAILY_CAP_REACHED);
   const file = await deps.readFile(input.fileId, PICTURE_MAX_BYTES);
   if (file === null) return refused(deps, PICTURE_NOT_FOUND);
   if (file === TOO_LARGE) return refused(deps, PICTURE_TOO_LARGE);

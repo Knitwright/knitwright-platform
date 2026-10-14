@@ -25,7 +25,7 @@ const tee = async () => {
 
 async function setup(overrides: Partial<StartDeps> = {}, replies: string[] = [recordedReading()]) {
   const db = fakeDb();
-  const store = createImportStore(db.client);
+  const store = { ...createImportStore(db.client), countSince: async () => 0 };
   const refund = vi.fn(async () => undefined);
   const usage: RouteUsage = { eventId: "e", refund, reserve: async () => null };
   const bytes = await tee();
@@ -42,6 +42,8 @@ async function setup(overrides: Partial<StartDeps> = {}, replies: string[] = [re
     priceOf: (budget) => budget.visionCalls * 1000,
     log: vi.fn(),
     timeoutMs: 20_000,
+    dailyCap: 20,
+    now: () => new Date("2026-10-15T10:00:00Z"),
     ...overrides,
   };
   return { db, store, deps, refund, provider };
@@ -106,6 +108,27 @@ describe("startImport", () => {
     expect(result).toMatchObject({ kind: "rejection", reason: expect.stringMatching(/could not be read/i), id: expect.any(String) });
     expect(db.tables.design_imports[0]).toMatchObject({ status: "failed", vision_calls: 2, cost_microdollars: 2000 });
     expect(refund).not.toHaveBeenCalled();
+  });
+});
+
+describe("the daily cap", () => {
+  it("counts a brand's readings from the start of the UTC day, and refuses past the cap", async () => {
+    const countSince = vi.fn(async () => 20);
+    const { deps, refund } = await setup();
+    const capped = { ...deps, store: { ...deps.store, countSince } };
+    expect(await start(capped)).toMatchObject({ kind: "rejection", reason: expect.stringMatching(/as many pictures as it can today/i) });
+    expect(countSince).toHaveBeenCalledWith(BRAND, "2026-10-15T00:00:00.000Z");
+    expect(refund).toHaveBeenCalled();
+  });
+
+  it("counts through the database with a time filter", async () => {
+    const chain = { select: () => chain, eq: () => chain, gte: async () => ({ count: 3, error: null }) };
+    const store = createImportStore({ from: () => chain } as never);
+    expect(await store.countSince(BRAND, "2026-10-15T00:00:00.000Z")).toBe(3);
+    const failing = { select: () => failing, eq: () => failing, gte: async () => ({ count: null, error: { message: "x" } }) };
+    await expect(createImportStore({ from: () => failing } as never).countSince(BRAND, "x")).rejects.toThrow(/counted/);
+    const none = { select: () => none, eq: () => none, gte: async () => ({ count: null, error: null }) };
+    expect(await createImportStore({ from: () => none } as never).countSince(BRAND, "x")).toBe(0);
   });
 });
 

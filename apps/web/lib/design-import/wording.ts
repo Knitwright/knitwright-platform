@@ -32,3 +32,4 @@ export const READ_FAILED = "The picture could not be read just now. Nothing was 
 export const IMPORT_NOT_FOUND = "That reading does not exist.";
 export const IMPORT_NOT_READY = "That reading is not ready to accept.";
 export const IMPORT_CLOSED = "That reading has already been accepted or discarded.";
+export const DAILY_CAP_REACHED = "Your brand has read as many pictures as it can today. Try again tomorrow. Nothing was changed.";
