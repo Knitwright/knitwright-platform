@@ -36,7 +36,7 @@ Copy `0000-template.md` to start.
 | 0026 | [Share links with comments and votes](0026-share-links.md) | Accepted, with questions open for the owner |
 | 0027 | [Beta scope, and player names and numbers](0027-beta-scope-and-names-numbers.md) | Accepted. Launch garments, lettering and the 3D verdict asked of the owner. |
 | 0028 | [The production contract](0028-production-contract.md) | Proposed |
-| 0029 | Pattern library (W1) | Planned |
+| 0029 | [The pattern library](0029-pattern-library.md) | Proposed |
 | 0030 | Fabrics, sizes and the cut list (W2) | Proposed |
 | 0031 | Print files (W3) | Planned |
 | 0032 | Orders, releases and proofs (W4) | Planned |

@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { createBlock } from "@/lib/pattern-library/service";
+import type { Landmarks } from "@/lib/pattern-library/landmarks";
+import type { PatternSet } from "@/lib/pattern-library/set";
 import { storePatternFiles } from "@/lib/storage/store";
-import { PATTERN_JOB_COLUMNS, PATTERN_STALE_MESSAGE, isPatternStale, type PatternJobRow } from "./job-view";
+import { PATTERN_JOB_COLUMNS, PATTERN_STALE_MESSAGE, isPatternStale, type PatternJobKind, type PatternJobRow } from "./job-view";
 import type { PatternRequest } from "./request";
 
 /**
@@ -16,6 +19,8 @@ const rowSchema = z.object({
   version: z.number().int(),
   status: z.enum(["queued", "running", "succeeded", "failed"]),
   size_label: z.string(),
+  kind: z.enum(["single", "size-set"]),
+  block_id: z.uuid().nullable(),
   draft: z.string().nullable(),
   pieces: z.number().int().nullable(),
   notes: z.array(z.string()),
@@ -36,6 +41,8 @@ export type NewPatternJob = Readonly<{
   userId: string;
   provider: PatternProvider;
   request: PatternRequest;
+  /** One size, or the whole size run. */
+  kind?: PatternJobKind;
 }>;
 
 export async function createPatternJob(admin: SupabaseClient, job: NewPatternJob): Promise<string> {
@@ -48,6 +55,7 @@ export async function createPatternJob(admin: SupabaseClient, job: NewPatternJob
       provider: job.provider,
       request: job.request,
       size_label: job.request.size,
+      kind: job.kind ?? "single",
       created_by: job.userId,
     })
     .select("id")
@@ -103,6 +111,7 @@ const openSchema = z.object({
   status: z.enum(["queued", "running"]),
   request: z.record(z.string(), z.unknown()),
   size_label: z.string(),
+  kind: z.enum(["single", "size-set"]),
   created_by: z.uuid(),
   created_at: z.string(),
 });
@@ -112,7 +121,7 @@ export type OpenPatternJob = z.output<typeof openSchema>;
 export async function openPatternJobs(admin: SupabaseClient, provider: PatternProvider): Promise<OpenPatternJob[]> {
   const { data, error } = await admin
     .from("pattern_jobs")
-    .select("id, brand_id, project_id, version, status, request, size_label, created_by, created_at")
+    .select("id, brand_id, project_id, version, status, request, size_label, kind, created_by, created_at")
     .eq("provider", provider)
     .in("status", ["queued", "running"])
     .order("created_at", { ascending: true })
@@ -124,7 +133,7 @@ export async function openPatternJobs(admin: SupabaseClient, provider: PatternPr
 async function openJob(admin: SupabaseClient, jobId: string): Promise<OpenPatternJob> {
   const { data, error } = await admin
     .from("pattern_jobs")
-    .select("id, brand_id, project_id, version, status, request, size_label, created_by, created_at")
+    .select("id, brand_id, project_id, version, status, request, size_label, kind, created_by, created_at")
     .eq("id", jobId)
     .in("status", ["queued", "running"])
     .maybeSingle();
@@ -173,4 +182,50 @@ export async function completePatternJob(admin: SupabaseClient, jobId: string, r
 export async function failPatternJob(admin: SupabaseClient, jobId: string, message: string): Promise<void> {
   const safe = message.trim().slice(0, 300) || "The pattern could not be made.";
   await move(admin, jobId, ["queued", "running"], { status: "failed", error: safe, finished_at: new Date().toISOString() });
+}
+
+// ---------------------------------------------------------------------------------------
+// A whole size run: the bridge hands back the DXF files of every size, the library checks and
+// measures them, and the job ends in a block of the pattern library.
+// ---------------------------------------------------------------------------------------
+
+export type PatternSetResult = Readonly<{
+  set: PatternSet;
+  /** The draft the sizes were made from, as the provider names it. */
+  draft: string;
+  overrides?: Readonly<Record<string, Landmarks>>;
+}>;
+
+const CUT_OF = { men: "mens", women: "womens", youth: "junior" } as const;
+
+const jobAsksFor = z.object({ typeId: z.string().min(1), wearer: z.enum(["men", "women", "youth"]), garment: z.string().min(1) });
+
+/** Stores the size run as the next version of its block and marks the job done. */
+export async function completePatternSetJob(admin: SupabaseClient, jobId: string, result: PatternSetResult): Promise<{ blockId: string; version: number }> {
+  const job = await openJob(admin, jobId);
+  if (job.kind !== "size-set") throw new Error(`Pattern job ${jobId} asks for one size, not a size run.`);
+  const asked = jobAsksFor.parse(job.request);
+  const block = await createBlock(admin, {
+    brandId: job.brand_id,
+    userId: job.created_by,
+    productKey: asked.typeId,
+    wearer: asked.wearer,
+    cut: CUT_OF[asked.wearer],
+    name: asked.garment,
+    source: "fashioninsta-bridge",
+    set: result.set,
+    overrides: result.overrides ?? {},
+  });
+  const notes = [...result.set.derived, ...result.set.warnings, ...result.set.questions];
+  const moved = await move(admin, jobId, ["queued", "running"], {
+    status: "succeeded",
+    draft: result.draft.slice(0, 120),
+    pieces: result.set.piecesBySize[result.set.sizes[0]].length,
+    notes: notes.slice(0, MAX_NOTES).map((note) => note.slice(0, MAX_NOTE_LENGTH)),
+    dxf_file_id: block.setFileId,
+    block_id: block.id,
+    finished_at: new Date().toISOString(),
+  });
+  if (!moved) throw new Error(`Pattern job ${jobId} was finished or given up before it could be completed.`);
+  return { blockId: block.id, version: block.version };
 }
