@@ -19,22 +19,21 @@ export const shapeBounds = (shape: Shape): Box => boundsOf(shape.flat());
 const insideBox = (inner: Box, outer: Box): boolean => inner.minX >= outer.minX && inner.maxX <= outer.maxX && inner.minY >= outer.minY && inner.maxY <= outer.maxY;
 
 /**
- * Keeps the part of each shape inside the outline. A shape wholly outside the outline's box is dropped. A shape inside
- * the box that the outline does not cut is returned as it is. Only a shape that crosses the edge is cut.
+ * Keeps the part of one shape inside the outline, or null when none is. A shape wholly outside the outline's box is
+ * dropped. A shape the outline does not cut is returned as it is. Only a shape that crosses the edge is cut.
  */
+export function clipShape(shape: Shape, outline: readonly Pt[], box: Box = boundsOf(outline)): Shape | null {
+  const sb = shapeBounds(shape);
+  if (!boxesOverlap(sb, box)) return null;
+  const result = fromPaths(intersectD(toPaths(shape), toPaths([outline]), FillRule.NonZero, PRECISION));
+  if (result.length === 0) return null;
+  // The cut rewrites the points, so a shape that is untouched keeps its own.
+  return insideBox(sb, box) && Math.abs(shapeArea(result) - shapeArea(shape)) < 1e-6 ? shape : result;
+}
+
 export function clipToOutline(shapes: readonly Shape[], outline: readonly Pt[]): Shape[] {
   const box = boundsOf(outline);
-  const out: Shape[] = [];
-  for (const shape of shapes) {
-    const sb = shapeBounds(shape);
-    if (!boxesOverlap(sb, box)) continue;
-    const cut = intersectD(toPaths(shape), toPaths([outline]), FillRule.NonZero, PRECISION);
-    const result = fromPaths(cut);
-    if (result.length === 0) continue;
-    // The cut rewrites the points, so a shape that is untouched keeps its own.
-    out.push(insideBox(sb, box) && Math.abs(shapeArea(result) - shapeArea(shape)) < 1e-6 ? shape : result);
-  }
-  return out;
+  return shapes.map((shape) => clipShape(shape, outline, box)).filter((s): s is Shape => s !== null);
 }
 
 /**
