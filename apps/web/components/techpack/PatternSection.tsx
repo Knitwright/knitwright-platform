@@ -54,8 +54,9 @@ function Ready({ job, currentVersion }: Readonly<{ job: PatternJobView; currentV
   return (
     <div className="grid gap-4">
       <p className="text-[15px] text-ink-2">
-        Size {job.size}
+        {job.kind === "size-set" ? "Every size" : `Size ${job.size}`}
         {job.pieces ? `, ${job.pieces} pieces` : ""}. Drafted from the {job.draft ?? "pattern"} block.
+        {job.kind === "size-set" ? " The sizes are stored in the pattern library, with the measurements read from each one." : ""}
         {job.version < currentVersion ? " The design has changed since: ask again for a pattern of the newest version." : ""}
       </p>
       {job.previewFileId ? <Preview fileId={job.previewFileId} /> : null}
@@ -119,10 +120,10 @@ export function PatternSection({ projectId, sizes, currentVersion }: PatternSect
     };
   }, [projectId, polls]);
 
-  const ask = async () => {
+  const ask = async (kind: "single" | "size-set" = "single") => {
     setAsking(true);
     setProblem(null);
-    const result = await askForPattern(projectId, size);
+    const result = await askForPattern(projectId, size, fetch, kind);
     setAsking(false);
     if (result.ok) {
       setJob(result.job);
@@ -140,7 +141,7 @@ export function PatternSection({ projectId, sizes, currentVersion }: PatternSect
         </h2>
         <p className="text-sm text-muted">
           The pieces to cut, as a DXF file for a cutting room or pattern software. Each pattern is drafted from a standard block for the
-          size you choose. Treat it as a draft: no pattern maker has looked at it yet.
+          size you choose, or for every size at once. It is a draft pattern, not reviewed, until a named person has reviewed it in the pattern library.
         </p>
       </div>
 
@@ -161,12 +162,15 @@ export function PatternSection({ projectId, sizes, currentVersion }: PatternSect
           <Button type="button" pending={asking || working} onClick={() => void ask()}>
             {working ? "Drafting…" : job?.status === "ready" ? "Make another pattern" : "Make the pattern"}
           </Button>
+          <Button type="button" variant="secondary" disabled={asking || working} onClick={() => void ask("size-set")}>
+            Make every size
+          </Button>
         </div>
       ) : null}
 
       {working && job ? (
         <p role="status" className="text-sm text-muted">
-          Size {job.size}: {STATUS_WORDS[job.status as "waiting" | "drafting"]}
+          {job.kind === "size-set" ? "Every size" : `Size ${job.size}`}: {STATUS_WORDS[job.status as "waiting" | "drafting"]}
         </p>
       ) : null}
       {problem ? (

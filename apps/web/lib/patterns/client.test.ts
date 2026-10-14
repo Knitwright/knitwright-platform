@@ -11,6 +11,8 @@ const view = {
   id: ID,
   version: 2,
   size: "M",
+  kind: "single",
+  blockId: null,
   status: "waiting",
   draft: null,
   pieces: null,
@@ -30,6 +32,13 @@ describe("askForPattern", () => {
     const [url, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("/api/projects/p1/patterns");
     expect(JSON.parse(String(init.body))).toEqual({ size: "L" });
+  });
+
+  it("asks for the whole size run when told to", async () => {
+    const fetcher = vi.fn(async () => json({ success: true, data: { ...view, kind: "size-set" } }));
+    await askForPattern("p1", "M", fetcher, "size-set");
+    const [, init] = fetcher.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toEqual({ size: "M", kind: "size-set" });
   });
 
   it("passes on the server's reason, and a plain one when the answer is odd", async () => {
