@@ -1,8 +1,8 @@
+import { ALL_GENERATORS } from "@/lib/pattern-generators/registry";
 import type { PatternGenerator } from "./generator";
-import { KIT_STYLE_GENERATORS } from "./legacy/kit-styles";
 
-/** The generators built in today. The pattern library (W7c) supplies the full list; code that draws takes the list as an argument. */
-export const BUILT_IN_GENERATORS: readonly PatternGenerator[] = KIT_STYLE_GENERATORS;
+/** Every generator the app draws with: the eight older styles and the pattern library (W7c, `lib/pattern-generators`). Code that draws takes the list as an argument. */
+export const BUILT_IN_GENERATORS: readonly PatternGenerator[] = ALL_GENERATORS;
 
 export const findGenerator = (id: string, generators: readonly PatternGenerator[] = BUILT_IN_GENERATORS): PatternGenerator | undefined =>
   generators.find((entry) => entry.id === id);
