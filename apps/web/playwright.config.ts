@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { parseEnv } from "node:util";
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3100;
+// E2E_PORT lets several copies of the repo run the browser tests side by side.
+const PORT = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = `http://localhost:${PORT}`;
 
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
