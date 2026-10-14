@@ -16,8 +16,14 @@ const signedIn = async (page: Page, label: string): Promise<void> => {
   await expect(page).toHaveURL(/\/studio$/);
 };
 
-/** No problem axe calls serious or critical on the page as it stands. */
+/**
+ * No problem axe calls serious or critical on the page as it stands. It waits for the entrance
+ * to finish first: text that is still fading in fails the contrast rule for a moment.
+ */
 const accessible = async (page: Page): Promise<void> => {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
+  );
   const { violations } = await new AxeBuilder({ page }).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
   expect(serious.map((entry) => `${entry.id}: ${entry.help}`)).toEqual([]);
