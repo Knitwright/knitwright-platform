@@ -15,3 +15,9 @@ export const pageMap = (page: Box): PageMap => (p) => [p[0] - page.minX, page.ma
 export function pathData(shape: Shape, to: PageMap): string {
   return shape.map((ring) => `M${ring.map((p) => to(p)).map(([x, y]) => `${num(x)} ${num(y)}`).join("L")}Z`).join("");
 }
+
+/** A matrix coefficient: a scale of 0.1693 must not be written as 0.17, so these keep nine decimals. */
+export const coefficient = (value: number): string => {
+  const r = Math.round(value * 1e9) / 1e9;
+  return Object.is(r, -0) ? "0" : String(r);
+};

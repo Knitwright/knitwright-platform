@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { PrintFormat } from "@/lib/production/contract";
+import type { PrintFormat } from "../formats";
 import type { PieceScene } from "../layout/scene";
 import { pageSizeMm, buildSvg } from "./svg";
 import { buildPdf } from "./pdf";

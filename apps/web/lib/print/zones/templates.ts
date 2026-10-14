@@ -40,8 +40,8 @@ const zone = (z: Omit<ZoneTemplate, "clearSpaceMm" | "source"> & { source?: stri
 
 /** The zones of the jersey template. A garment with other pieces adds its own list. */
 export const ZONE_TEMPLATES: readonly ZoneTemplate[] = [
-  zone({ id: "crest", purpose: "crest", view: "front", across: 0.5, down: 0.5, widthMm: 80, heightMm: 80 }),
-  zone({ id: "sponsor", purpose: "sponsor", view: "front", across: 0, down: 0.9, widthMm: 300, heightMm: 70, source: SPONSOR_SOURCE }),
+  zone({ id: "crest", purpose: "crest", view: "front", across: 0.48, down: 0.55, widthMm: 90, heightMm: 90 }),
+  zone({ id: "sponsor", purpose: "sponsor", view: "front", across: 0, down: 0.95, widthMm: 300, heightMm: 70, source: SPONSOR_SOURCE }),
   zone({ id: "front-number", purpose: "front-number", view: "front", across: 0, down: 1.45, widthMm: 160, heightMm: 120 }),
   zone({ id: "back-name", purpose: "back-name", view: "back", across: 0, down: 0.3, widthMm: 320, heightMm: 60 }),
   zone({ id: "back-number", purpose: "back-number", view: "back", across: 0, down: 1.28, widthMm: 300, heightMm: 300 }),

@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { clipShape, subtractRegions, type Shape } from "../geometry/boolean";
 import { boundsOf, boxesOverlap, round2, type Box, type Pt } from "../geometry/vec";
-import { pageMap, pathData, num } from "../render/svg-util";
+import { coefficient, num, pageMap, pathData } from "../render/svg-util";
 import { svgToPng } from "../raster/rasterise";
 import { stripsOf, type PixelGrid } from "../raster/grid";
 import type { RasterStrip } from "./scene";
@@ -88,7 +88,7 @@ export async function rasteriseImageSet(set: ImageSet, paint: Shape, page: Box, 
     });
     const uses = at.map((k) => {
       const i = set.instances[k];
-      return `<use href="#${i.tile}" transform="matrix(${[i.ex[0], -i.ex[1], i.ey[0], -i.ey[1], i.origin[0] - page.minX, page.maxY - i.origin[1]].map(num).join(" ")})"/>`;
+      return `<use href="#${i.tile}" transform="matrix(${[i.ex[0], -i.ex[1], i.ey[0], -i.ey[1], i.origin[0] - page.minX, page.maxY - i.origin[1]].map(coefficient).join(" ")})"/>`;
     });
     const top = (page.maxY - strip.box.maxY);
     const [w, h] = [page.maxX - page.minX, strip.box.maxY - strip.box.minY];
