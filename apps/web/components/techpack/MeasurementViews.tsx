@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { HowToMeasureSection, MeasurementsSection } from "@/lib/techpack";
 import { measureHeads, measureRowView, type MeasureCellView } from "@/lib/projects/tech-pack-measure-view";
 import { Cellular, DocSection, DocTable, FillIn, RowHead } from "./parts";
+import { OnPatternView } from "./ProductionViews";
 
 /**
  * Below the sm breakpoint each row of the size table becomes a card, so no size is off the side
@@ -101,6 +102,7 @@ export function MeasurementsView({ table, forms, confirm }: MeasurementsProps) {
           </div>
         </div>
       ))}
+      {table.onPattern ? <OnPatternView table={table.onPattern} /> : null}
       {confirm}
       <FillIn summary="Fill in the measurements">{forms}</FillIn>
     </DocSection>

@@ -1,8 +1,19 @@
 import type { ComponentKind, LabellingField, PointGroup, Provenance } from "@/lib/garment";
 import type { FlatModel, View } from "@/lib/flat/model";
-import type { Cell, ClassCell, LengthValue, NumberValue, ProposalCell, TbcCell } from "./cell";
+import type { Cell, ClassCell, LengthValue, NumberValue, ProposalCell } from "./cell";
+import type {
+  ArtworkAndColourSection,
+  FabricSection,
+  OnPatternTable,
+  OperationsSection,
+  PatternAndCuttingSection,
+  ReadinessSection,
+  SignOffLine,
+  StrikeOffLine,
+} from "./production/types";
 
 export type { Cell, ClassCell, LengthCell, LengthValue, NumberCell, NumberValue, ProposalCell, SetCell, TbcCell } from "./cell";
+export type * from "./production/types";
 
 /**
  * The tech pack document: plain data that the screen, the PDF, the Excel file and the SVG
@@ -12,13 +23,18 @@ export type { Cell, ClassCell, LengthCell, LengthValue, NumberCell, NumberValue,
 
 export const SECTION_IDS = [
   "cover",
+  "readiness",
   "flats",
   "measurements",
   "how-to-measure",
+  "pattern-and-cutting",
   "components",
+  "fabric",
   "construction",
   "colourways",
   "artwork",
+  "artwork-and-colour",
+  "operations",
   "labelling",
   "suggested",
   "sign-off",
@@ -27,13 +43,18 @@ export type SectionId = (typeof SECTION_IDS)[number];
 
 export const SECTION_TITLES: Readonly<Record<SectionId, string>> = {
   cover: "Cover",
+  readiness: "Ready for the factory",
   flats: "Flats with callouts",
   measurements: "Measurement table",
   "how-to-measure": "How to measure",
+  "pattern-and-cutting": "Pattern and cutting",
   components: "Component list",
+  fabric: "Fabric",
   construction: "Construction",
   colourways: "Colourways",
   artwork: "Artwork placement",
+  "artwork-and-colour": "Artwork and colour",
+  operations: "Order of work",
   labelling: "Labels and packing",
   suggested: "Suggested values",
   "sign-off": "Sign-off",
@@ -127,6 +148,8 @@ export interface MeasurementsSection extends SectionHead {
   readonly groups: readonly MeasureGroup[];
   /** Where the sizes came from, in words, or null when there are none. */
   readonly sizesFrom: "design" | "chart" | null;
+  /** The same table set against the pattern, or null while there is no measured pattern. */
+  readonly onPattern: OnPatternTable | null;
 }
 
 export interface HowToMeasureRow {
@@ -298,13 +321,13 @@ export interface SuggestedSection extends SectionHead {
 }
 
 /**
- * A place for a named person and a date. In this step it is always empty, and its type says
- * so: the name and the date can only be "to be confirmed".
+ * The sign-off page: a line for each role, and the strike-off. A line holds a name and a date only
+ * when a record of a real person says so; otherwise both are to be confirmed.
  */
 export interface SignOffSection extends SectionHead {
   readonly statement: string;
-  readonly name: TbcCell;
-  readonly date: TbcCell;
+  readonly lines: readonly SignOffLine[];
+  readonly strikeOff: StrikeOffLine;
 }
 
 export interface TechPack {
@@ -315,13 +338,18 @@ export interface TechPack {
   /** Every section in reading order, for a contents list. */
   readonly sections: readonly SectionHead[];
   readonly cover: CoverSection;
+  readonly readiness: ReadinessSection;
   readonly flats: FlatsSection;
   readonly measurements: MeasurementsSection;
   readonly howToMeasure: HowToMeasureSection;
+  readonly patternAndCutting: PatternAndCuttingSection;
   readonly components: ComponentsSection;
+  readonly fabric: FabricSection;
   readonly construction: ConstructionSection;
   readonly colourways: ColourwaysSection;
   readonly artwork: ArtworkSection;
+  readonly artworkAndColour: ArtworkAndColourSection;
+  readonly operations: OperationsSection;
   readonly labelling: LabellingSection;
   readonly suggested: SuggestedSection;
   readonly signOff: SignOffSection;

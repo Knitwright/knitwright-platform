@@ -70,7 +70,22 @@ describe("the Excel file equals the document (T2)", () => {
     const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee"))));
     const names = sheets.map((sheet) => sheet.sheet);
     expect(names).toEqual(Object.values(EXCEL_SHEETS).filter((name): name is string => name !== null));
-    expect(names).toEqual(["Cover", "Measurements", "Components", "Construction", "Colourways", "Artwork", "Labels and packing", "Suggested values", "Sign-off"]);
+    expect(names).toEqual([
+      "Cover",
+      "Ready for the factory",
+      "Measurements",
+      "Pattern and cutting",
+      "Components",
+      "Fabric",
+      "Construction",
+      "Colourways",
+      "Artwork",
+      "Artwork and colour",
+      "Order of work",
+      "Labels and packing",
+      "Suggested values",
+      "Sign-off",
+    ]);
     for (const name of names) expect(name).toMatch(/^[^\\/?*[\]:]{1,31}$/);
   });
 
@@ -155,9 +170,10 @@ describe("the Excel file equals the document (T2)", () => {
   it("freezes the header row and makes it bold", async () => {
     const bytes = await buildWorkbook(packFor(fullDesign("crew-tee")));
     const files = unzipText(bytes);
-    // The cover starts with a table that has no title, so its header is row 1. Measurements starts with a title.
+    // The cover and the readiness list start with a table that has no title, so their header is row 1. Measurements starts with a title.
     expect(files["xl/worksheets/sheet1.xml"]).toMatch(/<pane ySplit="1"[^>]*state="frozen"/);
-    expect(files["xl/worksheets/sheet2.xml"]).toMatch(/<pane ySplit="2"[^>]*state="frozen"/);
+    expect(files["xl/worksheets/sheet2.xml"]).toMatch(/<pane ySplit="1"[^>]*state="frozen"/);
+    expect(files["xl/worksheets/sheet3.xml"]).toMatch(/<pane ySplit="2"[^>]*state="frozen"/);
     const styles = files["xl/styles.xml"] ?? "";
     const fonts = [...(/<fonts[^>]*>([\s\S]*?)<\/fonts>/.exec(styles)?.[1] ?? "").matchAll(/<font>([\s\S]*?)<\/font>|<font\/>/g)];
     const boldFonts = fonts.flatMap((font, index) => (/<b\/>/.test(font[0]) ? [index] : []));

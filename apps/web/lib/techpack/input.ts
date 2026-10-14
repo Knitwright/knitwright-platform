@@ -1,6 +1,7 @@
 import type { FlatModel, View } from "@/lib/flat/model";
 import type { GarmentSpec } from "@/lib/garment";
 import type { ChartSet } from "@/lib/sizing";
+import type { ProductionInput } from "./production/input";
 
 /** The most revisions the cover lists. Older ones are named in a line, not listed. */
 export const REVISIONS_SHOWN = 8;
@@ -40,4 +41,6 @@ export interface TechPackInput {
   readonly charts?: ChartSet;
   /** The drawings to show, front and back. Build them with `flatsForTechPack` to match the table. */
   readonly flats: Readonly<Record<View, FlatModel | null>>;
+  /** What the production services know: the pattern, the fabric test, the print files and the records of people. All optional. */
+  readonly production?: ProductionInput;
 }

@@ -41,7 +41,29 @@ const NOT_VALUES: readonly RegExp[] = [
   /^labelling\.rows\[\d+\]\.(field|label)$/,
   /^suggested\.(items|proposals)\[\d+\]\.(sectionId|sectionTitle|label|provenance|cells)$/,
   /^suggested\.proposalsNote$/,
-  /^signOff\.statement$/,
+  /^signOff\.(statement|lines\[\d+\]\.role)$/,
+  // Tech pack v2: names, ids, sentences and counts. A value a factory reads is in a cell.
+  /^readiness\.(summary|open\[\d+\]\.(whoActs|actorLabel|count)|groups\[\d+\]\.(id|title)|groups\[\d+\]\.items\[\d+\]\.(id|sentence|whoActs|actorLabel))$/,
+  /^measurements\.onPattern\.(summary|outside)$/,
+  /^measurements\.onPattern\.rows\[\d+\]\.(pointId|code|label)$/,
+  /^measurements\.onPattern\.rows\[\d+\]\.cells\[\d+\]\.(size|status|flag)$/,
+  /^measurements\.onPattern\.patternOnly\[\d+\]\.(pointId|label|method)$/,
+  /^measurements\.onPattern\.patternOnly\[\d+\]\.cells\[\d+\]\.size$/,
+  /^patternAndCutting\.(blockName|fabricUseNote)$/,
+  /^patternAndCutting\.cutList\[\d+\]\.(size|pieceId)$/,
+  /^patternAndCutting\.seamAllowances\[\d+\]\.(size|pieceName|seamId|sourceNote)$/,
+  /^patternAndCutting\.fabricUse\[\d+\]\.(size|note)$/,
+  /^fabric\.(printScaleNote|reductionNote)$/,
+  /^fabric\.rows\[\d+\]\.(id|label|sourceNote)$/,
+  /^artworkAndColour\.(colourNote|printParametersNote)$/,
+  /^artworkAndColour\.colours\[\d+\]\.(id|role)$/,
+  /^artworkAndColour\.repeat\.(checks\[\d+\]|ok)$/,
+  /^artworkAndColour\.repeat\.(lengths|settings)\[\d+\]\.label$/,
+  /^artworkAndColour\.zones\[\d+\]\.(id|purpose|pieceName|sizes)$/,
+  /^artworkAndColour\.placements\[\d+\]\.(size|zone|pieceName)$/,
+  /^artworkAndColour\.printRules\[\d+\]\.label$/,
+  /^artworkAndColour\.printParameters\[\d+\]\.(pieceName|size|player)$/,
+  /^operations\.steps\[\d+\]\.(order|stage|stageLabel|label)$/,
 ];
 
 const withoutModels = (pack: TechPack): unknown => withoutDrawings(pack);
@@ -141,6 +163,10 @@ const DIGITS_ALLOWED: readonly RegExp[] = [
   /\.iso$/,
   // How many cells an item on the suggested page stands for.
   /^suggested\.(items|proposals)\[\d+\]\.cells$/,
+  // How many things are left, in the readiness list and the table against the pattern; and the number of a step.
+  /^readiness\./,
+  /^operations\.steps\[\d+\]\.order$/,
+  /^measurements\.onPattern\./,
 ];
 
 const SHOULD_BE_TBC: readonly RegExp[] = [
@@ -151,7 +177,7 @@ const SHOULD_BE_TBC: readonly RegExp[] = [
   /^construction\.seams\[\d+\]\.stitchDensity$/,
   /^colourways\.colourways\[\d+\]\.rows\[\d+\]\.(code|screenColour)$/,
   /^labelling\.rows\[\d+\]\.value$/,
-  /^signOff\.(name|date)$/,
+  /^signOff\.(lines\[\d+\]\.(name|date)|strikeOff\.(acceptedBy|date|result))$/,
 ];
 
 describe("nothing is invented", () => {
@@ -196,6 +222,10 @@ describe("nothing is invented", () => {
 
 const CHECKED_WORDS = /\b(checked|verified|verify|approved|validated|reviewed|certified|signed)\b/i;
 
+/** Sentences that say a pattern is NOT reviewed. They are the only ones with these words in a design without records. */
+const NOT_DONE_SENTENCES: readonly string[] = ["Nobody has checked this specification yet.", "Draft pattern, not reviewed."];
+const withoutNotDone = (document: string): string => NOT_DONE_SENTENCES.reduce((left, sentence) => left.split(sentence).join(""), document);
+
 describe("suggestions are never shown as checked", () => {
   const suggested = (): GarmentSpec => {
     let spec = fullDesign("polo");
@@ -214,7 +244,7 @@ describe("suggestions are never shown as checked", () => {
   it("has no field, flag or word meaning checked or verified, apart from the one sentence that says nobody has", () => {
     for (const spec of [start("polo"), fullDesign("polo"), suggested()]) {
       const document = JSON.stringify(withoutModels(packFor(spec, { charts: CHARTS })));
-      const withoutStatement = document.replace("Nobody has checked this specification yet.", "");
+      const withoutStatement = withoutNotDone(document);
       expect(withoutStatement).not.toMatch(CHECKED_WORDS);
       expect(withoutStatement).not.toMatch(/"(checked|verified|isChecked|isVerified|reviewed|approved|signedOff)"/i);
     }
@@ -223,8 +253,11 @@ describe("suggestions are never shown as checked", () => {
   it("keeps the sign-off empty and says so, whatever the design holds", () => {
     for (const spec of [start("polo"), fullDesign("polo"), suggested()]) {
       const { signOff } = packFor(spec);
-      expect(signOff.name).toEqual({ status: "to-be-confirmed" });
-      expect(signOff.date).toEqual({ status: "to-be-confirmed" });
+      for (const line of signOff.lines) {
+        expect(line.name).toEqual({ status: "to-be-confirmed" });
+        expect(line.date).toEqual({ status: "to-be-confirmed" });
+      }
+      expect(signOff.strikeOff.acceptedBy).toEqual({ status: "to-be-confirmed" });
       expect(signOff.statement).toBe("Nobody has checked this specification yet.");
     }
   });

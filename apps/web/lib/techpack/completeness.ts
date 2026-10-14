@@ -47,6 +47,9 @@ export function confirmSentence(report: Pick<CompletenessReport, "total" | "sugg
     : "No empty fields. Suggestions and proposed stitching are still not confirmed by anyone.";
 }
 
+/** The parts of the document the report reads. */
+export type CompletenessSource = Pick<TechPack, "cover" | "measurements" | "components" | "construction" | "colourways" | "labelling" | "suggested">;
+
 const missing = (cell: Cell): boolean => cell.status !== "set";
 
 const named = (parts: readonly (readonly [Cell, string])[]): string | null => {
@@ -62,7 +65,7 @@ const item = (sectionId: SectionId, target: string, label: string, detail: strin
   target,
 });
 
-function coverItems(pack: TechPack): ConfirmItem[] {
+function coverItems(pack: CompletenessSource): ConfirmItem[] {
   const { cover } = pack;
   const fields: readonly (readonly [Cell, string, string])[] = [
     [cover.styleNumber, "styleNumber", "Style number"],
@@ -77,7 +80,7 @@ function coverItems(pack: TechPack): ConfirmItem[] {
   return fields.filter(([cell]) => missing(cell)).map(([, target, label]) => item("cover", target, label, null));
 }
 
-function measurementItems(pack: TechPack): ConfirmItem[] {
+function measurementItems(pack: CompletenessSource): ConfirmItem[] {
   const { columns, groups } = pack.measurements;
   return groups.flatMap((group) =>
     group.rows.flatMap((row) => {
@@ -92,7 +95,7 @@ function measurementItems(pack: TechPack): ConfirmItem[] {
   );
 }
 
-function componentItems(pack: TechPack): ConfirmItem[] {
+function componentItems(pack: CompletenessSource): ConfirmItem[] {
   const fabrics = pack.components.fabrics.flatMap((line) => {
     const detail = named([
       [line.composition, "composition"],
@@ -116,12 +119,12 @@ function componentItems(pack: TechPack): ConfirmItem[] {
   return [...fabrics, ...others];
 }
 
-const constructionItems = (pack: TechPack): ConfirmItem[] =>
+const constructionItems = (pack: CompletenessSource): ConfirmItem[] =>
   pack.construction.seams
     .filter((seam) => missing(seam.stitchDensity))
     .map((seam) => item("construction", seam.seamId, seam.label, "Stitch density"));
 
-const colourwayItems = (pack: TechPack): ConfirmItem[] =>
+const colourwayItems = (pack: CompletenessSource): ConfirmItem[] =>
   pack.colourways.colourways.flatMap((block) =>
     block.rows.flatMap((row) => {
       const detail = named([
@@ -132,7 +135,7 @@ const colourwayItems = (pack: TechPack): ConfirmItem[] =>
     }),
   );
 
-const labellingItems = (pack: TechPack): ConfirmItem[] =>
+const labellingItems = (pack: CompletenessSource): ConfirmItem[] =>
   pack.labelling.rows.filter((row) => missing(row.value)).map((row) => item("labelling", row.field, row.label, null));
 
 /**
@@ -140,7 +143,7 @@ const labellingItems = (pack: TechPack): ConfirmItem[] =>
  * "12 things to confirm" and list them. A thing is a row: a measurement with a gap in it counts
  * once. The sign-off is empty on purpose and is not counted.
  */
-export function completenessReport(pack: TechPack): CompletenessReport {
+export function completenessReport(pack: CompletenessSource): CompletenessReport {
   const found: readonly ConfirmItem[] = [
     ...coverItems(pack),
     ...measurementItems(pack),

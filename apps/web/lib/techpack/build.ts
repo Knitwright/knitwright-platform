@@ -1,5 +1,6 @@
 import { buildArtwork } from "./artwork";
 import { buildColourways } from "./colourways";
+import { completenessReport } from "./completeness";
 import { buildComponents } from "./components";
 import { buildConstruction } from "./construction";
 import { buildCover } from "./cover";
@@ -7,6 +8,12 @@ import { buildFlatsSection } from "./flats";
 import type { TechPackInput } from "./input";
 import { buildLabelling } from "./labelling";
 import { buildHowToMeasure, buildMeasurements } from "./measurements";
+import { buildArtworkAndColour, coloursFromColourways } from "./production/artwork-colour";
+import { buildFabric } from "./production/fabric";
+import { buildOnPattern } from "./production/measured";
+import { buildOperations } from "./production/operations";
+import { buildPatternAndCutting } from "./production/pattern-cutting";
+import { buildReadiness } from "./production/readiness";
 import { buildSignOff } from "./sign-off";
 import { buildSuggested } from "./suggested";
 import type { SectionHead, TechPack } from "./types";
@@ -21,7 +28,13 @@ const head = ({ id, title, note }: SectionHead): SectionHead => ({ id, title, no
  */
 export function buildTechPack(input: TechPackInput): TechPack {
   const { spec, charts } = input;
-  const measurements = buildMeasurements(spec, charts);
+  const production = input.production ?? {};
+  const measured = buildMeasurements(spec, charts);
+  const measurements = { ...measured, onPattern: buildOnPattern(measured, production.measured ?? [], production.sizeMap ?? []) };
+  const colourways = buildColourways(spec, charts);
+  const construction = buildConstruction(spec);
+  const artwork = buildArtwork(spec);
+  const technique = production.technique ?? spec.kitPattern?.technique ?? spec.artwork[0]?.technique ?? null;
   const pack = {
     title: "Tech pack",
     printedOn: input.printedOn,
@@ -30,26 +43,44 @@ export function buildTechPack(input: TechPackInput): TechPack {
     flats: buildFlatsSection(spec, input.flats, charts),
     measurements,
     howToMeasure: buildHowToMeasure(spec),
+    patternAndCutting: buildPatternAndCutting({ pattern: production.pattern, review: production.review, fabric: production.fabric, marker: production.marker }),
     components: buildComponents(spec),
-    construction: buildConstruction(spec),
-    colourways: buildColourways(spec, charts),
-    artwork: buildArtwork(spec),
+    fabric: buildFabric(production.fabric, production.blockReduction),
+    construction,
+    colourways,
+    artwork,
+    artworkAndColour: buildArtworkAndColour(production, colourways),
+    operations: buildOperations(technique, construction, artwork.playerMarks.length > 0),
     labelling: buildLabelling(spec),
-    signOff: buildSignOff(),
+    signOff: buildSignOff(production.signOffs, production.strikeOff),
   };
   const suggested = buildSuggested(pack);
+  const readiness = buildReadiness({
+    input: production,
+    orderedSizes: measurements.columns.flatMap((column) => (column.size === null ? [] : [column.size])),
+    measurements,
+    onPattern: measurements.onPattern,
+    completeness: completenessReport({ ...pack, suggested }),
+    colours: production.colours ?? coloursFromColourways(colourways),
+    needsRoster: spec.namesAndNumbers !== undefined,
+  });
   const sections = [
     pack.cover,
+    readiness,
     pack.flats,
     pack.measurements,
     pack.howToMeasure,
+    pack.patternAndCutting,
     pack.components,
+    pack.fabric,
     pack.construction,
     pack.colourways,
     pack.artwork,
+    pack.artworkAndColour,
+    pack.operations,
     pack.labelling,
     suggested,
     pack.signOff,
   ].map(head);
-  return { ...pack, suggested, sections };
+  return { ...pack, readiness, suggested, sections };
 }

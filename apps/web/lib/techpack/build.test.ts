@@ -14,13 +14,18 @@ describe("buildTechPack", () => {
         expect(pack.sections.map((section) => section.title)).toEqual(SECTION_IDS.map((id) => SECTION_TITLES[id]));
         const own = [
           pack.cover,
+          pack.readiness,
           pack.flats,
           pack.measurements,
           pack.howToMeasure,
+          pack.patternAndCutting,
           pack.components,
+          pack.fabric,
           pack.construction,
           pack.colourways,
           pack.artwork,
+          pack.artworkAndColour,
+          pack.operations,
           pack.labelling,
           pack.suggested,
           pack.signOff,

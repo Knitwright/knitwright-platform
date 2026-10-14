@@ -28,12 +28,17 @@ describe("the sections of the factory file", () => {
   it("lists the sections in the order of the file, with Bill of materials and Sources and notes", () => {
     expect(NAV_SECTIONS.map((section) => section.label)).toEqual([
       "Cover",
+      "Ready for the factory",
       "Flats",
       "Measurements",
       "How to measure",
+      "Pattern and cutting",
       "Construction",
+      "Order of work",
       "Bill of materials",
+      "Fabric",
       "Artwork",
+      "Artwork and colour",
       "Labelling",
       "Colourways",
       "Illustrations",
