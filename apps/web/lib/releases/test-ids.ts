@@ -3,7 +3,6 @@ import { AppError } from "@/lib/server/core/errors";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const STRIKE_OFF_PREFIX = "strike-off-";
-const MISSING_TABLE = "42P01";
 
 type Ids = readonly string[];
 
@@ -16,12 +15,11 @@ async function strikeOffTests(client: SupabaseClient, brandId: string, projectId
   return (found.data ?? []).map((r: { id: string }) => `${STRIKE_OFF_PREFIX}${r.id}`);
 }
 
-/** Fabric tests in the fabric library. Before that library is installed there are none. */
+/** Fabric tests in the brand's fabric library. */
 async function libraryTests(client: SupabaseClient, brandId: string, wanted: Ids): Promise<Ids> {
   const ids = wanted.filter((t) => !t.startsWith(STRIKE_OFF_PREFIX));
   if (ids.length === 0) return [];
   const found = await client.from("fabric_tests").select("id").eq("brand_id", brandId).in("id", ids);
-  if (found.error?.code === MISSING_TABLE) return [];
   if (found.error) throw new AppError("not_found", "A fabric test could not be checked.");
   return (found.data ?? []).map((r: { id: string }) => r.id);
 }

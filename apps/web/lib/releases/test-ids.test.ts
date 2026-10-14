@@ -37,8 +37,8 @@ describe("checkFabricTestIds", () => {
     expect(eqs).toContainEqual(["brand_id", BRAND]);
   });
 
-  it("treats a missing fabric test table as no tests", async () => {
-    const { client } = fakeClient({ strike_offs: { data: [{ id: SO }] }, fabric_tests: { error: { code: "42P01", message: "no table" } } });
-    await expect(checkFabricTestIds(client, BRAND, PROJECT, [`strike-off-${SO}`])).resolves.toBeUndefined();
+  it("refuses when the fabric test table cannot be queried", async () => {
+    const { client } = fakeClient({ strike_offs: { data: [{ id: SO }] }, fabric_tests: { error: { code: "XX000", message: "boom" } } });
+    await expect(checkFabricTestIds(client, BRAND, PROJECT, [`strike-off-${SO}`, FT])).rejects.toThrow("could not be checked");
   });
 });
