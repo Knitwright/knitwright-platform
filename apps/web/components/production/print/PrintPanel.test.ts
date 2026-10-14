@@ -31,3 +31,9 @@ describe("the print files panel", () => {
     expect(views.flatMap((v) => v.zones).every((z) => z.ring.length === 4)).toBe(true);
   });
 });
+
+describe("the print files panel and the pattern library", () => {
+  it("tells the person where the pieces come from", () => {
+    expect(renderToStaticMarkup(createElement(PrintPanel))).toContain("add the pattern for this garment in Patterns first");
+  });
+});
