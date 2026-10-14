@@ -87,6 +87,20 @@ test.describe("brands", () => {
     await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC!");
   });
 
+  test("the legal pages still open after a brand is renamed", async ({ page }) => {
+    // Renaming a brand revalidates every page. The legal pages are built ahead, and must be made again, not lost.
+    await signedIn(page, "renamed-legal", "Old Name");
+    await page.goto("/brands");
+    await page.getByLabel("Brand name").fill("New Name");
+    await page.getByRole("button", { name: "Save name" }).click();
+    await expect(page.getByText("The name is saved.")).toBeVisible();
+
+    const response = await page.goto("/legal/terms");
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole("heading", { level: 1, name: "Terms of use" })).toBeVisible();
+    expect((await page.goto("/legal/no-such-document"))?.status()).toBe(404);
+  });
+
   test("the brand link in the header says what it is and where it goes", async ({ page }) => {
     await signedIn(page, "link-name", "Harbour Rowing Club");
 

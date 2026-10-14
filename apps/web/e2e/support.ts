@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test as base, expect, type BrowserContext, type Page } from "@playwright/test";
+import { test as base, expect, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 /** Helpers for end-to-end tests. They need local Supabase: `pnpm db:start`. */
@@ -177,10 +177,16 @@ export const linkFromMail = async (email: string, subject: RegExp): Promise<stri
   throw new Error(`No message matching ${subject} arrived for ${email}.`);
 };
 
-/** Waits until the bot check for the current attempt has passed. */
-export const passBotCheck = async (page: Page): Promise<void> => {
-  await expect(page.locator('[data-bot-check="ready"]')).toBeVisible();
+/**
+ * Waits until the bot check for the current attempt has passed. A page with more than one form
+ * that has a bot check, such as the sign-up page, passes the form the test uses.
+ */
+export const passBotCheck = async (scope: Page | Locator): Promise<void> => {
+  await expect(scope.locator('[data-bot-check="ready"]')).toBeVisible();
 };
+
+/** The form on the sign-up page that sends a link to a work email. */
+export const signUpLinkForm = (page: Page): Locator => page.locator("form").filter({ has: page.getByLabel("Work email") });
 
 /** The one-sentence problem at the top of a form. */
 export const summary = (page: Page) => page.locator("[data-form-summary]");
@@ -245,4 +251,59 @@ export const consentRecords = async (userId: string): Promise<ConsentRecord[]> =
     .order("created_at");
   if (error) throw new Error(error.message);
   return data as ConsentRecord[];
+};
+
+/** The brand an account belongs to, read with the server's own key. The account must have exactly one. */
+const brandIdOf = async (email: string): Promise<string> => {
+  const { data, error } = await admin()
+    .from("memberships")
+    .select("brand_id")
+    .eq("user_id", await userIdOf(email))
+    .single();
+  if (error) throw new Error(error.message);
+  return (data as { brand_id: string }).brand_id;
+};
+
+/**
+ * Makes a second account that belongs to the brand of `email`, as a colleague would.
+ * Its only brand is that one, so it works in it. Returns the colleague's address.
+ */
+export const createColleagueOf = async (email: string, label: string): Promise<string> => {
+  const colleague = await createAccount(label, { brand: null });
+  const membership = await admin()
+    .from("memberships")
+    .insert({ brand_id: await brandIdOf(email), user_id: await userIdOf(colleague), role: "owner" });
+  if (membership.error) throw new Error(membership.error.message);
+  return colleague;
+};
+
+/**
+ * Leaves one garment of the brand of `email` with no size chart, as every design had before
+ * the Knitwright starter charts. The brand is given its own chart for that garment for the
+ * slim fit only. A brand's chart takes the place of the starter chart, and no chart is
+ * borrowed from another fit, so a design of that garment at the regular fit starts with no
+ * measurements at all.
+ */
+export const leaveWithoutChart = async (email: string, garmentType: string, wearer: string): Promise<void> => {
+  const run = { id: "e2e-slim-only", wearer, sizes: ["S", "M", "L"] };
+  const chart = {
+    wearer,
+    garmentType,
+    fit: "slim",
+    sizeRunId: run.id,
+    baseSize: "M",
+    points: [{ pointId: "chest-width", baseValue: 5000, grade: { kind: "even", step: 200 }, tolerance: 100 }],
+    source: { person: "End to end tests", date: "2026-10-14" },
+  };
+  const { error } = await admin().rpc("replace_brand_chart", {
+    p_brand_id: await brandIdOf(email),
+    p_user_id: await userIdOf(email),
+    p_wearer: wearer,
+    p_garment_type: garmentType,
+    p_fit: "slim",
+    p_chart: chart,
+    p_run: run,
+    p_file_id: null,
+  });
+  if (error) throw new Error(error.message);
 };

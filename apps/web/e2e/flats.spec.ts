@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import sharp from "sharp";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, leaveWithoutChart, signIn, test } from "./support";
 
 /**
  * Plan step 7: the drawing in the editor. It is drawn on the server and shown as a
@@ -54,8 +54,20 @@ const logo = (): Promise<Buffer> =>
   sharp({ create: { width: 120, height: 60, channels: 3, background: "#cc3300" } }).png().toBuffer();
 
 test.describe("the drawing", () => {
-  test("a new crew tee is drawn from proportions and marked not to scale, until every measurement is typed", async ({ page }) => {
-    await signedIn(page, "flat-scale");
+  test("a new crew tee is drawn to scale from the measurements of the starter chart", async ({ page }) => {
+    await signedIn(page, "flat-starter");
+    await startDesign(page, "Crew neck tee");
+
+    await expect(front(page)).toBeVisible();
+    await expect(page.getByTestId("flat-notice")).toHaveCount(0);
+    await expect(page.getByTestId("flat-scale")).toHaveText("Drawn to scale from your measurements.");
+  });
+
+  test("a crew tee with no size chart is drawn from proportions and marked not to scale, until every measurement is typed", async ({ page }) => {
+    const email = await createAccount("flat-scale");
+    await leaveWithoutChart(email, "crew-tee", "women");
+    await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     await startDesign(page, "Crew neck tee");
 
     await expect(front(page)).toBeVisible();
@@ -192,10 +204,22 @@ test.describe("the drawing", () => {
     await signedIn(page, "flat-norights");
     await startDesign(page, "Crew neck tee");
 
+    const uploads: string[] = [];
+    page.on("request", (request) => {
+      if (request.method() === "POST" && new URL(request.url()).pathname === "/api/files") uploads.push(request.url());
+    });
+
     await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
 
-    await expect(page.getByText(/^Tick the box to confirm you own this logo/)).toBeVisible();
+    // The file is kept in the browser, and nothing is sent, until the box is ticked.
+    await expect(page.getByText(/^Tick the box below to say you own this logo/)).toBeVisible();
+    await expect(page.getByText("Chosen: badge.png. Waiting for the box to be ticked.")).toBeVisible();
     await expect(page.getByRole("form", { name: "New artwork" })).toHaveCount(0);
+    expect(uploads).toEqual([]);
+
+    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
+    await expect(page.getByRole("form", { name: "New artwork" })).toBeVisible();
+    expect(uploads).toHaveLength(1);
   });
 
   test("refuses a file that is not a picture, beside the field", async ({ page }) => {

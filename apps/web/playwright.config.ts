@@ -10,8 +10,15 @@ const baseURL = `http://localhost:${PORT}`;
 const localEnvFile = join(__dirname, ".env.local");
 const localEnv = existsSync(localEnvFile) ? parseEnv(readFileSync(localEnvFile, "utf8")) : {};
 // AI_PROVIDER_STUB answers the assistant with a stand-in that never reaches the network
-// (lib/providers/stand-in.ts); the environment check refuses it on any deploy.
-const env = { ...localEnv, ...process.env, NEXT_PUBLIC_SITE_URL: baseURL, AI_PROVIDER_STUB: "on" } as Record<
+// (lib/providers/stand-in.ts); the environment check refuses it on any deploy. The 3D trial
+// is off by default (decision 0027), and the tests check that default whatever .env.local says.
+const env = {
+  ...localEnv,
+  ...process.env,
+  NEXT_PUBLIC_SITE_URL: baseURL,
+  AI_PROVIDER_STUB: "on",
+  SHOW_3D: "false",
+} as Record<
   string,
   string
 >;

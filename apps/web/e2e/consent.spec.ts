@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { signUnsubscribe, unsubscribeKey } from "../lib/consent/unsubscribe-token";
-import { consentRecords, createAccount, invite, passBotCheck, signIn, test, uniqueEmail, userIdOf } from "./support";
+import { consentRecords, createAccount, invite, passBotCheck, signIn, signUpLinkForm, test, uniqueEmail, userIdOf } from "./support";
 
 /**
  * Consent to marketing email (decision 0025; the Platform and Store Guide, page 10): an
@@ -26,7 +26,7 @@ test.describe("marketing email consent", () => {
     await expect(box).not.toBeChecked();
     await box.check();
     await page.getByLabel("Work email").fill(email);
-    await passBotCheck(page);
+    await passBotCheck(signUpLinkForm(page));
     await page.getByRole("button", { name: "Send me a link" }).click();
     await expect(page.getByText("Check your email.")).toBeVisible();
 
@@ -41,7 +41,7 @@ test.describe("marketing email consent", () => {
 
     await page.goto("/sign-up");
     await page.getByLabel("Work email").fill(email);
-    await passBotCheck(page);
+    await passBotCheck(signUpLinkForm(page));
     await page.getByRole("button", { name: "Send me a link" }).click();
     await expect(page.getByText("Check your email.")).toBeVisible();
 

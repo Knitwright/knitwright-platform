@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { createAccount, signIn, standInForBotCheck, test } from "./support";
+import { createAccount, createColleagueOf, signIn, standInForBotCheck, test } from "./support";
 
 /** Plan step 6: the editor. Sign in, make a design, change it, reload, find it saved. */
 
@@ -85,7 +85,10 @@ test.describe("the editor", () => {
     await expect(chest(page)).toHaveValue("52.5");
     const row = page.getByRole("row", { name: /Chest width/ });
     await expect(row).toContainText("Typed in by you");
-    await expect(page.getByText("Chest width set to 52.5 cm.")).toBeVisible();
+    // Three quick edits by one person are one entry in the history, named by the last of them.
+    await expect(page.getByText("3 changes in a row. The last: Chest width set to 52.5 cm.")).toBeVisible();
+    await page.getByText("Show each change").click();
+    await expect(page.getByText("Chest width set to 52.5 cm.", { exact: true })).toBeVisible();
   });
 
   test("starts a new design with the Knitwright starter chart, shown as suggestions to check with the factory", async ({ page }) => {
@@ -207,7 +210,8 @@ test.describe("the editor", () => {
   test("says what a change removed", async ({ page }) => {
     await signedIn(page, "dropped");
     await startDesign(page, "Team jersey");
-    await page.getByLabel("Shoulder width in centimetres").fill("40");
+    // The starter chart suggests 40 cm, so a different value is typed to make it the person's own.
+    await page.getByLabel("Shoulder width in centimetres").fill("41");
     await page.getByLabel("Shoulder width in centimetres").press("Enter");
     await saved(page, 2);
 
@@ -219,24 +223,28 @@ test.describe("the editor", () => {
     await expect(page.getByLabel("Shoulder width in centimetres")).toHaveCount(0);
   });
 
-  test("sets the size run, and refuses one that is not complete beside the field", async ({ page }) => {
+  test("changes the size run, and refuses one that is not complete beside the field", async ({ page }) => {
     await signedIn(page, "sizes");
     await startDesign(page, "Crew neck tee");
+    // A new design starts with the size run of the Knitwright starter chart.
+    await expect(page.getByLabel("Sizes, smallest first")).toHaveValue("XS, S, M, L, XL, 2XL");
+    await expect(page.getByLabel("Base size")).toHaveValue("M");
 
-    await page.getByLabel("Sizes, smallest first").fill("S, M, L");
-    await page.getByRole("button", { name: "Save sizes" }).click();
-    await expect(page.getByText("Choose the base size.")).toBeVisible();
+    // The base size M is not in the new run, so it is refused and a base size has to be chosen again.
+    await page.getByLabel("Sizes, smallest first").fill("S, L, XL");
+    await page.getByRole("button", { name: "Change sizes" }).click();
+    await expect(page.getByText("The base size must be one of the sizes.")).toBeVisible();
     await expect(page.getByLabel("Base size")).toBeFocused();
+    await expect(page.getByTestId("version")).toHaveText("Version 1");
 
-    await page.getByLabel("Base size").selectOption("M");
-    await page.getByRole("button", { name: "Save sizes" }).click();
+    await page.getByLabel("Base size").selectOption("L");
+    await page.getByRole("button", { name: "Change sizes" }).click();
     await saved(page, 2);
 
     await page.reload();
-    await expect(page.getByLabel("Sizes, smallest first")).toHaveValue("S, M, L");
-    await expect(page.getByLabel("Base size")).toHaveValue("M");
-    await expect(page.getByRole("heading", { name: "Measurements for size M" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Change sizes" })).toBeVisible();
+    await expect(page.getByLabel("Sizes, smallest first")).toHaveValue("S, L, XL");
+    await expect(page.getByLabel("Base size")).toHaveValue("L");
+    await expect(page.getByRole("heading", { name: "Measurements for size L" })).toBeVisible();
   });
 
   test("refuses a measurement that is not a length, beside the field", async ({ page }) => {
@@ -267,14 +275,28 @@ test.describe("the editor", () => {
     await expect(page.getByTestId("version")).toHaveText("Version 1");
   });
 
-  test("tells the person when the design was changed somewhere else, and reloads on request", async ({ page, context }) => {
-    await signedIn(page, "conflict");
+  test("tells the person when someone else changed the design, and reloads on request", async ({ page, browser }) => {
+    const email = await createAccount("conflict");
+    await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     const path = await startDesign(page, "Crew neck tee");
-    const other = await context.newPage();
-    await other.goto(path);
 
-    await choice(other, "Fit", /^Slim/).check();
-    await saved(other, 2);
+    // A colleague in the same brand saves a change from their own browser. A save by the
+    // person themselves in another tab is not a conflict: their change is sent again on top of it.
+    const elsewhere = await browser.newContext({
+      extraHTTPHeaders: { "x-real-ip": `10.97.${Math.floor(Math.random() * 250)}.7` },
+    });
+    await standInForBotCheck(elsewhere);
+    try {
+      const other = await elsewhere.newPage();
+      await signIn(other, await createColleagueOf(email, "conflict-colleague"));
+      await expect(other).toHaveURL(/\/studio$/);
+      await other.goto(path);
+      await choice(other, "Fit", /^Slim/).check();
+      await saved(other, 2);
+    } finally {
+      await elsewhere.close();
+    }
     await choice(page, "Hem shape", /^Curved/).check();
 
     const alert = page.getByRole("alert").filter({ hasText: "This design was changed somewhere else. Reload to see the latest version." });
@@ -291,6 +313,23 @@ test.describe("the editor", () => {
     await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
     await expect(choice(page, "Hem shape", /^Curved/)).not.toBeChecked();
     await expect(choice(page, "Hem shape", /^Straight across/)).toBeChecked();
+  });
+
+  test("saves a change on top of one the same person saved in another tab", async ({ page, context }) => {
+    await signedIn(page, "own-tab");
+    const path = await startDesign(page, "Crew neck tee");
+    const other = await context.newPage();
+    await other.goto(path);
+
+    await choice(other, "Fit", /^Slim/).check();
+    await saved(other, 2);
+    await choice(page, "Hem shape", /^Curved/).check();
+
+    await saved(page, 3);
+    await expect(page.getByRole("alert").filter({ hasText: "This design was changed somewhere else." })).toHaveCount(0);
+    await page.reload();
+    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
+    await expect(choice(page, "Hem shape", /^Curved/)).toBeChecked();
   });
 
   test("goes back through three undos in a row, then offers no more", async ({ page }) => {
@@ -327,7 +366,8 @@ test.describe("the editor", () => {
 
     await saved(page, 3);
     await expect(chest(page)).toHaveValue("51");
-    await expect(page.getByText("Your value for Chest width was removed.")).toBeVisible();
+    // Both quick edits are one entry in the history, named by the last of them.
+    await expect(page.getByText("2 changes in a row. The last: Your value for Chest width was removed.")).toBeVisible();
   });
 
   test("saves nothing when the text means the value that is already held", async ({ page }) => {
