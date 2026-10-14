@@ -7,6 +7,8 @@ import { start } from "@/lib/garment/fixtures/specs";
 import { completenessReport } from "./completeness";
 import { CHARTS, fullDesign, packFor } from "./fixtures/designs";
 import { completeProduction, targetedJersey } from "./fixtures/production";
+import { ALL_KINDS_STACK, ASSETS, PICTURE_ACCEPTED, PICTURE_STACK, SMALL_CREST, withStack } from "./fixtures/stacks";
+import { FORBIDDEN_WORDS } from "@/lib/design-import/report";
 import { leaves } from "./walk";
 
 /**
@@ -148,6 +150,19 @@ describe("the words of tech pack v2", () => {
     const none = sentences(packFor(targetedJersey()));
     expect(none.filter((sentence) => /\b(reviewed by|accepted by|signed by)\b/i.test(sentence))).toEqual([]);
     expect(none).toContain("Draft pattern, not reviewed.");
+  });
+
+  it("hold none of the settled words, and never claim a picture was copied exactly, for a design from a stack or from a picture", () => {
+    const stacked = packFor(withStack(ALL_KINDS_STACK), { production: { ...completeProduction(), assets: ASSETS } });
+    const small = packFor(withStack(ALL_KINDS_STACK), { production: { ...completeProduction(), assets: [SMALL_CREST] } });
+    const read = packFor(withStack(PICTURE_STACK), { production: { ...completeProduction(), assets: ASSETS, picture: PICTURE_ACCEPTED } });
+    for (const pack of [stacked, small, read]) {
+      for (const sentence of sentences(pack)) {
+        expect(withoutAllowed(sentence), sentence).not.toMatch(SETTLED);
+        expect(sentence, sentence).not.toMatch(FORBIDDEN_WORDS);
+      }
+    }
+    expect(sentences(read).some((sentence) => /close reading/.test(sentence))).toBe(true);
   });
 
   it("call the list Ready for the factory and never production-ready", () => {

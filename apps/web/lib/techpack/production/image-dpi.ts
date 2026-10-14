@@ -74,16 +74,16 @@ function rowFor(layer: GraphicLayer | ImageFillLayer, context: ImageContext): Im
     printedWidth: width === null ? TBC : mm(width),
     acceptedBy: acceptedCell(layer.id, context.acceptances),
   };
-  if (asset?.kind === "vector") return { ...head, dpi: null, status: "vector", sentence: "A vector picture has no resolution to meet." };
+  if (asset?.kind === "vector") return { ...head, dpi: null, result: "vector", sentence: "A vector picture has no resolution to meet." };
   if (asset === undefined) {
-    return { ...head, dpi: null, status: "unknown", sentence: "The size of this picture is not on record, so its resolution is not known. Upload it again through the artwork upload." };
+    return { ...head, dpi: null, result: "unknown", sentence: "The size of this picture is not on record, so its resolution is not known. Upload it again through the artwork upload." };
   }
   if (width === null) {
-    return { ...head, dpi: null, status: "unknown", sentence: "How large this picture prints is not known until the pattern is in, so its resolution is not known." };
+    return { ...head, dpi: null, result: "unknown", sentence: "How large this picture prints is not known until the pattern is in, so its resolution is not known." };
   }
   const dpi = effectiveDpi(asset, width);
   const warning = dpiWarning(asset, width, context.minDpi.value);
-  return { ...head, dpi: dpiCell(dpi), status: warning === null ? "meets" : "below", sentence: warning ?? `This picture prints at about ${Math.round(dpi)} dpi, which meets the ${context.minDpi.value} dpi minimum.` };
+  return { ...head, dpi: dpiCell(dpi), result: warning === null ? "meets" : "below", sentence: warning ?? `This picture prints at about ${Math.round(dpi)} dpi, which meets the ${context.minDpi.value} dpi minimum.` };
 }
 
 const isPicture = (layer: Layer): layer is GraphicLayer | ImageFillLayer => layer.kind === "graphic" || layer.kind === "image-fill";

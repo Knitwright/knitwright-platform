@@ -9,9 +9,21 @@ export type { ImageRow, ImageStatus, LayerPlacementRow, LayerRow, PictureReadBlo
 
 export type ReadinessActor = ReadinessItem["whoActs"];
 
+/** An open item that waits on the owner (plans/production-outputs.md, section 7): what is needed, and what is used until then. */
+export interface OwnerInputNote {
+  /** The ids of the open owner inputs, such as "P4". */
+  readonly codes: readonly string[];
+  readonly needed: string;
+  readonly until: string;
+  /** The whole note as one sentence a factory file prints. */
+  readonly sentence: string;
+}
+
 export interface ReadinessLine extends ReadinessItem {
   /** The actor in words, such as "Pattern technician". */
   readonly actorLabel: string;
+  /** Set when the item is open and waits on the owner, else null. */
+  readonly ownerInput: OwnerInputNote | null;
 }
 
 export interface ReadinessGroup {

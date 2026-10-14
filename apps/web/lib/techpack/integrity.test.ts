@@ -5,6 +5,8 @@ import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
 import { CHARTS, TOPS_IDS, fullDesign, packFor, revisions } from "./fixtures/designs";
 import { withoutDrawings } from "./flats";
+import { ALL_KINDS_STACK, ASSETS, CAMO_CREST_STACK, PICTURE_ACCEPTED, PICTURE_STACK, STACK_BY_KIND, withStack } from "./fixtures/stacks";
+import { completeProduction, targetedJersey } from "./fixtures/production";
 import type { TechPack } from "./types";
 import { allCells, leaves } from "./walk";
 
@@ -36,14 +38,15 @@ const NOT_VALUES: readonly RegExp[] = [
   /^colourways\.colourways\[\d+\]\.(id|name)$/,
   /^colourways\.colourways\[\d+\]\.drawing\.(view|label|notice|description)$/,
   /^colourways\.colourways\[\d+\]\.rows\[\d+\]\.(panelId|label)$/,
-  /^artwork\.items\[\d+\]\.(id)$/,
+  /^artwork\.(items|playerMarks)\[\d+\]\.(id)$/,
+  /^artwork\.playerMarksNote$/,
   /^artwork\.items\[\d+\]\.content\.(kind|fileId)$/,
   /^labelling\.rows\[\d+\]\.(field|label)$/,
   /^suggested\.(items|proposals)\[\d+\]\.(sectionId|sectionTitle|label|provenance|cells)$/,
   /^suggested\.proposalsNote$/,
   /^signOff\.(statement|lines\[\d+\]\.role)$/,
   // Tech pack v2: names, ids, sentences and counts. A value a factory reads is in a cell.
-  /^readiness\.(summary|open\[\d+\]\.(whoActs|actorLabel|count)|groups\[\d+\]\.(id|title)|groups\[\d+\]\.items\[\d+\]\.(id|sentence|whoActs|actorLabel))$/,
+  /^readiness\.(summary|open\[\d+\]\.(whoActs|actorLabel|count)|groups\[\d+\]\.(id|title)|groups\[\d+\]\.items\[\d+\]\.(id|sentence|whoActs|actorLabel)|groups\[\d+\]\.items\[\d+\]\.ownerInput(\.(needed|until|sentence)|\.codes\[\d+\])?)$/,
   /^measurements\.onPattern\.(summary|outside)$/,
   /^measurements\.onPattern\.rows\[\d+\]\.(pointId|code|label)$/,
   /^measurements\.onPattern\.rows\[\d+\]\.cells\[\d+\]\.(size|result|flag)$/,
@@ -56,7 +59,16 @@ const NOT_VALUES: readonly RegExp[] = [
   /^fabric\.(printScaleNote|reductionNote)$/,
   /^fabric\.rows\[\d+\]\.(id|label|sourceNote)$/,
   /^artworkAndColour\.(colourNote|printParametersNote)$/,
-  /^artworkAndColour\.colours\[\d+\]\.(id|role)$/,
+  /^artworkAndColour\.colours\[\d+\]\.(id|role|otherCodes)$/,
+  // Built from the artwork stack: names, places, sentences, and the repeat as a record a machine can read.
+  /^artworkAndColour\.(source|description|layerPlacementNote|imagesNote)$/,
+  /^artworkAndColour\.layers\[\d+\]\.(id|name|kind|views|where|technique|origin|detail)$/,
+  /^artworkAndColour\.layerPlacements\[\d+\]\.(layerId|layer|size|view|pieceName)$/,
+  /^artworkAndColour\.repeatSpecs\[\d+\]\.(layerId|layer|kind|name|repeat|seed|machine)$/,
+  /^artworkAndColour\.images\[\d+\]\.(layerId|layer|picture|pixels|result|sentence)$/,
+  /^artworkAndColour\.picture\.(closeReading|summary|pictureNote|confidence|fittedTo|accepted)$/,
+  /^artworkAndColour\.picture\.(limits|emptyViews|guessed|notes|notAccepted)\[\d+\]$/,
+  /^artworkAndColour\.picture\.items\[\d+\]\.(label|confidence|note)$/,
   /^artworkAndColour\.repeat\.(checks\[\d+\]|ok)$/,
   /^artworkAndColour\.repeat\.(lengths|settings)\[\d+\]\.label$/,
   /^artworkAndColour\.zones\[\d+\]\.(id|purpose|pieceName|sizes)$/,
@@ -140,6 +152,15 @@ describe("every value has a source (invariant I5)", () => {
     expect(built).toBe(60);
   });
 
+  it("holds for a design with an artwork stack of any kind, and for one read from a picture", () => {
+    const stacks = [...Object.values(STACK_BY_KIND), ALL_KINDS_STACK, CAMO_CREST_STACK, PICTURE_STACK];
+    for (const stack of stacks) {
+      const spec = withStack(stack, targetedJersey());
+      expectEveryValueHasASource(packFor(spec));
+      expectEveryValueHasASource(packFor(spec, { production: { ...completeProduction(), assets: ASSETS, picture: PICTURE_ACCEPTED } }));
+    }
+  });
+
   it("fails when a value is held without its source", () => {
     const pack = packFor(start("crew-tee"));
     const broken = { ...pack, cover: { ...pack.cover, styleNumber: { status: "set", value: "CP-7" } } } as unknown as TechPack;
@@ -165,6 +186,8 @@ const DIGITS_ALLOWED: readonly RegExp[] = [
   /^suggested\.(items|proposals)\[\d+\]\.cells$/,
   // How many things are left, in the readiness list and the table against the pattern; and the number of a step.
   /^readiness\./,
+  // The smallest resolution that counts as good: a setting, labelled as Knitwright's default until the print house gives one.
+  /^artworkAndColour\.imagesNote$/,
   /^operations\.steps\[\d+\]\.order$/,
   /^measurements\.onPattern\./,
 ];

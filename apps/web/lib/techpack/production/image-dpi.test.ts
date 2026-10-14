@@ -28,17 +28,17 @@ describe("the resolution of every placed picture", () => {
 
   it("works out pixels over the printed width for a placed picture and for a repeating one", () => {
     const [tile, crest, logo] = rows();
-    expect(crest).toMatchObject({ layerId: "crest", picture: "Club crest", pixels: "1200 x 1200 px", status: "meets" });
+    expect(crest).toMatchObject({ layerId: "crest", picture: "Club crest", pixels: "1200 x 1200 px", result: "meets" });
     expect(crest?.printedWidth).toMatchObject({ status: "set", tenthsMm: 900 });
     expect(crest?.dpi).toMatchObject({ status: "set", number: 339 });
-    expect(tile).toMatchObject({ layerId: "club-tile", status: "meets" });
+    expect(tile).toMatchObject({ layerId: "club-tile", result: "meets" });
     expect(tile?.dpi).toMatchObject({ number: 150 });
-    expect(logo).toMatchObject({ layerId: "sleeve-logo", status: "unknown" });
+    expect(logo).toMatchObject({ layerId: "sleeve-logo", result: "unknown" });
   });
 
   it("warns, in plain words and with the largest size that still meets the minimum, for a picture below it", () => {
     const [low] = rows(GRAPHIC_STACK, { assets: [SMALL_CREST] });
-    expect(low).toMatchObject({ layerId: "crest", status: "below" });
+    expect(low).toMatchObject({ layerId: "crest", result: "below" });
     expect(low?.dpi).toMatchObject({ number: 113 });
     expect(low?.sentence).toBe(
       "This picture would print at about 113 dpi at this size. Your print house asks for 150 or more, so it may look soft. Use a larger file, or make it smaller on the shirt. The largest size at which it still meets 150 dpi is about 68 mm wide.",
@@ -47,7 +47,7 @@ describe("the resolution of every placed picture", () => {
 
   it("shows who accepted a picture below the minimum, by name and date", () => {
     const [accepted] = rows(GRAPHIC_STACK, { assets: [SMALL_CREST], acceptances: [LOW_DPI_ACCEPTED] });
-    expect(accepted).toMatchObject({ status: "below", acceptedBy: { status: "set", value: "Sam Lee on 11 Oct 2026" } });
+    expect(accepted).toMatchObject({ result: "below", acceptedBy: { status: "set", value: "Sam Lee on 11 Oct 2026" } });
     const [open] = rows(GRAPHIC_STACK, { assets: [SMALL_CREST] });
     expect(open?.acceptedBy).toEqual({ status: "to-be-confirmed" });
   });
@@ -55,12 +55,12 @@ describe("the resolution of every placed picture", () => {
   it("never warns for a vector", () => {
     const stack = { ...GRAPHIC_STACK, layers: GRAPHIC_STACK.layers.map((layer) => (layer.id === "crest" ? { ...CREST_LAYER, source: { kind: "asset" as const, assetId: "vector-1" } } : layer)) };
     const [vector] = rows(stack as typeof GRAPHIC_STACK);
-    expect(vector).toMatchObject({ status: "vector", dpi: null, sentence: "A vector picture has no resolution to meet." });
+    expect(vector).toMatchObject({ result: "vector", dpi: null, sentence: "A vector picture has no resolution to meet." });
   });
 
   it("says plainly when it cannot know a picture's resolution", () => {
     const [unknown] = rows(GRAPHIC_STACK, { assets: [] });
-    expect(unknown).toMatchObject({ status: "unknown", dpi: null, printedWidth: { status: "set" } });
+    expect(unknown).toMatchObject({ result: "unknown", dpi: null, printedWidth: { status: "set" } });
     expect(unknown?.sentence).toBe("The size of this picture is not on record, so its resolution is not known. Upload it again through the artwork upload.");
     const old = rows(GRAPHIC_STACK).find((row) => row.layerId === "sleeve-logo");
     expect(old?.pixels).toBe("Not on record");
@@ -74,11 +74,11 @@ describe("the resolution of every placed picture", () => {
 
   it("measures a full-panel picture against the piece it covers on the largest size", () => {
     const [panel] = rows(PANEL_STACK);
-    expect(panel).toMatchObject({ layerId: "front-art", status: "meets" });
+    expect(panel).toMatchObject({ layerId: "front-art", result: "meets" });
     expect(panel?.printedWidth.status).toBe("set");
     expect(Number((panel?.dpi as { number: number }).number)).toBeGreaterThan(150);
     const [without] = rows(PANEL_STACK, { pattern: null });
-    expect(without).toMatchObject({ status: "unknown" });
+    expect(without).toMatchObject({ result: "unknown" });
     expect(without?.sentence).toBe("How large this picture prints is not known until the pattern is in, so its resolution is not known.");
   });
 

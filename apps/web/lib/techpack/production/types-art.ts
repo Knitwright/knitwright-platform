@@ -14,7 +14,7 @@ export interface LayerRow {
   readonly clearSpace: LengthValue | null;
   readonly technique: string;
   /** Where the layer came from, in words. */
-  readonly provenance: string;
+  readonly origin: string;
   readonly detail: string;
 }
 
@@ -55,7 +55,8 @@ export interface ImageRow {
   readonly printedWidth: LengthValue;
   /** Null for a vector, which has no resolution to meet. */
   readonly dpi: NumberValue | null;
-  readonly status: ImageStatus;
+  /** Not called `status`: that word marks a cell of the document. */
+  readonly result: ImageStatus;
   /** The named person who accepted a picture below the minimum, with the date, or null. */
   readonly acceptedBy: Cell;
   readonly sentence: string;

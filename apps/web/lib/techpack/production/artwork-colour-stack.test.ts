@@ -72,7 +72,7 @@ describe("the artwork and colour page of a design with an artwork stack", () => 
 
   it("carries each picture's resolution, and whoever accepted one below the minimum", () => {
     const low = built({ stack: STACK_BY_KIND.graphic, assets: [SMALL_CREST], lowDpiAcceptances: [LOW_DPI_ACCEPTED] });
-    expect(low.images.find((row) => row.layerId === "crest")).toMatchObject({ status: "below", acceptedBy: { value: "Sam Lee on 11 Oct 2026" } });
+    expect(low.images.find((row) => row.layerId === "crest")).toMatchObject({ result: "below", acceptedBy: { value: "Sam Lee on 11 Oct 2026" } });
     expect(low.imagesNote).toContain("150 dpi. Knitwright default, not from your print house.");
   });
 

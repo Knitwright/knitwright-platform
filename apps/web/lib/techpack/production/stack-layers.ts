@@ -106,7 +106,7 @@ export function layerRows(stack: ArtworkStack, context: LayerContext): LayerRow[
     where: whereOf(layer),
     clearSpace: clearSpaceOf(layer),
     technique: layer.technique === undefined ? (designTechnique ?? "Not named") : TECHNIQUE_WORDS[layer.technique],
-    provenance: PROVENANCE_LABELS[layer.provenance],
+    origin: PROVENANCE_LABELS[layer.provenance],
     detail: detailOf(layer, stack, context.colourwayId),
   }));
 }

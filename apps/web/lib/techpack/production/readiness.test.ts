@@ -6,6 +6,11 @@ import { benchmarkJerseyInput, completeProduction, gradedJersey, matchingMeasure
 import { buildOnPattern } from "./measured";
 import type { ProductionInput } from "./input";
 import { ACTOR_LABELS, buildReadiness, READY_WORDS, type ReadinessContext } from "./readiness";
+import { buildArtworkAndColour } from "./artwork-colour";
+import { OWNER_INPUTS } from "./owner-inputs";
+import { buildColourways } from "../colourways";
+import { fullDesign } from "../fixtures/designs";
+import { ASSETS, GRAPHIC_STACK, LOW_DPI_ACCEPTED, PICTURE_ACCEPTED, PICTURE_NOT_ACCEPTED, PICTURE_STACK, SMALL_CREST } from "../fixtures/stacks";
 
 const TARGETED = targetedJersey();
 const TABLE = buildMeasurements(TARGETED);
@@ -42,7 +47,7 @@ describe("ready for the factory", () => {
   it("makes every item a valid readiness item with one sentence", () => {
     for (const input of [everything(), {}]) {
       for (const entry of buildReadiness(ctx(input)).groups.flatMap((group) => group.items)) {
-        const { actorLabel, ...record } = entry;
+        const { actorLabel, ownerInput, ...record } = entry;
         expect(readinessItemSchema.safeParse(record).success, entry.id).toBe(true);
         expect(actorLabel).toBe(ACTOR_LABELS[entry.whoActs]);
         expect(entry.sentence.split(/\.\s/).length, entry.sentence).toBeLessThanOrEqual(3);
@@ -265,5 +270,89 @@ describe("the fabric, print, proof, order, release and component items", () => {
   it("says one thing is left in the singular", () => {
     const section = buildReadiness(ctx({ ...everything(), marker: null }));
     expect(section.summary).toBe("Not ready for the factory yet: 1 thing is left.");
+  });
+});
+
+describe("the picture items", () => {
+  const COLOURWAYS = buildColourways(fullDesign("polo"));
+  const withArt = (input: ProductionInput) => {
+    const full = { ...everything(), assets: ASSETS, ...input };
+    return items(buildReadiness(ctx(full, { artwork: buildArtworkAndColour(full, COLOURWAYS) })));
+  };
+
+  it("are met, and say why, when no picture is placed and nothing was read from a picture", () => {
+    const byId = withArt({});
+    expect(byId["print-image-dpi"]).toMatchObject({ met: true, whoActs: "owner", sentence: "No picture is placed in this design." });
+    expect(byId["print-picture-read"]).toMatchObject({ met: true, sentence: "This design was not read from a picture." });
+  });
+
+  it("are met when no artwork was given to the context at all", () => {
+    expect(items(buildReadiness(ctx(everything())))["print-image-dpi"]?.met).toBe(true);
+  });
+
+  it("are met when every placed picture meets the minimum or is a vector", () => {
+    const clean = { ...GRAPHIC_STACK, layers: GRAPHIC_STACK.layers.filter((layer) => layer.id !== "sleeve-logo") };
+    expect(withArt({ stack: clean })["print-image-dpi"]).toMatchObject({ met: true, sentence: "Every placed picture meets the 150 dpi minimum, or a named person accepted it." });
+  });
+
+  it("are open for a picture below the minimum, and name the picture and its dpi", () => {
+    const clean = { ...GRAPHIC_STACK, layers: GRAPHIC_STACK.layers.filter((layer) => layer.id !== "sleeve-logo") };
+    const low = withArt({ stack: clean, assets: [SMALL_CREST] })["print-image-dpi"];
+    expect(low).toMatchObject({ met: false, whoActs: "owner" });
+    expect(low?.sentence).toBe(
+      "Use a larger file for Club crest (about 111 dpi), make it smaller on the shirt, or name the person who accepts it. The minimum is 150 dpi.",
+    );
+  });
+
+  it("are met for a picture below the minimum when a named person accepted it", () => {
+    const clean = { ...GRAPHIC_STACK, layers: GRAPHIC_STACK.layers.filter((layer) => layer.id !== "sleeve-logo") };
+    expect(withArt({ stack: clean, assets: [SMALL_CREST], lowDpiAcceptances: [LOW_DPI_ACCEPTED] })["print-image-dpi"]?.met).toBe(true);
+  });
+
+  it("are open for a picture whose size is not on record", () => {
+    const sentence = withArt({ stack: GRAPHIC_STACK, assets: [ASSETS[0]!] })["print-image-dpi"]?.sentence;
+    expect(sentence).toBe("The size of Sleeve logo is not on record, so its resolution is not known. Upload it again through the artwork upload.");
+  });
+
+  it("want a named person to have accepted a design read from a picture", () => {
+    expect(withArt({ stack: PICTURE_STACK, picture: PICTURE_ACCEPTED, assets: ASSETS })["print-picture-read"]).toMatchObject({
+      met: true,
+      sentence: "The design read from a picture was accepted by Mia Chen on 12 Oct 2026.",
+    });
+    expect(withArt({ stack: PICTURE_STACK, picture: PICTURE_NOT_ACCEPTED })["print-picture-read"]).toMatchObject({
+      met: false,
+      whoActs: "owner",
+      sentence: "A named person accepts the design read from a picture. No acceptance is on record.",
+    });
+    expect(withArt({ stack: PICTURE_STACK, picture: { ...PICTURE_ACCEPTED, acceptedLayerIds: ["ground-body"] } })["print-picture-read"]?.sentence).toBe(
+      "The acceptance does not cover Club crest and Sponsor line. A named person accepts them.",
+    );
+  });
+});
+
+describe("the items that wait on the owner", () => {
+  const lines = (input: ProductionInput) => Object.fromEntries(buildReadiness(ctx(input)).groups.flatMap((g) => g.items).map((entry) => [entry.id, entry]));
+
+  it("say plainly that they are open, what is needed and what is used until then", () => {
+    const open = lines(benchmarkJerseyInput());
+    expect(open["fabric-test"]?.ownerInput).toMatchObject({ codes: ["P4"] });
+    expect(open["fabric-test"]?.ownerInput?.sentence).toBe(
+      "Open owner input P4: a fabric test for each base fabric from the mill or print house: stretch, recovery and sublimation shrink at the press settings. Until then: the values stay not set, the print scale is 1.0, and every print file says in its margin that it is not scaled for shrink.",
+    );
+    expect(open["print-colour-codes"]?.ownerInput?.codes).toEqual(["P6", "P15"]);
+    expect(open["league-rules"]?.ownerInput?.until).toContain("No league rules set: check with the competition.");
+  });
+
+  it("say nothing once the item is met, and nothing for an item the owner does not decide", () => {
+    const done = lines(everything());
+    expect(Object.values(done).every((entry) => entry.ownerInput === null)).toBe(true);
+    expect(lines({})["pattern-grain"]?.ownerInput).toBeNull();
+  });
+
+  it("name every item of section 7 that holds up the list, and every item they name exists", () => {
+    const all = Object.keys(lines(everything()));
+    for (const id of Object.keys(OWNER_INPUTS)) expect(all, id).toContain(id);
+    const codes = new Set(Object.values(OWNER_INPUTS).flatMap((entry) => entry.codes));
+    for (const code of ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P9", "P10", "P12", "P13", "P14", "P15", "P16"]) expect(codes.has(code), code).toBe(true);
   });
 });

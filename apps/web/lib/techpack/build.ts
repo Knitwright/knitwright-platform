@@ -8,12 +8,13 @@ import { buildFlatsSection } from "./flats";
 import type { TechPackInput } from "./input";
 import { buildLabelling } from "./labelling";
 import { buildHowToMeasure, buildMeasurements } from "./measurements";
-import { buildArtworkAndColour, coloursFromColourways } from "./production/artwork-colour";
+import { buildArtworkAndColour, coloursFor } from "./production/artwork-colour";
 import { buildFabric } from "./production/fabric";
 import { buildOnPattern } from "./production/measured";
 import { buildOperations } from "./production/operations";
 import { buildPatternAndCutting } from "./production/pattern-cutting";
 import { buildReadiness } from "./production/readiness";
+import { stackOf } from "./production/stack-source";
 import { strikeOffForRelease } from "./production/strike-off";
 import { buildSignOff } from "./sign-off";
 import { buildSuggested } from "./suggested";
@@ -32,7 +33,7 @@ function productionSections(
   return {
     patternAndCutting: buildPatternAndCutting({ pattern: production.pattern, review: production.review, fabric: production.fabric, marker: production.marker }),
     fabric: buildFabric(production.fabric, production.blockReduction),
-    artworkAndColour: buildArtworkAndColour(production, colourways),
+    artworkAndColour: buildArtworkAndColour(production, colourways, technique),
     operations: buildOperations(technique, construction, hasPlayerMarks),
   };
 }
@@ -45,13 +46,14 @@ function productionSections(
  */
 export function buildTechPack(input: TechPackInput): TechPack {
   const { spec, charts } = input;
-  const production = input.production ?? {};
+  const stack = stackOf(spec, input.production ?? {});
+  const production = { ...input.production, stack };
   const measured = buildMeasurements(spec, charts);
   const measurements = { ...measured, onPattern: buildOnPattern(measured, production.measured ?? [], production.sizeMap ?? [], production.patternOnlyTargets ?? []) };
   const colourways = buildColourways(spec, charts);
   const construction = buildConstruction(spec);
-  const artwork = buildArtwork(spec);
-  const technique = production.technique ?? spec.kitPattern?.technique ?? spec.artwork[0]?.technique ?? null;
+  const artwork = buildArtwork(spec, stack);
+  const technique = production.technique ?? spec.kitPattern?.technique ?? spec.artwork[0]?.technique ?? stack?.layers.find((layer) => layer.technique !== undefined)?.technique ?? null;
   const pack = {
     title: "Tech pack",
     printedOn: input.printedOn,
@@ -75,8 +77,9 @@ export function buildTechPack(input: TechPackInput): TechPack {
     measurements,
     onPattern: measurements.onPattern,
     completeness: completenessReport({ ...pack, suggested }),
-    colours: production.colours ?? coloursFromColourways(colourways),
-    needsRoster: spec.namesAndNumbers !== undefined,
+    colours: coloursFor(production, stack, colourways),
+    needsRoster: spec.namesAndNumbers !== undefined || artwork.playerMarks.length > 0,
+    artwork: pack.artworkAndColour,
   });
   const sections = [
     pack.cover,

@@ -66,7 +66,7 @@ describe("every layer of a stack", () => {
     expect(byId.crest?.clearSpace).toMatchObject({ status: "set", value: "1.0", tenthsMm: 100 });
     expect(byId["sleeve-logo"]).toMatchObject({ where: "Centre chest, a free anchor and not a standard zone", technique: "Sublimation" });
     expect(byId["sleeve-logo"]?.clearSpace).toMatchObject({ tenthsMm: 0 });
-    expect(byId.sponsor).toMatchObject({ kind: "Text", provenance: "Typed in by you" });
+    expect(byId.sponsor).toMatchObject({ kind: "Text", origin: "Typed in by you" });
     expect(byId["mark-back-name"]).toMatchObject({ kind: "Player name or number", where: "Name across the upper back" });
   });
   it("names the technique of the layer, else the design's, else says none was named", () => {
