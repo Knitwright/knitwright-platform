@@ -36,7 +36,7 @@ export function printDeps(input: DepsInput): PrintDeps {
   return {
     load: input.load,
     settings: () => loadPrintSettings(input.client, reader, input.brandId),
-    rules: () => rulesFor(input.client, input.brandId, input.ruleSetId),
+    rules: (ruleSetId) => rulesFor(input.client, input.brandId, ruleSetId ?? input.ruleSetId),
     fabric: async (fabricId) => {
       const found = (await listFabrics(input.client, input.brandId)).find((f) => f.id === fabricId);
       return found === undefined ? null : { name: found.name, profile: profileWithTests(found.sheet, found.tests).profile };

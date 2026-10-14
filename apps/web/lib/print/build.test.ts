@@ -4,7 +4,7 @@ import { currentStack } from "@/lib/artwork-stack";
 import { BENCHMARK_DOTS, MARKS, jersey } from "@/lib/artwork-stack/fixtures/designs";
 import { ROSTER_22 } from "@/lib/production/fixtures";
 import { DEFAULT_SIZE_LABEL_MAPS } from "@/lib/sizing";
-import { buildPrintSet, MAX_FILES, TooManyFiles, zipPrintSet } from "./build";
+import { buildPrintSet, MAX_FILES, TooManyFiles, TooMuchWork, plannedScenes, zipPrintSet } from "./build";
 import { makeEnv } from "./fixtures/env";
 import { TEST_GRADED_JERSEY } from "./fixtures/graded";
 import { camoStack, rosterStack } from "./fixtures/stacks";
@@ -35,6 +35,14 @@ describe("a print set", () => {
     await expect(buildPrintSet(env, { sizes: ["44", "46"], formats: ["pdf", "svg"], views: ["collar"], maxFiles: 3 })).rejects.toThrow(/would make 4 files, and one request can make 3/);
     expect(new TooManyFiles(401, MAX_FILES).message).toContain("401");
   }, 60_000);
+
+  it("refuses a request that would take too long before it builds anything", async () => {
+    const env = await makeEnv(stack);
+    await expect(buildPrintSet(env, { sizes: TEST_GRADED_JERSEY.sizes, formats: ["tiff"] })).rejects.toBeInstanceOf(TooMuchWork);
+    await expect(buildPrintSet(env, { sizes: TEST_GRADED_JERSEY.sizes, formats: ["tiff"] })).rejects.toThrow(/35 files, which is more than one download can draw in time/);
+    const plan = planPlayers({ order: ROSTER_22, stack, sizeMaps: DEFAULT_SIZE_LABEL_MAPS, patternSizes: TEST_GRADED_JERSEY.sizes });
+    expect(plannedScenes(env, { sizes: ["48"], formats: ["pdf"], players: plan.jobs })).toBe(3 + 22 * 2);
+  });
 
   it("names a piece the pattern lacks instead of failing", async () => {
     const env = await makeEnv(stack, { pattern: { ...TEST_GRADED_JERSEY, piecesBySize: Object.fromEntries(Object.entries(TEST_GRADED_JERSEY.piecesBySize).map(([k, v]) => [k, v.filter((p) => p.id !== "collar")])) } });

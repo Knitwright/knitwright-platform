@@ -141,3 +141,13 @@ describe("renderers at the edges", () => {
     expect(parseVectorCopy(new TextEncoder().encode('{"kind":"vector"}'))).toBeNull();
   });
 });
+
+describe("a colour profile that cannot be read", () => {
+  it("says so in the margin instead of claiming none was set", async () => {
+    const { DEFAULT_SETTINGS } = await import("./layout/context");
+    const { marginNotes } = await import("./layout/notes");
+    const env = await makeEnv(stack, { overrides: { settings: { ...DEFAULT_SETTINGS, iccFileId: "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f", iccBytes: null } } });
+    const notes = marginNotes({ env, req: { view: "back", size: "48" }, pieceName: "back", lowestDpi: null, dpi: 150, dpiLowered: false, flattenedBy: null, fromPicture: false, agreement: [], extra: [], issues: [] });
+    expect(notes).toContain("The colour profile in your print settings could not be read, so colours are sRGB.");
+  });
+});

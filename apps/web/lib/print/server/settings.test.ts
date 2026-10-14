@@ -58,6 +58,12 @@ describe("print settings", () => {
     expect(error).toBeInstanceOf(AppError);
     expect((error as AppError).message).toBe(ICC_NOT_FOUND);
   });
+  it("changes the profile instead when another person saved a first one a moment before", async () => {
+    const db = fakeDb();
+    db.failOn("print_profiles", "insert", { code: "23505", message: "duplicate" });
+    await savePrintProfile(db.client, who, input);
+    expect(db.calls).toContain("print_profiles.update");
+  });
   it("reports a database failure instead of hiding it", async () => {
     const db = fakeDb();
     db.failOn("print_profiles", "select", { message: "boom" });

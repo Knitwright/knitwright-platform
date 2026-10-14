@@ -32,8 +32,13 @@ export const manifestLines = (files: readonly FileEntry[]): ManifestLine[] =>
 
 const CSV_COLUMNS = ["file", "kind", "piece", "size", "size label", "player number", "player name", "format", "page width mm", "page height mm", "lowest dpi", "pixels", "bytes", "sha256", "warnings"] as const;
 
+/**
+ * A cell as a spreadsheet reads it. A text cell that starts with =, +, - or @ (or a tab or return) would be run as a formula by Excel,
+ * so a player's name cannot be allowed to begin that way: a quote mark goes in front, as OWASP advises. Numbers are left alone.
+ */
 const quote = (value: string | number): string => {
-  const text = String(value);
+  const raw = String(value);
+  const text = typeof value === "string" && /^[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
   return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 };
 

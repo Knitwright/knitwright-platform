@@ -30,6 +30,13 @@ export function scaleNote(env: Pick<BuildEnv, "scale" | "scaleSource">): string 
   return `${note} Scale applied: ${applied}${source}.`;
 }
 
+/** What the file's margin says about colour: the profile embedded, none set, or one set that could not be read. */
+function colourProfileNote(env: BuildEnv): string {
+  if (env.settings.iccBytes !== null) return `Colour profile embedded: ${env.settings.iccName ?? "from your print house"}.`;
+  if (env.settings.iccFileId !== null) return "The colour profile in your print settings could not be read, so colours are sRGB.";
+  return "No print house colour profile set: colours are sRGB.";
+}
+
 /** Facts first, then anything unmet: the lines that go in a file's margin. */
 export function marginNotes(f: NoteFacts): string[] {
   const { env, req } = f;
@@ -41,7 +48,7 @@ export function marginNotes(f: NoteFacts): string[] {
     scaleNote(env),
     f.lowestDpi === null ? "No pictures on this piece." : `Lowest picture resolution on this piece: about ${Math.round(f.lowestDpi)} dpi.`,
     `Bleed ${env.settings.bleedMm} mm and ${f.dpi} dpi (${source}).${f.dpiLowered ? ` Lowered from ${env.settings.dpi} dpi because the piece would have too many pixels.` : ""}`,
-    env.settings.iccBytes === null ? "No print house colour profile set: colours are sRGB." : `Colour profile embedded: ${env.settings.iccName ?? "from your print house"}.`,
+    colourProfileNote(env),
     ...(env.patternReviewed ? [] : [DRAFT_PATTERN_SENTENCE]),
     ...(f.fromPicture ? [FROM_PICTURE_SENTENCE] : []),
     ...(f.flattenedBy === null ? [] : [`Printed as pixels because ${f.flattenedBy}.`]),

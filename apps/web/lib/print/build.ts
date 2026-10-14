@@ -8,8 +8,15 @@ import { playerFileStem, type PlayerJob } from "./players";
 import { EXTENSION_OF, renderFile } from "./render/files";
 import { buildZip, type ZipEntry } from "./zip";
 
-/** The most files one request may make. A full roster in three formats is a lot of work; this keeps a request in the time limit. */
+/** The most files one request may make. */
 export const MAX_FILES = 400;
+
+/**
+ * What a file costs to make, in rough units of a quarter of a second: a PDF or an SVG is cheap, a TIFF is drawn pixel by pixel.
+ * A request may cost this much, which keeps it inside the function's time limit (decision 0002).
+ */
+export const WORK_UNITS: Readonly<Record<PrintFormat, number>> = { pdf: 1, svg: 1, tiff: 10 };
+export const WORK_LIMIT = 120;
 
 export interface PrintRequest {
   /** Pattern sizes for the one set of pieces. */
@@ -21,12 +28,29 @@ export interface PrintRequest {
   readonly players?: readonly PlayerJob[];
   readonly guides?: boolean;
   readonly maxFiles?: number;
+  /** The most work a request may ask for (see `WORK_UNITS`). */
+  readonly maxWork?: number;
 }
 
 export class TooManyFiles extends Error {
   constructor(readonly count: number, readonly limit: number) {
     super(`That would make ${count} files, and one request can make ${limit}. Ask for fewer sizes, pieces or formats, or split the players into groups.`);
   }
+}
+
+export class TooMuchWork extends Error {
+  constructor(readonly files: number) {
+    super(`That would make ${files} files, which is more than one download can draw in time (TIFF files take the longest). Ask for fewer sizes, pieces or file types, or split the players into groups.`);
+  }
+}
+
+/** How many scenes a request will build, counted before any is built. */
+export function plannedScenes(env: BuildEnv, request: PrintRequest): number {
+  const players = request.players ?? [];
+  const playerViews = new Set(players.flatMap((p) => p.views));
+  const general = request.sizes.reduce((n, size) => n + (request.views ?? env.mapper.views(size)).filter((v) => !playerViews.has(v)).length, 0);
+  const perPlayer = players.reduce((n, p) => n + p.views.filter((v) => request.views === undefined || request.views.includes(v)).length * (p.transfer ? 2 : 1), 0);
+  return general + perPlayer;
 }
 
 const fileName = (scene: PieceScene, view: ViewId, format: PrintFormat): string => `${view}_${scene.size}.${EXTENSION_OF[format]}`;
@@ -78,10 +102,11 @@ export interface PrintSet {
  * the roster's order: the same request gives the same files in the same order, byte for byte.
  */
 export async function buildPrintSet(env: BuildEnv, request: PrintRequest): Promise<PrintSet> {
-  const { pending, problems } = await scenesFor(env, request);
-  const count = pending.length * request.formats.length;
+  const planned = plannedScenes(env, request);
   const limit = request.maxFiles ?? MAX_FILES;
-  if (count > limit) throw new TooManyFiles(count, limit);
+  if (planned * request.formats.length > limit) throw new TooManyFiles(planned * request.formats.length, limit);
+  if (planned * request.formats.reduce((n, f) => n + WORK_UNITS[f], 0) > (request.maxWork ?? WORK_LIMIT)) throw new TooMuchWork(planned * request.formats.length);
+  const { pending, problems } = await scenesFor(env, request);
   const files: FileEntry[] = [];
   for (const { scene, kind, folder, playerIndex } of pending) {
     for (const format of request.formats) {

@@ -4,7 +4,7 @@ import { printScale, type FabricProfile, type PrintRuleSet, type SizeLabelMap } 
 import type { OpenProject } from "@/lib/projects/project-reads";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { fieldErrors } from "@/lib/server/core/guard";
-import { buildPrintSet, TooManyFiles, zipPrintSet, type PrintRequest } from "../build";
+import { buildPrintSet, TooManyFiles, TooMuchWork, zipPrintSet, type PrintRequest } from "../build";
 import type { PrintFormat } from "../formats";
 import type { BuildEnv, PrintSettings } from "../layout/context";
 import { createLayoutMapper } from "../layout/mapper";
@@ -19,7 +19,7 @@ import { printZipName, zipHeaders } from "./names";
 export interface PrintDeps {
   readonly load: (options: { version?: number }) => Promise<OpenProject>;
   readonly settings: () => Promise<PrintSettings>;
-  readonly rules: () => Promise<PrintRuleSet>;
+  readonly rules: (ruleSetId?: string) => Promise<PrintRuleSet>;
   /** A fabric of the brand's with its profile, or null when the brand has no such fabric. */
   readonly fabric: (fabricId: string) => Promise<{ readonly name: string; readonly profile: FabricProfile } | null>;
   readonly sizeMaps: () => Promise<readonly SizeLabelMap[]>;
@@ -84,7 +84,7 @@ export async function prepare(deps: PrintDeps, input: PrintInput): Promise<Prepa
   if (missing !== undefined) throw new AppError("invalid_input", `This pattern has no size ${missing}. It has ${source.pattern.sizes.join(", ")}.`);
 
   const { scale, source: scaleSource } = await scaleFor(deps, query.fabric);
-  const [settings, rules, font] = await Promise.all([deps.settings(), deps.rules(), deps.font()]);
+  const [settings, rules, font] = await Promise.all([deps.settings(), deps.rules(query.rules), deps.font()]);
   const env: BuildEnv = {
     stack,
     colourwayId: colourway,
@@ -120,7 +120,7 @@ export async function servePrintFiles(deps: PrintDeps, input: PrintInput): Promi
   try {
     set = await buildPrintSet(env, request);
   } catch (error) {
-    if (error instanceof TooManyFiles) throw new AppError("invalid_input", error.message);
+    if (error instanceof TooManyFiles || error instanceof TooMuchWork) throw new AppError("invalid_input", error.message);
     throw error;
   }
   const name = printZipName({ styleNumber: project.styleNumber, designName: project.name, version: project.currentVersion });

@@ -36,6 +36,8 @@ export const printFilesQuerySchema = z.object({
   view: list(VIEW_NAMES, "piece").optional(),
   colourway: z.string().max(80).optional(),
   fabric: z.uuid().optional(),
+  /** A league rule set of the brand to hold the files to. */
+  rules: z.uuid().optional(),
   guides: z.enum(["on", "off"]).optional(),
   version: z.coerce.number().int().min(1).optional(),
 });

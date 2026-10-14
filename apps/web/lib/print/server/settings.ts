@@ -92,8 +92,10 @@ export async function savePrintProfile(admin: SupabaseClient, who: Who, input: P
   };
   const existing = await admin.from("print_profiles").select("id").eq("brand_id", who.brandId).maybeSingle();
   if (existing.error) throw new Error("The print profile could not be read.", { cause: existing.error });
-  const { error } = existing.data
+  let { error } = existing.data
     ? await admin.from("print_profiles").update(fields).eq("brand_id", who.brandId)
     : await admin.from("print_profiles").insert({ brand_id: who.brandId, created_by: who.userId, ...fields });
+  // Two people saving a first profile at once: the second finds it there, and changes it instead.
+  if (error?.code === "23505") ({ error } = await admin.from("print_profiles").update(fields).eq("brand_id", who.brandId));
   if (error) throw new Error("The print profile could not be saved.", { cause: error });
 }

@@ -10,8 +10,10 @@ import { createAccount, signIn, test } from "./support";
 const startDesign = async (page: Page, type: string, name: string): Promise<string> => {
   await page.goto("/studio/new");
   await page.getByLabel("Garment type").selectOption({ label: type });
+  await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
+  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   return /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
 };

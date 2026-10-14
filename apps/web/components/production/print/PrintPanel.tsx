@@ -143,7 +143,7 @@ function Ready(props: ReadyProps) {
       {nothingChosen ? (
         <p>Choose a size and a file type to get the files.</p>
       ) : (
-        <a href={downloadAddress(projectId, { sizes, formats })} download className="w-fit rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-canvas" data-testid="print-download">
+        <a href={downloadAddress(projectId, { sizes, formats })} className="w-fit rounded-full bg-ink px-4 py-2 text-[13px] font-medium text-canvas" data-testid="print-download">
           Download print files
         </a>
       )}
