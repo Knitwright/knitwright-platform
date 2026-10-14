@@ -51,7 +51,7 @@ export function GuidedFlow({ data, step, from, say, unit, assistant, show3d = fa
 
   return (
     <div className="flex flex-col gap-3">
-      <header className="glass rise flex flex-col gap-3 rounded-[1.75rem] px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:rounded-full lg:py-2 lg:pr-2 lg:pl-6">
+      <header className="glass flex flex-col gap-3 rounded-[1.75rem] px-5 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:rounded-full lg:py-2 lg:pr-2 lg:pl-6">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-medium tracking-[-0.02em] text-ink">{data.name}</h1>
           <p className="truncate font-mono text-xs text-chalk-muted">

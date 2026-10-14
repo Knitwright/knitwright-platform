@@ -31,7 +31,7 @@ const CHIP =
 export function WorkspaceHeader({ data, version, busy, status, tool, onChoose, onUndo }: HeaderProps) {
   const details = [data.styleNumber ? `Style ${data.styleNumber}` : null, data.season || null].filter(Boolean);
   return (
-    <header className="glass rise flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[1.75rem] px-4 py-3 lg:flex-nowrap lg:rounded-full lg:py-2 lg:pr-2 lg:pl-6">
+    <header className="glass flex flex-wrap items-center gap-x-5 gap-y-3 rounded-[1.75rem] px-4 py-3 lg:flex-nowrap lg:rounded-full lg:py-2 lg:pr-2 lg:pl-6">
       <div className="min-w-0 flex-1 lg:flex-none lg:basis-64">
         <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink">{data.name}</h1>
         <p className="truncate font-mono text-xs text-chalk-muted">

@@ -13,7 +13,7 @@ export function StepNav({ projectId, current, unit }: Props) {
       <ol className="flex flex-wrap gap-1 rounded-[1.25rem] bg-tile p-1 lg:rounded-full">
         {GUIDED_STEPS.map((step, index) => {
           const isCurrent = step.id === current;
-          const tone = isCurrent ? "bg-chalk font-medium text-[#0b0c0e]" : index < at ? "nav-pill text-ok" : "nav-pill text-chalk-muted";
+          const tone = isCurrent ? "bg-chalk font-medium text-[#0b0c0e]" : index < at ? "text-cobalt-soft hover:bg-white/10 hover:text-white" : "text-chalk-muted hover:bg-white/10 hover:text-white";
           return (
             <li key={step.id}>
               <Link
