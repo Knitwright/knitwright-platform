@@ -8,6 +8,7 @@ import { confirmAllActions, confirmables } from "./tech-pack-confirm";
 import {
   DEFAULT_SECTION,
   NAV_SECTIONS,
+  PRODUCTION_SECTIONS,
   fileProgress,
   fileSections,
   parseSection,
@@ -177,5 +178,32 @@ describe("accepting every suggestion of a new design", () => {
       const actions = confirmAllActions(spec, confirmables(spec, pack).map((item) => item.target));
       expect(actions.length, type.id).toBeLessThanOrEqual(MAX_BATCH_ACTIONS);
     }
+  });
+});
+
+describe("the sections of tech pack v2 in the factory file", () => {
+  it("count the open items of their group in the readiness list, and nothing for the others", () => {
+    const { spec, report, items } = starterTee();
+    const pack = packFor(spec, { charts: CHARTS });
+    const sections = fileSections(report, items, { illustrations: false }, pack.readiness);
+    const open = (ids: readonly string[]) =>
+      pack.readiness.groups.filter((group) => ids.includes(group.id)).reduce((sum, group) => sum + group.items.filter((item) => !item.met).length, 0);
+    const byId = new Map(sections.map((section) => [section.id, section.left]));
+    expect(byId.get("readiness")).toBe(open(["pattern", "spec", "fabric", "print", "proof", "order", "release", "components"]));
+    expect(byId.get("pattern-and-cutting")).toBe(open(["pattern"]));
+    expect(byId.get("fabric")).toBe(open(["fabric"]));
+    expect(byId.get("artwork-and-colour")).toBe(open(["print"]));
+    expect(byId.get("operations")).toBe(0);
+    expect(byId.get("readiness")).toBeGreaterThan(0);
+  });
+
+  it("count nothing without a readiness list", () => {
+    const { report, items } = starterTee();
+    const byId = new Map(fileSections(report, items, { illustrations: false }).map((section) => [section.id, section.left]));
+    expect(byId.get("readiness")).toBe(0);
+  });
+
+  it("are the sections whose count is left out of the total of things to fill in", () => {
+    expect(PRODUCTION_SECTIONS).toEqual(["readiness", "pattern-and-cutting", "fabric", "artwork-and-colour"]);
   });
 });

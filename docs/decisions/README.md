@@ -40,5 +40,5 @@ Copy `0000-template.md` to start.
 | 0030 | Fabrics, sizes and the cut list (W2) | Planned |
 | 0031 | Print files (W3) | Planned |
 | 0032 | Orders, releases and proofs (W4) | Planned |
-| 0033 | Tech pack v2 and "Ready for the factory" (W5) | Planned |
+| 0033 | [Tech pack v2 and "Ready for the factory" (W5)](0033-tech-pack-v2.md) | Proposed |
 | 0034 | One coordinate system for 3D and pattern pieces (W6) | Planned |
