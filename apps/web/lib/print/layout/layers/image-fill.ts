@@ -57,6 +57,7 @@ export async function imageFillLayer(layer: ImageFillLayer, space: LayerSpace): 
     ? (layer.fit === "cover" ? Math.max : Math.min)((box.maxX - box.minX) / asset.widthPx, (box.maxY - box.minY) / asset.heightPx) * layer.scale
     : (naturalW / asset.widthPx) * layer.scale;
   const printedW = fit * asset.widthPx;
+  if (!Number.isFinite(printedW) || printedW <= 0) return stop(`The size of the picture for layer ${layer.id} could not be worked out, so it was left off.`);
   const picture = await preparePicture(await asset.readPrintCopy(), printedW, input.settings.dpi);
   if (!picture) return stop(PICTURE_REFUSED);
   const dpi = effectiveDpi(picture.sourceWidthPx, printedW);
