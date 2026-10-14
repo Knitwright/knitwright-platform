@@ -65,6 +65,11 @@ function entitiesOf(groups: readonly Group[]): DxfEntity[] {
   const entities: DxfEntity[] = [];
   let open: { layer: string; pairs: Pair[]; vertices: [number, number][] } | null = null;
   for (const group of groups) {
+    if (open && group.type !== "VERTEX" && group.type !== "SEQEND") {
+      // A polyline whose SEQEND is missing ends where the next thing starts.
+      entities.push({ type: "POLYLINE", ...open });
+      open = null;
+    }
     if (group.type === "POLYLINE") {
       open = { layer: layerOf(group.pairs), pairs: group.pairs, vertices: [] };
     } else if (group.type === "VERTEX" && open) {

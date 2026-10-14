@@ -22,7 +22,7 @@ describe("readBlock, uploadSet and sendReview", () => {
   it("read a block's detail", async () => {
     const fetcher = vi.fn(async () => json({ success: true, data: { block: { id: ID }, sizes: [], reviews: [] } }));
     expect((await readBlock(ID, fetcher)).ok).toBe(true);
-    expect(fetcher.mock.calls[0][0]).toBe(`/api/pattern-library/${ID}`);
+    expect((fetcher.mock.calls[0] as unknown as [string])[0]).toBe(`/api/pattern-library/${ID}`);
     expect((await readBlock(ID, async () => json({ success: true, data: 1 }))).ok).toBe(false);
   });
 

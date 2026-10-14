@@ -61,6 +61,20 @@ function seamBetween(pieceId: string, line: readonly Point[], seamId: string, fr
   return { seamId, pieceId, from, to, points, lengthMm: runLength(points) };
 }
 
+/** True when going forward from one vertex to another passes any of the others. */
+const passes = (n: number, from: number, to: number, others: readonly number[]): boolean =>
+  others.some((other) => other !== from && other !== to && (other - from + n) % n < (to - from + n) % n);
+
+/**
+ * The seam between two landmarks that has no other landmark on it, whichever way round the
+ * outline is drawn. The points always run from `from` to `to`.
+ */
+function arcBetween(pieceId: string, line: readonly Point[], seamId: string, from: number, to: number, others: readonly number[]): Seam {
+  if (!passes(line.length, from, to, others)) return seamBetween(pieceId, line, seamId, from, to);
+  const back = seamBetween(pieceId, line, seamId, to, from);
+  return { ...back, from, to, points: [...back.points].reverse() };
+}
+
 function torsoSeams(piece: PatternPiece, role: "front" | "back"): Seam[] {
   const line = workLine(piece);
   const indices = landmarkIndices(line, piece.landmarks);
@@ -85,8 +99,10 @@ function sleeveSeams(piece: PatternPiece, armholes: Armholes | null): Seam[] {
   const need = ["underarm-a", "underarm-b", "hem-a", "hem-b", "cap-top"] as const;
   if (need.some((name) => !at.has(name))) return [];
   const idx = (name: (typeof need)[number]): number => at.get(name) as number;
-  const halfA = seamBetween(piece.id, line, "sleeve-cap-a", idx("cap-top"), idx("underarm-a"));
-  const halfB = seamBetween(piece.id, line, "sleeve-cap-b", idx("underarm-b"), idx("cap-top"));
+  const marks = need.map(idx);
+  const arc = (id: string, from: (typeof need)[number], to: (typeof need)[number]): Seam => arcBetween(piece.id, line, id, idx(from), idx(to), marks);
+  const halfA = arc("sleeve-cap-a", "cap-top", "underarm-a");
+  const halfB = arc("sleeve-cap-b", "underarm-b", "cap-top");
   const swapped = armholes ? Math.abs(halfA.lengthMm - armholes.back) + Math.abs(halfB.lengthMm - armholes.front) : 0;
   const straight = armholes ? Math.abs(halfA.lengthMm - armholes.front) + Math.abs(halfB.lengthMm - armholes.back) : 0;
   const named = (half: Seam, id: string): Seam => ({ ...half, seamId: id });
@@ -95,9 +111,9 @@ function sleeveSeams(piece: PatternPiece, armholes: Armholes | null): Seam[] {
     : [named(halfA, "armhole-back"), named(halfB, "armhole-front")];
   return [
     ...caps,
-    seamBetween(piece.id, line, "sleeve-underarm", idx("underarm-a"), idx("hem-a")),
-    seamBetween(piece.id, line, "sleeve-hem", idx("hem-a"), idx("hem-b")),
-    seamBetween(piece.id, line, "sleeve-underarm", idx("hem-b"), idx("underarm-b")),
+    arc("sleeve-underarm", "underarm-a", "hem-a"),
+    arc("sleeve-hem", "hem-a", "hem-b"),
+    arc("sleeve-underarm", "hem-b", "underarm-b"),
   ];
 }
 
