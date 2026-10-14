@@ -5,6 +5,7 @@ import { action, typeIds } from "@/lib/garment/fixtures/arbitraries";
 import { start } from "@/lib/garment/fixtures/specs";
 import { TO_BE_CONFIRMED, sourceLabel, type SetCell } from "../../cell";
 import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../../fixtures/designs";
+import { benchmarkJerseyInput, completeProduction, targetedJersey } from "../../fixtures/production";
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
 import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
@@ -57,13 +58,16 @@ const readPairs = async (bytes: Uint8Array): Promise<{ sheets: readonly ReadShee
 
 const FORMULA = /<f[\s>/]/;
 
-const designs = (): readonly (readonly [string, TechPack])[] =>
-  TOPS_IDS.flatMap((typeId) => [
+const designs = (): readonly (readonly [string, TechPack])[] => [
+  ["jersey with every production record", packFor(targetedJersey(), { production: completeProduction() })],
+  ["jersey with a pattern and nothing else", packFor(targetedJersey(), { production: benchmarkJerseyInput() })],
+  ...TOPS_IDS.flatMap((typeId) => [
     [`${typeId} empty`, packFor(start(typeId))] as const,
     [`${typeId} empty, sizes from a chart`, packFor(start(typeId), { charts: CHARTS })] as const,
     [`${typeId} full`, packFor(fullDesign(typeId), { history: revisions(3) })] as const,
     [`${typeId} full, sizes from a chart`, packFor(fullDesign(typeId), { charts: CHARTS, history: revisions(10) })] as const,
-  ]);
+  ]),
+];
 
 describe("the Excel file equals the document (T2)", () => {
   it("holds one sheet for each section that holds values, in order, with names Excel accepts", async () => {

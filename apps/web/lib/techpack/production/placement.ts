@@ -28,8 +28,7 @@ export function referenceOf(piece: PatternPiece): Reference | null {
 }
 
 const toLength = (mm: number): LengthValue => {
-  const tenthsMm = Math.round(mm * 10);
-  return { status: "set", value: formatCm(tenthsMm), tenthsMm, provenance: "measured-from-pattern" };
+  return { status: "set", value: formatCm(mm * 10), tenthsMm: Math.round(mm * 10), provenance: "measured-from-pattern" };
 };
 
 /** How far below the reference the top of a zone is, and how far its middle is from the centre line. */

@@ -31,8 +31,7 @@ const FACTORY_CODE_NOTE =
   "A factory code is what a person typed. Knitwright ships no Pantone data. The screen colour only sets how a drawing looks.";
 
 const lengthMm = (mm: number, provenance: LengthCell["provenance"]): LengthCell => {
-  const tenthsMm = Math.round(mm * 10);
-  return { status: "set", value: formatCm(tenthsMm), tenthsMm, provenance };
+  return { status: "set", value: formatCm(mm * 10), tenthsMm: Math.round(mm * 10), provenance };
 };
 
 /** The colours of the colourways, one standard for each distinct code and screen colour. Used when nobody gave the colours a role. */
@@ -138,7 +137,7 @@ function parametersNote(files: readonly PrintFileReport[], profile: PrintProfile
   const own = players.size === 0 ? "" : ` ${players.size} players have their own files, made with the same bleed and scale.`;
   const unscaled = files.some((file) => file.scaleX === 1 && file.scaleY === 1) ? " Some files are not scaled for shrink." : "";
   const source = profile && profile.source === "knitwright-default" ? ` ${DEFAULT_LABEL}.` : "";
-  return `${files.length} print ${files.length === 1 ? "file" : "files"} were made at 1:1 with the bleed and scale listed.${own}${unscaled}${source}`;
+  return `${files.length} print ${files.length === 1 ? "file was" : "files were"} made at 1:1 with the bleed and scale listed.${own}${unscaled}${source}`;
 }
 
 /**

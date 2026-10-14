@@ -91,6 +91,15 @@ export interface MarkerSetting {
   readonly source: "factory" | "marker" | "knitwright-default";
 }
 
+/** A target a person gave for a point only a pattern measures, such as the sleeve cap height. */
+export interface PatternOnlyTarget {
+  readonly pointId: string;
+  /** The pattern size it is for. */
+  readonly size: string;
+  readonly targetTenthsMm: number;
+  readonly toleranceTenthsMm: number;
+}
+
 export interface ReleaseInfo {
   readonly id: string;
   readonly files: number;
@@ -102,6 +111,7 @@ export interface ProductionInput {
   readonly pattern?: GradedPattern | null;
   readonly review?: PatternReview | null;
   readonly measured?: readonly PatternMeasurement[];
+  readonly patternOnlyTargets?: readonly PatternOnlyTarget[];
   readonly seamAgreements?: readonly SeamAgreement[];
   /** How much the block reduced the pattern for stretch, per axis, in percent. */
   readonly blockReduction?: { readonly lengthPct: number; readonly widthPct: number } | null;

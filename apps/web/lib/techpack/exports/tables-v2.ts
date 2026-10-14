@@ -113,7 +113,7 @@ export function artworkAndColourSection(pack: TechPack): ExportSection {
     ...(repeat === null
       ? []
       : [
-          table("Repeat sizes", [textColumn("Item"), lengthColumn("Size")], repeat.lengths.map((row) => [text(row.label), length(row.measure)]), repeat.checks.join(" ")),
+          table("Repeat sizes", [textColumn("Item"), lengthColumn("Size")], [...repeat.lengths.map((row) => [text(row.label), length(row.measure)]), [text("Closest gap between two dots, edge to edge"), length(repeat.gap)]], repeat.checks.join(" ")),
           table("Repeat settings", [textColumn("Item"), valueColumn("Setting")], repeat.settings.map((row) => [text(row.label), value(row.setting)])),
         ]),
     table(

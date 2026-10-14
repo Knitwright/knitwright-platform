@@ -1,6 +1,7 @@
 import type {
   ArtworkAndColourSection,
   FabricSection,
+  OnPatternCell,
   OnPatternTable,
   OperationsSection,
   PatternAndCuttingSection,
@@ -192,6 +193,12 @@ export function ArtworkAndColourView({ section }: Readonly<{ section: ArtworkAnd
                 </Cellular>
               </tr>
             ))}
+            <tr>
+              <RowHead>Closest gap between two dots, edge to edge</RowHead>
+              <Cellular>
+                <LengthText cell={repeat.gap} />
+              </Cellular>
+            </tr>
             {repeat.settings.map((row) => (
               <tr key={row.label}>
                 <RowHead>{row.label}</RowHead>
@@ -304,6 +311,15 @@ const STATUS_WORDS = {
   "not-measured": "Not measured",
 } as const;
 
+function ResultText({ cell }: Readonly<{ cell: OnPatternCell }>) {
+  return (
+    <>
+      <span className={cell.result === "outside" ? "rounded-md bg-warn-wash px-2 py-0.5 font-medium text-warn" : "text-ink-2"}>{STATUS_WORDS[cell.result]}</span>
+      {cell.flag ? <span className="mt-1 block max-w-64 text-xs text-muted">{cell.flag}</span> : null}
+    </>
+  );
+}
+
 /** The measurement table set against the pattern, with every measurement outside its tolerance flagged. */
 export function OnPatternView({ table }: Readonly<{ table: OnPatternTable }>) {
   return (
@@ -315,7 +331,7 @@ export function OnPatternView({ table }: Readonly<{ table: OnPatternTable }>) {
       <DocTable caption="Target, measured on the pattern, and the difference" heads={["Measurement", "Pattern size", "Target", "Measured", "Difference", "Result"]}>
         {table.rows.flatMap((row) =>
           row.cells.map((cell) => (
-            <tr key={`${row.pointId}-${cell.size}`} data-status={cell.status}>
+            <tr key={`${row.pointId}-${cell.size}`} data-status={cell.result}>
               <RowHead>{row.label}</RowHead>
               <Cellular>{cell.size}</Cellular>
               <Cellular>
@@ -328,24 +344,31 @@ export function OnPatternView({ table }: Readonly<{ table: OnPatternTable }>) {
                 <LengthText cell={cell.difference} />
               </Cellular>
               <Cellular>
-                <span className={cell.status === "outside" ? "rounded-md bg-warn-wash px-2 py-0.5 font-medium text-warn" : "text-ink-2"}>{STATUS_WORDS[cell.status]}</span>
-                {cell.flag ? <span className="mt-1 block max-w-64 text-xs text-muted">{cell.flag}</span> : null}
+                <ResultText cell={cell} />
               </Cellular>
             </tr>
           )),
         )}
       </DocTable>
       {table.patternOnly.length > 0 ? (
-        <DocTable caption="Points only a pattern gives" heads={["Point", "Pattern size", "Measured", "How it was measured"]}>
+        <DocTable caption="Points only a pattern gives" heads={["Point", "Pattern size", "Target", "Measured", "Difference", "Result"]}>
           {table.patternOnly.flatMap((row) =>
             row.cells.map((cell) => (
-              <tr key={`${row.pointId}-${cell.size}`}>
+              <tr key={`${row.pointId}-${cell.size}`} data-status={cell.result}>
                 <RowHead>{row.label}</RowHead>
                 <Cellular>{cell.size}</Cellular>
                 <Cellular>
+                  <LengthText cell={cell.target} />
+                </Cellular>
+                <Cellular>
                   <LengthText cell={cell.measured} />
                 </Cellular>
-                <Cellular>{row.method}</Cellular>
+                <Cellular>
+                  <LengthText cell={cell.difference} />
+                </Cellular>
+                <Cellular>
+                  <ResultText cell={cell} />
+                </Cellular>
               </tr>
             )),
           )}

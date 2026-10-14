@@ -2,6 +2,7 @@ import { formatCm } from "@/lib/garment";
 import type { PatternMeasurement, SizeLabelMap } from "@/lib/production/contract";
 import { TBC, type LengthValue } from "../cell";
 import type { MeasureRow, MeasurementsSection } from "../types";
+import type { PatternOnlyTarget } from "./input";
 import type { OnPatternCell, OnPatternRow, OnPatternTable, PatternOnlyRow } from "./types";
 
 /** Names for the points only a pattern can give. An id not listed is named from the id itself. */
@@ -35,42 +36,60 @@ function differenceOf(measured: LengthValue, target: LengthValue): LengthValue {
   return { status: "set", value: signed(tenthsMm), tenthsMm, provenance: "derived" };
 }
 
-function statusOf(measured: LengthValue, target: LengthValue, difference: LengthValue, tolerance: LengthValue): OnPatternCell["status"] {
+function resultOf(measured: LengthValue, target: LengthValue, difference: LengthValue, tolerance: LengthValue): OnPatternCell["result"] {
   if (measured.status !== "set") return "not-measured";
   if (target.status !== "set" || difference.status !== "set") return "no-target";
   if (tolerance.status !== "set") return "no-tolerance";
   return Math.abs(difference.tenthsMm) > tolerance.tenthsMm ? "outside" : "inside";
 }
 
-function flagOf(status: OnPatternCell["status"], measured: LengthValue, target: LengthValue, difference: LengthValue, tolerance: LengthValue): string | null {
-  if (status !== "outside" || measured.status !== "set" || target.status !== "set" || difference.status !== "set" || tolerance.status !== "set") return null;
+function flagOf(result: OnPatternCell["result"], measured: LengthValue, target: LengthValue, difference: LengthValue, tolerance: LengthValue): string | null {
+  if (result !== "outside" || measured.status !== "set" || target.status !== "set" || difference.status !== "set" || tolerance.status !== "set") return null;
   const way = difference.tenthsMm > 0 ? "over" : "under";
   return `Measured ${measured.value} cm on the pattern against a target of ${target.value} cm: ${formatCm(Math.abs(difference.tenthsMm))} cm ${way}, and the tolerance is ${tolerance.value} cm.`;
 }
 
-function cellFor(row: MeasureRow, index: number, size: string, measured: LengthValue): OnPatternCell {
-  const target = row.values[index] ?? TBC;
+function cellFor(tolerance: LengthValue, target: LengthValue, size: string, measured: LengthValue): OnPatternCell {
   const difference = differenceOf(measured, target);
-  const status = statusOf(measured, target, difference, row.tolerance);
-  return { size, target, measured, difference, status, flag: flagOf(status, measured, target, difference, row.tolerance) };
+  const result = resultOf(measured, target, difference, tolerance);
+  // The target is copied, so each cell of the document is its own object and none is listed twice.
+  return { size, target: { ...target }, measured, difference, result, flag: flagOf(result, measured, target, difference, tolerance) };
 }
+
+const lengthOf = (tenthsMm: number, provenance: "user-edited" | "derived"): LengthValue => ({
+  status: "set",
+  value: formatCm(tenthsMm),
+  tenthsMm,
+  provenance,
+});
 
 function rowFor(row: MeasureRow, table: MeasurementsSection, find: (pointId: string, label: string) => PatternMeasurement | undefined): OnPatternRow {
   const cells = table.columns.flatMap((column, index) =>
-    column.size === null ? [] : [cellFor(row, index, column.size, measuredCell(find(row.pointId, column.size)))],
+    column.size === null ? [] : [cellFor(row.tolerance, row.values[index] ?? TBC, column.size, measuredCell(find(row.pointId, column.size)))],
   );
-  return { pointId: row.pointId, code: row.code, label: row.label, tolerance: row.tolerance, cells };
+  return { pointId: row.pointId, code: row.code, label: row.label, tolerance: { ...row.tolerance }, cells };
 }
 
-function patternOnlyRows(measured: readonly PatternMeasurement[], known: ReadonlySet<string>, sizes: readonly string[]): PatternOnlyRow[] {
+function patternOnlyRows(
+  measured: readonly PatternMeasurement[],
+  targets: readonly PatternOnlyTarget[],
+  known: ReadonlySet<string>,
+  sizes: readonly string[],
+): PatternOnlyRow[] {
   const ids = [...new Set(measured.map((m) => m.pointId))].filter((id) => !known.has(id));
   return ids.map((pointId) => {
     const own = measured.filter((m) => m.pointId === pointId);
+    const given = targets.filter((t) => t.pointId === pointId);
+    const tolerance = given[0] ? lengthOf(given[0].toleranceTenthsMm, "user-edited") : TBC;
     return {
       pointId,
       label: PATTERN_ONLY_LABELS[pointId] ?? humanised(pointId),
       method: own[0]?.method ?? "",
-      cells: sizes.map((size) => ({ size, measured: measuredCell(own.find((m) => m.size === size)) })),
+      tolerance,
+      cells: sizes.map((size) => {
+        const target = given.find((t) => t.size === size);
+        return cellFor(tolerance, target ? lengthOf(target.targetTenthsMm, "user-edited") : TBC, size, measuredCell(own.find((m) => m.size === size)));
+      }),
     };
   });
 }
@@ -89,6 +108,7 @@ export function buildOnPattern(
   table: MeasurementsSection,
   measured: readonly PatternMeasurement[],
   sizeMap: readonly SizeLabelMap[],
+  patternOnlyTargets: readonly PatternOnlyTarget[] = [],
 ): OnPatternTable | null {
   if (measured.length === 0) return null;
   const labels = table.columns.flatMap((column) => (column.size === null ? [] : [column.size]));
@@ -96,13 +116,14 @@ export function buildOnPattern(
     measured.find((m) => m.pointId === pointId && m.size === patternSizeOf(label, sizeMap));
   const tableRows = table.groups.flatMap((group) => group.rows);
   const rows = tableRows.map((row) => rowFor(row, table, find));
-  const cells = rows.flatMap((row) => row.cells);
-  const outside = cells.filter((cell) => cell.status === "outside").length;
-  const notMeasured = cells.filter((cell) => cell.status === "not-measured").length;
   const patternSizes = [...new Set(labels.map((label) => patternSizeOf(label, sizeMap)))];
+  const patternOnly = patternOnlyRows(measured, patternOnlyTargets, new Set(tableRows.map((row) => row.pointId)), patternSizes);
+  const cells = [...rows.flatMap((row) => row.cells), ...patternOnly.flatMap((row) => row.cells)];
+  const outside = cells.filter((cell) => cell.result === "outside").length;
+  const notMeasured = rows.flatMap((row) => row.cells).filter((cell) => cell.result === "not-measured").length;
   return {
     rows,
-    patternOnly: patternOnlyRows(measured, new Set(tableRows.map((row) => row.pointId)), patternSizes),
+    patternOnly,
     outside,
     summary: summaryOf(outside, notMeasured),
   };

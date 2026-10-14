@@ -94,8 +94,9 @@ const markerOf = (marker: MarkerSetting | null | undefined): Marker =>
     ? { efficiencyPct: marker.efficiencyPct, label: marker.source === "knitwright-default" ? DEFAULT_MARKER_LABEL : marker.source === "marker" ? "from the factory's marker" : "from your factory" }
     : { efficiencyPct: DEFAULT_MARKER_EFFICIENCY_PCT, label: DEFAULT_MARKER_LABEL };
 
+/** The length of fabric, in metres to the nearest centimetre, that pieces of this area need at this width and efficiency. */
 const toMetres = (areaMm2: number, widthMm: number, efficiencyPct: number): number =>
-  Math.round((areaMm2 / (widthMm * (efficiencyPct / 100))) * 100) / 100;
+  Math.round(areaMm2 / (widthMm * (efficiencyPct / 100)) / 10) / 100;
 
 function fabricUse(pattern: GradedPattern, fabric: FabricProfile | null | undefined, marker: Marker) {
   const width = fabric?.usableWidthMm;

@@ -184,7 +184,8 @@ export interface OnPatternCell {
   readonly measured: LengthValue;
   /** Measured minus target. To be confirmed when either is missing. */
   readonly difference: LengthValue;
-  readonly status: "inside" | "outside" | "no-target" | "no-tolerance" | "not-measured";
+  /** Not called `status`: that word marks a cell of the document. */
+  readonly result: "inside" | "outside" | "no-target" | "no-tolerance" | "not-measured";
   /** A sentence when the measured value is outside the tolerance, else null. */
   readonly flag: string | null;
 }
@@ -201,7 +202,8 @@ export interface PatternOnlyRow {
   readonly pointId: string;
   readonly label: string;
   readonly method: string;
-  readonly cells: readonly { readonly size: string; readonly measured: LengthValue }[];
+  readonly tolerance: LengthValue;
+  readonly cells: readonly OnPatternCell[];
 }
 
 /** The measurement table set against the pattern: target, measured, difference, inside tolerance or not. */

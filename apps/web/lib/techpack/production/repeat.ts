@@ -5,7 +5,8 @@ import type { RepeatBlock } from "./types";
 
 const tenths = (mm: number): number => Math.round(mm * 10);
 
-const length = (mm: number): LengthCell => ({ status: "set", value: formatCm(tenths(mm)), tenthsMm: tenths(mm), provenance: "user-edited" });
+/** The text is rounded once, from the exact length, so 19.497 mm reads 1.9 cm and not 2.0. */
+const length = (mm: number): LengthCell => ({ status: "set", value: formatCm(mm * 10), tenthsMm: tenths(mm), provenance: "user-edited" });
 
 const word = (text: string): Cell => ({ status: "set", value: text, provenance: "user-edited" });
 
@@ -33,7 +34,7 @@ export function buildRepeat(r: RepeatSpec | null | undefined): RepeatBlock | nul
   if (!r) return null;
   const gapMm = closestCentres(r) - r.diameterMm;
   const problems = problemsOf(r, gapMm);
-  const gap: LengthValue = Number.isFinite(gapMm) ? { status: "set", value: formatCm(tenths(gapMm)), tenthsMm: tenths(gapMm), provenance: "derived" } : TBC;
+  const gap: LengthValue = Number.isFinite(gapMm) ? { status: "set", value: formatCm(gapMm * 10), tenthsMm: tenths(gapMm), provenance: "derived" } : TBC;
   const gapSentence = gap.status === "set" ? [`The closest two dots are ${gap.value} cm apart, edge to edge.`] : [];
   return {
     lengths: [

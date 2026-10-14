@@ -46,7 +46,7 @@ const NOT_VALUES: readonly RegExp[] = [
   /^readiness\.(summary|open\[\d+\]\.(whoActs|actorLabel|count)|groups\[\d+\]\.(id|title)|groups\[\d+\]\.items\[\d+\]\.(id|sentence|whoActs|actorLabel))$/,
   /^measurements\.onPattern\.(summary|outside)$/,
   /^measurements\.onPattern\.rows\[\d+\]\.(pointId|code|label)$/,
-  /^measurements\.onPattern\.rows\[\d+\]\.cells\[\d+\]\.(size|status|flag)$/,
+  /^measurements\.onPattern\.rows\[\d+\]\.cells\[\d+\]\.(size|result|flag)$/,
   /^measurements\.onPattern\.patternOnly\[\d+\]\.(pointId|label|method)$/,
   /^measurements\.onPattern\.patternOnly\[\d+\]\.cells\[\d+\]\.size$/,
   /^patternAndCutting\.(blockName|fabricUseNote)$/,

@@ -19,13 +19,16 @@ const piecesOf = (pattern: GradedPattern): PatternPiece[] => pattern.sizes.flatM
 
 const named = (pieces: readonly PatternPiece[]): string => listOf([...new Set(pieces.map((piece) => piece.name))]);
 
-/** Seams that two or more pieces share, so they are sewn together. */
+/** A hem is finished, not joined to another piece, even where front and back both have one. */
+const FINISHED_EDGE = /(^|-)hem$/;
+
+/** Seams that two or more pieces share, so they are sewn together. A hem is not one. */
 export function joinedSeams(pieces: readonly PatternPiece[]): string[] {
   const owners = new Map<string, Set<string>>();
   for (const piece of pieces) {
     for (const edge of piece.seamAllowance) owners.set(edge.seamId, (owners.get(edge.seamId) ?? new Set()).add(piece.id));
   }
-  return [...owners].filter(([, ids]) => ids.size >= 2).map(([seamId]) => seamId);
+  return [...owners].filter(([seamId, ids]) => ids.size >= 2 && !FINISHED_EDGE.test(seamId)).map(([seamId]) => seamId);
 }
 
 function allowanceItem(pieces: readonly PatternPiece[]): Item {

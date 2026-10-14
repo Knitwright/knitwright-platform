@@ -45,8 +45,8 @@ function specItems(ctx: ReadinessContext): Item[] {
   const rows = ctx.measurements.groups.flatMap((group) => group.rows);
   const gaps = rows.filter((row) => row.tolerance.status !== "set" || row.values.some((value) => value.status !== "set"));
   const cells = ctx.onPattern?.rows.flatMap((row) => row.cells) ?? [];
-  const unmeasured = cells.filter((cell) => cell.status === "not-measured");
-  const outside = (ctx.onPattern?.rows ?? []).filter((row) => row.cells.some((cell) => cell.status === "outside"));
+  const unmeasured = cells.filter((cell) => cell.result === "not-measured");
+  const outside = (ctx.onPattern?.rows ?? []).filter((row) => row.cells.some((cell) => cell.result === "outside"));
   return [
     item(
       "spec-targets",

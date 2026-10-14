@@ -30,7 +30,7 @@ export function buildTechPack(input: TechPackInput): TechPack {
   const { spec, charts } = input;
   const production = input.production ?? {};
   const measured = buildMeasurements(spec, charts);
-  const measurements = { ...measured, onPattern: buildOnPattern(measured, production.measured ?? [], production.sizeMap ?? []) };
+  const measurements = { ...measured, onPattern: buildOnPattern(measured, production.measured ?? [], production.sizeMap ?? [], production.patternOnlyTargets ?? []) };
   const colourways = buildColourways(spec, charts);
   const construction = buildConstruction(spec);
   const artwork = buildArtwork(spec);
