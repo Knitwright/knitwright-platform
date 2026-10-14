@@ -13,3 +13,16 @@ export function patternsOpenTo(
   if (!servesRealPeople(env)) return true;
   return Boolean(env.OWNER_EMAIL && email && email.toLowerCase() === env.OWNER_EMAIL);
 }
+
+/**
+ * Who may use the pattern library (upload a size set, read blocks, record a review). While the
+ * library is a trial it is the owner's alone on a site real people visit; on this machine anyone
+ * signed in may. It does not need the pattern provider: uploading a DXF asks nothing of it.
+ */
+export function patternLibraryOpenTo(
+  env: Pick<Env, "OWNER_EMAIL" | "VERCEL_ENV" | "NODE_ENV" | "NEXT_PUBLIC_SITE_URL">,
+  email: string | null,
+): boolean {
+  if (!servesRealPeople(env)) return true;
+  return Boolean(env.OWNER_EMAIL && email && email.toLowerCase() === env.OWNER_EMAIL);
+}

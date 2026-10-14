@@ -6,11 +6,16 @@
 
 export type PatternJobStatus = "queued" | "running" | "succeeded" | "failed";
 
+export type PatternJobKind = "single" | "size-set";
+
 export interface PatternJobRow {
   readonly id: string;
   readonly version: number;
   readonly status: PatternJobStatus;
   readonly size_label: string;
+  /** One size, or a whole size run that ends in a pattern library block. */
+  readonly kind: PatternJobKind;
+  readonly block_id: string | null;
   readonly draft: string | null;
   readonly pieces: number | null;
   readonly notes: readonly string[];
@@ -21,7 +26,7 @@ export interface PatternJobRow {
 }
 
 export const PATTERN_JOB_COLUMNS =
-  "id, version, status, size_label, draft, pieces, notes, dxf_file_id, preview_file_id, error, created_at" as const;
+  "id, version, status, size_label, kind, block_id, draft, pieces, notes, dxf_file_id, preview_file_id, error, created_at" as const;
 
 /** Drafting a custom pattern can take up to eight minutes; the bridge may wait for a person. */
 export const PATTERN_STALE_AFTER_MS = 30 * 60 * 1000;
@@ -32,6 +37,9 @@ export interface PatternJobView {
   readonly id: string;
   readonly version: number;
   readonly size: string;
+  readonly kind: PatternJobKind;
+  /** The library block a finished size run was stored as. */
+  readonly blockId: string | null;
   readonly status: "waiting" | "drafting" | "ready" | "failed";
   readonly draft: string | null;
   readonly pieces: number | null;
@@ -52,6 +60,8 @@ export function patternJobView(row: PatternJobRow, now: Date): PatternJobView {
     id: row.id,
     version: row.version,
     size: row.size_label,
+    kind: row.kind,
+    blockId: row.block_id,
     draft: null,
     pieces: null,
     notes: [],

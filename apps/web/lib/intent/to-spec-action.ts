@@ -123,3 +123,6 @@ export function toSpecAction(spec: GarmentSpec, wire: WireAction, source: ModelS
       return done({ type: "remove-kit-pattern" });
   }
 }
+
+/** Pattern styles (plan W7c): words to steps on a stack, with a before and an after. See artwork-style.ts. */
+export { ARTWORK_STYLE_PROMPT, applyArtworkStyle, readArtworkStyleWords } from "./artwork-style";
