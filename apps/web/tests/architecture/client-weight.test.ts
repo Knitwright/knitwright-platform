@@ -10,8 +10,9 @@ import { describe, expect, it } from "vitest";
  * modules without zod. A server action module ("use server") is only a reference in the
  * browser, so the trace stops there.
  *
- * The design editor, the tech pack, the guided flow and the size chart import need the garment
- * rules (and so zod) in the browser; they are listed in SECOND_PASS until their own pass.
+ * The design editor, the tech pack and the guided flow need the garment rules (and so zod) in
+ * the browser; they are listed in SECOND_PASS until their own pass. The size chart mapping form
+ * needs them too, and ChartImport loads it only after the page is on screen.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -24,7 +25,7 @@ const SECOND_PASS = [
   "components/home/",
   "components/guided/",
   "components/garment3d/",
-  "components/charts/",
+  "components/charts/ChartMappingForm.tsx",
 ];
 
 const sourceFiles = (folder: string): string[] =>
