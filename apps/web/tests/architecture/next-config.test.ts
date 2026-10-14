@@ -111,3 +111,14 @@ describe("share pages keep their address to themselves", () => {
     expect(all.findIndex((rule) => rule.source === SHARE_SOURCE)).toBeGreaterThan(all.findIndex((rule) => rule.source === "/:path*"));
   });
 });
+
+/**
+ * Going back to a studio page seen in the last half minute is instant: the browser keeps it.
+ * Every server action that changes data revalidates or sets a cookie, which empties that store, so a save is
+ * never hidden. It is kept short so another member's change shows soon.
+ */
+describe("the browser keeps pages it has just shown", () => {
+  it("keeps a dynamic page for 30 seconds", () => {
+    expect(nextConfig.experimental?.staleTimes?.dynamic).toBe(30);
+  });
+});

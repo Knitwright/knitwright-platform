@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NEXT_STEP_MAX } from "./limits";
 import { BUYER_KINDS, type BuyerKind } from "./buyer-kind";
 import { ORGANISATION_TYPES, type OrganisationType } from "./organisation";
 import { isCalendarDate, quoteStatusSchema } from "./quote";
@@ -142,7 +143,7 @@ export function buildLeadList(rows: readonly LeadRow[], now: Date): LeadListItem
 
 const emptyToNull = (value: unknown) => (typeof value === "string" && value.trim() === "" ? null : value);
 
-export const NEXT_STEP_MAX = 200;
+export { NEXT_STEP_MAX };
 
 export const leadFormSchema = z.object({
   brandId: z.uuid("That is not a brand."),

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
 import { setLeadAction } from "@/lib/leads/actions";
-import { NEXT_STEP_MAX } from "@/lib/leads/admin";
+import { NEXT_STEP_MAX } from "@/lib/leads/limits";
 import { LEAD_OWNERS, type LeadOwner } from "@/lib/leads/routing";
 
 type Props = Readonly<{

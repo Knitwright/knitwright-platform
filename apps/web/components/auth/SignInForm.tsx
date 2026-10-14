@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { signInAction } from "@/lib/auth/actions";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { BotCheck, useBotCheck } from "./BotCheck";
 
 export function SignInForm({ siteKey }: Readonly<{ siteKey: string }>) {

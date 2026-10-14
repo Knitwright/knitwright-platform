@@ -1,7 +1,7 @@
 "use client";
 
 import { signUpAction } from "@/lib/auth/actions";
-import { MARKETING_FIELD } from "@/lib/consent/schemas";
+import { MARKETING_FIELD } from "@/lib/consent/fields";
 import { EmailLinkForm } from "./EmailLinkForm";
 
 /** `marketing` is the state of the box on the sign-up page, shared with the Google button. */

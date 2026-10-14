@@ -50,6 +50,11 @@ const SHARE_HEADERS = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Going back to a studio page seen in the last 30 seconds needs no trip to the server. Every
+    // server action that changes data revalidates or sets a cookie, which empties this store.
+    staleTimes: { dynamic: 30 },
+  },
   typedRoutes: true,
   // The PDF font is read from disk when a PDF is made (decision 0008), so the host must ship it with
   // the export route. The brackets are escaped because the key is a picomatch glob. A test fails

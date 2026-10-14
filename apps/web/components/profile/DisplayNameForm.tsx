@@ -5,7 +5,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import type { FormAction } from "@/lib/forms/form-state";
-import { DISPLAY_NAME_MAX } from "@/lib/profile/name";
+import { DISPLAY_NAME_MAX } from "@/lib/profile/limits";
 
 type DisplayNameFormProps = Readonly<{ action: FormAction<unknown>; defaultName: string }>;
 

@@ -8,10 +8,10 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
-import { ACCESS_MESSAGE_MAX, ACCESS_NAME_MAX, ACCESS_ORGANISATION_MAX } from "@/lib/leads/access";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
+import { ACCESS_MESSAGE_MAX, ACCESS_NAME_MAX, ACCESS_ORGANISATION_MAX } from "@/lib/leads/limits";
 import { requestAccessAction } from "@/lib/leads/actions";
-import { ORGANISATION_TYPES } from "@/lib/leads/organisation";
+import { ORGANISATION_TYPES } from "@/lib/leads/organisation-options";
 
 /** Asks for access while sign-up is by invitation. Needs no account; the bot check guards it. */
 export function AccessRequestForm({ siteKey }: Readonly<{ siteKey: string }>) {

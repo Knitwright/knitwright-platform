@@ -7,9 +7,9 @@ import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
-import { CAPTCHA_FIELD } from "@/lib/auth/schemas";
+import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { respondToShareAction } from "@/lib/share/actions";
-import { COMMENT_MAX, NAME_MAX } from "@/lib/share/schemas";
+import { COMMENT_MAX, NAME_MAX } from "@/lib/share/fields";
 
 type ResponseFormProps = Readonly<{ token: string; siteKey: string }>;
 

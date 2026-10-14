@@ -19,9 +19,10 @@ export const metadata: Metadata = { title: "Settings" };
 export default async function SettingsPage() {
   const { email, brands } = await requireMember();
   const client = await sessionClient();
-  const { data } = await client.auth.getUser();
+  // The profile (from the sign-in service) and the email choices (from the database) at once.
+  const [{ data }, events] = await Promise.all([client.auth.getUser(), loadMarketingEvents(client)]);
   const name = profileNameOf(data.user?.user_metadata);
-  const marketing = currentMarketingChoice(await loadMarketingEvents(client))?.granted === true;
+  const marketing = currentMarketingChoice(events)?.granted === true;
 
   return (
     <div className="flex flex-col gap-8">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
-import { AU_STATES, ORGANISATION_TYPES, REGION_MAX, type CountryOption } from "@/lib/leads/organisation";
+import { AU_STATES, ORGANISATION_TYPES, REGION_MAX, type CountryOption } from "@/lib/leads/organisation-options";
 
 type Values = Readonly<{ organisationType: string; country: string; region: string }>;
 

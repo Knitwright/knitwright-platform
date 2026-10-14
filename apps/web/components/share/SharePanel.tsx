@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import { createShareLinkAction, moveShareLinkAction, revokeShareLinkAction } from "@/lib/share/actions";
 import type { ShareLinkView } from "@/lib/share/responses";
-import { DEFAULT_LINK_DAYS, LINK_DAYS } from "@/lib/share/schemas";
+import { DEFAULT_LINK_DAYS, LINK_DAYS } from "@/lib/share/fields";
 
 type SharePanelProps = Readonly<{ projectId: string; links: readonly ShareLinkView[] }>;
 

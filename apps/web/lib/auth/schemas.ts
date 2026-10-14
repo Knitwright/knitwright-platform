@@ -1,12 +1,8 @@
 import { z } from "zod";
-import { MARKETING_FIELD } from "@/lib/consent/schemas";
+import { MARKETING_FIELD } from "@/lib/consent/fields";
+import { CAPTCHA_FIELD, PASSWORD_MAX_BYTES, PASSWORD_MIN } from "./fields";
 
-/** The field name the Turnstile widget adds to a form. */
-export const CAPTCHA_FIELD = "cf-turnstile-response";
-
-export const PASSWORD_MIN = 10;
-/** Passwords are hashed with bcrypt, which ignores everything after 72 bytes. */
-export const PASSWORD_MAX_BYTES = 72;
+export { CAPTCHA_FIELD, PASSWORD_MAX_BYTES, PASSWORD_MIN };
 
 const byteLength = (text: string): number => new TextEncoder().encode(text).byteLength;
 

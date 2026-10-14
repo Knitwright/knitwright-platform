@@ -5,6 +5,7 @@ import { failureFromDatabase } from "@/lib/projects/database-errors";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import type { LogEvent } from "@/lib/server/core/guard";
 import type { BotCheckOutcome } from "@/lib/share/turnstile";
+import { ACCESS_MESSAGE_MAX, ACCESS_NAME_MAX, ACCESS_ORGANISATION_MAX } from "./limits";
 import { ORGANISATION_TYPES, type OrganisationType } from "./organisation";
 
 /**
@@ -15,9 +16,7 @@ import { ORGANISATION_TYPES, type OrganisationType } from "./organisation";
  * Platform admins read the requests on the leads page.
  */
 
-export const ACCESS_NAME_MAX = 80;
-export const ACCESS_ORGANISATION_MAX = 80;
-export const ACCESS_MESSAGE_MAX = 1000;
+export { ACCESS_MESSAGE_MAX, ACCESS_NAME_MAX, ACCESS_ORGANISATION_MAX };
 
 const CONTROL = /\p{Cc}/u;
 const CONTROL_BUT_LINES = /(?![\n\r\t])\p{Cc}/u;

@@ -1,3 +1,4 @@
+import { PageRise } from "@/components/shell/PageRise";
 import { StudioHeader } from "@/components/shell/StudioHeader";
 import { pageFrame } from "@/components/shell/page-width";
 import { requireMember } from "@/lib/server/page-guards";
@@ -14,7 +15,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <>
       <StudioHeader email={email} brandName={brand.name} />
       <main id="main" className={`${pageFrame("content")} flex-1 py-10`}>
-        {children}
+        <PageRise>{children}</PageRise>
       </main>
     </>
   );

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Aurora } from "@/components/shell/Aurora";
+import { NavigationProgress } from "@/components/shell/NavigationProgress";
 import { PRODUCT } from "@/lib/config/product";
 import "./globals.css";
 
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="relative isolate flex min-h-full flex-col">
         <Aurora />
+        <NavigationProgress />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-surface-solid focus:px-4 focus:py-2"

@@ -7,7 +7,7 @@ import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { requestQuoteAction } from "@/lib/leads/actions";
-import { MESSAGE_MAX, QUANTITY_MAX, SIZES_NOTE_MAX, describeQuote, type QuoteStatus } from "@/lib/leads/quote";
+import { MESSAGE_MAX, QUANTITY_MAX, SIZES_NOTE_MAX, describeQuote, type QuoteStatus } from "@/lib/leads/quote-terms";
 
 type Earlier = Readonly<{ id: string; quantity: number; neededBy: string; status: QuoteStatus }>;
 

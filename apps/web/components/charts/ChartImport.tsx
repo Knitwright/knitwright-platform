@@ -1,14 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { importChartAction } from "@/lib/charts/actions";
 import type { Grid } from "@/lib/charts/grid";
-import { initialScreen, toMapping, type ChartScreen } from "@/lib/charts/screen";
-import { uploadChart } from "@/lib/charts/upload";
-import { ChartMappingForm } from "./ChartMappingForm";
+import type { ChartScreen } from "@/lib/charts/screen";
+
+/*
+ * Reading a file and mapping its columns needs the garment rules and zod, which the page does
+ * not need to show itself. They load after the page is on screen, before anyone can pick a file.
+ */
+const loadScreen = () => import("@/lib/charts/screen");
+const loadUpload = () => import("@/lib/charts/upload");
+const ChartMappingForm = dynamic(() => import("./ChartMappingForm").then((module) => module.ChartMappingForm));
 
 const postFile = (form: FormData): Promise<Response> => fetch("/api/charts/files", { method: "POST", body: form });
 
@@ -17,17 +23,24 @@ type Outcome = Readonly<{ tone: "ok" | "warn"; message: string; problems: readon
 
 /** Upload a chart file, map its columns, and import it. Every rule lives in lib/charts. */
 export function ChartImport() {
-  const router = useRouter();
   const inputId = useId();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [screen, setScreen] = useState<ChartScreen | null>(null);
   const [busy, setBusy] = useState(false);
+  // An import stays pending until the refreshed table is on screen, not only until the action answers.
+  const [importing, startImport] = useTransition();
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+
+  useEffect(() => {
+    void loadScreen();
+    void loadUpload();
+  }, []);
 
   const upload = async (file: File | undefined) => {
     if (!file) return;
     setBusy(true);
     setOutcome(null);
+    const [{ uploadChart }, { initialScreen }] = await Promise.all([loadUpload(), loadScreen()]);
     const result = await uploadChart(file, postFile);
     setBusy(false);
     if (!result.ok) {
@@ -38,16 +51,20 @@ export function ChartImport() {
     setScreen(initialScreen(result.suggestion));
   };
 
-  const submit = async () => {
+  const submit = () => {
     if (!loaded || !screen) return;
-    const mapping = toMapping(screen);
-    if (!mapping.ok) {
-      setOutcome({ tone: "warn", message: mapping.message, problems: [] });
-      return;
-    }
-    setBusy(true);
-    const result = await importChartAction({ fileId: loaded.fileId, mapping: mapping.mapping });
-    setBusy(false);
+    startImport(async () => {
+      const mapping = (await loadScreen()).toMapping(screen);
+      if (!mapping.ok) {
+        setOutcome({ tone: "warn", message: mapping.message, problems: [] });
+        return;
+      }
+      const result = await importChartAction({ fileId: loaded.fileId, mapping: mapping.mapping });
+      settle(result);
+    });
+  };
+
+  const settle = (result: Awaited<ReturnType<typeof importChartAction>>) => {
     if (!result.success) {
       const problems = result.error.fields?.file ?? [];
       setOutcome({ tone: "warn", message: result.error.message, problems: problems.slice(1) });
@@ -58,9 +75,9 @@ export function ChartImport() {
       message: `Imported. Your chart for ${result.data.garmentType}, ${result.data.wearer}, now has the sizes ${result.data.sizes.join(", ")}.`,
       problems: [],
     });
+    // The action revalidates the studio, so its answer already carries the new table.
     setLoaded(null);
     setScreen(null);
-    router.refresh();
   };
 
   return (
@@ -80,7 +97,7 @@ export function ChartImport() {
           id={inputId}
           type="file"
           accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          disabled={busy}
+          disabled={busy || importing}
           onChange={(event) => void upload(event.target.files?.[0])}
           className="text-sm text-ink-2"
         />
@@ -103,7 +120,7 @@ export function ChartImport() {
         <div className="mt-6">
           <ChartMappingForm grid={loaded.grid} fileName={loaded.name} screen={screen} onChange={setScreen} />
           <div className="mt-6">
-            <Button type="button" pending={busy} onClick={() => void submit()}>
+            <Button type="button" pending={busy || importing} onClick={submit}>
               Replace the chart with this file
             </Button>
           </div>
