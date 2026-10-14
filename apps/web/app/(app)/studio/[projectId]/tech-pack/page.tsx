@@ -16,7 +16,7 @@ import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 
-export const metadata: Metadata = { title: "Tech pack" };
+export const metadata: Metadata = { title: "Factory file" };
 
 /** A design that is missing, or belongs to another brand, is a page that does not exist. */
 const orNotFound = (error: unknown): never => {
@@ -27,7 +27,8 @@ const orNotFound = (error: unknown): never => {
 export default async function TechPackPage({ params, searchParams }: PageProps<"/studio/[projectId]/tech-pack">) {
   const { brand } = await requireMember();
   const { projectId } = await params;
-  const colourwayId = colourwayParam((await searchParams).colourway);
+  const search = await searchParams;
+  const colourwayId = colourwayParam(search.colourway);
   const client = await sessionClient();
 
   // The same loader the export route uses, so the screen and the files are made from the same
@@ -50,10 +51,14 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
 
   return (
     <TechPackEdit projectId={data.projectId} version={data.version} spec={data.spec}>
-      <TechPackDocument data={data} colourwayId={colourwayId} />
-      {illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
-      <PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />
-      <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />
+      <TechPackDocument
+        data={data}
+        colourwayId={colourwayId}
+        section={search.section}
+        illustrations={illustrations ? <IllustrationsSection loaded={illustrations} currentVersion={project.currentVersion} /> : null}
+        patterns={<PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />}
+        quote={<DesignLeads projectId={projectId} version={project.currentVersion} data={leads} />}
+      />
     </TechPackEdit>
   );
 }

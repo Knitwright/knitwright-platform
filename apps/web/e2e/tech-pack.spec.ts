@@ -6,19 +6,21 @@ import { createAccount, leaveWithoutChart, signIn, standInForBotCheck, test } fr
  * so it follows the editor. Nothing is invented: what nobody entered says "To be confirmed".
  */
 
-const HEADINGS = [
-  "Cover",
-  "Flats with callouts",
-  "Measurement table",
-  "How to measure",
-  "Component list",
-  "Construction",
-  "Colourways",
-  "Artwork placement",
-  "Labels and packing",
-  "Suggested values",
-  "Sign-off",
-] as const;
+/** Each section of the list at the side, and the headings of the document shown in it. */
+const SECTIONS: readonly (readonly [string, readonly string[]])[] = [
+  ["Cover", ["Cover"]],
+  ["Flats", ["Flats with callouts"]],
+  ["Measurements", ["Measurement table"]],
+  ["How to measure", ["How to measure"]],
+  ["Construction", ["Construction"]],
+  ["Bill of materials", ["Component list"]],
+  ["Artwork", ["Artwork placement"]],
+  ["Labelling", ["Labels and packing"]],
+  ["Colourways", ["Colourways"]],
+  ["Patterns", ["Patterns"]],
+  ["Sources and notes", ["Suggested values", "Sign-off"]],
+  ["Request a quote", ["Request a quote"]],
+];
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
@@ -43,24 +45,45 @@ const openTechPack = async (page: Page): Promise<void> => {
   await expect(page.getByRole("heading", { level: 2, name: "Cover" })).toBeVisible();
 };
 
+/** Shows one section of the factory file from the list at the side. */
+const section = async (page: Page, label: string): Promise<void> => {
+  const link = page.getByRole("navigation", { name: "Sections of the tech pack" }).getByRole("link", { name: new RegExp(`^${label} ?, `) });
+  await link.click();
+  await expect(link).toHaveAttribute("aria-current", "page");
+};
+
+/** Shows the list of what is left to fill in or make your own. */
+const whatIsLeft = async (page: Page): Promise<void> => {
+  await page.getByTestId("things-left").click();
+  await expect(page.getByRole("heading", { level: 2, name: "What is left" })).toBeVisible();
+};
+
 test.describe("the tech pack page", () => {
   test("shows every section and a count of what is still to be confirmed, and links back to the design", async ({ page }) => {
     await signedIn(page, "pack-sections");
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
 
-    for (const heading of HEADINGS) {
-      await expect(page.getByRole("heading", { level: 2, name: heading, exact: true })).toBeVisible();
+    for (const [label, headings] of SECTIONS) {
+      await section(page, label);
+      await expect(page).toHaveURL(/\?section=/);
+      for (const heading of headings) {
+        await expect(page.getByRole("heading", { level: 2, name: heading, exact: true })).toBeVisible();
+      }
     }
+    await expect(page.getByTestId("sign-off-statement")).toHaveText("Nobody has checked this specification yet.");
+    await expect(page.getByTestId("things-left")).toHaveText(/^\d+ things left to fill in or make your own$/);
+
+    await whatIsLeft(page);
     await expect(page.getByTestId("confirm-count")).toHaveText(/^\d+ things to confirm\.$/);
     // The measurements come from the Knitwright starter chart, so they are suggestions to confirm, not gaps.
     await expect(page.getByRole("link", { name: /^\d+ suggestions and \d+ proposals by Knitwright$/ })).toBeVisible();
     await expect(page.getByTestId("confirm-list").getByRole("link", { name: "Construction" })).toBeVisible();
-    await expect(page.getByTestId("sign-off-statement")).toHaveText("Nobody has checked this specification yet.");
-    await expect(page.getByText("To be confirmed").first()).toBeVisible();
 
     await page.getByTestId("confirm-list").getByRole("link", { name: "Construction" }).click();
-    await expect(page).toHaveURL(/#construction$/);
+    await expect(page).toHaveURL(/\?section=construction#construction$/);
+    await expect(page.getByRole("heading", { level: 2, name: "Construction", exact: true })).toBeVisible();
+    await expect(page.locator("#construction").getByText("To be confirmed").first()).toBeVisible();
 
     await page.getByRole("link", { name: "Back to the design" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
@@ -72,10 +95,14 @@ test.describe("the tech pack page", () => {
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
 
+    await section(page, "Construction");
+    await expect(page.locator("tr[data-seam]").first()).toBeVisible();
     for (const row of await page.locator("tr[data-seam]").all()) {
       await expect(row).toContainText("Proposed by Knitwright. Not confirmed by anyone.");
     }
+    await whatIsLeft(page);
     await expect(page.getByTestId("unconfirmed-counts")).toContainText("proposals by Knitwright");
+    await section(page, "Sources and notes");
     await expect(page.locator("#suggested")).toContainText("Proposed by Knitwright");
     await expect(page.getByText("Nothing is left to confirm")).toHaveCount(0);
     await expect(page.locator('[class*="bg-ok"], [class*="text-ok"]')).toHaveCount(0);
@@ -85,8 +112,11 @@ test.describe("the tech pack page", () => {
     await signedIn(page, "pack-open");
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
+    await whatIsLeft(page);
 
     await page.getByTestId("confirm-list").getByRole("link", { name: "Component list" }).click();
+
+    await expect(page.getByRole("heading", { level: 2, name: "Component list" })).toBeVisible();
 
     await expect(page.locator("#components details")).toHaveAttribute("open", "");
     await expect(page.locator("#components details").locator("input, select").first()).toBeFocused();
@@ -99,6 +129,7 @@ test.describe("the tech pack page", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
+    await section(page, "Flats");
 
     await expect(page.getByTestId("techpack-flat-front")).toBeVisible();
     await expect(page.getByTestId("techpack-flat-back")).toBeVisible();
@@ -116,9 +147,12 @@ test.describe("the tech pack page", () => {
     await saved(page, 2);
 
     await openTechPack(page);
+    await section(page, "Measurements");
 
     const row = page.locator('tr[data-point="chest-width"]');
-    await expect(row).toContainText("52.5 cm");
+    await expect(row).toBeVisible();
+    // The compact table is in centimetres, so each value is a bare number.
+    await expect(row).toContainText("52.5");
     await expect(row).toContainText("Typed in by you");
     await expect(page.locator('tr[data-point="body-length"]')).toContainText("66.0");
     await expect(page.locator('tr[data-point="body-length"]')).not.toContainText("Typed in by you");
@@ -129,6 +163,7 @@ test.describe("the tech pack page", () => {
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
 
+    await section(page, "Bill of materials");
     await page.getByText("Fill in fabrics and components").click();
     const form = page.getByRole("form", { name: "Add a fabric" });
     await form.getByLabel("Fabric name").fill("Body jersey");
@@ -150,7 +185,9 @@ test.describe("the tech pack page", () => {
     await expect(rest).toContainText("Left sleeve, Right sleeve, Neckband");
     await expect(rest).not.toContainText("Body front");
 
+    // The address keeps the section, so a reload shows the same one.
     await page.reload();
+    await expect(page.getByRole("heading", { level: 2, name: "Component list" })).toBeVisible();
     await expect(page.locator("tr[data-fabric]", { hasText: "Body jersey" })).toContainText("Body front, Body back");
   });
 
@@ -162,6 +199,7 @@ test.describe("the tech pack page", () => {
       Number(((await page.getByTestId("confirm-count").textContent()) ?? "").split(" ")[0]);
     const before = await count();
 
+    await section(page, "Bill of materials");
     await page.getByText("Fill in fabrics and components").click();
     const buttons = page.getByRole("form", { name: "Details for Buttons" });
     await buttons.getByLabel("Name of buttons").fill("Shell buttons");
@@ -174,6 +212,7 @@ test.describe("the tech pack page", () => {
     await expect(row).toContainText("4 per garment");
     await expect(row).toContainText("Typed in by you");
 
+    await section(page, "Construction");
     await page.getByText("Fill in the stitching").click();
     const hem = page.getByRole("form", { name: "Stitching for Body hem" });
     await hem.getByLabel("Stitch density of body hem").fill("Dense");
@@ -186,6 +225,7 @@ test.describe("the tech pack page", () => {
     await expect(seam).toContainText("Dense");
     await expect(page.locator('tr[data-seam="shoulder-seam"]')).toContainText("Proposed by Knitwright. Not confirmed by anyone.");
 
+    await section(page, "Labelling");
     await page.getByText("Fill in labels and packing").click();
     const origin = page.getByRole("form", { name: "Country of origin" });
     await origin.getByLabel("Country of origin").fill("Portugal");
@@ -194,6 +234,60 @@ test.describe("the tech pack page", () => {
     await expect(page.locator("#labelling")).toContainText("Portugal");
 
     await expect.poll(count).toBeLessThan(before);
+  });
+
+  test("shows one section at a time, and the address and the back button return to it", async ({ page }) => {
+    await signedIn(page, "pack-tabs");
+    await startDesign(page, "Crew neck tee");
+    await openTechPack(page);
+    await expect(page.getByRole("heading", { level: 2, name: "Measurement table" })).toBeHidden();
+
+    await section(page, "Measurements");
+    await expect(page).toHaveURL(/\?section=measurements$/);
+    await expect(page.getByRole("heading", { level: 2, name: "Cover", exact: true })).toBeHidden();
+    await section(page, "Construction");
+    await page.goBack();
+    await expect(page).toHaveURL(/\?section=measurements$/);
+    await expect(page.getByRole("heading", { level: 2, name: "Measurement table" })).toBeVisible();
+
+    await page.goto(`${new URL(page.url()).pathname}?section=no-such-section`);
+    await expect(page.getByRole("heading", { level: 2, name: "Cover", exact: true })).toBeVisible();
+  });
+
+  test("accepts every suggestion in one version, after saying how many values it sets", async ({ page }) => {
+    await signedIn(page, "pack-accept");
+    await startDesign(page, "Crew neck tee");
+    await openTechPack(page);
+    const left = async (): Promise<number> => Number(((await page.getByTestId("things-left").textContent()) ?? "").split(" ")[0]);
+    const before = await left();
+
+    await page.getByTestId("accept-all").click();
+    await expect(page.getByText(/^Make all \d+ suggested values your own\? They are saved together as one new version/)).toBeVisible();
+    await page.getByRole("button", { name: "Not now" }).click();
+    await expect(page.getByTestId("accept-all")).toBeVisible();
+
+    await page.getByTestId("accept-all").click();
+    await page.getByTestId("accept-all-yes").click();
+    await saved(page, 2);
+
+    await expect.poll(left).toBeLessThan(before);
+    await expect(page.getByTestId("accept-all")).toHaveCount(0);
+    await section(page, "Measurements");
+    await expect(page.locator('tr[data-point="chest-width"]')).toContainText("Typed in by you");
+    await expect(page.getByTestId("confirm-panel-measurements")).toHaveCount(0);
+  });
+
+  test("fits a phone: the sections are a list of choices, and the page never scrolls sideways", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await signedIn(page, "pack-phone");
+    await startDesign(page, "Crew neck tee");
+    await openTechPack(page);
+
+    await page.getByLabel("Section", { exact: true }).selectOption("measurements");
+    await expect(page.getByRole("heading", { level: 2, name: "Measurement table" })).toBeVisible();
+    await expect(page).toHaveURL(/\?section=measurements$/);
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(width).toBeLessThanOrEqual(390);
   });
 
   test("answers within two seconds", async ({ page }) => {
@@ -218,6 +312,7 @@ test.describe("the tech pack page", () => {
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
 
+    await section(page, "Bill of materials");
     await page.getByText("Fill in fabrics and components").click();
     const form = page.getByRole("form", { name: "Add a fabric" });
     await form.getByLabel("Fabric name").fill("Mesh");
