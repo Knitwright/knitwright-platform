@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { start } from "@/lib/garment/fixtures/specs";
 import { completenessReport } from "@/lib/techpack";
 import { CHARTS, fullDesign, packFor } from "@/lib/techpack/fixtures/designs";
-import { confirmables } from "./tech-pack-confirm";
+import { listTypes } from "@/lib/garment";
+import { MAX_BATCH_ACTIONS } from "./schemas";
+import { confirmAllActions, confirmables } from "./tech-pack-confirm";
 import {
   DEFAULT_SECTION,
   NAV_SECTIONS,
@@ -134,16 +136,21 @@ describe("accepting every suggestion", () => {
   it("counts one for each thing that is not a measurement", () => {
     expect(
       suggestedValueCount([
-        { key: "a", sectionId: "construction", label: "", source: "", target: { kind: "construction", seamId: "hem" } },
-        {
-          key: "b",
-          sectionId: "measurements",
-          label: "",
-          source: "",
-          target: { kind: "measurement", pointId: "chest", values: [{ size: null, tenthsMm: 5000 }, { size: "L", tenthsMm: 5200 }], tolerance: 10 },
-        },
-        { key: "c", sectionId: "measurements", label: "", source: "", target: { kind: "measurement", pointId: "hem", values: [], tolerance: 10 } },
+        { target: { kind: "construction", seamId: "hem" } },
+        { target: { kind: "measurement", pointId: "chest", values: [{ size: null, tenthsMm: 5000 }, { size: "L", tenthsMm: 5200 }], tolerance: 10 } },
+        { target: { kind: "measurement", pointId: "hem", values: [], tolerance: 10 } },
       ]),
     ).toBe(5);
+  });
+});
+
+describe("accepting every suggestion of a new design", () => {
+  it("fits in one version for every garment type", () => {
+    for (const type of listTypes()) {
+      const spec = start(type.id, type.wearers.includes("men") ? "men" : "women");
+      const pack = packFor(spec, { charts: CHARTS });
+      const actions = confirmAllActions(spec, confirmables(spec, pack).map((item) => item.target));
+      expect(actions.length, type.id).toBeLessThanOrEqual(MAX_BATCH_ACTIONS);
+    }
   });
 });
