@@ -1,12 +1,12 @@
 import type { Metadata, Route } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { CSSProperties } from "react";
-import { DesignTile } from "@/components/studio/DesignTile";
-import { ArrowMark } from "@/components/ui/ArrowMark";
+import { DesignCard } from "@/components/home/DesignCard";
+import { JourneyPanel, NeedsYouPanel } from "@/components/home/NeedsYouPanel";
+import { StartWays } from "@/components/home/StartWays";
 import { Pagination } from "@/components/ui/Pagination";
+import { loadStudioHome } from "@/lib/home/load";
 import { pageCount, pageHref, pageRequest } from "@/lib/pagination/pages";
-import { listProjects } from "@/lib/projects/service";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 
@@ -15,70 +15,23 @@ export const metadata: Metadata = { title: "Your designs" };
 /** How many designs one page of the studio shows. */
 const DESIGNS_PER_PAGE = 12;
 
-/** The two ways to start a design. The guided way comes first and is the one primary action. */
-const WAYS = [
-  {
-    id: "guided",
-    href: "/studio/start",
-    title: "Start a design",
-    text: "Step by step, from your own words, a sketch or a garment, through to sharing it and a quote.",
-    primary: true,
-  },
-  {
-    id: "blank",
-    href: "/studio/new",
-    title: "Blank design",
-    text: "Pick a garment and go straight to the full editor.",
-    primary: false,
-  },
-] as const satisfies readonly { id: string; href: Route; title: string; text: string; primary: boolean }[];
-
 export default async function StudioPage({ searchParams }: PageProps<"/studio">) {
   const { brand } = await requireMember();
   const request = pageRequest(await searchParams, DESIGNS_PER_PAGE);
-  const { projects, total } = await listProjects(await sessionClient(), brand.id, request.perPage, request.offset);
-  const totalPages = pageCount(total, request.perPage);
-  if (projects.length === 0 && request.page > totalPages) redirect(pageHref("/studio", totalPages) as Route);
+  const home = await loadStudioHome(await sessionClient(), brand, request, new Date());
+  const totalPages = pageCount(home.total, request.perPage);
+  if (home.cards.length === 0 && request.page > totalPages) redirect(pageHref("/studio", totalPages) as Route);
 
   return (
     <>
-      <section aria-labelledby="start" className="glass rounded-[2rem] p-6 sm:rounded-[2.5rem] sm:p-10">
-        <p className="font-mono text-xs uppercase tracking-[0.1em] text-muted">{brand.name}</p>
-        <h1 id="start" className="mt-4 text-4xl font-medium leading-none tracking-[-0.04em] text-ink sm:text-6xl">
-          Start your next kit.
-          <br />
-          <span className="morph-reveal thread-text pb-[0.08em]">Two ways in.</span>
-        </h1>
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-          {WAYS.map((way, index) => (
-            <li key={way.href} className="rise" style={{ "--i": index + 2 } as CSSProperties}>
-              <div
-                className={`lift flex min-h-36 flex-col gap-4 rounded-[1.6rem] border border-white/12 p-5 text-ink ${
-                  way.primary ? "thread-ring bg-white/[0.08]" : "bg-white/5"
-                }`}
-              >
-                <span className="fill-layer" aria-hidden="true" />
-                <span className="flex items-center justify-between gap-4">
-                  {/* The link covers the whole card; its name is the title alone. */}
-                  <Link
-                    href={way.href}
-                    aria-describedby={`way-${way.id}`}
-                    className="text-lg font-medium tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:rounded-[1.6rem] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-cobalt-soft"
-                  >
-                    {way.title}
-                  </Link>
-                  <span className={`chip-disc size-9 ${way.primary ? "" : "bg-white"}`} aria-hidden="true">
-                    <ArrowMark />
-                  </span>
-                </span>
-                <span id={`way-${way.id}`} className="mt-auto text-[13.5px] leading-relaxed text-ink-2">
-                  {way.text}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-12 lg:gap-[18px]">
+        <div className="rise lg:col-span-7" style={{ "--i": 1 } as CSSProperties}>
+          <StartWays brandName={brand.name} />
+        </div>
+        <div className="rise lg:col-span-5" style={{ "--i": 2 } as CSSProperties}>
+          {home.total === 0 ? <JourneyPanel /> : <NeedsYouPanel needs={home.needsYou} />}
+        </div>
+      </div>
 
       <section aria-labelledby="designs" className="mt-10">
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
@@ -86,17 +39,17 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
             Your designs
           </h2>
           <p className="font-mono text-[13px] text-muted">
-            {total === 1 ? "1 design" : `${total} designs`}
+            {home.total === 1 ? "1 design" : `${home.total} designs`}
             {totalPages > 1 ? `, page ${request.page} of ${totalPages}` : ""}
           </p>
         </div>
-        {projects.length === 0 ? (
+        {home.total === 0 ? (
           <FirstDesign brandName={brand.name} />
         ) : (
           <ul aria-label={`Designs of ${brand.name}, newest first`} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {projects.map((project, index) => (
-              <li key={project.id} className="rise" style={{ "--i": Math.min(index, 8) } as CSSProperties}>
-                <DesignTile project={project} />
+            {home.cards.map((card, index) => (
+              <li key={card.id} className="rise" style={{ "--i": Math.min(index, 8) + 3 } as CSSProperties}>
+                <DesignCard card={card} />
               </li>
             ))}
           </ul>
@@ -107,13 +60,18 @@ export default async function StudioPage({ searchParams }: PageProps<"/studio">)
   );
 }
 
+/** The empty state of a new brand: a dashed tile where the first design will be. */
 function FirstDesign({ brandName }: Readonly<{ brandName: string }>) {
   return (
-    <div className="glass mt-5 max-w-xl rounded-[1.75rem] p-6">
-      <h3 className="text-base font-medium text-ink">Start your first design</h3>
-      <p className="mt-2 text-[15px] leading-relaxed text-muted">
-        Pick one of the two ways in above. Only members of {brandName} can see your designs.
-      </p>
+    <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="glass flex flex-col gap-3 rounded-[2rem] border-dashed p-6 sm:col-span-2">
+        <h3 className="text-lg font-medium tracking-[-0.01em] text-ink">Start your first design</h3>
+        <p className="text-[15px] leading-relaxed text-ink-2">
+          Pick one of the two ways in above. Your designs show up here, each with the step it has reached and when it
+          was last changed.
+        </p>
+        <p className="text-[13px] text-muted">Only members of {brandName} can see your designs.</p>
+      </div>
     </div>
   );
 }

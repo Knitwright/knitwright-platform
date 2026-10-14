@@ -43,7 +43,7 @@ test.describe("the design list", () => {
 
     await page.goto("/studio");
 
-    const row = page.getByRole("listitem").filter({ hasText: "Club polo" });
+    const row = page.getByRole("list", { name: /^Designs of / }).getByRole("listitem").filter({ hasText: "Club polo" });
     await expect(row).toContainText("Polo shirt");
     await expect(row).toContainText("CP-7");
     await expect(row).toContainText("SS27");
@@ -212,7 +212,7 @@ test.describe("the editor", () => {
     await saved(page, 2);
     await expect(page.getByTestId("garment-3d-toggle")).toHaveCount(0);
 
-    await page.goto(`${address}/tech-pack`);
+    await page.goto(`${address}/tech-pack?section=artwork`);
     const table = page.getByTestId("player-marks");
     await expect(table).toContainText("Name across the upper back");
     await expect(table).toContainText("Name, sample SMITH");

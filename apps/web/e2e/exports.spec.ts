@@ -25,7 +25,8 @@ const startDesign = async (page: Page, name: string): Promise<void> => {
 const openTechPack = async (page: Page): Promise<string> => {
   await page.getByRole("link", { name: "Tech pack" }).click();
   await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}\/tech-pack$/);
-  await expect(page.getByRole("heading", { level: 2, name: "Download" })).toBeVisible();
+  // The downloads are in the header of the factory file, whichever section is shown.
+  await expect(page.getByRole("group", { name: "Download this tech pack" }).getByRole("button", { name: "Download PDF" })).toBeVisible();
   return /\/studio\/([0-9a-f-]{36})\//.exec(page.url())?.[1] ?? "";
 };
 
