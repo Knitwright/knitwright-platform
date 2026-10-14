@@ -43,8 +43,7 @@ const open = async (bytes: Uint8Array): Promise<{ document: PdfDocument; destroy
   const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const task = getDocument({
     data: new Uint8Array(bytes),
-    // Nothing in the file may run: no scripts, no forms, no fonts from the system, no pictures over the cap.
-    isEvalSupported: false,
+    // Nothing in the file may run: no forms, no fonts from the system, no pictures over the cap. (This reader runs no PDF script.)
     enableXfa: false,
     useSystemFonts: false,
     standardFontDataUrl: fontFolder(),

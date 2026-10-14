@@ -134,7 +134,7 @@ async function imageOf(element: XmlElement, style: Style, context: Context, matr
 
 type Walk = { depth: number; uses: readonly string[] };
 
-async function useOf(element: XmlElement, style: Style, context: Context, walk: Walk): Promise<VectorNode[]> {
+async function expandUse(element: XmlElement, style: Style, context: Context, walk: Walk): Promise<VectorNode[]> {
   const source = (element.attrs.get("href") ?? element.attrs.get("xlink:href") ?? "").trim().replace(/^#/, "");
   const target = context.ids.get(source);
   if (!target || walk.uses.includes(source)) return refuse("badUse");
@@ -178,7 +178,7 @@ export async function convertElement(element: XmlElement, parent: Style, context
     }
     return wrap(children, style, matrix, context, walk.depth);
   }
-  if (element.name === "use") return useOf(element, style, context, walk);
+  if (element.name === "use") return expandUse(element, style, context, walk);
   if (element.name === "image") {
     const node = await imageOf(element, style, context, matrix);
     return node ? wrap([node], { ...style, opacity: 1 }, IDENTITY, context, walk.depth) : [];
