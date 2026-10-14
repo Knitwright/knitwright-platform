@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BUILT_IN_GENERATORS, DEFAULT_DATUM, currentStack, type GeneratorContext, type PatternGenerator } from "@/lib/artwork-stack";
+import { BUILT_IN_GENERATORS, DEFAULT_DATUM, currentStack, type PatternGenerator } from "@/lib/artwork-stack";
 import { BENCHMARK_DOTS, jersey } from "@/lib/artwork-stack/fixtures/designs";
 import { makeEnv } from "./fixtures/env";
 import { withoutLandmarks, TEST_GRADED_JERSEY } from "./fixtures/graded";
@@ -75,7 +75,7 @@ describe("pattern budget and colours", () => {
     params: [],
     repeat: { kind: "field" },
     maxColours: 1,
-    render: (_c: GeneratorContext) => ({
+    render: () => ({
       // A lattice well inside the body, so the cut to the outline keeps almost all of it.
       shapes: Array.from({ length: 128 * 165 }, (_, i) => ({ kind: "circle" as const, centre: { x: -160 + (i % 128) * 2.5, y: -60 + Math.floor(i / 128) * 2.5 }, radius: 0.8, fill: "#00ff00" })),
       note: "The generator drew a great deal.",

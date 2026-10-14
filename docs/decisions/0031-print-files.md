@@ -26,7 +26,7 @@ design one artwork stack; W3 turns a stack into files and must never ask what ma
 3. **One shared datum.** Every repeat is anchored to one datum in design space (the chest line at the centre front and back, moved
    by the stack's offset), not to a piece, so rows meet at the side seam. Measured on the benchmark pieces in every size of the test
    grading: rows on the front and back share one phase within 0.5 mm, a dot column sits on the centre front and back, and the
-   camo field agrees across the side seam in 99 % of samples (7 % of samples with a deliberate 7 mm slip). Where rows cannot agree
+   camo field agrees across the side seam in 99.2 % of samples taken within 0.25 mm of the join (76.4 % when one side is deliberately slipped 7.3 mm, so the test can tell). Where rows cannot agree
    (the shoulder seam, because the front and back slope differently; a sleeve cap, because it is curved) every file says where they
    agree and by how many millimetres they differ, computed from the pieces. The seven older kit styles ignore the datum, so a
    small shim draws them on a plane whose origin is the datum and moves them back; hoops and dots get a box whose top is a fixed
@@ -47,14 +47,13 @@ design one artwork stack; W3 turns a stack into files and must never ask what ma
    came back from `pdfjs-dist` within 0.00003 mm, so `pdfkit` is not needed. Page one is the piece plus the bleed on every side at
    1:1; page two lists every note in full, because a narrow piece has no room in its margin for them. Vector layers are path
    operators with no image object (read back). **Determinism:** the library finishes compressed streams as they complete, so two
-   builds of one file could number and order objects differently (an image's mask was object 29 one time and 30 the next, in about
-   half of runs). `render/pdf-canonical.ts` rewrites the objects in the order they are first reached from the root, numbered in that
+   builds of one file could number and order objects differently (an image's mask was object 29 one time and 30 the next; 3 of 6 runs of one test). `render/pdf-canonical.ts` rewrites the objects in the order they are first reached from the root, numbered in that
    order, with a fresh cross-reference table, and a fixed creation date is set. A PDF it cannot read is returned untouched.
 9. **TIFF** through `sharp`, written from raw strips piped into the encoder (4000 x 3000 px in 219 ms; resident memory about 280 MB
    in the spike), at the profile's dpi (150 by default, labelled "Knitwright default, not from your print house"), LZW, density
    tagged, the brand's ICC profile attached when it has one. No strip holds more than 6 million pixels. Over 120 million pixels the
-   resolution drops and the file says so. A strip built alone and the page built in one go differ by anti-aliasing only (under
-   3 % of samples differ by more than a shade).
+   resolution drops and the file says so. A strip built alone and the page built in one go differ by anti-aliasing only (about 1.3 % of
+   the samples of a small piece differ by more than a shade; the test allows 3 %).
 10. **SVG is built on download and never stored.** The zip route builds it in memory and sends it inside a zip with a sandboxing
     policy; `tests/integration/isolation.test.ts` is untouched and still forbids `image/svg+xml` in the exports bucket. An SVG holds
     shapes and pictures only (the tests refuse `script`, event attributes and external references in it).
