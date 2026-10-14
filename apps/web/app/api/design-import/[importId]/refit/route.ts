@@ -1,4 +1,5 @@
 import { refitImport } from "@/lib/design-import/create";
+import { createDerivedStore } from "@/lib/design-import/derived";
 import { importIdParams, refitSchema } from "@/lib/design-import/schemas";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -23,6 +24,7 @@ export const POST = defineRoute({
         who: { brandId: session.brand.id, userId: session.userId },
         pipeline: pipelineFor(null, false),
         readFile: (id, maxBytes) => createFileReader(client, session.brand.id).read(id, maxBytes),
+        store: (now) => createDerivedStore(adminClient(), { brandId: session.brand.id, userId: session.userId }, now),
         log,
         timeoutMs: TIMEOUT_MS,
       },

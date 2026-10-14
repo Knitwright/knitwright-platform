@@ -1,4 +1,5 @@
 import { createFromFile } from "@/lib/design-import/create";
+import { createDerivedStore } from "@/lib/design-import/derived";
 import { visionCost } from "@/lib/design-import/cost";
 import { createImportSchema } from "@/lib/design-import/schemas";
 import { listImports } from "@/lib/design-import/service";
@@ -50,6 +51,7 @@ export const POST = defineRoute({
         usage,
         pipeline: pipelineFor(vision),
         readFile: (id, maxBytes) => createFileReader(client, session.brand.id).read(id, maxBytes),
+        store: (now) => createDerivedStore(adminClient(), { brandId: session.brand.id, userId: session.userId }, now),
         log,
         timeoutMs: TIMEOUT_MS,
       },

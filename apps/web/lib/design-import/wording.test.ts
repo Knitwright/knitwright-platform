@@ -31,7 +31,11 @@ describe("what a person reads", () => {
 
   it("does not use the techpack's settled words in a sentence a person reads", () => {
     const SETTLED = /\b(checked|verified|approved|confirmed|final|production[- ]ready|passed|validated|certified)\b/i;
-    const files = [...sources("components/design-import"), join(ROOT, "lib/design-import/report.ts"), join(ROOT, "lib/design-import/view-model.ts"), join(ROOT, "lib/design-import/assemble.ts")];
+    const files = [
+      ...sources("components/design-import"),
+      ...sources("lib/design-import/match"),
+      ...["report", "view-model", "assemble", "derived", "create", "service", "pattern", "intake"].map((name) => join(ROOT, `lib/design-import/${name}.ts`)),
+    ];
     const offenders = files.flatMap((f) => sentencesIn(f).filter((s) => SETTLED.test(s)).map((s) => `${f}: ${s}`));
     expect(offenders).toEqual([]);
   });

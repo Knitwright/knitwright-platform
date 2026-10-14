@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { accept, discard, readPicture, readingFrom, refit, unwrap, uploadPicture } from "./api";
+import { accept, discard, readPicture, readingFrom, refit, replaceLayer, unwrap, uploadPicture } from "./api";
 
 const ok = (data: unknown) => ({ success: true, data });
 const reply = (body: unknown) => vi.fn(async () => ({ json: async () => body }) as Response);
@@ -34,6 +34,15 @@ describe("the calls", () => {
     expect((await refit("i1", { front: { hps: { x: 0.1, y: 0.2 } } })).ok).toBe(true);
     expect(await accept("i1", "all")).toEqual({ ok: true, data: { layerIds: ["ground"], needsOwnFile: ["mark-2"] } });
     expect(await discard("i1")).toEqual({ ok: true, data: true });
+  });
+
+  it("replaces a layer with the person's own artwork", async () => {
+    const fetchMock = vi.fn(async () => ({ json: async () => ok({ kind: "ready", view: { id: "i1" } }) }) as Response);
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await replaceLayer("i1", "mark-2", "cccccccc-0000-4000-8000-000000000001")).toEqual({ ok: true, data: { id: "i1" } });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("/api/design-import/i1/replace");
+    expect(JSON.parse(init.body as string)).toEqual({ layerId: "mark-2", artworkId: "cccccccc-0000-4000-8000-000000000001" });
   });
 
   it("says so when the server cannot be reached or answers oddly", async () => {

@@ -1,7 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { parseArtworkStack, type ArtworkStack } from "@/lib/artwork-stack";
+import { deleteArtwork } from "@/lib/artwork-intake";
+import { MM_LIMIT, parseArtworkStack, roundMm, type ArtworkStack, type AssetReader, type Layer } from "@/lib/artwork-stack";
 import { AppError } from "@/lib/server/core/errors";
+import { derivedAssetOf, derivedIds } from "./derived";
 import type { ImportOutcome, Overlay } from "./pipeline";
 import { readingSchema } from "./read";
 import type { ImportReport } from "./report";
@@ -20,6 +22,9 @@ export const IMPORT_NOT_FOUND = "That reading could not be found.";
 export const ALREADY_SETTLED = "That reading has already been accepted or discarded.";
 export const CHOOSE_A_LAYER = "Choose at least one layer to accept, or discard the reading.";
 export const NOT_A_LAYER = "One of the layers you chose is not in this reading.";
+export const NOT_REPLACEABLE = "That layer was not redrawn from your picture, so there is nothing to replace.";
+export const NO_SUCH_ARTWORK = "That artwork could not be found in your brand's files.";
+export const REPLACED_NOTE = "Replaced with your own file.";
 
 type Who = Readonly<{ brandId: string; userId: string }>;
 type Ready = Extract<ImportOutcome, { ok: true }>;
@@ -156,19 +161,33 @@ export async function replaceProposal(admin: SupabaseClient, who: Who, importId:
   failIf(error, "The design import could not be updated.");
 }
 
-/** The stack with only the chosen layers. Colours stay, so the ones the chosen layers use are all there. */
+export const BOTH_CHOSEN = "Choose the pattern from our list or its repeating picture, not both.";
+const isAlternative = (id: string): boolean => id.endsWith("-alt");
+
+/**
+ * The stack with only the chosen layers. Colours stay, so the ones the chosen layers use are all there. A repeating
+ * picture kept as the alternative to a pattern is not drawn (opacity 0) until it is chosen, and then it is drawn; with
+ * "all" the alternatives are left out, because the pattern they stand for is in.
+ */
 export function chooseLayers(stack: ArtworkStack, layerIds: readonly string[] | "all"): ArtworkStack {
-  if (layerIds === "all") return stack;
-  if (layerIds.length === 0) throw new AppError("invalid_input", CHOOSE_A_LAYER);
-  if (layerIds.some((id) => !stack.layers.some((layer) => layer.id === id))) throw new AppError("invalid_input", NOT_A_LAYER);
-  const chosen = parseArtworkStack({ ...stack, layers: stack.layers.filter((layer) => layerIds.includes(layer.id)) });
+  const wanted = layerIds === "all" ? stack.layers.filter((layer) => !isAlternative(layer.id)).map((layer) => layer.id) : layerIds;
+  if (wanted.length === 0) throw new AppError("invalid_input", CHOOSE_A_LAYER);
+  if (wanted.some((id) => !stack.layers.some((layer) => layer.id === id))) throw new AppError("invalid_input", NOT_A_LAYER);
+  if (wanted.some((id) => isAlternative(id) && wanted.includes(id.slice(0, -"-alt".length)))) throw new AppError("invalid_input", BOTH_CHOSEN);
+  const layers = stack.layers.filter((layer) => wanted.includes(layer.id)).map((layer) => (isAlternative(layer.id) ? { ...layer, opacity: 1 } : layer));
+  const chosen = parseArtworkStack({ ...stack, layers });
   if (!chosen.ok) throw new AppError("invalid_input", chosen.reason);
   return chosen.stack;
 }
 
-/** Layers that need the person's own file: a crest or sponsor redrawn from the picture. */
+/** Layers that need the person's own file: a crest or sponsor redrawn from the picture and not yet replaced. */
 export const needsOwnFile = (stack: ArtworkStack): readonly string[] =>
-  stack.layers.flatMap((layer) => (layer.kind === "graphic" && layer.source.kind === "asset" && layer.source.assetId.startsWith("crop-") ? [layer.id] : []));
+  stack.layers.flatMap((layer) => (layer.kind === "graphic" && layer.provenance === "read-from-image" ? [layer.id] : []));
+
+/** Removes the pictures cut for layers that are not kept. A picture that cannot be removed is left in the person's artwork, where they can delete it. */
+async function forget(admin: SupabaseClient, brandId: string, layers: readonly Layer[]): Promise<void> {
+  await Promise.all(derivedIds(layers).map((id) => deleteArtwork(admin, brandId, id).catch(() => undefined)));
+}
 
 export async function acceptImport(admin: SupabaseClient, who: Who, importId: string, layerIds: readonly string[] | "all", now: Date = new Date()): Promise<{ stack: ArtworkStack; needsOwnFile: readonly string[] }> {
   const current = await getImport(admin, who.brandId, importId);
@@ -188,6 +207,7 @@ export async function acceptImport(admin: SupabaseClient, who: Who, importId: st
     .eq("brand_id", who.brandId)
     .eq("status", "ready");
   failIf(error, "The design import could not be accepted.");
+  await forget(admin, who.brandId, current.stack.layers.filter((layer) => !stack.layers.some((kept) => kept.id === layer.id)));
   return { stack, needsOwnFile: needsOwnFile(stack) };
 }
 
@@ -196,4 +216,28 @@ export async function discardImport(admin: SupabaseClient, who: Who, importId: s
   if (current.status !== "ready") throw new AppError("conflict", ALREADY_SETTLED);
   const { error } = await admin.from("design_imports").update({ status: "discarded", updated_at: new Date().toISOString() }).eq("id", importId).eq("brand_id", who.brandId).eq("status", "ready");
   failIf(error, "The design import could not be discarded.");
+  await forget(admin, who.brandId, current.stack.layers);
+}
+
+/**
+ * Points a crest, sponsor or badge redrawn from the picture at the person's own artwork (W7b intake has already taken
+ * it in, with the rights statement). Only artwork of this brand can be named: the reader answers for one brand. The
+ * layer keeps its width and place and takes the file's own proportions; the crop made here is removed.
+ */
+export async function replaceGraphic(admin: SupabaseClient, who: Who, importId: string, layerId: string, artworkId: string, reader: AssetReader): Promise<void> {
+  const current = await getImport(admin, who.brandId, importId);
+  if (current.status !== "ready") throw new AppError("conflict", ALREADY_SETTLED);
+  const layer = current.stack.layers.find((entry) => entry.id === layerId);
+  if (layer?.kind !== "graphic" || layer.provenance !== "read-from-image") throw new AppError("invalid_input", NOT_REPLACEABLE);
+  const asset = await reader.getAsset(artworkId);
+  if (asset === null) throw new AppError("not_found", NO_SUCH_ARTWORK);
+  const heightMm = Math.min(MM_LIMIT, Math.max(0.01, roundMm((layer.widthMm * asset.heightPx) / asset.widthPx)));
+  const replaced = { ...layer, source: { kind: "asset" as const, assetId: artworkId }, heightMm, provenance: "user-edited" as const };
+  const stack = parseArtworkStack({ ...current.stack, layers: current.stack.layers.map((entry) => (entry.id === layerId ? replaced : entry)) });
+  if (!stack.ok) throw new AppError("invalid_input", stack.reason);
+  const report = { ...current.report, items: current.report.items.map((item) => (item.layerId === layerId ? { ...item, confidence: 1, note: REPLACED_NOTE } : item)) };
+  const { error } = await admin.from("design_imports").update({ report, result: stack.stack, updated_at: new Date().toISOString() }).eq("id", importId).eq("brand_id", who.brandId).eq("status", "ready");
+  failIf(error, "The design import could not be updated.");
+  const crop = derivedAssetOf(layer);
+  if (crop !== null) await deleteArtwork(admin, who.brandId, crop).catch(() => undefined);
 }

@@ -55,6 +55,16 @@ describe("the side-by-side screen", () => {
     expect(html).toContain('disabled=""');
   });
 
+  it("offers one click to replace a redrawn crest only where a replace is wired, and only on that layer", async () => {
+    const view = await viewOf();
+    const own = view.rows.filter((r) => r.needsOwnFile);
+    expect(own.length).toBeGreaterThan(0);
+    const wired = renderToStaticMarkup(createElement(LayerList, { rows: view.rows, ticked: new Set<string>(), disabled: false, onTick: noop, onReplace: async () => null }));
+    expect(wired.match(/Replace with your own file<\/button>/g)).toHaveLength(own.length);
+    const unwired = renderToStaticMarkup(createElement(LayerList, { rows: view.rows, ticked: new Set<string>(), disabled: false, onTick: noop }));
+    expect(unwired).not.toContain("</button>");
+  });
+
   it("lists the layers with their boxes ticked as given, and the limits on their own", async () => {
     const view = await viewOf();
     const list = renderToStaticMarkup(createElement(LayerList, { rows: view.rows, ticked: new Set([view.rows[0].id]), disabled: false, onTick: noop }));
