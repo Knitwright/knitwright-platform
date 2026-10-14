@@ -199,6 +199,21 @@ describe("long lists", () => {
     expect(exact.hasMore).toBe(false);
   });
 
+  it("reads one page of designs after skipping the ones before it, and counts them all", async () => {
+    const owner = await person("svc-pages");
+    const brand = await brandOf(owner, "Pages FC");
+    for (const name of ["One", "Two", "Three"]) {
+      await createProject(adminClient(), details({ brandId: brand, userId: owner.userId, name }));
+    }
+
+    const second = await listProjects(owner.client, brand, 2, 2);
+    const past = await listProjects(owner.client, brand, 2, 4);
+
+    expect(second.projects.map((project) => project.name)).toEqual(["One"]);
+    expect(second).toMatchObject({ hasMore: false, total: 3 });
+    expect(past).toMatchObject({ projects: [], hasMore: false, total: 3 });
+  });
+
   it("says when there are older versions than the history lists", async () => {
     const id = await make();
     saved(await change(id, 1, setOption("fit", "slim")));

@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { useId } from "react";
 import { BotCheck, useBotCheck } from "@/components/auth/BotCheck";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
@@ -95,7 +96,7 @@ export function ResponseForm({ token, siteKey }: ResponseFormProps) {
           defaultValue={state.values.comment}
           aria-invalid={commentErrors.length > 0 || undefined}
           aria-describedby={commentErrors.length > 0 ? `${commentId}-error` : undefined}
-          className="rounded-lg border border-hairline bg-surface px-3 py-2 text-[15px] text-ink aria-[invalid]:border-warn"
+          className={TEXT_AREA}
         />
         {commentErrors.length > 0 ? (
           <p id={`${commentId}-error`} className="text-sm text-warn">

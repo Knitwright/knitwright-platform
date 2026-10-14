@@ -13,7 +13,7 @@ export function BuyerKindChoice({ value, onChange }: Props) {
         {BUYER_KINDS.map((kind) => (
           <label
             key={kind.id}
-            className="flex cursor-pointer items-start gap-3 rounded-lg border border-hairline p-3 has-[:checked]:border-cobalt has-[:checked]:bg-shell"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-hairline p-3 has-[:checked]:border-cobalt-soft has-[:checked]:bg-shell"
           >
             <input
               type="radio"

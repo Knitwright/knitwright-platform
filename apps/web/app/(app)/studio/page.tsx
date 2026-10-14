@@ -1,115 +1,119 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { LinkButton } from "@/components/ui/LinkButton";
-import { formatDate } from "@/lib/projects/dates";
-import { PROJECTS_LISTED } from "@/lib/projects/limits";
-import { listProjects, type ProjectSummary } from "@/lib/projects/service";
+import { redirect } from "next/navigation";
+import type { CSSProperties } from "react";
+import { DesignTile } from "@/components/studio/DesignTile";
+import { ArrowMark } from "@/components/ui/ArrowMark";
+import { Pagination } from "@/components/ui/Pagination";
+import { pageCount, pageHref, pageRequest } from "@/lib/pagination/pages";
+import { listProjects } from "@/lib/projects/service";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "Your designs" };
 
-const HEADINGS = ["Design", "Garment type", "Style number", "Season", "Version", "Last changed"] as const;
+/** How many designs one page of the studio shows. */
+const DESIGNS_PER_PAGE = 12;
 
-export default async function StudioPage() {
+/** The two ways to start a design. The guided way comes first and is the one primary action. */
+const WAYS = [
+  {
+    id: "guided",
+    href: "/studio/start",
+    title: "Start a design",
+    text: "Step by step, from your own words, a sketch or a garment, through to sharing it and a quote.",
+    primary: true,
+  },
+  {
+    id: "blank",
+    href: "/studio/new",
+    title: "Blank design",
+    text: "Pick a garment and go straight to the full editor.",
+    primary: false,
+  },
+] as const satisfies readonly { id: string; href: Route; title: string; text: string; primary: boolean }[];
+
+export default async function StudioPage({ searchParams }: PageProps<"/studio">) {
   const { brand } = await requireMember();
-  const { projects, hasMore } = await listProjects(await sessionClient(), brand.id);
+  const request = pageRequest(await searchParams, DESIGNS_PER_PAGE);
+  const { projects, total } = await listProjects(await sessionClient(), brand.id, request.perPage, request.offset);
+  const totalPages = pageCount(total, request.perPage);
+  if (projects.length === 0 && request.page > totalPages) redirect(pageHref("/studio", totalPages) as Route);
 
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-wider text-muted">{brand.name}</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Your designs</h1>
+      <section aria-labelledby="start" className="glass rounded-[2rem] p-6 sm:rounded-[2.5rem] sm:p-10">
+        <p className="font-mono text-xs uppercase tracking-[0.1em] text-muted">{brand.name}</p>
+        <h1 id="start" className="mt-4 text-4xl font-medium leading-none tracking-[-0.04em] text-ink sm:text-6xl">
+          Start your next kit.
+          <br />
+          <span className="morph-reveal thread-text pb-[0.08em]">Two ways in.</span>
+        </h1>
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2">
+          {WAYS.map((way, index) => (
+            <li key={way.href} className="rise" style={{ "--i": index + 2 } as CSSProperties}>
+              <div
+                className={`lift flex min-h-36 flex-col gap-4 rounded-[1.6rem] border border-white/12 p-5 text-ink ${
+                  way.primary ? "thread-ring bg-white/[0.08]" : "bg-white/5"
+                }`}
+              >
+                <span className="fill-layer" aria-hidden="true" />
+                <span className="flex items-center justify-between gap-4">
+                  {/* The link covers the whole card; its name is the title alone. */}
+                  <Link
+                    href={way.href}
+                    aria-describedby={`way-${way.id}`}
+                    className="text-lg font-medium tracking-[-0.01em] text-ink no-underline after:absolute after:inset-0 after:rounded-[1.6rem] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-cobalt-soft"
+                  >
+                    {way.title}
+                  </Link>
+                  <span className={`chip-disc size-9 ${way.primary ? "" : "bg-white"}`} aria-hidden="true">
+                    <ArrowMark />
+                  </span>
+                </span>
+                <span id={`way-${way.id}`} className="mt-auto text-[13.5px] leading-relaxed text-ink-2">
+                  {way.text}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="designs" className="mt-10">
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
+          <h2 id="designs" className="text-3xl font-medium tracking-[-0.03em] text-ink">
+            Your designs
+          </h2>
+          <p className="font-mono text-[13px] text-muted">
+            {total === 1 ? "1 design" : `${total} designs`}
+            {totalPages > 1 ? `, page ${request.page} of ${totalPages}` : ""}
+          </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href="/studio/charts" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
-            Size charts
-          </Link>
-        </div>
-      </header>
-      {projects.length > 0 ? <StartChoices /> : null}
-      {projects.length === 0 ? <FirstDesign brandName={brand.name} /> : <ProjectsTable brandName={brand.name} projects={projects} />}
-      {hasMore ? (
-        <p className="mt-4 text-sm text-muted">
-          This list shows your newest {PROJECTS_LISTED} designs. Older designs are kept but are not listed here.
-        </p>
-      ) : null}
+        {projects.length === 0 ? (
+          <FirstDesign brandName={brand.name} />
+        ) : (
+          <ul aria-label={`Designs of ${brand.name}, newest first`} className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {projects.map((project, index) => (
+              <li key={project.id} className="rise" style={{ "--i": Math.min(index, 8) } as CSSProperties}>
+                <DesignTile project={project} />
+              </li>
+            ))}
+          </ul>
+        )}
+        <Pagination path="/studio" page={request.page} totalPages={totalPages} label="Pages of designs" />
+      </section>
     </>
   );
 }
 
 function FirstDesign({ brandName }: Readonly<{ brandName: string }>) {
   return (
-    <section aria-labelledby="empty" className="mt-8 max-w-xl rounded-2xl border border-hairline bg-surface p-6">
-      <h2 id="empty" className="text-base font-semibold text-ink">
-        Start your first design
-      </h2>
+    <div className="glass mt-5 max-w-xl rounded-[1.75rem] p-6">
+      <h3 className="text-base font-medium text-ink">Start your first design</h3>
       <p className="mt-2 text-[15px] leading-relaxed text-muted">
-        Only members of {brandName} can see your designs.
+        Pick one of the two ways in above. Only members of {brandName} can see your designs.
       </p>
-      <StartChoices />
-    </section>
-  );
-}
-
-/** The two ways to start a design, each with one line on what it does. The guided way comes first. */
-function StartChoices() {
-  return (
-    <ul className="mt-5 flex flex-col gap-4 sm:flex-row sm:gap-8">
-      <li className="flex max-w-sm flex-col gap-2">
-        <div>
-          <LinkButton href="/studio/start">Start a design</LinkButton>
-        </div>
-        <p className="text-sm leading-relaxed text-muted">
-          Step by step, from your own words, a sketch or a garment, through to sharing it and a quote.
-        </p>
-      </li>
-      <li className="flex max-w-sm flex-col gap-2">
-        <div>
-          <LinkButton href="/studio/new" variant="secondary">
-            Blank design
-          </LinkButton>
-        </div>
-        <p className="text-sm leading-relaxed text-muted">Pick a garment and go straight to the full editor.</p>
-      </li>
-    </ul>
-  );
-}
-
-type ProjectsTableProps = Readonly<{ brandName: string; projects: readonly ProjectSummary[] }>;
-
-function ProjectsTable({ brandName, projects }: ProjectsTableProps) {
-  return (
-    <div className="mt-8 overflow-x-auto rounded-2xl border border-hairline bg-surface">
-      <table className="w-full min-w-[40rem] text-left text-[15px]">
-        <caption className="sr-only">Designs of {brandName}, newest first</caption>
-        <thead>
-          <tr className="border-b border-hairline text-sm text-muted">
-            {HEADINGS.map((heading) => (
-              <th key={heading} scope="col" className="px-4 py-3 font-medium">
-                {heading}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-hairline">
-          {projects.map((project) => (
-            <tr key={project.id}>
-              <th scope="row" className="px-4 py-3 font-medium text-ink">
-                <Link href={`/studio/${project.id}`} className="text-cobalt underline-offset-4 hover:underline">
-                  {project.name}
-                </Link>
-              </th>
-              <td className="px-4 py-3 text-ink-2">{project.garmentLabel}</td>
-              <td className="px-4 py-3 text-ink-2">{project.styleNumber || "None"}</td>
-              <td className="px-4 py-3 text-ink-2">{project.season || "None"}</td>
-              <td className="px-4 py-3 font-mono text-ink-2">{project.currentVersion}</td>
-              <td className="px-4 py-3 text-ink-2">{formatDate(project.updatedAt)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

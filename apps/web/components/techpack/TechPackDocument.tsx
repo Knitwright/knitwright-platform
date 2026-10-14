@@ -94,7 +94,7 @@ function Contents({ data }: Readonly<{ data: TechPackPageData }>) {
       <ol className="flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
         {data.pack.sections.map((section) => (
           <li key={section.id}>
-            <a href={sectionLink(section.id)} className="text-cobalt underline-offset-4 hover:underline">
+            <a href={sectionLink(section.id)} className="text-cobalt-soft underline-offset-4 hover:underline">
               {section.title}
             </a>
           </li>
@@ -124,7 +124,7 @@ export function TechPackDocument({ data, colourwayId }: DocumentProps) {
         </div>
         <Link
           href={`/studio/${data.projectId}`}
-          className="inline-flex h-11 items-center rounded-lg border border-hairline bg-surface px-5 text-[15px] font-semibold text-ink hover:bg-shell"
+          className="chip-btn inline-flex h-11 items-center rounded-full border border-white/20 bg-white/[0.04] px-5 text-[15px] font-medium text-ink backdrop-blur-md"
         >
           Back to the design
         </Link>

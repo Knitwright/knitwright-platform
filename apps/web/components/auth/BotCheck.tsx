@@ -78,7 +78,7 @@ export function BotCheck({ siteKey, widget, errors = [] }: BotCheckProps) {
     if (!loaded || !turnstile || !container.current) return;
     const widgetId = turnstile.render(container.current, {
       sitekey: siteKey,
-      theme: "light",
+      theme: "dark",
       "response-field-name": CAPTCHA_FIELD,
       callback: () => onPassed(attempt),
       "expired-callback": () => onPassed(null),

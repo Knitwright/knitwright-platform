@@ -8,7 +8,7 @@ export default function NotFoundPage() {
         There is nothing at this address. It may have been moved, or the link may be wrong.
       </p>
       <p className="mt-6">
-        <Link href="/" className="font-medium text-cobalt underline-offset-4 hover:underline">
+        <Link href="/" className="font-medium text-cobalt-soft underline-offset-4 hover:underline">
           Go to the start page
         </Link>
       </p>

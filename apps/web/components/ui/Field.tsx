@@ -1,4 +1,5 @@
 import { useId, type InputHTMLAttributes } from "react";
+import { FIELD_CONTROL } from "./field-styles";
 
 type FieldProps = Readonly<
   Omit<InputHTMLAttributes<HTMLInputElement>, "id"> & {
@@ -30,7 +31,7 @@ export function Field({ name, label, hint, errors = [], ...rest }: FieldProps) {
         name={name}
         aria-invalid={errors.length > 0 || undefined}
         aria-describedby={describedBy}
-        className="h-11 rounded-lg border border-hairline bg-surface px-3 text-[15px] text-ink placeholder:text-faint aria-[invalid]:border-warn"
+        className={FIELD_CONTROL}
       />
       {hint ? (
         <p id={hintId} className="text-sm text-muted">

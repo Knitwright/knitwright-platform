@@ -41,7 +41,7 @@ export function FlatPreview({ flat, show3d = false }: Readonly<{ flat: FlatPrevi
               data-testid={`flat-${view.view}`}
               className="mx-auto h-auto max-h-[22rem] w-full object-contain"
             />
-            <figcaption className="mt-1 text-center text-sm text-muted">{view.label}</figcaption>
+            <figcaption className="mt-1 text-center text-sm text-[#4b4f58]">{view.label}</figcaption>
           </figure>
         ))}
       </div>

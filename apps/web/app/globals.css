@@ -1,32 +1,44 @@
 @import "tailwindcss";
 
 /*
- * Design tokens, taken from knitwright.com. See plans/design-reference.md.
- * Light theme only. Cobalt is the single accent.
- * Tailwind owns the radius, spacing, font and color namespaces, so our own
- * names never start with those prefixes outside the @theme block.
+ * Design tokens, taken from knitwright.com. See plans/design-reference.md, section
+ * "Finish and motion". The studio uses the dark side of the system throughout: glass
+ * panels over a drifting aurora, cobalt as the one accent, the thread gradient used
+ * sparingly. The token names are the light theme's names, so `bg-surface`, `text-ink`
+ * and `border-hairline` keep working; only their values changed.
+ *
+ * Contrast (WCAG AA, on --canvas #07080a): ink 16.6:1, ink-2 12.4:1, muted 10:1,
+ * faint 6:1, cobalt-soft 6.6:1, ok 11:1, warn 11.6:1. White on --cobalt is 6.2:1.
+ *
+ * Tailwind owns the radius, spacing, font and color namespaces, so our own names never
+ * start with those prefixes outside the @theme block.
  */
 :root {
-  --canvas: #f4f4f5;
-  --surface: #fff;
-  --shell: #ededee;
-  --ink: #0f1012;
-  --ink-2: #2a2c31;
-  --muted: #62656d;
-  --faint: #a3a6ad;
-  --hairline: #0f101217;
+  color-scheme: dark;
+
+  --canvas: #07080a;
+  /* Glass. Translucent, so it reads the aurora behind it. */
+  --surface: rgba(12, 13, 18, 0.42);
+  /* An opaque surface, for things that float over other content (menus, popovers). */
+  --surface-solid: #111217;
+  --shell: rgba(255, 255, 255, 0.06);
+  --ink: #e9eaee;
+  --ink-2: #c9ccd3;
+  --muted: #b5b8c0;
+  --faint: #8b8f99;
+  --hairline: rgba(255, 255, 255, 0.13);
   --tile: #17181b;
   --tile-2: #222429;
   --chalk: #e9eaee;
   --chalk-muted: #9a9ea8;
   --cobalt: #2b46f0;
   --cobalt-soft: #8296ff;
-  --cobalt-wash: #eef1ff;
-  --cobalt-hover: #2238c8;
-  --ok: #0f7b59;
-  --ok-wash: #e7f4ee;
-  --warn: #9a5a08;
-  --warn-wash: #f8efdf;
+  --cobalt-wash: rgba(130, 150, 255, 0.16);
+  --cobalt-hover: #3d57ff;
+  --ok: #7fe0bb;
+  --ok-wash: rgba(79, 199, 155, 0.16);
+  --warn: #f3c27a;
+  --warn-wash: rgba(224, 162, 74, 0.16);
   --thread: linear-gradient(
     95deg,
     #b9c4ff 0%,
@@ -35,6 +47,9 @@
     #c7f0e4 74%,
     #9fb0ff 100%
   );
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @theme inline {
@@ -43,6 +58,7 @@
 
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
+  --color-surface-solid: var(--surface-solid);
   --color-shell: var(--shell);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
@@ -69,9 +85,71 @@ body {
   font-family: var(--font-sans);
 }
 
+::selection {
+  background: rgba(130, 150, 255, 0.35);
+  color: #fff;
+}
+
 :focus-visible {
-  outline: 2px solid var(--cobalt);
-  outline-offset: 2px;
+  outline: 2px solid var(--cobalt-soft);
+  outline-offset: 3px;
+}
+
+/* ---------- Surfaces ---------- */
+
+/* A glass panel. The inset line is the glossy top edge. */
+@utility glass {
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  background: rgba(12, 13, 18, 0.42);
+  border: 1px solid var(--glass-edge, rgba(255, 255, 255, 0.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 30px 80px -30px rgba(0, 0, 0, 0.6);
+}
+
+/* The header pill: a darker glass that settles in over 450 ms. */
+@utility glass-strong {
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  background: rgba(23, 24, 27, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 24px 60px -30px rgba(0, 0, 0, 0.7);
+  transition:
+    background-color 450ms var(--ease),
+    border-color 450ms var(--ease),
+    box-shadow 450ms var(--ease);
+}
+
+/* A 1.5 px border painted with the thread gradient. */
+@utility thread-ring {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: var(--thread);
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+}
+
+@utility thread-text {
+  background: var(--thread);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .thread-line {
@@ -88,13 +166,299 @@ body {
     inset 0 -1px #ffffff0f;
 }
 
+/* The fine dot grid behind a flat drawing, on glass. */
+@utility dot-grid {
+  background-image: radial-gradient(circle at 1px 1px, rgba(233, 234, 238, 0.07) 1px, transparent 0);
+  background-size: 14px 14px;
+}
+
+/* ---------- Pressable things ---------- */
+
+@layer components {
+  /*
+   * The primary call to action: a white chip-fill grows from the arrow disc, the label
+   * turns ink and the disc turns 45 degrees. Markup: .chip-cta > .chip-fill + .chip-label + .chip-disc?
+   */
+  .chip-cta {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    --fill-at: calc(100% - 26px) 50%;
+  }
+  .chip-fill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: #fff;
+    clip-path: circle(0 at var(--fill-at, 50% 50%));
+    transition: clip-path 600ms var(--ease);
+  }
+  .chip-label {
+    transition: color 500ms var(--ease);
+  }
+  .chip-disc {
+    display: grid;
+    place-items: center;
+    flex: none;
+    border-radius: 999px;
+    background: var(--thread);
+    color: #0f1012;
+    transition: transform 500ms var(--ease);
+  }
+  .chip-cta:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) .chip-fill {
+    clip-path: circle(150% at var(--fill-at, 50% 50%));
+  }
+  .chip-cta:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) .chip-label {
+    color: #0f1012;
+  }
+  .chip-cta:not(:disabled):is(:hover, :focus-visible) .chip-disc,
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .chip-disc {
+    transform: rotate(45deg);
+  }
+
+  /*
+   * A glass chip whose white fill rises from the bottom on hover; the text turns ink.
+   * Used for secondary buttons and small choice chips.
+   */
+  .chip-btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition:
+      color 400ms var(--ease),
+      border-color 400ms var(--ease);
+  }
+  .chip-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: #fff;
+    clip-path: circle(0 at 50% 100%);
+    transition: clip-path 500ms var(--ease);
+  }
+  .chip-btn:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+    color: #0f1012;
+    border-color: #fff;
+  }
+  .chip-btn:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible)::after {
+    clip-path: circle(150% at 50% 100%);
+  }
+
+  /*
+   * A card that lifts on hover while a cobalt fill grows from the pointer, or from the
+   * bottom centre. Put a .fill-layer span first inside it. Set --fx and --fy to move the origin.
+   */
+  .lift {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition:
+      transform 600ms var(--spring),
+      border-color 500ms var(--ease);
+  }
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.32);
+    --glass-edge: rgba(255, 255, 255, 0.32);
+  }
+  .fill-layer {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--cobalt);
+    clip-path: circle(0 at var(--fx, 50%) var(--fy, 100%));
+    transition: clip-path 700ms var(--ease);
+    pointer-events: none;
+  }
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .fill-layer {
+    clip-path: circle(160% at var(--fx, 50%) var(--fy, 100%));
+  }
+  /* A caption that slides up and fades in as its card is hovered. */
+  .lift-caption {
+    transition:
+      transform 600ms var(--spring),
+      opacity 600ms var(--spring);
+  }
+  .lift .lift-caption {
+    transform: translateY(8px);
+  }
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-caption {
+    transform: none;
+  }
+  .lift .lift-art {
+    transition: transform 800ms var(--spring);
+  }
+  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-art {
+    transform: scale(1.06) rotate(-2deg);
+  }
+
+  /* A pill link in the header and the page list. */
+  .nav-pill {
+    transition:
+      background-color 300ms var(--ease),
+      color 300ms var(--ease);
+  }
+  .nav-pill:hover {
+    background: rgba(233, 234, 238, 0.1);
+    color: #fff;
+  }
+
+  /* Small links settle from .9 to full opacity. */
+  .soft-link {
+    opacity: 0.9;
+    transition: opacity 150ms var(--ease);
+  }
+  .soft-link:hover {
+    opacity: 1;
+  }
+}
+
+/* ---------- Motion ---------- */
+
+/* An entrance: rises 18 px and settles. Stagger siblings with style={{ "--i": n }}. */
+@utility rise {
+  animation: kw-rise 900ms var(--spring) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+/* A headline that grows up from its baseline with a small overshoot. */
+@utility morph-reveal {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  animation: kw-morph 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
+}
+
+/* A side panel's content sliding in when its tab is chosen. */
+@utility panel-in {
+  animation: kw-panel-in 550ms var(--spring) both;
+}
+
+/* A drawing settling in after it changes. */
+@utility flat-in {
+  animation: kw-flat-in 700ms var(--spring) both;
+}
+
+/* A status dot with a ring that pulses out. Set the colour with bg-*. */
+@utility pulse-dot {
+  position: relative;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 999px;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: kw-pulse-ring 2s ease-out infinite;
+  }
+}
+
+/* The slow drift of the background. */
+@utility hero-drift {
+  animation: kw-hero-drift 24s ease-in-out infinite alternate;
+}
+
+/* The blurred thread-colour aurora that sits behind the glass. */
+.aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  filter: blur(90px) saturate(1.2);
+  opacity: 0.55;
+}
+.aurora > i {
+  position: absolute;
+  border-radius: 50%;
+}
+
+@keyframes kw-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kw-morph {
+  0% {
+    opacity: 0;
+    transform: scaleY(0) scaleX(0.8);
+  }
+  60% {
+    opacity: 0.9;
+    transform: scaleY(1.05) scaleX(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kw-panel-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kw-flat-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes kw-pulse-ring {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes kw-hero-drift {
+  0% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1.1) translate(-1.5%, -1%);
+  }
+}
+
+/*
+ * Reduced motion: every animation and transition is off. Entrances show at rest and
+ * hover fills appear without movement.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

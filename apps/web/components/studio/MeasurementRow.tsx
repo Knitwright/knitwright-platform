@@ -69,7 +69,7 @@ function HowToMeasure({ id, text }: Readonly<{ id: string; text: string }>) {
         aria-expanded={open}
         aria-controls={id}
         onClick={() => setOpen((before) => !before)}
-        className="mt-1 block rounded-md text-sm font-normal text-cobalt underline-offset-4 hover:underline sm:hidden"
+        className="mt-1 block rounded-md text-sm font-normal text-cobalt-soft underline-offset-4 hover:underline sm:hidden"
       >
         {open ? "Hide how to measure" : "How to measure"}
       </button>
@@ -144,7 +144,7 @@ function SourceCell({ row, onReset }: Readonly<{ row: TableRow; onReset: () => v
           type="button"
           onClick={onReset}
           aria-label={`Use the chart value for ${row.label}`}
-          className="mt-2 block rounded-md text-sm font-medium text-cobalt underline-offset-4 hover:underline"
+          className="mt-2 block rounded-md text-sm font-medium text-cobalt-soft underline-offset-4 hover:underline"
         >
           Use the chart value
         </button>

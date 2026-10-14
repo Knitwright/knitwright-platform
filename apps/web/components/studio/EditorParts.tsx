@@ -29,7 +29,7 @@ type HeaderProps = Readonly<{
 }>;
 
 const HEADER_LINK =
-  "inline-flex h-11 items-center justify-center rounded-lg border border-hairline bg-surface px-4 text-[15px] font-semibold text-ink transition-colors hover:bg-shell";
+  "chip-btn inline-flex h-11 items-center justify-center rounded-full border border-white/20 bg-white/[0.04] px-5 text-[15px] font-medium text-ink backdrop-blur-md";
 
 export function EditorHeader({ data, version, busy, onUndo }: HeaderProps) {
   const details = [data.styleNumber ? `Style ${data.styleNumber}` : null, data.season || null].filter(Boolean);

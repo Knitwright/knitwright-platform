@@ -69,7 +69,7 @@ export function TechPackEdit({ projectId, version, spec, children }: TechPackEdi
   );
   return (
     <Context.Provider value={api}>
-      <div className="sticky top-0 z-10 flex flex-col gap-2 bg-shell/90 py-2 backdrop-blur">
+      <div className="sticky top-24 z-30 flex flex-col gap-2 rounded-2xl px-4 py-2 [&:has(>:not(:empty))]:bg-surface-solid/90 [&:has(>:not(:empty))]:backdrop-blur">
         <SaveStatus busy={api.busy} status={state.status} />
         <DesignProblem message={state.conflict} conflict={state.conflict !== null} />
         <SaveRetry retry={state.retry} onRetry={() => dispatch({ type: "retry" })} />

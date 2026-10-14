@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Logo } from "@/components/brand/Logo";
+import { PublicHeader } from "@/components/shell/PublicHeader";
 import { Notice } from "@/components/ui/Notice";
 import { LEGAL_DOCUMENTS, legalDocument } from "@/lib/legal/documents";
 import { DRAFT_NOTICE, type LegalBlock } from "@/lib/legal/model";
@@ -61,26 +61,21 @@ export default async function LegalPage({ params }: PageProps<"/legal/[document]
 
   return (
     <>
-      <header className="border-b border-hairline bg-surface">
-        <div className="mx-auto flex h-14 w-full max-w-3xl items-center justify-between px-5">
-          <Link href="/" className="rounded-md">
-            <Logo />
-          </Link>
-          <nav aria-label="Legal" className="flex gap-4 text-sm">
-            {LEGAL_DOCUMENTS.map((other) => (
-              <Link
-                key={other.slug}
-                href={`/legal/${other.slug}`}
-                aria-current={other.slug === doc.slug ? "page" : undefined}
-                className="text-muted hover:text-ink aria-[current=page]:text-ink"
-              >
-                {other.title}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </header>
-      <main id="main" className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10">
+      <PublicHeader width="max-w-3xl">
+        <nav aria-label="Legal" className="flex flex-wrap gap-1 text-sm">
+          {LEGAL_DOCUMENTS.map((other) => (
+            <Link
+              key={other.slug}
+              href={`/legal/${other.slug}`}
+              aria-current={other.slug === doc.slug ? "page" : undefined}
+              className="nav-pill rounded-full px-3 py-1.5 text-muted aria-[current=page]:bg-white/12 aria-[current=page]:text-white"
+            >
+              {other.title}
+            </Link>
+          ))}
+        </nav>
+      </PublicHeader>
+      <main id="main" className="rise mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10">
         <header className="flex flex-col gap-3">
           <h1 className="text-3xl font-semibold tracking-tight text-ink">{doc.title}</h1>
           {doc.status === "draft" ? <Notice tone="warn">{DRAFT_NOTICE}</Notice> : null}

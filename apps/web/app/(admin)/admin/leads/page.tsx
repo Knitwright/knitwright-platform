@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { LeadOwnerForm } from "@/components/leads/LeadOwnerForm";
 import { QuoteStatusForm } from "@/components/leads/QuoteStatusForm";
+import { Pagination } from "@/components/ui/Pagination";
 import { loadAccessRequests, type AccessRequestRow } from "@/lib/leads/access";
+import { pageCount, pageHref, pageOf, pageRequest } from "@/lib/pagination/pages";
 import { buildLeadList, type LeadListItem } from "@/lib/leads/admin";
 import { buyerKindLabel } from "@/lib/leads/buyer-kind";
 import { organisationTypeLabel, placeOf } from "@/lib/leads/organisation";
@@ -16,19 +19,26 @@ import { requirePlatformAdmin } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "Leads", robots: { index: false, follow: false } };
 
+/** How many brands one page of the lead list shows. */
+const LEADS_PER_PAGE = 20;
+
 /**
  * The lead list for the Knitwright team (decision 0024, Platform and Store Guide pages 9 and 12):
  * one row per brand, highest score first. Everyone who is not a platform admin gets the page
  * that does not exist.
  */
-export default async function LeadsPage() {
+export default async function LeadsPage({ searchParams }: PageProps<"/admin/leads">) {
   await requirePlatformAdmin();
   const client = await sessionClient();
   const [rows, requests] = await Promise.all([loadLeadRows(client), loadAccessRequests(client)]);
   const leads = buildLeadList(rows, new Date());
+  const request = pageRequest(await searchParams, LEADS_PER_PAGE);
+  const totalPages = pageCount(leads.length, LEADS_PER_PAGE);
+  if (request.page > totalPages) redirect(pageHref("/admin/leads", totalPages) as Route);
+  const shown = pageOf(leads, request);
 
   return (
-    <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
+    <main id="main" className="rise mx-auto w-full max-w-6xl flex-1 px-5 py-10">
       <p className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright team</p>
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Leads</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
@@ -38,12 +48,13 @@ export default async function LeadsPage() {
       {leads.length === 0 ? (
         <p className="mt-8 text-[15px] text-muted">No brands yet.</p>
       ) : (
-        <ol className="mt-8 flex flex-col gap-6">
-          {leads.map((lead) => (
+        <ol start={request.offset + 1} className="mt-8 flex flex-col gap-6">
+          {shown.map((lead) => (
             <LeadCard key={lead.id} lead={lead} />
           ))}
         </ol>
       )}
+      <Pagination path="/admin/leads" page={request.page} totalPages={totalPages} label="Pages of leads" />
       <AccessRequests requests={requests} />
     </main>
   );
@@ -62,7 +73,7 @@ function AccessRequests({ requests }: Readonly<{ requests: readonly AccessReques
       {requests.length === 0 ? (
         <p className="mt-4 text-[15px] text-muted">No requests yet.</p>
       ) : (
-        <ul className="mt-4 flex flex-col divide-y divide-hairline rounded-2xl border border-hairline bg-surface">
+        <ul className="glass mt-4 flex flex-col divide-y divide-hairline rounded-[1.75rem]">
           {requests.map((request) => (
             <li key={request.id} className="px-6 py-4 text-sm text-ink-2" data-testid="access-request">
               <p className="text-[15px] font-medium text-ink">
@@ -84,7 +95,7 @@ function AccessRequests({ requests }: Readonly<{ requests: readonly AccessReques
 function LeadCard({ lead }: Readonly<{ lead: LeadListItem }>) {
   return (
     <li
-      className={`rounded-2xl border bg-surface p-6 ${lead.hot ? "border-warn" : "border-hairline"}`}
+      className={`glass rounded-[1.75rem] p-6 ${lead.hot ? "[--glass-edge:var(--warn)]" : ""}`}
       data-testid="lead"
       aria-labelledby={`lead-${lead.id}`}
     >

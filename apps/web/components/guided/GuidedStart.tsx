@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { Fragment, useState, type ReactNode } from "react";
 import { BuyerKindChoice } from "@/components/leads/BuyerKindChoice";
 import { FormSummary } from "@/components/forms/FormSummary";
@@ -114,7 +115,7 @@ function SentenceField({ kept, errors }: Fields) {
         defaultValue={kept("sentence")}
         aria-invalid={problems.length > 0 ? true : undefined}
         aria-describedby={problems.length > 0 ? "guided-sentence-error" : undefined}
-        className="rounded-lg border border-hairline bg-surface px-3 py-2 text-[15px] text-ink"
+        className={TEXT_AREA}
       />
       {problems.length > 0 ? (
         <p id="guided-sentence-error" className="text-sm text-warn">

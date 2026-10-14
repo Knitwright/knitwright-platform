@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { useId, useState } from "react";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useSendForm } from "@/components/forms/useSendForm";
@@ -132,7 +133,7 @@ function TextArea({ name, label, hint, max, defaultValue, errors }: TextAreaProp
         defaultValue={defaultValue}
         aria-invalid={errors.length > 0 || undefined}
         aria-describedby={describedBy}
-        className="rounded-lg border border-hairline bg-surface px-3 py-2 text-[15px] text-ink aria-[invalid]:border-warn"
+        className={TEXT_AREA}
       />
       <p id={`${id}-hint`} className="text-sm text-muted">
         {hint}

@@ -1,6 +1,4 @@
-import Link from "next/link";
-import { SignOutButton } from "@/components/auth/SignOutButton";
-import { Logo } from "@/components/brand/Logo";
+import { StudioHeader } from "@/components/shell/StudioHeader";
 import { requireMember } from "@/lib/server/page-guards";
 
 /**
@@ -13,34 +11,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
-      <header className="border-b border-hairline bg-surface">
-        <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-5">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link href="/studio" className="shrink-0 rounded-md">
-              <Logo />
-            </Link>
-            <Link
-              href="/brands"
-              className="truncate rounded-md border border-hairline px-2.5 py-1 text-sm text-ink-2 transition-colors hover:bg-shell"
-            >
-              <span className="sr-only">Brand: {brand.name}. Change brand.</span>
-              <span aria-hidden="true" data-testid="active-brand">
-                {brand.name}
-              </span>
-            </Link>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="hidden text-sm text-muted md:inline" data-testid="account-email">
-              {email}
-            </span>
-            {/* Shown at every width, phones too: Settings was once reachable only through the email. */}
-            <Link href="/settings" className="rounded-md text-sm font-medium text-ink-2 underline-offset-4 hover:underline">
-              Settings
-            </Link>
-            <SignOutButton />
-          </div>
-        </div>
-      </header>
+      <StudioHeader email={email} brandName={brand.name} />
       <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-5 py-10">
         {children}
       </main>

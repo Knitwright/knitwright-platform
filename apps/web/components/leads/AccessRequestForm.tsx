@@ -1,5 +1,6 @@
 "use client";
 
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { useId } from "react";
 import { BotCheck, useBotCheck } from "@/components/auth/BotCheck";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
@@ -80,7 +81,7 @@ export function AccessRequestForm({ siteKey }: Readonly<{ siteKey: string }>) {
           defaultValue={state.values.message}
           aria-invalid={messageErrors.length > 0 || undefined}
           aria-describedby={`${messageId}-hint${messageErrors.length > 0 ? ` ${messageId}-error` : ""}`}
-          className="rounded-lg border border-hairline bg-surface px-3 py-2 text-[15px] text-ink aria-[invalid]:border-warn"
+          className={TEXT_AREA}
         />
         <p id={`${messageId}-hint`} className="text-sm text-muted">
           Optional. For example: 40 training tops for our under 12s by March.
