@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/brand/Logo";
+import { pageFrame } from "@/components/shell/page-width";
 import { PRODUCT } from "@/lib/config/product";
 
 type AuthCardProps = Readonly<{
@@ -14,7 +15,7 @@ type AuthCardProps = Readonly<{
 /** The frame every sign-in page shares: a glass card with the thread ring, over the aurora. */
 export function AuthCard({ title, lead, children, footer }: AuthCardProps) {
   return (
-    <main id="main" className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-12">
+    <main id="main" className={`${pageFrame("form")} flex flex-1 flex-col py-12`}>
       <Link href="/" className="rise flex items-center gap-2.5 self-start rounded-full text-white">
         <BrandMark />
         <span className="text-[19px] font-medium tracking-[-0.02em]">{PRODUCT.name}</span>

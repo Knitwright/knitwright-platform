@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { JourneySteps } from "@/components/ui/JourneySteps";
+import { JourneyChip } from "@/components/ui/JourneyChip";
 import type { HomeCard } from "@/lib/home/load";
 
 /** A plain garment outline, for a design whose garment has no drawing. */
@@ -43,7 +43,7 @@ export function DesignCard({ card }: Readonly<{ card: HomeCard }>) {
         <span className="text-[13px] text-ink-2">{card.garmentLabel}</span>
         {details ? <span className="text-[13px] text-muted">{details}</span> : null}
         <span className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3 text-xs text-muted">
-          <JourneySteps step={card.step} />
+          <JourneyChip step={card.step} />
           <span>
             <span className="sr-only">Changed </span>
             {card.changed}

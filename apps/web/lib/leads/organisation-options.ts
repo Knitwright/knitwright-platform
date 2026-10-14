@@ -44,12 +44,22 @@ const regionNames = new Intl.DisplayNames(["en-AU"], { type: "region" });
 
 export const countryName = (code: string): string => regionNames.of(code) ?? code;
 
-/** Every country by name, Australia first. */
-export const countryOptions = (): readonly { id: string; label: string }[] => {
+export type CountryOption = Readonly<{ id: string; label: string }>;
+
+let countries: readonly CountryOption[] | null = null;
+
+/**
+ * Every country by name, Australia first. Built once, on the server, and handed to the forms as
+ * a prop: the browser's own country names differ from the server's ("Antigua & Barbuda" against
+ * "Antigua and Barbuda"), so naming them in the browser broke hydration.
+ */
+export const countryOptions = (): readonly CountryOption[] => {
+  if (countries) return countries;
   const others = COUNTRY_CODES.filter((code) => code !== "AU")
-    .map((code) => ({ id: code, label: countryName(code) }))
+    .map((code) => Object.freeze({ id: code, label: countryName(code) }))
     .sort((a, b) => a.label.localeCompare(b.label, "en"));
-  return [{ id: "AU", label: countryName("AU") }, ...others];
+  countries = Object.freeze([Object.freeze({ id: "AU", label: countryName("AU") }), ...others]);
+  return countries;
 };
 
 /** "Australia, NSW", "United Kingdom", or "Not given". */

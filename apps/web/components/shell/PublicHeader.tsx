@@ -2,17 +2,18 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PRODUCT } from "@/lib/config/product";
 import { BrandMark } from "@/components/brand/Logo";
+import { PAGE_WIDTH, type PageWidth } from "./page-width";
 
 type PublicHeaderProps = Readonly<{
   /** Links on the right of the pill. */
   children?: ReactNode;
   /** When false, the mark is not a link (a shared design is not an entry to the site). */
   linkHome?: boolean;
-  width?: "max-w-3xl" | "max-w-4xl" | "max-w-5xl" | "max-w-6xl";
+  width?: PageWidth;
 }>;
 
 /** The floating glass pill on the pages anyone can open. */
-export function PublicHeader({ children, linkHome = true, width = "max-w-5xl" }: PublicHeaderProps) {
+export function PublicHeader({ children, linkHome = true, width = "content" }: PublicHeaderProps) {
   const mark = (
     <>
       <BrandMark />
@@ -20,7 +21,7 @@ export function PublicHeader({ children, linkHome = true, width = "max-w-5xl" }:
     </>
   );
   return (
-    <div className={`mx-auto w-full ${width} px-3 pt-4 sm:px-5`}>
+    <div className={`mx-auto w-full ${PAGE_WIDTH[width]} px-3 pt-4 sm:px-5`}>
       <header className="glass-strong rise flex min-h-16 flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-[2rem] py-3 pl-6 pr-3 sm:rounded-full">
         {linkHome ? (
           <Link href="/" className="flex items-center gap-2.5 rounded-full text-white">

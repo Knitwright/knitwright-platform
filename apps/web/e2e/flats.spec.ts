@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import sharp from "sharp";
-import { createAccount, leaveWithoutChart, signIn, test } from "./support";
+import { createAccount, leaveWithoutChart, openTool, signIn, test } from "./support";
 
 /**
  * Plan step 7: the drawing in the editor. It is drawn on the server and shown as a
@@ -77,6 +77,7 @@ test.describe("the drawing", () => {
     await expect(page.getByTestId("flat-notice")).toContainText("Chest width");
     expect(await svgOf(page)).not.toMatch(/\d\.\d cm/);
 
+    await openTool(page, "Sizes");
     await page.getByLabel("Sizes, smallest first").fill("S, M, L");
     await page.getByLabel("Base size").selectOption("M");
     await page.getByRole("button", { name: "Save sizes" }).click();
@@ -116,6 +117,7 @@ test.describe("the drawing", () => {
     await startDesign(page, "Crew neck tee");
     const before = await source(page);
 
+    await openTool(page, "Colours");
     const hex = page.getByLabel("Body front drawn colour as #rrggbb");
     await hex.fill("1B2A49");
     await hex.press("Enter");
@@ -140,6 +142,7 @@ test.describe("the drawing", () => {
     await expect.poll(() => source(page)).not.toBe(before);
     expect(await svgOf(page)).toContain('fill="#1b2a49"');
     await page.reload();
+    await expect(page).toHaveURL(/\?tool=colours$/);
     await expect(page.getByLabel("Body front colour code")).toHaveValue("Navy 19-4052");
     await expect(page.getByLabel("Body back colour", { exact: true })).toHaveValue("#aa0000");
     await expect(front(page)).toHaveAttribute("alt", /Colours: Body front Navy 19-4052, Body back #aa0000\./);
@@ -150,6 +153,7 @@ test.describe("the drawing", () => {
     await startDesign(page, "Crew neck tee");
     expect(await svgOf(page)).not.toContain("<image");
 
+    await openTool(page, "Logos");
     await page.getByLabel("I own this logo or have permission to use it on garments.").check();
     await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
     const form = page.getByRole("form", { name: "New artwork" });
@@ -186,6 +190,7 @@ test.describe("the drawing", () => {
     await signedIn(page, "flat-script");
     await startDesign(page, "Crew neck tee");
 
+    await openTool(page, "Logos");
     await page.getByLabel("Words to print").first().fill("</text><script>window.hacked=1;alert(1)</script>");
     await page.getByRole("button", { name: "Add words" }).click();
     const form = page.getByRole("form", { name: "New artwork" });
@@ -203,6 +208,7 @@ test.describe("the drawing", () => {
   test("uploads no logo until the person confirms they may use it", async ({ page }) => {
     await signedIn(page, "flat-norights");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Logos");
 
     const uploads: string[] = [];
     page.on("request", (request) => {
@@ -225,6 +231,7 @@ test.describe("the drawing", () => {
   test("refuses a file that is not a picture, beside the field", async ({ page }) => {
     await signedIn(page, "flat-badfile");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Logos");
 
     await page.getByLabel("I own this logo or have permission to use it on garments.").check();
     await page.getByLabel("Logo or picture").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });

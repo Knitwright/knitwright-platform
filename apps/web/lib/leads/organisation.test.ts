@@ -75,6 +75,22 @@ describe("countries", () => {
     expect(countryName("GB")).toBe("United Kingdom");
   });
 
+  it("builds the list once, so the server hands the browser the same names every time", () => {
+    const first = countryOptions();
+
+    expect(countryOptions()).toBe(first);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(new Set(first.map((option) => option.id)).size).toBe(first.length);
+    expect(first.every((option) => option.label.trim().length > 0)).toBe(true);
+  });
+
+  it("sorts every country after Australia by its English name", () => {
+    const rest = countryOptions().slice(1).map((option) => option.label);
+
+    expect(rest).toEqual([...rest].sort((a, b) => a.localeCompare(b, "en")));
+    expect(rest).not.toContain("Australia");
+  });
+
   it("describes a place in a few words", () => {
     expect(placeOf("AU", "NSW")).toBe("Australia, NSW");
     expect(placeOf("GB", null)).toBe("United Kingdom");

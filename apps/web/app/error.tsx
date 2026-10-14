@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/Button";
+import { pageFrame } from "@/components/shell/page-width";
 
 type ErrorPageProps = Readonly<{
   error: Error & { digest?: string };
@@ -10,7 +11,7 @@ type ErrorPageProps = Readonly<{
 /** Shown when a page fails in a way nothing else handled. The detail stays in the log. */
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   return (
-    <main id="main" className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-16">
+    <main id="main" className={`${pageFrame("form")} flex flex-1 flex-col py-16`}>
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Something went wrong</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         The page could not be shown. Your work is not affected. Try again, and if it keeps

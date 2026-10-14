@@ -1,187 +1,103 @@
 "use client";
 
+import { useRef } from "react";
 import type { StoredLine } from "@/lib/projects/chat";
 import type { EditorData } from "@/lib/projects/editor-data";
-import { ArtworkControls } from "./ArtworkControls";
-import { ChatPanel } from "./ChatPanel";
-import { ColourControls } from "./ColourControls";
-import { ColourwayChooser } from "./ColourwayChooser";
-import { DetailsForm } from "./DetailsForm";
-import { DesignProblem, DroppedNotice, EditorHeader, SaveStatus, Section } from "./EditorParts";
-import { FlatPreview } from "./FlatPreview";
-import { History } from "./History";
-import { ImageReview } from "./ImageReview";
-import { BASE_KEY, NAMES_NUMBERS_KEY, SIZES_KEY, measurementKey } from "./keys";
-import { MeasurementTables } from "./MeasurementTables";
-import { NamesNumbersControls } from "./NamesNumbersControls";
-import { OptionControls } from "./OptionControls";
+import { DesignProblem, DroppedNotice } from "./EditorParts";
 import { SaveRetry } from "./SaveRetry";
-import { SizesForm } from "./SizesForm";
-import { HISTORY_KEY, useEditor, type Editor as EditorApi } from "./useEditor";
-
-/*
- * Fabrics are part of the design but have no screen yet. They arrive with a later step.
- * The design keeps whatever they hold.
- */
-
-type PartProps = Readonly<{ data: EditorData; editor: EditorApi }>;
+import { HISTORY_KEY, useEditor } from "./useEditor";
+import { AssistantDock } from "./workspace/AssistantDock";
+import { DesignCanvas } from "./workspace/DesignCanvas";
+import type { WorkspaceSlots } from "./workspace/PanelSections";
+import { ToolPanels } from "./workspace/ToolPanels";
+import { ToolRail } from "./workspace/ToolRail";
+import { useWorkspace } from "./workspace/useWorkspace";
+import { WorkspaceHeader } from "./workspace/WorkspaceHeader";
 
 /** What the page knows about the assistant: whether a model is on, and the conversation kept so far. */
 export type AssistantInfo = Readonly<{ available: boolean; conversation: readonly StoredLine[] }>;
 
-/** `show3d` is the server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
-export function Editor({ data, assistant, show3d = false }: Readonly<{ data: EditorData; assistant: AssistantInfo; show3d?: boolean }>) {
+type EditorProps = Readonly<{
+  data: EditorData;
+  assistant: AssistantInfo;
+  /** The server switch SHOW_3D: the 3D trial under the drawing (decision 0027). */
+  show3d?: boolean;
+  slots: WorkspaceSlots;
+}>;
+
+/*
+ * The breakout: from lg up the workspace is wider than the page column, up to 96rem, and fills
+ * the screen below the studio header, so nothing scrolls but the panels themselves.
+ */
+const FRAME =
+  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(100vw_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(50vw_-_1.25rem,48rem))] lg:pb-0";
+
+const columns = (dockOpen: boolean): string =>
+  `flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_21rem_minmax(0,1fr)] ${
+    dockOpen ? "xl:grid-cols-[4.75rem_22rem_minmax(0,1fr)_21rem]" : "xl:grid-cols-[4.75rem_22rem_minmax(0,1fr)_6.5rem]"
+  }`;
+
+/**
+ * The one-screen design workspace: a rail of tools, the open tool's panel, the drawing in the
+ * centre and the assistant docked on the right, under a header with the journey and the pinned
+ * actions. Every control is the editor's own, grouped by tool; saving, conflicts and undo are
+ * unchanged (useEditor). On a phone the drawing comes first, the tools are a bar along the
+ * bottom and the assistant is a sheet.
+ */
+export function Editor({ data, assistant, show3d = false, slots }: EditorProps) {
   const editor = useEditor(data);
   const { state } = editor;
+  const { tool, choose, layout, dispatch, root } = useWorkspace();
+  const assistantButton = useRef<HTMLButtonElement>(null);
+
+  const closeSheet = () => {
+    dispatch({ type: "closeSheet" });
+    assistantButton.current?.focus();
+  };
 
   return (
-    <div className="flex flex-col gap-6">
-      <EditorHeader data={data} version={state.version} busy={editor.busy} onUndo={editor.undo} />
-      <SaveStatus busy={editor.busy} status={state.status} />
-      <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
-      <SaveRetry retry={state.retry} onRetry={editor.retry} />
-      <DroppedNotice dropped={state.dropped ?? data.dropped} />
-      <FlatPreview flat={data.flat} show3d={show3d} />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <MainColumn data={data} editor={editor} assistant={assistant} />
-        <SideColumn data={data} editor={editor} assistant={assistant} />
+    <div ref={root} className={FRAME}>
+      <WorkspaceHeader
+        data={data}
+        version={state.version}
+        busy={editor.busy}
+        status={state.status}
+        tool={tool}
+        onChoose={choose}
+        onUndo={editor.undo}
+      />
+      <div className={columns(layout.dockOpen)}>
+        <ToolRail
+          tool={tool}
+          onChoose={choose}
+          onAssistant={() => dispatch({ type: layout.sheetOpen ? "closeSheet" : "openSheet" })}
+          assistantOpen={layout.sheetOpen}
+          assistantButton={assistantButton}
+        />
+        <ToolPanels tool={tool} context={{ data, editor, assistantAvailable: assistant.available, slots }} />
+        <DesignCanvas
+          flat={data.flat}
+          table={data.table}
+          show3d={show3d}
+          notices={
+            <>
+              <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
+              <SaveRetry retry={state.retry} onRetry={editor.retry} />
+              <DroppedNotice dropped={state.dropped ?? data.dropped} />
+            </>
+          }
+        />
+        <AssistantDock
+          projectId={data.projectId}
+          version={data.version}
+          busy={editor.busy}
+          assistant={assistant}
+          layout={layout}
+          above={slots.organisation}
+          onToggleDock={() => dispatch({ type: "toggleDock" })}
+          onCloseSheet={closeSheet}
+        />
       </div>
     </div>
-  );
-}
-
-function MainColumn({ data, editor, assistant }: PartProps & Readonly<{ assistant: AssistantInfo }>) {
-  return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <Section id="picture" title="Start from a sketch or photo">
-        <ImageReview projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} />
-      </Section>
-      <Section id="options" title="Options">
-        <OptionControls
-          controls={data.controls}
-          choiceShown={editor.choiceShown}
-          onChoose={editor.chooseOption}
-          onSettle={editor.settleOption}
-          errorFor={editor.errorFor}
-        />
-      </Section>
-      <ColoursSection data={data} editor={editor} />
-      <ArtworkSection data={data} editor={editor} />
-      <Section id="names-numbers" title="Player names and numbers">
-        <NamesNumbersControls
-          panel={data.namesNumbers}
-          error={editor.errorFor(NAMES_NUMBERS_KEY)}
-          onSave={editor.saveAction}
-          onProblem={(key, message) => editor.problem(key, message, false)}
-          onClearProblem={editor.clearProblem}
-        />
-      </Section>
-      <Section id="sizes" title="Sizes">
-        <SizesSection data={data} editor={editor} />
-      </Section>
-      <Section id="measurements" title={data.table.size ? `Measurements for size ${data.table.size}` : "Measurements"}>
-        <p className="mb-4 text-[15px] leading-relaxed text-muted">
-          Lengths are in centimetres. Type a value to use your own. It is then marked as typed in by you. Empty a
-          field to remove your value.
-        </p>
-        <MeasurementTables
-          table={data.table}
-          errorFor={editor.errorFor}
-          onEdit={editor.editMeasurement}
-          onReset={editor.resetMeasurement}
-          onTyping={(pointId) => editor.clearProblem(measurementKey(pointId))}
-          onDirty={editor.markDirty}
-        />
-      </Section>
-    </div>
-  );
-}
-
-function ColoursSection({ data, editor }: PartProps) {
-  return (
-    <Section id="colours" title="Colours">
-      <p className="mb-4 text-[15px] leading-relaxed text-muted">
-        The drawn colour only sets how the drawing looks, and a factory needs a colour name or code as well, so type one
-        if you have it. A part with no drawn colour is shown in light grey.
-      </p>
-      <ColourwayChooser choices={data.colourways} />
-      <ColourControls
-        rows={data.colours}
-        errorFor={editor.errorFor}
-        onPickSwatch={editor.pickSwatch}
-        onSettleSwatch={editor.settleSwatch}
-        onChangeText={editor.changeColour}
-        onTyping={editor.clearProblem}
-        onDirty={editor.markDirty}
-      />
-    </Section>
-  );
-}
-
-function ArtworkSection({ data, editor }: PartProps) {
-  return (
-    <Section id="artwork" title="Logos and text">
-      <ArtworkControls
-        spec={editor.working}
-        rows={data.artwork}
-        parts={data.parts}
-        errorFor={editor.errorFor}
-        onSave={editor.saveAction}
-        onProblem={(key, message) => editor.problem(key, message, false)}
-        onClearProblem={editor.clearProblem}
-      />
-    </Section>
-  );
-}
-
-function SizesSection({ data, editor }: PartProps) {
-  return (
-    <>
-      <p className="mb-4 text-[15px] leading-relaxed text-muted">
-        {data.sizes.set
-          ? "The measurements below are for the base size. The other sizes are worked out from it."
-          : "Add the sizes you will make. The measurements below are for the base size."}
-      </p>
-      <SizesForm
-        initialText={data.sizes.text}
-        initialBase={data.sizes.baseSize}
-        isSet={data.sizes.set}
-        busy={editor.busy}
-        errorFor={editor.errorFor}
-        onInvalid={(key, message) => editor.problem(key, message, true)}
-        onSave={editor.saveSizes}
-        onTyping={() => {
-          editor.clearProblem(SIZES_KEY);
-          editor.clearProblem(BASE_KEY);
-        }}
-        onDirty={editor.markDirty}
-      />
-    </>
-  );
-}
-
-function SideColumn({ data, editor, assistant }: PartProps & Readonly<{ assistant: AssistantInfo }>) {
-  return (
-    <aside className="flex min-w-0 flex-col gap-6">
-      <Section id="assistant" title="Assistant">
-        <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} conversation={assistant.conversation} />
-      </Section>
-      <Section id="history" title="History">
-        <History
-          entries={data.history}
-          olderHidden={data.olderVersionsHidden}
-          busy={editor.busy}
-          onRestore={editor.restore}
-        />
-      </Section>
-      <Section id="details" title="Design details">
-        <DetailsForm
-          projectId={data.projectId}
-          name={data.name}
-          styleNumber={data.styleNumber}
-          season={data.season}
-        />
-      </Section>
-    </aside>
   );
 }

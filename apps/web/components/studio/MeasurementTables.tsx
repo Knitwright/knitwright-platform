@@ -39,12 +39,12 @@ type GroupTableProps = Readonly<{ group: TableGroup }> & MeasurementHandlers;
 
 function GroupTable({ group, errorFor, ...handlers }: GroupTableProps) {
   return (
-    <div className="rounded-xl border border-hairline sm:overflow-x-auto">
-      <table className="block w-full text-left text-[15px] sm:table sm:min-w-[44rem]">
-        <caption className="block border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-ink sm:table-caption">
+    <div className="@container rounded-xl border border-hairline">
+      <table className="block w-full text-left text-[15px] @3xl:table">
+        <caption className="block border-b border-hairline px-4 py-3 text-left text-sm font-semibold text-ink @3xl:table-caption">
           {group.label}
         </caption>
-        <thead className="sr-only sm:not-sr-only sm:table-header-group">
+        <thead className="sr-only @3xl:not-sr-only @3xl:table-header-group">
           <tr className="text-sm text-muted">
             {HEADINGS.map((heading) => (
               <th key={heading} scope="col" className="px-4 py-2 font-medium">
@@ -53,7 +53,7 @@ function GroupTable({ group, errorFor, ...handlers }: GroupTableProps) {
             ))}
           </tr>
         </thead>
-        <tbody className="block divide-y divide-hairline sm:table-row-group">
+        <tbody className="block divide-y divide-hairline @3xl:table-row-group">
           {group.rows.map((row: TableRow) => (
             <MeasurementRow key={row.pointId} row={row} error={errorFor(measurementKey(row.pointId))} {...handlers} />
           ))}

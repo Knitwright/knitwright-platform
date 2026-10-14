@@ -3,6 +3,8 @@ import Link from "next/link";
 import { MarketingForm } from "@/components/consent/MarketingForm";
 import { DeleteForm } from "@/components/deletion/DeleteForm";
 import { DisplayNameForm } from "@/components/profile/DisplayNameForm";
+import { PageIntro } from "@/components/shell/PageIntro";
+import { PageSection } from "@/components/shell/PageSection";
 import { setMarketingConsentAction } from "@/lib/consent/actions";
 import { currentMarketingChoice } from "@/lib/consent/consent";
 import { loadMarketingEvents } from "@/lib/consent/service";
@@ -23,61 +25,41 @@ export default async function SettingsPage() {
   const marketing = currentMarketingChoice(events)?.granted === true;
 
   return (
-    <div className="flex max-w-2xl flex-col gap-8">
-      <header>
-        <p className="font-mono text-xs uppercase tracking-wider text-muted">Settings</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">Your account</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          Signed in as {email}. Read how your data is handled in the{" "}
-          <Link href="/legal/privacy" className="underline">
-            privacy notice
-          </Link>
-          .
-        </p>
-      </header>
+    <div className="flex flex-col gap-8">
+      <PageIntro
+        eyebrow="Settings"
+        title="Your account"
+        lead={
+          <>
+            Signed in as {email}. Read how your data is handled in the{" "}
+            <Link href="/legal/privacy" className="underline">
+              privacy notice
+            </Link>
+            .
+          </>
+        }
+      />
 
-      <section aria-labelledby="your-name" className="rounded-2xl border border-hairline bg-surface p-6">
-        <h2 id="your-name" className="text-base font-semibold text-ink">
-          Your name
-        </h2>
-        <div className="mt-4">
-          <DisplayNameForm action={setDisplayNameAction} defaultName={name} />
-        </div>
-      </section>
+      <PageSection id="your-name" title="Your name">
+        <DisplayNameForm action={setDisplayNameAction} defaultName={name} />
+      </PageSection>
 
-      <section aria-labelledby="emails" className="rounded-2xl border border-hairline bg-surface p-6">
-        <h2 id="emails" className="text-base font-semibold text-ink">
-          Emails from us
-        </h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          Emails about your account, such as sign-in links, always come. Marketing emails come only
-          if you tick this box, and every one has a link to stop them.
-        </p>
-        <div className="mt-4">
-          <MarketingForm action={setMarketingConsentAction} granted={marketing} />
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="delete-account"
-        className="rounded-2xl border border-hairline bg-surface p-6"
+      <PageSection
+        id="emails"
+        title="Emails from us"
+        description="Emails about your account, such as sign-in links, always come. Marketing emails come only if you tick this box, and every one has a link to stop them."
       >
-        <h2 id="delete-account" className="text-base font-semibold text-ink">
-          Delete your account
-        </h2>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted">
-          This deletes your account and your {brands.length === 1 ? "brand" : `${brands.length} brands`}{" "}
-          with every design, version, uploaded picture and download record in them. It cannot be
-          undone. Download any tech packs you want to keep first.
-        </p>
-        <div className="mt-4">
-          <DeleteForm
-            action={deleteAccountAction}
-            submitLabel="Delete my account"
-            busyLabel="Deleting"
-          />
-        </div>
-      </section>
+        <MarketingForm action={setMarketingConsentAction} granted={marketing} />
+      </PageSection>
+
+      <PageSection
+        id="delete-account"
+        title="Delete your account"
+        tone="warn"
+        description={`This deletes your account and your ${brands.length === 1 ? "brand" : `${brands.length} brands`} with every design, version, uploaded picture and download record in them. It cannot be undone. Download any tech packs you want to keep first.`}
+      >
+        <DeleteForm action={deleteAccountAction} submitLabel="Delete my account" busyLabel="Deleting" />
+      </PageSection>
     </div>
   );
 }

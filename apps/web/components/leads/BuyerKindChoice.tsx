@@ -8,8 +8,8 @@ type Props = Readonly<{ value: string; onChange: (kind: string) => void }>;
 export function BuyerKindChoice({ value, onChange }: Props) {
   return (
     <fieldset className="rounded-2xl border border-hairline bg-surface p-6">
-      <legend className="px-1 text-lg font-semibold text-ink">First, which fits you best?</legend>
-      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+      <legend className="mb-4 text-lg font-semibold text-ink">First, which fits you best?</legend>
+      <div className="grid gap-3 sm:grid-cols-2">
         {BUYER_KINDS.map((kind) => (
           <label
             key={kind.id}
@@ -23,7 +23,7 @@ export function BuyerKindChoice({ value, onChange }: Props) {
               onChange={() => onChange(kind.id)}
               className="mt-1"
             />
-            <span>
+            <span className="min-w-0 break-words">
               <span className="block text-[15px] font-medium text-ink">{kind.label}</span>
               <span className="block text-sm text-muted">{kind.hint}</span>
             </span>

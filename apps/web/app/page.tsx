@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { PublicHeader } from "@/components/shell/PublicHeader";
+import { pageFrame } from "@/components/shell/page-width";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { PRODUCT } from "@/lib/config/product";
 
@@ -43,7 +44,7 @@ export default function HomePage() {
         </nav>
       </PublicHeader>
 
-      <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-5 py-16 sm:py-24">
+      <main id="main" className={`${pageFrame("content")} flex-1 py-16 sm:py-24`}>
         <p className="rise font-mono text-xs uppercase tracking-[0.1em] text-muted">Design studio</p>
         <h1 className="mt-5 max-w-3xl text-5xl font-medium leading-[0.98] tracking-[-0.04em] text-ink sm:text-7xl">
           A spec a factory <span className="morph-reveal thread-text pb-[0.08em]">can build from.</span>
@@ -79,7 +80,7 @@ export default function HomePage() {
       </main>
 
       <footer className="border-t border-hairline">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap gap-x-4 gap-y-1 px-5 py-6 text-sm text-muted">
+        <div className={`${pageFrame("content")} flex flex-wrap gap-x-4 gap-y-1 py-6 text-sm text-muted`}>
           <span>
             {PRODUCT.name}. {PRODUCT.tagline}.
           </span>

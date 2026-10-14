@@ -1,6 +1,8 @@
+import { countryOptions } from "@/lib/leads/organisation";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { DesignLeads } from "@/components/leads/DesignLeads";
+import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
+import { QuoteRequest } from "@/components/leads/QuoteRequest";
 import { Editor } from "@/components/studio/Editor";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { ShareSection } from "@/components/share/ShareSection";
@@ -52,22 +54,25 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   ]);
 
   return (
-    <div className="flex flex-col gap-10">
-      <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />
-      <Editor
-        data={buildEditorData(project, history, charts, pictures, colourway)}
-        assistant={{ available: assistantAvailable(), conversation }}
-        show3d={getEnv().SHOW_3D}
-      />
-      <PhotorealPanel
-        projectId={projectId}
-        available={imageProvider() !== null}
-        colourwayId={colourway}
-        currentVersion={project.currentVersion}
-        loaded={illustrations}
-      />
-      <DesignLeads projectId={projectId} version={project.currentVersion} data={leads} withPrompt />
-      <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />
-    </div>
+    <Editor
+      data={buildEditorData(project, history, charts, pictures, colourway)}
+      assistant={{ available: assistantAvailable(), conversation }}
+      show3d={getEnv().SHOW_3D}
+      slots={{
+        kitStyles: <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />,
+        photoreal: (
+          <PhotorealPanel
+            projectId={projectId}
+            available={imageProvider() !== null}
+            colourwayId={colourway}
+            currentVersion={project.currentVersion}
+            loaded={illustrations}
+          />
+        ),
+        share: <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />,
+        quote: <QuoteRequest projectId={projectId} version={project.currentVersion} firstDate={leads.firstDate} earlier={leads.quotes} />,
+        organisation: leads.askDetails ? <OrganisationPrompt details={leads.details} countries={countryOptions()} /> : null,
+      }}
+    />
   );
 }

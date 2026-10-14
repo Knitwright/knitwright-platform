@@ -9,13 +9,13 @@ import { Field } from "@/components/ui/Field";
 import { createBrandAction } from "@/lib/brands/actions";
 import { BRAND_NAME_MAX } from "@/lib/brands/limits";
 import { welcomeWording } from "@/lib/brands/welcome";
-import { ORGANISATION_TYPES } from "@/lib/leads/organisation-options";
+import { ORGANISATION_TYPES, type CountryOption } from "@/lib/leads/organisation-options";
 
 /**
  * The first form a new person fills in. It asks who they design for first, then words the name
  * and the button for that answer. The type, country and region stay optional (decision 0024).
  */
-export function WelcomeForm() {
+export function WelcomeForm({ countries }: Readonly<{ countries: readonly CountryOption[] }>) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(createBrandAction);
   const [type, setType] = useState(state.values.organisationType ?? "");
   const words = welcomeWording(type);
@@ -64,6 +64,7 @@ export function WelcomeForm() {
         withType={false}
         values={{ organisationType: type, country: state.values.country ?? "", region: state.values.region ?? "" }}
         errors={fieldErrors}
+        countries={countries}
       />
       <div>
         <Button type="submit" pending={pending}>

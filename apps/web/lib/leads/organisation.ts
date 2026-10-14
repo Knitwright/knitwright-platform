@@ -8,6 +8,7 @@ import {
   countryOptions,
   organisationTypeLabel,
   placeOf,
+  type CountryOption,
   type OrganisationType,
 } from "./organisation-options";
 
@@ -20,6 +21,7 @@ export {
   countryOptions,
   organisationTypeLabel,
   placeOf,
+  type CountryOption,
   type OrganisationType,
 };
 

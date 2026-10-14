@@ -1,3 +1,4 @@
+import { countryOptions } from "@/lib/leads/organisation";
 import type { DesignLeads as Data } from "@/lib/leads/service";
 import { OrganisationPrompt } from "./OrganisationPrompt";
 import { QuoteRequest } from "./QuoteRequest";
@@ -14,7 +15,7 @@ type Props = Readonly<{
 export function DesignLeads({ projectId, version, data, withPrompt = false }: Props) {
   return (
     <div className="flex flex-col gap-6">
-      {withPrompt && data.askDetails ? <OrganisationPrompt details={data.details} /> : null}
+      {withPrompt && data.askDetails ? <OrganisationPrompt details={data.details} countries={countryOptions()} /> : null}
       <QuoteRequest projectId={projectId} version={version} firstDate={data.firstDate} earlier={data.quotes} />
     </div>
   );

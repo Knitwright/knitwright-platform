@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { WelcomeForm } from "@/components/brands/WelcomeForm";
 import { PRODUCT } from "@/lib/config/product";
+import { countryOptions } from "@/lib/leads/organisation";
 import { HOME_AFTER_SIGN_IN } from "@/lib/server/core/paths";
 import { currentBrands } from "@/lib/server/deps";
 import { requireSession } from "@/lib/server/page-guards";
@@ -22,7 +23,7 @@ export default async function WelcomePage() {
       title={`Welcome to ${PRODUCT.name}`}
       lead="Your designs, files and tech packs are kept together here. Only the people you invite can see them."
     >
-      <WelcomeForm />
+      <WelcomeForm countries={countryOptions()} />
     </AuthCard>
   );
 }

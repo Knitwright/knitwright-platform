@@ -1,18 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
-import {
-  DOWNLOAD_CONTROLS,
-  busyAnnouncement,
-  downloadFile,
-  finishDownload,
-  isBusyWith,
-  startDownload,
-  type Busy,
-  type DownloadControl,
-} from "@/lib/projects/download-controls";
+import { DOWNLOAD_CONTROLS, busyAnnouncement, isBusyWith } from "@/lib/projects/download-controls";
+import { useDownloads, type Downloads } from "./useDownloads";
 
 type DownloadsProps = Readonly<{
   projectId: string;
@@ -22,18 +13,48 @@ type DownloadsProps = Readonly<{
   nested?: boolean;
 }>;
 
-const REVOKE_AFTER_MS = 30_000;
+/** What is being made, and what went wrong, read out as it changes. */
+function DownloadStatus({ downloads }: Readonly<{ downloads: Downloads }>) {
+  return (
+    <>
+      <p role="status" aria-live="polite" data-testid="download-status" className="min-h-5 text-sm text-muted empty:min-h-0">
+        {busyAnnouncement(downloads.busy)}
+      </p>
+      {downloads.problem ? (
+        <div data-testid="download-problem">
+          <Notice tone="warn" role="alert">
+            {downloads.problem}
+          </Notice>
+        </div>
+      ) : null}
+    </>
+  );
+}
 
-/** Hands a file to the browser to save under its own name. */
-function saveBlob(name: string, blob: Blob): void {
-  const address = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = address;
-  link.download = name;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(address), REVOKE_AFTER_MS);
+type ButtonsProps = Readonly<{ downloads: Downloads; small?: boolean }>;
+
+/** One button for each file: the PDF, the Excel file and the two drawings. */
+function DownloadButtons({ downloads, small = false }: ButtonsProps) {
+  const { busy, run } = downloads;
+  return (
+    <>
+      {DOWNLOAD_CONTROLS.map((control) => (
+        <Button
+          key={control.id}
+          id={`download-${control.id}`}
+          variant="secondary"
+          className={small ? "h-9! px-3.5! text-sm!" : ""}
+          pending={isBusyWith(busy, control.id)}
+          disabled={busy !== null}
+          aria-label={control.accessibleName}
+          data-testid={`download-${control.id}`}
+          onClick={() => void run(control)}
+        >
+          {control.label}
+        </Button>
+      ))}
+    </>
+  );
 }
 
 /**
@@ -43,31 +64,7 @@ function saveBlob(name: string, blob: Blob): void {
  */
 export function TechPackDownloads({ projectId, version, colourwayId, nested = false }: DownloadsProps) {
   const Heading = nested ? "h3" : "h2";
-  const [busy, setBusy] = useState<Busy>(null);
-  const [problem, setProblem] = useState<string | null>(null);
-  // The button of the last download. A button that is disabled while it works loses focus, so it is
-  // given back once the buttons are enabled again, after the render that enables them.
-  const returnFocusTo = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (busy !== null || returnFocusTo.current === null) return;
-    document.getElementById(returnFocusTo.current)?.focus();
-    returnFocusTo.current = null;
-  }, [busy]);
-
-  const run = async (control: DownloadControl) => {
-    if (busy !== null) return;
-    setBusy(startDownload(busy, control.id));
-    setProblem(null);
-    const result = await downloadFile(projectId, control, { version, colourwayId }, (address) =>
-      fetch(address, { credentials: "same-origin" }),
-    );
-    if (result.ok) saveBlob(result.name, result.blob);
-    else setProblem(result.sentence);
-    returnFocusTo.current = `download-${control.id}`;
-    setBusy((current) => finishDownload(current, control.id));
-  };
-
+  const downloads = useDownloads(projectId, version, colourwayId);
   return (
     <section id="download" aria-labelledby="download-title" className="scroll-mt-20 rounded-2xl border border-hairline bg-surface p-6">
       <Heading id="download-title" className="text-lg font-semibold text-ink">
@@ -77,31 +74,40 @@ export function TechPackDownloads({ projectId, version, colourwayId, nested = fa
         Each file is made when you ask for it, from version {version} of this design. Nothing is stored.
       </p>
       <div role="group" aria-label="Download this tech pack" className="mt-4 flex flex-wrap gap-3">
-        {DOWNLOAD_CONTROLS.map((control) => (
-          <Button
-            key={control.id}
-            id={`download-${control.id}`}
-            variant="secondary"
-            pending={isBusyWith(busy, control.id)}
-            disabled={busy !== null}
-            aria-label={control.accessibleName}
-            data-testid={`download-${control.id}`}
-            onClick={() => void run(control)}
-          >
-            {control.label}
-          </Button>
-        ))}
+        <DownloadButtons downloads={downloads} />
       </div>
-      <p role="status" aria-live="polite" data-testid="download-status" className="mt-3 min-h-5 text-sm text-muted">
-        {busyAnnouncement(busy)}
-      </p>
-      {problem ? (
-        <div className="mt-2" data-testid="download-problem">
-          <Notice tone="warn" role="alert">
-            {problem}
-          </Notice>
-        </div>
-      ) : null}
+      <div className="mt-3 flex flex-col gap-2">
+        <DownloadStatus downloads={downloads} />
+      </div>
     </section>
+  );
+}
+
+type HeaderProps = Readonly<{
+  projectId: string;
+  version: number;
+  colourwayId?: string | undefined;
+  /** Where the pattern pieces are made as a DXF file. */
+  dxfHref: string;
+}>;
+
+/** The downloads as a row of small buttons in the header of the factory file, with the DXF beside them. */
+export function HeaderDownloads({ projectId, version, colourwayId, dxfHref }: HeaderProps) {
+  const downloads = useDownloads(projectId, version, colourwayId);
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      <div role="group" aria-label="Download this tech pack" className="flex flex-wrap items-center gap-2">
+        <span className="mr-1 text-sm text-muted">{`Download version ${version}`}</span>
+        <DownloadButtons downloads={downloads} small />
+        <a
+          href={dxfHref}
+          data-file-section-link="patterns"
+          className="chip-btn inline-flex h-9 items-center rounded-full border border-white/20 bg-white/[0.04] px-3.5 text-sm font-medium text-ink backdrop-blur-md"
+        >
+          DXF
+        </a>
+      </div>
+      <DownloadStatus downloads={downloads} />
+    </div>
   );
 }

@@ -307,3 +307,13 @@ export const leaveWithoutChart = async (email: string, garmentType: string, wear
   });
   if (error) throw new Error(error.message);
 };
+
+/**
+ * The design workspace shows one tool's panel at a time. Opens the tool with this label on the
+ * rail (Garment, Colours, Sizes, Fabric, Logos, Names, Labels or History).
+ */
+export const openTool = async (page: Page, label: string): Promise<void> => {
+  const tab = page.getByRole("tab", { name: label, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+};

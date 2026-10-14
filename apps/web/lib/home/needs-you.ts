@@ -89,7 +89,7 @@ function designItems(design: DesignFacts): NeedsYouItem[] {
       kind: "share",
       text: `${design.name}: the factory file has no empty fields. Show it to your committee`,
       action: "Share",
-      href: `${designPath(design.id)}#share-heading`,
+      href: `${designPath(design.id)}?tool=share#share-heading`,
       at: design.updatedAt,
     },
   ];
@@ -102,7 +102,7 @@ const voteItem = (vote: OpenVote): NeedsYouItem => ({
     vote.yes + vote.notYet === 0 ? "no votes yet" : `${count(vote.yes)} yes, ${count(vote.notYet)} not yet`
   }`,
   action: "See votes",
-  href: `${designPath(vote.projectId)}#share-heading`,
+  href: `${designPath(vote.projectId)}?tool=share#share-heading`,
   at: vote.latestAt,
 });
 
@@ -117,7 +117,7 @@ function quoteItems(quote: QuoteFact): NeedsYouItem[] {
         ? `Quote for ${count(quote.quantity)} of ${quote.projectName} sent. Look in your email`
         : `Quote for ${count(quote.quantity)} of ${quote.projectName} asked for. We reply by email`,
       action: "Open",
-      href: `${designPath(quote.projectId)}#quote-request`,
+      href: `${designPath(quote.projectId)}?tool=quote#quote-request`,
       at: quote.updatedAt,
     },
   ];

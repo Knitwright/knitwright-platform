@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { createAccount, createColleagueOf, signIn, standInForBotCheck, test } from "./support";
+import { createAccount, createColleagueOf, openTool, signIn, standInForBotCheck, test } from "./support";
 
 /** Plan step 6: the editor. Sign in, make a design, change it, reload, find it saved. */
 
@@ -73,19 +73,25 @@ test.describe("the editor", () => {
     await saved(page, 2);
     await choice(page, "Hem shape", /^Curved/).check();
     await saved(page, 3);
+    await openTool(page, "Sizes");
     await chest(page).fill("52.5");
     await chest(page).press("Enter");
     await saved(page, 4);
 
+    // The address keeps the open tool, so the reload opens the same panel.
     await page.reload();
 
+    await expect(page).toHaveURL(/\?tool=sizes$/);
+    await expect(page.getByRole("tab", { name: "Sizes", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("version")).toHaveText("Version 4");
-    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
-    await expect(choice(page, "Hem shape", /^Curved/)).toBeChecked();
     await expect(chest(page)).toHaveValue("52.5");
     const row = page.getByRole("row", { name: /Chest width/ });
     await expect(row).toContainText("Typed in by you");
+    await openTool(page, "Garment");
+    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
+    await expect(choice(page, "Hem shape", /^Curved/)).toBeChecked();
     // Three quick edits by one person are one entry in the history, named by the last of them.
+    await openTool(page, "History");
     await expect(page.getByText("3 changes in a row. The last: Chest width set to 52.5 cm.")).toBeVisible();
     await page.getByText("Show each change").click();
     await expect(page.getByText("Chest width set to 52.5 cm.", { exact: true })).toBeVisible();
@@ -94,6 +100,7 @@ test.describe("the editor", () => {
   test("starts a new design with the Knitwright starter chart, shown as suggestions to check with the factory", async ({ page }) => {
     await signedIn(page, "missing");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
 
     await expect(chest(page)).toHaveValue("51");
     const row = page.getByRole("row", { name: /Chest width/ });
@@ -105,6 +112,7 @@ test.describe("the editor", () => {
   test("undo puts the measurement back", async ({ page }) => {
     await signedIn(page, "undo");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     await chest(page).fill("48");
     await chest(page).press("Enter");
     await saved(page, 2);
@@ -114,6 +122,7 @@ test.describe("the editor", () => {
 
     await saved(page, 3);
     await expect(chest(page)).toHaveValue("51");
+    await openTool(page, "History");
     await expect(page.getByText("Restored version 1.")).toBeVisible();
     await expect(page.getByText("Chest width set to 48 cm.")).toBeVisible();
   });
@@ -127,12 +136,14 @@ test.describe("the editor", () => {
     await saved(page, 3);
 
     // Two quick edits by one person are one entry in the history, with each version inside it.
+    await openTool(page, "History");
     await page.getByText("Show each change").click();
     await page.getByRole("button", { name: "Restore version 2" }).click();
 
     await saved(page, 4);
-    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
     await expect(page.getByRole("button", { name: "Restore version 3" })).toBeVisible();
+    await openTool(page, "Garment");
+    await expect(choice(page, "Fit", /^Slim/)).toBeChecked();
   });
 
   test("shows a choice that would break a rule as disabled, with the reason", async ({ page }) => {
@@ -193,6 +204,7 @@ test.describe("the editor", () => {
   test("adds player names and numbers, with a height left to be confirmed", async ({ page }) => {
     await signedIn(page, "marks");
     const address = await startDesign(page, "Team jersey");
+    await openTool(page, "Names");
     const marks = page.getByTestId("names-numbers");
     await marks.getByLabel("Sample name").fill("SMITH");
     await marks.getByLabel("Lettering style").selectOption({ label: "Block" });
@@ -200,7 +212,7 @@ test.describe("the editor", () => {
     await saved(page, 2);
     await expect(page.getByTestId("garment-3d-toggle")).toHaveCount(0);
 
-    await page.goto(`${address}/tech-pack`);
+    await page.goto(`${address}/tech-pack?section=artwork`);
     const table = page.getByTestId("player-marks");
     await expect(table).toContainText("Name across the upper back");
     await expect(table).toContainText("Name, sample SMITH");
@@ -211,10 +223,12 @@ test.describe("the editor", () => {
     await signedIn(page, "dropped");
     await startDesign(page, "Team jersey");
     // The starter chart suggests 40 cm, so a different value is typed to make it the person's own.
+    await openTool(page, "Sizes");
     await page.getByLabel("Shoulder width in centimetres").fill("41");
     await page.getByLabel("Shoulder width in centimetres").press("Enter");
     await saved(page, 2);
 
+    await openTool(page, "Garment");
     await choice(page, "Sleeve type", /^Raglan/).check();
     await saved(page, 3);
 
@@ -226,6 +240,7 @@ test.describe("the editor", () => {
   test("changes the size run, and refuses one that is not complete beside the field", async ({ page }) => {
     await signedIn(page, "sizes");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     // A new design starts with the size run of the Knitwright starter chart.
     await expect(page.getByLabel("Sizes, smallest first")).toHaveValue("XS, S, M, L, XL, 2XL");
     await expect(page.getByLabel("Base size")).toHaveValue("M");
@@ -250,6 +265,7 @@ test.describe("the editor", () => {
   test("refuses a measurement that is not a length, beside the field", async ({ page }) => {
     await signedIn(page, "bad-length");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
 
     await chest(page).fill("wide");
     await chest(page).press("Enter");
@@ -356,6 +372,7 @@ test.describe("the editor", () => {
   test("clears a value of your own when its field is emptied", async ({ page }) => {
     await signedIn(page, "clear");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     await chest(page).fill("52,5");
     await chest(page).press("Enter");
     await saved(page, 2);
@@ -366,6 +383,7 @@ test.describe("the editor", () => {
 
     await saved(page, 3);
     await expect(chest(page)).toHaveValue("51");
+    await openTool(page, "History");
     // Both quick edits are one entry in the history, named by the last of them.
     await expect(page.getByText("2 changes in a row. The last: Your value for Chest width was removed.")).toBeVisible();
   });
@@ -373,6 +391,7 @@ test.describe("the editor", () => {
   test("saves nothing when the text means the value that is already held", async ({ page }) => {
     await signedIn(page, "same-value");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     await chest(page).fill("52.5");
     await chest(page).press("Enter");
     await saved(page, 2);
@@ -388,6 +407,7 @@ test.describe("the editor", () => {
   test("marks a mistake found when the person leaves the field, without taking focus", async ({ page }) => {
     await signedIn(page, "blur");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
 
     await chest(page).fill("wide");
     const other = page.getByLabel("Body length in centimetres");
@@ -401,6 +421,7 @@ test.describe("the editor", () => {
   test("warns before the page is left while text has not been saved", async ({ page }) => {
     await signedIn(page, "leave");
     await startDesign(page, "Crew neck tee");
+    await openTool(page, "Sizes");
     await chest(page).click();
     await page.keyboard.type("47");
     let warned = false;
@@ -412,6 +433,78 @@ test.describe("the editor", () => {
     await page.close({ runBeforeUnload: true });
 
     await expect.poll(() => warned).toBe(true);
+  });
+});
+
+test.describe("the one-screen workspace", () => {
+  test("moves between tools with the arrow keys, keeps the open tool in the address, and lets Tab reach the panel", async ({ page }) => {
+    await signedIn(page, "workspace-keys");
+    await startDesign(page, "Crew neck tee");
+    const tools = page.getByRole("tablist", { name: "Tools" });
+    await expect(tools.getByRole("tab")).toHaveText(["Garment", "Colours", "Sizes", "Fabric", "Logos", "Names", "Labels", "History"]);
+
+    await tools.getByRole("tab", { name: "Garment" }).focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(tools.getByRole("tab", { name: "Colours" })).toBeFocused();
+    await expect(tools.getByRole("tab", { name: "Colours" })).toHaveAttribute("aria-selected", "true");
+    await expect(page).toHaveURL(/\?tool=colours$/);
+    await page.keyboard.press("End");
+    await expect(tools.getByRole("tab", { name: "History" })).toBeFocused();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("ArrowUp");
+    await expect(tools.getByRole("tab", { name: "History" })).toHaveAttribute("aria-selected", "true");
+
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("tabpanel", { name: "History" })).toBeFocused();
+    await expect(page.getByRole("heading", { level: 2, name: "History" })).toBeVisible();
+    await expect(page.getByLabel("Chest width in centimetres")).toBeHidden();
+
+    // The whole workspace fits the screen: only the panels scroll.
+    const overflow = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    expect(overflow).toBeLessThanOrEqual(2);
+  });
+
+  test("opens the panel a link names, and collapses the assistant", async ({ page }) => {
+    await signedIn(page, "workspace-link");
+    const path = await startDesign(page, "Crew neck tee");
+
+    await page.goto(`${path}?tool=logos`);
+    await expect(page.getByRole("tab", { name: "Logos", exact: true })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByLabel("Logo or picture")).toBeVisible();
+    await page.goto(`${path}#share-heading`);
+    await expect(page).toHaveURL(/\?tool=share#share-heading$/);
+    await expect(page.getByRole("heading", { name: "Share with your committee" })).toBeVisible();
+
+    const assistant = page.getByRole("complementary", { name: "Design assistant" });
+    await expect(assistant.getByLabel("Describe a change")).toBeVisible();
+    await assistant.getByRole("button", { name: "Hide" }).click();
+    await expect(assistant).toBeHidden();
+    await page.getByRole("button", { name: "Show assistant" }).click();
+    await expect(assistant.getByLabel("Describe a change")).toBeVisible();
+  });
+
+  test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test("puts the drawing first, the tools in a bar along the bottom and the assistant in a sheet, with nothing off the side", async ({ page }) => {
+      await signedIn(page, "workspace-phone");
+      await startDesign(page, "Crew neck tee");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+
+      const bar = page.getByRole("navigation", { name: "Design tools" });
+      const box = await bar.boundingBox();
+      expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(844);
+      await bar.getByRole("tab", { name: "Sizes" }).click();
+      await expect(page.getByLabel("Chest width in centimetres")).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+
+      await bar.getByRole("button", { name: "Assistant" }).click();
+      const sheet = page.getByRole("dialog", { name: "Design assistant" });
+      await expect(sheet.getByLabel("Describe a change")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(sheet).toBeHidden();
+      await expect(bar.getByRole("button", { name: "Assistant" })).toBeFocused();
+    });
   });
 });
 

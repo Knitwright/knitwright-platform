@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicHeader } from "@/components/shell/PublicHeader";
+import { PAGE_WIDTH, pageFrame } from "@/components/shell/page-width";
 import { Notice } from "@/components/ui/Notice";
 import { LEGAL_DOCUMENTS, legalDocument } from "@/lib/legal/documents";
 import { DRAFT_NOTICE, type LegalBlock } from "@/lib/legal/model";
@@ -20,10 +21,10 @@ export async function generateMetadata({ params }: PageProps<"/legal/[document]"
 }
 
 function Block({ block }: Readonly<{ block: LegalBlock }>) {
-  if (block.kind === "p") return <p className="text-[15px] leading-relaxed text-ink-2">{block.text}</p>;
+  if (block.kind === "p") return <p className={`${PAGE_WIDTH.reading} text-[15px] leading-relaxed text-ink-2`}>{block.text}</p>;
   if (block.kind === "list") {
     return (
-      <ul className="flex list-disc flex-col gap-2 pl-5 text-[15px] leading-relaxed text-ink-2">
+      <ul className={`${PAGE_WIDTH.reading} flex list-disc flex-col gap-2 pl-5 text-[15px] leading-relaxed text-ink-2`}>
         {block.items.map((item) => (
           <li key={item}>{item}</li>
         ))}
@@ -65,7 +66,7 @@ export default async function LegalPage({ params }: PageProps<"/legal/[document]
 
   return (
     <>
-      <PublicHeader width="max-w-3xl">
+      <PublicHeader>
         <nav aria-label="Legal" className="flex flex-wrap gap-1 text-sm">
           {LEGAL_DOCUMENTS.map((other) => (
             <Link
@@ -79,8 +80,8 @@ export default async function LegalPage({ params }: PageProps<"/legal/[document]
           ))}
         </nav>
       </PublicHeader>
-      <main id="main" className="rise mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-10">
-        <header className="flex flex-col gap-3">
+      <main id="main" className={`rise ${pageFrame("content")} flex flex-col gap-8 py-10`}>
+        <header className={`${PAGE_WIDTH.reading} flex flex-col gap-3`}>
           <h1 className="text-3xl font-semibold tracking-tight text-ink">{doc.title}</h1>
           {doc.status === "draft" ? <Notice tone="warn">{DRAFT_NOTICE}</Notice> : null}
           <p className="text-sm text-muted">Last updated: {doc.updated}</p>

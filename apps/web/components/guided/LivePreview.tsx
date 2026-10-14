@@ -20,9 +20,11 @@ const UNITS: readonly { id: LengthUnit; label: string }[] = [
 export function LivePreview({ data, unit, onUnit, show3d = false }: Props) {
   const rows = previewRows(data.table, unit);
   return (
-    <div className="flex flex-col gap-6" data-testid="live-preview">
-      <FlatPreview flat={data.flat} show3d={show3d} />
-      <section aria-labelledby="preview-measurements" className="rounded-2xl border border-hairline bg-surface p-6">
+    <div className="flex flex-col gap-3" data-testid="live-preview">
+      <section aria-label="Drawing" className="glass dot-grid rounded-[2rem] p-4 sm:p-6">
+        <FlatPreview flat={data.flat} show3d={show3d} />
+      </section>
+      <section aria-labelledby="preview-measurements" className="glass rounded-3xl p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="preview-measurements" className="text-base font-semibold text-ink">
             {previewTitle(data.table)}

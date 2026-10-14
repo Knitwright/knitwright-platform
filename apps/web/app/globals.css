@@ -95,6 +95,65 @@ body {
   outline-offset: 3px;
 }
 
+/* ---------- Native form controls on the dark theme ---------- */
+
+@layer base {
+  /*
+   * The list a <select> opens is drawn by the browser, not the page. On Windows it takes the
+   * field's see-through glass as white and keeps the light text: white on white. An opaque
+   * dark background on each choice keeps it readable. ink on surface-solid is 15:1.
+   */
+  option,
+  optgroup {
+    background-color: var(--surface-solid);
+    color: var(--ink);
+  }
+  option:disabled {
+    color: var(--faint);
+  }
+
+  /*
+   * Autofill paints its own pale background, which the light text cannot be read on. An inset
+   * shadow covers that background and the text keeps the ink colour.
+   */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: var(--ink);
+    caret-color: var(--ink);
+    box-shadow: 0 0 0 1000px var(--surface-solid) inset;
+    transition: background-color 600000s 0s;
+  }
+
+  /* color-scheme: dark (above) already draws the calendar button of a date field light. */
+  ::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+
+  /*
+   * A browser draws a <legend> across its fieldset's top border, cutting a gap in it. Floated,
+   * it sits inside the box like any heading. The next element clears it.
+   */
+  legend {
+    float: left;
+    width: 100%;
+    padding: 0;
+  }
+  legend + * {
+    clear: both;
+  }
+  /*
+   * Clearing the float swallows the top margin of whatever follows the legend, so in a plain
+   * (block) fieldset the legend keeps the gap itself. In a flex or grid fieldset the legend is
+   * an ordinary item and the gap utilities space it. A margin utility on a legend still wins.
+   */
+  fieldset:not(.flex, .grid, .inline-flex, .inline-grid) > legend {
+    margin-bottom: 0.75rem;
+  }
+}
+
 /* ---------- Surfaces ---------- */
 
 /* A glass panel. The inset line is the glossy top edge. */
