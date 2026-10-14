@@ -126,7 +126,7 @@ describe("team orders", () => {
     expect(must(await alice.client.from("team_order_rows").select("name").eq("order_id", id))).toHaveLength(2);
     expect(must(await bob.client.from("team_order_rows").select("name").eq("order_id", id))).toHaveLength(0);
     expect(must(await bob.client.from("team_orders").select("id").eq("id", id))).toHaveLength(0);
-    expect(must(await anonClient().from("team_orders").select("id"))).toHaveLength(0);
+    expect((await anonClient().from("team_orders").select("id")).error).not.toBeNull();
     expect((await alice.client.from("team_orders").insert({ brand_id: aliceBrand, project_id: design, name: "x" })).error).not.toBeNull();
     expect((await alice.client.from("team_order_rows").update({ name: "X" }).eq("order_id", id)).error).not.toBeNull();
     expect((await alice.client.from("team_orders").delete().eq("id", id)).error).not.toBeNull();

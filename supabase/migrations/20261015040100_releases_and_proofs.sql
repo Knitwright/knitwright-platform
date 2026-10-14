@@ -430,3 +430,9 @@ as $$
 $$;
 
 revoke all on function private.files_of_project_alone(uuid, uuid) from public, anon, authenticated;
+
+-- Helpers only the functions above call. No browser role may run them.
+revoke all on function private.releases_limit() from public, anon, authenticated;
+revoke all on function private.member_release(uuid, uuid, uuid) from public, anon, authenticated;
+revoke all on function private.member_strike_off(uuid, uuid, uuid) from public, anon, authenticated;
+revoke all on function private.lock_decided_strike_off() from public, anon, authenticated;

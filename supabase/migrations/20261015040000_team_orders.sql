@@ -135,3 +135,6 @@ $$;
 
 revoke all on function public.save_team_order(uuid, uuid, uuid, uuid, text, jsonb) from public, anon, authenticated;
 grant execute on function public.save_team_order(uuid, uuid, uuid, uuid, text, jsonb) to service_role;
+
+revoke all on function private.team_orders_limit() from public, anon, authenticated;
+revoke all on function private.team_order_rows_limit() from public, anon, authenticated;
