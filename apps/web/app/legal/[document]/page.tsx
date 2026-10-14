@@ -6,9 +6,13 @@ import { Notice } from "@/components/ui/Notice";
 import { LEGAL_DOCUMENTS, legalDocument } from "@/lib/legal/documents";
 import { DRAFT_NOTICE, type LegalBlock } from "@/lib/legal/model";
 
-/** Only the documents that exist. Any other address is a page that does not exist. */
-export const dynamicParams = false;
-
+/**
+ * The documents are made when the app is built. Any other address is a page that does not exist:
+ * the page calls notFound() for it. `dynamicParams = false` is not used for that. With it, once a
+ * server action calls revalidatePath("/", "layout"), as renaming a brand does, Next.js no longer
+ * finds the built documents and answers 404 for every one of them, and its prefetches carry that
+ * 404 to the links that lead here (tests/architecture/static-params.test.ts).
+ */
 export const generateStaticParams = () => LEGAL_DOCUMENTS.map((doc) => ({ document: doc.slug }));
 
 export async function generateMetadata({ params }: PageProps<"/legal/[document]">): Promise<Metadata> {
