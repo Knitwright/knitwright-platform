@@ -33,6 +33,7 @@ export const VECTOR_NOTES = {
   gradient: "A gradient in this logo is printed as one flat colour, from the middle of the gradient.",
   image: "A picture inside this logo was left off. Upload the logo as a picture to keep it.",
   clip: "A clipped part of this logo is printed unclipped.",
+  overlap: "Overlapping parts of one shape in this logo run the same way, and are filled by parity here, so a gap may show where they cross. Compare the file with your logo.",
   opacity: "See-through parts of this logo are printed solid. Set the whole logo's opacity instead.",
 } as const;
 
@@ -127,11 +128,29 @@ function flatColour(walk: Walk, paint: { readonly type: string; readonly hex?: s
 
 const MIN_AREA_POINTS = 2;
 
+const areaOf = (points: readonly Point[]): number =>
+  points.reduce((sum, [x, y], at) => {
+    const [nx, ny] = points[(at + 1) % points.length] as Point;
+    return sum + (x * ny - nx * y) / 2;
+  }, 0);
+
+const boxOf = (points: readonly Point[]) => ({ x0: Math.min(...points.map((p) => p[0])), x1: Math.max(...points.map((p) => p[0])), y0: Math.min(...points.map((p) => p[1])), y1: Math.max(...points.map((p) => p[1])) });
+
+/**
+ * A path filled by the nonzero rule has its overlaps filled; these files fill by parity, which leaves a gap where two parts
+ * that run the same way cross. A hole runs the other way, so it is not this. Only a path with such a pair is flagged.
+ */
+function overlapsAlike(runs: readonly Run[]): boolean {
+  const parts = runs.map((run) => ({ sign: Math.sign(areaOf(run.points)), box: boxOf(run.points) }));
+  return parts.some((a, i) => parts.slice(i + 1).some((b) => a.sign === b.sign && a.box.x0 < b.box.x1 && b.box.x0 < a.box.x1 && a.box.y0 < b.box.y1 && b.box.y0 < a.box.y1));
+}
+
 function addPath(walk: Walk, node: PathNode, matrix: Matrix): void {
   if (node.clipId !== undefined) walk.notes.add(VECTOR_NOTES.clip);
   if (node.opacity < 1) walk.notes.add(VECTOR_NOTES.opacity);
   const own = node.transform ? then(matrix, node.transform) : matrix;
   const runs = runsOf(node.segments, own).filter((run) => run.points.length >= MIN_AREA_POINTS);
+  if (node.fillRule === "nonzero" && node.fill.type !== "none" && overlapsAlike(runs)) walk.notes.add(VECTOR_NOTES.overlap);
   const fill = flatColour(walk, node.fill);
   const stroke = flatColour(walk, node.stroke);
   if (fill && runs.length > 0) walk.shapes.push({ fill, stroke: null, closed: true, rings: runs.map((run) => run.points) });

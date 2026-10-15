@@ -92,6 +92,19 @@ describe("readVectorArt: the print copy of an uploaded vector", () => {
     expect(read?.art.shapes).toHaveLength(2);
   });
 
+  it("says when overlapping parts of one path run the same way, because they are filled by parity here and may show a gap where they cross", () => {
+    const square = (o: number, s: number) => [["M", o, o], ["L", o + s, o], ["L", o + s, o + s], ["L", o, o + s], ["Z"]];
+    const reverse = (o: number, s: number) => [["M", o, o], ["L", o, o + s], ["L", o + s, o + s], ["L", o + s, o], ["Z"]];
+    const overlapping = readVectorArt(text(model([path([...square(0, 20), ...square(10, 20)])])));
+    expect(overlapping?.notes).toContain(VECTOR_NOTES.overlap);
+    const apart = readVectorArt(text(model([path([...square(0, 10), ...square(30, 10)])])));
+    expect(apart?.notes).not.toContain(VECTOR_NOTES.overlap);
+    const hole = readVectorArt(text(model([path([...square(0, 40), ...reverse(10, 20)])])));
+    expect(hole?.notes).not.toContain(VECTOR_NOTES.overlap);
+    const evenOdd = readVectorArt(text(model([path([...square(0, 20), ...square(10, 20)], { fillRule: "evenodd" })])));
+    expect(evenOdd?.notes).not.toContain(VECTOR_NOTES.overlap);
+  });
+
   it("refuses a file that is not a vector model, one with nothing to draw, and one too big to keep", () => {
     expect(readVectorArt(text({}))).toBeNull();
     expect(readVectorArt(new TextEncoder().encode("not json"))).toBeNull();
