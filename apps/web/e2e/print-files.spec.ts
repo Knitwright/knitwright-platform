@@ -4,7 +4,7 @@ import { expect, type Page } from "@playwright/test";
 import { unzipSync } from "fflate";
 import { deriveStack, parseArtworkStack, writeStack } from "../lib/artwork-stack";
 import type { GarmentSpec } from "../lib/garment";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan W3: print files for any design, made from the pattern library's pattern and the design's own artwork. The
@@ -18,8 +18,9 @@ const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><path
 const admin = () =>
   createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", process.env.SUPABASE_SECRET_KEY ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
 
-async function startDesignWithPattern(page: Page, name: string): Promise<string> {
-  await signIn(page, await createAccount("print-files"));
+async function startDesignWithPattern(page: Page, name: string): Promise<{ projectId: string; email: string }> {
+  const email = await createAccount("print-files");
+  await signIn(page, email);
   await expect(page).toHaveURL(/\/studio$/);
   await page.goto("/studio/new");
   await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
@@ -38,7 +39,7 @@ async function startDesignWithPattern(page: Page, name: string): Promise<string>
   await expect(page.getByText(/Stored as version 1: 48\./)).toBeVisible();
   const projectId = designPath.split("/").pop() ?? "";
   expect(projectId).toMatch(/^[0-9a-f-]{36}$/);
-  return projectId;
+  return { projectId, email };
 }
 
 const zipOf = async (page: Page, projectId: string, query = ""): Promise<Record<string, Uint8Array>> => {
@@ -53,7 +54,7 @@ const textOf = (bytes: Uint8Array | undefined): string => new TextDecoder().deco
 
 test.describe("print files (W3)", () => {
   test("a design's print zip holds a PDF and an SVG for each piece, with a manifest, and says which pattern they come from", async ({ page }) => {
-    const projectId = await startDesignWithPattern(page, "Print zip test");
+    const { projectId } = await startDesignWithPattern(page, "Print zip test");
     const files = await zipOf(page, projectId);
     const names = Object.keys(files);
     expect(names).toContain("manifest.csv");
@@ -66,7 +67,7 @@ test.describe("print files (W3)", () => {
   });
 
   test("the same zip for a design with the user's own artwork carries that artwork, still as vector", async ({ page }) => {
-    const projectId = await startDesignWithPattern(page, "User art test");
+    const { projectId, email } = await startDesignWithPattern(page, "User art test");
     const plain = await zipOf(page, projectId);
     const uploaded = await page.request.post("/api/artwork", { multipart: { file: { name: "club-logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from(LOGO) }, rights: "yes" } });
     expect(uploaded.ok()).toBe(true);
@@ -86,7 +87,16 @@ test.describe("print files (W3)", () => {
     };
     const parsed = parseArtworkStack({ ...base, layers: [...base.layers, logo] });
     if (!parsed.ok) throw new Error(parsed.reason);
-    const saved = await db.from("spec_versions").update({ spec: writeStack(spec, parsed.stack, 1) }).eq("project_id", projectId).eq("version", 1);
+    const next = writeStack(spec, parsed.stack, 2);
+    const saved = await db.rpc("append_spec_version", {
+      p_project_id: projectId,
+      p_user_id: await userIdOf(email),
+      p_expected_version: 1,
+      p_spec: next,
+      p_schema_version: next.schemaVersion,
+      p_note: "Put the club logo on the front",
+      p_restored_from: null,
+    });
     expect(saved.error).toBeNull();
 
     const withArt = await zipOf(page, projectId);
