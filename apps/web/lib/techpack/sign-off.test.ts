@@ -18,9 +18,9 @@ describe("the sign-off with records", () => {
   });
 
   it("records the strike-off with who accepted it and when", () => {
-    const section = buildSignOff([], { name: "Sam Lee", date: "9 Oct 2026", dateIso: "2026-10-09", result: "Shrink 2.0 % and colour matched" });
+    const section = buildSignOff([], { releaseId: "R-1", name: "Sam Lee", date: "9 Oct 2026", dateIso: "2026-10-09", result: "Shrink 2.0 % and colour matched" });
     expect(section.strikeOff).toMatchObject({ acceptedBy: { value: "Sam Lee" }, date: { value: "9 Oct 2026" }, result: { value: "Shrink 2.0 % and colour matched" } });
     expect(section.statement).toBe("Signed by 0 of 4 roles. The strike-off was accepted by Sam Lee on 9 Oct 2026.");
-    expect(buildSignOff([], { name: "A", date: "d", dateIso: "i", result: null }).strikeOff.result).toEqual({ status: "to-be-confirmed" });
+    expect(buildSignOff([], { releaseId: "R-1", name: "A", date: "d", dateIso: "i", result: null }).strikeOff.result).toEqual({ status: "to-be-confirmed" });
   });
 });

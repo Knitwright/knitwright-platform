@@ -1,3 +1,4 @@
+import type { ArtworkStack } from "@/lib/artwork-stack";
 import { formatCm } from "@/lib/garment";
 import { DEFAULT_LABEL, type GradedPattern, type PatternPiece, type PrintProfile, type PrintRuleSet, type PrintZone } from "@/lib/production/contract";
 import { TBC, textCell, type Cell, type LengthCell, type LengthValue, type NumberValue } from "../cell";
@@ -6,24 +7,12 @@ import { SECTION_TITLES, type ColourwaysSection } from "../types";
 import type { ColourStandard, PrintFileReport, ProductionInput } from "./input";
 import { placementOf } from "./placement";
 import { buildRepeat } from "./repeat";
-import type {
-  ArtworkAndColourSection,
-  ColourStandardRow,
-  PlacementRow,
-  PrintParameterRow,
-  PrintRuleRow,
-  ZoneRow,
-} from "./types";
+import { coloursOfStack } from "./stack-colours";
+import { stackParts } from "./stack-section";
+import type { ArtworkAndColourSection, ColourStandardRow, PlacementRow, PrintParameterRow, PrintRuleRow, ZoneRow } from "./types";
+import { ZONE_LABELS } from "./zone-labels";
 
-export const ZONE_LABELS: Readonly<Record<PrintZone["purpose"], string>> = {
-  crest: "Crest",
-  sponsor: "Sponsor",
-  "front-number": "Front number",
-  "back-name": "Back name",
-  "back-number": "Back number",
-  "sleeve-badge": "Sleeve badge",
-  "sleeve-band": "Sleeve band",
-};
+export { ZONE_LABELS };
 
 export const NO_LEAGUE_RULES = "No league rules set: check with the competition.";
 const NO_AVOID_COLOURS = "The print house has listed no colours to avoid. The list is empty.";
@@ -57,12 +46,24 @@ export function coloursFromColourways(colourways: ColourwaysSection): ColourStan
   }));
 }
 
+const otherCodesOf = (colour: ColourStandard): string => {
+  const codes = colour.typedCodes ?? [];
+  return codes.length === 0 ? "None typed" : `${codes.map((code) => `${code.system} ${code.value}`).join(", ")} (as typed)`;
+};
+
+/** The colours to list: the ones that were given, else those of the stack, else those of the colourways. */
+export function coloursFor(input: Pick<ProductionInput, "colours" | "colourwayId">, stack: ArtworkStack | null, colourways: ColourwaysSection): readonly ColourStandard[] {
+  if (input.colours) return input.colours;
+  return stack === null ? coloursFromColourways(colourways) : coloursOfStack(stack, input.colourwayId);
+}
+
 const colourRow = (colour: ColourStandard): ColourStandardRow => ({
   id: colour.id,
   role: colour.role,
   name: textCell(colour.name, "user-edited"),
   factoryCode: colour.factoryCode === null ? TBC : textCell(colour.factoryCode, "user-edited"),
   screenColour: colour.screenColour === null ? TBC : textCell(colour.screenColour, "user-edited"),
+  otherCodes: otherCodesOf(colour),
 });
 
 function zoneRows(zones: readonly PrintZone[], pieces: ReadonlyMap<string, PatternPiece>): ZoneRow[] {
@@ -145,11 +146,13 @@ function parametersNote(files: readonly PrintFileReport[], profile: PrintProfile
  * every size measured from the pattern, the print rules, and the settings the print files were made
  * with. Where a number is missing it is to be confirmed, never guessed.
  */
-export function buildArtworkAndColour(input: ProductionInput, colourways: ColourwaysSection): ArtworkAndColourSection {
+export function buildArtworkAndColour(input: ProductionInput, colourways: ColourwaysSection, technique: string | null = null): ArtworkAndColourSection {
   const pieces = new Map<string, PatternPiece>(
     (input.pattern ? Object.values(input.pattern.piecesBySize).flat() : []).map((piece) => [piece.id, piece] as const),
   );
-  const standards = input.colours ?? coloursFromColourways(colourways);
+  const stack = input.stack ?? null;
+  const standards = coloursFor(input, stack, colourways);
+  const { parts, dotsRepeat } = stackParts(input, stack, technique);
   const colours = standards.map(colourRow);
   const missingCodes = colours.filter((colour) => colour.factoryCode.status !== "set").length;
   const zones = input.zones ?? [];
@@ -160,7 +163,8 @@ export function buildArtworkAndColour(input: ProductionInput, colourways: Colour
     note: missingCodes > 0 ? `${missingCodes} ${missingCodes === 1 ? "colour has" : "colours have"} no factory code yet.` : null,
     colours,
     colourNote: FACTORY_CODE_NOTE,
-    repeat: buildRepeat(input.repeat),
+    ...parts,
+    repeat: buildRepeat(input.repeat ?? dotsRepeat),
     zones: zoneRows(zones, pieces),
     placements: placementRows(zones, input.pattern),
     printRules: ruleRows(input.printRules, input.printProfile),
@@ -168,3 +172,4 @@ export function buildArtworkAndColour(input: ProductionInput, colourways: Colour
     printParametersNote: parametersNote(files, input.printProfile),
   };
 }
+

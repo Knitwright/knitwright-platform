@@ -1,14 +1,29 @@
 import type { ReadinessItem } from "@/lib/production/contract";
 import type { Cell, LengthValue, NumberValue } from "../cell";
 import type { SectionHead } from "../types";
+import type { ImageRow, LayerPlacementRow, LayerRow, PictureReadBlock, RepeatSpecRow } from "./types-art";
+
+export type { ImageRow, ImageStatus, LayerPlacementRow, LayerRow, PictureReadBlock, RepeatSpecRow } from "./types-art";
 
 /** The sections of tech pack v2 (plans/production-outputs.md, W5). Plain data like the rest of the document. */
 
 export type ReadinessActor = ReadinessItem["whoActs"];
 
+/** An open item that waits on the owner (plans/production-outputs.md, section 7): what is needed, and what is used until then. */
+export interface OwnerInputNote {
+  /** The ids of the open owner inputs, such as "P4". */
+  readonly codes: readonly string[];
+  readonly needed: string;
+  readonly until: string;
+  /** The whole note as one sentence a factory file prints. */
+  readonly sentence: string;
+}
+
 export interface ReadinessLine extends ReadinessItem {
   /** The actor in words, such as "Pattern technician". */
   readonly actorLabel: string;
+  /** Set when the item is open and waits on the owner, else null. */
+  readonly ownerInput: OwnerInputNote | null;
 }
 
 export interface ReadinessGroup {
@@ -93,6 +108,8 @@ export interface ColourStandardRow {
   readonly factoryCode: Cell;
   /** The colour drawn on screen. It is not a colour code. */
   readonly screenColour: Cell;
+  /** Other codes a person typed, such as a Pantone code, each with the system they named. "None typed" when there are none. */
+  readonly otherCodes: string;
 }
 
 export interface RepeatBlock {
@@ -139,10 +156,26 @@ export interface PrintRuleRow {
 }
 
 export interface ArtworkAndColourSection extends SectionHead {
+  /** Where the page was built from: the artwork stack of the design, or the older fields of a design that has none. */
+  readonly source: "stack" | "legacy";
+  /** The whole design in plain English, from the artwork stack. Null for a design with no stack. */
+  readonly description: string | null;
   readonly colours: readonly ColourStandardRow[];
   /** Says what a factory code and a screen colour are. */
   readonly colourNote: string;
+  /** Every layer with its kind, zone or anchor, clear space, technique and source. */
+  readonly layers: readonly LayerRow[];
+  /** Where each placed layer sits on every size, measured on the pattern. */
+  readonly layerPlacements: readonly LayerPlacementRow[];
+  readonly layerPlacementNote: string;
+  /** The repeat of every pattern and repeating picture, as words and as a record a machine can read. */
+  readonly repeatSpecs: readonly RepeatSpecRow[];
+  /** The dots' repeat sizes, when the design has dots. */
   readonly repeat: RepeatBlock | null;
+  readonly images: readonly ImageRow[];
+  readonly imagesNote: string;
+  /** The report of a design read from a picture, or null. */
+  readonly picture: PictureReadBlock | null;
   readonly zones: readonly ZoneRow[];
   readonly placements: readonly PlacementRow[];
   readonly printRules: readonly PrintRuleRow[];
