@@ -1,5 +1,5 @@
 import type { ArtworkStack } from "@/lib/artwork-stack";
-import type { FabricProfile, GradedPattern, PrintFileSpec, PrintProfile, RosterRow, TeamOrder } from "@/lib/production/contract";
+import type { FabricProfile, GradedPattern, PrintFileSpec, PrintProfile, RosterRow } from "@/lib/production/contract";
 import { instancesOf, type PieceInstance, type PieceRoles } from "../frames/instances";
 import { EXTENSIONS, fileStem } from "./names";
 import { scaleForPiece } from "./shrink";
@@ -21,7 +21,7 @@ export interface PlanInput {
   readonly formats: readonly Format[];
   readonly profile: PrintProfile;
   readonly shrink?: Pick<FabricProfile, "shrinkLengthPct" | "shrinkWidthPct">;
-  readonly roster?: TeamOrder | null;
+  readonly roster?: { readonly rows: readonly RosterRow[] } | null;
   /** The pattern size a roster row is cut from. Null when the row's size has no pattern size. */
   readonly sizeFor?: (row: RosterRow) => string | null;
   readonly roles?: PieceRoles;

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { getEnv } from "@/lib/config/env";
+import { requireLibraryOpen } from "@/lib/print/inputs/access";
 import { printFileBuilder } from "@/lib/releases/builder";
 import { releaseBody } from "@/lib/releases/schemas";
 import { listReleases } from "@/lib/releases/service";
@@ -24,6 +26,9 @@ export const POST = defineRoute({
   rateLimit: LIMITS.releaseCreate,
   maxBodyBytes: 2_000_000,
   schema: { params, body: releaseBody },
-  handler: async ({ input, session }) =>
-    freezeRelease({ client: await sessionClient(), admin: adminClient() }, { brandId: session.brand.id, userId: session.userId }, input.params.projectId, input.body, printFileBuilder),
+  handler: async ({ input, session }) => {
+    requireLibraryOpen(getEnv(), session.email);
+    const clients = { client: await sessionClient(), admin: adminClient() };
+    return freezeRelease(clients, { brandId: session.brand.id, userId: session.userId }, input.params.projectId, input.body, printFileBuilder(clients, session.brand.id));
+  },
 });

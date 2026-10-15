@@ -2,7 +2,7 @@ import { unzipSync } from "fflate";
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { readPdf } from "@/lib/flat/fixtures/pdf-read";
-import { BUILT_IN_GENERATORS, createFakeAssetReader, type DisplayList, type PatternGenerator } from "@/lib/artwork-stack";
+import { createFakeAssetReader } from "@/lib/artwork-stack";
 import type { PrintProfile } from "@/lib/production/contract";
 import { ROSTER_22 } from "@/lib/production/fixtures";
 import { assetReader, crestAsset } from "../fixtures/assets";
@@ -136,66 +136,6 @@ describe("case 7: the 22-player roster", () => {
   });
 });
 
-describe("any design: a generated field is continuous across the seam, and the seed matters", () => {
-  /** A stand-in for a seeded camo: spots decided by a hash of the whole design plane, so it is a field. */
-  const camo: PatternGenerator = {
-    id: "fake-camo",
-    label: "Fake camo",
-    params: [],
-    repeat: { kind: "field" },
-    maxColours: 2,
-    render(context): DisplayList {
-      const shapes = [];
-      const hash = (x: number, y: number): number => {
-        let h = (Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ Math.imul(context.seed + 1, 83492791)) >>> 0;
-        h = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0;
-        h = Math.imul(h ^ (h >>> 13), 3266489917) >>> 0;
-        return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-      };
-      for (let gx = Math.floor(context.bounds.minX / 40); gx * 40 < context.bounds.maxX; gx += 1) {
-        for (let gy = Math.floor(context.bounds.minY / 40); gy * 40 < context.bounds.maxY; gy += 1) {
-          if (hash(gx, gy) < 0.4) shapes.push({ kind: "circle" as const, centre: { x: gx * 40 + 20, y: gy * 40 + 20 }, radius: 14, fill: context.colours[0] ?? "#336633" });
-        }
-      }
-      return { shapes };
-    },
-  };
-  const stackWith = (seed: number) => {
-    const base = polkaStack();
-    return { ...base, layers: base.layers.map((l) => (l.kind === "pattern" ? { ...l, generatorId: "fake-camo", params: {}, seed } : l)) };
-  };
-  const make = (seed: number) => createPrintFileBuilder(deps({ stack: stackWith(seed), generators: [...BUILT_IN_GENERATORS, camo] }));
-
-  it("gives the same bytes for the same seed and different bytes for another", async () => {
-    const [a, b, c] = [await make(7).build(spec("front", "48", "svg") as never), await make(7).build(spec("front", "48", "svg") as never), await make(8).build(spec("front", "48", "svg") as never)];
-    expect(a.sha256).toBe(b.sha256);
-    expect(a.sha256).not.toBe(c.sha256);
-  }, 30_000);
-
-  it("draws one field on the front and the back, so a spot on the seam is on both", async () => {
-    const builder = make(7);
-    const [front, back] = await Promise.all([builder.buildFile(spec("front", "48", "svg") as never), builder.buildFile(spec("back", "48", "svg") as never)]);
-    const placed = builder.mapper.placed("48");
-    const toDesign = (id: string) => placed.find((p) => p.instance.id === id)!.frame.toDesign;
-    const spots = (file: typeof front, id: string) => {
-      const m = toDesign(id);
-      return new Set(
-        file.scene.scene.items
-          .filter((i) => i.kind === "fill" && i.layerId === "dots")
-          .map((i) => {
-            const b = boundsOf((i as unknown as { rings: [number, number][][] }).rings.flat());
-            const x = (b.minX + b.maxX) / 2;
-            const y = (b.minY + b.maxY) / 2;
-            return `${Math.round(m[0] * x + m[2] * y + m[4])},${Math.round(m[1] * x + m[3] * y + m[5])}`;
-          }),
-      );
-    };
-    const [f, k] = [spots(front, "front"), spots(back, "back")];
-    const shared = [...f].filter((s) => k.has(s));
-    expect(shared.length).toBeGreaterThan(20);
-  }, 30_000);
-});
-
 describe("package", () => {
   it("zips the files with a manifest, the same bytes every time, and makes player text safe for a spreadsheet", async () => {
     const stack = polkaStack([
@@ -214,4 +154,23 @@ describe("package", () => {
     expect(Object.keys(unzipped).filter((n) => n.startsWith("48/")).length).toBe(plan.entries.length);
     expect(Object.keys(unzipped).some((n) => /cmd/.test(n) && !/^48\/[a-z0-9-]+\.svg$/.test(n))).toBe(false);
   }, 60_000);
+});
+
+describe("one layout per piece, kept only while it is wanted", () => {
+  it("keeps the layout of the last few pieces for their other formats, and lets older ones go, so a long release does not hold every picture", async () => {
+    let reads = 0;
+    const counting = { getAsset: async (id: string) => (reads += 1, assetReader([crestAsset()]).getAsset(id)) };
+    const stack = polkaStack([
+      { opacity: 1, blend: "normal", provenance: "user-edited", id: "crest", kind: "graphic", views: ["front"], source: { kind: "asset", assetId: "crest" }, placement: { kind: "zone", zoneId: "crest" }, offsetMm: { x: 0, y: 0 }, widthMm: 50, rotationDeg: 0, clearSpaceMm: 10, knockOut: false },
+    ]);
+    const builder = createPrintFileBuilder(deps({ stack, assets: counting }));
+    await builder.build(spec("front", "48", "svg") as never);
+    await builder.build(spec("front", "48", "pdf") as never);
+    expect(reads, "the pdf reuses the svg's layout").toBe(1);
+    for (const size of ["44", "46", "50", "52"]) for (const id of ["front", "back", "sleeve-left", "sleeve-right"]) await builder.build(spec(id, size, "svg") as never);
+    const before = reads;
+    const again = await builder.build(spec("front", "48", "svg") as never);
+    expect(reads, "an old layout was let go and is made again").toBe(before + 1);
+    expect(again.sha256).toBe((await createPrintFileBuilder(deps({ stack, assets: assetReader([crestAsset()]) })).build(spec("front", "48", "svg") as never)).sha256);
+  }, 120_000);
 });

@@ -1,10 +1,13 @@
-import { BUILT_IN_GENERATORS, createFakeAssetReader, type ArtworkStack, type AssetReader } from "@/lib/artwork-stack";
+import { createFakeAssetReader, type ArtworkStack, type AssetReader, type PatternGenerator } from "@/lib/artwork-stack";
+import { GENERATORS } from "@/lib/pattern-generators";
 import type { GradedPattern, PrintRuleSet, PrintZone, RosterRow } from "@/lib/production/contract";
 import { frameFor } from "../frames/frame";
 import { fieldBoundsFor } from "../layout/field";
+import { seamJoinFor } from "../layout/seam";
 import { buildPieceScene, type BuiltScene } from "../layout/build-scene";
 import { createPieceMapper, type PrintMapper } from "../layout/mapper";
 import type { PrintSettings } from "../layout/types";
+import type { Box } from "../scene";
 import { buildZones } from "../zones/build";
 import { JERSEY_ZONES } from "../zones/templates";
 import { gradedJersey } from "./graded";
@@ -26,7 +29,7 @@ export interface Rig {
   readonly pattern: GradedPattern;
   readonly mapper: PrintMapper;
   readonly zones: PrintZone[];
-  scene(stack: ArtworkStack, size: string, view: string, extra?: Partial<{ settings: PrintSettings; rules: PrintRuleSet; assets: AssetReader; player: RosterRow | null; transferOnly: boolean }>): Promise<BuiltScene>;
+  scene(stack: ArtworkStack, size: string, view: string, extra?: Partial<{ settings: PrintSettings; rules: PrintRuleSet; assets: AssetReader; player: RosterRow | null; transferOnly: boolean; field: Box; generators: readonly PatternGenerator[] }>): Promise<BuiltScene>;
 }
 
 /** A pattern, its mapper and zones, and a way to lay out one piece. For tests. */
@@ -48,10 +51,11 @@ export function rig(sizes?: readonly string[]): Rig {
         frame: frameFor(placed.instance, mapper.anchors),
         anchors: (mapper.anchors[placed.instance.view] ?? {}) as never,
         zones,
-        field: fieldBoundsFor(mapper.placed(size), mapper.anchors.front?.underarm?.y ?? 0),
+        field: extra.field ?? fieldBoundsFor(mapper.placed(size), mapper.anchors.front?.underarm?.y ?? 0),
+        ...(seamJoinFor(mapper.placed(size)) === undefined ? {} : { seamJoinMm: seamJoinFor(mapper.placed(size)) }),
         settings: extra.settings ?? SETTINGS,
         rules: extra.rules ?? NO_RULES,
-        generators: BUILT_IN_GENERATORS,
+        generators: extra.generators ?? GENERATORS,
         assets: extra.assets ?? createFakeAssetReader([]),
         player: extra.player ?? null,
         ...(extra.transferOnly ? { transferOnly: true } : {}),

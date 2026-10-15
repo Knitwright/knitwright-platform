@@ -20,6 +20,8 @@ export interface PrintSettings {
   /** Said in the margin when bleed, dpi or avoid list are Knitwright's own defaults. */
   readonly defaultsNote: string | null;
   readonly patternReviewed: boolean;
+  /** Said in the margin about the pattern: which one, and who reviewed it. Without it the margin says only whether it was reviewed. */
+  readonly patternNote?: string | null;
 }
 
 export interface LayoutInput {
@@ -31,6 +33,8 @@ export interface LayoutInput {
   readonly zones: readonly PrintZone[];
   /** The design-space box every piece's pattern is drawn over (see `fieldBoundsFor`). */
   readonly field: Box;
+  /** Where the back's field is read by, so it meets the front's at the side seam (see `seamJoinFor`). Undefined: drawn as it is. */
+  readonly seamJoinMm?: number;
   readonly settings: PrintSettings;
   readonly rules: PrintRuleSet;
   readonly generators: readonly PatternGenerator[];

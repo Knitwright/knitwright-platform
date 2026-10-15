@@ -9,6 +9,9 @@ import { preparePicture, PICTURE_REFUSED } from "../pictures";
 import type { Built, LayerResult, LayerSpace } from "../types";
 import { readVectorArt, VECTOR_REFUSED, type VectorArt } from "../vector-art";
 
+/** A logo added before full size copies were kept has only a screen copy, which never goes to print. */
+export const OLD_LOGO = "This logo was added before full size copies were kept, so it was left off. Upload it again to print it.";
+
 const stop = (text: string): LayerResult => ({ built: [], knock: [], colours: [], dpis: [], issues: [{ severity: "stop", text }] });
 
 /** The sentence for a picture that is too small to print well, with the largest size it would still print at. */
@@ -54,7 +57,7 @@ export async function graphicLayer(layer: GraphicLayer, space: LayerSpace): Prom
   const { placed } = where;
   const assetId = layer.source.kind === "asset" ? layer.source.assetId : layer.source.fileId;
   const asset = await input.assets.getAsset(assetId);
-  if (!asset) return stop(`The artwork for "${layer.name ?? layer.id}" is not available, so it was left off.`);
+  if (!asset) return stop(layer.source.kind === "file" ? OLD_LOGO : `The artwork for "${layer.name ?? layer.id}" is not available, so it was left off.`);
   const bytes = await asset.readPrintCopy();
   const widthMm = layer.widthMm;
   let heightMm = layer.heightMm ?? (widthMm * asset.heightPx) / asset.widthPx;
@@ -63,15 +66,17 @@ export async function graphicLayer(layer: GraphicLayer, space: LayerSpace): Prom
   let colours: string[] = [];
   const dpis: number[] = [];
   if (asset.kind === "vector") {
-    const art = readVectorArt(bytes);
-    if (!art) return stop(VECTOR_REFUSED);
+    const read = readVectorArt(bytes);
+    if (!read) return stop(VECTOR_REFUSED);
+    const { art } = read;
     heightMm = layer.heightMm ?? (widthMm * art.height) / art.width;
     const sx = widthMm / art.width;
     const matrix = placeMatrix(space, placed.centre, layer.offsetMm, sx, heightMm / art.height, art.width, art.height, layer.rotationDeg);
     const made = vectorItems(layer, art, matrix, sx);
     built = made.items.map((item): Built => ({ item, kind: "graphic" }));
     colours = made.colours;
-    issues = art.shapes.flatMap((shape) => (shape.stroke ? [lineIssue(shape.stroke.widthMm * sx, input.rules, layer.name ?? layer.id)] : [])).filter((i): i is PrintIssue => i !== null);
+    issues = read.notes.map((text): PrintIssue => ({ severity: "note", text }));
+    issues = issues.concat(art.shapes.flatMap((shape) => (shape.stroke ? [lineIssue(shape.stroke.widthMm * sx, input.rules, layer.name ?? layer.id)] : [])).filter((i): i is PrintIssue => i !== null));
   } else {
     const picture = await preparePicture(bytes, widthMm, input.settings.dpi);
     if (!picture) return stop(PICTURE_REFUSED);

@@ -1,9 +1,11 @@
 import { createHash } from "node:crypto";
-import { BUILT_IN_GENERATORS, type ArtworkStack, type AssetReader, type PatternGenerator } from "@/lib/artwork-stack";
-import type { GradedPattern, PrintFileBuilder, PrintFileResult, PrintFileSpec, PrintRuleSet, RosterRow, TeamOrder } from "@/lib/production/contract";
+import type { ArtworkStack, AssetReader, PatternGenerator } from "@/lib/artwork-stack";
+import { GENERATORS } from "@/lib/pattern-generators";
+import type { GradedPattern, PrintFileBuilder, PrintFileResult, PrintFileSpec, PrintRuleSet, RosterRow } from "@/lib/production/contract";
 import { frameFor } from "../frames/frame";
 import { buildPieceScene, type BuiltScene } from "../layout/build-scene";
 import { fieldBoundsFor } from "../layout/field";
+import { seamJoinFor } from "../layout/seam";
 import { createPieceMapper, type PrintMapper } from "../layout/mapper";
 import type { PrintSettings } from "../layout/types";
 import { renderPdf, renderSvgAsync, renderTiff } from "../render";
@@ -17,12 +19,16 @@ export interface BuilderDeps {
   readonly colourwayId: string;
   readonly assets: AssetReader;
   readonly rules: PrintRuleSet;
-  readonly roster: TeamOrder | null;
+  /** The team list the player files are made from, or null. */
+  readonly roster: Roster | null;
   readonly garment: string;
   readonly minDpi: number;
   readonly scaleNote: string | null;
   readonly defaultsNote: string | null;
   readonly patternReviewed: boolean;
+  /** Which pattern and who reviewed it, said in every margin. */
+  readonly patternNote?: string;
+  /** Every pattern style the platform can draw (W7c). Tests may pass their own. */
   readonly generators?: readonly PatternGenerator[];
   readonly mapper?: PrintMapper;
   /** The print house's ICC profile bytes, when the brand has uploaded one. */
@@ -38,9 +44,21 @@ export interface FileOptions {
   readonly transferOnly?: boolean;
 }
 
+export /** The seam join as a layout field, left out when the pattern has no underarm landmark to join by. */
+const joinOf = (placed: Parameters<typeof seamJoinFor>[0]): { seamJoinMm?: number } => {
+  const join = seamJoinFor(placed);
+  return join === undefined ? {} : { seamJoinMm: join };
+};
+
+/** Layouts kept so the PDF, SVG and TIFF of one piece share one. Few, because a layout holds its pictures and a release asks for thousands of files. */
+const KEPT_SCENES = 8;
+
 export const sha256Of = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
-const rowFor = (roster: TeamOrder | null, number: string | undefined): RosterRow | null =>
+/** What the files need of a team order (W4): its rows. */
+export type Roster = { readonly rows: readonly RosterRow[] };
+
+const rowFor = (roster: Roster | null, number: string | undefined): RosterRow | null =>
   number === undefined ? null : (roster?.rows.find((row) => row.number === number) ?? null);
 
 /**
@@ -51,7 +69,7 @@ const rowFor = (roster: TeamOrder | null, number: string | undefined): RosterRow
 export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { buildFile(spec: PrintFileSpec, options?: FileOptions): Promise<BuiltFile>; readonly mapper: PrintMapper } {
   const mapper = deps.mapper ?? createPieceMapper(deps.pattern);
   const zones = buildZones(zoneTemplatesFor(deps.garment), deps.pattern, mapper.anchors);
-  const generators = deps.generators ?? BUILT_IN_GENERATORS;
+  const generators = deps.generators ?? GENERATORS;
   const scenes = new Map<string, Promise<BuiltScene>>();
 
   const sceneFor = (spec: PrintFileSpec, options: FileOptions): Promise<BuiltScene> => {
@@ -70,6 +88,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
       scaleNote: spec.scaleX === 1 && spec.scaleY === 1 ? deps.scaleNote : null,
       defaultsNote: deps.defaultsNote,
       patternReviewed: deps.patternReviewed,
+      patternNote: deps.patternNote ?? null,
     };
     const made = buildPieceScene({
       stack: deps.stack,
@@ -79,6 +98,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
       anchors: (mapper.anchors[mine.instance.view] ?? {}) as never,
       zones,
       field: fieldBoundsFor(placed, mapper.anchors.front?.underarm?.y ?? 0),
+      ...joinOf(placed),
       settings,
       rules: deps.rules,
       generators,
@@ -87,6 +107,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
       ...(options.transferOnly ? { transferOnly: true } : {}),
     });
     scenes.set(key, made);
+    for (const old of [...scenes.keys()].slice(0, Math.max(0, scenes.size - KEPT_SCENES))) scenes.delete(old);
     return made;
   };
 

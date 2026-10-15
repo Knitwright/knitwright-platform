@@ -16,14 +16,30 @@ export async function testCardPng(widthPx: number, heightPx: number): Promise<Ui
   return new Uint8Array(png);
 }
 
-/** A crest as vector shapes: a navy shield with a gold bar. */
+const path = (segments: unknown[], extra: Record<string, unknown>) => ({
+  kind: "path",
+  opacity: 1,
+  segments,
+  fill: { type: "none" },
+  fillRule: "nonzero",
+  stroke: { type: "none" },
+  strokeWidth: 0,
+  lineCap: "butt",
+  lineJoin: "miter",
+  miterLimit: 4,
+  ...extra,
+});
+
+/** A crest as W7b's vector model: a navy shield with a gold bar edged in white. 100 wide, 120 high. */
 export const CREST_JSON = JSON.stringify({
-  version: 1,
-  width: 100,
-  height: 120,
-  shapes: [
-    { fill: "#1b2a49", stroke: null, closed: true, rings: [[[0, 0], [100, 0], [100, 80], [50, 120], [0, 80]]] },
-    { fill: "#d4af37", stroke: { colour: "#ffffff", widthMm: 1 }, closed: true, rings: [[[10, 40], [90, 40], [90, 60], [10, 60]]] },
+  schemaVersion: 1,
+  viewBox: { x: 0, y: 0, width: 100, height: 120 },
+  statedSizeMm: null,
+  gradients: [],
+  clips: [],
+  nodes: [
+    path([["M", 0, 0], ["L", 100, 0], ["L", 100, 80], ["L", 50, 120], ["L", 0, 80], ["Z"]], { fill: { type: "colour", hex: "#1b2a49", opacity: 1 } }),
+    path([["M", 10, 40], ["L", 90, 40], ["L", 90, 60], ["L", 10, 60], ["Z"]], { fill: { type: "colour", hex: "#d4af37", opacity: 1 }, stroke: { type: "colour", hex: "#ffffff", opacity: 1 }, strokeWidth: 1 }),
   ],
 });
 

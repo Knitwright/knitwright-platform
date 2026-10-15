@@ -58,6 +58,9 @@ async function runLayer(layer: Layer, space: LayerSpace, under: string): Promise
   }
 }
 
+/** A layer at no opacity prints nothing (the picture reader keeps its alternatives that way), so it is not built and its artwork is not read. A knock-out cuts whatever its opacity. */
+const draws = (layer: Layer): boolean => layer.opacity > 0 || layer.blend === "knock-out";
+
 const isTransfer = (layer: Layer): boolean => layer.technique === "transfer" && layer.kind !== "ground" && layer.kind !== "pattern" && layer.kind !== "image-fill";
 
 /** A layer that blends as a knock-out draws nothing: its shapes are holes in what lies under it. */
@@ -93,7 +96,7 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
   const visible = applyAll(invert(matrix), bleed);
   const underarm = input.anchors.underarm ?? input.anchors["underarm-a"];
   const space: LayerSpace = { input, visible, visibleBox: boxOf(visible), toPiece: frame.toPiece, toDesign: frame.toDesign, chestY: underarm?.y ?? 0 };
-  const layers = stack.layers.filter((layer) => layer.views.includes(instance.view) && (!input.transferOnly || isTransfer(layer)));
+  const layers = stack.layers.filter((layer) => layer.views.includes(instance.view) && draws(layer) && (!input.transferOnly || isTransfer(layer)));
   const rasterLayer = layers.find((layer) => blendNeedsRaster(layer.blend));
   let built: Built[] = [];
   let under = "#ffffff";
@@ -130,7 +133,8 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
     defaultsNote: settings.defaultsNote,
     lowestDpi,
     patternReviewed: settings.patternReviewed,
-    readFromPicture: layers.some((layer) => layer.provenance === "read-from-image"),
+    patternNote: settings.patternNote ?? null,
+    readFromPicture: stack.layers.some((layer) => layer.provenance === "read-from-image"),
     rasterReason,
     issues: all,
     playerNote: input.player || !layers.some((l) => l.kind === "player-mark") ? null : "Names and numbers are in the player files.",
