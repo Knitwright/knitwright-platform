@@ -1,6 +1,6 @@
 import type { BoundsMm, PointMm } from "@/lib/artwork-stack/units";
 import { mixHex } from "../colour";
-import { defineGenerator } from "../define";
+import { defineGenerator, withinBudget } from "../define";
 import { circle, polygon, rectangle } from "../geometry";
 import type { GeneratorParam } from "../params";
 
@@ -37,6 +37,7 @@ function band(datum: PointMm, angle: number, t0: number, t1: number, half: numbe
 /**
  * A fade from the datum: smooth or stepped along any angle, or round from the datum outwards. Two to four colours.
  * Drawn as many thin bands, so the print file stays vector; the colour at a point depends only on the point.
+ * At most 48 steps, so well inside the shape budget; `withinBudget` holds it there and says so if it ever were not.
  */
 export const gradient = defineGenerator({
   id: "gradient",
@@ -57,12 +58,12 @@ export const gradient = defineGenerator({
     if (values.mode === 1) {
       // Rings from the outside in. The outermost ring is the base, so it is not drawn twice.
       const rings = Array.from({ length: count - 1 }, (_, at) => count - 2 - at).map((k) => circle(datum, (values.length * (k + 1)) / count, colourOf(k), "Fade ring"));
-      return { shapes: [rectangle(x0, y0, x1, y1, colourOf(count - 1), "Fade base"), ...rings] };
+      return withinBudget([rectangle(x0, y0, x1, y1, colourOf(count - 1), "Fade base"), ...rings]);
     }
     const bands = Array.from({ length: count }, (_, k) => {
       const [from, to] = [k === 0 ? -reach : (values.length * k) / count, k === count - 1 ? reach + values.length : (values.length * (k + 1)) / count];
       return band(datum, values.angle, from, to, reach + values.length, colourOf(k));
     });
-    return { shapes: [rectangle(x0, y0, x1, y1, colourOf(0), "Fade base"), ...bands] };
+    return withinBudget([rectangle(x0, y0, x1, y1, colourOf(0), "Fade base"), ...bands]);
   },
 });

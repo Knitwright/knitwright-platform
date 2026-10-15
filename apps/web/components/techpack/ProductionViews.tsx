@@ -7,6 +7,7 @@ import type {
   PatternAndCuttingSection,
   ReadinessSection,
 } from "@/lib/techpack";
+import { ImagesView, LayersView, PictureReadView } from "./ArtworkStackViews";
 import { Cellular, CellText, DocSection, DocTable, LengthText, RowHead } from "./parts";
 
 /*
@@ -39,6 +40,11 @@ export function ReadinessView({ section }: Readonly<{ section: ReadinessSection 
                 <span>
                   {entry.sentence}
                   {entry.met ? null : <span className="ml-1 text-xs text-muted">{`Who acts: ${entry.actorLabel}.`}</span>}
+                  {entry.ownerInput ? (
+                    <span className="mt-0.5 block text-xs text-muted" data-testid="owner-input">
+                      {entry.ownerInput.sentence}
+                    </span>
+                  ) : null}
                 </span>
               </li>
             ))}
@@ -158,7 +164,7 @@ export function ArtworkAndColourView({ section }: Readonly<{ section: ArtworkAnd
   const repeat = section.repeat;
   return (
     <DocSection id={section.id} title={section.title} note={section.note}>
-      <DocTable caption="Colour standards" heads={["Colour", "Role", "Name", "Factory code", "Screen colour (screen only)"]}>
+      <DocTable caption="Colour standards" heads={["Colour", "Role", "Name", "Factory code", "Screen colour (screen only)", "Other codes, as typed"]}>
         {section.colours.map((row) => (
           <tr key={row.id}>
             <RowHead>{row.id}</RowHead>
@@ -177,10 +183,14 @@ export function ArtworkAndColourView({ section }: Readonly<{ section: ArtworkAnd
                 <CellText cell={row.screenColour} />
               </span>
             </Cellular>
+            <Cellular>{row.otherCodes}</Cellular>
           </tr>
         ))}
       </DocTable>
       <p className="text-sm text-muted">{section.colourNote}</p>
+      <LayersView section={section} />
+      <ImagesView section={section} />
+      <PictureReadView section={section} />
       {repeat ? (
         <>
           <h3 className="text-sm font-semibold text-ink">Repeat</h3>

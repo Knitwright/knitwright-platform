@@ -11,6 +11,7 @@ import {
   type RevisionInput,
   type TechPack,
 } from "@/lib/techpack";
+import type { ProductionInput } from "@/lib/techpack/production/input";
 import { formatDate, isoDay } from "./dates";
 import { madeBy, type MemberNames } from "./member-names";
 import type { OpenProject, VersionsPage } from "./service";
@@ -110,6 +111,8 @@ export interface TechPackPageInput {
   readonly colourwayId?: string;
   /** The names of the brand's members, for "Made by". Anyone else is "Not recorded". */
   readonly memberNames?: MemberNames;
+  /** What the production services know: pictures, print profile, release, strike-off and the reading a design came from. */
+  readonly production?: ProductionInput;
 }
 
 /** What the document is made from. The artwork's pictures are not: only the drawings show them. */
@@ -166,6 +169,7 @@ export function buildPackFor(input: PackInput, options: PackOptions = {}): TechP
     spec: project.spec,
     charts,
     flats,
+    ...(input.production === undefined ? {} : { production: input.production }),
   });
 }
 

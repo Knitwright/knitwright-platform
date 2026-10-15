@@ -4,8 +4,11 @@ import { SECTION_TITLES, type MeasurementsSection } from "../types";
 import type { CompletenessReport } from "../completeness";
 import type { ColourStandard, ProductionInput } from "./input";
 import { patternItems } from "./readiness-pattern";
+import { artworkItems } from "./readiness-art";
 import { printItems } from "./readiness-print";
-import type { OnPatternTable, ReadinessActor, ReadinessGroup, ReadinessLine, ReadinessSection } from "./types";
+import { withOwnerInput } from "./owner-inputs";
+import { strikeOffForRelease, strikeOffMismatch } from "./strike-off";
+import type { ArtworkAndColourSection, OnPatternTable, ReadinessActor, ReadinessGroup, ReadinessLine, ReadinessSection } from "./types";
 
 type Item = ReadinessItem;
 
@@ -39,6 +42,8 @@ export interface ReadinessContext {
   readonly colours: readonly ColourStandard[];
   /** True when the design has player names or numbers, so it needs a team order. */
   readonly needsRoster: boolean;
+  /** The artwork and colour page, for the resolution of placed pictures and a design read from a picture. */
+  readonly artwork?: Pick<ArtworkAndColourSection, "images" | "picture" | "layers" | "imagesNote">;
 }
 
 function specItems(ctx: ReadinessContext): Item[] {
@@ -116,14 +121,16 @@ function fabricItems(input: ProductionInput): Item[] {
 }
 
 function proofItems(input: ProductionInput): Item[] {
-  const strike = input.strikeOff ?? null;
+  const strike = strikeOffForRelease(input);
+  const mismatch = strikeOffMismatch(input);
+  const asked = "A named person accepts the strike-off for this release.";
   return [
     item(
       "proof-strike-off",
       "owner",
       strike !== null,
       `The strike-off was accepted by ${strike?.name ?? ""} on ${strike?.date ?? ""}.`,
-      "A named person accepts the strike-off for this release. No strike-off has been recorded.",
+      mismatch === null ? `${asked} No strike-off has been recorded.` : mismatch.includes("not for") ? `${mismatch} ${asked}` : `${asked} ${mismatch}`,
     ),
   ];
 }
@@ -177,7 +184,7 @@ function componentItems(completeness: ReadinessContext["completeness"]): Item[] 
   ];
 }
 
-const line = (entry: Item): ReadinessLine => ({ ...entry, actorLabel: ACTOR_LABELS[entry.whoActs] });
+const line = (entry: Item): ReadinessLine => withOwnerInput({ ...entry, actorLabel: ACTOR_LABELS[entry.whoActs] });
 
 const group = (id: string, title: string, items: readonly Item[]): ReadinessGroup => ({ id, title, items: items.map(line) });
 
@@ -194,7 +201,7 @@ export function buildReadiness(ctx: ReadinessContext): ReadinessSection {
     group("pattern", "Pattern", patternItems(ctx.input, ctx.orderedSizes)),
     group("spec", "Specification", specItems(ctx)),
     group("fabric", "Fabric", fabricItems(ctx.input)),
-    group("print", "Print", printItems(ctx.input, ctx.orderedSizes, ctx.colours)),
+    group("print", "Print", [...printItems(ctx.input, ctx.orderedSizes, ctx.colours), ...artworkItems(ctx.artwork, ctx.artwork?.imagesNote ?? "")]),
     group("proof", "Proof", proofItems(ctx.input)),
     group("order", "Order", orderItems(ctx)),
     group("release", "Release", releaseItems(ctx.input)),

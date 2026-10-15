@@ -12,8 +12,10 @@ import {
   type NamesAndNumbers,
   type PlayerMarkPlacement,
 } from "@/lib/garment";
+import type { ArtworkStack } from "@/lib/artwork-stack";
 import { TBC, numberCell, textCell, type LengthCell, type LengthValue } from "./cell";
 import { panelLabelOf } from "./labels";
+import { stackItems } from "./stack-items";
 import type { ArtworkItem, ArtworkSection, PlayerMarkItem } from "./types";
 import { SECTION_TITLES } from "./types";
 
@@ -108,12 +110,17 @@ function markOf(spec: GarmentSpec, marks: NamesAndNumbers, entry: PlayerMarkPlac
 
 /**
  * Each piece of artwork with where it sits, how big it is, how it is made and what it shows,
- * then each place for player names and numbers.
+ * then each place for player names and numbers. A design with an artwork stack is read from its
+ * stack; only a design with none falls back to the older fields.
  */
-export function buildArtwork(spec: GarmentSpec): ArtworkSection {
-  const items = [...kitPatternItems(spec), ...spec.artwork.map((art) => itemOf(spec, art))];
+export function buildArtwork(spec: GarmentSpec, stack: ArtworkStack | null = null): ArtworkSection {
   const marks = spec.namesAndNumbers;
-  const playerMarks = marks ? marks.places.map((entry) => markOf(spec, marks, entry)) : [];
+  const { items, playerMarks } = stack
+    ? stackItems(stack)
+    : {
+        items: [...kitPatternItems(spec), ...spec.artwork.map((art) => itemOf(spec, art))],
+        playerMarks: marks ? marks.places.map((entry) => markOf(spec, marks, entry)) : [],
+      };
   return {
     id: "artwork",
     title: SECTION_TITLES.artwork,

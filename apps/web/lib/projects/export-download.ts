@@ -79,6 +79,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     now: deps.now(),
     charts: source.charts,
     memberNames: source.memberNames,
+    ...(source.production === undefined ? {} : { production: source.production }),
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
   const view = query.view ?? null;
