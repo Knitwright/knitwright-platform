@@ -30,7 +30,7 @@ export const blockRow = (over: Row = {}): Row => ({
 export const sizeRows = (blockId = BLOCK_ID, sizes: readonly (typeof MEN_RUN)[number][] = MEN_RUN): Row[] =>
   sizes.map((size, position) => ({ size_label: size, position, pieces: syntheticPieces(size), measurements: [], skipped: [], checks: [], dxf_file_id: null, block_id: blockId, brand_id: BRAND }));
 
-/** Tables in memory with the calls the library makes: select, eq, order, limit, maybeSingle. For tests. */
+/** Tables in memory with the calls the library makes: select, eq, order, limit, range, maybeSingle. For tests. */
 export function libraryClient(tables: Readonly<Record<string, Row[]>>, objects: Readonly<Record<string, Uint8Array>> = {}): SupabaseClient {
   const from = (name: string) => {
     let filters: ((row: Row) => boolean)[] = [];
@@ -42,6 +42,7 @@ export function libraryClient(tables: Readonly<Record<string, Row[]>>, objects: 
       },
       order: () => api,
       limit: () => api,
+      range: (from: number, to: number) => ({ then: (resolve: (value: unknown) => unknown) => resolve({ data: (tables[name] ?? []).filter((row) => filters.every((f) => f(row))).slice(from, to + 1), error: null }) }),
       maybeSingle: async () => ({ data: (tables[name] ?? []).filter((row) => filters.every((f) => f(row)))[0] ?? null, error: null }),
       then: (resolve: (value: unknown) => unknown) => resolve({ data: (tables[name] ?? []).filter((row) => filters.every((f) => f(row))), error: null }),
     };
