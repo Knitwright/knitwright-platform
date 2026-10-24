@@ -11,7 +11,8 @@
     "test": "vitest run --project unit --project pdf",
     "test:db": "vitest run --project db",
     "test:cov": "vitest run --coverage",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "eval:intake": "tsx scripts/eval-intake.mts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",
