@@ -70,6 +70,8 @@ test.describe("the ops console, quality control to shipped", () => {
     await fill("1");
     await page.getByRole("button", { name: "Record inspection" }).click();
     await expect(page.getByText(/This inspection fails/)).toBeVisible();
+    // React resets the form after an action, so the checklist is answered again with the remake details.
+    await fill("1");
     await page.getByLabel("Remake pieces by size").fill("M 1");
     await page.getByLabel("Remake owner").fill("Sam");
     await page.getByLabel("Remake due date").fill("2099-01-01");
@@ -124,6 +126,7 @@ test.describe("the ops console, quality control to shipped", () => {
     await makePlatformAdmin(email);
     await readyOrder(email, `E2E-HOME-${Date.now()}`);
     await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/ops");
     await expect(page.getByText("Orders this week")).toBeVisible();
     await expect(page.getByText("Next cut-off")).toBeVisible();
