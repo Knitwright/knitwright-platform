@@ -38,9 +38,11 @@ export function FileTabs({ sections, initial, baseSearch, summary, panels }: Fil
   const [active, setActive] = useState<FileSectionId>(initial);
   const ids = [...sections.map((section) => section.id), "left" as const];
 
-  const show = useCallback((id: FileSectionId, mode: "push" | "replace") => {
+  const show = useCallback((id: FileSectionId, mode: "push" | "replace", hash = "") => {
     flushSync(() => setActive(id));
-    const address = `${window.location.pathname}${sectionSearch(window.location.search, id)}`;
+    // The place is written with the section: the router rewrites the address once it has caught up
+    // with this one, and an address with no place would drop the one the browser moves to next.
+    const address = `${window.location.pathname}${sectionSearch(window.location.search, id)}${hash}`;
     if (mode === "push") window.history.pushState(null, "", address);
     else window.history.replaceState(null, "", address);
   }, []);
@@ -67,7 +69,7 @@ export function FileTabs({ sections, initial, baseSearch, summary, panels }: Fil
       if (!hash?.startsWith("#") || hash.length < 2) return;
       const holder = sectionHolding(document.getElementById(hash.slice(1)));
       // The browser then moves to the place, and the form opener opens its form.
-      if (holder) show(holder, "replace");
+      if (holder) show(holder, "replace", hash);
     };
     // Capture, so the section is shown before the form opener looks for the form in it.
     document.addEventListener("click", onClick, true);
