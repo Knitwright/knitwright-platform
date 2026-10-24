@@ -28,6 +28,7 @@ test.describe("credits", () => {
 
   test("opening the page twice gives the month's credits once", async ({ page }) => {
     await signIn(page, await createAccount("credits-twice", { brand: "Credit Twice FC" }));
+    await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/credits");
     const first = await page.getByTestId("credit-balance-figure").innerText();
     await page.reload();
