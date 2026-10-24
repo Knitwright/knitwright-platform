@@ -45,6 +45,8 @@ export default defineConfig({
         // Join the design's reads to the checks and the version save; the end-to-end test of the Ideas panel covers them.
         "lib/variants/gate.ts",
         "lib/variants/service.ts",
+        // Joins the gate to the flag, the ledger and the log; the route tests and the end-to-end tests cover it.
+        "lib/credits-gate/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -60,7 +62,7 @@ export default defineConfig({
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
