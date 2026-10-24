@@ -820,6 +820,11 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
   },
 };
 
+/** Platform-owned tables every signed-in user may read and nobody but the server writes; tests/integration/templates.test.ts covers them. */
+const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privileges">>> = {
+  templates: { privileges: ["SELECT"] },
+};
+
 const BUCKETS = ["exports", "images", "uploads"] as const;
 
 /** Functions a browser may call, and who may call them. Everything else is refused. */
@@ -895,7 +900,7 @@ describe("what exists", () => {
 
   it("has a test below for every table, and no test for a table that is gone", () => {
     expect(report.tables.map((table) => table.name).sort()).toEqual(
-      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES)].sort(),
+      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES), ...Object.keys(LIBRARY_TABLES)].sort(),
     );
   });
 
@@ -903,7 +908,7 @@ describe("what exists", () => {
     for (const table of report.tables) {
       expect([table.name, table.client_privileges]).toEqual([
         table.name,
-        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name]).privileges].sort(),
+        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name] ?? LIBRARY_TABLES[table.name]).privileges].sort(),
       ]);
     }
   });
