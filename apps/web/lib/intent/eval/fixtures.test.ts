@@ -49,14 +49,13 @@ describe("the intake test set", () => {
     }
   });
 
-  it("keeps a pending-catalogue id only on cases that cannot be answered yet", () => {
-    const pending = cases.filter((c) => c.pending_catalogue !== undefined);
-    expect(pending.length).toBeGreaterThanOrEqual(10);
-    for (const c of pending) {
-      expect(c.category, c.id).toBe("pending");
-      expect(c.expected.kind, c.id).toBe("out-of-catalogue");
+  it("answers the football and cricket prompts with articles that exist now", () => {
+    const teamwear = cases.filter((c) => c.category === "teamwear");
+    expect(teamwear.length).toBeGreaterThanOrEqual(10);
+    for (const c of teamwear) {
+      expect(c.expected.kind, c.id).toBe("article");
+      expect(c.pending_catalogue, c.id).toBeUndefined();
     }
-    for (const c of cases.filter((x) => x.category === "pending")) expect(c.pending_catalogue, c.id).toBeDefined();
   });
 
   it("marks only articles the beta does not offer as outside the launch list", () => {
