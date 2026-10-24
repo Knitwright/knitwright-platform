@@ -55,7 +55,7 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
 
 /** The "Factory file" readiness list: what stands between this design and an order. */
 export function ValidationPanel() {
-  const { projectId } = useParams<{ projectId?: string }>();
+  const projectId = useParams<{ projectId?: string }>()?.projectId;
   return (
     <section aria-labelledby="validation-heading" className="flex flex-col gap-3" data-testid="validation-panel">
       <h3 id="validation-heading" className="text-[15px] font-medium text-ink">Factory file</h3>

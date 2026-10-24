@@ -26,4 +26,11 @@ describe("findings", () => {
     const bl = finding({ code: "z-z", severity: "blocker", message: "m", action: "x", whoActs: "owner" });
     expect(sortFindings([w, bl]).map((f) => f.code)).toEqual(["z-z", "a-a"]);
   });
+
+  it("breaks ties by article, then panel", () => {
+    const make = (article: string | null, panel: string | null) =>
+      finding({ code: "a-a", severity: "warning", message: "m", action: "x", whoActs: "owner", article, panel });
+    const sorted = sortFindings([make("b", null), make("a", "z"), make("a", "y"), make(null, null)]);
+    expect(sorted.map((f) => `${f.article ?? ""}/${f.panel ?? ""}`)).toEqual(["/", "a/y", "a/z", "b/"]);
+  });
 });
