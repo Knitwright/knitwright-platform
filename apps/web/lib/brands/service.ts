@@ -39,7 +39,7 @@ const brandFailureFrom = (error: DatabaseError): AppError => {
 };
 
 const membershipRow = z.object({
-  role: z.literal("owner"),
+  role: z.enum(["owner", "admin", "kit_manager", "viewer"]),
   brands: z.object({ id: z.uuid(), name: z.string() }),
 });
 

@@ -4,7 +4,8 @@ import { AppError, MESSAGES, toFailure, type Failure, type FieldErrors } from ".
 
 export type Session = Readonly<{ userId: string; email: string | null }>;
 
-export type BrandRole = "owner";
+/** The roles on a membership (decision 0042). The database enforces them; the app uses them to decide what to show. */
+export type BrandRole = "owner" | "admin" | "kit_manager" | "viewer";
 
 /** The brand a member is working in. Every design, file and image belongs to one. */
 export type Brand = Readonly<{ id: string; name: string; role: BrandRole }>;
