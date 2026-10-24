@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildSeedTemplates, type SeedTemplate } from "./build";
+import { allSeedTemplates } from "./all";
+import type { SeedTemplate } from "./build";
 
 /** The row the table stores for a starter template. */
 export const rowOf = (seed: SeedTemplate) => ({
@@ -20,7 +21,7 @@ export const rowOf = (seed: SeedTemplate) => ({
  * this again changes the rows it made and adds nothing. A row a platform admin reviewed is left as it is.
  */
 export async function seedTemplates(admin: SupabaseClient): Promise<number> {
-  const rows = buildSeedTemplates().map(rowOf);
+  const rows = allSeedTemplates().map(rowOf);
   const { data: reviewed, error: readError } = await admin.from("templates").select("slug").eq("review_state", "reviewed");
   if (readError) throw new Error(readError.message);
   const keep = new Set((reviewed ?? []).map((entry: { slug: string }) => entry.slug));
