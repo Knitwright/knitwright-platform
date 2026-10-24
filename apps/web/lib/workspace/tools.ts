@@ -5,7 +5,7 @@
  */
 
 /** The tools on the rail, one for each group of controls, in the order a design is usually made. */
-export const RAIL_TOOLS = ["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "history"] as const;
+export const RAIL_TOOLS = ["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "variants", "history"] as const;
 
 /** Panels opened from the header's actions and journey, not from the rail. */
 export const JOURNEY_TOOLS = ["share", "photoreal", "quote", "production"] as const;
@@ -28,6 +28,7 @@ export type SectionId =
   | "artwork"
   | "names-numbers"
   | "labelling"
+  | "variants"
   | "history"
   | "share"
   | "photoreal"
@@ -96,6 +97,13 @@ export const TOOLS: Readonly<Record<ToolId, ToolInfo>> = {
     title: "Labelling",
     lead: "Care, composition and origin labels, the fold and the bag.",
     sections: ["labelling"],
+  },
+  variants: {
+    id: "variants",
+    label: "Ideas",
+    title: "Ideas for this design",
+    lead: "Other colourways, kit styles and logo placements, drawn for you to try.",
+    sections: ["variants"],
   },
   history: {
     id: "history",
