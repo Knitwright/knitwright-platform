@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { allSeedTemplates } from "../lib/templates/seed/all";
 import { seedTemplates } from "../lib/templates/seed/seed";
 import { createAccount, signIn, test } from "./support";
 
@@ -50,10 +51,25 @@ test.describe("the template library", () => {
     await page.getByLabel("Sport").selectOption("cricket");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=cricket/);
-    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(allSeedTemplates().filter((seed) => seed.sport === "cricket").length);
 
     await page.goto("/templates?sport=running&colour=white");
     await expect(page.getByText("No template matches those filters.")).toBeVisible();
+  });
+
+  test("filters by football, uses a football starter and lands on version 1", async ({ page }) => {
+    await signedIn(page, "templates-football");
+    await page.goto("/templates");
+    await page.getByLabel("Sport").selectOption("football");
+    await page.getByLabel("Garment").selectOption("football-shirt");
+    await page.getByRole("button", { name: "Show templates" }).click();
+    await expect(page).toHaveURL(/sport=football/);
+    const items = page.getByRole("list", { name: "Templates" }).getByRole("listitem");
+    await expect(items).toHaveCount(3);
+    await expect(items.first().getByText("Knitwright starter, not reviewed by a factory")).toBeVisible();
+    await page.getByRole("button", { name: "Use this template: Red football shirt, white trim" }).click();
+    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page.getByTestId("version")).toHaveText("Version 1");
   });
 
   test("makes a copy as version 1 and opens it in the editor, leaving the template unchanged", async ({ page }) => {
