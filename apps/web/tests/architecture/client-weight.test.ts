@@ -25,6 +25,7 @@ const SECOND_PASS = [
   "components/home/",
   "components/guided/",
   "components/garment3d/",
+  "components/gltf/",
   "components/charts/ChartMappingForm.tsx",
 ];
 
