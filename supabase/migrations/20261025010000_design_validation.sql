@@ -93,6 +93,8 @@ begin
 end;
 $$;
 
+revoke all on function private.refuse_illegal_status_move() from public, anon, authenticated;
+
 create trigger design_statuses_legal_moves
   before update on public.design_statuses
   for each row execute function private.refuse_illegal_status_move();

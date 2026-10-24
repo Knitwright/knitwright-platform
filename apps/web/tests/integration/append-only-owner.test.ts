@@ -88,7 +88,7 @@ describe.skipIf(!dockerReachable)("the history, as seen by the owner of the tabl
   it("refuses to empty the table", async () => {
     const { id } = await setup();
 
-    const result = psql("begin; truncate public.spec_versions; rollback;");
+    const result = psql("begin; truncate public.spec_versions cascade; rollback;");
 
     expect(result.ok).toBe(false);
     expect(result.output).toMatch(REFUSED);

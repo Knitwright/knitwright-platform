@@ -134,6 +134,35 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { note: "Changed by a stranger." },
   },
+  // Validation gate, V1 (migration 20261025010000): a member reads the status of their brand's design
+  // versions; only set_design_status, run by the server, writes them.
+  design_statuses: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("set_design_status", {
+          p_project_id: projectId,
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_version: 1,
+          p_status: "validated",
+          p_profile_id: "knitwright-default",
+          p_findings_hash: "a".repeat(64),
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      project_id: randomUUID(),
+      brand_id: brandId,
+      version: 1,
+      status: "draft",
+      changed_by: userId,
+    }),
+    change: { status: "ordered" },
+  },
   export_downloads: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -820,6 +849,18 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
   },
 };
 
+/**
+ * Tables every signed-in member may read, whichever brand they belong to, and nobody may write
+ * from a browser: platform data the server alone changes.
+ */
+const SHARED_TABLES: Readonly<Record<string, Readonly<{ privileges: readonly string[]; attempt: Row; change: Row }>>> = {
+  factory_profiles: {
+    privileges: ["SELECT"],
+    attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
+    change: { name: "Changed by a member" },
+  },
+};
+
 const BUCKETS = ["exports", "images", "uploads"] as const;
 
 /** Functions a browser may call, and who may call them. Everything else is refused. */
@@ -895,7 +936,7 @@ describe("what exists", () => {
 
   it("has a test below for every table, and no test for a table that is gone", () => {
     expect(report.tables.map((table) => table.name).sort()).toEqual(
-      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES)].sort(),
+      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES), ...Object.keys(SHARED_TABLES)].sort(),
     );
   });
 
@@ -903,7 +944,7 @@ describe("what exists", () => {
     for (const table of report.tables) {
       expect([table.name, table.client_privileges]).toEqual([
         table.name,
-        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name]).privileges].sort(),
+        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name] ?? SHARED_TABLES[table.name]).privileges].sort(),
       ]);
     }
   });
@@ -1061,6 +1102,25 @@ describe.each(Object.entries(PLATFORM_TABLES))("platform table %s", (table, spec
 
     expect(error).not.toBeNull();
     expect(await rowAsServer(table, seeded)).toEqual(before);
+  });
+});
+
+describe.each(Object.entries(SHARED_TABLES))("shared table %s", (table, spec) => {
+  it("shows a member its rows, and a visitor who is not signed in nothing", async () => {
+    expect(must(await alice.client.from(table).select("*")).length).toBeGreaterThan(0);
+    const { data, error } = await anonClient().from(table).select("*");
+
+    expect(error !== null || data?.length === 0).toBe(true);
+  });
+
+  it("lets a member add, change or delete nothing", async () => {
+    const before = await rowsAsServer(table, {});
+    const { error } = await alice.client.from(table).insert(spec.attempt);
+    await alice.client.from(table).update(spec.change).neq("id", "");
+    await alice.client.from(table).delete().neq("id", "");
+
+    expect(error).not.toBeNull();
+    expect(await rowsAsServer(table, {})).toEqual(before);
   });
 });
 
