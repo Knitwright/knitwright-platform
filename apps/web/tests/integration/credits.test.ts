@@ -35,6 +35,12 @@ const balance = async (brand: string): Promise<number> =>
 const lines = async (brand: string) =>
   must(await adminClient().from("credit_ledger").select("*").eq("brand_id", brand).order("seq"));
 
+/** A person may belong to at most 3 brands, so each test that needs a brand gets its own owner. */
+const fresh = async (name: string) => {
+  const owner = await person(`credits-${randomUUID().slice(0, 8)}`);
+  return { owner, brand: await brandOf(owner, name) };
+};
+
 const hash = () => `h-${randomUUID()}`;
 
 beforeAll(async () => {
@@ -59,7 +65,7 @@ afterAll(async () => {
 
 describe("the monthly allowance", () => {
   it("is given once a month and again in the next month", async () => {
-    const brand = await brandOf(alice, "Allowance Brand");
+    const { brand } = await fresh("Allowance Brand");
     const args = { p_brand_id: brand, p_amount: 10 };
     expect(await rpc("credit_ensure_allowance", { ...args, p_month: "2026-10-01" })).toMatchObject({ applied: true, balance: 10 });
     expect(await rpc("credit_ensure_allowance", { ...args, p_month: "2026-10-01" })).toMatchObject({ applied: false, balance: 10 });
@@ -74,36 +80,36 @@ describe("the monthly allowance", () => {
 
 describe("credit_spend", () => {
   it("takes the price from credit_prices and records the line", async () => {
-    const brand = await brandOf(alice, "Spend Brand");
+    const { owner, brand } = await fresh("Spend Brand");
     await grant(brand, 10);
-    const answer = await spend(brand, alice, "techpack_pdf", hash());
+    const answer = await spend(brand, owner, "techpack_pdf", hash());
     expect(answer).toMatchObject({ ok: true, charged: true, price: 3, balance: 7 });
     expect(await balance(brand)).toBe(7);
   });
 
   it("charges the same output of the same version once, however many times it is asked", async () => {
-    const brand = await brandOf(alice, "Idempotent Brand");
+    const { owner, brand } = await fresh("Idempotent Brand");
     await grant(brand, 10);
     const h = hash();
-    const answers = await Promise.all(Array.from({ length: 8 }, () => spend(brand, alice, "pattern_file", h)));
+    const answers = await Promise.all(Array.from({ length: 8 }, () => spend(brand, owner, "pattern_file", h)));
     expect(answers.filter((a) => a.charged === true)).toHaveLength(1);
     expect(await balance(brand)).toBe(8);
   });
 
   it("charges another output, or another version, separately", async () => {
-    const brand = await brandOf(alice, "Separate Brand");
+    const { owner, brand } = await fresh("Separate Brand");
     await grant(brand, 10);
     const h = hash();
-    await spend(brand, alice, "pattern_file", h);
-    await spend(brand, alice, "marketing_media", h);
-    await spend(brand, alice, "pattern_file", hash());
+    await spend(brand, owner, "pattern_file", h);
+    await spend(brand, owner, "marketing_media", h);
+    await spend(brand, owner, "pattern_file", hash());
     expect(await balance(brand)).toBe(10 - 2 - 1 - 2);
   });
 
   it("refuses when the balance is short, and never lets it go below zero under parallel spends", async () => {
-    const brand = await brandOf(alice, "Short Brand");
+    const { owner, brand } = await fresh("Short Brand");
     await grant(brand, 5);
-    const answers = await Promise.all(Array.from({ length: 6 }, () => spend(brand, alice, "pattern_file", hash())));
+    const answers = await Promise.all(Array.from({ length: 6 }, () => spend(brand, owner, "pattern_file", hash())));
     expect(answers.filter((a) => a.ok === true)).toHaveLength(2);
     expect(answers.find((a) => a.ok === false)).toMatchObject({ reason: "insufficient" });
     expect(await balance(brand)).toBe(1);
@@ -126,13 +132,13 @@ describe("credit_spend", () => {
 
 describe("credit_refund_for_order", () => {
   it("gives back every spend on the version, only that version, and only once", async () => {
-    const brand = await brandOf(alice, "Refund Brand");
+    const { owner, brand } = await fresh("Refund Brand");
     await grant(brand, 20);
     const ordered = hash();
     const other = hash();
-    await spend(brand, alice, "techpack_pdf", ordered);
-    await spend(brand, alice, "pattern_file", ordered);
-    await spend(brand, alice, "techpack_pdf", other);
+    await spend(brand, owner, "techpack_pdf", ordered);
+    await spend(brand, owner, "pattern_file", ordered);
+    await spend(brand, owner, "techpack_pdf", other);
     expect(await balance(brand)).toBe(20 - 3 - 2 - 3);
 
     expect(await refundFor(brand, ordered)).toMatchObject({ refunded: 5 });
@@ -143,10 +149,10 @@ describe("credit_refund_for_order", () => {
   });
 
   it("is safe when two orders arrive together", async () => {
-    const brand = await brandOf(alice, "Race Refund Brand");
+    const { owner, brand } = await fresh("Race Refund Brand");
     await grant(brand, 10);
     const h = hash();
-    await spend(brand, alice, "pattern_file", h);
+    await spend(brand, owner, "pattern_file", h);
     await Promise.all([refundFor(brand, h), refundFor(brand, h), refundFor(brand, h)]);
     expect(await balance(brand)).toBe(10);
   });
@@ -165,7 +171,7 @@ describe("credit_refund_for_order", () => {
 
 describe("credit_expire", () => {
   it("takes away no more than the balance and only once per key", async () => {
-    const brand = await brandOf(alice, "Expire Brand");
+    const { brand } = await fresh("Expire Brand");
     await grant(brand, 4);
     expect(await rpc("credit_expire", { p_brand_id: brand, p_amount: 5, p_key: "e1", p_note: "" })).toMatchObject({ applied: false });
     expect(await rpc("credit_expire", { p_brand_id: brand, p_amount: 3, p_key: "e2", p_note: "" })).toMatchObject({ applied: true, balance: 1 });
@@ -175,11 +181,11 @@ describe("credit_expire", () => {
 
 describe("the balance is the sum of the lines", () => {
   it("holds after a mix of operations", async () => {
-    const brand = await brandOf(alice, "Sum Brand");
+    const { owner, brand } = await fresh("Sum Brand");
     await grant(brand, 12);
     const h = hash();
-    await spend(brand, alice, "techpack_pdf", h);
-    await spend(brand, alice, "pattern_file", hash());
+    await spend(brand, owner, "techpack_pdf", h);
+    await spend(brand, owner, "pattern_file", hash());
     await refundFor(brand, h);
     await rpc("credit_expire", { p_brand_id: brand, p_amount: 2, p_key: "x", p_note: "" });
     const rows = (await lines(brand)) as { amount: number }[];
@@ -189,20 +195,26 @@ describe("the balance is the sum of the lines", () => {
 
 describe("the tables", () => {
   it("cannot be written to by the server's own key, a member or a visitor, except through the functions", async () => {
-    const brand = await brandOf(alice, "Locked Brand");
+    const { owner, brand } = await fresh("Locked Brand");
     const row = { brand_id: brand, kind: "grant", amount: 5, idempotency_key: randomUUID() };
     expect((await adminClient().from("credit_ledger").insert(row)).error).not.toBeNull();
-    expect((await alice.client.from("credit_ledger").insert(row)).error).not.toBeNull();
+    expect((await owner.client.from("credit_ledger").insert(row)).error).not.toBeNull();
     expect((await anonClient().from("credit_ledger").insert(row)).error).not.toBeNull();
-    expect((await alice.client.from("credit_prices").update({ credits: 0 }).eq("output_kind", "pattern_file")).error).not.toBeNull();
+    expect((await owner.client.from("credit_prices").update({ credits: 0 }).eq("output_kind", "pattern_file")).error).not.toBeNull();
   });
 
   it("cannot have a line changed or removed", async () => {
-    const brand = await brandOf(alice, "Append Only Brand");
+    const { owner, brand } = await fresh("Append Only Brand");
     await grant(brand, 3);
     expect((await adminClient().from("credit_ledger").update({ amount: 99 }).eq("brand_id", brand)).error).not.toBeNull();
     expect((await adminClient().from("credit_ledger").delete().eq("brand_id", brand)).error).not.toBeNull();
+    // The server's key holds only SELECT, so the database answers "permission denied" before the
+    // append-only trigger is reached; either way the line stays as it was.
+    expect((await owner.client.from("credit_ledger").update({ amount: 99 }).eq("brand_id", brand)).error).not.toBeNull();
+    expect((await owner.client.from("credit_ledger").delete().eq("brand_id", brand)).error).not.toBeNull();
+    expect((await anonClient().from("credit_ledger").delete().eq("brand_id", brand)).error).not.toBeNull();
     expect(await balance(brand)).toBe(3);
+    expect(await lines(brand)).toHaveLength(1);
   });
 
   it("lets a member read their brand's lines and no one else's", async () => {
@@ -211,12 +223,13 @@ describe("the tables", () => {
     const own = must(await alice.client.from("credit_ledger").select("brand_id"));
     expect(own.length).toBeGreaterThan(0);
     expect(own.every((r: { brand_id: string }) => r.brand_id !== bobBrand)).toBe(true);
-    expect(must(await anonClient().from("credit_ledger").select("id"))).toEqual([]);
+    // Visitors hold no privilege on the table at all, so the database answers "permission denied".
+    expect((await anonClient().from("credit_ledger").select("id")).error).not.toBeNull();
   });
 
   it("lets signed-in users read the price list, and visitors not", async () => {
     expect(must(await alice.client.from("credit_prices").select("output_kind")).length).toBe(3);
-    expect(must(await anonClient().from("credit_prices").select("output_kind"))).toEqual([]);
+    expect((await anonClient().from("credit_prices").select("output_kind")).error).not.toBeNull();
   });
 
   it("refuses to set a price for an unknown output or a price that is not a whole number", async () => {
