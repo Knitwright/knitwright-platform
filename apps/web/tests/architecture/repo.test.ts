@@ -52,7 +52,8 @@ describe("the app's routes and actions", () => {
     expect(files.every((file) => !file.path.includes("node_modules"))).toBe(true);
   });
 
-  it("are all made with defineRoute or defineAction, and every public one is listed", () => {
+  // The check reads every source file's text; it grows with the repository and timed out at the 5 second default on a busy runner.
+  it("are all made with defineRoute or defineAction, and every public one is listed", { timeout: 30_000 }, () => {
     expect(checkWrappers(files, [...PUBLIC_ENTRY_POINTS], [...PUBLIC_PAGES])).toEqual([]);
   });
 
