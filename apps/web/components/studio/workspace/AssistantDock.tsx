@@ -3,6 +3,7 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { WorkspaceLayout } from "@/lib/workspace/layout";
+import { DiffPanel } from "../assistant/DiffPanel";
 import { ChatPanel } from "../ChatPanel";
 import type { AssistantInfo } from "../Editor";
 import { XL, useMedia } from "./useMedia";
@@ -73,6 +74,7 @@ export function AssistantDock({ projectId, version, busy, assistant, layout, abo
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain pr-1">
         {above}
         <ChatPanel projectId={projectId} version={version} available={assistant.available} busy={busy} conversation={assistant.conversation} />
+        <DiffPanel projectId={projectId} version={version} busy={busy} />
       </div>
     </aside>
   );

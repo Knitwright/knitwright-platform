@@ -57,7 +57,7 @@ export default defineConfig({
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "gltf"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "gltf"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
