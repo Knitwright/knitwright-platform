@@ -81,7 +81,7 @@ describe("file names", () => {
         expect(header.startsWith("attachment; filename=\"")).toBe(true);
         // Bytes that could be read as a second header parameter cannot appear outside the two quoted or encoded values.
         expect(["attachment; ", "attachment; ; "]).toContain(
-          header.replace(/filename="[^"]*"/, "").replace(/filename\*=UTF-8''[A-Za-z0-9%._~-]*/, ""),
+          header.replace(/filename="[^"]*"/, "").replace(/filename\*=UTF-8''[A-Za-z0-9%._~!-]*/, ""),
         );
       }),
       { numRuns: 300 },

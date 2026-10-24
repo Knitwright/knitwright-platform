@@ -696,6 +696,20 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", cut: "mens", quantity: 1 }),
     change: { name: "Changed by a stranger" },
   },
+  ops_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedOpsOrder(brandId, ownerId) }),
+    attempt: (brandId) => ({ release_id: randomUUID(), brand_id: brandId, project_id: randomUUID(), external_ref: "made-directly", factory_profile_id: "f", fabric_key: "f", article_id: "a", sizes: { M: 1 }, pieces: 1, release_snapshot: {}, cutoff_at: new Date().toISOString() }),
+    change: { status: "ready" },
+  },
+  ops_order_events: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ order_id: await seedOpsOrder(brandId, ownerId) }),
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, kind: "submitted", to_status: "submitted" }),
+    change: { note: "Changed by a stranger" },
+  },
   production_releases: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -752,6 +766,19 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ season_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", wearer_group: "mens" }),
     change: { name: "Changed by a stranger" },
   },
+  // Plan V6 (decision 0044): a brand's credits. A member reads the lines; only the server writes, through
+  // functions, and a line is never changed.
+  credit_ledger: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => {
+      const key = `seed:${randomUUID()}`;
+      must(await adminClient().rpc("credit_grant", { p_brand_id: brandId, p_amount: 1, p_key: key, p_note: "" }));
+      return { brand_id: brandId, idempotency_key: key };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, kind: "grant", amount: 5, idempotency_key: randomUUID() }),
+    change: { amount: 99 },
+  },
   club_invitations: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -798,6 +825,22 @@ const seedRelease = async (brandId: string, ownerId: string): Promise<{ releaseI
   return { releaseId: rows[0].id };
 };
 
+/** An order in production, submitted the way the Store submits one. Returns its id. */
+const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> => {
+  const { releaseId } = await seedRelease(brandId, ownerId);
+  const rows = must(
+    await adminClient().rpc("submit_order_for_production", {
+      p_release_id: releaseId,
+      p_external_ref: `isolation-${randomUUID()}`,
+      p_factory_profile_id: "f1",
+      p_fabric_key: "mesh",
+      p_article_id: "crew-tee",
+      p_sizes: { M: 1 },
+    }),
+  ) as { order_id: string }[];
+  return rows[0].order_id;
+};
+
 /** A share link made the way the server makes one, to a new design. */
 const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: string; token: string }> => {
   const projectId = await seedProject(brandId, ownerId);
@@ -827,6 +870,35 @@ const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
       p_schema_version: 1,
     }),
   );
+
+/**
+ * Tables that belong to the platform but that every signed-in person may read (and no visitor).
+ * Only the server writes them.
+ */
+type SharedTableSpec = Readonly<{
+  privileges: readonly string[];
+  /** A row that exists, by its key. */
+  row: Row;
+  attempt: Row;
+  change: Row;
+}>;
+
+const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
+  // Plan V6 (decision 0044): what an output costs in credits.
+  credit_prices: {
+    privileges: ["SELECT"],
+    row: { output_kind: "pattern_file" },
+    attempt: { output_kind: "invented", credits: 1 },
+    change: { credits: 0 },
+  },
+  // Plan V1 (decision 0039): the factory profile every design is checked against.
+  factory_profiles: {
+    privileges: ["SELECT"],
+    row: { id: "knitwright-default" },
+    attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
+    change: { name: "Changed by a member" },
+  },
+};
 
 /**
  * Tables no member may read at all, not even for their own brand: only platform admins, through
@@ -879,6 +951,29 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: () => ({ email: "intruder@example.com", name: "Intruder" }),
     change: { name: "Changed by a member" },
   },
+  ops_settings: {
+    privileges: ["SELECT"],
+    // The one seeded row. Only an ops function changes it.
+    seed: async () => ({ id: true }),
+    attempt: () => ({ id: false, cutoff_weekday: 1, cutoff_time: "09:00", label: "Made directly" }),
+    change: { label: "Changed by a member" },
+  },
+  batches: {
+    privileges: ["SELECT"],
+    // Cut by ops_cut_batches, as of a week after the order's cut-off.
+    seed: async (brandId) => {
+      const owner = must(await adminClient().from("memberships").select("user_id").eq("brand_id", brandId).limit(1).single()) as { user_id: string };
+      const ops = await person("batch-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+      const orderId = await seedOpsOrder(brandId, owner.user_id);
+      const order = must(await adminClient().from("ops_orders").select("cutoff_at").eq("id", orderId).single()) as { cutoff_at: string };
+      must(await adminClient().rpc("ops_cut_batches", { p_actor: ops.userId, p_now: new Date(Date.parse(order.cutoff_at) + 1000).toISOString() }));
+      const batch = must(await adminClient().from("ops_orders").select("batch_id").eq("id", orderId).single()) as { batch_id: string };
+      return { id: batch.batch_id };
+    },
+    attempt: () => ({ factory_profile_id: "f", fabric_key: "f", article_id: "a", cutoff_at: new Date().toISOString() }),
+    change: { article_id: "changed" },
+  },
   platform_admins: {
     privileges: [],
     seed: async () => {
@@ -893,16 +988,9 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
   },
 };
 
-/**
- * Tables every signed-in member may read, whichever brand they belong to, and nobody may write
- * from a browser: platform data the server alone changes.
- */
-const SHARED_TABLES: Readonly<Record<string, Readonly<{ privileges: readonly string[]; attempt: Row; change: Row }>>> = {
-  factory_profiles: {
-    privileges: ["SELECT"],
-    attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
-    change: { name: "Changed by a member" },
-  },
+/** Platform-owned tables every signed-in user may read and nobody but the server writes; tests/integration/templates.test.ts covers them. */
+const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privileges">>> = {
+  templates: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;
@@ -984,7 +1072,7 @@ describe("what exists", () => {
 
   it("has a test below for every table, and no test for a table that is gone", () => {
     expect(report.tables.map((table) => table.name).sort()).toEqual(
-      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES), ...Object.keys(SHARED_TABLES)].sort(),
+      [...Object.keys(TABLES), ...Object.keys(PLATFORM_TABLES), ...Object.keys(SHARED_TABLES), ...Object.keys(LIBRARY_TABLES)].sort(),
     );
   });
 
@@ -992,7 +1080,7 @@ describe("what exists", () => {
     for (const table of report.tables) {
       expect([table.name, table.client_privileges]).toEqual([
         table.name,
-        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name] ?? SHARED_TABLES[table.name]).privileges].sort(),
+        [...(TABLES[table.name] ?? PLATFORM_TABLES[table.name] ?? SHARED_TABLES[table.name] ?? LIBRARY_TABLES[table.name]).privileges].sort(),
       ]);
     }
   });
@@ -1154,21 +1242,24 @@ describe.each(Object.entries(PLATFORM_TABLES))("platform table %s", (table, spec
 });
 
 describe.each(Object.entries(SHARED_TABLES))("shared table %s", (table, spec) => {
-  it("shows a member its rows, and a visitor who is not signed in nothing", async () => {
-    expect(must(await alice.client.from(table).select("*")).length).toBeGreaterThan(0);
+  it("shows a signed-in member its rows", async () => {
+    expect(must(await alice.client.from(table).select("*").match(spec.row))).toHaveLength(1);
+  });
+
+  it("shows a visitor who is not signed in nothing", async () => {
     const { data, error } = await anonClient().from(table).select("*");
 
     expect(error !== null || data?.length === 0).toBe(true);
   });
 
   it("lets a member add, change or delete nothing", async () => {
-    const before = await rowsAsServer(table, {});
+    const before = await rowsAsServer(table, spec.row);
     const { error } = await alice.client.from(table).insert(spec.attempt);
-    await alice.client.from(table).update(spec.change).neq("id", "");
-    await alice.client.from(table).delete().neq("id", "");
+    await alice.client.from(table).update(spec.change).match(spec.row);
+    await alice.client.from(table).delete().match(spec.row);
 
     expect(error).not.toBeNull();
-    expect(await rowsAsServer(table, {})).toEqual(before);
+    expect(await rowsAsServer(table, spec.row)).toEqual(before);
   });
 });
 
