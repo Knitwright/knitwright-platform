@@ -40,6 +40,8 @@ export default defineConfig({
         "lib/server/define-route.ts",
         "lib/server/define-action.ts",
         "lib/**/actions.ts",
+        // Joins the tech pack reads to the checks; the end-to-end test of the factory file covers it.
+        "lib/validation/design-input.ts",
       ],
       thresholds: {
         lines: 80,
@@ -55,7 +57,7 @@ export default defineConfig({
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "validation"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

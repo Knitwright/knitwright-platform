@@ -6,8 +6,8 @@ import { ProductionPanel } from "./ProductionPanel";
 const html = renderToStaticMarkup(createElement(ProductionPanel));
 
 describe("the production panel", () => {
-  it("shows the four parts in the order a design is made", () => {
-    const order = ["patterns-heading", "fabrics-heading", "print-files-heading", "team-orders-heading"].map((id) => html.indexOf(id));
+  it("shows the readiness list and then the four parts in the order a design is made", () => {
+    const order = ["validation-heading", "patterns-heading", "fabrics-heading", "print-files-heading", "team-orders-heading"].map((id) => html.indexOf(id));
     expect(order.every((at) => at >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
   });
