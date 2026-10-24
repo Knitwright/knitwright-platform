@@ -21,6 +21,7 @@ const HEAVY = /from "(zod|three|read-excel-file|write-excel-file|@react-pdf\/ren
 
 const SECOND_PASS = [
   "components/studio/",
+  "components/panel-layers/",
   "components/techpack/",
   "components/home/",
   "components/guided/",
