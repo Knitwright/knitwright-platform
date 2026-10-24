@@ -14,15 +14,15 @@ const orderRow = (n: number, over: Record<string, unknown> = {}) => ({
 const batchRow = (n: number) => ({ id: ID(n), factory_profile_id: "f1", fabric_key: "mesh", article_id: "team-jersey", cutoff_at: "2026-10-23T17:00:00+00:00" });
 
 /** A query builder that answers every chain with the rows of its table. */
-const fake = (tables: Record<string, unknown[]>, error: { message: string; code?: string } | null = null) => {
-  const chain = (rows: unknown[]) => {
+const fake = (tables: Record<string, unknown[] | null>, error: { message: string; code?: string } | null = null) => {
+  const chain = (rows: unknown[] | null) => {
     const q: Record<string, unknown> = {};
     for (const m of ["select", "eq", "not", "is", "order", "limit"]) q[m] = () => q;
-    q.maybeSingle = async () => ({ data: rows[0] ?? null, error });
+    q.maybeSingle = async () => ({ data: rows?.[0] ?? null, error });
     q.then = (resolve: (v: unknown) => unknown) => resolve({ data: rows, error });
     return q;
   };
-  return { from: (table: string) => chain(tables[table] ?? []) } as never;
+  return { from: (table: string) => chain(table in tables ? tables[table]! : []) } as never;
 };
 
 describe("reads", () => {
@@ -59,6 +59,21 @@ describe("reads", () => {
 
   it("fails with the ops message when the database refuses", async () => {
     await expect(listWaitingOrders(fake({}, { message: "x", code: "P0002" }))).rejects.toMatchObject({ code: "not_found" });
+  });
+});
+
+describe("reads that come back with no rows at all", () => {
+  it("treat missing data as an empty list", async () => {
+    const empty = fake({ batches: null, ops_orders: null, ops_order_events: null });
+    expect(await listBatches(empty)).toEqual([]);
+    expect(await listWaitingOrders(empty)).toEqual([]);
+    expect(await movableBatches(empty, (await loadOrder(fake({ ops_orders: [orderRow(1)], ops_order_events: null }), ID(1))).order)).toEqual([]);
+    expect((await loadOrder(fake({ ops_orders: [orderRow(1)], ops_order_events: null }), ID(1))).events).toEqual([]);
+    expect((await loadBatch(fake({ batches: [batchRow(100)], ops_orders: null }), ID(100))).orders).toEqual([]);
+  });
+
+  it("count nothing when the database answers with something that is not a number", async () => {
+    expect(await cutBatches({ rpc: async () => ({ data: null, error: null }) } as never, "u1")).toBe(0);
   });
 });
 

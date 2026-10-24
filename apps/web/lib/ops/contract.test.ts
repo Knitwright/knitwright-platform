@@ -47,6 +47,11 @@ describe("submitOrderForProduction", () => {
     expect(out).toEqual({ orderId: result.order_id, status: "submitted", cutoffAt: "2026-10-23T17:00:00.000Z", promisedOn: null, leadTimeDays: null, created: true });
   });
 
+  it("reads an answer that is a single row rather than a list", async () => {
+    const client = { rpc: async () => ({ data: result, error: null }) };
+    expect((await submitOrderForProduction(client as never, valid)).created).toBe(true);
+  });
+
   it.each([
     ["release_not_found", "release_not_found"],
     ["external_ref_conflict", "external_ref_conflict"],

@@ -37,6 +37,11 @@ describe("printZip", () => {
     expect(manifest).toContain("not in the release");
   });
 
+  it("keeps the player number but no name when the order has no team list", async () => {
+    const manifest = strFromU8(unzipSync(await printZip([release("STORE-1001", { roster: null })]))["manifest.csv"]!);
+    expect(manifest).toContain("STORE-1001/print/back-M-player-10.pdf,back,M,10,,pdf");
+  });
+
   it("makes a folder name safe", async () => {
     const files = unzipSync(await printZip([release("../Evil Order/1")]));
     expect(Object.keys(files).some((p) => p.includes(".."))).toBe(false);

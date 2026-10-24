@@ -31,7 +31,7 @@ export async function printZip(releases: readonly ReleaseFiles[]): Promise<Uint8
       const file = await release.builder.build(spec);
       const frozen = release.frozen.get(path);
       const warnings = [...file.warnings, ...(frozen !== undefined && frozen !== file.sha256 ? ["differs from the release"] : []), ...(frozen === undefined ? ["not in the release"] : [])];
-      const player = spec.playerNumber === undefined ? null : (release.roster?.find((r) => r.number === spec.playerNumber) ?? null);
+      const player = spec.playerNumber === undefined ? null : (release.roster?.find((r) => r.number === spec.playerNumber) ?? { name: "", number: spec.playerNumber, sizeLabel: spec.size, cut: "unisex" as const, quantity: 1 });
       made.push({
         entry: { path: `${folder(release.orderRef)}/${path}`, spec, transferOnly: false, player },
         file: { bytes: file.bytes, sha256: file.sha256, pageWidthMm: file.pageWidthMm, pageHeightMm: file.pageHeightMm, warnings },
