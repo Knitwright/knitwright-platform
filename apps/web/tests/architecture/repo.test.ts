@@ -53,9 +53,9 @@ describe("the app's routes and actions", () => {
   });
 
   // The check reads every source file's text; it grows with the repository and timed out at the 5 second default on a busy runner.
-  it("are all made with defineRoute or defineAction, and every public one is listed", { timeout: 30_000 }, () => {
+  it("are all made with defineRoute or defineAction, and every public one is listed", () => {
     expect(checkWrappers(files, [...PUBLIC_ENTRY_POINTS], [...PUBLIC_PAGES])).toEqual([]);
-  });
+  }, 30_000);
 
   it("has no pages folder, whose API routes the wrappers do not cover", () => {
     expect(existsSync(join(APP_ROOT, "pages"))).toBe(false);
