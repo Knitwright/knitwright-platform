@@ -1,3 +1,4 @@
+import { BalanceChip } from "@/components/credits/BalanceChip";
 import { PageRise } from "@/components/shell/PageRise";
 import { StudioHeader } from "@/components/shell/StudioHeader";
 import { pageFrame } from "@/components/shell/page-width";
@@ -13,7 +14,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <>
-      <StudioHeader email={email} brandName={brand.name} />
+      <StudioHeader email={email} brandName={brand.name} credits={<BalanceChip brandId={brand.id} />} />
       <main id="main" className={`${pageFrame("content")} flex-1 py-10`}>
         <PageRise>{children}</PageRise>
       </main>
