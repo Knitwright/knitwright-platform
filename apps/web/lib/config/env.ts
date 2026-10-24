@@ -90,6 +90,13 @@ const envSchema = z.object({
     .string()
     .optional()
     .transform((value) => value === "true"),
+  // Credits are charged for the full tech pack PDF, pattern files, print files and photoreal
+  // images only when this is exactly "true" (decision 0051). Off: nothing is charged, and each
+  // output that would cost credits is written to the log. The owner switches it on once prices are set.
+  CREDITS_ENFORCED: z
+    .string()
+    .optional()
+    .transform((value) => value === "true"),
   // Read only to refuse Cloudflare's test keys where real people sign in.
   NODE_ENV: z.string().optional(),
   VERCEL_ENV: z.string().optional(),

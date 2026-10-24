@@ -5,6 +5,7 @@ import { PHOTOREAL_COST } from "@/lib/images/cost";
 import { createJob, imageRemover, imageSaver, jobStore } from "@/lib/images/service";
 import { startImageJob } from "@/lib/images/start";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
+import { withCredits, versionOf } from "@/lib/credits-gate/server";
 import { getProject } from "@/lib/projects/service";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, imageProvider, productionDeps, sessionClient } from "@/lib/server/deps";
@@ -30,7 +31,13 @@ export const POST = defineRoute({
     body: z.object({ colourway: z.string().max(64).optional() }),
   },
   cost: PHOTOREAL_COST,
-  handler: async ({ input, session, usage }) => {
+  handler: withCredits(
+    {
+      kind: "marketing_media",
+      version: ({ input, session }) => versionOf(session.brand.id, input.params.projectId),
+      where: "POST /api/projects/[projectId]/images",
+    },
+    async ({ input, session, usage }) => {
     if (!usage) throw new Error("A photoreal request must be paid for.");
     const admin = adminClient();
     const client = await sessionClient();
@@ -60,5 +67,6 @@ export const POST = defineRoute({
       },
       { eventId: usage.eventId, colourwayId: input.body.colourway },
     );
-  },
+    },
+  ),
 });

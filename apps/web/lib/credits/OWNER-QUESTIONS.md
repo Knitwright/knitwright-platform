@@ -19,3 +19,18 @@ page. None of them is a price.
    built here. Is there any other grant (a promotion, a partner)?
 7. **Gating order for wave 2.** Which export is gated first, and what does a brand with no credits see
    (a message, a way to ask for more)?
+
+## Added by wave 2, workstream W2-E (decision 0051)
+
+8. **Print files and pattern files share one price.** Built: the print-file zip and a pattern request both
+   spend `pattern_file`, so a version pays once for the two. Should print files have their own price (that
+   needs a new output kind and a migration)? Pattern-library DXF downloads belong to a block, not a design
+   version, and are not charged.
+9. **Photoreal images are charged once per version.** Built: making images for a saved version is charged
+   once; making them again for the same version is free of credits (the beta usage caps still apply).
+   Should every new set of images cost credits?
+10. **Charge before or after the file?** Built: charged before the work starts, and a retry of the same
+    version is free, so a failed attempt is never charged twice. Someone who never retries has paid for
+    nothing. Should a failure give the credits back?
+11. **Switching it on.** Set `CREDITS_ENFORCED=true` once the prices in `lib/credits/settings.ts` are real
+    and `syncCreditPrices` has been run. Until then it only logs what would have been spent.
