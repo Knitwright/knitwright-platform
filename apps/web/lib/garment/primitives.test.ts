@@ -7,8 +7,8 @@ describe("primitives", () => {
     expect(wearerSchema.safeParse("kids").success).toBe(false);
   });
 
-  it("knows the four garment families", () => {
-    expect(familySchema.options).toEqual(["tops", "bottoms", "outerwear", "close-fitting"]);
+  it("knows the garment families", () => {
+    expect(familySchema.options).toEqual(["tops", "bottoms", "outerwear", "close-fitting", "football", "cricket", "winter-code"]);
   });
 
   it("accepts kebab-case ids and rejects other shapes", () => {

@@ -5,7 +5,7 @@ import { PERSONAL_DATA_TABLES } from "./team-data";
 
 const MIGRATIONS = join(__dirname, "..", "..", "..", "..", "supabase", "migrations");
 const read = (name: string): string => readFileSync(join(MIGRATIONS, name), "utf8");
-const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}`;
+const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}`;
 
 /** The text of `create table public.<name> (...)` up to its closing line. */
 const tableBody = (name: string): string => {
@@ -17,7 +17,9 @@ const tableBody = (name: string): string => {
 describe("what holds people's names for production", () => {
   it.each(PERSONAL_DATA_TABLES.map((t) => t.table))("%s goes with its design or its order", (table) => {
     const body = tableBody(table);
-    expect(body).toMatch(/foreign key \((project_id|order_id), brand_id\) references public\.(projects|team_orders|production_releases) \(id, brand_id\)\s+on delete cascade/);
+    const viaDesignOrOrder = /foreign key \((project_id|order_id|season_id), brand_id\) references public\.(projects|team_orders|production_releases|club_seasons) \(id, brand_id\)\s+on delete cascade/;
+    const viaBrand = /brand_id uuid (not null )?(primary key )?references public\.brands \(id\) on delete cascade/;
+    expect(viaDesignOrOrder.test(body) || viaBrand.test(body)).toBe(true);
   });
 
   it("every one has row level security on and no write policy or write grant for browsers", () => {
@@ -34,6 +36,21 @@ describe("what holds people's names for production", () => {
 
   it("a team list can be erased on its own by the server, and nothing else here can", () => {
     expect(SQL).toContain("grant delete on public.team_orders to service_role;");
-    expect(PERSONAL_DATA_TABLES.filter((t) => t.erasableAlone).map((t) => t.table)).toEqual(["team_orders", "team_order_rows"]);
+    expect(PERSONAL_DATA_TABLES.filter((t) => t.erasableAlone).map((t) => t.table)).toEqual([
+      "team_orders", "team_order_rows", "roster_players", "club_seasons", "club_invitations",
+    ]);
+  });
+
+  it("a club's roster players, seasons and invitations are erased by functions the server alone may run", () => {
+    for (const fn of ["erase_roster_player", "delete_club_season", "cancel_invitation"]) {
+      expect(SQL).toMatch(new RegExp(`grant execute on function public\\.${fn}\\([^)]*\\) to service_role;`));
+      expect(SQL).not.toMatch(new RegExp(`grant execute on function public\\.${fn}\\([^)]*\\) to[^;]*authenticated`));
+    }
+  });
+
+  it("every table the club migration creates is listed here, so a new one cannot hold names unnoticed", () => {
+    const club = read("20261025040000_club_workspace.sql");
+    const created = [...club.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
+    expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
   });
 });
