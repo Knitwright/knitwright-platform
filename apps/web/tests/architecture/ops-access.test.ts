@@ -41,8 +41,9 @@ describe("the ops console is for platform admins only", () => {
   });
 
   it("asks the database whether the caller is a platform admin in every ops route and action", () => {
-    const entries = [...walk("app/api/ops"), "lib/ops/actions.ts"].filter((f) => /route\.ts$|actions\.ts$/.test(f));
-    expect(entries.length).toBeGreaterThanOrEqual(3);
+    const entries = [...walk("app/api/ops"), ...walk("lib/ops")].filter((f) => /route\.ts$|actions\.ts$/.test(f));
+    // Part 1's actions and its two download routes; part 2's four action files and the packing list route (decision 0050).
+    expect(entries.length).toBeGreaterThanOrEqual(8);
     for (const path of entries) {
       const text = read(path);
       const wrapped = [...text.matchAll(/define(?:Route|Action)\(/g)].length;
@@ -59,10 +60,11 @@ describe("the ops console is for platform admins only", () => {
     for (const path of files) expect(read(path), path).not.toMatch(/["'`]\/ops(\/|["'`?#])|\/api\/ops/);
   });
 
-  it("ships the PDF font with both download routes", () => {
+  it("ships the PDF font with every ops PDF and print download route", () => {
     const config = read("next.config.ts");
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/factory-sheet": ["./assets/fonts/**"]');
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/print-files": ["./assets/fonts/**"]');
+    expect(config).toContain('"/api/ops/orders/\\\\[orderId\\\\]/packing-list": ["./assets/fonts/**"]');
   });
 
   it("never reaches the public routes list or the public pages list", () => {

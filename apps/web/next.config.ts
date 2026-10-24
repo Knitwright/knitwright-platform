@@ -69,6 +69,8 @@ const nextConfig: NextConfig = {
     // The ops factory sheet (decision 0043) draws text in the same font, and the batch's print files outline names and numbers from it.
     "/api/ops/batches/\\[batchId\\]/factory-sheet": ["./assets/fonts/**"],
     "/api/ops/batches/\\[batchId\\]/print-files": ["./assets/fonts/**"],
+    // The ops packing list (decision 0050) draws text in the same font.
+    "/api/ops/orders/\\[orderId\\]/packing-list": ["./assets/fonts/**"],
     // Reading an uploaded PDF draws a page with pdfjs-dist and its native canvas package, which are loaded by name at
     // run time, so the host cannot see them in the code. Ship the canvas binaries and the PDF reader's own fonts.
     "/api/artwork": ["../../node_modules/.pnpm/@napi-rs+canvas{,-linux-x64-gnu}@*/node_modules/@napi-rs/canvas{,-linux-x64-gnu}/*.{js,cjs,mjs,json,node}", "./node_modules/pdfjs-dist/standard_fonts/**"],

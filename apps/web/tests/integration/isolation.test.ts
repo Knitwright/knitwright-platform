@@ -841,6 +841,22 @@ const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> =
   return rows[0].order_id;
 };
 
+/** An order of the brand that the factory has marked ready, with the ops admin who moved it. For the ops QC tables (decision 0050). */
+const seedReadyOrder = async (brandId: string): Promise<{ orderId: string; actor: string }> => {
+  const owner = must(await adminClient().from("memberships").select("user_id").eq("brand_id", brandId).limit(1).single()) as { user_id: string };
+  const ops = await person("qc-admin");
+  must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+  const orderId = await seedOpsOrder(brandId, owner.user_id);
+  const order = must(await adminClient().from("ops_orders").select("cutoff_at").eq("id", orderId).single()) as { cutoff_at: string };
+  must(await adminClient().rpc("ops_cut_batches", { p_actor: ops.userId, p_now: new Date(Date.parse(order.cutoff_at) + 1000).toISOString() }));
+  for (const to of ["received", "in_production", "ready"]) must(await adminClient().rpc("ops_set_order_status", { p_actor: ops.userId, p_order_id: orderId, p_to: to }));
+  return { orderId, actor: ops.userId };
+};
+
+const PASSING_CHECKLIST = ["measurements", "colour", "artwork", "names_numbers"].map((key) => ({ key, result: "pass", note: "" }));
+const inspect = async (actor: string, orderId: string) =>
+  must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0 })) as { inspection_id: string }[];
+
 /** A share link made the way the server makes one, to a new design. */
 const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: string; token: string }> => {
   const projectId = await seedProject(brandId, ownerId);
@@ -973,6 +989,66 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: () => ({ factory_profile_id: "f", fabric_key: "f", article_id: "a", cutoff_at: new Date().toISOString() }),
     change: { article_id: "changed" },
+  },
+  // Ops console part 2 (decision 0050): read by platform admins only, written by ops functions only.
+  ops_qc_inspections: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      return { id: (await inspect(actor, orderId))[0]!.inspection_id };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, factory_profile_id: "f", result: "pass", checklist: [], sample_size: 1, defect_count: 0 }),
+    change: { result: "fail" },
+  },
+  ops_exceptions: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      return { id: must(await adminClient().rpc("ops_raise_exception", { p_actor: actor, p_order_id: orderId, p_kind: "lost_parcel", p_owner: "Sam", p_due_on: "2099-01-01" })) as string };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, kind: "lost_parcel", owner: "x", due_on: "2099-01-01" }),
+    change: { status: "resolved" },
+  },
+  ops_exception_events: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      const id = must(await adminClient().rpc("ops_raise_exception", { p_actor: actor, p_order_id: orderId, p_kind: "lost_parcel", p_owner: "Sam", p_due_on: "2099-01-01" })) as string;
+      return { exception_id: id };
+    },
+    attempt: (brandId) => ({ exception_id: randomUUID(), order_id: randomUUID(), brand_id: brandId, kind: "raised", owner: "x", due_on: "2099-01-01" }),
+    change: { note: "Changed by a member" },
+  },
+  ops_cartons: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(await adminClient().rpc("ops_set_carton", { p_actor: actor, p_order_id: orderId, p_carton_no: 1, p_weight_g: null, p_length_mm: null, p_width_mm: null, p_height_mm: null }));
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, carton_no: 1 }),
+    change: { weight_g: 1 },
+  },
+  ops_pack_bags: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(await adminClient().rpc("ops_set_bags", { p_actor: actor, p_order_id: orderId, p_team_order_id: null, p_bags: [{ sizeLabel: "M", pieces: 1 }] }));
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, bag_no: 1, size_label: "M", pieces: 1 }),
+    change: { pieces: 2 },
+  },
+  ops_shipments: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      await inspect(actor, orderId);
+      must(await adminClient().rpc("ops_record_shipment", { p_actor: actor, p_order_id: orderId, p_courier: "DHL", p_tracking_number: "T1", p_shipped_on: "2026-10-30", p_sizes: { M: 1 } }));
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
+    change: { tracking_number: "changed" },
   },
   platform_admins: {
     privileges: [],

@@ -5,7 +5,7 @@ import { PERSONAL_DATA_TABLES } from "./team-data";
 
 const MIGRATIONS = join(__dirname, "..", "..", "..", "..", "supabase", "migrations");
 const read = (name: string): string => readFileSync(join(MIGRATIONS, name), "utf8");
-const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}`;
+const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}`;
 
 /** The text of `create table public.<name> (...)` up to its closing line. */
 const tableBody = (name: string): string => {
@@ -46,6 +46,13 @@ describe("what holds people's names for production", () => {
       expect(SQL).toMatch(new RegExp(`grant execute on function public\\.${fn}\\([^)]*\\) to service_role;`));
       expect(SQL).not.toMatch(new RegExp(`grant execute on function public\\.${fn}\\([^)]*\\) to[^;]*authenticated`));
     }
+  });
+
+  it("every table the ops QC migration creates is listed here and is removed with its brand, even the append-only ones", () => {
+    const ops = read("20261026040000_ops_qc.sql");
+    const created = [...ops.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
+    expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
+    expect(ops).toMatch(/not exists \(select 1 from public\.brands b where b\.id = old\.brand_id\)/);
   });
 
   it("every table the club migration creates is listed here, so a new one cannot hold names unnoticed", () => {
