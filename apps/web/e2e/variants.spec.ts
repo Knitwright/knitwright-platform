@@ -35,6 +35,7 @@ test.describe("inspiration variants (W2-A)", () => {
 
   test("pressing the same alternative twice on one version makes one new version", async ({ page }) => {
     await signIn(page, await createAccount("variants-twice"));
+    await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startJersey(page);
     const url = `/api/projects/${projectId}/variants`;
 
