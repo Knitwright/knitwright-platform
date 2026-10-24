@@ -752,6 +752,19 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ season_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", wearer_group: "mens" }),
     change: { name: "Changed by a stranger" },
   },
+  // Plan V6 (decision 0044): a brand's credits. A member reads the lines; only the server writes, through
+  // functions, and a line is never changed.
+  credit_ledger: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => {
+      const key = `seed:${randomUUID()}`;
+      must(await adminClient().rpc("credit_grant", { p_brand_id: brandId, p_amount: 1, p_key: key, p_note: "" }));
+      return { brand_id: brandId, idempotency_key: key };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, kind: "grant", amount: 5, idempotency_key: randomUUID() }),
+    change: { amount: 99 },
+  },
   club_invitations: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -829,6 +842,35 @@ const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
   );
 
 /**
+ * Tables that belong to the platform but that every signed-in person may read (and no visitor).
+ * Only the server writes them.
+ */
+type SharedTableSpec = Readonly<{
+  privileges: readonly string[];
+  /** A row that exists, by its key. */
+  row: Row;
+  attempt: Row;
+  change: Row;
+}>;
+
+const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
+  // Plan V6 (decision 0044): what an output costs in credits.
+  credit_prices: {
+    privileges: ["SELECT"],
+    row: { output_kind: "pattern_file" },
+    attempt: { output_kind: "invented", credits: 1 },
+    change: { credits: 0 },
+  },
+  // Plan V1 (decision 0039): the factory profile every design is checked against.
+  factory_profiles: {
+    privileges: ["SELECT"],
+    row: { id: "knitwright-default" },
+    attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
+    change: { name: "Changed by a member" },
+  },
+};
+
+/**
  * Tables no member may read at all, not even for their own brand: only platform admins, through
  * policies and functions that check platform_admins (decision 0024). Each seeds a row and the
  * suite checks that a member, and a visitor, can neither see nor touch it.
@@ -890,18 +932,6 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: (_brandId, userId) => ({ user_id: userId }),
     change: { created_at: "2000-01-01T00:00:00Z" },
-  },
-};
-
-/**
- * Tables every signed-in member may read, whichever brand they belong to, and nobody may write
- * from a browser: platform data the server alone changes.
- */
-const SHARED_TABLES: Readonly<Record<string, Readonly<{ privileges: readonly string[]; attempt: Row; change: Row }>>> = {
-  factory_profiles: {
-    privileges: ["SELECT"],
-    attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
-    change: { name: "Changed by a member" },
   },
 };
 
@@ -1159,21 +1189,24 @@ describe.each(Object.entries(PLATFORM_TABLES))("platform table %s", (table, spec
 });
 
 describe.each(Object.entries(SHARED_TABLES))("shared table %s", (table, spec) => {
-  it("shows a member its rows, and a visitor who is not signed in nothing", async () => {
-    expect(must(await alice.client.from(table).select("*")).length).toBeGreaterThan(0);
+  it("shows a signed-in member its rows", async () => {
+    expect(must(await alice.client.from(table).select("*").match(spec.row))).toHaveLength(1);
+  });
+
+  it("shows a visitor who is not signed in nothing", async () => {
     const { data, error } = await anonClient().from(table).select("*");
 
     expect(error !== null || data?.length === 0).toBe(true);
   });
 
   it("lets a member add, change or delete nothing", async () => {
-    const before = await rowsAsServer(table, {});
+    const before = await rowsAsServer(table, spec.row);
     const { error } = await alice.client.from(table).insert(spec.attempt);
-    await alice.client.from(table).update(spec.change).neq("id", "");
-    await alice.client.from(table).delete().neq("id", "");
+    await alice.client.from(table).update(spec.change).match(spec.row);
+    await alice.client.from(table).delete().match(spec.row);
 
     expect(error).not.toBeNull();
-    expect(await rowsAsServer(table, {})).toEqual(before);
+    expect(await rowsAsServer(table, spec.row)).toEqual(before);
   });
 });
 

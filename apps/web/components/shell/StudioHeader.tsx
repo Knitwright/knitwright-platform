@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { BrandMark } from "@/components/brand/Logo";
 import { PRODUCT } from "@/lib/config/product";
@@ -6,14 +7,14 @@ import { PAGE_WIDTH } from "./page-width";
 import { PhoneMenu } from "./PhoneMenu";
 import { StudioNav } from "./StudioNav";
 
-type StudioHeaderProps = Readonly<{ email: string | null; brandName: string }>;
+type StudioHeaderProps = Readonly<{ email: string | null; brandName: string; credits?: ReactNode }>;
 
 /**
  * The floating glass pill at the top of the studio: the mark, the sections, the brand
  * being worked on and the account. On a phone the sections, settings and sign out move
  * into a menu button.
  */
-export function StudioHeader({ email, brandName }: StudioHeaderProps) {
+export function StudioHeader({ email, brandName, credits }: StudioHeaderProps) {
   return (
     <div className={`sticky top-3 z-40 mx-auto w-full ${PAGE_WIDTH.content} px-3 pt-3 sm:px-5`}>
       <header className="glass-strong rise flex h-16 items-center gap-3 rounded-full pl-5 pr-2 sm:gap-6 sm:pl-6">
@@ -34,6 +35,7 @@ export function StudioHeader({ email, brandName }: StudioHeaderProps) {
               {brandName}
             </span>
           </Link>
+          {credits}
           <span className="hidden max-w-56 truncate px-1 text-sm text-muted md:inline" data-testid="account-email">
             {email}
           </span>
