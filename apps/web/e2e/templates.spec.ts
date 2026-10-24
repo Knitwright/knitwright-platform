@@ -74,7 +74,8 @@ test.describe("the template library", () => {
 
   test("makes a copy as version 1 and opens it in the editor, leaving the template unchanged", async ({ page }) => {
     await signedIn(page, "templates-use");
-    await page.goto("/templates");
+    // The library has more than one page now, so narrow it to the team jersey first.
+    await page.goto("/templates?sport=football&article=team-jersey");
     await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
