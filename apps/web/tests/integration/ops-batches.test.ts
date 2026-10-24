@@ -75,7 +75,9 @@ describe("submit_order_for_production", () => {
     const before = new Date();
     const out = await submit();
     const after = new Date();
-    const expected = [nextCutoff(before, savedSettings as never), nextCutoff(after, savedSettings as never)].map((d) => d.toISOString());
+    const [hh, mm] = String(savedSettings.cutoff_time).split(":").map(Number);
+    const settings = { cutoffWeekday: savedSettings.cutoff_weekday as number, cutoffMinutes: (hh ?? 0) * 60 + (mm ?? 0) };
+    const expected = [nextCutoff(before, settings), nextCutoff(after, settings)].map((d) => d.toISOString());
     expect(expected).toContain(out.cutoffAt);
   });
 

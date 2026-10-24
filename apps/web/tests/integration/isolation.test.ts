@@ -667,6 +667,20 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", cut: "mens", quantity: 1 }),
     change: { name: "Changed by a stranger" },
   },
+  ops_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedOpsOrder(brandId, ownerId) }),
+    attempt: (brandId) => ({ release_id: randomUUID(), brand_id: brandId, project_id: randomUUID(), external_ref: "made-directly", factory_profile_id: "f", fabric_key: "f", article_id: "a", sizes: { M: 1 }, pieces: 1, release_snapshot: {}, cutoff_at: new Date().toISOString() }),
+    change: { status: "ready" },
+  },
+  ops_order_events: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ order_id: await seedOpsOrder(brandId, ownerId) }),
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, kind: "submitted", to_status: "submitted" }),
+    change: { note: "Changed by a stranger" },
+  },
   production_releases: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -723,6 +737,22 @@ const seedRelease = async (brandId: string, ownerId: string): Promise<{ releaseI
     }),
   ) as { id: string }[];
   return { releaseId: rows[0].id };
+};
+
+/** An order in production, submitted the way the Store submits one. Returns its id. */
+const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> => {
+  const { releaseId } = await seedRelease(brandId, ownerId);
+  const rows = must(
+    await adminClient().rpc("submit_order_for_production", {
+      p_release_id: releaseId,
+      p_external_ref: `isolation-${randomUUID()}`,
+      p_factory_profile_id: "f1",
+      p_fabric_key: "mesh",
+      p_article_id: "crew-tee",
+      p_sizes: { M: 1 },
+    }),
+  ) as { order_id: string }[];
+  return rows[0].order_id;
 };
 
 /** A share link made the way the server makes one, to a new design. */
@@ -805,6 +835,29 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: () => ({ email: "intruder@example.com", name: "Intruder" }),
     change: { name: "Changed by a member" },
+  },
+  ops_settings: {
+    privileges: ["SELECT"],
+    // The one seeded row. Only an ops function changes it.
+    seed: async () => ({ id: true }),
+    attempt: () => ({ id: false, cutoff_weekday: 1, cutoff_time: "09:00", label: "Made directly" }),
+    change: { label: "Changed by a member" },
+  },
+  batches: {
+    privileges: ["SELECT"],
+    // Cut by ops_cut_batches, as of a week after the order's cut-off.
+    seed: async (brandId) => {
+      const owner = must(await adminClient().from("memberships").select("user_id").eq("brand_id", brandId).limit(1).single()) as { user_id: string };
+      const ops = await person("batch-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+      const orderId = await seedOpsOrder(brandId, owner.user_id);
+      const order = must(await adminClient().from("ops_orders").select("cutoff_at").eq("id", orderId).single()) as { cutoff_at: string };
+      must(await adminClient().rpc("ops_cut_batches", { p_actor: ops.userId, p_now: new Date(Date.parse(order.cutoff_at) + 1000).toISOString() }));
+      const batch = must(await adminClient().from("ops_orders").select("batch_id").eq("id", orderId).single()) as { batch_id: string };
+      return { id: batch.batch_id };
+    },
+    attempt: () => ({ factory_profile_id: "f", fabric_key: "f", article_id: "a", cutoff_at: new Date().toISOString() }),
+    change: { article_id: "changed" },
   },
   platform_admins: {
     privileges: [],

@@ -59,7 +59,7 @@ test.describe("the ops console", () => {
     await expect(page).toHaveURL(/\/studio$/);
 
     await page.goto("/ops");
-    await expect(page.getByRole("heading", { name: "Batches" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Batches", exact: true })).toBeVisible();
     // The order was already cut into a batch by the setup, so nothing is waiting and the button says so.
     await expect(page.getByTestId("waiting-order").filter({ hasText: ref })).toHaveCount(0);
     await page.getByRole("button", { name: "Cut batches now" }).click();
