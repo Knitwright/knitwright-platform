@@ -317,3 +317,208 @@ golden tests, decisions 0013, 0019, 0020).
 
 **Done when.** The fixtures validate against the registry, the harness runs, and the doc states the baseline
 and what would be needed to reach 95%.
+
+
+---
+
+# Wave 2 (active from 2026-10-25)
+
+Repository: https://github.com/Knitwright/knitwright-platform (moved from SameedIlyas; the old URL redirects).
+Branch names `feat/v4-w2-<id>-<slug>`. Decision records 0047 to 0053. Migration timestamps assigned at the end.
+Wave 1 is merged on main.
+
+## Lessons from wave 1 that every wave 2 agent follows
+
+Wave 1 agents wrote database and end-to-end tests they could not run (no Docker in the cloud sandbox) and most of them
+failed in CI for avoidable reasons. Read these before writing a single test:
+
+1. **Study a passing neighbour first.** Copy the idiom of an existing integration test (`apps/web/tests/integration/*.test.ts`,
+   helpers in `support.ts`) and an existing e2e spec (`apps/web/e2e/*.spec.ts`, helpers in `e2e/support.ts`). Never invent a
+   label, route or helper: grep for it. A wave 1 test looked for a "Garment type" field that does not exist.
+2. **A person may belong to at most 3 brands.** Create a fresh `person()` per brand in a db test; do not call `brandOf` four
+   times for one person.
+3. **Append-only and server-write tables.** The service role usually holds only SELECT on them (writes go through SECURITY
+   DEFINER functions), so a direct write answers "permission denied", not a trigger message. Assert what the database really
+   does. Never weaken a grant to make a test pass.
+4. **Platform-only routes** (`/ops`, admin) answer 404 to members; an API call with no session answers whatever the existing
+   guard answers (read `lib/server` and the admin leads route); do not guess 404 versus 401.
+5. **Shared files conflict.** `apps/web/vitest.config.mts` (the per-directory coverage list) and
+   `apps/web/tests/integration/isolation.test.ts` (the table lists) are edited by almost every workstream. Add only your own
+   entry, and before your final push run `git fetch origin && git merge origin/main`; on a conflict keep the UNION of both
+   sides. New tables must be added to the isolation test's lists in the existing shape (a `SHARED_TABLES` entry needs a `row`
+   that exists and the `attempt` and `change` objects; platform tables follow the existing `PLATFORM_TABLES` shape).
+6. **Cross-workstream tests.** A test that asserts something about the whole registry or catalogue (for example
+   `lib/intent/eval/fixtures.test.ts`, which requires every article to be named by a prompt) breaks when someone else adds to
+   the registry. If you add an article, route or table, search the tests for assertions that enumerate everything and update them.
+7. **Do not stop early.** Your session is over when CI has finished on your last push, not when your code is written. After
+   `gh pr create` run `gh pr checks <n> --watch` (about 15 to 20 minutes) and fix failures from the annotations:
+   `gh api repos/Knitwright/knitwright-platform/check-runs/<job-id>/annotations`. Up to four rounds. Then post the PR comment.
+8. **Local gate you can run:** `pnpm install`, `pnpm --filter web typecheck`, `pnpm --filter web lint`, and
+   `pnpm --filter web exec vitest run --project unit <your dirs>`. Run them before every push. Use background runs and a monitor
+   for anything over two minutes.
+9. Everything in "Rules every workstream follows" above still applies. Do not merge your PR; the orchestrator merges.
+
+## W2-A. Inspiration variants (spec stage 3, applicable variants)
+
+**Goal.** A side panel that always shows 8 to 12 alternatives for the current design: colourways, pattern swaps, placement
+moves, each a deterministic parameter set rendered by our own flat renderer. One click applies one as a NEW VERSION. Mood images
+are out of scope here.
+
+**Owns.** `apps/web/lib/variants/**`, `apps/web/components/variants/**`, `apps/web/app/api/projects/[projectId]/variants/**`,
+decision 0047. The editor shell file that hosts tool panels (find it under `components/studio/workspace`) may get one new tool
+entry and nothing else.
+
+**Do.**
+1. Read the design object, kit styles (`lib/kit-styles`), the artwork layer model (decision 0035), the guardrails
+   (`lib/guardrails`, decision 0045) and the validation gate (`lib/validation`, decision 0039).
+2. `generateVariants(design, { count: 8 to 12, seed })` is pure and deterministic for a given design and seed: colourways drawn
+   from the club kit and from harmonious palettes (computed in Lab; no model calls), kit-style swaps from the existing gallery,
+   placement moves of sponsor and crest within named zones. Never change structure the factory profile does not list.
+3. Every variant is run through the guardrails and the validation gate BEFORE it is shown: a variant with a blocker is dropped
+   and the next candidate is tried. The UI states which guardrail warnings a shown variant still carries.
+4. Applying a variant creates a new version through the existing version-save path (read `lib/projects`); undo and history come
+   free. Idempotent: applying the same variant twice to the same version does not create two versions.
+5. UI: a one-screen panel of preview tiles drawn with the existing flat renderer, visibly separate from any future mood-image
+   section. Respect `plans/design-reference.md`.
+
+**Done when.** Property tests (deterministic, count in range, none violates structure, none carries a blocker), unit tests for
+apply idempotency, an e2e that opens a design, sees 8 to 12 tiles and applies one to get version 2.
+
+## W2-B. Chat edits as design diffs
+
+**Goal.** Spec: "make the sleeves darker", "try diagonal stripes on the front", "move the sponsor lower" become design-object
+diffs, previewed, applied on confirm. Every change is a version. No regenerated images.
+
+**Owns.** `apps/web/lib/design-diff/**`, additions to `apps/web/components/studio/assistant/**` (find the existing assistant UI;
+do not rewrite it), decision 0048. Read `lib/intent` (decisions 0013, 0019), the existing assistant route and the
+`assistant_messages` table (migration 20261013020000).
+
+**Do.**
+1. A typed diff format over the design object (set colour, move placement, swap style, change option) with `previewDiff`
+   (applies to a copy, returns the changed design plus what changed in plain words) and `applyDiff` (creates a new version).
+2. The assistant turns text into a diff through the existing intent and provider layer with a fixed schema; unknown requests
+   are refused with the nearest supported change named. A stub provider for tests; no live model in CI.
+3. Every diff is validated against the factory profile and guardrails before preview; failures are shown, not applied.
+4. UI in the existing assistant dock: the diff card shows before and after tiles and Confirm and Discard. Confirm applies;
+   Discard leaves no trace. Metering through `lib/usage`.
+
+**Done when.** Unit tests for each diff kind, a test that no diff can change something the profile does not allow, an e2e with
+the stub provider (confirm creates the next version; discard does not).
+
+## W2-C. glTF base-model pipeline (spec principle 2: UV layout equals the print panel layout)
+
+**Goal.** The 3D view reads a real glTF per article whose UV islands are the print panels, with textures taken from the same
+panel renders the print files use. There are no artist-made models yet, so build the pipeline and a procedural placeholder.
+
+**Owns.** `apps/web/lib/gltf/**`, `apps/web/components/gltf/**`, `apps/web/lib/gltf/OWNER-QUESTIONS.md`, decision 0049. Do not
+edit `lib/garment3d` or its component beyond one import line; keep three.js loaded only on demand (an architecture test enforces
+this: read `tests/architecture/garment3d.test.ts` and extend it for your folders).
+
+**Do.**
+1. A glTF contract: a node per panel, UV rectangle equal to the panel's rectangle in the panel layout (production contract in
+   `lib/production/contract`, decision 0034 coordinates), units stated, one material per panel group, texture size 2048.
+2. `validateModel(gltf, panelLayout)` proves the UV islands equal the layout within a tolerance and reports each panel's error.
+   This is the check an artist's model must pass.
+3. A procedural placeholder generator that builds a glTF from the panel layout for the existing articles (extruded panel shapes,
+   honestly labelled "placeholder, not an artist model"), plus a size-grading transform that scales a model by the block's
+   grading so XS and 3XL show artwork scaled correctly.
+4. Viewer: loads a model, applies per-panel textures from the panel renderer, orbit, zoom and preset views, and falls back to
+   the existing viewer when no model exists. Keep the "not for fit or drape" label.
+
+**Done when.** Unit tests for `validateModel` (passing and failing fixtures), grading tests, a render smoke test that builds a
+scene with the placeholder without a GPU, and the architecture test still green.
+
+## W2-D. Ops console part 2: QC, packing, shipping, exceptions, metrics
+
+**Goal.** Continues V5 (`lib/ops`, decision 0043, migration `20261025050000_ops_batches.sql`): the rest of the spec's ops table.
+
+**Owns.** `apps/web/lib/ops/qc/**`, `lib/ops/packing/**`, `lib/ops/shipping/**`, `lib/ops/exceptions/**`, `lib/ops/metrics/**`,
+additions under `apps/web/app/(ops)/ops/**` and `apps/web/components/ops/**`, migration `20261026040000_ops_qc.sql`,
+decision 0050.
+
+**Do.** Read decision 0043 and all of `lib/ops` first and copy its patterns (platform-admin access guard, service-only writes,
+append-only history).
+1. QC gate: a checklist per order (measurements against the size spec on a sample, colour against the swatch, artwork placement,
+   names and numbers against the roster, defect count, photos referenced as file ids). A fail blocks shipping and creates a
+   remake line for the factory. QC record per order; defect rate per factory.
+2. Packing: pack list per player from the roster (names are personal data: reuse the erasure path in `lib/deletion` and add the
+   new tables to it), label per bag, carton weight and dimensions as inputs (no invented values), a packing list document.
+3. Shipping: record courier, tracking number and shipped date; status moves to shipped only after QC pass. No courier API calls
+   (owner decision pending): a provider interface with a manual implementation.
+4. Exceptions log: remake, partial shipment, lost parcel, size swap; every exception has an owner and a due date.
+5. Console home metrics: orders this week, pieces in production, on-time rate against the promise, defect rate by factory,
+   remakes open, batch value, next cut-off. Computed from the tables; no mock data.
+
+**Done when.** db tests (RLS, append-only, admin-only), unit tests for every transition and metric, an e2e that takes an order
+through QC to shipped (use `e2e/ops.spec.ts` from V5 as the pattern).
+
+## W2-E. Credits wired into outputs
+
+**Goal.** Spec: marketing media, the full tech pack PDF and pattern files cost credits; credits spent on a design are refunded
+when that design is ordered. Wave 1 built the ledger (`lib/credits`, decision 0044) and the status model (`lib/validation`).
+
+**Owns.** `apps/web/lib/credits/**` (edits), `apps/web/lib/credits-gate/**` (new), the minimum lines in the existing export,
+print-files, pattern and image routes needed to call the gate, decision 0051. No migration unless truly needed (timestamp
+`20261026050000_credit_hooks.sql` is reserved).
+
+**Do.**
+1. A `withCredits(kind, handler)` wrapper for route handlers: balance check, idempotent spend keyed by (brand, kind, design
+   version hash), refusal with a plain message naming the price and the balance. Free outputs stay free (design, versions, 3D
+   views, team-store hand-off, tech pack summary).
+2. Wire it into: the full tech pack PDF export, pattern file download, print-file download, photoreal image generation. Read
+   each route first and keep the diff small. Downloading the same version again is not charged twice.
+3. A feature flag `CREDITS_ENFORCED` (default OFF) so the owner switches enforcement on when prices are set. When off, the
+   wrapper only records what would have been spent.
+4. Refund: when a design version becomes `ordered` (see `lib/validation`), refund every spend on that version once.
+5. UI: show the price on each paid action and the balance after spending.
+
+**Done when.** Property tests (idempotency, refund once, free paths never charge), route tests for each wired route with the flag
+on and off, and no behaviour change with the flag off (the existing e2e specs for exports must pass unchanged).
+
+## W2-F. Football and cricket templates
+
+**Goal.** Seed Knitwright-made templates for V2's new articles so a club never starts blank (spec: templates per sport on the
+article page).
+
+**Owns.** `apps/web/lib/templates/seed/teamwear/**`, the seed script entry, decision 0052 (short). Read V3 (`lib/templates`,
+decision 0041) and V2 (`lib/garment/registry/teamwear`, decision 0040).
+
+**Do.** At least 3 templates per new article that has a flat today (football shirt, shorts, goalkeeper shirt, training top;
+cricket shirt, trousers, training tee), built deterministically from existing kit styles and the article's real options. Each
+carries "Knitwright starter, not reviewed by a factory". Do not create templates for articles with no flat or for the empty
+winter-code slot. Extend the template filter tests for the new sports. Update any all-articles assertions (lesson 6).
+
+**Done when.** Seeds validate against the registry, every template opens in the editor (unit test through the copy-into-design
+path), and an e2e: filter the library by football, use a template, land on version 1.
+
+## W2-G. Editor: per-panel layers decision and spike (Fabric.js)
+
+**Goal.** Spec stage 3 wants layers per panel and across panels (base colour, gradient, pattern fill, uploaded artwork, text, text
+on a path, crest, sponsor, name and number placeholders) in a Fabric.js v7 editor. Rewriting the editor blind is too risky.
+Produce a decision, a data model and a contained spike.
+
+**Owns.** `docs/decisions/0053-panel-layer-editor.md`, `apps/web/lib/panel-layers/**`, `apps/web/components/panel-layers/**`, and
+a feature-flagged, unlinked prototype route `app/(app)/studio/[projectId]/layers/` behind `NEXT_PUBLIC_PANEL_LAYERS`. Do not edit
+the existing editor.
+
+**Do.**
+1. Read the current editor and artwork layer model (decision 0035, `lib/artwork-stack`, `lib/artwork-intake`) and write the
+   decision record: what the current model already covers, what Fabric.js v7 would add (MIT licence; measure the bundle impact
+   and the SSR constraints with this Next), the migration path, the risks, and a recommendation (adopt, adopt for panels only, or
+   extend the current renderer). Concrete and measured, not generic.
+2. A pure data model mapping between our layer stack and Fabric JSON, round-trip tested (no loss) for every layer kind.
+3. The spike: one panel editable in Fabric on the unlinked route, loading and saving through the existing artwork layer model and
+   running the V7 guardrails live in a Checks list. Dynamic import only.
+4. List what remains (text on path, auto-vectorise raster logos, seam-crossing overlays across panels) with estimates.
+
+**Done when.** Round-trip property tests; the route renders in an e2e smoke test only when the flag is on; the decision record
+ends with a clear recommendation for the owner.
+
+## Wave 2 migration timestamps (assigned)
+
+| File | Workstream |
+|---|---|
+| `20261026040000_ops_qc.sql` | W2-D |
+| `20261026050000_credit_hooks.sql` | W2-E (only if needed) |
+
+W2-A, B, C, F and G add no migration.
