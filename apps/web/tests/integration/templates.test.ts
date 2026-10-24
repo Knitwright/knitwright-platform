@@ -34,11 +34,12 @@ beforeAll(async () => {
 });
 
 describe("the template library in the database", () => {
-  it("is readable by a signed-in user and empty to a visitor", async () => {
+  it("is readable by a signed-in user and refused to a visitor", async () => {
     const seen = must(await alice.client.from("templates").select("slug, review_state"));
     expect(seen.length).toBeGreaterThanOrEqual(12);
     expect(seen.every((entry) => entry.review_state === "not_reviewed")).toBe(true);
-    expect(must(await anonClient().from("templates").select("slug"))).toEqual([]);
+    // A visitor holds no grant on the table at all, so the read is refused rather than empty.
+    expect((await anonClient().from("templates").select("slug")).error).not.toBeNull();
   });
 
   it.each([

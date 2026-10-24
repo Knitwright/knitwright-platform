@@ -10,6 +10,7 @@ import type { FamilyDrawer } from "./drawing";
 import { drawOuterwear } from "./outerwear";
 import { readOuterwearOptions } from "./outerwear/options";
 import { outerwearProportions } from "./outerwear/proportions";
+import { drawTeamwear, teamwearProportions } from "./teamwear";
 
 /**
  * ADDING A FAMILY'S DRAWING. Write its drawing code in a folder here, like `bottoms/`, and list
@@ -19,6 +20,9 @@ export const FAMILY_DRAWERS: Readonly<Partial<Record<FamilyId, FamilyDrawer>>> =
   bottoms: drawBottoms,
   outerwear: drawOuterwear,
   "close-fitting": drawCloseFitting,
+  football: drawTeamwear,
+  cricket: drawTeamwear,
+  "winter-code": drawTeamwear,
 };
 
 /** The ratios a family draws a design with when it has no measurements. Tests use them too. */
@@ -26,4 +30,7 @@ export const FAMILY_PROPORTIONS: Readonly<Partial<Record<FamilyId, (spec: Garmen
   bottoms: (spec) => bottomsProportions(readBottomsOptions(spec)),
   outerwear: (spec) => outerwearProportions(readOuterwearOptions(spec)),
   "close-fitting": (spec) => closeFitProportions(readCloseFitOptions(spec)),
+  football: teamwearProportions,
+  cricket: teamwearProportions,
+  "winter-code": teamwearProportions,
 };

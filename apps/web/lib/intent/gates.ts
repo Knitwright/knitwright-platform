@@ -39,6 +39,13 @@ export const OPTION_KINDS: Readonly<Record<string, "construction" | "style">> = 
   "edge-finish": "construction",
   underband: "construction",
   "seam-type": "construction",
+  // Teamwear: every choice reshapes a part or changes the sewing.
+  "elbow-pads": "construction",
+  "sock-height": "construction",
+  "sock-top": "construction",
+  "cap-shape": "construction",
+  "cap-adjuster": "construction",
+  "winter-code": "construction",
 };
 
 export const isConstruction = (optionId: string): boolean => OPTION_KINDS[optionId] !== "style";

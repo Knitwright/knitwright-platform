@@ -8,8 +8,8 @@ import type { Frame } from "./templates/pieces";
 
 /** The panels whose artwork is drawn in each view. Sleeve artwork is drawn on the front only. */
 export const ARTWORK_SHOWN: Readonly<Record<View, readonly string[]>> = {
-  front: ["body-front", "sleeve-left", "sleeve-right", "legs-front"],
-  back: ["body-back", "legs-back"],
+  front: ["body-front", "sleeve-left", "sleeve-right", "legs-front", "sock-leg", "cap-crown"],
+  back: ["body-back", "legs-back", "sock-leg", "cap-crown"],
 };
 
 

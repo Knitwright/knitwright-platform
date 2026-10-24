@@ -1,4 +1,5 @@
 import { LAUNCH_GARMENTS } from "@/lib/config/launch-garments";
+import { getType, TEAMWEAR_TYPE_IDS } from "@/lib/garment";
 import type { BlockView } from "./records";
 
 /**
@@ -41,13 +42,16 @@ const LABELS: Readonly<Record<string, string>> = {
   socks: "Socks",
 };
 
-const KEYS: readonly string[] = [...new Set([...LAUNCH_GARMENTS, "skort", "raglan-jersey", "socks"])];
+/** Teamwear has no pattern in the library and no pattern service drafts it, so every slot says so. */
+const KEYS: readonly string[] = [...new Set([...LAUNCH_GARMENTS, ...TEAMWEAR_TYPE_IDS, "skort", "raglan-jersey", "socks"])];
+
+const isSock = (productKey: string): boolean => productKey === "socks" || productKey === "football-socks";
 
 export const SLOTS: readonly Slot[] = KEYS.map((productKey) => ({
   productKey,
-  label: LABELS[productKey] ?? productKey,
-  kind: productKey === "socks" ? "knit-programme" : "pieces",
-  needsDraft: NEEDS_DRAFT.has(productKey),
+  label: LABELS[productKey] ?? getType(productKey)?.label ?? productKey,
+  kind: isSock(productKey) ? "knit-programme" : "pieces",
+  needsDraft: NEEDS_DRAFT.has(productKey) || (TEAMWEAR_TYPE_IDS.includes(productKey) && !isSock(productKey)),
 }));
 
 export const slotFor = (productKey: string): Slot | undefined => SLOTS.find((slot) => slot.productKey === productKey);

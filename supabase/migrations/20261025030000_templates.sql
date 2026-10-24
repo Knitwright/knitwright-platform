@@ -29,7 +29,8 @@ create table public.templates (
   updated_at timestamptz not null default now(),
   constraint templates_designer_source_is_off check (source = 'knitwright'),
   constraint templates_review_names_a_person check (
-    (review_state = 'reviewed') = (reviewed_by is not null and reviewed_at is not null)
+    (review_state = 'reviewed') = (reviewed_by is not null)
+    and (review_state = 'reviewed') = (reviewed_at is not null)
   )
 );
 
