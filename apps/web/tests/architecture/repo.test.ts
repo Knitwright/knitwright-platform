@@ -54,7 +54,8 @@ describe("the app's routes and actions", () => {
 
   it("are all made with defineRoute or defineAction, and every public one is listed", () => {
     expect(checkWrappers(files, [...PUBLIC_ENTRY_POINTS], [...PUBLIC_PAGES])).toEqual([]);
-  });
+    // Scans every source file; under coverage on a CI runner it ran 44 ms past the 5 s default.
+  }, 30_000);
 
   it("has no pages folder, whose API routes the wrappers do not cover", () => {
     expect(existsSync(join(APP_ROOT, "pages"))).toBe(false);
