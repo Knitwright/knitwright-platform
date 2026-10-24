@@ -1,24 +1,44 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { INITIAL_LAYOUT, fieldToFocus, hashTarget, idToScroll, layoutReducer } from "@/lib/workspace/layout";
 import { parseTool, withSearchParam, type ToolId } from "@/lib/workspace/tools";
 import { REVEAL_FIELD_EVENT, focusField, type RevealFieldDetail } from "../focus-field";
+
+const inAddress = (): ToolId => parseTool(new URLSearchParams(window.location.search).get("tool"));
 
 /**
  * The open tool, read from the address (?tool=), and the rest of the workspace's layout. Choosing
  * a tool rewrites the address in place, so a reload or a shared link opens the same panel and
  * nothing is fetched again. A field that asks for focus from a hidden panel opens that panel first,
  * and so does an older link to a part of the page by its #hash.
+ *
+ * The open tool is held here and the address follows it. The router reports a rewritten address
+ * a render later, so reading the tool back from it would let a quick second key press act on the
+ * tool before; the address is read only for a change that did not start here.
  */
 export const useWorkspace = () => {
   const params = useSearchParams();
-  const tool = parseTool(params.get("tool"));
+  const fromAddress = parseTool(params.get("tool"));
+  const [tool, setTool] = useState<ToolId>(fromAddress);
+  // The tool last chosen here that the router has not reported back yet.
+  const awaiting = useRef<ToolId | null>(null);
   const [layout, dispatch] = useReducer(layoutReducer, INITIAL_LAYOUT);
   const root = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const chosen = awaiting.current;
+    // The router passes through every address written here; while the address still says what was
+    // chosen, what it reports is on its way. Any other address came from elsewhere.
+    if (chosen !== null && fromAddress !== chosen && inAddress() === chosen) return;
+    awaiting.current = null;
+    setTool(fromAddress);
+  }, [fromAddress]);
+
   const choose = useCallback((next: ToolId) => {
+    awaiting.current = next;
+    setTool(next);
     window.history.replaceState(null, "", `${withSearchParam(window.location.search, "tool", next)}${window.location.hash}`);
   }, []);
 
