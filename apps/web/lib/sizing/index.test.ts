@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as sizing from "./index";
+import { TEAMWEAR_TYPE_IDS } from "@/lib/garment";
 
 describe("the sizing public surface", () => {
   it("exports the functions and data other code needs", () => {
@@ -28,7 +29,8 @@ describe("the sizing public surface", () => {
     expect(sizing.DEFAULT_CHARTS.length).toBe(39);
     expect(report.withChart).toBe(39);
     // Leggings, the sports bra and the compression top are not offered at launch and have no starter chart yet.
-    expect(report.entries.filter((entry) => !entry.hasChart).map((entry) => `${entry.typeId}/${entry.wearer}`)).toEqual([
+    // Teamwear has no starter chart either: teamwear.test.ts covers it.
+    expect(report.entries.filter((entry) => !entry.hasChart && !TEAMWEAR_TYPE_IDS.includes(entry.typeId)).map((entry) => `${entry.typeId}/${entry.wearer}`)).toEqual([
       "leggings/men",
       "leggings/women",
       "leggings/youth",

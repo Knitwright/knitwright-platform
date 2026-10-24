@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOffered } from "@/lib/config/launch-garments";
+import { LAUNCH_GARMENTS } from "@/lib/config/launch-garments";
 import { createSpec, listFamilies, listTypes, pointsOfMeasureFor, type GarmentSpec, type Wearer } from "@/lib/garment";
 import { chartCompleteness } from "./completeness";
 import { MADE_UP_CHARTS, MADE_UP_CHART_SET } from "./fixtures/made-up-charts";
@@ -51,7 +51,7 @@ describe.each(families.map((family) => [family.id] as const))("sizing for the %s
       for (const wearer of type.wearers) {
         const spec = { ...specFor(type.id, wearer), sizing: { sizes: ["A", "B"], baseSize: "A" } };
         const all = resolveAllSizes(spec);
-        const expected = isOffered(type.id) ? "resolved" : "no-chart";
+        const expected = LAUNCH_GARMENTS.includes(type.id) ? "resolved" : "no-chart";
         expect(all.entries.map((entry) => entry.resolution.status)).toEqual([expected, expected]);
         for (const entry of all.entries) {
           expect(entry.resolution.rows.every((row) => row.status === "missing")).toBe(true);
@@ -64,6 +64,6 @@ describe.each(families.map((family) => [family.id] as const))("sizing for the %s
   it("has a starter chart for every garment offered at launch, and none yet for the others", () => {
     const entries = chartCompleteness().entries.filter((entry) => listTypes(familyId).some((type) => type.id === entry.typeId));
     expect(entries.length).toBeGreaterThan(0);
-    for (const entry of entries) expect(entry.hasChart, `${entry.typeId} for ${entry.wearer}`).toBe(isOffered(entry.typeId));
+    for (const entry of entries) expect(entry.hasChart, `${entry.typeId} for ${entry.wearer}`).toBe(LAUNCH_GARMENTS.includes(entry.typeId));
   });
 });

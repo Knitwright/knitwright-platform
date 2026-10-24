@@ -21,7 +21,7 @@ describe("tops registry", () => {
       "polo",
       "team-jersey",
     ]);
-    expect(ids(listFamilies())).toEqual(["tops", "bottoms", "outerwear", "close-fitting"]);
+    expect(ids(listFamilies())).toEqual(["tops", "bottoms", "outerwear", "close-fitting", "football", "cricket", "winter-code"]);
   });
 
   it("applies men, women and youth charts to every tops type", () => {
