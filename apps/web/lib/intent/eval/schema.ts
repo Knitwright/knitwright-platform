@@ -7,7 +7,7 @@ import { z } from "zod";
  * more than one article fits.
  */
 
-export const CATEGORIES = ["direct", "kit-wording", "australian", "typo", "partial", "ambiguous", "set", "out-of-catalogue", "pending", "colour"] as const;
+export const CATEGORIES = ["direct", "kit-wording", "australian", "typo", "partial", "ambiguous", "set", "out-of-catalogue", "teamwear", "colour"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 /** The spec's acceptance mark for stage 1: this share of the prompts map to the right article. */
