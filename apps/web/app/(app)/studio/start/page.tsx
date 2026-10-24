@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { GuidedStart } from "@/components/guided/GuidedStart";
+import { TemplatesFirst } from "@/components/templates/TemplatesFirst";
 import { FormPage } from "@/components/shell/PageIntro";
 import { defaultBuyerKind } from "@/lib/leads/buyer-kind";
 import { getBrandDetails } from "@/lib/leads/service";
@@ -8,6 +9,7 @@ import { WEARER_OPTIONS } from "@/lib/projects/wearers";
 import { sessionClient } from "@/lib/server/deps";
 import { log } from "@/lib/server/log";
 import { requireMember } from "@/lib/server/page-guards";
+import { featuredTemplates } from "@/lib/templates/featured";
 
 export const metadata: Metadata = { title: "Start a design" };
 
@@ -23,12 +25,19 @@ export default async function StartPage() {
     },
   );
 
+  // Templates come first, a blank canvas second. If the library cannot be read, the page still starts a design.
+  const templates = await featuredTemplates(await sessionClient()).catch((error: unknown) => {
+    log({ level: "warn", message: "The templates could not be read", where: "page studio-start", error });
+    return [];
+  });
+
   return (
     <FormPage
       eyebrow={brand.name}
       title="Start a design"
       lead="Start, check the drawing and measurements, adjust, and download the files a factory needs. Then share the design with your committee and ask for a quote."
     >
+      <TemplatesFirst templates={templates} />
       <GuidedStart types={garmentTypeGroups()} wearers={WEARER_OPTIONS} initialKind={initialKind} />
     </FormPage>
   );
