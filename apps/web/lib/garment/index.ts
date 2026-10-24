@@ -141,6 +141,7 @@ export {
   type ResolvedOption,
   type ResolvedType,
 } from "./registry";
+export { TEAMWEAR_TYPE_IDS } from "./registry/teamwear";
 export { SPEC_SCHEMA_VERSION, garmentSpecSchema, garmentSpecStructureSchema } from "./spec-schema";
 export {
   FIRST_COLOURWAY_ID,

@@ -34,7 +34,7 @@ describe("pointsThatCanApply", () => {
   it("gives every type of every family some points, all of them its own", () => {
     for (const type of listTypes()) {
       const ids = pointsThatCanApply(type).map((point) => point.id);
-      expect(ids.length, type.id).toBeGreaterThanOrEqual(8);
+      expect(ids.length, type.id).toBeGreaterThanOrEqual(4); // a cap has four points of measure, the fewest of any article
       for (const id of ids) expect(type.pointsOfMeasure.some((point) => point.id === id)).toBe(true);
     }
   });

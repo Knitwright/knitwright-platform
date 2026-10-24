@@ -85,4 +85,6 @@ export const LIMITS = {
   artworkIntake: { name: "artwork-intake", limit: 20, windowSeconds: 10 * MINUTE },
   // Checking a tile, removing a white box, making a tile seamless: each reads the full size picture again.
   artworkConvert: { name: "artwork-convert", limit: 40, windowSeconds: 10 * MINUTE },
+  // Club workspace (decision 0042): kit, seasons, rosters, members. Every one is a small write checked against the member's role.
+  clubWrite: { name: "club-write", limit: 60, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

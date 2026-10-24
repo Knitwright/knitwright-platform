@@ -4,7 +4,7 @@ export const WEARERS = ["men", "women", "youth"] as const;
 export const wearerSchema = z.enum(WEARERS);
 export type Wearer = z.output<typeof wearerSchema>;
 
-export const FAMILY_IDS = ["tops", "bottoms", "outerwear", "close-fitting"] as const;
+export const FAMILY_IDS = ["tops", "bottoms", "outerwear", "close-fitting", "football", "cricket", "winter-code"] as const;
 export const familySchema = z.enum(FAMILY_IDS);
 export type FamilyId = z.output<typeof familySchema>;
 
