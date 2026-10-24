@@ -25,8 +25,8 @@ const STUDIO = "app/(app)/";
 /** Groups where a session is enough. Everywhere else a page needs a brand as well. */
 const SESSION_ONLY_GROUPS = ["app/(auth)/", "app/(onboarding)/"];
 
-/** The Knitwright team's pages (decision 0024). Only a platform admin may see them. */
-const ADMIN_GROUP = "app/(admin)/";
+/** The Knitwright team's pages (decisions 0024 and 0043): the lead list and the ops console. Only a platform admin may see them. */
+const ADMIN_GROUPS = ["app/(admin)/", "app/(ops)/"];
 
 const isRenderedFile = (path: string): boolean => RENDERED_FILE.test(path);
 
@@ -71,7 +71,7 @@ export const checkPage = (
   if (!isRenderedFile(path)) return { violations: [], isPublicPage: false };
 
   const inStudio = path.startsWith(STUDIO);
-  const admin = path.startsWith(ADMIN_GROUP);
+  const admin = ADMIN_GROUPS.some((group) => path.startsWith(group));
   if (!inStudio && !admin && publicPages.has(path)) return { violations: [], isPublicPage: true };
 
   const sessionEnough = SESSION_ONLY_GROUPS.some((group) => path.startsWith(group));
