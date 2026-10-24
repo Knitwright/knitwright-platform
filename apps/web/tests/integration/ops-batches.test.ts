@@ -28,7 +28,7 @@ const makeRelease = async (owner: Person, brandId: string, label: string): Promi
     await adminClient().rpc("create_project", { p_brand_id: brandId, p_user_id: owner.userId, p_name: "Jersey", p_style_number: "", p_season: "", p_garment_type: "crew-tee", p_spec: { made: "for the test" }, p_schema_version: 1 }),
   ) as string;
   const created = must(
-    await adminClient().rpc("create_release", { p_project_id: project, p_brand_id: brandId, p_user_id: owner.userId, p_label: label, p_snapshot: { specVersion: 1, rosterHash: null, files: [] }, p_file_specs: [], p_order_id: null }),
+    await adminClient().rpc("create_release", { p_project_id: project, p_brand_id: brandId, p_user_id: owner.userId, p_label: label, p_snapshot: { specVersion: 1, patternBlockId: "crew-tee", patternBlockVersion: 1, fabricTestIds: [], printProfile: { bleedMm: 3, dpi: 300, iccFileId: null, maxPrintWidthMm: null, source: "knitwright-default" }, rosterHash: null, files: [] }, p_file_specs: [], p_order_id: null }),
   ) as { id: string }[];
   return created[0]!.id;
 };

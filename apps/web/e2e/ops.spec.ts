@@ -20,7 +20,7 @@ async function submitOrder(email: string, ref: string): Promise<void> {
   const brandId = membership.data?.brand_id as string;
   const project = await db.rpc("create_project", { p_brand_id: brandId, p_user_id: userId, p_name: "Ops jersey", p_style_number: "", p_season: "", p_garment_type: "crew-tee", p_spec: { made: "for the test" }, p_schema_version: 1 });
   if (project.error) throw new Error(project.error.message);
-  const release = await db.rpc("create_release", { p_project_id: project.data, p_brand_id: brandId, p_user_id: userId, p_label: "Round 1 jerseys", p_snapshot: { specVersion: 1, rosterHash: null, files: [] }, p_file_specs: [], p_order_id: null });
+  const release = await db.rpc("create_release", { p_project_id: project.data, p_brand_id: brandId, p_user_id: userId, p_label: "Round 1 jerseys", p_snapshot: { specVersion: 1, patternBlockId: "crew-tee", patternBlockVersion: 1, fabricTestIds: [], printProfile: { bleedMm: 3, dpi: 300, iccFileId: null, maxPrintWidthMm: null, source: "knitwright-default" }, rosterHash: null, files: [] }, p_file_specs: [], p_order_id: null });
   if (release.error) throw new Error(release.error.message);
   const submitted = await db.rpc("submit_order_for_production", { p_release_id: (release.data as { id: string }[])[0]?.id, p_external_ref: ref, p_factory_profile_id: "knitwright-default", p_fabric_key: "mesh-140", p_article_id: "crew-tee", p_sizes: { M: 3, L: 2 } });
   if (submitted.error) throw new Error(submitted.error.message);
