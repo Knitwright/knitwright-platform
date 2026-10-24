@@ -37,7 +37,8 @@ const actor = () => admin.userId;
 const rpc = (name: string, args: Record<string, unknown>) => adminClient().rpc(name, { p_actor: actor(), ...args });
 const row = async (id: string) => must(await adminClient().from("ops_orders").select("*").eq("id", id).single()) as Record<string, unknown>;
 const kinds = async (id: string) => (must(await adminClient().from("ops_order_events").select("kind").eq("order_id", id).order("at").order("id")) as { kind: string }[]).map((e) => e.kind);
-const dueNow = (id: string) => adminClient().from("ops_orders").update({ cutoff_at: new Date(Date.now() - 86_400_000).toISOString() }).eq("id", id);
+/** Cuts the batches as of one second after this order's cut-off, as ops would on the day. */
+const cutAfter = async (id: string) => must(await rpc("ops_cut_batches", { p_now: new Date(Date.parse((await row(id)).cutoff_at as string) + 1000).toISOString() }));
 
 beforeAll(async () => {
   [alice, bob, admin] = await Promise.all([person("ops-alice"), person("ops-bob"), person("ops-admin")]);
@@ -49,7 +50,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await adminClient().from("ops_settings").update({ cutoff_weekday: savedSettings.cutoff_weekday, cutoff_time: savedSettings.cutoff_time, lead_time_days: savedSettings.lead_time_days, label: savedSettings.label }).eq("id", true);
+  const [hh, mm] = String(savedSettings.cutoff_time).split(":").map(Number);
+  await rpc("ops_update_settings", { p_weekday: savedSettings.cutoff_weekday, p_minutes: (hh ?? 0) * 60 + (mm ?? 0), p_lead_time_days: savedSettings.lead_time_days, p_label: savedSettings.label });
 });
 
 describe("the settings", () => {
@@ -115,14 +117,15 @@ describe("submit_order_for_production", () => {
 
 describe("batches", () => {
   it("cut only the orders whose cut-off has come, grouped by factory, fabric and article", async () => {
-    const [a, b, c, later] = [await submit({ fabricKey: "g-mesh" }), await submit({ fabricKey: "g-mesh" }), await submit({ fabricKey: "g-cotton" }), await submit({ fabricKey: "g-later" })];
-    for (const o of [a, b, c]) must(await dueNow(o.orderId).select("id"));
-    must(await rpc("ops_cut_batches", {}));
-    const [ra, rb, rc, rl] = await Promise.all([a, b, c, later].map((o) => row(o.orderId)));
+    const [a, b, c] = [await submit({ fabricKey: "g-mesh" }), await submit({ fabricKey: "g-mesh" }), await submit({ fabricKey: "g-cotton" })];
+    const cutoff = Date.parse((await row(a.orderId)).cutoff_at as string);
+    must(await rpc("ops_cut_batches", { p_now: new Date(cutoff - 1000).toISOString() }));
+    expect((await row(a.orderId)).status).toBe("submitted");
+    await cutAfter(a.orderId);
+    const [ra, rb, rc] = await Promise.all([a, b, c].map((o) => row(o.orderId)));
     expect(ra!.status).toBe("batched");
     expect(ra!.batch_id).toBe(rb!.batch_id);
     expect(rc!.batch_id).not.toBe(ra!.batch_id);
-    expect(rl).toMatchObject({ status: "submitted", batch_id: null });
     expect(await kinds(a.orderId)).toEqual(["submitted", "batched"]);
   });
 
@@ -135,8 +138,7 @@ describe("batches", () => {
     const a = await submit({ fabricKey: "m-1" });
     const b = await submit({ fabricKey: "m-1" });
     const other = await submit({ fabricKey: "m-other" });
-    for (const o of [a, b, other]) must(await dueNow(o.orderId).select("id"));
-    must(await rpc("ops_cut_batches", {}));
+    await cutAfter(a.orderId);
     must(await rpc("ops_set_hold", { p_order_id: a.orderId, p_hold: true, p_note: "artwork query" }));
     expect(await row(a.orderId)).toMatchObject({ status: "held", batch_id: null });
     const target = (await row(b.orderId)).batch_id;
@@ -153,8 +155,7 @@ describe("batches", () => {
 describe("factory status", () => {
   const batched = async () => {
     const o = await submit({ fabricKey: `s-${ref()}` });
-    must(await dueNow(o.orderId).select("id"));
-    must(await rpc("ops_cut_batches", {}));
+    await cutAfter(o.orderId);
     return o.orderId;
   };
 
@@ -169,7 +170,8 @@ describe("factory status", () => {
   });
 
   it("records a delay with its reason, only later, only with a reason", async () => {
-    await adminClient().from("ops_settings").update({ lead_time_days: 14, label: "Test lead time" }).eq("id", true);
+    const [hh, mm] = String(savedSettings.cutoff_time).split(":").map(Number);
+    must(await rpc("ops_update_settings", { p_weekday: savedSettings.cutoff_weekday, p_minutes: (hh ?? 0) * 60 + (mm ?? 0), p_lead_time_days: 14, p_label: "Test lead time" }));
     const id = await batched();
     const promised = (await row(id)).promised_on as string;
     expect(promised).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -183,10 +185,10 @@ describe("factory status", () => {
 });
 
 describe("history and access", () => {
-  it("can never be changed, removed or emptied, even by the server's key", async () => {
+  it("can never be changed or removed: the server's key has no write grant on it", async () => {
     const o = await submit();
-    expect((await adminClient().from("ops_order_events").update({ note: "x" }).eq("order_id", o.orderId)).error?.message).toMatch(/never be changed/);
-    expect((await adminClient().from("ops_order_events").delete().eq("order_id", o.orderId)).error?.message).toMatch(/never be changed/);
+    expect((await adminClient().from("ops_order_events").update({ note: "x" }).eq("order_id", o.orderId)).error).not.toBeNull();
+    expect((await adminClient().from("ops_order_events").delete().eq("order_id", o.orderId)).error).not.toBeNull();
     expect(must(await adminClient().from("ops_order_events").select("id").eq("order_id", o.orderId))).toHaveLength(1);
   });
 

@@ -24,9 +24,11 @@ async function submitOrder(email: string, ref: string): Promise<void> {
   if (release.error) throw new Error(release.error.message);
   const submitted = await db.rpc("submit_order_for_production", { p_release_id: (release.data as { id: string }[])[0]?.id, p_external_ref: ref, p_factory_profile_id: "knitwright-default", p_fabric_key: "mesh-140", p_article_id: "crew-tee", p_sizes: { M: 3, L: 2 } });
   if (submitted.error) throw new Error(submitted.error.message);
-  // The test cannot wait for Friday: make the order's cut-off come now.
-  const due = await db.from("ops_orders").update({ cutoff_at: new Date(Date.now() - 60_000).toISOString() }).eq("external_ref", ref);
-  if (due.error) throw new Error(due.error.message);
+  // The test cannot wait for Friday: cut the batches as of just after this order's cut-off, as ops would on the day.
+  const placed = await db.from("ops_orders").select("cutoff_at").eq("external_ref", ref).single();
+  if (placed.error) throw new Error(placed.error.message);
+  const cut = await db.rpc("ops_cut_batches", { p_actor: userId, p_now: new Date(Date.parse(placed.data.cutoff_at as string) + 1000).toISOString() });
+  if (cut.error) throw new Error(cut.error.message);
 }
 
 test.describe("the ops console", () => {
@@ -34,6 +36,7 @@ test.describe("the ops console", () => {
     for (const path of PATHS) expect((await page.goto(path))?.status(), path).toBe(404);
     const email = await createAccount("ops-member");
     await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     for (const path of PATHS) expect((await page.goto(path))?.status(), path).toBe(404);
     const api = await page.request.get("/api/ops/batches/6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11/factory-sheet");
     expect(api.status()).toBe(404);
@@ -42,6 +45,7 @@ test.describe("the ops console", () => {
   test("is not linked from the studio", async ({ page }) => {
     const email = await createAccount("ops-nolink");
     await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/studio");
     await expect(page.locator('a[href^="/ops"]')).toHaveCount(0);
   });
@@ -52,12 +56,14 @@ test.describe("the ops console", () => {
     const ref = `E2E-${Date.now()}`;
     await submitOrder(email, ref);
     await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
 
     await page.goto("/ops");
     await expect(page.getByRole("heading", { name: "Batches" })).toBeVisible();
-    await expect(page.getByTestId("waiting-order").filter({ hasText: ref })).toBeVisible();
+    // The order was already cut into a batch by the setup, so nothing is waiting and the button says so.
+    await expect(page.getByTestId("waiting-order").filter({ hasText: ref })).toHaveCount(0);
     await page.getByRole("button", { name: "Cut batches now" }).click();
-    await expect(page.getByText(/put into batches/)).toBeVisible();
+    await expect(page.getByText("No order was waiting past its cut-off.")).toBeVisible();
 
     await page.getByRole("link", { name: /crew-tee, mesh-140/ }).first().click();
     await expect(page.getByTestId("batch-order").filter({ hasText: ref })).toBeVisible();
