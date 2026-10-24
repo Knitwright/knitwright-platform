@@ -62,7 +62,7 @@ describe("scoreCase", () => {
   });
 
   it("puts pending-catalogue cases in their own bucket", () => {
-    const c: EvalCase = { ...outside, category: "pending", pending_catalogue: { articleId: "cricket-cap" } };
+    const c: EvalCase = { ...outside, category: "teamwear", pending_catalogue: { articleId: "cricket-cap" } };
     expect(scoreCase(c, seen({})).bucket).toBe("pending");
     expect(scoreCase(outside, seen({})).bucket).toBe("headline");
   });
