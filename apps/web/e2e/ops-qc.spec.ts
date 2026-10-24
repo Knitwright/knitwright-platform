@@ -70,7 +70,7 @@ test.describe("the ops console, quality control to shipped", () => {
     await fill("1");
     await page.getByRole("button", { name: "Record inspection" }).click();
     await expect(page.getByText(/This inspection fails/)).toBeVisible();
-    // A rejected form is cleared by the framework, so fill it in again with the remake.
+    // React resets the form after an action, so the checklist is answered again with the remake details.
     await fill("1");
     await page.getByLabel("Remake pieces by size").fill("M 1");
     await page.getByLabel("Remake owner").fill("Sam");
