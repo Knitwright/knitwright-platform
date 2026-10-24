@@ -708,7 +708,51 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), release_id: randomUUID(), role: "club", signer_name: "X", signed_on: "2026-10-16", created_by: userId }),
     change: { signer_name: "Changed by a stranger" },
   },
+  // Plan V4 (decision 0042): a club's kit, seasons, rosters and invitations; only the server writes.
+  club_kits: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("save_club_kit", { p_brand_id: brandId, p_user_id: ownerId, p_kit: { primaryColour: "#0b3d91" } }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, primary_colour: "#000000" }),
+    change: { primary_colour: "#ff0000" },
+  },
+  club_seasons: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedSeason(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly" }),
+    change: { name: "Changed by a stranger" },
+  },
+  roster_players: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const season = await seedSeason(brandId, ownerId);
+      must(await adminClient().rpc("replace_season_roster", { p_brand_id: brandId, p_user_id: ownerId, p_season_id: season, p_players: [{ name: "Seeded Player", number: "7", sizeLabel: "M", wearerGroup: "mens" }] }));
+      return { season_id: season };
+    },
+    attempt: (brandId) => ({ season_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", wearer_group: "mens" }),
+    change: { name: "Changed by a stranger" },
+  },
+  club_invitations: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const email = `invited-${randomUUID()}@test.knitwright.local`;
+      must(await adminClient().rpc("invite_member", { p_brand_id: brandId, p_user_id: ownerId, p_email: email, p_role: "viewer" }));
+      return { email };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, email: "made-directly@test.knitwright.local", role: "viewer" }),
+    change: { role: "admin" },
+  },
 };
+
+/** A season of a brand, made the way the server makes one. */
+const seedSeason = async (brandId: string, ownerId: string): Promise<string> =>
+  must(await adminClient().rpc("create_club_season", { p_brand_id: brandId, p_user_id: ownerId, p_name: `Season ${randomUUID().slice(0, 8)}`, p_starts_on: null, p_ends_on: null })) as string;
 
 /** A team list made the way the server makes one, for a new design. */
 const seedTeamOrder = async (brandId: string, ownerId: string): Promise<string> =>
@@ -882,6 +926,9 @@ const CALLABLE = {
   "public.rename_brand(p_brand_id uuid, p_name text)": { anon: false, authenticated: true },
   // Names of the caller's own brand's members, for "Made by" (tests/integration/member-names.test.ts).
   "public.brand_member_names(p_brand_id uuid)": { anon: false, authenticated: true },
+  // Decision 0042: the caller's own club's members, and the invitations that name the caller's address.
+  "public.club_members(p_brand_id uuid)": { anon: false, authenticated: true },
+  "public.my_club_invitations()": { anon: false, authenticated: true },
   // Decision 0024: a member sets their own brand's organisation details.
   "public.set_brand_details(p_brand_id uuid, p_organisation_type text, p_country text, p_region text)": {
     anon: false,
@@ -899,6 +946,7 @@ const CALLABLE = {
   "private.is_member(p_brand_id uuid)": { anon: false, authenticated: true },
   "private.brand_id_from(p_text text)": { anon: false, authenticated: true },
   "private.is_platform_admin()": { anon: false, authenticated: true },
+  "private.can_manage_members(p_user_id uuid, p_brand_id uuid)": { anon: false, authenticated: true },
 } as const;
 
 type Report = Readonly<{

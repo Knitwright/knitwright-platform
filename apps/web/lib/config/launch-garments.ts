@@ -1,4 +1,4 @@
-import { getType, type GarmentSpec } from "@/lib/garment";
+import { getType, TEAMWEAR_TYPE_IDS, type GarmentSpec } from "@/lib/garment";
 
 /**
  * The garments a person can pick for a NEW design during the beta (decision 0027). The
@@ -29,7 +29,9 @@ export const LAUNCH_GARMENTS: readonly string[] = [
   "vest",
 ];
 
-const OFFERED: ReadonlySet<string> = new Set(LAUNCH_GARMENTS);
+// Teamwear (football, cricket, winter code) has no starter size charts yet, so it is offered here
+// and not in LAUNCH_GARMENTS, whose every entry must have one.
+const OFFERED: ReadonlySet<string> = new Set([...LAUNCH_GARMENTS, ...TEAMWEAR_TYPE_IDS]);
 
 /** True when a new design may start as this garment type. */
 export const isOffered = (typeId: string): boolean => OFFERED.has(typeId);

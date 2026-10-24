@@ -5,6 +5,7 @@ import { BOTTOMS } from "./bottoms";
 import { OUTERWEAR } from "./outerwear";
 import { CLOSE_FITTING } from "./close-fitting";
 import { SIZE_SYSTEMS } from "./size-systems";
+import { CRICKET, FOOTBALL, WINTER_CODE } from "./teamwear";
 import { TOPS } from "./tops";
 
 export type { Registry, ResolvedOption, ResolvedType } from "./build";
@@ -26,6 +27,9 @@ const FAMILIES: Readonly<Record<FamilyId, FamilyData>> = {
   bottoms: BOTTOMS,
   outerwear: OUTERWEAR,
   "close-fitting": CLOSE_FITTING,
+  football: FOOTBALL,
+  cricket: CRICKET,
+  "winter-code": WINTER_CODE,
 };
 
 /** The data of every family, in the order of `FAMILY_IDS`. Tests read it to check each family. */
