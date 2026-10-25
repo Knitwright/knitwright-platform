@@ -69,6 +69,21 @@ const envSchema = z.object({
   // The same image model resold by fal.ai (owner's choice, 2026-10-13). Optional. Server only.
   // fal's terms do not rule out training on de-identified data; see docs/data-processing.md.
   FAL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  // Lifestyle pictures and clips (decision 0057). All optional, server only: with LIFESTYLE_SCENE_PROVIDER and
+  // LIFESTYLE_TRYON_PROVIDER unset no lifestyle picture is made, and a chosen provider whose key is missing is left out and named.
+  LIFESTYLE_SCENE_PROVIDER: z.string().regex(/^[a-z-]{1,40}$/).optional(),
+  LIFESTYLE_TRYON_PROVIDER: z.string().regex(/^[a-z-]{1,40}$/).optional(),
+  LIFESTYLE_DAILY_CAP_MICRODOLLARS: z.string().regex(/^\d{1,15}$/).optional(),
+  PHOTOROOM_API_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  FASHN_API_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  GOOGLE_VERTEX_ACCESS_TOKEN: z.string().regex(/^\S{1,4000}$/).optional(),
+  GOOGLE_VERTEX_PROJECT: z.string().regex(/^\S{1,200}$/).optional(),
+  GOOGLE_VERTEX_LOCATION: z.string().regex(/^[a-z0-9-]{1,60}$/).optional(),
+  // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
+  MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
+  // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from
+  // SUPABASE_SECRET_KEY as before. Set a dedicated one so rotating the service key does not invalidate proposals.
+  ASSISTANT_SIGNING_KEY: z.string().min(32).optional(),
   // Who drafts sewing patterns. "claude-bridge": the owner's own Claude session picks the
   // requests up and drafts them through FashionInsta. Where real people visit it is open to
   // OWNER_EMAIL alone (lib/patterns/access.ts). Unset: patterns are shown as not available yet.
@@ -210,9 +225,28 @@ export const parseEnv = (source: EnvSource): Env => {
   return result.data;
 };
 
+/**
+ * A line for the log when a production server starts with CREDITS_ENFORCED unset: unlock and the other credit-gated
+ * outputs are then free (security review L5). Null otherwise.
+ */
+export const creditsNotEnforcedWarning = (source: EnvSource): string | null =>
+  source.NODE_ENV === "production" && source.CREDITS_ENFORCED === undefined
+    ? "CREDITS_ENFORCED is not set, so credit-gated outputs (unlock, tech pack PDF, pattern and print files, photoreal images) are free. Set it to true or false on purpose before launch."
+    : null;
+
 let cached: Env | undefined;
 
 export const getEnv = (): Env => {
-  cached ??= parseEnv(process.env);
+  if (cached === undefined) {
+    cached = parseEnv(process.env);
+    const warning = creditsNotEnforcedWarning(process.env);
+    if (warning) console.warn(warning);
+  }
   return cached;
 };
+
+/**
+ * The secret assistant proposals are signed from: ASSISTANT_SIGNING_KEY when it is set, else the derivation used before
+ * the variable existed (the server's secret key), so proposals already issued stay valid.
+ */
+export const assistantSigningSecret = (env: Env): string => env.ASSISTANT_SIGNING_KEY ?? env.SUPABASE_SECRET_KEY;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EnvError, parseEnv, turnstileSecret, unsubscribeSecret } from "./env";
+import { assistantSigningSecret, creditsNotEnforcedWarning, EnvError, parseEnv, turnstileSecret, unsubscribeSecret } from "./env";
 
 const valid = {
   NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
@@ -323,5 +323,34 @@ describe("parseEnv", () => {
         parseEnv({ ...valid, NEXT_PUBLIC_SITE_URL: "https://knitwright.com", AI_PROVIDER_STUB: "on", NODE_ENV: "production" }),
       ).toThrow(/AI_PROVIDER_STUB is for browser tests/);
     });
+  });
+});
+
+describe("provider settings (security review L3)", () => {
+  it("are optional, and read through the contract when given", () => {
+    const bare = parseEnv(valid);
+    expect(bare.PHOTOROOM_API_KEY).toBeUndefined();
+    expect(bare.MEDIA_VIDEO_LIVE).toBeUndefined();
+    const set = parseEnv({ ...valid, PHOTOROOM_API_KEY: "pr-key", FASHN_API_KEY: "fa-key", GOOGLE_VERTEX_ACCESS_TOKEN: "tok", LIFESTYLE_SCENE_PROVIDER: "photoroom", MEDIA_VIDEO_LIVE: "true" });
+    expect(set).toMatchObject({ PHOTOROOM_API_KEY: "pr-key", FASHN_API_KEY: "fa-key", GOOGLE_VERTEX_ACCESS_TOKEN: "tok", LIFESTYLE_SCENE_PROVIDER: "photoroom", MEDIA_VIDEO_LIVE: "true" });
+  });
+
+  it("refuse a malformed value without echoing it", () => {
+    expect(() => parseEnv({ ...valid, PHOTOROOM_API_KEY: "has space" })).toThrow(/PHOTOROOM_API_KEY is not valid/);
+  });
+});
+
+describe("assistantSigningSecret (security review L14)", () => {
+  it("falls back to the server's secret key, and prefers a dedicated one", () => {
+    expect(assistantSigningSecret(parseEnv(valid))).toBe("secret-key");
+    expect(assistantSigningSecret(parseEnv({ ...valid, ASSISTANT_SIGNING_KEY: "a".repeat(32) }))).toBe("a".repeat(32));
+  });
+});
+
+describe("creditsNotEnforcedWarning (security review L5)", () => {
+  it("warns in production when CREDITS_ENFORCED is unset, and not when it is set or outside production", () => {
+    expect(creditsNotEnforcedWarning({ NODE_ENV: "production" })).toMatch(/CREDITS_ENFORCED is not set/);
+    expect(creditsNotEnforcedWarning({ NODE_ENV: "production", CREDITS_ENFORCED: "false" })).toBeNull();
+    expect(creditsNotEnforcedWarning({ NODE_ENV: "development" })).toBeNull();
   });
 });

@@ -12,3 +12,6 @@ export const CLIP_SECONDS = 5;
 export const MAX_POSTER_SIDE = 4096;
 
 export const AI_GENERATED_LABEL = "AI generated";
+
+/** What starting a media set may add: the studio renders (front, back, flat lay), each a re-encoded picture of a few MB at most. */
+export const MEDIA_SET_RESERVE_BYTES = 3 * 4 * 1024 * 1024;

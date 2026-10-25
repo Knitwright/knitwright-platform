@@ -33,9 +33,10 @@ type Described = Readonly<Record<string, unknown>>;
 
 /**
  * The fields a thrown object that is not an Error may carry, such as a database error from
- * Supabase. Only these are kept, so nothing else the object holds can reach the log.
+ * Supabase. Only these are kept, so nothing else the object holds can reach the log. Postgres `details` is left out on
+ * purpose: it echoes row values ("Key (email)=(...)").
  */
-const KNOWN_FIELDS = ["code", "message", "details", "hint", "status", "name"] as const;
+const KNOWN_FIELDS = ["code", "message", "hint", "status", "name"] as const;
 
 const describeObject = (value: object): Described =>
   Object.fromEntries(

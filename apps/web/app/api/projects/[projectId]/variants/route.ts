@@ -12,7 +12,7 @@ const body = z.object({ variantId: z.string().regex(/^v-[0-9a-f]{8}$/), expected
 /** The 8 to 12 alternatives for the current version of a design, drawn by the flat renderer. */
 export const GET = defineRoute({
   auth: "member",
-  rateLimit: LIMITS.read,
+  rateLimit: LIMITS.variantsRender,
   schema: { params },
   handler: async ({ input, session }) => listVariants(await sessionClient(), { brandId: session.brand.id, brandName: session.brand.name }, input.params.projectId),
 });

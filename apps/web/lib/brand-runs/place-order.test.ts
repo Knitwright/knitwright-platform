@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { FLAGS_NOT_READ, placeOrder } from "./place-order";
+import { FLAGS_NOT_READ, placeOrder, UNKNOWN_FABRIC } from "./place-order";
 import type { RunContext } from "./run-context";
 import type { RunBody } from "./schemas";
 
@@ -16,7 +16,7 @@ const clients = { client, admin: client };
 const who = { brandId: "b", userId: "u" };
 const context: RunContext = {
   garmentType: "crew-tee", garmentLabel: "Crew tee", designName: "Tee", sizeRun: ["S", "M", "L"], factoryProfileId: "knitwright-default",
-  factoryLabel: "Knitwright default", moq: { status: "set", value: 50 }, ladder: { status: "not-set" }, fabrics: [], releases: [],
+  factoryLabel: "Knitwright default", moq: { status: "set", value: 50 }, ladder: { status: "not-set" }, fabrics: ["mesh"], releases: [],
 };
 const body = (over: Partial<RunBody> = {}): RunBody => ({ productId: "p", kind: "run", releaseId: "r", fabricKey: "mesh", quantities: { S: 20, M: "40", L: 0 }, acknowledgeFlags: false, requestKey: "abcdefgh", ...over });
 
@@ -30,6 +30,10 @@ describe("placeOrder", () => {
   it("sends the cleaned breakdown with the factory from the profile", async () => {
     await placeOrder(clients, who, "owner", body());
     expect(state.submit).toHaveBeenCalledWith(client, who, expect.objectContaining({ kind: "run", factoryProfileId: "knitwright-default", sizes: { S: 20, M: 40 }, flags: [], requestKey: "abcdefgh" }));
+  });
+  it("refuses a fabric the factory profile does not list (security review L7)", async () => {
+    await expect(placeOrder(clients, who, "owner", body({ fabricKey: "x".repeat(100) }))).rejects.toMatchObject({ code: "invalid_input", message: UNKNOWN_FABRIC });
+    expect(state.submit).not.toHaveBeenCalled();
   });
   it("refuses a viewer before anything else", async () => {
     await expect(placeOrder(clients, who, "viewer", body())).rejects.toMatchObject({ code: "forbidden" });

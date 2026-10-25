@@ -76,6 +76,17 @@ describe("createSubmission", () => {
     expect(calls[0]!.args.p_snapshot).toMatchObject({ typeId: "team-jersey" });
   });
 
+  it("keeps no id of the brand's own files in the submitted snapshot", async () => {
+    const art = (source: unknown) => ({
+      id: "a1", name: "Crest", provenance: "brand-supplied", rotationDegrees: 0, source,
+      panelId: "body-front", anchor: "left-chest", offsetX: 0, offsetY: 0, width: 100, height: 100, technique: "sublimation",
+    });
+    const withFile = { ...spec, artwork: [art({ kind: "file", fileId: A })] };
+    const { client, calls } = writes({ data: A, error: null });
+    await createSubmission(client, member(withFile), B, input);
+    expect(JSON.stringify(calls[0]!.args.p_snapshot)).not.toContain(A);
+  });
+
   it("refuses a design the member cannot see, and one that cannot be read as a design", async () => {
     await expect(createSubmission(writes().client, member(spec, null), B, input)).rejects.toMatchObject({ code: "not_found" });
     await expect(createSubmission(writes().client, member({ not: "a design" }), B, input)).rejects.toMatchObject({ code: "invalid_input" });

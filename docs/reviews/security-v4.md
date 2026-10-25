@@ -91,3 +91,28 @@ Fix: column-level grants. Status: open.
 
 Artwork-intake PDF and SVG parsers beyond confirming SVG is never stored; they use the service client with explicit `brand_id`
 filters in `lib/artwork-intake/service.ts` and have no RLS backup. Designer submission files and design-comment attachments do not exist in this tree.
+
+## Fixed in the follow-up (application)
+
+Branch `fix/security-app-v4`. Application code only; the database findings (M5, M6, M8, L8 to L13) are fixed by a separate migration
+and are listed in that routine's own section. Each fix below has a unit test that failed before it.
+
+| Finding | Status | What changed |
+|---|---|---|
+| M1 | Fixed | `newSubmissionAction` calls `requireAbility(session, "manageKit")`; `withoutFileIds` drops picture artwork (file ids) from the submitted snapshot. Text artwork stays. |
+| M2 | **Needs owner** | Not changed. Whether a `viewer` may spend credits is an owner decision. |
+| M3 | Fixed | `ensureStorageRoom` now adds the size of `_private/<brand>/` (`lib/storage/private-usage.ts`, summed from the storage listing) to `brand_storage_used`. The media route reserves `MEDIA_SET_RESERVE_BYTES` (12 MB), not 1 byte; the clip route checks `MAX_CLIP_BYTES` (30 MB) before starting. Cost: one storage listing per check. |
+| M4 | Fixed | `emptyBrandFolders` also empties `_private/<brandId>` in the `images` bucket. Unit test uses the existing fake client. |
+| M5, M6, M8 | Not changed here | Database side, fixed by the migration routine. |
+| M7 | Fixed | `defineRoute` takes an optional `authorize` that runs after the rate limit and before the body is read; the ops pattern-file route uses it for the platform-admin check. |
+| L1 | Fixed | `LIMITS.validationWrite` (60 per 10 minutes) on the validation POST; `LIMITS.variantsRender` (30 per 10 minutes) on the variants GET. |
+| L2 | Fixed | Postgres `details` removed from the logged fields of a database error. |
+| L3 | Fixed | `PHOTOROOM_API_KEY`, `FASHN_API_KEY`, `GOOGLE_VERTEX_*`, `LIFESTYLE_*` and `MEDIA_VIDEO_LIVE` are optional entries in `lib/config/env.ts`, read through `getEnv()`, and documented in `.env.example`. |
+| L4 | Fixed | `x-content-type-options: nosniff` on the media item and video responses. |
+| L5 | Fixed in part; **needs owner** for the default | The default is unchanged. A production server that starts with `CREDITS_ENFORCED` unset logs a warning, and `docs/launch-checklist.md` says to set it on purpose. |
+| L6 | Fixed | The fal video download is read in pieces and stops at `MAX_CLIP_BYTES` even when `content-length` is absent. |
+| L7 | Fixed | `placeOrder` refuses a `fabricKey` the factory profile does not list. |
+| L8 to L13 | Not changed here | Database side. |
+| L14 | Fixed | Optional `ASSISTANT_SIGNING_KEY` (32 characters or more); without it the key is derived from `SUPABASE_SECRET_KEY` as before, so existing proposals stay valid. |
+| L15 | Fixed | `tests/architecture/ops-access.test.ts` also checks every platform-only action in `lib/pattern-service`, `lib/designers`, `lib/settings`, and the ops pattern-file route (guard before the body). A new action there must be listed as a member's own or carry a guard. |
+| L16 | **Needs owner** | Not changed. Inherent to a visible watermark. |

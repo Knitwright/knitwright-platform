@@ -97,6 +97,7 @@ export function createFakeAdmin(): FakeAdmin {
           objects.set(`${bucket}/${path}`, bytes);
           return { error: null };
         },
+        list: async () => ({ data: [], error: null }),
         remove: async (paths: string[]) => {
           if (failures.delete("remove")) throw new Error("storage down");
           for (const path of paths) objects.delete(`${bucket}/${path}`);

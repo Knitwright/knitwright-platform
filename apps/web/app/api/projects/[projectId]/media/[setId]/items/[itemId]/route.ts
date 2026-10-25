@@ -26,6 +26,7 @@ export const GET = defineRoute({
       headers: {
         "content-type": served.contentType,
         "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
         "x-media-watermarked": String(served.watermarked),
         "content-disposition": `inline; filename="knitwright-${input.params.itemId}${served.watermarked ? "-preview" : ""}.png"`,
       },

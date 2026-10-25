@@ -43,6 +43,11 @@ export type RouteConfig<A extends Auth, S extends RouteSchemas, T> = Readonly<{
    * may answer null for a request that makes no paid call.
    */
   cost?: A extends "member" ? RouteCost<InputOf<S>> : never;
+  /**
+   * Runs after the session and rate limit and before the body is read, so a route that is not for this person can
+   * refuse without buffering what they sent. Throw to refuse.
+   */
+  authorize?: (context: { session: SessionFor<A>; request: Request }) => Promise<void>;
   handler: (context: {
     input: InputOf<S>;
     session: SessionFor<A>;
@@ -146,6 +151,8 @@ export const createDefineRoute =
               : {};
           return refuse(admission.failure, retry);
         }
+
+        await config.authorize?.({ session: admission.session, request });
 
         const parsed = await parseInput(
           config.schema,

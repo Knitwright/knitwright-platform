@@ -67,6 +67,17 @@ describe("emptyBrandFolders", () => {
     expect(fake.objects("images")).toEqual([]);
   });
 
+  it("also empties the brand's clean pictures and videos under _private/, and no other brand's", async () => {
+    const fake = fakeClient({
+      objects: {
+        images: [`${BRAND}/render/c.png`, `_private/${BRAND}/media/clean.png`, `_private/${BRAND}/video/t.mp4`, `_private/${OTHER}/media/z.png`],
+      },
+    });
+
+    expect(await emptyBrandFolders(fake.client, [BRAND])).toBe(3);
+    expect(fake.objects("images")).toEqual([`_private/${OTHER}/media/z.png`]);
+  });
+
   it("looks in every bucket that holds brand files", () => {
     expect(BUCKETS).toEqual(["uploads", "images", "exports"]);
   });
