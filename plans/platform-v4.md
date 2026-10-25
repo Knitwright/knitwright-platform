@@ -682,3 +682,112 @@ in under 3 minutes") as unmeasured until real keys exist.
 | `20261027020000_platform_settings.sql` | W3-F |
 
 W3-B, C, D and E add no migration (they use W3-A's tables).
+
+
+---
+
+# Wave 4 (platform breadth) and wave 5 (review and hardening)
+
+The Store and the Sell storefronts stay out of scope (the owner builds them). Waves 1 to 3 are merged except W3-E. The "Lessons from wave 1" section above and the wave 3 rules (stubs only, no live paid calls, protect the club's marks) apply to every agent below. Decision records 0060 to 0069.
+Wave 4 runs in two batches so CI capacity is not exhausted: batch 1 is W4-A, W4-B, W4-C; batch 2 is W4-D, W4-E, W4-F.
+
+## W4-A. Pattern service request (spec stage 6: non-catalogue garments)
+
+**Goal.** Spec: for non-catalogue garments v1 does not generate patterns; a "pattern service" request sends the design and tech pack to the Sialkot team, who draft in CLO and return files within five working days as a paid service.
+
+**Owns.** `apps/web/lib/pattern-service/**`, `apps/web/app/(app)/studio/[projectId]/pattern-service/**`, `apps/web/app/api/projects/[projectId]/pattern-service/**`, additions under `apps/web/app/(ops)/ops/pattern-requests/**` and `apps/web/components/ops/**`, migration `20261028010000_pattern_service.sql`, decision 0060.
+
+**Do.** Read the pattern library (`lib/pattern-library`, decisions 0029 and 0037, the "No pattern yet" slots), the tech pack snapshot code, the ops console patterns (decisions 0043 and 0050), the settings console (`lib/settings`, decision 0056) and credits (decision 0044).
+1. A `pattern_requests` table: brand-scoped, one per design version, with status (requested, accepted, in_progress, delivered, declined), the frozen design and tech pack snapshot hash, a quoted price and turnaround copied from settings at request time (new settings keys `pattern_service.price_credits` and `pattern_service.turnaround_working_days`, defaults not-set and labelled), append-only history. RLS: members read their brand's requests, platform admins read all, writes only through service functions.
+2. A "Request a pattern" action on a design whose article has no pattern block; shows price and turnaround from settings (or "Knitwright will confirm the price") and what is sent. Spends credits through the credits gate only when a price is set.
+3. Ops screen: a queue for platform admins to accept, mark in progress, decline with a reason, and attach delivered DXF files (reuse the pattern source file kind `pattern-source`, decision 0028 file kinds) which then show on the design as "Pattern from the Sialkot team, not reviewed by a technician" unless the reviewer flow marks them reviewed.
+4. Notify nobody by email yet (no mailer decision); the brand sees status in the app.
+
+**Done when.** db tests, unit tests (transitions, snapshot hash, price copy), e2e (request, ops accepts and delivers, brand sees files).
+
+## W4-B. Designer templates and royalty ledger (spec: designer role)
+
+**Goal.** Spec: designers build templates for clubs or brands and earn a royalty per unit ordered. Wave 1 reserved a disabled `designer` template source.
+
+**Owns.** `apps/web/lib/designers/**`, `apps/web/app/(app)/designer/**`, additions under `apps/web/app/(admin)/admin/templates/**`, `apps/web/components/designers/**`, migration `20261028020000_designers.sql`, decision 0061. Minimal edits to `lib/templates` to enable the `designer` source.
+
+**Do.** Read decision 0041 and `lib/templates`, the review flow patterns, release and order code (`lib/releases`, `lib/ops`) for where an order references a design.
+1. A designer profile on a user (opt-in), `template_submissions` (a design version offered as a template with title, sport, article, tags; status draft, submitted, approved, rejected with a reason), admin review at `/admin/templates`, and on approval a row in `templates` with source `designer` and the designer's attribution.
+2. **Royalty ledger** (append-only): when a design created from a designer template is later released into an order, record an accrual per unit (units from the release roster counts; rate from settings key `designer.royalty_per_unit`, default not-set, so nothing accrues until the owner sets it and the UI says so). The ledger shows per designer: units, accrued, and a payout state field the owner updates by hand. NO payouts, no payments, no Stripe.
+3. A designer dashboard: submissions with status, templates live, units ordered, accrued royalty.
+4. Rights: a submission must carry a rights attestation (the designer holds the rights to every artwork in it), stored with the submission; admin can reject without it. Names and personal data of rosters are never exposed to the designer (only unit counts).
+
+**Done when.** db tests (RLS, append-only ledger, designers see only their rows), unit tests (accrual idempotent per release, zero when rate unset), e2e (submit, admin approves, template appears with attribution).
+
+## W4-C. Brand workspace: product list and brand runs (spec: small brands)
+
+**Goal.** Spec: a small brand's workspace works like a club's with a brand kit and a product list instead of rosters; brand runs of 50 to 300 pieces take a size breakdown instead of a roster, offer a paid sample first, and price by quantity.
+
+**Owns.** `apps/web/lib/brand-runs/**`, `apps/web/app/(app)/brand/**` (new route group for the brand workspace screens; do not edit `app/(app)/brands`), `apps/web/components/brand-runs/**`, migration `20261028030000_brand_runs.sql`, decision 0062.
+
+**Do.** Read V4's club workspace (decision 0042, `lib/clubs`), the brand kit fields, releases and the ops submission function `submit_order_for_production` (decision 0043), the factory profile price ladder (not set: do not invent prices).
+1. A product list: products are designs a brand marks as products, with a name, a status (idea, sample, run) and the design version in use.
+2. A size breakdown for a run: quantities per size per article validated against the size run and the factory profile MOQ and quantity tiers (not-set prices show "Knitwright will quote"); a run quantity under the MOQ or over 300 is flagged.
+3. A paid-sample flow: a run can start as a sample order of one piece per chosen size; the sample is a release like any other, linked to the product, and the product moves to "sample" then "run" only when the brand confirms.
+4. Hand the run to ops through `submit_order_for_production` using only its documented contract; do not change ops.
+5. UI: a one-screen workspace (product list, run builder). Same design language as the club workspace.
+
+**Done when.** db tests (RLS across two brands), unit tests (breakdown validation, MOQ/tier flags, sample to run transition), e2e (create product, size breakdown, sample, see it in the ops queue).
+
+## W4-D. Design comments (collaboration view)
+
+**Goal.** Comments on a design for committees and collaborators, anchored to a version and optionally to a panel or a point.
+
+**Owns.** `apps/web/lib/comments/**`, `apps/web/components/comments/**`, `apps/web/app/api/projects/[projectId]/comments/**`, migration `20261028040000_design_comments.sql`, decision 0063; one new tool entry in the workspace tool list.
+
+**Do.** Read the share links and committee votes (decision 0026, `lib/share`), club roles (decision 0042), the workspace tool registry.
+1. `design_comments`: brand members only (roles: viewer may read and comment, kit manager and admin may resolve); threads with replies, a resolved state, an anchor (version, optional panel id, optional x and y in mm), edit and delete within a window by the author; append-only edit history; comment text is cleaned like player names (`lib/orders/text`); length caps and a rate limit.
+2. Mentions of members of the same brand only. No email yet; the mention shows as an in-app count on the design.
+3. UI: a "Comments" tool in the workspace with the thread list, an add-comment box, panel anchoring from a selected panel, and resolve.
+4. Deleting a design or a brand erases its comments through the existing deletion path.
+
+**Done when.** db tests (RLS, no cross-brand reads), unit tests, an e2e (comment, reply, resolve, a member of another brand cannot see it).
+
+## W4-E. Phone layout and accessibility pass
+
+**Goal.** The redesign's remaining item: a dedicated phone layout pass and an accessibility audit of the key screens (spec: usable on a phone; player or parent checkout is the Store, but kit managers use the Studio on phones too).
+
+**Owns.** Presentational edits across `apps/web/components/**` and `apps/web/app/**/*.tsx` limited to layout, spacing, labels and focus handling (no behaviour or data changes), `apps/web/e2e/mobile.spec.ts`, `apps/web/e2e/accessibility.spec.ts`, decision 0064.
+
+**Do.** Add `@axe-core/playwright` (MIT; pin an exact version at least two weeks old; run `pnpm audit --prod --audit-level high`) as a dev dependency.
+1. An e2e that signs in and visits studio home, a design in the editor, the factory file, templates, club workspace, credits and (as an admin) ops at a 390 by 844 viewport and asserts no horizontal scroll, tap targets at least 40 px, and no axe violations of impact serious or critical.
+2. Fix what it finds, smallest change first, in presentational code only; if a fix needs behaviour, record it in the decision record as a follow-up instead.
+3. Keyboard: every dialog and tool panel traps and returns focus correctly; add tests for any you fix.
+4. Report measured first-load JavaScript per route from `next build` in the decision record, and flag the heaviest three.
+
+**Done when.** Both specs pass in CI, the decision record lists what was fixed and what is left.
+
+## W4-F. Two-click reorder with sizes pre-filled
+
+**Goal.** Spec: reorder from any past order in two clicks, with sizes pre-filled from the roster; saved sizes per player pre-fill next season.
+
+**Owns.** `apps/web/lib/clubs/reorder/**`, `apps/web/components/club/reorder/**`, `apps/web/app/api/club/reorder/**`, decision 0065.
+
+**Do.** Read `lib/releases/reorder.ts` (frozen release rebuild and hash comparison, decision 0032), V4 (`lib/clubs`, decision 0042), `lib/orders` and `team_orders`.
+1. From the club order history, "Reorder" creates a new team order for the same design version with the roster of the chosen season (or the previous order's roster), sizes taken from the saved player sizes, leaving anything that no longer exists (a size removed, a player left) as an explicit line to fix instead of silently dropping it.
+2. The result goes through validation (V1) and shows the existing reorder report (what would print differently and why).
+3. Two clicks means: Reorder, then Confirm on a review screen that lists changes; no form to fill when nothing changed.
+
+**Done when.** Unit tests for the roster mapping and the report, e2e (reorder in two clicks, a removed size flagged).
+
+## W5. Review and hardening (starts after wave 4 merges)
+
+One agent per item; each opens a PR with fixes and a report.
+- **W5-A security review of everything built in waves 1 to 4**: every new table's RLS and grants against `tests/integration/isolation.test.ts`, every route's guard, file serving (watermark and unlock cannot be bypassed), input validation, rate limits, secrets, dependency audit; report at `docs/reviews/security-v4.md`, fix CRITICAL and HIGH with tests.
+- **W5-B code review and cleanup**: files over 800 lines, functions over 50 lines, dead code, duplicated helpers, wording-test compliance; report at `docs/reviews/code-v4.md`, fix HIGH items only.
+- **W5-C journey tests and coverage**: one end-to-end journey for each role (club kit manager from template to a shipped order through ops; brand run; designer submission), overall coverage at least 80% with gap tests; report at `docs/reviews/coverage-v4.md`.
+- **W5-D documentation**: README and architecture map, an owner guide for the settings console and the questionnaire answers, an ops runbook, the decision index, the launch checklist update.
+
+## Migration timestamps (assigned)
+
+| File | Workstream |
+|---|---|
+| `20261028010000_pattern_service.sql` | W4-A |
+| `20261028020000_designers.sql` | W4-B |
+| `20261028030000_brand_runs.sql` | W4-C |
+| `20261028040000_design_comments.sql` | W4-D |
