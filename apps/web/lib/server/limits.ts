@@ -69,6 +69,9 @@ export const LIMITS = {
   // The same answers per link, whatever the address, so many addresses cannot flood one design.
   // Counted in lib/share/respond.ts, inside the action.
   shareRespondLink: { name: "share-respond-link", limit: 60, windowSeconds: 10 * MINUTE },
+  // Design comments (decision 0063). The database holds a second, per-person limit.
+  commentWrite: { name: "comment-write", limit: 30, windowSeconds: 10 * MINUTE },
+  commentChange: { name: "comment-change", limit: 60, windowSeconds: 10 * MINUTE },
   // Production outputs (plans/production-outputs.md). Pattern uploads and measuring read and parse files.
   patternLibrary: { name: "pattern-library", limit: 30, windowSeconds: 10 * MINUTE },
   fabricWrite: { name: "fabric-write", limit: 60, windowSeconds: 10 * MINUTE },

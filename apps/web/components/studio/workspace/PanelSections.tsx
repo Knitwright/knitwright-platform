@@ -3,8 +3,10 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { panelsFor } from "@/lib/garment";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { SectionId } from "@/lib/workspace/tools";
+import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { MediaScreen } from "@/components/media/screen/MediaScreen";
 import { VariantsPanel } from "@/components/variants/VariantsPanel";
 import { ProductionPanel } from "@/components/production/ProductionPanel";
@@ -132,6 +134,8 @@ function sectionBody(section: SectionId, context: SectionContext): ReactNode {
       return <LabellingSummary projectId={data.projectId} spec={data.spec} />;
     case "variants":
       return <VariantsPanel projectId={data.projectId} version={data.version} busy={editor.busy} />;
+    case "comments":
+      return <CommentsPanel projectId={data.projectId} version={data.version} panels={panelsFor(data.spec).map((p) => ({ id: p.id, label: p.label }))} />;
     case "media":
       return <MediaScreen projectId={data.projectId} />;
     case "history":

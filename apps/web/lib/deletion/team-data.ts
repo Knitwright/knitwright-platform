@@ -32,4 +32,10 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "ops_pack_bags", holds: "no names: the position of a line in the team list, a size and a count", erasableAlone: false },
   { table: "ops_cartons", holds: "no names: a carton's weight and size as typed by ops", erasableAlone: false },
   { table: "ops_shipments", holds: "no names of players: courier, tracking number and a free-text note", erasableAlone: false },
+  // Design comments (plan W4-D, decision 0063). A comment goes with its design, and so with its brand. The words can name
+  // people, so the earlier words and the mentions go with the comment too; an author who removes a comment that has replies
+  // empties it, and its earlier words and mentions go at once.
+  { table: "design_comments", holds: "comment text that may name people, and the author's id", erasableAlone: false },
+  { table: "design_comment_edits", holds: "the earlier words of a changed comment", erasableAlone: false },
+  { table: "design_comment_mentions", holds: "the ids of members a comment names", erasableAlone: false },
 ];

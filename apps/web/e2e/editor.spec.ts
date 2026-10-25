@@ -441,7 +441,7 @@ test.describe("the one-screen workspace", () => {
     await signedIn(page, "workspace-keys");
     await startDesign(page, "Crew neck tee");
     const tools = page.getByRole("tablist", { name: "Tools" });
-    await expect(tools.getByRole("tab")).toHaveText(["Garment", "Colours", "Sizes", "Fabric", "Logos", "Names", "Labels", "Ideas", "Media", "History"]);
+    await expect(tools.getByRole("tab")).toHaveText(["Garment", "Colours", "Sizes", "Fabric", "Logos", "Names", "Labels", "Ideas", "Comments", "Media", "History"]);
 
     await tools.getByRole("tab", { name: "Garment" }).focus();
     await page.keyboard.press("ArrowDown");
