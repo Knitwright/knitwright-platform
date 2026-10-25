@@ -21,7 +21,16 @@ function sources(folder: string): string[] {
 }
 
 /** Modules a file imports for their values (type-only imports load nothing), written from the app root. */
+const importsOf = new Map<string, string[]>();
 function valueImports(path: string): string[] {
+  const known = importsOf.get(path);
+  if (known) return known;
+  const found = readValueImports(path);
+  importsOf.set(path, found);
+  return found;
+}
+
+function readValueImports(path: string): string[] {
   const source = parse({ path, text: readFileSync(join(ROOT, path), "utf8") });
   return source.statements.flatMap((statement) => {
     if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) return [];
@@ -40,23 +49,26 @@ const THREE_D = /^(three|three\/.*|delaunator|lib\/garment3d\/(mesh|triangulate)
 const FOLDERS_3D = ["lib/garment3d/", "components/garment3d/", "lib/gltf/", "components/gltf/"];
 const inside3d = (path: string): boolean => FOLDERS_3D.some((folder) => path.startsWith(folder));
 
+// Each check reads and parses every file of the app, which takes several seconds on a loaded runner with coverage on.
+const SCAN_MS = 30_000;
+
 describe("3D code is loaded only when the 3D view is opened", () => {
   const files = FOLDERS.flatMap(sources);
 
   it("is imported only from the 3D folders", () => {
     const offenders = files.filter((path) => !inside3d(path) && valueImports(path).some((module) => THREE_D.test(module)));
     expect(offenders).toEqual([]);
-  });
+  }, SCAN_MS);
 
   it("keeps three.js in one file for each 3D viewer", () => {
     const users = files.filter((path) => valueImports(path).some((module) => /^three(\/|$)/.test(module)));
     expect(users).toEqual(["components/garment3d/scene.ts", "components/gltf/scene.ts"]);
-  });
+  }, SCAN_MS);
 
   it("keeps the glTF library free of three.js, so the pipeline runs on the server and in tests", () => {
     const offenders = files.filter((path) => path.startsWith("lib/gltf/") && valueImports(path).some((module) => /^three(\/|$)/.test(module)));
     expect(offenders).toEqual([]);
-  });
+  }, SCAN_MS);
 
   it("is reached from the editor through a dynamic import", () => {
     const text = readFileSync(join(ROOT, "components/studio/Preview3D.tsx"), "utf8");

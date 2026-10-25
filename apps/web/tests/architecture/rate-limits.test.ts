@@ -69,6 +69,9 @@ describe("checkRateLimits", () => {
   });
 });
 
+// Reading and parsing every file of the app takes several seconds on a loaded runner with coverage on.
+const SCAN_MS = 30_000;
+
 describe("the app's routes and actions", () => {
   const files = appFiles();
   const calls = wrapperCalls(files);
@@ -84,7 +87,7 @@ describe("the app's routes and actions", () => {
 
   it("each name a rate limit from lib/server/limits.ts", () => {
     expect(checkRateLimits(files, Object.keys(LIMITS))).toEqual([]);
-  });
+  }, SCAN_MS);
 
   // The paid and costly routes added after step 9 each keep their own rule, so a copy-paste of
   // a cheaper one is caught. Integration of steps 12, 13, 14, 25 and 26.
