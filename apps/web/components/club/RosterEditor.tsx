@@ -113,7 +113,7 @@ export function RosterEditor({ seasonId, canEdit }: Props) {
           <Button variant="secondary" type="button" onClick={() => { setRows([...rows, blank()]); setDirty(true); }}>Add a player</Button>
           <div className="flex flex-col gap-1">
             <label htmlFor={fileId} className="text-sm font-medium text-ink">Read players from a CSV file</label>
-            <input id={fileId} type="file" accept=".csv,text/csv" className="text-sm text-ink-2" onChange={(e) => void importCsv(e.target.files?.[0])} />
+            <input id={fileId} type="file" accept=".csv,text/csv" className="min-h-10 text-sm text-ink-2" onChange={(e) => void importCsv(e.target.files?.[0])} />
           </div>
           <Button type="button" pending={busy} disabled={!dirty} onClick={() => void save()}>Save roster</Button>
         </div>

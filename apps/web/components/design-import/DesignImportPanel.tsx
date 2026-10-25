@@ -91,7 +91,7 @@ export function DesignImportPanel() {
       {state.stage === "idle" || state.stage === "failed" || state.stage === "done" ? (
         <label className="flex flex-col gap-1 text-sm font-medium text-ink">
           Choose a picture
-          <input type="file" accept="image/png,image/jpeg,image/webp" disabled={!rights} onChange={(event) => void choose(event.target.files?.[0])} className="text-sm" />
+          <input type="file" accept="image/png,image/jpeg,image/webp" disabled={!rights} onChange={(event) => void choose(event.target.files?.[0])} className="min-h-10 text-sm" />
         </label>
       ) : null}
       {busy ? (

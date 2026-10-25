@@ -39,7 +39,7 @@ export function ImportBox({ projectId, onRows }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={inputId} className="text-sm font-medium text-ink">Read a team list from a CSV file</label>
-      <input id={inputId} type="file" accept=".csv,text/csv" disabled={busy} onChange={(e) => void read(e.target.files?.[0])} className="text-sm text-ink-2" />
+      <input id={inputId} type="file" accept=".csv,text/csv" disabled={busy} onChange={(e) => void read(e.target.files?.[0])} className="min-h-10 text-sm text-ink-2" />
       <p className="text-[13px] text-muted">One row for each player, with columns for name, number and size. Cut and shirts are optional. Nothing is saved until you press Save.</p>
       {busy ? <Button variant="quiet" pending disabled>Reading</Button> : null}
       {note ? (
