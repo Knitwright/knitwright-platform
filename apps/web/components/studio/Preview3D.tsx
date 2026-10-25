@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import type { FlatPreviewData } from "@/lib/projects/flat-preview";
+import TurntableControl from "@/components/media/video/TurntableControl";
 import { CLOSE_LABEL, LOADING_LABEL, OPEN_LABEL } from "@/lib/garment3d/viewer";
 
 // The 3D code (three.js and the form builder) is fetched only when a person opens the view.
@@ -27,6 +28,7 @@ export function Preview3D({ flat }: Readonly<{ flat: FlatPreviewData }>) {
       {open ? (
         <div className="mt-3">
           <GarmentViewer shape={flat.shape} pictures={pictures} />
+          <TurntableControl />
         </div>
       ) : null}
     </div>
