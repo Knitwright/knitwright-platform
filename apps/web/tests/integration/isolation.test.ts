@@ -779,6 +779,50 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, kind: "grant", amount: 5, idempotency_key: randomUUID() }),
     change: { amount: 99 },
   },
+  // Plan W3-A (decision 0054): media sets, their items and their history. A member reads; only the server writes, through functions.
+  media_sets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const started = must(
+        await adminClient().rpc("media_set_start", { p_brand_id: brandId, p_project_id: projectId, p_user_id: ownerId, p_version: 1, p_version_hash: `seed-${randomUUID()}` }),
+      ) as { id: string };
+      return { id: started.id };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), version: 1, version_hash: randomUUID(), created_by: userId }),
+    change: { status: "succeeded", unlocked_at: "2026-01-01T00:00:00Z" },
+  },
+  media_items: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const started = must(
+        await adminClient().rpc("media_set_start", { p_brand_id: brandId, p_project_id: projectId, p_user_id: ownerId, p_version: 1, p_version_hash: `seed-${randomUUID()}` }),
+      ) as { id: string };
+      must(await adminClient().rpc("media_set_move", { p_set_id: started.id, p_from: ["queued"], p_to: "running" }));
+      const id = must(
+        await adminClient().rpc("media_item_put", { p_set_id: started.id, p_kind: "studio_render", p_view: "front", p_file_id: null, p_clean_path: `_private/${brandId}/${started.id}/studio_render-front.png`, p_width: 10, p_height: 10, p_provider: "knitwright-flat", p_cost_microdollars: 0, p_verdict: "not_checked" }),
+      ) as string;
+      return { id };
+    },
+    attempt: (brandId) => ({ set_id: randomUUID(), brand_id: brandId, kind: "studio_render", view: "front" }),
+    change: { checker_verdict: "passed", clean_path: "_private/x/y.png" },
+  },
+  media_set_history: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const started = must(
+        await adminClient().rpc("media_set_start", { p_brand_id: brandId, p_project_id: projectId, p_user_id: ownerId, p_version: 1, p_version_hash: `seed-${randomUUID()}` }),
+      ) as { id: string };
+      return { set_id: started.id, status: "queued" };
+    },
+    attempt: (brandId) => ({ set_id: randomUUID(), brand_id: brandId, status: "queued" }),
+    change: { note: "Changed by a stranger" },
+  },
   club_invitations: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1049,6 +1093,30 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
     change: { tracking_number: "changed" },
+  },
+  // Platform settings console (decision 0056): no browser role reads or writes either table. Only the server's key reads them and
+  // platform_setting_set writes them.
+  platform_settings: {
+    privileges: [],
+    seed: async () => {
+      const admin = await person("settings-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      must(await adminClient().rpc("platform_setting_set", { p_actor: admin.userId, p_key: "isolation.settings_row", p_value: 7 }));
+      return { key: "isolation.settings_row" };
+    },
+    attempt: () => ({ key: "isolation.made_directly", value: 1 }),
+    change: { value: 99 },
+  },
+  platform_settings_history: {
+    privileges: [],
+    seed: async () => {
+      const admin = await person("settings-history-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      must(await adminClient().rpc("platform_setting_set", { p_actor: admin.userId, p_key: "isolation.history_row", p_value: 7 }));
+      return { key: "isolation.history_row" };
+    },
+    attempt: () => ({ key: "isolation.made_directly", value: 1 }),
+    change: { value: 99 },
   },
   platform_admins: {
     privileges: [],

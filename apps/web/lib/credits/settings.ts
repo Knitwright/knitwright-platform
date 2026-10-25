@@ -23,3 +23,10 @@ export const CREDIT_SETTINGS = {
 
 export const PLACEHOLDER_NOTICE =
   "These are placeholder numbers, not a price. The owner has not set what credits cost or how many each brand gets.";
+
+/** The shape of the credit numbers, so a stored override can take the place of CREDIT_SETTINGS (lib/settings). */
+export interface CreditSettingsShape {
+  readonly isPlaceholder: boolean;
+  readonly prices: Record<OutputKind, number>;
+  readonly monthlyAllowance: number;
+}

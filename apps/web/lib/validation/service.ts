@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { designStatusSchema, type DesignStatus } from "@/lib/production/contract";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
-import { defaultFactoryProfile, factoryProfileSchema, type FactoryProfile } from "./profile";
+import { DEFAULT_PROFILE_LABEL, defaultFactoryProfile, factoryProfileSchema, type FactoryProfile } from "./profile";
 import { DRAFT, type StatusRecord } from "./status";
 
 export const DEFAULT_PROFILE_ID = "knitwright-default";
@@ -15,11 +15,26 @@ const profileRow = z.object({ id: z.string(), profile: z.unknown() });
  * registry each time, so a new garment is listed without a migration. Any other row is read as stored.
  */
 export async function loadFactoryProfile(client: SupabaseClient, id: string = DEFAULT_PROFILE_ID): Promise<FactoryProfile> {
-  if (id === DEFAULT_PROFILE_ID) return defaultFactoryProfile();
+  if (id === DEFAULT_PROFILE_ID) return withOwnerTerms(client, defaultFactoryProfile());
   const { data, error } = await client.from("factory_profiles").select("id, profile").eq("id", id).maybeSingle();
   if (error) throw new AppError("internal", MESSAGES.internal, undefined, { cause: error });
   if (!data) throw new AppError("not_found", "That factory profile does not exist.");
   return factoryProfileSchema.parse(profileRow.parse(data).profile);
+}
+
+/**
+ * The default profile with the terms a platform admin set in the settings console (lib/settings) laid over it. The
+ * console keeps the result in the seeded row; while that row still carries the default label, or cannot be read,
+ * the in-code default is used unchanged. The article list always comes from the registry, so a new garment appears
+ * without a migration.
+ */
+async function withOwnerTerms(client: SupabaseClient, base: FactoryProfile): Promise<FactoryProfile> {
+  const { data, error } = await client.from("factory_profiles").select("id, profile").eq("id", DEFAULT_PROFILE_ID).maybeSingle();
+  if (error || !data) return base;
+  const stored = factoryProfileSchema.safeParse(profileRow.parse(data).profile);
+  if (!stored.success || stored.data.label === DEFAULT_PROFILE_LABEL) return base;
+  const moq = new Map(stored.data.articles.map((a) => [a.typeId, a.moq]));
+  return { ...stored.data, articles: base.articles.map((a) => ({ ...a, moq: moq.get(a.typeId) ?? a.moq })) };
 }
 
 const statusRow = z.object({
