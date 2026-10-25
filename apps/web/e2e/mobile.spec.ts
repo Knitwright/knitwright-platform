@@ -38,6 +38,12 @@ const smallTargets = (page: Page): Promise<string[]> =>
     for (const element of document.querySelectorAll<HTMLElement>(selector)) {
       const style = getComputedStyle(element);
       if (style.visibility === "hidden" || style.display === "none" || element.closest("[hidden], [inert]")) continue;
+      // The content of a closed disclosure (the phone menu) cannot be touched; its summary can.
+      const closed = element.closest("details:not([open])");
+      if (closed && !element.matches("summary") ) continue;
+      // A link whose ::after covers its card is touched anywhere on the card.
+      const after = getComputedStyle(element, "::after");
+      if (element instanceof HTMLAnchorElement && after.position === "absolute" && after.content !== "none") continue;
       const isCheck = element instanceof HTMLInputElement && (element.type === "checkbox" || element.type === "radio");
       const box = (isCheck ? element.closest("label") ?? element : element).getBoundingClientRect();
       if (box.width === 0 || box.height === 0) continue;
@@ -61,11 +67,11 @@ const checkPage = async (page: Page, path: string): Promise<void> => {
   await page.goto(path);
   await settled(page);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow, `${path} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
-  expect(await smallTargets(page), `${path}: tap targets under ${MIN_TARGET}px`).toEqual([]);
+  expect.soft(overflow, `${path} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
+  expect.soft(await smallTargets(page), `${path}: tap targets under ${MIN_TARGET}px`).toEqual([]);
   const { violations } = await new AxeBuilder({ page }).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
-  expect(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map((node) => node.target.join(" ")).join("; ")})`), `${path}: axe`).toEqual([]);
+  expect.soft(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map((node) => node.target.join(" ")).join("; ")})`), `${path}: axe`).toEqual([]);
 };
 
 const startDesign = async (page: Page): Promise<string> => {

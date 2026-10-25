@@ -13,10 +13,10 @@ export default async function OpsLayout({ children }: LayoutProps<"/">) {
       <header className="border-b border-hairline">
         <nav aria-label="Ops" className={`${pageFrame("content")} flex flex-wrap items-center gap-x-6 gap-y-2 py-3 text-sm`}>
           <span className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright ops</span>
-          <Link href="/ops" className="font-medium text-ink hover:underline">Batches</Link>
-          <Link href="/ops/exceptions" className="font-medium text-ink hover:underline">Exceptions</Link>
-          <Link href="/ops/pattern-requests" className="font-medium text-ink hover:underline">Pattern requests</Link>
-          <Link href="/ops/settings" className="font-medium text-ink hover:underline">Settings</Link>
+          <Link href="/ops" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Batches</Link>
+          <Link href="/ops/exceptions" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Exceptions</Link>
+          <Link href="/ops/pattern-requests" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Pattern requests</Link>
+          <Link href="/ops/settings" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Settings</Link>
         </nav>
       </header>
       <div className={`${pageFrame("content")} flex-1 py-8`}>{children}</div>

@@ -13,7 +13,7 @@ export async function BalanceChip({ brandId }: Readonly<{ brandId: string }>) {
   return (
     <Link
       href="/credits"
-      className="nav-pill shrink-0 rounded-full border border-white/12 px-3.5 py-1.5 text-sm text-ink-2"
+      className="nav-pill inline-flex min-h-10 shrink-0 items-center rounded-full border border-white/12 px-3.5 text-sm text-ink-2"
       data-testid="credit-balance"
     >
       <span className="sr-only">Credits: </span>
