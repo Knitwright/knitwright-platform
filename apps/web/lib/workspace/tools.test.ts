@@ -16,7 +16,7 @@ const ID = "6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11";
 
 describe("the tools of the design workspace", () => {
   it("puts one tool on the rail for each group of controls, in the order a design is usually made", () => {
-    expect(RAIL_TOOLS).toEqual(["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "variants", "history"]);
+    expect(RAIL_TOOLS).toEqual(["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "variants", "media", "history"]);
   });
 
   it("opens the share, photoreal and quote panels from the header, not the rail", () => {
