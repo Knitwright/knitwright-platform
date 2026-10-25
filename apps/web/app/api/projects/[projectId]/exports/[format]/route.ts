@@ -1,12 +1,13 @@
 import { recordDownload } from "@/lib/projects/export-record";
 import { serveExport } from "@/lib/projects/export-download";
 import { loadTechPackSource } from "@/lib/projects/tech-pack-load";
+import { withCredits, versionOf } from "@/lib/credits-gate/server";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { PRINT_MAX_EMBEDDED_BYTES } from "@/lib/techpack/exports/limits";
 import { shrinkForPrint } from "@/lib/techpack/exports/print-images";
-import { exportParamsSchema, rawQuerySchema } from "@/lib/techpack/exports/request";
+import { exportParamsSchema, exportQuerySchema, rawQuerySchema } from "@/lib/techpack/exports/request";
 
 /** No handler may rely on more than 60 seconds (decision 0002). An export takes a second or two. */
 export const maxDuration = 60;
@@ -20,7 +21,17 @@ export const GET = defineRoute({
   auth: "member",
   rateLimit: LIMITS.export,
   schema: { params: exportParamsSchema, query: rawQuerySchema },
-  handler: async ({ input, session }) => {
+  handler: withCredits(
+    {
+      // Only the full tech pack PDF costs credits; the Excel file and the drawings stay free.
+      kind: ({ input }) => (input.params.format === "pdf" ? "techpack_pdf" : null),
+      version: async ({ input, session }) => {
+        const query = exportQuerySchema(input.params.format).safeParse(input.query);
+        return query.success ? versionOf(session.brand.id, input.params.projectId, query.data.version) : null;
+      },
+      where: "GET /api/projects/[projectId]/exports/[format]",
+    },
+    async ({ input, session }) => {
     const client = await sessionClient();
     const { projectId, format } = input.params;
     return serveExport(
@@ -37,5 +48,6 @@ export const GET = defineRoute({
       },
       { projectId, format, query: input.query },
     );
-  },
+    },
+  ),
 });

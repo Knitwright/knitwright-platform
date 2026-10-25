@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PriceNote } from "@/components/credits/PriceNote";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { SelectField } from "@/components/ui/SelectField";
@@ -165,6 +166,7 @@ export function PatternSection({ projectId, sizes, currentVersion }: PatternSect
           <Button type="button" variant="secondary" disabled={asking || working} onClick={() => void ask("size-set")}>
             Make every size
           </Button>
+          <PriceNote kind="pattern_file" />
         </div>
       ) : null}
 

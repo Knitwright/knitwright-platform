@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { PriceNote } from "@/components/credits/PriceNote";
 import { useRemote } from "../orders/useRemote";
 import { ZoneOverlay } from "./ZoneOverlay";
 
@@ -52,6 +53,7 @@ export function PrintPanel() {
           Download print files (PDF and SVG)
         </a>
       ) : null}
+      <PriceNote kind="pattern_file" />
     </section>
   );
 }

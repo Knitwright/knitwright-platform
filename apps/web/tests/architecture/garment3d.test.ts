@@ -36,8 +36,9 @@ function valueImports(path: string): string[] {
   });
 }
 
-const THREE_D = /^(three|three\/.*|delaunator|lib\/garment3d\/(mesh|triangulate)|components\/garment3d\/.*)$/;
-const inside3d = (path: string): boolean => path.startsWith("lib/garment3d/") || path.startsWith("components/garment3d/");
+const THREE_D = /^(three|three\/.*|delaunator|lib\/garment3d\/(mesh|triangulate)|components\/(garment3d|gltf)\/.*)$/;
+const FOLDERS_3D = ["lib/garment3d/", "components/garment3d/", "lib/gltf/", "components/gltf/"];
+const inside3d = (path: string): boolean => FOLDERS_3D.some((folder) => path.startsWith(folder));
 
 describe("3D code is loaded only when the 3D view is opened", () => {
   const files = FOLDERS.flatMap(sources);
@@ -47,9 +48,14 @@ describe("3D code is loaded only when the 3D view is opened", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("keeps three.js in one file", () => {
+  it("keeps three.js in one file for each 3D viewer", () => {
     const users = files.filter((path) => valueImports(path).some((module) => /^three(\/|$)/.test(module)));
-    expect(users).toEqual(["components/garment3d/scene.ts"]);
+    expect(users).toEqual(["components/garment3d/scene.ts", "components/gltf/scene.ts"]);
+  });
+
+  it("keeps the glTF library free of three.js, so the pipeline runs on the server and in tests", () => {
+    const offenders = files.filter((path) => path.startsWith("lib/gltf/") && valueImports(path).some((module) => /^three(\/|$)/.test(module)));
+    expect(offenders).toEqual([]);
   });
 
   it("is reached from the editor through a dynamic import", () => {
