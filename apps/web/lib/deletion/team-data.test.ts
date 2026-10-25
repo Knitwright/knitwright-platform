@@ -5,7 +5,7 @@ import { PERSONAL_DATA_TABLES } from "./team-data";
 
 const MIGRATIONS = join(__dirname, "..", "..", "..", "..", "supabase", "migrations");
 const read = (name: string): string => readFileSync(join(MIGRATIONS, name), "utf8");
-const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}`;
+const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}\n${read("20261028040000_design_comments.sql")}`;
 
 /** The text of `create table public.<name> (...)` up to its closing line. */
 const tableBody = (name: string): string => {
@@ -59,5 +59,13 @@ describe("what holds people's names for production", () => {
     const club = read("20261025040000_club_workspace.sql");
     const created = [...club.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
     expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
+  });
+
+  it("every table the comments migration creates is listed here, and deleting a design deletes its comments", () => {
+    const comments = read("20261028040000_design_comments.sql");
+    const created = [...comments.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
+    expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
+    expect(comments).toMatch(/foreign key \(project_id, brand_id\) references public\.projects \(id, brand_id\) on delete cascade/);
+    expect(comments).toMatch(/foreign key \(comment_id, brand_id\) references public\.design_comments \(id, brand_id\) on delete cascade/);
   });
 });
