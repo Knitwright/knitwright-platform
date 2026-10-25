@@ -103,7 +103,7 @@ export function AssistantDock({ projectId, version, busy, assistant, layout, abo
             onClick={onToggleDock}
             aria-expanded={false}
             aria-controls="assistant-panel"
-            className="flex flex-col items-center gap-2 rounded-2xl px-1 py-2 text-[11px] text-ink-2 hover:text-ink"
+            className="flex min-h-10 flex-col items-center gap-2 rounded-2xl px-1 py-2 text-[11px] text-ink-2 hover:text-ink"
           >
             <span className="size-8 rounded-full bg-[linear-gradient(135deg,#b9c4ff,#ffd3e6_50%,#c7f0e4)]" aria-hidden="true" />
             Show assistant

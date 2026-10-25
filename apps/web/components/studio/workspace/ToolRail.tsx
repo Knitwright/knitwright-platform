@@ -62,7 +62,7 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
               aria-controls={panelId(id)}
               tabIndex={selected || (!onRail && index === 0) ? 0 : -1}
               onClick={() => onChoose(id)}
-              className={`group flex min-w-[4.25rem] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${
+              className={`group flex min-h-10 min-w-[4.25rem] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${
                 selected ? "bg-tile-2 text-white" : "text-chalk-muted hover:text-ink"
               }`}
             >
@@ -80,7 +80,7 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
         onClick={onAssistant}
         aria-expanded={assistantOpen}
         aria-controls="assistant-panel"
-        className="flex flex-none flex-col items-center gap-1.5 rounded-2xl px-2 py-2 text-[11px] text-ink-2 hover:text-ink lg:mt-auto xl:hidden"
+        className="flex min-h-10 flex-none flex-col items-center gap-1.5 rounded-2xl px-2 py-2 text-[11px] text-ink-2 hover:text-ink lg:mt-auto xl:hidden"
       >
         <span className="size-8 rounded-full bg-[linear-gradient(135deg,#b9c4ff,#ffd3e6_50%,#c7f0e4)]" aria-hidden="true" />
         Assistant

@@ -156,7 +156,7 @@ function RowTable({ grid, screen, onChange }: Omit<Props, "fileName">) {
               <td className="px-3 py-2">
                 <select
                   aria-label={`Point of measure for line ${row.line}`}
-                  className="h-9 rounded-md border border-hairline bg-surface px-2"
+                  className="h-10 rounded-md border border-hairline bg-surface px-2"
                   value={row.chosen ? (row.pointId ?? LEAVE_OUT) : AUTO}
                   onChange={(event) =>
                     onChange(setRowPoint(screen, row.line, event.target.value === LEAVE_OUT ? null : event.target.value))

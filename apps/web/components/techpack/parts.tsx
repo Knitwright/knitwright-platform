@@ -68,7 +68,7 @@ export function FillIn({ summary, children }: Readonly<{ summary: string; childr
   if (!children) return null;
   return (
     <details className="rounded-xl border border-hairline p-4">
-      <summary className="cursor-pointer text-[15px] font-medium text-ink">{summary}</summary>
+      <summary className="min-h-10 cursor-pointer text-[15px] font-medium text-ink">{summary}</summary>
       <div className="mt-4">{children}</div>
     </details>
   );

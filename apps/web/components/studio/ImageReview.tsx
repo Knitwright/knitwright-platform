@@ -96,7 +96,7 @@ export function ImageReview({ projectId, version, available, busy }: Props) {
             accept="image/png,image/jpeg,image/webp"
             disabled={!available || working || busy}
             onChange={(event) => void read(event.target.files?.[0])}
-            className="text-sm"
+            className="min-h-10 text-sm"
           />
         </label>
       </div>

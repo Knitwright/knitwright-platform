@@ -34,10 +34,15 @@ as its last item. This pass changes layout, spacing, labels and focus handling o
 - Factory file: Back link, journey steps, download buttons and the "things left" link 40 px; wide tables that scroll
   sideways are keyboard reachable regions with a name.
 - Editor: choice rows (radios) and the Delete design link are 40 px tall.
+- Every file picker under apps/web (artwork upload, logo or picture, image review, chart import, pattern request, and the
+  ones already done) is `min-h-10`; so are the other design-page controls that could be shorter than 40 px: tool rail and
+  assistant dock buttons, measurement helpers, history buttons and summaries, comment buttons and fields, variant and
+  chart-mapping controls, tech-pack summaries and the kit "remove" button.
 
 ## Left
 
 - Whatever the phone spec still reports after these fixes is listed in the PR comment; nothing is skipped or disabled.
+- The 5 s timeouts (garment3d, rate-limits, charts/container) and the 240 s print case2 timeout are runner flakes, re-run rather than edited.
 - Code splitting of the editor (see below) is a follow-up, not a presentational change.
 
 ## First-load JavaScript per route

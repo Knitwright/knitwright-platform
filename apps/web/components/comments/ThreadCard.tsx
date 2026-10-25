@@ -60,10 +60,10 @@ function Entry({ comment, viewer, members, nowMs, busy, actions }: EntryProps) {
       {names.length > 0 ? <p className="text-sm text-muted">Told: {names.join(", ")}</p> : null}
       {mayChange && !editing ? (
         <p className="flex gap-3 text-sm">
-          <button type="button" className="underline" onClick={() => setEditing(true)}>
+          <button type="button" className="min-h-10 underline" onClick={() => setEditing(true)}>
             Change
           </button>
-          <button type="button" className="underline" disabled={busy} onClick={() => actions.remove(comment.id)}>
+          <button type="button" className="min-h-10 underline" disabled={busy} onClick={() => actions.remove(comment.id)}>
             Remove
           </button>
         </p>
@@ -103,7 +103,7 @@ export function ThreadCard({ thread, panelLabel, ...rest }: Props) {
         />
       ) : null}
       {canResolve(viewer.role) && root.deletedAt === null ? (
-        <button type="button" disabled={busy} className="self-start rounded-full border border-hairline px-4 py-2 text-sm text-ink" onClick={() => actions.resolve(root.id, !thread.resolved)}>
+        <button type="button" disabled={busy} className="min-h-10 self-start rounded-full border border-hairline px-4 py-2 text-sm text-ink" onClick={() => actions.resolve(root.id, !thread.resolved)}>
           {thread.resolved ? "Open again" : "Mark resolved"}
         </button>
       ) : null}

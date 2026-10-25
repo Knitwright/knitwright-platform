@@ -69,7 +69,7 @@ export function CommentForm({ label, submitLabel, initialBody = "", initialMenti
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1 text-sm text-ink">
             About
-            <select value={panelId} onChange={(e) => setPanelId(e.target.value)} className="rounded-xl border border-hairline bg-surface p-2 text-sm">
+            <select value={panelId} onChange={(e) => setPanelId(e.target.value)} className="min-h-10 rounded-xl border border-hairline bg-surface p-2 text-sm">
               <option value="">The whole design</option>
               {panels.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -82,11 +82,11 @@ export function CommentForm({ label, submitLabel, initialBody = "", initialMenti
             <>
               <label className="flex flex-col gap-1 text-sm text-ink">
                 Across (mm)
-                <input inputMode="decimal" value={across} onChange={(e) => setAcross(e.target.value)} className="w-24 rounded-xl border border-hairline bg-surface p-2 text-sm" />
+                <input inputMode="decimal" value={across} onChange={(e) => setAcross(e.target.value)} className="min-h-10 w-24 rounded-xl border border-hairline bg-surface p-2 text-sm" />
               </label>
               <label className="flex flex-col gap-1 text-sm text-ink">
                 Down (mm)
-                <input inputMode="decimal" value={down} onChange={(e) => setDown(e.target.value)} className="w-24 rounded-xl border border-hairline bg-surface p-2 text-sm" />
+                <input inputMode="decimal" value={down} onChange={(e) => setDown(e.target.value)} className="min-h-10 w-24 rounded-xl border border-hairline bg-surface p-2 text-sm" />
               </label>
             </>
           ) : null}
@@ -109,11 +109,11 @@ export function CommentForm({ label, submitLabel, initialBody = "", initialMenti
       ) : null}
       {!pointOk ? <p className="text-sm text-red-700">Give both distances for a point, or neither.</p> : null}
       <div className="flex gap-2">
-        <button type="submit" disabled={busy || !pointOk || body.trim() === ""} className="rounded-full bg-ink px-4 py-2 text-sm text-white disabled:opacity-50">
+        <button type="submit" disabled={busy || !pointOk || body.trim() === ""} className="min-h-10 rounded-full bg-ink px-4 py-2 text-sm text-white disabled:opacity-50">
           {submitLabel}
         </button>
         {onCancel ? (
-          <button type="button" onClick={onCancel} className="rounded-full border border-hairline px-4 py-2 text-sm text-ink">
+          <button type="button" onClick={onCancel} className="min-h-10 rounded-full border border-hairline px-4 py-2 text-sm text-ink">
             Cancel
           </button>
         ) : null}

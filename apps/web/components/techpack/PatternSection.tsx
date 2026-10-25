@@ -73,7 +73,7 @@ function Ready({ job, currentVersion }: Readonly<{ job: PatternJobView; currentV
       ) : null}
       {job.notes.length > 0 ? (
         <details className="rounded-xl border border-hairline p-4">
-          <summary className="cursor-pointer text-[15px] font-medium text-ink">How it was drafted ({job.notes.length} notes)</summary>
+          <summary className="min-h-10 cursor-pointer text-[15px] font-medium text-ink">How it was drafted ({job.notes.length} notes)</summary>
           <ul className="mt-3 grid list-disc gap-2 pl-5 text-sm text-ink-2">
             {job.notes.map((note, index) => (
               <li key={`note-${index}`}>{note}</li>

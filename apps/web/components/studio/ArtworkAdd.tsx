@@ -113,7 +113,7 @@ function PictureInput({ uploading, rights, held, onRights, error, onFile }: Pict
           onFile(event.target.files?.[0]);
           event.target.value = "";
         }}
-        className="text-[15px] text-ink"
+        className="min-h-10 text-[15px] text-ink"
       />
       <p id={`${id}-hint`} className="text-sm text-muted">
         A PNG, JPEG or WebP image, up to 8 MB. Pro team and brand logos need a licence from their owner.

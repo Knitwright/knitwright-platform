@@ -63,7 +63,7 @@ function UploadForm({ requestId }: Readonly<{ requestId: string }>) {
     <div className="flex flex-wrap items-end gap-2">
       <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
         Pattern files (DXF)
-        <input ref={input} type="file" name="files" accept=".dxf" multiple />
+        <input ref={input} type="file" name="files" accept=".dxf" multiple className="min-h-10 text-sm" />
       </label>
       <Button type="button" variant="secondary" pending={pending} onClick={send}>Attach files</Button>
       {message ? <p role="alert" className="w-full text-sm text-warn">{message}</p> : null}

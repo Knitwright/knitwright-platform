@@ -35,7 +35,7 @@ function ConfirmSectionEntry({ section }: Readonly<{ section: ConfirmSection }>)
       : {section.items.length}
       {SECTION_GUIDANCE[section.id] ? <p className="mt-0.5 text-sm">{SECTION_GUIDANCE[section.id]}</p> : null}
       <details className="mt-1">
-        <summary className="cursor-pointer text-sm">{`Show the ${section.items.length === 1 ? "thing" : `${section.items.length} things`} to fill in`}</summary>
+        <summary className="min-h-10 cursor-pointer text-sm">{`Show the ${section.items.length === 1 ? "thing" : `${section.items.length} things`} to fill in`}</summary>
         <ul className="mt-1 flex list-disc flex-col gap-0.5 pl-5 text-sm">
           {section.items.map((item) => (
             <li key={`${item.target}|${item.label}`}>

@@ -38,7 +38,7 @@ export function History({ entries, olderHidden, busy, onRestore }: HistoryProps)
           type="button"
           onClick={() => setAll(!all)}
           aria-expanded={all}
-          className="mt-3 text-sm font-medium text-ink underline underline-offset-4"
+          className="mt-3 min-h-10 text-sm font-medium text-ink underline underline-offset-4"
         >
           {all ? "Show fewer" : `Show all (${hidden} more)`}
         </button>
@@ -65,7 +65,7 @@ function EntryRow({ entry, busy, onRestore }: EntryProps) {
       <p className="mt-0.5 text-sm text-ink-2">{entry.note}</p>
       <p className="mt-0.5 text-sm text-muted">{entry.when}</p>
       <details className="mt-2">
-        <summary className="cursor-pointer text-sm font-medium text-ink">Show each change</summary>
+        <summary className="min-h-10 cursor-pointer text-sm font-medium text-ink">Show each change</summary>
         <ol className="mt-2 flex flex-col divide-y divide-hairline border-l border-hairline pl-3">
           {entry.versions.map((version) => (
             <li key={version.version} className="py-2">
@@ -97,7 +97,7 @@ function VersionRow({ version, busy, onRestore }: VersionProps) {
           disabled={busy}
           onClick={() => onRestore(version.version)}
           aria-label={`Restore version ${version.version}`}
-          className="chip-btn shrink-0 rounded-full border border-white/20 px-3.5 py-1.5 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-55"
+          className="chip-btn min-h-10 shrink-0 rounded-full border border-white/20 px-3.5 py-1.5 text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-55"
         >
           Restore
         </button>
