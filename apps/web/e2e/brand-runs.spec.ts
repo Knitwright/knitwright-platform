@@ -75,7 +75,7 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(builder.getByText("Total: 2 pieces")).toBeVisible();
     await expect(builder.getByText("Price of a sample: Knitwright will quote.")).toBeVisible();
     await builder.getByRole("button", { name: "Order sample" }).click();
-    await expect(builder.getByText(/Sent to ops\. The order is submitted/)).toBeVisible();
+    await expect(builder.getByRole("alert")).toHaveCount(0);
 
     const sent = page.getByRole("region", { name: "Sent to ops" });
     await expect(sent.getByText(/Fern hoodie · Sample · 2 pieces/)).toBeVisible();
@@ -98,8 +98,9 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
     await builder.getByRole("button", { name: "Order run" }).click();
-    await expect(builder.getByText(/Sent to ops\. The order is submitted/)).toBeVisible();
+    await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Fern hoodie · Brand run · 60 pieces/)).toBeVisible();
+    await expect(sent.getByText(/in ops: submitted/)).toHaveCount(2);
     await expect(sent.getByText(/Sent with notes: No minimum order is set/)).toBeVisible();
   });
 
@@ -122,7 +123,8 @@ test.describe("brand workspace (W4-C)", () => {
     await builder.getByLabel("Fabric").fill("Birch mesh");
     await fillSizes(builder, ["1"]);
     await builder.getByRole("button", { name: "Order sample" }).click();
-    await expect(builder.getByText(/Sent to ops/)).toBeVisible();
+    await expect(builder.getByRole("alert")).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Sent to ops" }).getByText(/in ops: submitted/)).toBeVisible();
 
     const order = await db.from("ops_orders").select("external_ref, cutoff_at").eq("brand_id", brandId).single();
     if (order.error) throw new Error(order.error.message);
