@@ -522,3 +522,163 @@ ends with a clear recommendation for the owner.
 | `20261026050000_credit_hooks.sql` | W2-E (only if needed) |
 
 W2-A, B, C, F and G add no migration.
+
+
+---
+
+# Wave 3 (active from 2026-10-25): marketing media (spec stage 4) and the settings console
+
+Waves 1 and 2 are merged on main. Wave 3 runs in two stages so that parallel agents never invent the same contract twice:
+
+- **Stage 1 (parallel):** W3-A media sets and watermark, W3-C generated-image checker, W3-F admin settings console.
+- **Stage 2 (after stage 1 merges):** W3-B lifestyle images, W3-D turntable and image-to-video clip, W3-E the Studio media screen.
+
+The "Lessons from wave 1" section in wave 2 above applies to every wave 3 agent without change (read it first). In addition:
+
+- **No live paid model call, ever, from tests or from your own run.** Every provider is an interface with a deterministic stub; a real
+  adapter exists only behind an environment key and is never called in CI. Generated media is never committed.
+- **The club's crest, sponsors, names and numbers are never altered** by any generation step (spec: "the club's crest and sponsors are
+  never altered"). Where a step touches a picture, a test proves the protected regions are byte-identical or are checked and rejected.
+- **Every paid call goes through `lib/usage` metering and the credits gate** (`lib/credits-gate`, decision 0051). The flag `CREDITS_ENFORCED`
+  stays off by default; with it off the gate records what would have been spent.
+- Sportswear/ (the model code) is out of scope and must not be touched. The platform works without it.
+- Decision records 0054 to 0059. Migration timestamps are assigned at the end.
+
+## W3-A. Media sets, studio renders and watermark (stage 1)
+
+**Goal.** From any design version, generate a media set: studio renders now (front, back, flat lay), with the contract and storage that
+lifestyle images, turntable and clip (stage 2) will plug into. Outputs are watermarked until credits are spent.
+
+**Owns.** `apps/web/lib/media/**` (new; stage 2 agents add subfolders `lifestyle/`, `video/` there after this merges), `apps/web/components/media/**`,
+`apps/web/app/api/projects/[projectId]/media/**`, migration `20261027010000_media.sql`, decision 0054.
+
+**Do.** Read decision 0018 (photoreal images), `lib/images`, `lib/providers`, the `jobs` table and its use (migration 20260929070000_jobs.sql and the code
+that calls it), `lib/credits-gate`, `lib/flat` (renderers), `lib/storage` and the files/exports bucket rules.
+1. **Contract** `lib/media/contract.ts` (Zod): `MediaKind` = studio_render | lifestyle | turntable | clip; `MediaView` (front, back, flat_lay,
+   three_quarter, on_model, scene); `MediaItem` {id, kind, view, fileId, width, height, watermarked, checker verdict (pending | passed | rejected | not_checked),
+   provider, costMicrodollars}; `MediaSet` {id, projectId, versionHash, status, items}. A `MediaProvider` interface and a `MediaGenerator` result type
+   that stage 2 implements. Write it so stage 2 only adds implementations.
+2. **Tables** (migration): `media_sets` and `media_items`, brand-scoped, RLS read for members, no browser write grant, service-only writes through
+   functions, append-only status history; a set is keyed by (project, version hash) so the same version is never generated twice.
+3. **Studio renders.** Front, back and flat lay from the existing flat renderer (SVG to PNG with sharp; flat lay is the front flat on a neutral
+   background with a soft shadow). Deterministic: the same version gives identical bytes. Do not attempt three-quarter or turntable here (no GPU; stage 2).
+4. **Watermark.** Until credits are spent for the set, only a watermarked rendition is ever served (a diagonal "Knitwright preview" pattern drawn with
+   sharp). The clean file is stored privately and is NEVER reachable by URL before the spend. Spending goes through `withCredits("marketing_media", ...)`
+   (idempotent by project, kind, version hash) and then serves the clean files. Enforce on the server; a test proves a request before the spend cannot get
+   the clean bytes.
+5. **Jobs.** Generation runs as a job through the existing jobs framework with status polling; a duplicate request for the same version returns the
+   existing set.
+6. **Protected regions.** A fixture test shows crest, sponsor, name and number regions of the render are identical to the design's own render.
+
+**Done when.** db tests (RLS, no browser write, history append-only), unit tests (determinism, watermark never leaks clean bytes, idempotent set),
+an e2e through the API with the stub (generate, see watermarked items, spend, see clean items), coverage 90% on `lib/media`.
+
+## W3-C. Generated-image checker (stage 1)
+
+**Goal.** Spec: failed generations (warped crest, wrong colours) are auto-rejected by a checker that compares the generated garment region to the
+deterministic render. Pure functions, no model calls.
+
+**Owns.** `apps/web/lib/media-check/**` (new), decision 0055. No migration, no routes.
+
+**Do.**
+1. `checkGeneration({ reference, generated, protectedRegions, panels? })` where `reference` is the deterministic render (PNG with an alpha mask of the
+   garment) and `generated` is a picture produced from it on the same canvas. Return a verdict `passed | rejected` with findings, each with a code, a
+   plain message and a measured number.
+2. Checks: **colour** (per panel region, median CIEDE2000 between reference and generated inside the garment mask, with a threshold setting), **structure**
+   (edge map correlation or SSIM inside the mask so seams, stripes and panel lines have not moved), **protected regions** (crest, sponsor, number: normalised
+   cross-correlation of the reference crop against the generated crop, rejecting a warped or missing mark), **alignment** (the garment mask of the generated
+   image overlaps the reference mask above a threshold, else "not aligned" instead of a false pass).
+3. Thresholds are settings with labelled defaults ("Knitwright default, not tested against real generations"); expose them so the admin console (W3-F)
+   can set them later. Report which check failed so a retry can be targeted.
+4. Fixtures are synthetic images built in the tests with sharp (a clean copy, a hue-shifted copy, a copy with a warped crest, a copy with a moved stripe,
+   a copy shifted off the canvas). The checker must reject each bad one and pass the clean one and a lightly relit one. Include a latency test: under 1 s
+   per 1024 px image on the CI runner.
+5. Honest limits in the decision record: it checks what the reference defines; it cannot judge realism, hands or faces, and the thresholds have not been
+   tuned on real generated images (that needs the owner's provider keys and a sample).
+
+**Done when.** Table-driven tests for every finding, property tests that a copy always passes and a large colour change always fails, the latency test,
+coverage 90%.
+
+## W3-F. Platform settings console (stage 1)
+
+**Goal.** Every placeholder the owner will answer in `docs/owner/questionnaire-2026-10-25.md` becomes a setting a platform admin can change in the app
+without a deploy, with a record of who changed it and when, and a label that shows the value is now set by the owner instead of a Knitwright default.
+
+**Owns.** `apps/web/lib/settings/**` (new), `apps/web/app/(admin)/admin/settings/**`, `apps/web/components/settings/**`, migration
+`20261027020000_platform_settings.sql`, decision 0056. Minimal edits (read-through only) to `lib/ops/settings.ts`, `lib/guardrails/settings.ts`,
+`lib/credits/settings.ts` and the factory profile loader in `lib/validation`.
+
+**Do.** Read the admin leads page and the ops access guard (platform admins only), decisions 0024, 0039, 0043, 0044, 0045 and the OWNER-QUESTIONS files
+under `lib/*/`.
+1. Table `platform_settings` (key, value jsonb, set_by, set_at) plus append-only `platform_settings_history`; RLS on, no browser access; writes through a
+   service function that validates each key against a Zod schema registry and refuses unknown keys.
+2. A registry of settings with their schema, default (the current in-code placeholder), label, and the question number in the questionnaire: credit prices and
+   monthly allowance (use the existing `syncCreditPrices`), ops cut-off weekday, time and zone, guardrail minimum dpi, bleed and safe zone, the media checker
+   thresholds (W3-C will add its own; leave a registration point), media daily caps, and the factory profile fields MOQ, price ladder, lead time per article,
+   file formats and HS codes (writes the existing `factory_profiles` row through its schema; read `lib/validation`).
+3. **Read-through:** each existing settings module reads the stored value when one exists and falls back to the in-code default, so behaviour is unchanged
+   until an admin sets something. Show the label "set by <admin> on <date>" or "Knitwright default, not agreed with a factory" everywhere the value is used where
+   a label already exists.
+4. UI at `/admin/settings`: grouped sections, plain language, validation errors in words, a history list per setting, platform admins only (404 for everyone
+   else, matching the ops and leads guards). No secrets: never store API keys here.
+5. Nothing here sells or charges anything.
+
+**Done when.** db tests (admin-only, history append-only, no browser read), unit tests (every schema rejects bad values, fallback to default, read-through
+for each module), an e2e (an admin changes the cut-off and the ops page shows it; a member gets 404).
+
+## W3-B. Lifestyle images with scene replacement and virtual try-on (stage 2, after A and C are merged)
+
+**Owns.** `apps/web/lib/media/lifestyle/**`, `components/media/` additions only for the provider selector, decision 0057.
+
+**Do.** Implement `MediaGenerator` for lifestyle images against A's contract and C's checker.
+1. Flow per spec: render the garment deterministically (A), then replace the scene (product recontext) or place on a model (virtual try-on), conditioned
+   on the render so panels, seams, logos and numbers stay in place. Four images per set: pitch, changing room, street, and one on-model.
+2. A provider interface `LifestyleProvider` with a stub that returns a deterministic transformed copy of the reference (for CI), plus adapters for the
+   spec's choices written against their public API docs: Photoroom product scenes, Google Imagen product recontext, Google Virtual Try-On, FASHN,
+   and the existing fal client. Each adapter is behind its own environment key, never called in CI, and metered through `lib/usage` with a per-brand daily cap.
+   A licence note per adapter in the decision record (the spec excludes IDM-VTON and CatVTON: non-commercial licences).
+3. Every generated image goes through `checkGeneration` (C). A rejected image is retried once with a different seed, then dropped and reported;
+   the set records the verdict per image. Target from the spec: at least 3 of 4 pass without a retry (measured later with real keys; build the counter).
+4. Crest and sponsors are protected regions passed to the checker; a sponsor must never appear without its logo.
+5. Prompts are fixed templates in code (no free text from the user), and every generated image is labelled as AI generated in its metadata.
+
+**Done when.** Tests with the stub for each flow, a test that a rejected image never reaches the set, adapter contract tests with recorded fixtures
+(no network), coverage 90%.
+
+## W3-D. Turntable and image-to-video clip (stage 2, after A is merged)
+
+**Owns.** `apps/web/lib/media/video/**`, `apps/web/components/media/video/**`, decision 0058. Do not edit `lib/gltf` or `lib/garment3d`; import from them.
+
+**Do.**
+1. **Turntable (free, spec: rendered from 3D).** No GPU on the server, so capture on the client: a "Record turntable" control in the 3D view (use
+   the W2-C viewer) that rotates the model and records the canvas with `MediaRecorder` to a WebM, uploads it through an API route into the media set as a
+   `turntable` item. Fall back with a plain message where `MediaRecorder` is unsupported. Cap length and size.
+2. **Clip (paid, AI).** A `VideoProvider` interface with a deterministic stub (a short slideshow-like WebM or a placeholder file) and an adapter for the
+   spec's choices (Kling on fal, or Wan) behind an environment key, never called in CI; 5 seconds, from a passed lifestyle still (B). Metered and capped.
+3. **Watermark for video.** Before credits are spent only a watermarked poster frame is served; the clip file itself is served only after the spend
+   (same server-side rule as A; a test proves it).
+4. The clip is labelled AI generated in its metadata.
+
+**Done when.** Unit tests with the stub, the gating test, an e2e that records a turntable in the browser (Chromium supports MediaRecorder) and sees it in the set,
+coverage 90% on the logic (UI glue excluded the same way other UI glue is).
+
+## W3-E. Studio media screen (stage 2, after A, B, C and D are merged)
+
+**Owns.** `apps/web/components/media/screen/**`, one new tool entry in the studio workspace tool list, decision 0059.
+
+**Do.** One screen for stage 4: a "Media" tool in the editor workspace. Generate a set, show progress per item, a gallery with watermark state, the credit price
+chip and a "Use credits" action (credits gate), the checker verdict per image (rejected ones explained in plain words and re-runnable), a turntable button,
+a clip button after a passed lifestyle still, and a share/download of unlocked items. Respect `plans/design-reference.md` (dark glass shell, one screen, no long
+scroll). Accessible (keyboard, labels). Write a timing harness that records how long a full stub run takes and documents the spec's target ("4 images and 1 clip
+in under 3 minutes") as unmeasured until real keys exist.
+
+**Done when.** e2e with stubs: generate, see watermarked tiles, spend credits, see clean tiles, record a turntable; the decision record lists owner questions.
+
+## Wave 3 migration timestamps (assigned)
+
+| File | Workstream |
+|---|---|
+| `20261027010000_media.sql` | W3-A |
+| `20261027020000_platform_settings.sql` | W3-F |
+
+W3-B, C, D and E add no migration (they use W3-A's tables).
