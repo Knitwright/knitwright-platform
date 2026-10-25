@@ -15,7 +15,7 @@ import type { TemplateSummary } from "./filters";
 /** The library is small and platform-owned. Beyond this many rows it would be paged by the database instead. */
 export const LIBRARY_READ_LIMIT = 500;
 
-const SUMMARY_COLUMNS = "id, slug, title, sport, article_id, style_tags, colour_family, review_state";
+const SUMMARY_COLUMNS = "id, slug, title, sport, article_id, style_tags, colour_family, review_state, attribution";
 
 const summaryRow = z.object({
   id: z.uuid(),
@@ -26,6 +26,7 @@ const summaryRow = z.object({
   style_tags: z.array(z.enum(STYLE_IDS)).min(1),
   colour_family: z.enum(COLOUR_FAMILIES),
   review_state: z.enum(REVIEW_STATES),
+  attribution: z.string().nullable().optional(),
 });
 
 const NOT_FOUND = "That template does not exist.";
@@ -47,6 +48,7 @@ export async function loadLibrary(client: SupabaseClient): Promise<readonly Temp
     styleTags: row.style_tags,
     colourFamily: row.colour_family,
     reviewState: row.review_state,
+    ...(row.attribution ? { attribution: row.attribution } : {}),
   }));
 }
 
@@ -67,9 +69,9 @@ export type NewFromTemplate = Readonly<{ brandId: string; userId: string; templa
  * the template's snapshot; nothing links the two afterwards. The brand and user come from the session.
  */
 export async function createFromTemplate(admin: SupabaseClient, client: SupabaseClient, input: NewFromTemplate): Promise<string> {
-  const { data, error } = await client.from("templates").select("title, snapshot").eq("id", input.templateId).maybeSingle();
+  const { data, error } = await client.from("templates").select("title, snapshot, source").eq("id", input.templateId).maybeSingle();
   if (error) throw unreadable(error);
-  const row = z.object({ title: z.string(), snapshot: z.unknown() }).nullish().parse(data);
+  const row = z.object({ title: z.string(), snapshot: z.unknown(), source: z.string().optional() }).nullish().parse(data);
   if (!row) throw new AppError("not_found", NOT_FOUND);
   const copy = specFromSnapshot(row.snapshot);
   if (!copy.ok) throw new AppError("unavailable", copy.reason);
@@ -84,5 +86,11 @@ export async function createFromTemplate(admin: SupabaseClient, client: Supabase
     p_schema_version: copy.spec.schemaVersion,
   });
   if (created.error) throw failureFromDatabase(created.error);
-  return z.uuid().parse(created.data);
+  const projectId = z.uuid().parse(created.data);
+  // A design made from a designer's template is noted, so its orders can earn the designer a royalty (decision 0061).
+  if (row.source === "designer") {
+    const noted = await admin.rpc("designer_record_use", { p_template_id: input.templateId, p_brand_id: input.brandId, p_project_id: projectId });
+    if (noted.error) throw failureFromDatabase(noted.error);
+  }
+  return projectId;
 }

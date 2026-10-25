@@ -16,6 +16,8 @@ export interface TemplateSummary {
   readonly styleTags: readonly StyleId[];
   readonly colourFamily: ColourFamily;
   readonly reviewState: ReviewState;
+  /** The designer's name, for a template a designer made. */
+  readonly attribution?: string;
 }
 
 export interface TemplateFilters {
