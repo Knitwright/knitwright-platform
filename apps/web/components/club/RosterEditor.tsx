@@ -84,7 +84,7 @@ export function RosterEditor({ seasonId, canEdit }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" role="region" aria-label="Players" tabIndex={0}>
         <table className="w-full min-w-[40rem] text-left text-sm">
           <caption className="sr-only">Players</caption>
           <thead className="text-muted">

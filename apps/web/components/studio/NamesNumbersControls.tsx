@@ -111,7 +111,7 @@ function PlaceRow({ label, entry, onChange }: RowProps) {
   const id = useId();
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <label className="flex min-w-[16rem] items-center gap-2 text-[15px] text-ink">
+      <label className="flex min-h-10 min-w-[16rem] items-center gap-2 text-[15px] text-ink">
         <input type="checkbox" checked={entry.on} onChange={(event) => onChange({ on: event.target.checked })} />
         {label}
       </label>
