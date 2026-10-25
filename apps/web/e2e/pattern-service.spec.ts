@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect } from "@playwright/test";
+import { startingSpec } from "../lib/projects/starting-spec";
 import { createAccount, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
@@ -18,9 +19,11 @@ async function shortsDesign(email: string): Promise<string> {
   const db = service();
   const userId = await userIdOf(email);
   const membership = await db.from("memberships").select("brand_id").eq("user_id", userId).limit(1).single();
+  const started = startingSpec("shorts", "men");
+  if (!started.ok) throw new Error(started.reason);
   const project = await db.rpc("create_project", {
     p_brand_id: membership.data?.brand_id as string, p_user_id: userId, p_name: "Pattern shorts", p_style_number: "", p_season: "",
-    p_garment_type: "shorts", p_spec: { made: "for the test" }, p_schema_version: 1,
+    p_garment_type: started.spec.typeId, p_spec: started.spec, p_schema_version: started.spec.schemaVersion,
   });
   if (project.error) throw new Error(project.error.message);
   return project.data as string;
