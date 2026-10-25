@@ -51,8 +51,8 @@ Comment text is typed by people, so it is cleaned like a player's name (decision
    ("2 open comments name you") at the top of the Comments tool. A resolved thread or a removed comment
    no longer counts.
 10. **Limits.** 2000 characters, 30 comments per person per 10 minutes and 500 comments per design and 200
-    replies per thread (all in the database), plus a per-address route limit (`COMMENT_LIMITS`, defined in
-    `lib/comments` so the shared limits file is untouched). `lib/comments/limits.test.ts` reads the
+    replies per thread (all in the database), plus a per-address route limit (`LIMITS.commentWrite` and `commentChange`, two lines added to
+    `lib/server/limits.ts` because an architecture test requires every route to name its limit there). `lib/comments/limits.test.ts` reads the
     migration and fails if the numbers in the app and the database drift apart.
 11. **Erasure.** The three tables are listed in `lib/deletion/team-data.ts`, whose test reads the migration:
     deleting a design deletes its comments, their earlier words and mentions through the keys; deleting a

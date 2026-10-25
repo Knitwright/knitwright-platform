@@ -1,5 +1,4 @@
 import { whoOf } from "@/lib/clubs/guards";
-import { COMMENT_LIMITS } from "@/lib/comments/limits";
 import { createBody, projectParams } from "@/lib/comments/schemas";
 import { addComment, listComments } from "@/lib/comments/service";
 import { defineRoute } from "@/lib/server/define-route";
@@ -17,7 +16,7 @@ export const GET = defineRoute({
 /** Adds a comment, or a reply when `parentId` is given. Every member may comment, viewers included. */
 export const POST = defineRoute({
   auth: "member",
-  rateLimit: COMMENT_LIMITS.write,
+  rateLimit: LIMITS.commentWrite,
   maxBodyBytes: 40_000,
   schema: { params: projectParams, body: createBody },
   handler: async ({ input, session }) => ({ id: await addComment(adminClient(), whoOf(session), input.params.projectId, input.body) }),

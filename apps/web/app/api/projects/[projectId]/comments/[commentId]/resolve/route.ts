@@ -1,14 +1,14 @@
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
-import { COMMENT_LIMITS } from "@/lib/comments/limits";
 import { commentParams, resolveBody } from "@/lib/comments/schemas";
 import { resolveComment } from "@/lib/comments/service";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient } from "@/lib/server/deps";
+import { LIMITS } from "@/lib/server/limits";
 
 /** Marks a thread resolved, or opens it again. Owners, admins and kit managers only (decision 0042); the database checks again. */
 export const POST = defineRoute({
   auth: "member",
-  rateLimit: COMMENT_LIMITS.change,
+  rateLimit: LIMITS.commentChange,
   schema: { params: commentParams, body: resolveBody },
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");

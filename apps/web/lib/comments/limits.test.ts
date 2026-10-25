@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { COMMENT_LIMITS, EDIT_WINDOW_MINUTES, MAX_COMMENTS_PER_DESIGN, MAX_MENTIONS, MAX_PER_PERSON_PER_10_MINUTES, MAX_REPLIES_PER_THREAD } from "./limits";
+import { EDIT_WINDOW_MINUTES, MAX_COMMENTS_PER_DESIGN, MAX_MENTIONS, MAX_PER_PERSON_PER_10_MINUTES, MAX_REPLIES_PER_THREAD } from "./limits";
+import { LIMITS } from "@/lib/server/limits";
 import { COMMENT_MAX_LENGTH } from "./text";
 
 const SQL = readFileSync(join(__dirname, "..", "..", "..", "..", "supabase", "migrations", "20261028040000_design_comments.sql"), "utf8");
@@ -17,8 +18,8 @@ describe("the limits the app shows match the ones the database enforces", () => 
     expect(SQL).toContain(`>= ${MAX_REPLIES_PER_THREAD}`);
     expect(SQL).toContain(`>= ${MAX_PER_PERSON_PER_10_MINUTES}`);
   });
-  it("route limits have distinct bucket names", () => {
-    expect(new Set(Object.values(COMMENT_LIMITS).map((r) => r.name)).size).toBe(2);
+  it("the route limit for writing matches the database's per-person limit", () => {
+    expect(LIMITS.commentWrite).toMatchObject({ limit: MAX_PER_PERSON_PER_10_MINUTES, windowSeconds: 600 });
   });
 });
 
