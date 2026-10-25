@@ -83,7 +83,7 @@ test.describe("role journeys (W5-C)", () => {
     await expect(seasons.getByText("Saved 3 players.")).toBeVisible();
 
     // The order reaches ops the way the Store sends it, and is cut into a batch.
-    const ref = `E2E-JOURNEY-${Date.now()}`;
+    const ref = `E2E-J-${Date.now()}`;
     const releaseId = await freeze(email, projectId, "Round 1 kit");
     const submitted = await service().rpc("submit_order_for_production", { p_release_id: releaseId, p_external_ref: ref, p_factory_profile_id: "knitwright-default", p_fabric_key: "mesh-140", p_article_id: "crew-tee", p_sizes: { M: 3, L: 2 } });
     if (submitted.error) throw new Error(submitted.error.message);
@@ -139,6 +139,8 @@ test.describe("role journeys (W5-C)", () => {
 
   test("a brand runs a product from sample to run and both orders are durable in ops", async ({ page }) => {
     const email = await createAccount("journey-brand", { brand: "Journey Apparel" });
+    // Ops cuts the batches at the end, which only a platform admin may do.
+    await makePlatformAdmin(email);
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startDesign(page, "Journey hoodie");
@@ -174,6 +176,8 @@ test.describe("role journeys (W5-C)", () => {
     await products.getByRole("button", { name: "Happy with the sample, move to run stage" }).click();
     await expect(products.getByText("Journey hoodie is now at the run stage.")).toBeVisible();
 
+    // Moving the stage opens a fresh builder: wait for it before naming the fabric again.
+    await expect(builder.getByRole("option", { name: "Sample: one piece per size" })).toBeDisabled();
     await builder.getByLabel("Fabric").fill("Journey mesh");
     await addSizes();
     await sizeBoxes.nth(0).fill("20");
