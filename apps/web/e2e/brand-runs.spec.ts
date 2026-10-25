@@ -89,6 +89,8 @@ test.describe("brand workspace (W4-C)", () => {
 
     // A run under the factory's minimum: the minimum is not set, so it is flagged and needs the brand's say-so.
     await expect(builder.getByRole("option", { name: "Sample: one piece per size" })).toBeDisabled();
+    // Moving the stage opens a fresh builder, so the fabric is named again.
+    await builder.getByLabel("Fabric").fill("Mesh 140");
     await fillSizes(builder, ["20", "40"]);
     await expect(builder.getByText("Total: 60 pieces")).toBeVisible();
     await expect(builder.getByText("Price: Knitwright will quote.")).toBeVisible();

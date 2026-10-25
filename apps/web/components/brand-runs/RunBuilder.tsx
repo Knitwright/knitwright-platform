@@ -48,9 +48,12 @@ export function RunBuilder({ product, context, canEdit }: Props) {
     setAcknowledged(false);
   };
 
-  const send = () =>
+  const send = () => {
+    if (releaseId === "") return setNote({ tone: "warn", text: "Choose the frozen release to make." });
+    if (fabric.trim() === "") return setNote({ tone: "warn", text: "Name the fabric before sending." });
     start(async () => {
-      const reply = await orderRunAction({ productId: product.id, kind, releaseId, fabricKey: fabric, quantities: numbersOf(typed), acknowledgeFlags: acknowledged, requestKey });
+      const reply = await orderRunAction({ productId: product.id, kind, releaseId, fabricKey: fabric, quantities: numbersOf(typed), acknowledgeFlags: acknowledged, requestKey }).catch(() => null);
+      if (!reply) return setNote({ tone: "warn", text: "The order could not be sent. Check your connection and try again." });
       if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
       setNote({ tone: "ok", text: `Sent to ops. The order is ${reply.data.status}, waiting for the next cut-off.` });
       setTyped({});
@@ -58,11 +61,12 @@ export function RunBuilder({ product, context, canEdit }: Props) {
       setRequestKey(newKey());
       router.refresh();
     });
+  };
 
   if (!canEdit) return <p className="text-sm text-muted">Only owners, admins and kit managers can place orders.</p>;
 
   return (
-    <form className="flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); send(); }}>
+    <form noValidate className="flex flex-col gap-5" onSubmit={(e) => { e.preventDefault(); send(); }}>
       <p className="text-[15px] text-muted">
         {context.designName} · {context.garmentLabel} · design version {product.designVersion}. Factory terms: {context.factoryLabel}.
       </p>
