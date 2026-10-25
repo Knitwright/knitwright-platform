@@ -41,8 +41,7 @@ test.describe("the pattern service", () => {
     await expect(page.getByTestId("pattern-price")).toContainText("Knitwright will confirm the price.");
     await expect(page.getByTestId("pattern-turnaround")).toContainText("Knitwright will confirm the turnaround.");
     await page.getByRole("button", { name: "Request a pattern" }).click();
-    await expect(page.getByText(/Sent to the Sialkot team/)).toBeVisible();
-    await page.reload();
+    // The page refreshes with the request listed, and the button gives way to a note that this version was sent.
     await expect(page.getByTestId("pattern-request-status")).toContainText("Requested");
     await expect(page.getByRole("button", { name: "Request a pattern" })).toHaveCount(0);
 

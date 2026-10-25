@@ -11,7 +11,7 @@ export function RequestPatternForm({ projectId, label }: Readonly<{ projectId: s
   return (
     <form ref={form} action={submit} noValidate className="flex flex-col gap-3">
       <FormSummary message={summary} />
-      {state.result?.success === true ? <FormDone>Sent to the Sialkot team. You can follow it below.</FormDone> : null}
+      {state.result?.success === true ? <FormDone>Sent to the Sialkot team.</FormDone> : null}
       <input type="hidden" name="projectId" value={projectId} />
       <div><Button type="submit" pending={pending}>{label}</Button></div>
     </form>
