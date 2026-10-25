@@ -9,7 +9,7 @@ import { seamJoinFor } from "../layout/seam";
 import { createPieceMapper, type PrintMapper } from "../layout/mapper";
 import type { PrintSettings } from "../layout/types";
 import { renderPdf, renderSvgAsync, renderTiff } from "../render";
-import { pageSizeMm } from "../scene";
+import { pageSizeMm, type PieceScene } from "../scene";
 import { buildZones } from "../zones/build";
 import { zoneTemplatesFor } from "../zones/templates";
 
@@ -61,6 +61,26 @@ export type Roster = { readonly rows: readonly RosterRow[] };
 const rowFor = (roster: Roster | null, number: string | undefined): RosterRow | null =>
   number === undefined ? null : (roster?.rows.find((row) => row.number === number) ?? null);
 
+const settingsFor = (spec: PrintFileSpec, deps: BuilderDeps): PrintSettings => ({
+  bleedMm: spec.bleedMm,
+  dpi: spec.dpi,
+  minDpi: deps.minDpi,
+  scaleX: spec.scaleX,
+  scaleY: spec.scaleY,
+  scaleNote: spec.scaleX === 1 && spec.scaleY === 1 ? deps.scaleNote : null,
+  defaultsNote: deps.defaultsNote,
+  patternReviewed: deps.patternReviewed,
+  patternNote: deps.patternNote ?? null,
+});
+
+/** The bytes of one file in the format asked for. A TIFF may also carry a note about its resolution. */
+async function renderBytes(spec: PrintFileSpec, art: PieceScene, deps: BuilderDeps): Promise<{ bytes: Uint8Array; dpiNote?: string | null }> {
+  if (spec.format === "pdf") return { bytes: await renderPdf(art) };
+  if (spec.format === "svg") return { bytes: new TextEncoder().encode(await renderSvgAsync(art)) };
+  const tiff = await renderTiff(art, deps.icc ? { icc: deps.icc } : {});
+  return { bytes: tiff.bytes, dpiNote: tiff.dpiNote };
+}
+
 /**
  * Builds print files for one design on one pattern. It implements the contract's `PrintFileBuilder` (what a release
  * hashes) and adds `buildFile`, which also hands back the scene for the checks. Scenes are kept so the PDF, SVG and
@@ -79,17 +99,7 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
     const placed = mapper.placed(spec.size);
     const mine = placed.find((entry) => entry.instance.id === spec.pieceId);
     if (!mine) return Promise.reject(new RangeError(`There is no piece ${spec.pieceId} in size ${spec.size}.`));
-    const settings: PrintSettings = {
-      bleedMm: spec.bleedMm,
-      dpi: spec.dpi,
-      minDpi: deps.minDpi,
-      scaleX: spec.scaleX,
-      scaleY: spec.scaleY,
-      scaleNote: spec.scaleX === 1 && spec.scaleY === 1 ? deps.scaleNote : null,
-      defaultsNote: deps.defaultsNote,
-      patternReviewed: deps.patternReviewed,
-      patternNote: deps.patternNote ?? null,
-    };
+    const settings = settingsFor(spec, deps);
     const made = buildPieceScene({
       stack: deps.stack,
       colourwayId: deps.colourwayId,
@@ -115,14 +125,8 @@ export function createPrintFileBuilder(deps: BuilderDeps): PrintFileBuilder & { 
     const scene = await sceneFor(spec, options);
     const art = scene.scene;
     const warnings = art.issues.map((issue) => issue.text.slice(0, 300));
-    let bytes: Uint8Array;
-    if (spec.format === "pdf") bytes = await renderPdf(art);
-    else if (spec.format === "svg") bytes = new TextEncoder().encode(await renderSvgAsync(art));
-    else {
-      const tiff = await renderTiff(art, deps.icc ? { icc: deps.icc } : {});
-      bytes = tiff.bytes;
-      if (tiff.dpiNote) warnings.push(tiff.dpiNote);
-    }
+    const { bytes, dpiNote } = await renderBytes(spec, art, deps);
+    if (dpiNote) warnings.push(dpiNote);
     const page = pageSizeMm(art);
     return { sha256: sha256Of(bytes), pageWidthMm: Math.round(page.width * 100) / 100, pageHeightMm: Math.round(page.height * 100) / 100, warnings: warnings.slice(0, 50), bytes, scene };
   };

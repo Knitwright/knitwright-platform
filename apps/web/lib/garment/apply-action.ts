@@ -118,7 +118,8 @@ function assignFabric(spec: GarmentSpec, panelId: string, fabricId: string): Act
   return accept({ ...spec, panelFabrics: [...others, { panelId, fabricId }] });
 }
 
-function run(spec: GarmentSpec, action: SpecAction): ActionResult {
+/** Options, measurements, sizing and tolerances. Null when the action is not one of them. */
+function runMeasured(spec: GarmentSpec, action: SpecAction): ActionResult | null {
   switch (action.type) {
     case "set-option":
       return setOption(spec, action);
@@ -136,6 +137,14 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return setTolerance(spec, action.entry);
     case "remove-tolerance":
       return removeTolerance(spec, action.pointId);
+    default:
+      return null;
+  }
+}
+
+/** Fabrics, colourways and artwork. Null when the action is not one of them. */
+function runMaterials(spec: GarmentSpec, action: SpecAction): ActionResult | null {
+  switch (action.type) {
     case "add-fabric":
       return fabricList(spec, { kind: "add", item: action.fabric });
     case "update-fabric":
@@ -158,6 +167,14 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return artworkList(spec, { kind: "update", item: action.artwork });
     case "remove-artwork":
       return artworkList(spec, { kind: "remove", id: action.id });
+    default:
+      return null;
+  }
+}
+
+/** Names and numbers, kit pattern, components, construction, labelling, wearer and type. Null when the action is not one of them. */
+function runDetails(spec: GarmentSpec, action: SpecAction): ActionResult | null {
+  switch (action.type) {
     case "set-names-numbers":
       return accept({ ...spec, namesAndNumbers: action.namesAndNumbers });
     case "remove-names-numbers":
@@ -180,7 +197,13 @@ function run(spec: GarmentSpec, action: SpecAction): ActionResult {
       return accept({ ...spec, wearer: action.wearer });
     case "change-type":
       return changeType(spec, action.typeId);
+    default:
+      return null;
   }
+}
+
+function run(spec: GarmentSpec, action: SpecAction): ActionResult {
+  return runMeasured(spec, action) ?? runMaterials(spec, action) ?? runDetails(spec, action) ?? reject("That change is not understood.");
 }
 
 /**

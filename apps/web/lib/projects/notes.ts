@@ -47,13 +47,8 @@ const nameOf = (list: readonly { id: string; name: string }[], id: string): stri
 const sentence = (noun: string, name: string | null, verb: string, fallback: string): string =>
   name === null ? fallback : `${noun} ${name} ${verb}.`;
 
-/**
- * One plain sentence saying what an action changed, for the history of a design. It
- * uses the labels people see, never the ids, and never changes the design. Stays under
- * the length the database allows.
- */
-export const describeAction = (spec: GarmentSpec, action: SpecAction): string => {
-  const type = getType(spec.typeId);
+/** Notes for options, measurements, sizing and tolerances. Null when the action is not one of them. */
+function describeMeasured(type: Type | undefined, action: SpecAction): string | null {
   switch (action.type) {
     case "set-option":
       return clipNote(optionNote(type, action.optionId, action.choiceId));
@@ -71,6 +66,14 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Tolerance for ${pointLabel(type, action.entry.pointId)} set to ${cmText(action.entry.value)} cm.`);
     case "remove-tolerance":
       return clipNote(`Your tolerance for ${pointLabel(type, action.pointId)} was removed.`);
+    default:
+      return null;
+  }
+}
+
+/** Notes for fabrics, colourways and artwork. Null when the action is not one of them. */
+function describeMaterials(spec: GarmentSpec, type: Type | undefined, action: SpecAction): string | null {
+  switch (action.type) {
     case "add-fabric":
       return clipNote(`Fabric ${action.fabric.name} added.`);
     case "update-fabric":
@@ -95,6 +98,14 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return clipNote(`Artwork ${action.artwork.name} changed.`);
     case "remove-artwork":
       return clipNote(sentence("Artwork", nameOf(spec.artwork, action.id), "removed", "Artwork was removed."));
+    default:
+      return null;
+  }
+}
+
+/** Notes for names and numbers, the kit pattern, components, construction, labelling, wearer and type. Null when the action is not one of them. */
+function describeDetails(spec: GarmentSpec, type: Type | undefined, action: SpecAction): string | null {
+  switch (action.type) {
     case "set-names-numbers":
       return spec.namesAndNumbers === undefined ? "Player names and numbers added." : "Player names and numbers changed.";
     case "remove-names-numbers":
@@ -117,7 +128,19 @@ export const describeAction = (spec: GarmentSpec, action: SpecAction): string =>
       return `Made for ${action.wearer}.`;
     case "change-type":
       return clipNote(`Garment type changed to ${getType(action.typeId)?.label ?? action.typeId}.`);
+    default:
+      return null;
   }
+}
+
+/**
+ * One plain sentence saying what an action changed, for the history of a design. It
+ * uses the labels people see, never the ids, and never changes the design. Stays under
+ * the length the database allows.
+ */
+export const describeAction = (spec: GarmentSpec, action: SpecAction): string => {
+  const type = getType(spec.typeId);
+  return describeMeasured(type, action) ?? describeMaterials(spec, type, action) ?? describeDetails(spec, type, action) ?? "";
 };
 
 /**

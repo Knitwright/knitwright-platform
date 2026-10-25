@@ -87,6 +87,53 @@ function dedupe(issues: readonly PrintIssue[]): PrintIssue[] {
 
 const boxOf = (ring: Ring): Box => boundsOf(ring as readonly Pt[]);
 
+type Stacked = Readonly<{ built: Built[]; issues: PrintIssue[]; colours: string[]; dpis: number[]; marks: PlacedMark[] }>;
+
+/** Builds the layers in stack order: each one carves what lies under it, and its issues, colours, resolutions and marks are gathered. */
+async function buildLayers(input: LayoutInput, layers: readonly Layer[], space: LayerSpace): Promise<Stacked> {
+  let built: Built[] = [];
+  let under = "#ffffff";
+  const issues: PrintIssue[] = [];
+  const colours: string[] = [];
+  const dpis: number[] = [];
+  const marks: PlacedMark[] = [];
+  for (const layer of layers) {
+    const raw = await runLayer(layer, space, under);
+    const result = layer.blend === "knock-out" ? asHole(raw) : raw;
+    built = [...carve(built, result.knock, space.visible), ...result.built];
+    if (layer.kind === "ground") under = screenColour(input.stack, input.colourwayId, layer.colourId).hex;
+    issues.push(...result.issues);
+    colours.push(...result.colours);
+    dpis.push(...result.dpis);
+    marks.push(...(result.marks ?? []));
+  }
+  return { built, issues, colours, dpis, marks };
+}
+
+const playerLabel = (player: LayoutInput["player"]): string | null =>
+  player ? `${player.name === "" ? "" : `${player.name} `}${player.number}`.trim() : null;
+
+/** The lines for the margin of one piece. */
+function marginLines(input: LayoutInput, layers: readonly Layer[], issues: readonly PrintIssue[], lowestDpi: number | null, rasterReason: string | null): string[] {
+  const { instance, settings, stack } = input;
+  return noteLines({
+    pieceName: instance.pieceName,
+    size: instance.size,
+    player: playerLabel(input.player),
+    scaleX: settings.scaleX,
+    scaleY: settings.scaleY,
+    scaleNote: settings.scaleNote,
+    defaultsNote: settings.defaultsNote,
+    lowestDpi,
+    patternReviewed: settings.patternReviewed,
+    patternNote: settings.patternNote ?? null,
+    readFromPicture: stack.layers.some((layer) => layer.provenance === "read-from-image"),
+    rasterReason,
+    issues,
+    playerNote: input.player || !layers.some((l) => l.kind === "player-mark") ? null : "Names and numbers are in the player files.",
+  });
+}
+
 /** One piece for one size (and one player), as a scene: layers built in stack order, scaled for shrink, with bleed and a margin note. */
 export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
   const { instance, frame, settings, stack } = input;
@@ -98,22 +145,7 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
   const space: LayerSpace = { input, visible, visibleBox: boxOf(visible), toPiece: frame.toPiece, toDesign: frame.toDesign, chestY: underarm?.y ?? 0 };
   const layers = stack.layers.filter((layer) => layer.views.includes(instance.view) && draws(layer) && (!input.transferOnly || isTransfer(layer)));
   const rasterLayer = layers.find((layer) => blendNeedsRaster(layer.blend));
-  let built: Built[] = [];
-  let under = "#ffffff";
-  const issues: PrintIssue[] = [];
-  const colours: string[] = [];
-  const dpis: number[] = [];
-  const marks: PlacedMark[] = [];
-  for (const layer of layers) {
-    const raw = await runLayer(layer, space, under);
-    const result = layer.blend === "knock-out" ? asHole(raw) : raw;
-    built = [...carve(built, result.knock, visible), ...result.built];
-    if (layer.kind === "ground") under = screenColour(stack, input.colourwayId, layer.colourId).hex;
-    issues.push(...result.issues);
-    colours.push(...result.colours);
-    dpis.push(...result.dpis);
-    marks.push(...(result.marks ?? []));
-  }
+  const { built, issues, colours, dpis, marks } = await buildLayers(input, layers, space);
   const rules = input.rules;
   issues.push(...avoidIssues(avoidedColours(colours, rules.coloursToAvoid)));
   if (rules.coloursToAvoid.length === 0) issues.push({ severity: "note", text: "No colours to avoid are set, so no colour was checked against a list." });
@@ -121,29 +153,13 @@ export async function buildPieceScene(input: LayoutInput): Promise<BuiltScene> {
   const all = dedupe(issues);
   const mean = Math.sqrt(settings.scaleX * settings.scaleY);
   const cutBox = boxOf(cut);
-  const player = input.player ? `${input.player.name === "" ? "" : `${input.player.name} `}${input.player.number}`.trim() : null;
   const rasterReason = rasterLayer ? `Layer ${rasterLayer.id} blends with the layers under it, so this piece is built as one picture.` : null;
-  const lines = noteLines({
-    pieceName: instance.pieceName,
-    size: instance.size,
-    player,
-    scaleX: settings.scaleX,
-    scaleY: settings.scaleY,
-    scaleNote: settings.scaleNote,
-    defaultsNote: settings.defaultsNote,
-    lowestDpi,
-    patternReviewed: settings.patternReviewed,
-    patternNote: settings.patternNote ?? null,
-    readFromPicture: stack.layers.some((layer) => layer.provenance === "read-from-image"),
-    rasterReason,
-    issues: all,
-    playerNote: input.player || !layers.some((l) => l.kind === "player-mark") ? null : "Names and numbers are in the player files.",
-  });
+  const lines = marginLines(input, layers, all, lowestDpi, rasterReason);
   const scene: PieceScene = {
     instanceId: instance.id,
     pieceName: instance.pieceName,
     size: instance.size,
-    playerLabel: player,
+    playerLabel: playerLabel(input.player),
     cut,
     bleed,
     bleedMm: settings.bleedMm,
