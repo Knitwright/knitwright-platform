@@ -47,3 +47,4 @@ Copy `0000-template.md` to start.
 | 0037 | [Pattern generators (W7c)](0037-pattern-generators.md) | Accepted |
 | 0038 | [Design from the user's image (W7d)](0038-design-from-image.md) | Proposed |
 | 0041 | [The template library (V3)](0041-template-library.md) | Proposed. Owner questions listed. |
+| 0054 | [Media sets, studio renders and watermark (W3-A)](0054-media-sets.md) | Proposed. Owner questions listed. |
