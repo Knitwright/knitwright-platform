@@ -55,6 +55,9 @@ const saveSeason = async (page: Page, csv: string): Promise<void> => {
   await seasons.getByLabel("Read players from a CSV file").setInputFiles({ name: "roster.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
   await seasons.getByRole("button", { name: "Save roster" }).click();
   await expect(seasons.getByText(/Saved \d+ players?\./)).toBeVisible();
+  // The page lists seasons with their player counts as loaded, so read them again.
+  await page.reload();
+  await expect(page.getByRole("region", { name: "Order history" }).getByRole("button", { name: "Reorder" })).toBeVisible();
 };
 
 test.describe("two-click reorder (W4-F)", () => {
@@ -87,6 +90,7 @@ test.describe("two-click reorder (W4-F)", () => {
     const history = page.getByRole("region", { name: "Order history" });
     await history.getByRole("button", { name: "Reorder" }).click();
     const review = history.getByTestId("reorder-review");
+    await expect(review.getByText(/players and sizes saved on the season/)).toBeVisible();
     await expect(review.getByText("2 lines need an answer")).toBeVisible();
     await expect(review.getByText(/saved in size ZZ/)).toBeVisible();
     await expect(review.getByText(/is not on the roster any more/)).toBeVisible();
