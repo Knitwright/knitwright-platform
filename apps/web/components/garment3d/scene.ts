@@ -102,6 +102,12 @@ export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictu
   controls.addEventListener("start", () => {
     controls.autoRotate = false;
   });
+  // The turntable recorder (components/media/video) asks for one turn in a number of seconds, or null to stop.
+  canvas.addEventListener("knitwright:turn", (event) => {
+    const seconds = (event as CustomEvent<{ revolutionSeconds: number | null }>).detail.revolutionSeconds;
+    controls.autoRotateSpeed = seconds ? 60 / seconds : AUTO_ROTATE_SPEED;
+    controls.autoRotate = seconds !== null;
+  });
 
   const resize = () => {
     const width = canvas.clientWidth || 1;
