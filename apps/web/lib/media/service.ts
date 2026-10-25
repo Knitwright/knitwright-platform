@@ -5,8 +5,8 @@ import type { ItemRecord, MediaFiles, MediaStore, SetRecord } from "./ports";
 import { storeImage } from "@/lib/storage/store";
 
 /**
- * Media sets in the database and storage. Reads go through the user's own client, so the database's rules decide as
- * well as this code. Writes go through the functions of migration 20261027010000, with the server's key: no browser
+ * Media sets in the database and storage. Reads use the server's key filtered by the session's brand, because members hold no grant on an item's cost,
+ * provider or clean path (migration 20261030010000). Writes go through the functions of migration 20261027010000, with the server's key: no browser
  * may write a set, an item or a history line.
  */
 
@@ -73,7 +73,9 @@ const toRecord = (raw: unknown): SetRecord => {
   };
 };
 
-export function mediaStore(admin: SupabaseClient, client: SupabaseClient): MediaStore {
+// The second client is kept so callers need not change; reads no longer use it.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function mediaStore(admin: SupabaseClient, _client?: SupabaseClient): MediaStore {
   return {
     async start(input) {
       const { data, error } = await admin.rpc("media_set_start", {
@@ -113,12 +115,13 @@ export function mediaStore(admin: SupabaseClient, client: SupabaseClient): Media
       return data === true;
     },
     async read(brandId, projectId, setId) {
-      const { data, error } = await client.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).eq("id", setId).maybeSingle();
+      // Read with the server's key, filtered by the session's brand: members hold no grant on the cost, provider or clean path.
+      const { data, error } = await admin.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).eq("id", setId).maybeSingle();
       failIf(error, "The media set could not be read.");
       return data ? toRecord(data) : null;
     },
     async latest(brandId, projectId) {
-      const { data, error } = await client.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await admin.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).order("created_at", { ascending: false }).limit(1).maybeSingle();
       failIf(error, "The media sets could not be read.");
       return data ? toRecord(data) : null;
     },

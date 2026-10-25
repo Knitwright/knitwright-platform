@@ -29,6 +29,8 @@ type TableSpec = Readonly<{
   attempt: (brandId: string, userId: string) => Row;
   /** A change someone might try to make. */
   change: Row;
+  /** The columns a member may read, when the grant is on columns rather than the whole table. Default: all. */
+  readColumns?: string;
 }>;
 
 /** An allowance no test will reach. */
@@ -927,6 +929,8 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     },
     attempt: (brandId) => ({ set_id: randomUUID(), brand_id: brandId, kind: "studio_render", view: "front" }),
     change: { checker_verdict: "passed", clean_path: "_private/x/y.png" },
+    // Members hold no grant on cost_microdollars, provider or clean_path (migration 20261030010000).
+    readColumns: "id, set_id, brand_id, kind, view, file_id, width, height, checker_verdict, created_at",
   },
   media_set_history: {
     privileges: ["SELECT"],
@@ -1102,7 +1106,10 @@ const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
   );
 
 /** A designer with a template, a design made from it and an order for that design (decision 0061). Returns the ids. */
-const seedDesignerOrder = async (brandId: string, designerId: string): Promise<{ orderId: string; templateId: string }> => {
+const seedDesignerOrder = async (_brandId: string, designerId: string): Promise<{ orderId: string; templateId: string }> => {
+  // A designer's own use of their own template is not recorded, so a separate buyer makes the design in a brand of their own.
+  const buyer = await person("seed-buyer");
+  const brandId = await brandOf(buyer, "Seed Buyer FC");
   must(await adminClient().rpc("designer_enrol", { p_user_id: designerId, p_display_name: "Seeded designer" }));
   const templateId = randomUUID();
   must(
@@ -1114,10 +1121,10 @@ const seedDesignerOrder = async (brandId: string, designerId: string): Promise<{
       })
       .select("id"),
   );
-  const projectId = await seedProject(brandId, designerId);
+  const projectId = await seedProject(brandId, buyer.userId);
   must(await adminClient().rpc("designer_record_use", { p_template_id: templateId, p_brand_id: brandId, p_project_id: projectId }));
   const release = must(
-    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: designerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: buyer.userId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
   ) as { id: string }[];
   const order = must(
     await adminClient().rpc("submit_order_for_production", { p_release_id: release[0]!.id, p_external_ref: `seed-${randomUUID()}`, p_factory_profile_id: "f1", p_fabric_key: "m", p_article_id: "crew-tee", p_sizes: { M: 2 } }),
@@ -1316,7 +1323,7 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
   designer_template_uses: {
     privileges: [],
     seed: async () => {
-      // The designer makes the design in a brand of their own, so they are a member of it.
+      // seedDesignerOrder makes the design in a separate buyer's brand; the designer's own brand is only a placeholder argument.
       const designer = await person("uses-designer");
       const { orderId } = await seedDesignerOrder(await brandOf(designer, "Uses Designer FC"), designer.userId);
       return { project_id: (must(await adminClient().from("ops_orders").select("project_id").eq("id", orderId).single()) as { project_id: string }).project_id };
@@ -1502,15 +1509,15 @@ describe.each(Object.entries(TABLES))("table %s", (table, spec) => {
   });
 
   it("shows a member their own brand's rows", async () => {
-    const rows = must(await alice.client.from(table).select("*"));
+    const rows = must(await alice.client.from(table).select(spec.readColumns ?? "*")) as unknown as Row[];
 
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every((row) => row[spec.brandColumn] === aliceOwner())).toBe(true);
   });
 
   it("shows a member nothing of another brand", async () => {
-    const all = must(await alice.client.from(table).select("*"));
-    const asked = must(await alice.client.from(table).select("*").match(theirs));
+    const all = must(await alice.client.from(table).select(spec.readColumns ?? "*")) as unknown as Row[];
+    const asked = must(await alice.client.from(table).select(spec.readColumns ?? "*").match(theirs));
 
     expect(all.some((row) => row[spec.brandColumn] === bobOwner())).toBe(false);
     expect(asked).toEqual([]);
