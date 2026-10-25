@@ -57,7 +57,8 @@ const smallTargets = (page: Page): Promise<string[]> =>
       }
       if (box.width < min || box.height < min) {
         const name = (element.getAttribute("aria-label") ?? element.textContent ?? "").trim().slice(0, 40);
-        found.push(`${element.tagName.toLowerCase()} "${name}" is ${Math.round(box.width)} by ${Math.round(box.height)}`);
+        const where = (isCheck ? element.closest("label") ?? element : element).outerHTML.replace(/\s+/g, " ").slice(0, 110);
+        found.push(`${element.tagName.toLowerCase()} "${name}" is ${Math.round(box.width)} by ${Math.round(box.height)}: ${where}`);
       }
     }
     return found;
