@@ -126,3 +126,24 @@ it("does not call anything at import", () => {
   createCreditsService({ rpc: spy, readLedger: spy });
   expect(spy).not.toHaveBeenCalled();
 });
+
+describe("settings set in the console (lib/settings)", () => {
+  const owned = { isPlaceholder: false, prices: { marketing_media: 5, techpack_pdf: 2, pattern_file: 3 }, monthlyAllowance: 12 };
+
+  it("gives the allowance, syncs the prices and summarises with the stored numbers", async () => {
+    const d = { ...db({ credit_ensure_allowance: { applied: true, balance: 12 }, credit_set_prices: null, credit_balance: 12 }), readSettings: async () => owned };
+    const service = createCreditsService(d);
+    await service.ensureMonthlyAllowance(BRAND, new Date("2026-10-27T00:00:00Z"));
+    await service.syncCreditPrices();
+    const summary = await service.summary(BRAND);
+    expect(d.calls[0]?.[1]).toMatchObject({ p_amount: 12 });
+    expect(d.calls[1]).toEqual(["credit_set_prices", { p_prices: owned.prices, p_placeholder: false }]);
+    expect(summary).toMatchObject({ prices: owned.prices, isPlaceholder: false, monthlyAllowance: 12 });
+  });
+
+  it("uses the placeholders when no settings reader is given", async () => {
+    const d = db({ credit_ensure_allowance: { applied: true, balance: 10 } });
+    await createCreditsService(d).ensureMonthlyAllowance(BRAND, new Date("2026-10-27T00:00:00Z"));
+    expect(d.calls[0]?.[1]).toMatchObject({ p_amount: CREDIT_SETTINGS.monthlyAllowance });
+  });
+});
