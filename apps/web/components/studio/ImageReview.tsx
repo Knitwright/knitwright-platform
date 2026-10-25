@@ -1,5 +1,6 @@
 "use client";
 
+import { readJson } from "@/lib/http/read-json";
 import { useRouter } from "next/navigation";
 import { useEffect, useReducer, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -48,7 +49,7 @@ export function ImageReview({ projectId, version, available, busy }: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ fileId: uploaded.fileId, expectedVersion: version }),
       });
-      dispatch({ type: "read", answer: parseImageAnswer(await response.json().catch(() => null)) });
+      dispatch({ type: "read", answer: parseImageAnswer(await readJson(response)) });
     } catch {
       dispatch({ type: "failed", message: UNREACHABLE });
     }

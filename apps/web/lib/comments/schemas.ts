@@ -50,4 +50,3 @@ export const editBody = z.object({ body: words, mentions }).strict();
 export type EditBody = z.output<typeof editBody>;
 
 export const resolveBody = z.object({ resolved: z.boolean() }).strict();
-export type ResolveBody = z.output<typeof resolveBody>;

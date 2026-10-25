@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyToNull } from "@/lib/server/empty-to-null";
 import {
   AU_STATES,
   COUNTRY_CODES,
@@ -34,8 +35,6 @@ export {
 const TYPE_IDS = ORGANISATION_TYPES.map((type) => type.id) as [OrganisationType, ...OrganisationType[]];
 const COUNTRY_SET: ReadonlySet<string> = new Set(COUNTRY_CODES);
 const CONTROL_CHARACTER = /\p{Cc}/u;
-
-const emptyToNull = (value: unknown) => (typeof value === "string" && value.trim() === "" ? null : value);
 
 const optional = <T extends z.ZodType>(schema: T) => z.preprocess(emptyToNull, schema.nullable().default(null));
 

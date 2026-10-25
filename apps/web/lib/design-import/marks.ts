@@ -124,66 +124,88 @@ const KIND_WORDS: Readonly<Record<ReadMark["kind"], string>> = {
 
 const clip = (text: string, max: number): string => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
+type Pass = { readonly colours: readonly StackColour[]; readonly inks: number };
+type Step = { readonly item: ReportItem; readonly pass: Pass; readonly rect?: Rect; readonly layer?: Layer; readonly crop?: Crop };
+type Anchor = NonNullable<ReturnType<typeof anchorFor>>;
+type Geometry = { readonly id: string; readonly label: string; readonly rect: Rect; readonly place: Anchor; readonly heightMm: number; readonly widthMm: number; readonly sure: number; readonly base: typeof common & { readonly id: string; readonly views: ViewId[]; readonly name: string } };
+
+const CROPPED_KINDS: readonly ReadMark["kind"][] = ["crest", "sponsor", "sleeve-badge"];
+
+const isNumberText = (text: string | undefined): boolean => Boolean(text && /^\d{1,2}$/.test(text));
+
+/** The layer for a lettered mark, or null when it has no words to set. */
+function letteredLayer(input: MarksInput, mark: ReadMark, geo: Geometry, inkId: string | undefined, namesByView: ReadonlyMap<string, string>): Layer | null {
+  const { base, place, heightMm, widthMm } = geo;
+  const side = mark.view === "back" ? "back" : mark.view === "front" ? "front" : null;
+  if (mark.kind === "number" && side) {
+    const name = namesByView.get(mark.view);
+    const number = isNumberText(mark.text) ? mark.text : undefined;
+    return { ...base, kind: "player-mark", place: side === "back" ? "back-number" : "front-number", style: mark.lettering, heightMm, colourId: inkId, ...(name && number ? { sample: { name, number } } : {}) };
+  }
+  if (mark.kind === "name" && side === "back") {
+    const number = input.marks.find((m) => m.kind === "number" && m.view === "back" && isNumberText(m.text))?.text;
+    return { ...base, kind: "player-mark", place: "back-name", style: mark.lettering, heightMm, colourId: inkId, ...(mark.text && number ? { sample: { name: mark.text, number } } : {}) };
+  }
+  if (!mark.text) return null;
+  const placement = { kind: "anchor" as const, anchorId: place.anchorId };
+  return { ...base, kind: "text", text: mark.text, lettering: mark.lettering, placement, offsetMm: place.offset, heightMm, widthMm, rotationDeg: 0, colourId: inkId };
+}
+
+/** A crest, sponsor or badge: cropped from the picture as a graphic for the person to replace. */
+function croppedStep(mark: ReadMark, at: number, geo: Geometry, pass: Pass): Step {
+  const { id, label, rect, place, heightMm, widthMm, sure, base } = geo;
+  const assetId = `crop-${at + 1}`;
+  const placement = { kind: "anchor" as const, anchorId: place.anchorId };
+  const layer: Layer = { ...base, kind: "graphic", source: { kind: "asset", assetId }, placement, offsetMm: place.offset, widthMm, heightMm, rotationDeg: 0, clearSpaceMm: 0, knockOut: false };
+  return { layer, rect, crop: { assetId, view: mark.view, rect }, pass, item: { id, layerId: id, label, confidence: round2(Math.min(sure, 0.5)), note: `${CROP_FLAG}.` } };
+}
+
+/** A text or player-mark layer set in the ink read from the box. */
+function letteredStep(input: MarksInput, mark: ReadMark, geo: Geometry, pass: Pass, namesByView: ReadonlyMap<string, string>): Step {
+  const { id, label, rect, sure } = geo;
+  const ink = colourFor(inkOf(input.raster, rect, input.colours[0]), pass.colours, pass.inks);
+  const next: Pass = { colours: ink.colours, inks: ink.colours !== pass.colours ? pass.inks + 1 : pass.inks };
+  const layer = letteredLayer(input, mark, geo, ink.id, namesByView);
+  if (!layer) return { rect, pass: next, item: { id, label, confidence: 0, note: "The words could not be read, so nothing was added. Type them in yourself." } };
+  const readable = mark.text ? 1 : 0.6;
+  return { layer, rect, pass: next, item: { id, layerId: id, label, confidence: round2(sure * readable), note: "Lettering style is the nearest of ours. Check the words and size." } };
+}
+
+function readMark(input: MarksInput, mark: ReadMark, at: number, pass: Pass, namesByView: ReadonlyMap<string, string>): Step {
+  const id = `mark-${at + 1}`;
+  const label = `${KIND_WORDS[mark.kind]}${mark.text ? ` "${clip(mark.text, 24)}"` : ""}`;
+  const fit = input.fits.get(mark.view);
+  const rect = markRect(mark, input.raster);
+  if (!fit) return { pass, item: { id, label, confidence: 0, note: emptyViewSentence(mark.view, "not-fitted") } };
+  const centre = { x: (rect.x0 + rect.x1) / 2, y: (rect.y0 + rect.y1) / 2 };
+  const place = anchorFor(fit, input.template, centre);
+  if (!place) return { rect, pass, item: { id, label, confidence: 0, note: `No landmark near the ${mark.kind} could be used to place it, so it was not added.` } };
+  const geo: Geometry = {
+    id,
+    label,
+    rect,
+    place,
+    heightMm: roundMm(Math.max(1, (rect.y1 - rect.y0) * fit.mmPerPixel)),
+    widthMm: roundMm(Math.max(1, (rect.x1 - rect.x0) * fit.mmPerPixel)),
+    sure: round2(clamp01(input.readingConfidence * fit.confidence)),
+    base: { ...common, id, views: [mark.view], name: clip(label, 60) },
+  };
+  return CROPPED_KINDS.includes(mark.kind) ? croppedStep(mark, at, geo, pass) : letteredStep(input, mark, geo, pass, namesByView);
+}
+
 export function readMarks(input: MarksInput): MarksResult {
-  const { raster, fits, template } = input;
-  let colours = input.colours;
-  let inks = 0;
-  const layers: Layer[] = [];
-  const items: ReportItem[] = [];
-  const rects: Rect[] = [];
-  const crops: Crop[] = [];
-  const ground = colours[0];
   const namesByView = new Map(input.marks.filter((m) => m.kind === "name" && m.text).map((m) => [m.view, m.text as string]));
-
-  input.marks.forEach((mark, at) => {
-    const id = `mark-${at + 1}`;
-    const label = `${KIND_WORDS[mark.kind]}${mark.text ? ` "${clip(mark.text, 24)}"` : ""}`;
-    const fit = fits.get(mark.view);
-    const rect = markRect(mark, raster);
-    if (!fit) {
-      items.push({ id, label, confidence: 0, note: emptyViewSentence(mark.view, "not-fitted") });
-      return;
-    }
-    rects.push(rect);
-    const centre = { x: (rect.x0 + rect.x1) / 2, y: (rect.y0 + rect.y1) / 2 };
-    const place = anchorFor(fit, template, centre);
-    if (!place) {
-      items.push({ id, label, confidence: 0, note: `No landmark near the ${mark.kind} could be used to place it, so it was not added.` });
-      return;
-    }
-    const heightMm = roundMm(Math.max(1, (rect.y1 - rect.y0) * fit.mmPerPixel));
-    const widthMm = roundMm(Math.max(1, (rect.x1 - rect.x0) * fit.mmPerPixel));
-    const sure = round2(clamp01(input.readingConfidence * fit.confidence));
-    const placement = { kind: "anchor" as const, anchorId: place.anchorId };
-    const base = { ...common, id, views: [mark.view], name: clip(label, 60) };
-
-    if (mark.kind === "crest" || mark.kind === "sponsor" || mark.kind === "sleeve-badge") {
-      const assetId = `crop-${at + 1}`;
-      crops.push({ assetId, view: mark.view, rect });
-      layers.push({ ...base, kind: "graphic", source: { kind: "asset", assetId }, placement, offsetMm: place.offset, widthMm, heightMm, rotationDeg: 0, clearSpaceMm: 0, knockOut: false });
-      items.push({ id, layerId: id, label, confidence: round2(Math.min(sure, 0.5)), note: `${CROP_FLAG}.` });
-      return;
-    }
-
-    const ink = colourFor(inkOf(raster, rect, ground), colours, inks);
-    if (ink.colours !== colours) inks += 1;
-    colours = ink.colours;
-    const side = mark.view === "back" ? "back" : mark.view === "front" ? "front" : null;
-    if (mark.kind === "number" && side) {
-      const name = namesByView.get(mark.view);
-      const number = mark.text && /^\d{1,2}$/.test(mark.text) ? mark.text : undefined;
-      layers.push({ ...base, kind: "player-mark", place: side === "back" ? "back-number" : "front-number", style: mark.lettering, heightMm, colourId: ink.id, ...(name && number ? { sample: { name, number } } : {}) });
-    } else if (mark.kind === "name" && side === "back") {
-      const number = input.marks.find((m) => m.kind === "number" && m.view === "back" && m.text && /^\d{1,2}$/.test(m.text))?.text;
-      layers.push({ ...base, kind: "player-mark", place: "back-name", style: mark.lettering, heightMm, colourId: ink.id, ...(mark.text && number ? { sample: { name: mark.text, number } } : {}) });
-    } else if (mark.text) {
-      layers.push({ ...base, kind: "text", text: mark.text, lettering: mark.lettering, placement, offsetMm: place.offset, heightMm, widthMm, rotationDeg: 0, colourId: ink.id });
-    } else {
-      items.push({ id, label, confidence: 0, note: "The words could not be read, so nothing was added. Type them in yourself." });
-      return;
-    }
-    const readable = mark.text ? 1 : 0.6;
-    items.push({ id, layerId: id, label, confidence: round2(sure * readable), note: "Lettering style is the nearest of ours. Check the words and size." });
+  let pass: Pass = { colours: input.colours, inks: 0 };
+  const steps = input.marks.map((mark, at): Step => {
+    const step = readMark(input, mark, at, pass, namesByView);
+    pass = step.pass;
+    return step;
   });
-  return { layers, items, colours, rects, crops };
+  return {
+    layers: steps.flatMap((s) => (s.layer ? [s.layer] : [])),
+    items: steps.map((s) => s.item),
+    colours: pass.colours,
+    rects: steps.flatMap((s) => (s.rect ? [s.rect] : [])),
+    crops: steps.flatMap((s) => (s.crop ? [s.crop] : [])),
+  };
 }

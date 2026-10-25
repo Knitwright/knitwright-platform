@@ -1,5 +1,6 @@
 "use client";
 
+import { readJson } from "@/lib/http/read-json";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { appliedSentence, KIND_HEADINGS, parseApplied, parseList, UNREADABLE, type TileView } from "@/lib/variants/answers";
@@ -28,7 +29,7 @@ export function VariantsPanel({ projectId, version, busy }: Props) {
   useEffect(() => {
     const controller = new AbortController();
     fetch(`/api/projects/${projectId}/variants`, { signal: controller.signal })
-      .then((response) => response.json().catch(() => null))
+      .then((response) => readJson(response))
       .then((body) => {
         const answer = parseList(body);
         setRead(answer.ok ? { version, tiles: answer.tiles, problem: null } : { version, tiles: null, problem: answer.message });
@@ -49,7 +50,7 @@ export function VariantsPanel({ projectId, version, busy }: Props) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ variantId, expectedVersion: version }),
       });
-      const answer = parseApplied(await response.json().catch(() => null));
+      const answer = parseApplied(await readJson(response));
       if (answer.ok) {
         setNote(appliedSentence(answer.created, answer.version));
         router.refresh();

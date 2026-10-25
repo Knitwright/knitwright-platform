@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { emptyToNull } from "@/lib/server/empty-to-null";
 import { DELAY_REASON_MAX } from "./status";
 
-const emptyToNull = (value: unknown) => (typeof value === "string" && value.trim() === "" ? null : value);
 const note = z.string().trim().max(300, "Keep the note under 300 characters.").default("");
 
 export const orderIdSchema = z.object({ orderId: z.uuid("That is not an order.") });

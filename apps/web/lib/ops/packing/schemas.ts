@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { emptyToNull } from "@/lib/server/empty-to-null";
 
-const emptyToNull = (v: unknown) => (typeof v === "string" && v.trim() === "" ? null : v);
 const optionalInt = (label: string, max: number) =>
   z.preprocess(emptyToNull, z.coerce.number().int(`${label}: whole numbers only.`).min(1, `${label}: more than 0.`).max(max, `${label}: at most ${max}.`).nullable().default(null));
 

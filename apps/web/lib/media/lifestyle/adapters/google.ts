@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { ProviderError } from "@/lib/providers/image-provider";
 import type { LifestyleProvider } from "../provider";
@@ -41,7 +42,7 @@ async function predict(options: GoogleOptions, model: string, body: unknown, sig
     body: JSON.stringify(body),
     signal,
   });
-  const parsed = answerSchema.safeParse(await response.json().catch(() => null));
+  const parsed = answerSchema.safeParse(await readJson(response));
   const first = parsed.success ? parsed.data.predictions?.[0]?.bytesBase64Encoded : undefined;
   if (!first) throw new ProviderError("The image service returned no picture.", false);
   return fromBase64(first, "The image service");

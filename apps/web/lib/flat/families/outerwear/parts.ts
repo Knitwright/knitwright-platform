@@ -2,7 +2,7 @@ import { chain, circle, closedCommands, curveTo, lineTo, mirrorChain, openComman
 import { darken } from "../../colour";
 import type { FlatPath, Point } from "../../model";
 import { detailPath, insidePath, panelPath, seamPath, stitchPath } from "../../paths";
-import { collarChain, neckbandChain, standTop } from "../../templates/collar";
+import { collarChain, neckbandChain } from "../../templates/collar";
 import { insideBackChain } from "../../templates/inside-back";
 import { armholeChain, bodyOutline, bothSides, neckSeam, sleeveEnds } from "../../templates/pieces";
 import type { DrawContext, Ends } from "../drawing";
@@ -205,9 +205,6 @@ export function outerwearCalloutEnds(shape: OuterwearShape, pointId: string): En
   };
   return table[pointId] ?? null;
 }
-
-/** The standing collar's top edge, for landmarks. */
-export const collarTop = (shape: OuterwearShape): Point => standTop(shape.frame, shape.frame.collarHeight).pieces.at(-1)?.to ?? pt(0, 0);
 
 /** The crown of the hood, for landmarks. */
 export const hoodCrown = (shape: OuterwearShape): Point => hoodDome(shape).pieces.at(-1)?.to ?? pt(0, 0);

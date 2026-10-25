@@ -4,6 +4,7 @@ import { NEUTRAL_FILL, safeColour } from "./colour";
 import { boundsOfPoints, flatten } from "./geometry";
 import type { Bounds, FlatElement, FlatPath, PathCommand, Point, View } from "./model";
 import { BASELINE_SHIFT } from "./player-marks";
+import { signedAreaXY } from "@/lib/print/geometry/polygon";
 
 /**
  * A kit pattern drawn on the body of a top: hoops, stripes, a sash and so on. Each band is a
@@ -57,12 +58,7 @@ interface Band {
 }
 
 /** The area of a closed shape, positive when its points run one way and negative the other. */
-function signedArea(points: readonly Point[]): number {
-  return points.reduce((sum, point, index) => {
-    const next = points[(index + 1) % points.length] as Point;
-    return sum + point.x * next.y - next.x * point.y;
-  }, 0) / 2;
-}
+const signedArea = (points: readonly Point[]): number => signedAreaXY(points);
 
 const side = (a: Point, b: Point, point: Point): number => (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);
 

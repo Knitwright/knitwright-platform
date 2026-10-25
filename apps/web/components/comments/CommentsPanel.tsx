@@ -1,5 +1,6 @@
 "use client";
 
+import { readJson } from "@/lib/http/read-json";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseList, parseSaved, UNREADABLE, type ListAnswer } from "@/lib/comments/answers";
 import { buildThreads, filterThreads, mentionCount, type StatusFilter } from "@/lib/comments/thread";
@@ -39,7 +40,7 @@ export function CommentsPanel({ projectId, version, panels }: Props) {
 
   const load = useCallback(async (signal?: AbortSignal): Promise<ListAnswer | null> => {
     try {
-      return parseList(await (await fetch(base, { signal })).json().catch(() => null));
+      return parseList(await readJson(await fetch(base, { signal })));
     } catch (error) {
       return error instanceof DOMException && error.name === "AbortError" ? null : { ok: false, message: UNREADABLE };
     }
@@ -57,7 +58,7 @@ export function CommentsPanel({ projectId, version, panels }: Props) {
     setProblem(null);
     try {
       const response = await fetch(url, { method, headers: { "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
-      const answer = parseSaved(await response.json().catch(() => null));
+      const answer = parseSaved(await readJson(response));
       if (!answer.ok) {
         setProblem(answer.message);
         return false;
