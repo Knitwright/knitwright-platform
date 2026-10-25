@@ -18,8 +18,16 @@ const scriptKindOf = (path: string): ts.ScriptKind => {
   return ts.ScriptKind.TS;
 };
 
-export const parse = ({ path, text }: SourceText): ts.SourceFile =>
-  ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, scriptKindOf(path));
+const parsed = new Map<string, Readonly<{ text: string; file: ts.SourceFile }>>();
+
+/** Parsing every file of the app is the slow part of the checks, so a file is parsed once however many checks read it. */
+export const parse = ({ path, text }: SourceText): ts.SourceFile => {
+  const known = parsed.get(path);
+  if (known?.text === text) return known.file;
+  const file = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, scriptKindOf(path));
+  parsed.set(path, { text, file });
+  return file;
+};
 
 /** The names under which this file imported the function from its one true module. */
 export const localNamesOf = (source: ts.SourceFile, wanted: Imported): ReadonlySet<string> => {

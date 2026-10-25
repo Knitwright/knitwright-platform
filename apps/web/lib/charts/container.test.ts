@@ -12,6 +12,9 @@ const spreadsheetParts = (extra: Record<string, Uint8Array> = {}): Record<string
 
 const zip = (files: Record<string, Uint8Array>): Uint8Array => zipSync(files, { level: 9 });
 
+// These build and unpack 40 MB archives (a zip bomb), which is slow under coverage on a shared runner.
+const BOMB_MS = 30_000;
+
 describe("sheetKind", () => {
   it("knows a spreadsheet by its content, not its name", () => {
     expect(sheetKind(zip(spreadsheetParts()))).toEqual({ ok: true, kind: "xlsx" });
@@ -144,7 +147,7 @@ describe("sheetKind reads each part's own header against the table of contents",
     view.setUint32(entry + 24, 1000, true);
     view.setUint32(local + 22, 1000, true);
     expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/unpack/) });
-  });
+  }, BOMB_MS);
 
   it("refuses a part hidden in front of the parts the table lists", () => {
     const bomb = zip({ "bomb.xml": new Uint8Array(40 * 1024 * 1024) });
@@ -159,5 +162,5 @@ describe("sheetKind reads each part's own header against the table of contents",
     for (const entry of directoryEntries(bytes)) shift(entry + 42);
     expect(bytes.length).toBeLessThan(CHART_IMPORT_LIMITS.maxBytes);
     expect(sheetKind(bytes)).toMatchObject({ ok: false, message: expect.stringMatching(/not a spreadsheet/) });
-  });
+  }, BOMB_MS);
 });
