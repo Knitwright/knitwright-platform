@@ -125,6 +125,17 @@ describe("the reads", () => {
     await expect(loadDecided(reads({ template_submissions: { data: null, error: { message: "x" } } }).client)).rejects.toBeInstanceOf(AppError);
   });
 
+  it("reads an empty answer (no rows, no error) as nothing", async () => {
+    const none = reads({ template_submissions: { data: null, error: null }, designer_profiles: { data: null, error: null }, royalty_accruals: { data: null, error: null }, designer_payout_state: { data: null, error: null }, projects: { data: null, error: null } }).client;
+    expect(await loadSubmissions(none, B)).toEqual([]);
+    expect(await loadReviewQueue(none)).toEqual([]);
+    expect(await loadDecided(none)).toEqual([]);
+    expect((await loadLedger(none)).size).toBe(0);
+    expect((await loadPayoutStates(none)).size).toBe(0);
+    expect(await loadDesignerRows(none)).toEqual([]);
+    expect(await loadDesignChoices(none, A)).toEqual([]);
+  });
+
   const lines = [
     { designer_id: B, units: 10, rate_minor: 50, currency: "AUD", accrued_minor: 500 },
     { designer_id: B, units: 5, rate_minor: null, currency: null, accrued_minor: 0 },
