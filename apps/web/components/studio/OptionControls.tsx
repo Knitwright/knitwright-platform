@@ -90,7 +90,7 @@ function ChoiceRow({ choice, groupId, checked, onPick }: ChoiceRowProps) {
   const reasonId = choice.available ? undefined : `${inputId}-reason`;
   return (
     <div>
-      <label htmlFor={inputId} className={`flex items-start gap-3 text-[15px] ${choice.available ? "text-ink" : "text-muted"}`}>
+      <label htmlFor={inputId} className={`flex min-h-10 items-center gap-3 text-[15px] ${choice.available ? "text-ink" : "text-muted"}`}>
         <input
           id={inputId}
           type="radio"
@@ -100,7 +100,7 @@ function ChoiceRow({ choice, groupId, checked, onPick }: ChoiceRowProps) {
           aria-disabled={choice.available ? undefined : true}
           aria-describedby={reasonId}
           onChange={() => (choice.available ? onPick() : undefined)}
-          className="mt-1 size-4 accent-cobalt"
+          className="size-4 shrink-0 accent-cobalt"
         />
         <span>
           {choice.label}

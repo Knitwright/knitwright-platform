@@ -22,7 +22,7 @@ export function FileSummary({ progress, left, baseSearch, confirmables }: Summar
           <a
             href={sectionSearch(baseSearch, "left")}
             data-file-section-link="left"
-            className="text-xs text-cobalt-soft underline-offset-4 hover:underline"
+            className="inline-flex min-h-10 items-center text-xs text-cobalt-soft underline-offset-4 hover:underline"
             data-testid="things-left"
           >
             {thingsLeftSentence(left)}

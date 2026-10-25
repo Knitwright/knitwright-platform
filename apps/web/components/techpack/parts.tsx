@@ -79,7 +79,7 @@ type TableProps = Readonly<{ caption: string; heads: readonly string[]; children
 /** A table with a hidden caption and column heads. It scrolls sideways when it is wide. */
 export function DocTable({ caption, heads, children }: TableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" role="region" aria-label={caption} tabIndex={0}>
       <table className="w-full min-w-[32rem] text-left align-top">
         <caption className="sr-only">{caption}</caption>
         <thead>

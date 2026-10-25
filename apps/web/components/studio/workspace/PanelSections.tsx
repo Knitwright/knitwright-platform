@@ -154,7 +154,7 @@ function DetailsSection({ data }: Readonly<{ data: EditorData }>) {
     <>
       <DetailsForm projectId={data.projectId} name={data.name} styleNumber={data.styleNumber} season={data.season} />
       <p>
-        <Link href={`/studio/${data.projectId}/delete` as Route} className="text-sm text-muted underline hover:text-ink">
+        <Link href={`/studio/${data.projectId}/delete` as Route} className="inline-flex min-h-10 items-center text-sm text-muted underline hover:text-ink">
           Delete design
         </Link>
       </p>

@@ -27,12 +27,18 @@ as its last item. This pass changes layout, spacing, labels and focus handling o
 ## Fixed
 
 - Assistant sheet: Tab is held inside, `aria-modal` set, Close and Hide buttons raised to 40 px.
-
-(Further fixes found by the phone spec are listed below as they are made.)
+- Studio header: logo, brand, credits and Settings links, the section pills and Sign out are 40 px tall; on a phone the
+  header gaps are tighter so the taller links still fit in 390 px with no sideways scroll.
+- Ops console: navigation links 40 px; the "Change" link has enough contrast; metric notes sit in a `dd`, so the
+  definition list is valid.
+- Factory file: Back link, journey steps, download buttons and the "things left" link 40 px; wide tables that scroll
+  sideways are keyboard reachable regions with a name.
+- Editor: choice rows (radios) and the Delete design link are 40 px tall.
 
 ## Left
 
-- Nothing is recorded as left yet.
+- Whatever the phone spec still reports after these fixes is listed in the PR comment; nothing is skipped or disabled.
+- Code splitting of the editor (see below) is a follow-up, not a presentational change.
 
 ## First-load JavaScript per route
 

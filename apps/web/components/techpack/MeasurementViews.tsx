@@ -56,7 +56,7 @@ export function MeasurementsView({ table, forms, confirm }: MeasurementsProps) {
       {table.groups.map((group) => (
         <div key={group.group} className={STACKED}>
           <h3 className="text-sm font-semibold text-ink">{group.label}</h3>
-          <div className="mt-2 overflow-x-auto rounded-2xl border border-hairline">
+          <div className="mt-2 overflow-x-auto rounded-2xl border border-hairline" role="region" aria-label={`${group.label} measurements`} tabIndex={0}>
             <table className="w-full min-w-[32rem] border-collapse text-sm">
               <caption className="sr-only">{`${group.label} measurements for each size, in centimetres`}</caption>
               <thead>
