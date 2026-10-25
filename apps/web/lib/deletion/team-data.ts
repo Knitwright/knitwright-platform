@@ -23,4 +23,13 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "club_seasons", holds: "no names of people: the name and dates of a season, and the key its roster hangs on", erasableAlone: true },
   { table: "club_invitations", holds: "the email addresses of people invited to join a club", erasableAlone: true },
   { table: "club_kits", holds: "no names of people: sponsor names are businesses, and the crest and logos are file ids", erasableAlone: false },
+  // Ops console part 2 (plan W2-D, decision 0050). These hold no player names: a bag points at a line of the team
+  // list by position and the name is read from the list when a label is printed. Their free-text notes could still
+  // name someone, so every one is tied to its brand and goes with it. Only platform admins read them.
+  { table: "ops_qc_inspections", holds: "no names: results, measurements typed by ops, photo file ids and a free-text note", erasableAlone: false },
+  { table: "ops_exceptions", holds: "no names of players: an owner (a staff or factory contact) and a free-text note", erasableAlone: false },
+  { table: "ops_exception_events", holds: "the same owner and note, as history", erasableAlone: false },
+  { table: "ops_pack_bags", holds: "no names: the position of a line in the team list, a size and a count", erasableAlone: false },
+  { table: "ops_cartons", holds: "no names: a carton's weight and size as typed by ops", erasableAlone: false },
+  { table: "ops_shipments", holds: "no names of players: courier, tracking number and a free-text note", erasableAlone: false },
 ];

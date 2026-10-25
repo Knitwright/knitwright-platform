@@ -2,10 +2,15 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { RaiseExceptionForm } from "@/components/ops/ExceptionForms";
 import { OrderControls } from "@/components/ops/OrderControls";
 import { AppError } from "@/lib/server/core/errors";
 import { batchLabel, orderValue, sizesLine } from "@/lib/ops/format";
+import { latestInspection } from "@/lib/ops/qc/rows";
+import { listInspections } from "@/lib/ops/qc/service";
 import { loadOrder, movableBatches } from "@/lib/ops/service";
+import { listShipments } from "@/lib/ops/shipping/service";
+import { FULFILMENT_LABELS, fulfilmentOf } from "@/lib/ops/shipping/rules";
 import { STATUS_LABELS } from "@/lib/ops/status";
 import { formatDateTime } from "@/lib/projects/dates";
 import { sessionClient } from "@/lib/server/deps";
@@ -25,6 +30,8 @@ export default async function OrderPage({ params }: PageProps<"/ops/orders/[orde
   });
   const { order, events } = loaded;
   const batches = (await movableBatches(client, order)).map((b) => ({ id: b.id, label: batchLabel(b) }));
+  const [inspections, shipments] = await Promise.all([listInspections(client, order.id), listShipments(client, order.id)]);
+  const latest = latestInspection(inspections);
 
   return (
     <main id="main" className="rise">
@@ -33,6 +40,15 @@ export default async function OrderPage({ params }: PageProps<"/ops/orders/[orde
       </p>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">{order.externalRef}</h1>
       <p className="mt-1 text-[15px] text-muted">{STATUS_LABELS[order.status]}</p>
+      <p className="mt-1 text-sm text-muted" data-testid="order-fulfilment">
+        {FULFILMENT_LABELS[fulfilmentOf(order, shipments)]}. Inspection: {latest ? (latest.result === "pass" ? "pass" : "fail") : "none yet"}.
+      </p>
+      <nav aria-label="This order" className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm font-medium">
+        <Link href={`/ops/orders/${order.id}/qc` as Route} className="underline">Quality control</Link>
+        <Link href={`/ops/orders/${order.id}/packing` as Route} className="underline">Packing</Link>
+        <Link href={`/ops/orders/${order.id}/shipping` as Route} className="underline">Shipping</Link>
+        <Link href={"/ops/exceptions" as Route} className="underline">Exceptions</Link>
+      </nav>
       <dl className="mt-4 grid gap-x-8 gap-y-1 text-sm sm:grid-cols-2">
         <Row term="Article, fabric, factory">{order.articleId}, {order.fabricKey}, {order.factoryProfileId}</Row>
         <Row term="Release">{order.release.label} (release {order.release.number})</Row>
@@ -46,6 +62,12 @@ export default async function OrderPage({ params }: PageProps<"/ops/orders/[orde
       <section aria-labelledby="controls" className="mt-8">
         <h2 id="controls" className="text-lg font-semibold text-ink">Change this order</h2>
         <div className="mt-3"><OrderControls orderId={order.id} status={order.status} batches={batches} /></div>
+      </section>
+
+      <section aria-labelledby="exception" className="mt-8">
+        <h2 id="exception" className="text-lg font-semibold text-ink">Raise an exception</h2>
+        <p className="mt-1 text-sm text-muted">A remake, partial shipment, lost parcel or size swap. Every exception has an owner and a due date.</p>
+        <div className="mt-3"><RaiseExceptionForm orderId={order.id} /></div>
       </section>
 
       <section aria-labelledby="history" className="mt-8">

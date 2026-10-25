@@ -14,6 +14,7 @@ export default async function OpsLayout({ children }: LayoutProps<"/">) {
         <nav aria-label="Ops" className={`${pageFrame("content")} flex flex-wrap items-center gap-x-6 gap-y-2 py-3 text-sm`}>
           <span className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright ops</span>
           <Link href="/ops" className="font-medium text-ink hover:underline">Batches</Link>
+          <Link href="/ops/exceptions" className="font-medium text-ink hover:underline">Exceptions</Link>
           <Link href="/ops/settings" className="font-medium text-ink hover:underline">Settings</Link>
         </nav>
       </header>

@@ -1,6 +1,8 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { CutBatchesForm } from "@/components/ops/CutBatchesForm";
+import { MetricsPanel } from "@/components/ops/MetricsPanel";
+import { loadMetrics } from "@/lib/ops/metrics/service";
 import { loadSettings, listBatches, listWaitingOrders } from "@/lib/ops/service";
 import { batchLabel, formatValue, sizesLine, statusCounts } from "@/lib/ops/format";
 import { describeCutoff } from "@/lib/ops/settings";
@@ -15,7 +17,7 @@ export const metadata: Metadata = { title: "Ops: batches", robots: { index: fals
 export default async function OpsPage() {
   await requirePlatformAdmin();
   const client = await sessionClient();
-  const [batches, waiting, settings] = await Promise.all([listBatches(client), listWaitingOrders(client), loadSettings(client)]);
+  const [batches, waiting, settings, { metrics, truncated }] = await Promise.all([listBatches(client), listWaitingOrders(client), loadSettings(client), loadMetrics(client)]);
 
   return (
     <main id="main" className="rise">
@@ -24,7 +26,8 @@ export default async function OpsPage() {
         Weekly cut-off: {describeCutoff(settings)}. {settings.label}. {settings.leadTimeDays === null ? "No lead time is set, so no due date is promised." : `Lead time ${settings.leadTimeDays} days.`}{" "}
         <Link href="/ops/settings" className="underline">Change</Link>
       </p>
-      <div className="mt-4"><CutBatchesForm /></div>
+      <MetricsPanel metrics={metrics} truncated={truncated} />
+      <div className="mt-6"><CutBatchesForm /></div>
 
       <section aria-labelledby="waiting" className="mt-8">
         <h2 id="waiting" className="text-lg font-semibold text-ink">Waiting for a batch ({waiting.length})</h2>
