@@ -49,3 +49,4 @@ Copy `0000-template.md` to start.
 | 0041 | [The template library (V3)](0041-template-library.md) | Proposed. Owner questions listed. |
 | 0054 | [Media sets, studio renders and watermark (W3-A)](0054-media-sets.md) | Proposed. Owner questions listed. |
 | 0062 | [Brand workspace: product list and brand runs (W4-C)](0062-brand-runs.md) | Proposed. Owner questions listed. |
+| 0057 | [Lifestyle images with scene replacement and try-on (W3-B)](0057-lifestyle-images.md) | Proposed. Owner questions listed. |

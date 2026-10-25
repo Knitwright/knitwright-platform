@@ -2,12 +2,13 @@ import { after } from "next/server";
 import { z } from "zod";
 import { loadStudioDesign } from "@/lib/media/design";
 import { runMediaSet } from "@/lib/media/generate";
+import { lifestyleGenerators } from "@/lib/media/lifestyle/register";
 import { mediaFiles, mediaStore } from "@/lib/media/service";
 import { startMediaSet } from "@/lib/media/start";
 import { studioGenerator } from "@/lib/media/studio-generator";
 import { setView } from "@/lib/media/view";
 import { defineRoute } from "@/lib/server/define-route";
-import { adminClient, sessionClient } from "@/lib/server/deps";
+import { adminClient, productionDeps, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
 import { ensureStorageRoom } from "@/lib/storage/store";
@@ -30,7 +31,12 @@ export const POST = defineRoute({
     const { projectId } = input.params;
     const store = mediaStore(admin, client);
     const files = mediaFiles(admin, client, { brandId, userId: session.userId });
-    const generators = [studioGenerator(async (design) => loadStudioDesign(client, brandId, projectId, design.version))];
+    const loadDesign = async (design: { version: number }) => loadStudioDesign(client, brandId, projectId, design.version);
+    // Lifestyle pictures are made only when the owner has chosen a provider (decision 0057); by default this adds nothing.
+    const generators = [
+      studioGenerator(loadDesign),
+      ...lifestyleGenerators({ env: process.env, usage: productionDeps.usage, client, brandId, userId: session.userId, loadDesign, log }),
+    ];
 
     await ensureStorageRoom(admin, brandId, 1);
     const { set, created } = await startMediaSet(
