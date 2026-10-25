@@ -1,4 +1,5 @@
 import type { Point } from "@/lib/production/contract";
+import { signedArea as ringSignedArea } from "@/lib/print/geometry/polygon";
 
 /** Plain geometry on millimetre points. Everything returns new values and none changes its input. */
 
@@ -22,15 +23,7 @@ export const round2 = (n: number): number => Number(n.toFixed(2)) + 0;
 export const roundPoint = (p: Point): Point => [round2(p[0]), round2(p[1])];
 
 /** Signed area: positive when the points run anticlockwise. */
-export function signedArea(outline: readonly Point[]): number {
-  let sum = 0;
-  for (let i = 0; i < outline.length; i += 1) {
-    const [x1, y1] = outline[i];
-    const [x2, y2] = outline[(i + 1) % outline.length];
-    sum += x1 * y2 - x2 * y1;
-  }
-  return sum / 2;
-}
+export const signedArea = (outline: readonly Point[]): number => ringSignedArea(outline);
 
 /** Length of an open run of points. */
 export function runLength(points: readonly Point[]): number {

@@ -100,33 +100,20 @@ export function RunBuilder({ product, context, canEdit }: Props) {
         <Notice>This design has no frozen release yet. Freeze one from the design, then come back; a sample is a release like any other.</Notice>
       ) : null}
 
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-sm font-medium text-ink">{kind === "sample" ? "Sizes for the sample (1 piece each)" : "Pieces per size"}</legend>
-        {context.sizeRun.length === 0 ? (
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="flex flex-col gap-1">
-              <label htmlFor={ids.add} className="text-sm text-ink">Size label</label>
-              <input id={ids.add} maxLength={16} className={FIELD_CONTROL} value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLabel(); } }} placeholder="M" />
-            </div>
-            <Button variant="secondary" type="button" onClick={addLabel}>Add size</Button>
-            <p className="basis-full text-sm text-muted">This design has no size run set, so type the sizes you want to order.</p>
-          </div>
-        ) : null}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {labels.map((label) => (
-            <div key={label} className="flex flex-col gap-1">
-              <label htmlFor={`${ids.kind}-${label}`} className="text-sm text-ink">{`Size ${label}`}</label>
-              <input id={`${ids.kind}-${label}`} inputMode="numeric" className={FIELD_CONTROL} value={typed[label] ?? ""} onChange={(e) => set(label, e.target.value)} placeholder="0" />
-            </div>
-          ))}
-        </div>
-      </fieldset>
+      <SizeInputs
+        kind={kind}
+        idPrefix={ids.kind}
+        addId={ids.add}
+        labels={labels}
+        hasSizeRun={context.sizeRun.length > 0}
+        draft={draft}
+        onDraft={setDraft}
+        onAdd={addLabel}
+        typed={typed}
+        onType={set}
+      />
 
-      <div className="flex flex-col gap-1 text-[15px]" aria-live="polite">
-        <p className="text-ink">Total: {result.total} {result.total === 1 ? "piece" : "pieces"}</p>
-        {kind === "run" ? <p className="text-muted">Price: {quote.text}.</p> : <p className="text-muted">Price of a sample: Knitwright will quote.</p>}
-        {context.moq.status === "set" ? <p className="text-muted">Minimum order for this garment: {context.moq.value} pieces. Brand runs are up to {MAX_RUN_PIECES}.</p> : <p className="text-muted">Minimum order: not set yet. Brand runs are up to {MAX_RUN_PIECES}.</p>}
-      </div>
+      <RunSummary kind={kind} total={result.total} quoteText={quote.text} moq={context.moq} />
 
       {result.errors.length > 0 && result.total + Object.keys(typed).length > 0 ? <Notice tone="warn" role="alert">{result.errors.join(" ")}</Notice> : null}
       {result.flags.length > 0 ? (
@@ -147,5 +134,54 @@ export function RunBuilder({ product, context, canEdit }: Props) {
         </Button>
       </div>
     </form>
+  );
+}
+
+type SizeInputsProps = Readonly<{
+  kind: RunKind;
+  idPrefix: string;
+  addId: string;
+  labels: readonly string[];
+  hasSizeRun: boolean;
+  draft: string;
+  onDraft: (value: string) => void;
+  onAdd: () => void;
+  typed: Readonly<Record<string, string>>;
+  onType: (label: string, value: string) => void;
+}>;
+
+function SizeInputs({ kind, idPrefix, addId, labels, hasSizeRun, draft, onDraft, onAdd, typed, onType }: SizeInputsProps) {
+  return (
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium text-ink">{kind === "sample" ? "Sizes for the sample (1 piece each)" : "Pieces per size"}</legend>
+        {!hasSizeRun ? (
+          <div className="flex flex-wrap items-end gap-2">
+            <div className="flex flex-col gap-1">
+              <label htmlFor={addId} className="text-sm text-ink">Size label</label>
+              <input id={addId} maxLength={16} className={FIELD_CONTROL} value={draft} onChange={(e) => onDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onAdd(); } }} placeholder="M" />
+            </div>
+            <Button variant="secondary" type="button" onClick={onAdd}>Add size</Button>
+            <p className="basis-full text-sm text-muted">This design has no size run set, so type the sizes you want to order.</p>
+          </div>
+        ) : null}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {labels.map((label) => (
+            <div key={label} className="flex flex-col gap-1">
+              <label htmlFor={`${idPrefix}-${label}`} className="text-sm text-ink">{`Size ${label}`}</label>
+              <input id={`${idPrefix}-${label}`} inputMode="numeric" className={FIELD_CONTROL} value={typed[label] ?? ""} onChange={(e) => onType(label, e.target.value)} placeholder="0" />
+            </div>
+          ))}
+        </div>
+      </fieldset>
+  );
+}
+
+function RunSummary({ kind, total, quoteText, moq }: Readonly<{ kind: RunKind; total: number; quoteText: string; moq: RunContext["moq"] }>) {
+  return (
+      <div className="flex flex-col gap-1 text-[15px]" aria-live="polite">
+        <p className="text-ink">Total: {total} {total === 1 ? "piece" : "pieces"}</p>
+        {kind === "run" ? <p className="text-muted">Price: {quoteText}.</p> : <p className="text-muted">Price of a sample: Knitwright will quote.</p>}
+        {moq.status === "set" ? <p className="text-muted">Minimum order for this garment: {moq.value} pieces. Brand runs are up to {MAX_RUN_PIECES}.</p> : <p className="text-muted">Minimum order: not set yet. Brand runs are up to {MAX_RUN_PIECES}.</p>}
+      </div>
   );
 }

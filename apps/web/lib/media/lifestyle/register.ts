@@ -50,6 +50,7 @@ export function lifestyleGenerators(deps: RegisterDeps): readonly MediaGenerator
         dailyCapMicrodollars: dailyCapFrom(deps.env.LIFESTYLE_DAILY_CAP_MICRODOLLARS),
       }),
       onReport: (report) => logReport(deps.log, report),
+      log: deps.log,
     }),
   ];
 }

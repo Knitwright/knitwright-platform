@@ -1,4 +1,5 @@
 import { AppError } from "@/lib/server/core/errors";
+import { log } from "@/lib/server/log";
 import type { MediaFiles, MediaStore } from "../ports";
 import { cleanPath } from "../paths";
 import { watermark } from "../watermark";
@@ -49,8 +50,12 @@ export async function saveTurntable(deps: TurntableDeps, ask: TurntableAsk): Pro
     });
     return { itemId };
   } catch (error) {
-    await deps.files.remove({ fileIds: [fileId], cleanPaths: [posterPath] }).catch(() => undefined);
-    await deps.videos.remove([moviePath]).catch(() => undefined);
+    await deps.files.remove({ fileIds: [fileId], cleanPaths: [posterPath] }).catch(
+      (error: unknown) => log({ level: "warn", message: `Leftover files could not be removed: ${posterPath}`, where: "media turntable cleanup", error }),
+    );
+    await deps.videos.remove([moviePath]).catch(
+      (error: unknown) => log({ level: "warn", message: `A leftover recording could not be removed: ${moviePath}`, where: "media turntable cleanup", error }),
+    );
     throw error;
   }
 }

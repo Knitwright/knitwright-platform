@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import type { MediaSetView } from "@/lib/media/view";
 import { UNREACHABLE_MESSAGE } from "./copy";
 
@@ -56,7 +57,7 @@ const FALLBACK = "That did not work. Try again.";
 async function call<T>(fetcher: Fetch, url: string, init: RequestInit | undefined, read: (data: Json) => T | null): Promise<{ ok: true; data: T } | Failure> {
   try {
     const response = await fetcher(url, { cache: "no-store", ...init });
-    const body: unknown = await response.json().catch(() => null);
+    const body: unknown = await readJson(response);
     if (!isObject(body)) return { ok: false, message: FALLBACK };
     if (body.success === false && isObject(body.error) && typeof body.error.message === "string") return { ok: false, message: body.error.message };
     const data = body.success === true && isObject(body.data) ? read(body.data) : null;

@@ -1,6 +1,5 @@
 import { sourceLabel } from "../cell";
 import type { Cell, SectionId } from "../types";
-import { EXPORT_VIEWS } from "./formats";
 
 /**
  * What each format holds. The PDF holds every section. The Excel file holds one sheet for
@@ -26,8 +25,6 @@ export const EXCEL_SHEETS: Readonly<Record<SectionId, string | null>> = {
   suggested: "Suggested values",
   "sign-off": "Sign-off",
 };
-
-export const SVG_VIEWS = EXPORT_VIEWS;
 
 /**
  * The source of a cell in words, or null for a cell that is to be confirmed. A proposal says it

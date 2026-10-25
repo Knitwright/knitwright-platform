@@ -48,3 +48,25 @@ Baseline on main (`a30520a`): typecheck, lint and `tests/architecture` plus the 
 ## Not changed
 
 No file was moved, no test touched, no migration touched. `vitest.config.mts` and `isolation.test.ts` are unchanged.
+
+## Fixed in the follow-up
+
+Branch `fix/code-review-v4`. Behaviour-preserving; no migration, no `Sportswear/`, `kitwright/` or `supabase/config.toml` touched.
+
+| # | Result | Notes |
+|---|---|---|
+| M1 | needs owner | Wire or delete `ArtworkPanel`, `GeneratorGallery`, `DesignImportPanel`, `ModelViewer`. Not changed. |
+| M2 | fixed | The lifestyle generator logs the failed picture check as `lib/media/generate.ts` does. `LifestyleDeps` gained an optional `log`; `register.ts` passes it in. |
+| M3 | fixed | Neighbour step extracted in `regionCount` and `largestRegion`. |
+| M4 | fixed | `parseCsv` split into field and row readers; messages and line numbers unchanged. |
+| M5 | fixed | `createCreditsService` built from one factory per operation; same public API. |
+| M6 | partly fixed | Split: `makeScene`, `buildPieceScene`, `describeAction`, `run` (apply-action), file-builder, `readMarks`, `path.ts`, `sizing/resolve`, `techpack/build`. Not changed (not in the brief's list): `pattern-library/dxf/read.ts`, `design-import/pipeline.ts`, `techpack/exports/tables-parts.ts`, `design-import/landmarks.ts`, `artwork-intake/store.ts`, `garment/reconcile.ts`, `techpack/exports/tables-front.ts`, `media/service.ts`, `flat/families/bottoms/shape.ts`. Side effect: `describeAction` and `run` no longer get a compile-time exhaustiveness check over the action union (helpers return null for actions they do not handle; the final fallback never fires today). |
+| M7 | fixed | One implementation in `lib/print/geometry/polygon.ts`; thin adapters keep each module's names, point types and sign convention (the design-import and techpack `polygonArea` stay absolute). `polygon-adapters.test.ts` proves results equal the old implementations. The index-based triangle `signedArea` in `garment3d/triangulate.ts` is not a polygon helper and was left. |
+| L1 | fixed | `lib/server/empty-to-null.ts`; the four copies were identical. |
+| L2 | fixed | `readJson` in `lib/http/read-json.ts` (not `lib/server`, because browser code uses it); all 24 `json().catch` sites use it; null on bad JSON as before. |
+| L3 | fixed | Cleanup-delete failures are logged at warn level and still swallowed. |
+| L4 | partly fixed | Deleted exports with no reader at all (listed in the PR). Kept: `orderDesignVersion` (documented future hook in decision 0051, runbook and launch checklist), `roundRing`, `SCENE_PROVIDERS`, `TRYON_PROVIDERS`, `MAX_TURNTABLE_SECONDS` (files in the hot area of the parallel security routine or this PR; delete in a later pass). No wider scan for further exports was run. |
+| L5 | not changed | Per brief. |
+| L6 | partly fixed | Presentational subcomponents extracted from `ArtworkCard`, `RunBuilder` and `ArtworkAndColourView` (new `components/techpack/ArtworkColourParts.tsx`). `ChatPanel`, `DiffPanel`, `CommentsPanel` and the rest left. |
+| L7 | not changed | Per brief. |
+| L8 | fixed, 2 items need owner | `lib/techpack/wording.test.ts` now also scans prose in `lib/{media,comments,designers,brand-runs,pattern-service,credits,clubs,templates,validation}`, `components` and `app`. Four hits are allow-listed, none edited: two are negated ("could not be checked"), the other two need an owner decision: `lib/media/video/clip.ts` ("a lifestyle picture that passed the check") and `lib/media/lifestyle/register.ts` (a log line, "passed the first time"). |

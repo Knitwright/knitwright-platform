@@ -11,7 +11,6 @@ export const stageBody = z.object({
   productId: z.uuid(),
   to: z.enum(STAGES),
 });
-export type StageBody = z.output<typeof stageBody>;
 
 /** A quantity as typed: a number or text from a form field. Checked again by checkBreakdown. */
 const quantity = z.union([z.number(), z.string().max(8)]);

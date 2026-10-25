@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { LOGO_RIGHTS_MISSING } from "@/lib/storage/rights";
 
@@ -56,7 +57,7 @@ async function send(
   if (kind === "artwork") form.set("rights", "yes");
   try {
     const response = await post(form);
-    const parsed = answer.safeParse(await response.json().catch(() => null));
+    const parsed = answer.safeParse(await readJson(response));
     if (!parsed.success) return { ok: false, reason: FAILED };
     if (!parsed.data.success) return { ok: false, reason: parsed.data.error.message };
     return { ok: true, fileId: parsed.data.data.id, width: parsed.data.data.width, height: parsed.data.data.height };

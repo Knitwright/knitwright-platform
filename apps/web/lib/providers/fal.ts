@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { ProviderError, type GeneratedImage, type ImageProvider } from "./image-provider";
 
@@ -98,7 +99,7 @@ export function createFalProvider({ apiKey, fetch: fetcher = fetch }: FalOptions
         });
       }
 
-      const parsed = answerSchema.safeParse(await response.json().catch(() => null));
+      const parsed = answerSchema.safeParse(await readJson(response));
       const first = parsed.success ? parsed.data.images?.[0] : undefined;
       if (!first) throw new ProviderError("The image model returned no picture.", false);
       return fromDataAddress(first.url, first.content_type) ?? fromFileHost(first.url, first.content_type, fetcher, signal);

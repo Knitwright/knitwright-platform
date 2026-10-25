@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import type { ImportView } from "@/lib/design-import/view-model";
 import type { ViewLandmarks } from "@/lib/design-import/types";
 
@@ -33,7 +34,7 @@ export function readingFrom(body: unknown): Reading {
 async function send(url: string, body: unknown): Promise<unknown> {
   try {
     const response = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    return await response.json().catch(() => null);
+    return await readJson(response);
   } catch {
     return { success: false, error: { message: UNREACHABLE } };
   }
@@ -44,7 +45,7 @@ export async function uploadPicture(file: File): Promise<Answer<string>> {
   form.set("kind", "photo");
   form.set("file", file);
   try {
-    const outer = unwrap(await (await fetch("/api/files", { method: "POST", body: form })).json().catch(() => null));
+    const outer = unwrap(await readJson(await fetch("/api/files", { method: "POST", body: form })));
     if (!outer.ok) return outer;
     return isRecord(outer.data) && typeof outer.data.id === "string" ? { ok: true, data: outer.data.id } : { ok: false, message: ODD_ANSWER };
   } catch {

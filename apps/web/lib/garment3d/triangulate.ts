@@ -1,6 +1,7 @@
 import Delaunator from "delaunator";
 import { distanceToPolyline, type Polyline } from "@/lib/flat/geometry";
 import type { Point } from "@/lib/flat/model";
+import { signedAreaXY } from "@/lib/print/geometry/polygon";
 
 /** Three indices into `points`. */
 export type Triangle = readonly [number, number, number];
@@ -30,12 +31,7 @@ export function resample(points: readonly Point[], spacing: number, closed: bool
 }
 
 /** The signed area of a closed outline. */
-export function polygonArea(loop: readonly Point[]): number {
-  return loop.reduce((sum, a, i) => {
-    const b = loop[(i + 1) % loop.length] as Point;
-    return sum + (a.x * b.y - b.x * a.y) / 2;
-  }, 0);
-}
+export const polygonArea = (loop: readonly Point[]): number => signedAreaXY(loop);
 
 /** True when the point is inside the closed outline (even-odd rule). */
 export function insideLoop(point: Point, loop: readonly Point[]): boolean {

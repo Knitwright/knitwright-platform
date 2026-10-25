@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import type { LogEvent } from "@/lib/server/core/guard";
 import { REFERENCE_EDGE } from "@/lib/images/reference";
 import { ProviderError } from "@/lib/providers/image-provider";
 import { checkGeneration, type FindingCode, type Thresholds } from "@/lib/media-check";
@@ -51,6 +52,7 @@ export type LifestyleDeps = Readonly<{
   loadModelImage?: () => Promise<Uint8Array | null>;
   thresholds?: Partial<Thresholds>;
   onReport?: (report: LifestyleReport) => void;
+  log?: (event: LogEvent) => void;
 }>;
 
 /** A small stable number from text (FNV-1a), so a seed is the same for the same design and scene. */
@@ -88,6 +90,49 @@ type Scene = Readonly<{
 
 type Made = { media: GeneratedMedia | null; outcome: SceneOutcome };
 
+type Attempt = Readonly<{ raw: Uint8Array } | { failed: true; refused: boolean }>;
+
+/** One call to the provider. A failure gives the spend back and says whether the provider refused for good. */
+async function callProvider(s: Scene, attempt: number, refund: () => Promise<void>): Promise<Attempt> {
+  try {
+    const raw = await s.provider.generate(
+      { scene: s.scene, prompt: promptFor(s.scene), seed: seedFor(s.design, s.scene, attempt), reference: s.reference.opaque, garment: s.reference.garment, modelImage: s.modelImage },
+      s.signal,
+    );
+    return { raw };
+  } catch (error) {
+    await refund();
+    return { failed: true, refused: error instanceof ProviderError && error.refused };
+  }
+}
+
+type Checked = Awaited<ReturnType<typeof checkGeneration>>;
+
+/** The checker's verdict, or null when the check itself broke: the cause is logged, as lib/media/generate.ts does. */
+async function verdictOf(s: Scene, generated: Uint8Array): Promise<Checked | null> {
+  try {
+    return await checkGeneration({ reference: s.reference.garment, generated, protectedRegions: s.reference.regions, thresholds: s.deps.thresholds });
+  } catch (error) {
+    s.deps.log?.({ level: "error", message: "A lifestyle picture could not be checked", where: GENERATOR_NAME, error });
+    return null;
+  }
+}
+
+async function passedMedia(s: Scene, generated: Uint8Array, costMicrodollars: number): Promise<GeneratedMedia> {
+  const { width = REFERENCE_EDGE, height = REFERENCE_EDGE } = await sharp(generated).metadata();
+  const png = new Uint8Array(await sharp(generated).png({ compressionLevel: 9 }).toBuffer());
+  return {
+    kind: "lifestyle",
+    view: SCENE_VIEWS[s.scene],
+    png: labelAsAi(png, { provider: s.provider.name, scene: s.scene }),
+    width,
+    height,
+    checker: "passed",
+    provider: s.provider.name,
+    costMicrodollars,
+  };
+}
+
 async function makeScene(s: Scene): Promise<Made> {
   const rejectedFor: FindingCode[] = [];
   let cost = 0;
@@ -113,41 +158,20 @@ async function makeScene(s: Scene): Promise<Made> {
       break;
     }
     attempts++;
-    let raw: Uint8Array;
-    try {
-      raw = await s.provider.generate(
-        { scene: s.scene, prompt: promptFor(s.scene), seed: seedFor(s.design, s.scene, attempt), reference: s.reference.opaque, garment: s.reference.garment, modelImage: s.modelImage },
-        s.signal,
-      );
-    } catch (error) {
-      await spend.refund();
+    const made = await callProvider(s, attempt, spend.refund);
+    if ("failed" in made) {
       dropped = "provider_failed";
-      if (error instanceof ProviderError && error.refused) break;
+      if (made.refused) break;
       continue;
     }
     cost += s.provider.costMicrodollars;
-    const generated = await onCanvas(raw);
-    let verdict;
-    try {
-      verdict = await checkGeneration({ reference: s.reference.garment, generated, protectedRegions: s.reference.regions, thresholds: s.deps.thresholds });
-    } catch {
+    const generated = await onCanvas(made.raw);
+    const verdict = await verdictOf(s, generated);
+    if (verdict === null) {
       dropped = "check_failed";
       continue;
     }
-    if (verdict.verdict === "passed") {
-      const { width = REFERENCE_EDGE, height = REFERENCE_EDGE } = await sharp(generated).metadata();
-      const png = new Uint8Array(await sharp(generated).png({ compressionLevel: 9 }).toBuffer());
-      return done({
-        kind: "lifestyle",
-        view: SCENE_VIEWS[s.scene],
-        png: labelAsAi(png, { provider: s.provider.name, scene: s.scene }),
-        width,
-        height,
-        checker: "passed",
-        provider: s.provider.name,
-        costMicrodollars: cost,
-      });
-    }
+    if (verdict.verdict === "passed") return done(await passedMedia(s, generated, cost));
     dropped = "rejected";
     rejectedFor.push(...verdict.findings.map((finding) => finding.code));
   }

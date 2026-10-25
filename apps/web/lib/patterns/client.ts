@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import type { PatternJobView } from "./job-view";
 
@@ -46,7 +47,7 @@ export async function askForPattern(projectId: string, size: string, fetcher: Fe
       headers: { "content-type": "application/json" },
       body: JSON.stringify(kind === "single" ? { size } : { size, kind }),
     });
-    const parsed = asked.safeParse(await response.json().catch(() => null));
+    const parsed = asked.safeParse(await readJson(response));
     if (!parsed.success) return { ok: false, reason: FAILED };
     return parsed.data.success ? { ok: true, job: parsed.data.data } : { ok: false, reason: parsed.data.error.message };
   } catch {
@@ -60,7 +61,7 @@ export type Latest = Readonly<{ available: boolean; job: PatternJobView | null }
 export async function readLatestPattern(projectId: string, fetcher: Fetch = fetch): Promise<Latest | null> {
   try {
     const response = await fetcher(`/api/projects/${projectId}/patterns`, { cache: "no-store" });
-    const parsed = latest.safeParse(await response.json().catch(() => null));
+    const parsed = latest.safeParse(await readJson(response));
     return parsed.success ? parsed.data.data : null;
   } catch {
     return null;
@@ -71,7 +72,7 @@ export async function readLatestPattern(projectId: string, fetcher: Fetch = fetc
 export async function fileLink(fileId: string, fetcher: Fetch = fetch): Promise<string | null> {
   try {
     const response = await fetcher(`/api/files/${fileId}/link`, { cache: "no-store" });
-    const parsed = link.safeParse(await response.json().catch(() => null));
+    const parsed = link.safeParse(await readJson(response));
     return parsed.success ? parsed.data.data.url : null;
   } catch {
     return null;

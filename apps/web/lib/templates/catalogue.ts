@@ -19,7 +19,6 @@ export type StyleId = (typeof STYLE_IDS)[number];
 export const STYLE_LABELS: Readonly<Record<StyleId, string>> = { plain: "Plain", ...KIT_PATTERN_LABELS };
 
 /** Who made a template. Only Knitwright can today; `designer` is reserved and the database refuses it. */
-export const TEMPLATE_SOURCES = ["knitwright", "designer"] as const;
 export const OPEN_TEMPLATE_SOURCES = ["knitwright"] as const;
 
 export const REVIEW_STATES = ["not_reviewed", "reviewed"] as const;

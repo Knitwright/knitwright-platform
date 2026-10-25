@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -169,5 +169,53 @@ describe("the words of tech pack v2", () => {
     const pack = complete();
     expect(pack.readiness.title).toBe("Ready for the factory");
     expect(JSON.stringify(pack)).not.toMatch(/production[- ]ready/i);
+  });
+});
+
+describe("the words in the other parts of the product", () => {
+  const FOLDERS = [
+    "lib/media",
+    "lib/comments",
+    "lib/designers",
+    "lib/brand-runs",
+    "lib/pattern-service",
+    "lib/credits",
+    "lib/clubs",
+    "lib/templates",
+    "lib/validation",
+    "components",
+    "app",
+  ];
+  const WIDE = FOLDERS.flatMap((dir) =>
+    readdirSync(join(ROOT, dir), { withFileTypes: true, recursive: true })
+      .filter((entry) => entry.isFile() && /\.tsx?$/.test(entry.name) && !/\.test\./.test(entry.name) && !/[\\/](fixtures|__tests__)[\\/]/.test(entry.parentPath))
+      .map((entry) => join(entry.parentPath, entry.name)),
+  );
+
+  /** Text a person can read: more than one word, and not a class list or a selector. Names and statuses in the code are one word. */
+  const isProse = (text: string): boolean => /\s/.test(text.trim()) && !/[[\]{}=]/.test(text);
+
+  /** Sentences outside the tech pack that hold one of the words; each says what was checked, and is for the owner to review. */
+  const WIDE_ALLOWED: readonly string[] = [
+    "A lifestyle picture could not be checked", // says the check did not happen
+    "This link could not be checked.", // says the check did not happen
+    "passed the first time", // the lifestyle picture check, not a tech pack claim
+    "a lifestyle picture that passed the check", // the same
+  ];
+  const withoutWide = (text: string): string => WIDE_ALLOWED.reduce((left, phrase) => left.split(phrase).join(" "), text);
+
+  it("finds the files it scans", () => {
+    expect(FOLDERS.every((dir) => existsSync(join(ROOT, dir)))).toBe(true);
+    expect(WIDE.length).toBeGreaterThan(300);
+  });
+
+  it("appear in no sentence of those folders, except the sentences listed above and the ones listed here", () => {
+    const found: string[] = [];
+    for (const path of WIDE) {
+      for (const sentence of sentencesIn(path).filter(isProse)) {
+        if (SETTLED.test(withoutAllowed(withoutWide(sentence)))) found.push(`${path.slice(ROOT.length + 1)}: ${sentence}`);
+      }
+    }
+    expect(found).toEqual([]);
   });
 });

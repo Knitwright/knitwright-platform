@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { kitSchema, type Kit } from "./kit";
+import { kitSchema } from "./kit";
 import { APPLY_PARTS } from "./apply-kit";
 import { ASSIGNABLE_ROLES } from "./roles";
 import { playersSchema } from "./roster";
@@ -18,10 +18,8 @@ export const seasonBody = z
 export type SeasonBody = z.output<typeof seasonBody>;
 
 export const kitBody = kitSchema;
-export type KitBody = Kit;
 
 export const rosterBody = z.object({ players: playersSchema });
-export type RosterBody = z.output<typeof rosterBody>;
 
 export const rosterImportBody = z.object({
   csv: z.string().min(1).max(250_000),
@@ -36,7 +34,6 @@ export const rosterImportBody = z.object({
     .partial()
     .optional(),
 });
-export type RosterImportBody = z.output<typeof rosterImportBody>;
 
 export const inviteBody = z.object({
   email: z.string().trim().toLowerCase().max(254).pipe(z.email("Enter an email address.")),

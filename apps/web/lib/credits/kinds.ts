@@ -15,9 +15,6 @@ export const OUTPUT_LABELS: Readonly<Record<OutputKind, string>> = {
   pattern_file: "Pattern file",
 };
 
-export const isOutputKind = (value: string): value is OutputKind =>
-  (OUTPUT_KINDS as readonly string[]).includes(value);
-
 export const ENTRY_KINDS = ["grant", "spend", "refund", "expire"] as const;
 
 export type EntryKind = (typeof ENTRY_KINDS)[number];

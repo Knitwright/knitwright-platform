@@ -1,4 +1,5 @@
 import type { Box, Point } from "./types";
+import { signedArea as ringSignedArea } from "@/lib/print/geometry/polygon";
 
 type Seg = readonly [Point, Point];
 
@@ -53,8 +54,6 @@ export function distanceBoxSegment(box: Box, seg: Seg): number {
   return Math.min(...toCorners, ...toEnds);
 }
 
-export const boxCentre = (b: Box): { x: number; y: number } => ({ x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 });
-
 export const round1 = (n: number): number => Math.round(n * 10) / 10;
 
 export function boundsOf(poly: readonly Point[]): Box {
@@ -63,9 +62,7 @@ export function boundsOf(poly: readonly Point[]): Box {
   return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) };
 }
 
-function signedArea(poly: readonly Point[]): number {
-  return edgesOf(poly).reduce((sum, [a, b]) => sum + (a[0] * b[1] - b[0] * a[1]), 0) / 2;
-}
+const signedArea = (poly: readonly Point[]): number => ringSignedArea(poly);
 
 /**
  * The outline pushed outward by `mm`, corners mitred (a sharp corner is capped at 3 x the distance so it cannot

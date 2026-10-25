@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LOGO_RIGHTS } from "@/lib/consent/wording";
 import { AppError } from "@/lib/server/core/errors";
+import { log } from "@/lib/server/log";
 import { ensureStorageRoom } from "@/lib/storage/store";
 import { isQuotaRefusal, STORAGE_FULL_MESSAGE } from "@/lib/storage/quota";
 import type { Intake } from "./intake";
@@ -61,7 +62,9 @@ const writeFile = async (input: FileInput): Promise<Written> => {
       : {}),
   });
   if (record.error) {
-    await bucket.remove([path]).catch(() => undefined);
+    await bucket.remove([path]).catch(
+      (error: unknown) => log({ level: "warn", message: `A leftover file could not be removed: ${path}`, where: "artwork intake cleanup", error }),
+    );
     if (isQuotaRefusal(record.error)) throw new AppError("over_quota", STORAGE_FULL_MESSAGE, undefined, { cause: record.error });
     throw new Error("The file's record could not be written.", { cause: record.error });
   }
@@ -72,7 +75,9 @@ const writeFile = async (input: FileInput): Promise<Written> => {
 export const discard = async (admin: SupabaseClient, brandId: string, written: readonly Written[]): Promise<void> => {
   for (const bucket of ["uploads", "exports"] as const) {
     const paths = written.filter((file) => file.bucket === bucket).map((file) => file.path);
-    if (paths.length > 0) await admin.storage.from(bucket).remove(paths).catch(() => undefined);
+    if (paths.length > 0) await admin.storage.from(bucket).remove(paths).catch(
+        (error: unknown) => log({ level: "warn", message: `Leftover files could not be removed from ${bucket}: ${paths.join(", ")}`, where: "artwork intake cleanup", error }),
+      );
   }
   if (written.length > 0) {
     await admin.from("files").delete().in("id", written.map((file) => file.id)).eq("brand_id", brandId);

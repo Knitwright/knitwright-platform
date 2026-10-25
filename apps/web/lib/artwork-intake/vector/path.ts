@@ -88,56 +88,45 @@ type Pen = { x: number; y: number; startX: number; startY: number; lastC: readon
 const reflected = (pen: Pen, control: readonly [number, number] | null): readonly [number, number] =>
   control ? [2 * pen.x - control[0], 2 * pen.y - control[1]] : [pen.x, pen.y];
 
+type Drawn = { readonly out: Segment[]; readonly lastC: readonly [number, number] | null; readonly lastQ: readonly [number, number] | null };
+
+/** The segments one command draws, and the control point a following smooth curve reflects. A move also sets where a close returns to. */
+const draw = (upper: string, args: readonly number[], pen: Pen, ox: number, oy: number): Drawn => {
+  switch (upper) {
+    case "M":
+      pen.startX = args[0] + ox;
+      pen.startY = args[1] + oy;
+      return { out: [["M", args[0] + ox, args[1] + oy]], lastC: null, lastQ: null };
+    case "L":
+      return { out: [["L", args[0] + ox, args[1] + oy]], lastC: null, lastQ: null };
+    case "H":
+      return { out: [["L", args[0] + ox, pen.y]], lastC: null, lastQ: null };
+    case "V":
+      return { out: [["L", pen.x, args[0] + oy]], lastC: null, lastQ: null };
+    case "C":
+      return { out: [["C", args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy, args[4] + ox, args[5] + oy]], lastC: [args[2] + ox, args[3] + oy], lastQ: null };
+    case "S": {
+      const [rx, ry] = reflected(pen, pen.lastC);
+      return { out: [["C", rx, ry, args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy]], lastC: [args[0] + ox, args[1] + oy], lastQ: null };
+    }
+    case "Q":
+      return { out: [["Q", args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy]], lastC: null, lastQ: [args[0] + ox, args[1] + oy] };
+    case "T": {
+      const [rx, ry] = reflected(pen, pen.lastQ);
+      return { out: [["Q", rx, ry, args[0] + ox, args[1] + oy]], lastC: null, lastQ: [rx, ry] };
+    }
+    case "A":
+      return { out: arcToCubics(pen.x, pen.y, args[0], args[1], args[2], args[3] !== 0, args[4] !== 0, args[5] + ox, args[6] + oy), lastC: null, lastQ: null };
+    default:
+      return { out: [["Z"]], lastC: null, lastQ: null };
+  }
+};
+
 /** Runs one command with its arguments. Returns the segments and moves the pen. */
 const run = (command: string, args: readonly number[], pen: Pen): Segment[] => {
   const relative = command === command.toLowerCase();
-  const ox = relative ? pen.x : 0;
-  const oy = relative ? pen.y : 0;
   const upper = command.toUpperCase();
-  let out: Segment[] = [];
-  let lastC: readonly [number, number] | null = null;
-  let lastQ: readonly [number, number] | null = null;
-  switch (upper) {
-    case "M":
-      out = [["M", args[0] + ox, args[1] + oy]];
-      pen.startX = args[0] + ox;
-      pen.startY = args[1] + oy;
-      break;
-    case "L":
-      out = [["L", args[0] + ox, args[1] + oy]];
-      break;
-    case "H":
-      out = [["L", args[0] + ox, pen.y]];
-      break;
-    case "V":
-      out = [["L", pen.x, args[0] + oy]];
-      break;
-    case "C":
-      out = [["C", args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy, args[4] + ox, args[5] + oy]];
-      lastC = [args[2] + ox, args[3] + oy];
-      break;
-    case "S": {
-      const [rx, ry] = reflected(pen, pen.lastC);
-      out = [["C", rx, ry, args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy]];
-      lastC = [args[0] + ox, args[1] + oy];
-      break;
-    }
-    case "Q":
-      out = [["Q", args[0] + ox, args[1] + oy, args[2] + ox, args[3] + oy]];
-      lastQ = [args[0] + ox, args[1] + oy];
-      break;
-    case "T": {
-      const [rx, ry] = reflected(pen, pen.lastQ);
-      out = [["Q", rx, ry, args[0] + ox, args[1] + oy]];
-      lastQ = [rx, ry];
-      break;
-    }
-    case "A":
-      out = arcToCubics(pen.x, pen.y, args[0], args[1], args[2], args[3] !== 0, args[4] !== 0, args[5] + ox, args[6] + oy);
-      break;
-    default:
-      out = [["Z"]];
-  }
+  const { out, lastC, lastQ } = draw(upper, args, pen, relative ? pen.x : 0, relative ? pen.y : 0);
   const last = out[out.length - 1];
   if (upper === "Z") {
     pen.x = pen.startX;

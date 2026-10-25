@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { ProviderError } from "@/lib/providers/image-provider";
 import type { LifestyleProvider } from "../provider";
@@ -36,11 +37,11 @@ export function createFashnProvider({ apiKey, fetch: fetcher = fetch, pollMs = 1
         model_name: FASHN_MODEL,
         inputs: { model_image: dataUri(modelImage), garment_image: dataUri(reference), category: "auto", seed, num_samples: 1, output_format: "png", return_base64: true },
       });
-      const started = startSchema.safeParse(await (await send(fetcher, "The try-on service", `${BASE}/run`, { method: "POST", headers, body, signal })).json().catch(() => null));
+      const started = startSchema.safeParse(await readJson(await send(fetcher, "The try-on service", `${BASE}/run`, { method: "POST", headers, body, signal })));
       if (!started.success) throw new ProviderError("The try-on service did not start the run.", false);
       for (let poll = 0; poll < maxPolls; poll++) {
         await sleep(pollMs, signal);
-        const status = statusSchema.safeParse(await (await send(fetcher, "The try-on service", `${BASE}/status/${started.data.id}`, { method: "GET", headers, signal })).json().catch(() => null));
+        const status = statusSchema.safeParse(await readJson(await send(fetcher, "The try-on service", `${BASE}/status/${started.data.id}`, { method: "GET", headers, signal })));
         if (!status.success) throw new ProviderError("The try-on service gave an answer that could not be read.", false);
         if (status.data.status === "completed") {
           const first = status.data.output?.[0];
