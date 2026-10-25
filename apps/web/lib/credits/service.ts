@@ -2,7 +2,7 @@ import { z } from "zod";
 import { allowanceMonth } from "@/lib/usage/period";
 import { ENTRY_KINDS, OUTPUT_KINDS, type OutputKind } from "./kinds";
 import { balanceOf, withRunningBalance, type HistoryRow, type LedgerEntry } from "./ledger";
-import { CREDIT_SETTINGS } from "./settings";
+import { CREDIT_SETTINGS, type CreditSettingsShape } from "./settings";
 
 /**
  * The credit API. The database moves credits (supabase/migrations/20261025060000_credits.sql);
@@ -20,6 +20,8 @@ export type CreditsDb = Readonly<{
   ) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
   /** The latest `limit` ledger lines of the brand, oldest first, as stored. */
   readLedger: (brandId: string, limit: number) => Promise<readonly unknown[]>;
+  /** The numbers in force: the settings.ts placeholders with any the owner set in the console laid over them (lib/settings). Omitted, the placeholders. */
+  readSettings?: () => Promise<CreditSettingsShape>;
 }>;
 
 /** How many lines the credits page shows. */
@@ -84,6 +86,7 @@ export type CreditSummary = Readonly<{
 export type CreditsService = ReturnType<typeof createCreditsService>;
 
 export const createCreditsService = (db: CreditsDb) => {
+  const settings = (): Promise<CreditSettingsShape> => (db.readSettings ? db.readSettings() : Promise.resolve(CREDIT_SETTINGS));
   const call = async <T>(fn: string, args: Record<string, unknown>, schema: z.ZodType<T>): Promise<T> => {
     const { data, error } = await db.rpc(fn, args);
     const parsed = error ? null : schema.safeParse(data);
@@ -130,26 +133,28 @@ export const createCreditsService = (db: CreditsDb) => {
       ),
 
     /** The brand's free credits for the month `now` falls in, given once. */
-    ensureMonthlyAllowance: (brandId: string, now: Date) =>
+    ensureMonthlyAllowance: async (brandId: string, now: Date) =>
       call(
         "credit_ensure_allowance",
-        { p_brand_id: brandId, p_month: allowanceMonth(now), p_amount: CREDIT_SETTINGS.monthlyAllowance },
+        { p_brand_id: brandId, p_month: allowanceMonth(now), p_amount: (await settings()).monthlyAllowance },
         grantAnswer,
       ),
 
     /** Writes the prices of settings.ts to the database. Run it after changing them. */
     syncCreditPrices: async (): Promise<void> => {
+      const current = await settings();
       await call(
         "credit_set_prices",
-        { p_prices: CREDIT_SETTINGS.prices, p_placeholder: CREDIT_SETTINGS.isPlaceholder },
+        { p_prices: current.prices, p_placeholder: current.isPlaceholder },
         z.null(),
       );
     },
 
     summary: async (brandId: string): Promise<CreditSummary> => {
-      const [balance, lines] = await Promise.all([
+      const [balance, lines, current] = await Promise.all([
         call("credit_balance", { p_brand_id: brandId }, z.number()),
         db.readLedger(brandId, HISTORY_LIMIT),
+        settings(),
       ]);
       const parsed = z.array(rowSchema).safeParse(lines);
       if (!parsed.success) throw new Error(FAILED, { cause: parsed.error });
@@ -157,9 +162,9 @@ export const createCreditsService = (db: CreditsDb) => {
       return {
         balance,
         history: withRunningBalance(entries, balance - balanceOf(entries)),
-        prices: CREDIT_SETTINGS.prices,
-        isPlaceholder: CREDIT_SETTINGS.isPlaceholder,
-        monthlyAllowance: CREDIT_SETTINGS.monthlyAllowance,
+        prices: current.prices,
+        isPlaceholder: current.isPlaceholder,
+        monthlyAllowance: current.monthlyAllowance,
       };
     },
   };

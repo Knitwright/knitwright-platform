@@ -1050,6 +1050,30 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
     change: { tracking_number: "changed" },
   },
+  // Platform settings console (decision 0056): no browser role reads or writes either table. Only the server's key reads them and
+  // platform_setting_set writes them.
+  platform_settings: {
+    privileges: [],
+    seed: async () => {
+      const admin = await person("settings-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      must(await adminClient().rpc("platform_setting_set", { p_actor: admin.userId, p_key: "isolation.settings_row", p_value: 7 }));
+      return { key: "isolation.settings_row" };
+    },
+    attempt: () => ({ key: "isolation.made_directly", value: 1 }),
+    change: { value: 99 },
+  },
+  platform_settings_history: {
+    privileges: [],
+    seed: async () => {
+      const admin = await person("settings-history-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      must(await adminClient().rpc("platform_setting_set", { p_actor: admin.userId, p_key: "isolation.history_row", p_value: 7 }));
+      return { key: "isolation.history_row" };
+    },
+    attempt: () => ({ key: "isolation.made_directly", value: 1 }),
+    change: { value: 99 },
+  },
   platform_admins: {
     privileges: [],
     seed: async () => {

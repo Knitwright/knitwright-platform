@@ -34,6 +34,22 @@ describe("loadFactoryProfile", () => {
     expect(DEFAULT_PROFILE_ID).toBe("knitwright-default");
   });
 
+  it("lays the terms an admin set in the console over the default, keeping the registry's article list", async () => {
+    const owned = { ...defaultFactoryProfile(), label: "Set by ada@example.com on 2026-10-27", leadTimeDays: { status: "set" as const, value: 10 }, articles: [{ typeId: "crew-tee", moq: { status: "set" as const, value: 10 } }] };
+    const profile = await loadFactoryProfile(fake({ data: { id: DEFAULT_PROFILE_ID, profile: owned } }).client);
+    expect(profile.label).toBe("Set by ada@example.com on 2026-10-27");
+    expect(profile.leadTimeDays).toEqual({ status: "set", value: 10 });
+    expect(profile.articles).toHaveLength(defaultFactoryProfile().articles.length);
+    expect(profile.articles.find((a) => a.typeId === "crew-tee")?.moq).toEqual({ status: "set", value: 10 });
+  });
+
+  it("keeps the default while the stored row still carries the default label, is unreadable, or fails to read", async () => {
+    const stored = { ...defaultFactoryProfile(), articles: [] };
+    expect(await loadFactoryProfile(fake({ data: { id: DEFAULT_PROFILE_ID, profile: stored } }).client)).toEqual(defaultFactoryProfile());
+    expect(await loadFactoryProfile(fake({ data: { id: DEFAULT_PROFILE_ID, profile: { junk: true } } }).client)).toEqual(defaultFactoryProfile());
+    expect(await loadFactoryProfile(fake({ error: { message: "x" } }).client)).toEqual(defaultFactoryProfile());
+  });
+
   it("reads another profile as stored", async () => {
     const stored = { ...defaultFactoryProfile(), id: "mill-a", name: "Mill A" };
     expect((await loadFactoryProfile(fake({ data: { id: "mill-a", profile: stored } }).client, "mill-a")).name).toBe("Mill A");

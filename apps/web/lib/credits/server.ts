@@ -1,11 +1,13 @@
 import "server-only";
 import { adminClient } from "@/lib/server/deps";
+import { loadCreditSettings } from "@/lib/settings/read";
 import { createCreditsService, type CreditsService } from "./service";
 
 /** The credit service wired to the server's own database key. Call it only after the session is checked. */
 export const creditsService = (): CreditsService => {
   const client = adminClient();
   return createCreditsService({
+    readSettings: () => loadCreditSettings(client),
     rpc: (fn, args) => client.rpc(fn, args),
     readLedger: async (brandId, limit) => {
       const { data, error } = await client
