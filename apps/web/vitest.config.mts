@@ -52,6 +52,8 @@ export default defineConfig({
         "lib/media/design.ts",
         // Joins the request to the session, the settings, the library and the credits; the database and end-to-end tests cover it.
         "lib/pattern-service/server.ts",
+        // Joins the comment tables and functions to the routes; the database tests and the end-to-end test of comments cover it.
+        "lib/comments/service.ts",
       ],
       thresholds: {
         lines: 80,
@@ -67,7 +69,7 @@ export default defineConfig({
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "pattern-service"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "comments", "pattern-service"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

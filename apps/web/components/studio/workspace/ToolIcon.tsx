@@ -10,6 +10,7 @@ const PATHS: Readonly<Record<ToolId, string>> = {
   names: "M4 4.5 H16 M10 4.5 V16 M5.5 16 L7 11.5 M14.5 16 L13 11.5",
   labels: "M3 3 H11 L17 9 L11 17 L3 9 Z M6.5 6.5 h.01",
   variants: "M3 3 H8.5 V8.5 H3 Z M11.5 3 H17 V8.5 H11.5 Z M3 11.5 H8.5 V17 H3 Z M11.5 11.5 H17 V17 H11.5 Z",
+  comments: "M3 4.5 H17 V13.5 H9.5 L5.5 17 V13.5 H3 Z M6.5 8 H13.5 M6.5 10.5 H11",
   history: "M3.5 10 A6.5 6.5 0 1 0 5.5 5.3 M3.5 3 V6 H6.5 M10 6.5 V10 L12.5 11.5",
   share: "M6.5 10 L13.5 6 M6.5 10 L13.5 14 M15 5.5 A2 2 0 1 1 15 5.49 M15 14.5 A2 2 0 1 1 15 14.49 M5 10 A2 2 0 1 1 5 9.99",
   photoreal: "M2.5 6 H6 L7.5 4 H12.5 L14 6 H17.5 V16 H2.5 Z M10 13.5 A2.75 2.75 0 1 0 10 8 A2.75 2.75 0 1 0 10 13.5",
