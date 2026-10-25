@@ -4,6 +4,7 @@ import { patternsOpenTo } from "@/lib/patterns/access";
 import { patternJobView } from "@/lib/patterns/job-view";
 import { patternRequest } from "@/lib/patterns/request";
 import { createPatternJob, expirePatternJob, latestPatternJob } from "@/lib/patterns/service";
+import { withCredits, versionOf } from "@/lib/credits-gate/server";
 import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { defineRoute } from "@/lib/server/define-route";
@@ -25,7 +26,14 @@ export const POST = defineRoute({
     params: z.object({ projectId: z.uuid() }),
     body: z.object({ size: z.string().trim().min(1).max(12), kind: z.enum(["single", "size-set"]).default("single") }),
   },
-  handler: async ({ input, session }) => {
+  handler: withCredits(
+    {
+      // Nothing is charged while patterns are not available: the handler refuses the request itself.
+      kind: ({ session }) => (patternsOpenTo(getEnv(), session.email) && getEnv().PATTERN_PROVIDER ? "pattern_file" : null),
+      version: ({ input, session }) => versionOf(session.brand.id, input.params.projectId),
+      where: "POST /api/projects/[projectId]/patterns",
+    },
+    async ({ input, session }) => {
     const env = getEnv();
     const provider = env.PATTERN_PROVIDER;
     if (!provider || !patternsOpenTo(env, session.email)) throw new AppError("unavailable", NOT_AVAILABLE);
@@ -45,7 +53,8 @@ export const POST = defineRoute({
     const row = await latestPatternJob(client, brandId, input.params.projectId);
     if (!row || row.id !== id) throw new Error("The new pattern job could not be read back.");
     return patternJobView(row, new Date());
-  },
+    },
+  ),
 });
 
 /** The design's newest pattern, which the browser polls while it is drafted. Null when none was asked for. */

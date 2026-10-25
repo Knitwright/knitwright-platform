@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { loadPrintDeps } from "@/lib/print/inputs/deps";
 import { printQuerySchema, servePrintFiles } from "@/lib/print/service";
+import { withCredits, versionOf } from "@/lib/credits-gate/server";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -17,9 +18,16 @@ export const GET = defineRoute({
   auth: "member",
   rateLimit: LIMITS.printFiles,
   schema: { params: z.object({ projectId: z.uuid() }), query: printQuerySchema },
-  handler: async ({ input, session }) =>
-    servePrintFiles(
-      await loadPrintDeps({ client: await sessionClient(), admin: adminClient() }, { brandId: session.brand.id, email: session.email }, input.params.projectId, input.query),
-      input.query,
-    ),
+  handler: withCredits(
+    {
+      kind: "pattern_file",
+      version: ({ input, session }) => versionOf(session.brand.id, input.params.projectId),
+      where: "GET /api/projects/[projectId]/print-files",
+    },
+    async ({ input, session }) =>
+      servePrintFiles(
+        await loadPrintDeps({ client: await sessionClient(), admin: adminClient() }, { brandId: session.brand.id, email: session.email }, input.params.projectId, input.query),
+        input.query,
+      ),
+  ),
 });

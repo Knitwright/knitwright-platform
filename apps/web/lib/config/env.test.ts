@@ -104,6 +104,12 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, GOOGLE_SIGN_IN: "1" }).GOOGLE_SIGN_IN).toBe(false);
   });
 
+  it("charges credits only when CREDITS_ENFORCED is exactly true", () => {
+    expect(parseEnv(valid).CREDITS_ENFORCED).toBe(false);
+    expect(parseEnv({ ...valid, CREDITS_ENFORCED: "true" }).CREDITS_ENFORCED).toBe(true);
+    expect(parseEnv({ ...valid, CREDITS_ENFORCED: "1" }).CREDITS_ENFORCED).toBe(false);
+  });
+
   it("hides the 3D view unless SHOW_3D is exactly true", () => {
     expect(parseEnv(valid).SHOW_3D).toBe(false);
     expect(parseEnv({ ...valid, SHOW_3D: "true" }).SHOW_3D).toBe(true);

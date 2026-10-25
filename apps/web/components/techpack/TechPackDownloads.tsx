@@ -1,5 +1,6 @@
 "use client";
 
+import { PriceNote } from "@/components/credits/PriceNote";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { DOWNLOAD_CONTROLS, busyAnnouncement, isBusyWith } from "@/lib/projects/download-controls";
@@ -75,6 +76,9 @@ export function TechPackDownloads({ projectId, version, colourwayId, nested = fa
       </p>
       <div role="group" aria-label="Download this tech pack" className="mt-4 flex flex-wrap gap-3">
         <DownloadButtons downloads={downloads} />
+      </div>
+      <div className="mt-2">
+        <PriceNote kind="techpack_pdf" />
       </div>
       <div className="mt-3 flex flex-col gap-2">
         <DownloadStatus downloads={downloads} />

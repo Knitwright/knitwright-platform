@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useReducer } from "react";
+import { PriceNote } from "@/components/credits/PriceNote";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import { IllustrationFigures } from "@/components/techpack/Illustrations";
@@ -64,6 +65,7 @@ export function PhotorealPanel({ projectId, available, colourwayId, currentVersi
           <Button type="button" variant="secondary" pending={busy} onClick={() => void start()}>
             {busy ? "Making images…" : loaded ? "Make new images" : "Make images"}
           </Button>
+          <PriceNote kind="marketing_media" />
         </div>
       ) : (
         <Notice>Photoreal images are not set up yet.</Notice>
