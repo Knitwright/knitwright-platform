@@ -61,7 +61,8 @@ test.describe("designer templates", () => {
     await expect(entry.getByText("Tick the box to say you hold the rights")).toBeVisible();
     await entry.getByLabel(/I hold the rights to every artwork/).check();
     await entry.getByRole("button", { name: `Send for review: ${TITLE}` }).click();
-    await expect(entry.getByText("Sent for review.")).toBeVisible();
+    // The page redraws with the submission waiting for review, and no send form.
+    await expect(entry).toContainText("Waiting for Knitwright to review");
 
     // The admin side, in its own session.
     const adminPage = await (await browser.newContext()).newPage();

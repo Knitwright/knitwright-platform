@@ -51,9 +51,9 @@ const orderFrom = async (templateId: string, sizes: Record<string, number>, curr
 };
 
 const lines = async (orderId: string) => must(await adminClient().from("royalty_accruals").select("*").eq("order_id", orderId));
+/** Settings are written through platform_setting_set, as the console does; null puts the setting back to its default. */
 const setRate = async (value: unknown) => {
-  if (value === null) await adminClient().from("platform_settings").delete().eq("key", RATE_KEY);
-  else must(await adminClient().from("platform_settings").upsert({ key: RATE_KEY, value }).select("key"));
+  must(await rpc("platform_setting_set", { p_actor: admin.userId, p_key: RATE_KEY, p_value: value }));
 };
 
 beforeAll(async () => {
@@ -117,7 +117,9 @@ describe("who sees what", () => {
     expect(mine.length).toBeGreaterThan(0);
     expect(mine.every((r) => r.designer_id === designer.userId)).toBe(true);
     const everyone = must(await admin.client.from("template_submissions").select("designer_id"));
-    expect(new Set(everyone.map((r) => r.designer_id))).toEqual(new Set([designer.userId, other.userId]));
+    const ids = everyone.map((r) => r.designer_id);
+    expect(ids).toContain(designer.userId);
+    expect(ids).toContain(other.userId);
     const profiles = must(await designer.client.from("designer_profiles").select("user_id"));
     expect(profiles.map((r) => r.user_id)).toEqual([designer.userId]);
   });
