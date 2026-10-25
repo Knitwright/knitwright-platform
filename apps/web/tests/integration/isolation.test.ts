@@ -829,6 +829,37 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (ownerId) => ({ designer_id: ownerId, state: "paid" }),
     change: { state: "paid" },
   },
+  // Plan W4-D (decision 0063): design comments, their earlier words and the members they name. Members read their own
+  // brand's rows; only the server writes, through functions; the earlier words are never changed.
+  design_comments: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedComment(brandId, ownerId)).commentId }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), version: 1, body: "Made directly", author_id: userId }),
+    change: { body: "Changed by a stranger" },
+  },
+  design_comment_edits: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const { commentId } = await seedComment(brandId, ownerId);
+      must(await adminClient().rpc("design_comment_edit", { p_brand_id: brandId, p_user_id: ownerId, p_comment_id: commentId, p_body: "Seeded, changed", p_mentions: [] }));
+      return { comment_id: commentId };
+    },
+    attempt: (brandId, userId) => ({ comment_id: randomUUID(), brand_id: brandId, body: "Made directly", edited_by: userId }),
+    change: { body: "Changed by a stranger" },
+  },
+  design_comment_mentions: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const guest = await person("comment-guest");
+      await joinAsViewer(brandId, ownerId, guest);
+      return { comment_id: (await seedComment(brandId, ownerId, [guest.userId])).commentId };
+    },
+    attempt: (brandId, userId) => ({ comment_id: randomUUID(), brand_id: brandId, user_id: userId }),
+    change: { user_id: randomUUID() },
+  },
   // Plan W3-A (decision 0054): media sets, their items and their history. A member reads; only the server writes, through functions.
   media_sets: {
     privileges: ["SELECT"],
@@ -967,6 +998,26 @@ const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: st
 };
 
 /** A project made the way the server makes one. Returns its id. */
+/** Has someone accept an invitation to the brand as a viewer, so a comment has a second member to name. */
+const joinAsViewer = async (brandId: string, ownerId: string, guest: Person): Promise<void> => {
+  must(await adminClient().rpc("invite_member", { p_brand_id: brandId, p_user_id: ownerId, p_email: guest.email, p_role: "viewer" }));
+  const invitations = must(await guest.client.rpc("my_club_invitations")) as { id: string; brand_id: string }[];
+  const mine = invitations.find((i) => i.brand_id === brandId);
+  must(await adminClient().rpc("accept_invitation", { p_user_id: guest.userId, p_invitation_id: mine?.id }));
+};
+
+/** A comment on a new design of the brand, written by its owner. */
+const seedComment = async (brandId: string, ownerId: string, mentions: readonly string[] = []): Promise<{ commentId: string }> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const commentId = must(
+    await adminClient().rpc("design_comment_add", {
+      p_brand_id: brandId, p_user_id: ownerId, p_project_id: projectId, p_parent_id: null, p_version: 1,
+      p_panel_id: null, p_x_mm: null, p_y_mm: null, p_body: "Seeded comment", p_mentions: mentions,
+    }),
+  ) as string;
+  return { commentId };
+};
+
 const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
   must(
     await adminClient().rpc("create_project", {
