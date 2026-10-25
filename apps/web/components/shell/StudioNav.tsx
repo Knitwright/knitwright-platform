@@ -17,6 +17,7 @@ export const STUDIO_SECTIONS: readonly NavItem[] = [
   { href: "/studio/charts", label: "Size charts", matches: (path) => path.startsWith("/studio/charts") },
   { href: "/designer", label: "Designer", matches: (path) => path.startsWith("/designer") },
   { href: "/club", label: "Club", matches: (path) => path === "/club" || path.startsWith("/club/") },
+  { href: "/brand", label: "Brand", matches: (path) => path === "/brand" || path.startsWith("/brand/") },
 ];
 
 const PILL = "nav-pill rounded-full px-4 py-2 text-[15px] no-underline";

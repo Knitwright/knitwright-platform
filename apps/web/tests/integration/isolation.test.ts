@@ -779,6 +779,28 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, kind: "grant", amount: 5, idempotency_key: randomUUID() }),
     change: { amount: 99 },
   },
+  // Plan W4-C (decision 0062): a brand's product list and brand runs. A member reads; only the server writes, through functions, and runs and history are never changed.
+  brand_products: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedBrandProduct(brandId, ownerId)).productId }),
+    attempt: (brandId) => ({ brand_id: brandId, project_id: randomUUID(), name: "Made directly", design_version: 1 }),
+    change: { name: "Changed by a stranger", stage: "run" },
+  },
+  brand_runs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedBrandRun(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), kind: "run", release_id: randomUUID(), article_id: "crew-tee", factory_profile_id: "f", fabric_key: "m", sizes: { M: 1 }, pieces: 1, order_id: randomUUID(), request_key: randomUUID() }),
+    change: { pieces: 99 },
+  },
+  brand_product_events: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ product_id: (await seedBrandProduct(brandId, ownerId)).productId }),
+    attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), kind: "listed", to_stage: "idea" }),
+    change: { to_stage: "run" },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -996,6 +1018,25 @@ const seedReadyOrder = async (brandId: string): Promise<{ orderId: string; actor
 const PASSING_CHECKLIST = ["measurements", "colour", "artwork", "names_numbers"].map((key) => ({ key, result: "pass", note: "" }));
 const inspect = async (actor: string, orderId: string) =>
   must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0 })) as { inspection_id: string }[];
+
+/** A product listed the way the server lists one, for a new design. */
+const seedBrandProduct = async (brandId: string, ownerId: string): Promise<{ productId: string; projectId: string }> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const productId = must(await adminClient().rpc("create_brand_product", { p_brand_id: brandId, p_user_id: ownerId, p_project_id: projectId, p_name: "Seeded product" })) as string;
+  return { productId, projectId };
+};
+
+/** A sample of a product sent to ops the way the server sends one. Returns the run id. */
+const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const rows = must(
+    await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
+  ) as { run_id: string }[];
+  return rows[0]!.run_id;
+};
 
 /** A share link made the way the server makes one, to a new design. */
 const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: string; token: string }> => {
