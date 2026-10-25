@@ -50,6 +50,8 @@ export default defineConfig({
         // Join the media tables, storage and the design's reads to the media code; the database tests and the end-to-end test cover them.
         "lib/media/service.ts",
         "lib/media/design.ts",
+        // Joins the request to the session, the settings, the library and the credits; the database and end-to-end tests cover it.
+        "lib/pattern-service/server.ts",
         // Joins the comment tables and functions to the routes; the database tests and the end-to-end test of comments cover it.
         "lib/comments/service.ts",
       ],
@@ -69,7 +71,7 @@ export default defineConfig({
         "lib/clubs/reorder/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "comments"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "comments", "pattern-service"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

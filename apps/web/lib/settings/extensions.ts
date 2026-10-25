@@ -1,3 +1,4 @@
+import { PATTERN_SERVICE_SETTINGS } from "@/lib/pattern-service/settings";
 import type { SettingDef } from "./types";
 
 /**
@@ -5,4 +6,4 @@ import type { SettingDef } from "./types";
  * here, as entries in group "checker" with keys such as `checker.colour_delta_max`. Add entries; do not edit
  * registry.ts. Never register a secret.
  */
-export const EXTENSION_SETTINGS: readonly SettingDef[] = [];
+export const EXTENSION_SETTINGS: readonly SettingDef[] = [...PATTERN_SERVICE_SETTINGS];
