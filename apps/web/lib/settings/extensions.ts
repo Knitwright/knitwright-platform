@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PATTERN_SERVICE_SETTINGS } from "@/lib/pattern-service/settings";
 import type { SettingDef } from "./types";
 
 /**
@@ -17,4 +18,5 @@ export const EXTENSION_SETTINGS: readonly SettingDef[] = [
     schema: z.number({ error: "Give a number." }).int("Whole numbers only.").min(0, "Use 0 or more.").max(1_000_000, "Use 1000000 or less.").nullable(),
     fallback: null,
   },
+  ...PATTERN_SERVICE_SETTINGS,
 ];

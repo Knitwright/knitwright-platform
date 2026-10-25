@@ -829,6 +829,21 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (ownerId) => ({ designer_id: ownerId, state: "paid" }),
     change: { state: "paid" },
   },
+  // Plan W4-A (decision 0060): a brand's pattern service requests and their history. A member reads; only the server writes, through functions.
+  pattern_requests: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedPatternRequest(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), design_version: 1, article_id: "shorts", snapshot: {}, snapshot_hash: "0".repeat(64), requested_by: userId }),
+    change: { status: "delivered", decline_reason: "Changed by a stranger" },
+  },
+  pattern_request_events: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ request_id: await seedPatternRequest(brandId, ownerId) }),
+    attempt: (brandId) => ({ request_id: randomUUID(), brand_id: brandId, kind: "requested", to_status: "requested" }),
+    change: { note: "Changed by a stranger" },
+  },
   // Plan W4-D (decision 0063): design comments, their earlier words and the members they name. Members read their own
   // brand's rows; only the server writes, through functions; the earlier words are never changed.
   design_comments: {
@@ -995,6 +1010,19 @@ const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: st
     }),
   ) as { id: string }[];
   return { id: rows[0].id, token };
+};
+
+/** A pattern service request made the way the server makes one, for a new design. Returns its id. */
+const seedPatternRequest = async (brandId: string, ownerId: string): Promise<string> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const out = must(
+    await adminClient().rpc("pattern_request_create", {
+      p_brand_id: brandId, p_user_id: ownerId, p_project_id: projectId, p_design_version: 1, p_article_id: "shorts",
+      p_snapshot: { seeded: true }, p_snapshot_hash: randomUUID().replaceAll("-", "").padEnd(64, "0"),
+      p_price_credits: null, p_turnaround_days: null, p_charge: false,
+    }),
+  ) as { request_id: string };
+  return out.request_id;
 };
 
 /** A project made the way the server makes one. Returns its id. */
