@@ -178,7 +178,11 @@ test.describe("role journeys (W5-C)", () => {
     await addSizes();
     await sizeBoxes.nth(0).fill("20");
     await sizeBoxes.nth(1).fill("40");
+    await expect(builder.getByText("Total: 60 pieces")).toBeVisible();
+    await expect(builder.getByText("No minimum order is set for this garment yet")).toBeVisible();
+    await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
+    await expect(builder.getByRole("button", { name: "Order run" })).toBeEnabled();
     await builder.getByRole("button", { name: "Order run" }).click();
     await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Journey hoodie · Brand run · 60 pieces/)).toBeVisible();
@@ -195,6 +199,14 @@ test.describe("role journeys (W5-C)", () => {
     const runs = await service().from("brand_runs").select("kind, pieces").eq("brand_id", brandId).order("pieces");
     if (runs.error) throw new Error(runs.error.message);
     expect(runs.data).toEqual([{ kind: "sample", pieces: 2 }, { kind: "run", pieces: 60 }]);
+
+    // Ops cuts them into batches, as it would on the day, so they do not stay in the waiting list other specs draw.
+    const cutoffs = await service().from("ops_orders").select("cutoff_at").eq("brand_id", brandId);
+    const latest = Math.max(...(cutoffs.data ?? []).map((row) => Date.parse(row.cutoff_at as string)));
+    const cut = await service().rpc("ops_cut_batches", { p_actor: await userIdOf(email), p_now: new Date(latest + 1000).toISOString() });
+    if (cut.error) throw new Error(cut.error.message);
+    const batched = await service().from("ops_orders").select("status").eq("brand_id", brandId);
+    expect(batched.data?.map((row) => row.status)).toEqual(["batched", "batched"]);
   });
 
   test("a designer offers a design and it is accepted into the library", async ({ page, browser }) => {
