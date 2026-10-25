@@ -29,7 +29,7 @@ test.describe("the settings console", () => {
     // A value that is not allowed comes back in words and changes nothing.
     await page.getByTestId("setting-guardrails.bleed_mm").getByLabel("Bleed (mm)").fill("500");
     await page.getByTestId("setting-guardrails.bleed_mm").getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByText("Use 50 or less.")).toBeVisible();
+    await expect(page.getByTestId("setting-guardrails.bleed_mm").getByRole("alert")).toHaveText("Use 50 or less.");
 
     await time.getByLabel("Weekly batch cut-off: time (UTC)").fill("07:00");
     await time.getByRole("button", { name: "Save", exact: true }).click();
