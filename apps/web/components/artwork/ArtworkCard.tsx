@@ -25,7 +25,6 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
   const [seam, setSeam] = useState<SeamReport | null>(null);
   const [shown, setShown] = useState<ChangeSummary | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const widthId = useId();
 
   useEffect(() => {
     let live = true;
@@ -84,69 +83,15 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
         </p>
       ))}
 
-      <div className="flex flex-wrap items-end gap-2">
-        <div className="flex flex-col gap-1">
-          <label htmlFor={widthId} className="text-sm font-medium text-ink">
-            Printed width (mm)
-          </label>
-          <input id={widthId} inputMode="decimal" value={widthMm} onChange={(event) => setWidthMm(event.target.value)} className="h-11 w-32 rounded-lg border border-hairline bg-surface px-3 text-[15px] text-ink" />
-        </div>
-        <Button variant="secondary" type="button" onClick={() => void askWidth()}>
-          Check sharpness
-        </Button>
-      </div>
-      {detail?.dpiWarning ? <Notice tone="warn">{detail.dpiWarning}</Notice> : null}
-      {detail && !detail.dpiWarning && Number(widthMm) > 0 ? <p className="text-sm text-ink-2">{dpiReadout(detail.effectiveDpi, Number(widthMm))}</p> : null}
+      <WidthCheck widthMm={widthMm} onWidth={setWidthMm} onCheck={() => void askWidth()} detail={detail} />
 
       {artwork.kind === "raster" ? (
-        <div className="flex flex-wrap gap-2">
-          {detail?.canRemoveWhiteBackground ? (
-            <Button variant="secondary" type="button" onClick={() => void show({ action: "remove-white-background" })}>
-              Remove the white background
-            </Button>
-          ) : null}
-          <Button variant="secondary" type="button" onClick={() => void checkTile()}>
-            Check as a repeating tile
-          </Button>
-        </div>
+        <TileActions detail={detail} onRemoveWhite={() => void show({ action: "remove-white-background" })} onCheckTile={() => void checkTile()} />
       ) : null}
       {seam ? <Notice tone={seam.seamless ? "ok" : "warn"}>{seamSentence(seam)}</Notice> : null}
-      {seam && !seam.seamless ? (
-        <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" type="button" onClick={() => void show({ action: "make-seamless", method: "blend" })}>
-            Make it seamless (blend)
-          </Button>
-          <Button variant="secondary" type="button" onClick={() => void show({ action: "make-seamless", method: "mirror" })}>
-            Make it seamless (mirror)
-          </Button>
-        </div>
-      ) : null}
+      {seam && !seam.seamless ? <SeamlessActions onMake={(method) => void show({ action: "make-seamless", method })} /> : null}
 
-      {shown ? (
-        <div className="flex flex-col gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element -- A picture made on the server, drawn as it is. */}
-          <img src={shown.previewPng} alt="Preview of the change" className="max-h-72 w-auto self-start rounded-lg border border-hairline" />
-          {shown.before && shown.after ? <p className="text-sm text-ink-2">{seamChangeSentence(shown.before, shown.after)}</p> : null}
-          {shown.limit ? <p className="text-sm text-muted">{shown.limit}</p> : null}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              onClick={() =>
-                void accept(
-                  shown.action === "remove-white-background"
-                    ? { action: "remove-white-background" }
-                    : { action: "make-seamless", method: shown.method ?? "blend" },
-                )
-              }
-            >
-              Keep this as new artwork
-            </Button>
-            <Button variant="quiet" type="button" onClick={() => setShown(null)}>
-              Not now
-            </Button>
-          </div>
-        </div>
-      ) : null}
+      {shown ? <ChangePreview shown={shown} onKeep={(change) => void accept(change)} onDismiss={() => setShown(null)} /> : null}
 
       {message ? <Notice tone="warn" role="alert">{message}</Notice> : null}
       <div>
@@ -155,5 +100,77 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
         </Button>
       </div>
     </article>
+  );
+}
+
+type Change = Parameters<typeof changeArtwork>[2];
+
+function WidthCheck({ widthMm, onWidth, onCheck, detail }: Readonly<{ widthMm: string; onWidth: (value: string) => void; onCheck: () => void; detail: ArtworkDetail | null }>) {
+  const widthId = useId();
+  return (
+    <>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-col gap-1">
+          <label htmlFor={widthId} className="text-sm font-medium text-ink">
+            Printed width (mm)
+          </label>
+          <input id={widthId} inputMode="decimal" value={widthMm} onChange={(event) => onWidth(event.target.value)} className="h-11 w-32 rounded-lg border border-hairline bg-surface px-3 text-[15px] text-ink" />
+        </div>
+        <Button variant="secondary" type="button" onClick={() => onCheck()}>
+          Check sharpness
+        </Button>
+      </div>
+      {detail?.dpiWarning ? <Notice tone="warn">{detail.dpiWarning}</Notice> : null}
+      {detail && !detail.dpiWarning && Number(widthMm) > 0 ? <p className="text-sm text-ink-2">{dpiReadout(detail.effectiveDpi, Number(widthMm))}</p> : null}
+
+    </>
+  );
+}
+
+function TileActions({ detail, onRemoveWhite, onCheckTile }: Readonly<{ detail: ArtworkDetail | null; onRemoveWhite: () => void; onCheckTile: () => void }>) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {detail?.canRemoveWhiteBackground ? (
+        <Button variant="secondary" type="button" onClick={onRemoveWhite}>
+          Remove the white background
+        </Button>
+      ) : null}
+      <Button variant="secondary" type="button" onClick={onCheckTile}>
+        Check as a repeating tile
+      </Button>
+    </div>
+  );
+}
+
+function SeamlessActions({ onMake }: Readonly<{ onMake: (method: "blend" | "mirror") => void }>) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button variant="secondary" type="button" onClick={() => onMake("blend")}>
+        Make it seamless (blend)
+      </Button>
+      <Button variant="secondary" type="button" onClick={() => onMake("mirror")}>
+        Make it seamless (mirror)
+      </Button>
+    </div>
+  );
+}
+
+function ChangePreview({ shown, onKeep, onDismiss }: Readonly<{ shown: ChangeSummary; onKeep: (change: Change) => void; onDismiss: () => void }>) {
+  const change: Change = shown.action === "remove-white-background" ? { action: "remove-white-background" } : { action: "make-seamless", method: shown.method ?? "blend" };
+  return (
+    <div className="flex flex-col gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element -- A picture made on the server, drawn as it is. */}
+          <img src={shown.previewPng} alt="Preview of the change" className="max-h-72 w-auto self-start rounded-lg border border-hairline" />
+          {shown.before && shown.after ? <p className="text-sm text-ink-2">{seamChangeSentence(shown.before, shown.after)}</p> : null}
+          {shown.limit ? <p className="text-sm text-muted">{shown.limit}</p> : null}
+          <div className="flex gap-2">
+            <Button type="button" onClick={() => onKeep(change)}>
+              Keep this as new artwork
+            </Button>
+            <Button variant="quiet" type="button" onClick={() => onDismiss()}>
+              Not now
+            </Button>
+          </div>
+    </div>
   );
 }

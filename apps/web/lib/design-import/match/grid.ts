@@ -160,6 +160,31 @@ export function profile(labels: Labels, rect: Rect, colours: number): number[] {
   return counts;
 }
 
+/** The pixels above, below and beside one, left out where they fall outside a rectangle. */
+function neighboursIn(at: number, width: number, rect: Rect): number[] {
+  const [ax, ay] = [at % width, Math.floor(at / width)];
+  return [[ax - 1, ay], [ax + 1, ay], [ax, ay - 1], [ax, ay + 1]]
+    .filter(([nx, ny]) => nx >= rect.x0 && nx < rect.x1 && ny >= rect.y0 && ny < rect.y1)
+    .map(([nx, ny]) => ny * width + nx);
+}
+
+/** How many pixels of one colour join the pixel `start`, marking each as seen. */
+function patchSize(labels: Labels, rect: Rect, seen: Uint8Array, start: number): number {
+  const colour = labels.data[start];
+  const stack = [start];
+  let size = 0;
+  while (stack.length > 0) {
+    const at = stack.pop() as number;
+    size += 1;
+    for (const next of neighboursIn(at, labels.width, rect)) {
+      if (seen[next] === 1 || labels.data[next] !== colour) continue;
+      seen[next] = 1;
+      stack.push(next);
+    }
+  }
+  return size;
+}
+
 /** How many separate patches of one colour, of at least `least` pixels, a rectangle holds. Plain blocks of colour have a few; a pattern has many. */
 export function regionCount(labels: Labels, rect: Rect, least: number): number {
   const seen = new Uint8Array(labels.width * labels.height);
@@ -169,22 +194,7 @@ export function regionCount(labels: Labels, rect: Rect, least: number): number {
       const start = y * labels.width + x;
       if (seen[start] === 1) continue;
       seen[start] = 1;
-      const colour = labels.data[start];
-      const stack = [start];
-      let size = 0;
-      while (stack.length > 0) {
-        const at = stack.pop() as number;
-        size += 1;
-        const [ax, ay] = [at % labels.width, Math.floor(at / labels.width)];
-        for (const [nx, ny] of [[ax - 1, ay], [ax + 1, ay], [ax, ay - 1], [ax, ay + 1]]) {
-          if (nx < rect.x0 || nx >= rect.x1 || ny < rect.y0 || ny >= rect.y1) continue;
-          const next = ny * labels.width + nx;
-          if (seen[next] === 1 || labels.data[next] !== colour) continue;
-          seen[next] = 1;
-          stack.push(next);
-        }
-      }
-      if (size >= least) regions += 1;
+      if (patchSize(labels, rect, seen, start) >= least) regions += 1;
     }
   }
   return regions;

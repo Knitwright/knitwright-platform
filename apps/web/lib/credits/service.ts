@@ -85,87 +85,87 @@ export type CreditSummary = Readonly<{
 
 export type CreditsService = ReturnType<typeof createCreditsService>;
 
+type Call = <T>(fn: string, args: Record<string, unknown>, schema: z.ZodType<T>) => Promise<T>;
+type Settings = () => Promise<CreditSettingsShape>;
+
+const requireHash = (hash: string): string => {
+  if (hash.trim().length === 0) throw new Error("A design version is needed to charge or give back credits.");
+  return hash;
+};
+
+/**
+ * Charges the price of an output, once per output kind and design version: asking again for
+ * the same output costs nothing. Refused, without changing anything, when the balance is short.
+ */
+const spendOperation = (call: Call) => async (input: SpendInput): Promise<SpendOutcome> => {
+  const answer = await call(
+    "credit_spend",
+    {
+      p_brand_id: input.brandId,
+      p_user_id: input.userId,
+      p_kind: input.kind,
+      p_version_hash: requireHash(input.designVersionHash),
+      p_usage_event_id: input.usageEventId ?? null,
+    },
+    spendAnswer,
+  );
+  return answer.ok
+    ? { ok: true, charged: answer.charged, price: answer.price, balance: answer.balance, entryId: answer.entry_id }
+    : answer;
+};
+
+/**
+ * Gives back every spend on a design version, once. For the code that moves a design to
+ * "ordered" to call (V1 owns the status, V5 the order); nothing calls it yet.
+ */
+const refundOperation = (call: Call) => (input: Readonly<{ brandId: string; designVersionHash: string }>) =>
+  call("credit_refund_for_order", { p_brand_id: input.brandId, p_version_hash: requireHash(input.designVersionHash) }, refundAnswer);
+
+/** The brand's free credits for the month `now` falls in, given once. */
+const allowanceOperation = (call: Call, settings: Settings) => async (brandId: string, now: Date) =>
+  call(
+    "credit_ensure_allowance",
+    { p_brand_id: brandId, p_month: allowanceMonth(now), p_amount: (await settings()).monthlyAllowance },
+    grantAnswer,
+  );
+
+/** Writes the prices of settings.ts to the database. Run it after changing them. */
+const syncOperation = (call: Call, settings: Settings) => async (): Promise<void> => {
+  const current = await settings();
+  await call("credit_set_prices", { p_prices: current.prices, p_placeholder: current.isPlaceholder }, z.null());
+};
+
+const summaryOperation = (db: CreditsDb, call: Call, settings: Settings) => async (brandId: string): Promise<CreditSummary> => {
+  const [balance, lines, current] = await Promise.all([
+    call("credit_balance", { p_brand_id: brandId }, z.number()),
+    db.readLedger(brandId, HISTORY_LIMIT),
+    settings(),
+  ]);
+  const parsed = z.array(rowSchema).safeParse(lines);
+  if (!parsed.success) throw new Error(FAILED, { cause: parsed.error });
+  const entries = parsed.data.map(toEntry);
+  return {
+    balance,
+    history: withRunningBalance(entries, balance - balanceOf(entries)),
+    prices: current.prices,
+    isPlaceholder: current.isPlaceholder,
+    monthlyAllowance: current.monthlyAllowance,
+  };
+};
+
 export const createCreditsService = (db: CreditsDb) => {
-  const settings = (): Promise<CreditSettingsShape> => (db.readSettings ? db.readSettings() : Promise.resolve(CREDIT_SETTINGS));
-  const call = async <T>(fn: string, args: Record<string, unknown>, schema: z.ZodType<T>): Promise<T> => {
+  const settings: Settings = () => (db.readSettings ? db.readSettings() : Promise.resolve(CREDIT_SETTINGS));
+  const call: Call = async (fn, args, schema) => {
     const { data, error } = await db.rpc(fn, args);
     const parsed = error ? null : schema.safeParse(data);
     if (!parsed?.success) throw new Error(FAILED, { cause: error ?? data });
     return parsed.data;
   };
-
-  const requireHash = (hash: string): string => {
-    if (hash.trim().length === 0) throw new Error("A design version is needed to charge or give back credits.");
-    return hash;
-  };
-
   return {
-    /**
-     * Charges the price of an output, once per output kind and design version: asking again for
-     * the same output costs nothing. Refused, without changing anything, when the balance is short.
-     */
-    spendCredits: async (input: SpendInput): Promise<SpendOutcome> => {
-      const answer = await call(
-        "credit_spend",
-        {
-          p_brand_id: input.brandId,
-          p_user_id: input.userId,
-          p_kind: input.kind,
-          p_version_hash: requireHash(input.designVersionHash),
-          p_usage_event_id: input.usageEventId ?? null,
-        },
-        spendAnswer,
-      );
-      return answer.ok
-        ? { ok: true, charged: answer.charged, price: answer.price, balance: answer.balance, entryId: answer.entry_id }
-        : answer;
-    },
-
-    /**
-     * Gives back every spend on a design version, once. For the code that moves a design to
-     * "ordered" to call (V1 owns the status, V5 the order); nothing calls it yet.
-     */
-    refundForOrder: (input: Readonly<{ brandId: string; designVersionHash: string }>) =>
-      call(
-        "credit_refund_for_order",
-        { p_brand_id: input.brandId, p_version_hash: requireHash(input.designVersionHash) },
-        refundAnswer,
-      ),
-
-    /** The brand's free credits for the month `now` falls in, given once. */
-    ensureMonthlyAllowance: async (brandId: string, now: Date) =>
-      call(
-        "credit_ensure_allowance",
-        { p_brand_id: brandId, p_month: allowanceMonth(now), p_amount: (await settings()).monthlyAllowance },
-        grantAnswer,
-      ),
-
-    /** Writes the prices of settings.ts to the database. Run it after changing them. */
-    syncCreditPrices: async (): Promise<void> => {
-      const current = await settings();
-      await call(
-        "credit_set_prices",
-        { p_prices: current.prices, p_placeholder: current.isPlaceholder },
-        z.null(),
-      );
-    },
-
-    summary: async (brandId: string): Promise<CreditSummary> => {
-      const [balance, lines, current] = await Promise.all([
-        call("credit_balance", { p_brand_id: brandId }, z.number()),
-        db.readLedger(brandId, HISTORY_LIMIT),
-        settings(),
-      ]);
-      const parsed = z.array(rowSchema).safeParse(lines);
-      if (!parsed.success) throw new Error(FAILED, { cause: parsed.error });
-      const entries = parsed.data.map(toEntry);
-      return {
-        balance,
-        history: withRunningBalance(entries, balance - balanceOf(entries)),
-        prices: current.prices,
-        isPlaceholder: current.isPlaceholder,
-        monthlyAllowance: current.monthlyAllowance,
-      };
-    },
+    spendCredits: spendOperation(call),
+    refundForOrder: refundOperation(call),
+    ensureMonthlyAllowance: allowanceOperation(call, settings),
+    syncCreditPrices: syncOperation(call, settings),
+    summary: summaryOperation(db, call, settings),
   };
 };
