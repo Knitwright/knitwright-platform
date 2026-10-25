@@ -5,6 +5,7 @@ import { KitPanel } from "@/components/club/KitPanel";
 import { MembersPanel } from "@/components/club/MembersPanel";
 import { SeasonsPanel } from "@/components/club/SeasonsPanel";
 import { UseKitButton } from "@/components/club/UseKitButton";
+import { ReorderButton } from "@/components/club/reorder/ReorderButton";
 import { PageIntro } from "@/components/shell/PageIntro";
 import { PageSection } from "@/components/shell/PageSection";
 import { listArtworks } from "@/lib/artwork-intake/service";
@@ -79,7 +80,7 @@ export default async function ClubPage() {
         )}
       </PageSection>
 
-      <PageSection id="orders" title="Order history" description="Each time a design was frozen for production. Read only.">
+      <PageSection id="orders" title="Order history" description="Each time a design was frozen for production. Reorder any of them in two clicks: Reorder, then Confirm.">
         {history.length === 0 ? (
           <p className="text-[15px] text-muted">Nothing has been frozen for production yet.</p>
         ) : (
@@ -88,6 +89,7 @@ export default async function ClubPage() {
               <li key={entry.releaseId} className="flex flex-wrap items-center justify-between gap-3 py-3 text-[15px]">
                 <Link href={`/studio/${entry.projectId}`} className="soft-link min-w-0 truncate text-ink">{entry.designName} · {entry.label}</Link>
                 <span className="font-mono text-sm text-muted">release {entry.number} · {date(entry.createdAt)}</span>
+                {canEdit ? <ReorderButton releaseId={entry.releaseId} seasons={seasons} /> : null}
               </li>
             ))}
           </ul>

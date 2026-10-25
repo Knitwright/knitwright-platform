@@ -67,6 +67,8 @@ export default defineConfig({
         "lib/flat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The tech pack is the product's main output, and the exports are made from it.
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // Two-click reorder from the club's order history (plan v4 W4-F, decision 0065).
+        "lib/clubs/reorder/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
           ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "comments", "pattern-service"].map((dir) => [
