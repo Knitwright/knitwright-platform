@@ -5,7 +5,7 @@
  */
 
 /** The tools on the rail, one for each group of controls, in the order a design is usually made. */
-export const RAIL_TOOLS = ["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "variants", "comments", "history"] as const;
+export const RAIL_TOOLS = ["garment", "colours", "sizes", "fabric", "logos", "names", "labels", "variants", "comments", "media", "history"] as const;
 
 /** Panels opened from the header's actions and journey, not from the rail. */
 export const JOURNEY_TOOLS = ["share", "photoreal", "quote", "production"] as const;
@@ -30,6 +30,7 @@ export type SectionId =
   | "labelling"
   | "variants"
   | "comments"
+  | "media"
   | "history"
   | "share"
   | "photoreal"
@@ -112,6 +113,13 @@ export const TOOLS: Readonly<Record<ToolId, ToolInfo>> = {
     title: "Comments",
     lead: "Talk about this design with the other members of your brand. Only members see these; a shared link never shows them.",
     sections: ["comments"],
+  },
+  media: {
+    id: "media",
+    label: "Media",
+    title: "Marketing media",
+    lead: "Pictures and video of this design to share. Studio pictures are free and carry a preview mark until you use credits.",
+    sections: ["media"],
   },
   history: {
     id: "history",
