@@ -49,6 +49,11 @@ describe("reading the library", () => {
     await expect(loadLibrary(readClient([{ id: "not-a-uuid" }]))).rejects.toBeInstanceOf(AppError);
   });
 
+  it("carries a designer's name as the attribution", async () => {
+    const [summary] = await loadLibrary(readClient([{ ...stored, attribution: "Ada" }]));
+    expect(summary!.attribution).toBe("Ada");
+  });
+
   it("reports a failed or unreadable read of designs", async () => {
     await expect(loadSnapshots(readClient([], { message: "boom" }), [stored.id])).rejects.toBeInstanceOf(AppError);
     await expect(loadSnapshots(readClient([{ id: "no" }]), [stored.id])).rejects.toBeInstanceOf(AppError);
@@ -98,6 +103,24 @@ describe("using a template", () => {
   it("reports a failed read of the template", async () => {
     const { client } = adminClient({ data: PROJECT_ID, error: null });
     await expect(createFromTemplate(client, readClient([], { message: "boom" }), { ...who, templateId: stored.id })).rejects.toBeInstanceOf(AppError);
+  });
+
+  it("notes the use of a designer's template, so its orders can earn a royalty, and not of a Knitwright one", async () => {
+    const { client, calls } = adminClient({ data: PROJECT_ID, error: null });
+    await createFromTemplate(client, readClient([{ ...stored, source: "designer" }]), { ...who, templateId: stored.id });
+    expect(calls.map((c) => c.fn)).toEqual(["create_project", "designer_record_use"]);
+    expect(calls[1]!.args).toEqual({ p_template_id: stored.id, p_brand_id: who.brandId, p_project_id: PROJECT_ID });
+    const plain = adminClient({ data: PROJECT_ID, error: null });
+    await createFromTemplate(plain.client, readClient([{ ...stored, source: "knitwright" }]), { ...who, templateId: stored.id });
+    expect(plain.calls.map((c) => c.fn)).toEqual(["create_project"]);
+  });
+
+  it("passes on a refusal to note the use", async () => {
+    const calls: string[] = [];
+    const client = {
+      rpc: async (fn: string) => (calls.push(fn), fn === "create_project" ? { data: PROJECT_ID, error: null } : { data: null, error: { message: "no" } }),
+    } as unknown as SupabaseClient;
+    await expect(createFromTemplate(client, readClient([{ ...stored, source: "designer" }]), { ...who, templateId: stored.id })).rejects.toBeInstanceOf(AppError);
   });
 
   it("passes on a database refusal", async () => {

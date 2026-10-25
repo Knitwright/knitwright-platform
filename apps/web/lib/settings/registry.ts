@@ -183,6 +183,7 @@ export const GROUPS: Readonly<Record<string, string>> = {
   media: "Marketing media",
   checker: "Picture checker",
   factory: "Factory terms",
+  designers: "Designer royalties",
 };
 
 export const findSetting = (key: string): SettingDef | undefined => SETTINGS.find((s) => s.key === key);

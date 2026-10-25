@@ -24,7 +24,7 @@ export function TemplateCard({ template, preview }: CardProps) {
         <p className="font-mono text-[13px] text-muted">
           {article} · {SPORT_LABELS[template.sport]} · {STYLE_LABELS[template.style]} · {COLOUR_FAMILY_LABELS[template.colourFamily]}
         </p>
-        <p className="mt-1 w-fit rounded-full bg-warn-wash px-2.5 py-0.5 text-xs text-warn">{REVIEW_LABELS[template.reviewState]}</p>
+        <p className="mt-1 w-fit rounded-full bg-warn-wash px-2.5 py-0.5 text-xs text-warn">{template.attribution ? `By ${template.attribution}, ${template.reviewState === "reviewed" ? "reviewed by a factory" : "not reviewed by a factory"}` : REVIEW_LABELS[template.reviewState]}</p>
       </div>
       <div className="mt-auto">
         <UseTemplate templateId={template.id} title={template.title} />

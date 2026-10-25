@@ -779,6 +779,56 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, kind: "grant", amount: 5, idempotency_key: randomUUID() }),
     change: { amount: 99 },
   },
+  // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
+  designer_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "user_id",
+    ownedBy: "user",
+    seed: async (_brandId, ownerId) => {
+      must(await adminClient().rpc("designer_enrol", { p_user_id: ownerId, p_display_name: "Seeded designer" }));
+      return { user_id: ownerId };
+    },
+    attempt: (ownerId) => ({ user_id: ownerId, display_name: "Made directly" }),
+    change: { display_name: "Changed by a stranger" },
+  },
+  template_submissions: {
+    privileges: ["SELECT"],
+    brandColumn: "designer_id",
+    ownedBy: "user",
+    seed: async (_brandId, ownerId) => {
+      must(await adminClient().rpc("designer_enrol", { p_user_id: ownerId, p_display_name: "Seeded designer" }));
+      const id = must(
+        await adminClient().rpc("template_submission_create", {
+          p_user_id: ownerId, p_title: "Seeded", p_sport: "football", p_article_id: "crew-tee", p_wearer: "men", p_style_tags: ["plain"], p_colour_family: "blue", p_snapshot: { seeded: true },
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: (ownerId) => ({ designer_id: ownerId, title: "Made directly", sport: "football", article_id: "crew-tee", wearer: "men", style_tags: ["plain"], colour_family: "blue", snapshot: {} }),
+    change: { title: "Changed by a stranger" },
+  },
+  royalty_accruals: {
+    privileges: ["SELECT"],
+    brandColumn: "designer_id",
+    ownedBy: "user",
+    seed: async (brandId, ownerId) => ({ order_id: (await seedDesignerOrder(brandId, ownerId)).orderId }),
+    attempt: (ownerId) => ({ designer_id: ownerId, template_id: randomUUID(), project_id: randomUUID(), order_id: randomUUID(), release_id: randomUUID(), units: 1 }),
+    change: { units: 99 },
+  },
+  designer_payout_events: {
+    privileges: ["SELECT"],
+    brandColumn: "designer_id",
+    ownedBy: "user",
+    seed: async (_brandId, ownerId) => {
+      must(await adminClient().rpc("designer_enrol", { p_user_id: ownerId, p_display_name: "Seeded designer" }));
+      const owner = await person("payout-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: owner.userId }).select("user_id"));
+      must(await adminClient().rpc("designer_set_payout_state", { p_actor: owner.userId, p_designer_id: ownerId, p_state: "on_hold", p_note: "seed" }));
+      return { designer_id: ownerId };
+    },
+    attempt: (ownerId) => ({ designer_id: ownerId, state: "paid" }),
+    change: { state: "paid" },
+  },
   // Plan W4-A (decision 0060): a brand's pattern service requests and their history. A member reads; only the server writes, through functions.
   pattern_requests: {
     privileges: ["SELECT"],
@@ -1010,6 +1060,30 @@ const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
     }),
   );
 
+/** A designer with a template, a design made from it and an order for that design (decision 0061). Returns the ids. */
+const seedDesignerOrder = async (brandId: string, designerId: string): Promise<{ orderId: string; templateId: string }> => {
+  must(await adminClient().rpc("designer_enrol", { p_user_id: designerId, p_display_name: "Seeded designer" }));
+  const templateId = randomUUID();
+  must(
+    await adminClient()
+      .from("templates")
+      .insert({
+        id: templateId, slug: `designer-${templateId}`.slice(0, 40), title: "Seeded", sport: "football", article_id: "crew-tee", wearer: "men",
+        style_tags: ["plain"], colour_family: "blue", snapshot: { seeded: true }, source: "designer", designer_id: designerId, attribution: "Seeded designer",
+      })
+      .select("id"),
+  );
+  const projectId = await seedProject(brandId, designerId);
+  must(await adminClient().rpc("designer_record_use", { p_template_id: templateId, p_brand_id: brandId, p_project_id: projectId }));
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: designerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const order = must(
+    await adminClient().rpc("submit_order_for_production", { p_release_id: release[0]!.id, p_external_ref: `seed-${randomUUID()}`, p_factory_profile_id: "f1", p_fabric_key: "m", p_article_id: "crew-tee", p_sizes: { M: 2 } }),
+  ) as { order_id: string }[];
+  return { orderId: order[0]!.order_id, templateId };
+};
+
 /**
  * Tables that belong to the platform but that every signed-in person may read (and no visitor).
  * Only the server writes them.
@@ -1196,6 +1270,18 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: () => ({ key: "isolation.made_directly", value: 1 }),
     change: { value: 99 },
+  },
+  // Decision 0061: which designer template a design came from. No browser role reads it, so a designer never learns which brand used their work.
+  designer_template_uses: {
+    privileges: [],
+    seed: async () => {
+      // The designer makes the design in a brand of their own, so they are a member of it.
+      const designer = await person("uses-designer");
+      const { orderId } = await seedDesignerOrder(await brandOf(designer, "Uses Designer FC"), designer.userId);
+      return { project_id: (must(await adminClient().from("ops_orders").select("project_id").eq("id", orderId).single()) as { project_id: string }).project_id };
+    },
+    attempt: (brandId, userId) => ({ template_id: randomUUID(), designer_id: userId, brand_id: brandId, project_id: randomUUID() }),
+    change: { brand_id: randomUUID() },
   },
   platform_admins: {
     privileges: [],
