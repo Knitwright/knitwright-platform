@@ -14,7 +14,7 @@ export function SignOutButton() {
           {summary}
         </p>
       ) : null}
-      <Button type="submit" variant="quiet" pending={pending} className="h-9 px-3 text-sm">
+      <Button type="submit" variant="quiet" pending={pending} className="h-10 px-3 text-sm">
         Sign out
       </Button>
     </form>

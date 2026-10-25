@@ -34,7 +34,7 @@ function ColourField({ label, value, disabled, onChange }: Readonly<{ label: str
         />
         <span className="font-mono text-sm text-ink-2">{value ?? "Not chosen"}</span>
         {value && !disabled ? (
-          <button type="button" className="soft-link ml-auto text-sm text-muted" onClick={() => onChange(null)}>Clear</button>
+          <button type="button" className="soft-link ml-auto min-h-10 text-sm text-muted" onClick={() => onChange(null)}>Clear</button>
         ) : null}
       </div>
     </div>

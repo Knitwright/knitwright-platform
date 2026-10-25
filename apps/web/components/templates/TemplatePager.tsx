@@ -5,7 +5,7 @@ import { filterHref, type TemplateFilters } from "@/lib/templates/filters";
 
 type PagerProps = Readonly<{ path: string; filters: TemplateFilters; page: number; totalPages: number }>;
 
-const PILL = "nav-pill grid h-9 min-w-9 place-items-center rounded-full px-3 font-mono text-[13px] no-underline";
+const PILL = "nav-pill grid h-10 min-w-10 place-items-center rounded-full px-3 font-mono text-[13px] no-underline";
 
 /** Page pills for the library. Unlike the studio's, each link keeps the filters in the address. */
 export function TemplatePager({ path, filters, page, totalPages }: PagerProps) {

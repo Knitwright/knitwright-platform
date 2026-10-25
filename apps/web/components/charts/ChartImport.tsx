@@ -99,7 +99,7 @@ export function ChartImport() {
           accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           disabled={busy || importing}
           onChange={(event) => void upload(event.target.files?.[0])}
-          className="text-sm text-ink-2"
+          className="min-h-10 text-sm text-ink-2"
         />
       </div>
       {outcome ? (

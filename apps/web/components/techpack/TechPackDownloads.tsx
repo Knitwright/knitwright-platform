@@ -44,7 +44,7 @@ function DownloadButtons({ downloads, small = false }: ButtonsProps) {
           key={control.id}
           id={`download-${control.id}`}
           variant="secondary"
-          className={small ? "h-9! px-3.5! text-sm!" : ""}
+          className={small ? "h-10! px-3.5! text-sm!" : ""}
           pending={isBusyWith(busy, control.id)}
           disabled={busy !== null}
           aria-label={control.accessibleName}
@@ -106,7 +106,7 @@ export function HeaderDownloads({ projectId, version, colourwayId, dxfHref }: He
         <a
           href={dxfHref}
           data-file-section-link="patterns"
-          className="chip-btn inline-flex h-9 items-center rounded-full border border-white/20 bg-white/[0.04] px-3.5 text-sm font-medium text-ink backdrop-blur-md"
+          className="chip-btn inline-flex h-10 items-center rounded-full border border-white/20 bg-white/[0.04] px-3.5 text-sm font-medium text-ink backdrop-blur-md"
         >
           DXF
         </a>

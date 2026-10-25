@@ -24,7 +24,7 @@ export default async function OpsPage() {
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Batches</h1>
       <p className="mt-2 text-[15px] text-muted">
         Weekly cut-off: {describeCutoff(settings)}. {settings.label}. {settings.leadTimeDays === null ? "No lead time is set, so no due date is promised." : `Lead time ${settings.leadTimeDays} days.`}{" "}
-        <Link href="/ops/settings" className="underline">Change</Link>
+        <Link href="/ops/settings" className="text-ink underline">Change</Link>
       </p>
       <MetricsPanel metrics={metrics} truncated={truncated} />
       <div className="mt-6"><CutBatchesForm /></div>

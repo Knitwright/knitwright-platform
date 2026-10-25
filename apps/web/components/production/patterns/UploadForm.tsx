@@ -64,7 +64,7 @@ export function UploadForm({ slots, onStored }: Readonly<{ slots: readonly SlotS
         <label htmlFor="pattern-files" className="text-sm font-medium text-ink">
           DXF files
         </label>
-        <input id="pattern-files" name="files" type="file" accept=".dxf" multiple required className="text-sm text-ink-2" />
+        <input id="pattern-files" name="files" type="file" accept=".dxf" multiple required className="min-h-10 text-sm text-ink-2" />
         <p className="text-sm text-muted">One file for each size, or one file with every size in it.</p>
       </div>
       <div>

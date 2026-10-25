@@ -28,7 +28,7 @@ export function FileHeader({ data, colourwayId, baseSearch }: HeaderProps) {
   return (
     <header className="glass flex flex-col gap-4 rounded-3xl p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Link href={design} className="soft-link text-sm text-cobalt-soft hover:underline">
+        <Link href={design} className="soft-link inline-flex min-h-10 items-center text-sm text-cobalt-soft hover:underline">
           Back to the design
         </Link>
         <div className="flex min-w-0 flex-col">

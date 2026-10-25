@@ -68,7 +68,7 @@ export function FillIn({ summary, children }: Readonly<{ summary: string; childr
   if (!children) return null;
   return (
     <details className="rounded-xl border border-hairline p-4">
-      <summary className="cursor-pointer text-[15px] font-medium text-ink">{summary}</summary>
+      <summary className="min-h-10 cursor-pointer text-[15px] font-medium text-ink">{summary}</summary>
       <div className="mt-4">{children}</div>
     </details>
   );
@@ -79,7 +79,7 @@ type TableProps = Readonly<{ caption: string; heads: readonly string[]; children
 /** A table with a hidden caption and column heads. It scrolls sideways when it is wide. */
 export function DocTable({ caption, heads, children }: TableProps) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" role="region" aria-label={caption} tabIndex={0}>
       <table className="w-full min-w-[32rem] text-left align-top">
         <caption className="sr-only">{caption}</caption>
         <thead>

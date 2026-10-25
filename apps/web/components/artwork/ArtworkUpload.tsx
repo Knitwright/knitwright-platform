@@ -50,7 +50,7 @@ export function ArtworkUpload({ onUploaded }: UploadProps) {
         accept="image/png,image/jpeg,image/tiff,application/pdf,.ai,image/svg+xml,.svg"
         disabled={busy}
         onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-        className="text-[15px] text-ink"
+        className="min-h-10 text-[15px] text-ink"
       />
       <p className="text-sm text-muted">{FORMATS_HINT}</p>
       <CheckboxField label={LOGO_RIGHTS.text} checked={rights} onChange={(event) => setRights(event.target.checked)} />

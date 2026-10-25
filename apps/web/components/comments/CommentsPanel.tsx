@@ -115,7 +115,7 @@ export function CommentsPanel({ projectId, version, panels }: Props) {
           />
           <div role="group" aria-label="Show" className="flex gap-2">
             {FILTERS.map((f) => (
-              <button key={f.id} type="button" aria-pressed={status === f.id} onClick={() => setStatus(f.id)} className="rounded-full border border-hairline px-3 py-1 text-sm aria-pressed:bg-ink aria-pressed:text-white">
+              <button key={f.id} type="button" aria-pressed={status === f.id} onClick={() => setStatus(f.id)} className="rounded-full border border-hairline px-3 py-1 min-h-10 text-sm aria-pressed:bg-ink aria-pressed:text-white">
                 {f.label}
               </button>
             ))}

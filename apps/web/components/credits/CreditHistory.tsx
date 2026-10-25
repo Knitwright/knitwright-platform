@@ -4,7 +4,7 @@ import { describeEntry, type HistoryRow } from "@/lib/credits/ledger";
 export function CreditHistory({ rows, brandName }: Readonly<{ rows: readonly HistoryRow[]; brandName: string }>) {
   if (rows.length === 0) return <p className="text-[15px] text-muted">{brandName} has no credit history yet.</p>;
   return (
-    <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface">
+    <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface" role="region" aria-label={`Credit history of ${brandName}`} tabIndex={0}>
       <table className="w-full min-w-[32rem] text-left text-[15px]">
         <caption className="sr-only">Credit history of {brandName}, newest first</caption>
         <thead>

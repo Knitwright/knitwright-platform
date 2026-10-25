@@ -17,18 +17,18 @@ type StudioHeaderProps = Readonly<{ email: string | null; brandName: string; cre
 export function StudioHeader({ email, brandName, credits }: StudioHeaderProps) {
   return (
     <div className={`sticky top-3 z-40 mx-auto w-full ${PAGE_WIDTH.content} px-3 pt-3 sm:px-5`}>
-      <header className="glass-strong rise flex h-16 items-center gap-3 rounded-full pl-5 pr-2 sm:gap-6 sm:pl-6">
-        <Link href="/studio" className="flex shrink-0 items-center gap-2.5 rounded-full text-white">
+      <header className="glass-strong rise flex h-16 items-center gap-1 rounded-full pl-3 pr-2 sm:gap-6 sm:pl-6">
+        <Link href="/studio" className="flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-2.5 rounded-full text-white">
           <BrandMark />
           <span className="text-[19px] font-medium tracking-[-0.02em] max-sm:sr-only">{PRODUCT.name}</span>
         </Link>
         <div className="hidden md:block">
           <StudioNav />
         </div>
-        <div className="ml-auto flex min-w-0 items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2">
           <Link
             href="/brands"
-            className="nav-pill min-w-0 truncate rounded-full border border-white/12 px-3.5 py-1.5 text-sm text-ink-2"
+            className="nav-pill min-w-10 truncate rounded-full border border-white/12 px-3.5 py-2.5 text-sm text-ink-2"
           >
             <span className="sr-only">Brand: {brandName}. Change brand.</span>
             <span aria-hidden="true" data-testid="active-brand">
@@ -40,7 +40,7 @@ export function StudioHeader({ email, brandName, credits }: StudioHeaderProps) {
             {email}
           </span>
           {/* Shown at every width, phones too: Settings was once reachable only through the email. */}
-          <Link href="/settings" className="nav-pill shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium text-ink-2">
+          <Link href="/settings" className="nav-pill inline-flex min-h-10 shrink-0 items-center rounded-full px-3.5 text-sm font-medium text-ink-2">
             Settings
           </Link>
           <div className="hidden md:block">

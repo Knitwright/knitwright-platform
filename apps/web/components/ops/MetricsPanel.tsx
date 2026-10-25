@@ -9,7 +9,7 @@ function Tile({ label, children, note }: Readonly<{ label: string; children: Rea
     <div className="rounded-xl border border-hairline p-4" data-testid="metric">
       <dt className="text-sm text-muted">{label}</dt>
       <dd className="mt-1 text-xl font-semibold text-ink">{children}</dd>
-      {note ? <p className="mt-1 text-sm text-faint">{note}</p> : null}
+      {note ? <dd className="mt-1 text-sm text-faint">{note}</dd> : null}
     </div>
   );
 }

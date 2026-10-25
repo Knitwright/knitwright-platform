@@ -41,7 +41,7 @@ export function ReplaceMark({ layerLabel, disabled, onReplace }: Props) {
     <div className="flex flex-col gap-2" data-testid="replace-mark">
       <label className="text-sm font-medium text-ink">
         Your file for {layerLabel}
-        <input type="file" accept="image/png,image/jpeg,image/tiff,application/pdf,.ai,image/svg+xml,.svg" disabled={busy} onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="mt-1 block text-sm" />
+        <input type="file" accept="image/png,image/jpeg,image/tiff,application/pdf,.ai,image/svg+xml,.svg" disabled={busy} onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="mt-1 block min-h-10 text-sm" />
       </label>
       <CheckboxField label={LOGO_RIGHTS.text} checked={rights} disabled={busy} onChange={(event) => setRights(event.target.checked)} />
       {problem ? (

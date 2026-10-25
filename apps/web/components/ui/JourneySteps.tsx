@@ -20,7 +20,7 @@ export function JourneySteps({ steps, current }: JourneyStepsProps) {
         const text = `${index + 1} ${step.label}`;
         if (index === current) {
           return (
-            <li key={step.label} aria-current="step" className="shrink-0 rounded-full bg-ink px-3.5 py-1.5 font-medium text-canvas">
+            <li key={step.label} aria-current="step" className="flex min-h-10 shrink-0 items-center rounded-full bg-ink px-3.5 font-medium text-canvas">
               {text}
             </li>
           );
@@ -29,11 +29,11 @@ export function JourneySteps({ steps, current }: JourneyStepsProps) {
         return (
           <li key={step.label} className="shrink-0">
             {step.href ? (
-              <Link href={step.href} className={`nav-pill block rounded-full px-3.5 py-1.5 ${tone}`}>
+              <Link href={step.href} className={`nav-pill flex min-h-10 items-center rounded-full px-3.5 ${tone}`}>
                 {text}
               </Link>
             ) : (
-              <span className={`block px-3.5 py-1.5 ${tone}`}>{text}</span>
+              <span className={`flex min-h-10 items-center px-3.5 ${tone}`}>{text}</span>
             )}
           </li>
         );

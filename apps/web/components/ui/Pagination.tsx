@@ -11,7 +11,7 @@ type PaginationProps = Readonly<{
   label: string;
 }>;
 
-const PILL = "nav-pill grid h-9 min-w-9 place-items-center rounded-full px-3 font-mono text-[13px] no-underline";
+const PILL = "nav-pill grid h-10 min-w-10 place-items-center rounded-full px-3 font-mono text-[13px] no-underline";
 
 /** Glass page pills under a long list: Previous, the page numbers and Next. Hidden for a single page. */
 export function Pagination({ path, page, totalPages, label }: PaginationProps) {

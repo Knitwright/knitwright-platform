@@ -70,7 +70,7 @@ export default async function ClubPage() {
           <ul className="flex flex-col divide-y divide-hairline">
             {designs.projects.map((design) => (
               <li key={design.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <Link href={`/studio/${design.id}`} className="soft-link min-w-0 truncate text-[15px] text-ink">
+                <Link href={`/studio/${design.id}`} className="soft-link block min-w-0 truncate py-2 text-[15px] leading-6 text-ink">
                   {design.name} <span className="text-muted">· {design.garmentLabel} · version {design.currentVersion}</span>
                 </Link>
                 {canEdit ? <UseKitButton projectId={design.id} version={design.currentVersion} /> : null}

@@ -6,6 +6,7 @@ import type { WorkspaceLayout } from "@/lib/workspace/layout";
 import { DiffPanel } from "../assistant/DiffPanel";
 import { ChatPanel } from "../ChatPanel";
 import type { AssistantInfo } from "../Editor";
+import { trapTarget } from "@/lib/workspace/focus-trap";
 import { XL, useMedia } from "./useMedia";
 
 type DockProps = Readonly<{
@@ -21,7 +22,9 @@ type DockProps = Readonly<{
 }>;
 
 const SMALL_BUTTON =
-  "chip-btn h-9 items-center rounded-full border border-white/20 px-3.5 text-sm font-medium text-ink";
+  "chip-btn h-10 min-w-10 items-center rounded-full border border-white/20 px-3.5 text-sm font-medium text-ink";
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /** Where the assistant sits: docked on the right of a wide screen, or a sheet over a narrow one. */
 const placement = ({ dockOpen, sheetOpen }: WorkspaceLayout): string => {
@@ -48,7 +51,15 @@ export function AssistantDock({ projectId, version, busy, assistant, layout, abo
     if (event.key === "Escape" && layout.sheetOpen) {
       event.stopPropagation();
       onCloseSheet();
+      return;
     }
+    // Over a narrow screen the sheet is a dialog: Tab goes round inside it, not on into the page behind.
+    if (event.key !== "Tab" || !layout.sheetOpen || docked) return;
+    const controls = [...event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((control) => control.offsetParent !== null);
+    const target = trapTarget(controls.length, controls.indexOf(document.activeElement as HTMLElement), event.shiftKey);
+    if (target === null) return;
+    event.preventDefault();
+    controls[target]?.focus();
   };
 
   const panel = (
@@ -56,6 +67,7 @@ export function AssistantDock({ projectId, version, busy, assistant, layout, abo
       id="assistant-panel"
       aria-labelledby="assistant-title"
       role={layout.sheetOpen && !docked ? "dialog" : undefined}
+      aria-modal={layout.sheetOpen && !docked ? true : undefined}
       onKeyDown={escape}
       className={`min-h-0 flex-col gap-3 overflow-hidden rounded-3xl p-4 ${placement(layout)}`}
     >
@@ -91,7 +103,7 @@ export function AssistantDock({ projectId, version, busy, assistant, layout, abo
             onClick={onToggleDock}
             aria-expanded={false}
             aria-controls="assistant-panel"
-            className="flex flex-col items-center gap-2 rounded-2xl px-1 py-2 text-[11px] text-ink-2 hover:text-ink"
+            className="flex min-h-10 flex-col items-center gap-2 rounded-2xl px-1 py-2 text-[11px] text-ink-2 hover:text-ink"
           >
             <span className="size-8 rounded-full bg-[linear-gradient(135deg,#b9c4ff,#ffd3e6_50%,#c7f0e4)]" aria-hidden="true" />
             Show assistant
