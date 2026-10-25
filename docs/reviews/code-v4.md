@@ -1,0 +1,50 @@
+# Code review of waves 1 to 4 (v4 W5-B)
+
+Scope: platform code in `apps/web` (`app`, `lib`, `components`). Not reviewed: Store/Sell code, `Sportswear/`, `kitwright/`, `supabase/config.toml`, migrations.
+Method: a TypeScript AST scan for function length and nesting, an export-usage scan across the whole app (names matched by word, so a type or constant shared with another file reads as used), and grep passes for console output, empty catch blocks, duplicated helpers, hardcoded addresses and keys, and the forbidden words of `lib/techpack/wording.test.ts`.
+Baseline on main (`a30520a`): typecheck, lint and `tests/architecture` plus the wording test all pass.
+
+## Summary
+
+| Check | Result |
+|---|---|
+| Files over 800 lines | none (largest source file is 389 lines) |
+| Files over 400 lines (plan rule) | none |
+| `console.log` / `console.debug` in app code | none |
+| Hardcoded secrets | none (provider endpoints are named constants beside their adapters) |
+| Settled-sounding words in user text outside the techpack wording scan | none found |
+| Functions over 50 lines | 103 (73 are React components or page functions, mostly JSX; 30 in `lib`) |
+| Nesting over 4 levels | 2 |
+| Unused exports | 51 with no reader at all; many more used only by tests |
+| Swallowed errors | 40 sites, all best-effort cleanup or a parse fallback; none found that hides a failure from the user |
+
+**HIGH findings: none. No code was changed by this PR**, because the brief is to fix HIGH items only. All findings below are open.
+
+## MEDIUM
+
+| # | File | Finding | Status |
+|---|---|---|---|
+| M1 | `components/artwork/ArtworkPanel.tsx`, `components/artwork/generators/GeneratorGallery.tsx`, `components/design-import/DesignImportPanel.tsx` (126 lines, changed 2026-10-25), `components/gltf/ModelViewer.tsx` | Whole components that nothing imports. `ModelViewer` is a known owner question (`lib/gltf/OWNER-QUESTIONS.md`, editor still uses `Preview3D`). The other three are unwired UI for shipped lib features. Deleting them removes the only UI for those features, so the owner should decide wire or delete. | open |
+| M2 | `lib/media/lifestyle/generator.ts:133` | `catch {}` drops the cause of a failed picture check and records only `check_failed`; the provider branch above it refunds and keeps the reason. Log the error as `lib/media/generate.ts` does. | open |
+| M3 | `lib/design-import/match/grid.ts:164` `regionCount`, `lib/design-import/outline.ts:96` `largestRegion` | Nesting of 5 levels (flood fill loops). Extract the neighbour step. | open |
+| M4 | `lib/sizing/csv.ts:34` `parseCsv` (61 lines, nesting 4) | Hand-written state machine; split into field and row readers. | open |
+| M5 | `lib/credits/service.ts:88` `createCreditsService` (84 lines) | One factory holding every operation; split by operation. | open |
+| M6 | `lib/media/lifestyle/generator.ts:91` `makeScene` (65), `lib/print/layout/build-scene.ts:91` `buildPieceScene` (69), `lib/projects/notes.ts:55` `describeAction` (67), `lib/garment/apply-action.ts:121` `run` (64), `lib/print/build/file-builder.ts:69` (63), `lib/design-import/marks.ts:127` `readMarks` (63), `lib/artwork-intake/vector/path.ts:92` (61), `lib/sizing/resolve.ts:58` (58), `lib/techpack/build.ts:47` (57), `lib/pattern-library/dxf/read.ts:125` (56), `lib/design-import/pipeline.ts:153` (56), `lib/techpack/exports/tables-parts.ts:26` (54), `lib/design-import/landmarks.ts:107` (54), `lib/artwork-intake/store.ts:94` (54), `lib/garment/reconcile.ts:82` (53), `lib/techpack/exports/tables-front.ts:25` (51), `lib/media/service.ts:76` (51), `lib/flat/families/bottoms/shape.ts:64` (51) | Non-fixture `lib` functions over 50 lines. | open |
+| M7 | `signedArea` in `lib/flat/kit-pattern.ts`, `lib/guardrails/geometry.ts`, `lib/garment3d/triangulate.ts`, `lib/pattern-library/geometry.ts`, `lib/print/geometry/polygon.ts`; `polygonArea` in `lib/design-import/outline.ts`, `lib/techpack/production/geometry.ts`, `lib/garment3d/triangulate.ts` | Duplicated polygon-area helpers with differing point types. Consolidate into `lib/print/geometry/polygon.ts` after checking each sign convention. | open |
+
+## LOW
+
+| # | File | Finding | Status |
+|---|---|---|---|
+| L1 | `lib/ops/packing/schemas.ts:3`, `lib/ops/schemas.ts:4`, `lib/leads/admin.ts:144`, `lib/leads/organisation.ts:38` | Four copies of `emptyToNull`. Share one in `lib/server`. | open |
+| L2 | `lib/patterns/client.ts`, `lib/images/client.ts`, `lib/providers/*.ts`, `lib/projects/chat.ts`, `lib/projects/artwork-upload.ts`, `lib/media/lifestyle/adapters/*.ts` and others | The `response.json().catch(() => null)` then `safeParse` pattern is repeated about 18 times. Add a `readJson(response)` helper. | open |
+| L3 | `lib/media/video/clip.ts:76-77`, `lib/media/video/turntable.ts:52-53`, `lib/design-import/service.ts:189,242`, `lib/design-import/derived.ts:31`, `lib/artwork-intake/store.ts:64,75` | `.catch(() => undefined)` on cleanup deletes. Intentional best-effort, but orphaned files are not logged; log at warn level. | open |
+| L4 | Unused exports with no reader (51 in total), for example `lib/credits-gate/server.ts` `orderDesignVersion`, `lib/credits/kinds.ts` `isOutputKind`, `lib/guardrails/geometry.ts` `boxCentre`, `lib/print/geometry/polygon.ts` `roundRing`, `lib/settings/registry.ts` `priceSettingKey`, `lib/flat/families/outerwear/parts.ts` `collarTop`, `lib/media/lifestyle/select.ts` `SCENE_PROVIDERS` and `TRYON_PROVIDERS`, `lib/templates/catalogue.ts` `TEMPLATE_SOURCES`, `lib/usage/cost.ts` `USAGE_FEATURES`, `lib/techpack/exports/contents.ts` `SVG_VIEWS`, `lib/media/video/limits.ts` `MAX_TURNTABLE_SECONDS`; plus unused schema input types in `lib/clubs/schemas.ts`, `lib/design-import/schemas.ts`, `lib/brand-runs/schemas.ts`, `lib/comments/schemas.ts`. Full list: run the scan in this report's method. Delete once the owning workstream confirms nothing is planned. | open |
+| L5 | Exports used only by tests (hundreds, mostly types and fixtures) | Not dead code; noted so a later `knip` run is expected to be noisy. | open |
+| L6 | 73 React components or page functions over 50 lines, the longest `ArtworkCard` (139), `RunBuilder` (131), `ArtworkAndColourView` (129), `ChatPanel` (129), `DiffPanel` (111), `CommentsPanel` (111) | Long JSX bodies, nesting 0 or 1. Split into sections when next touched. | open |
+| L7 | `lib/artwork-intake/fixtures/fake-admin.ts`, `lib/fabrics/fixtures/fake-db.ts`, `lib/media/test-deps.ts`, `lib/techpack/fixtures/designs.ts` | Long fixture builders in non-test paths. Acceptable as fixtures. | open |
+| L8 | `lib/techpack/wording.test.ts` | The wording scan covers only techpack, project tech-pack and garment registry sources. A grep of the wave 3 and 4 directories (`media`, `comments`, `designers`, `brand-runs`, `pattern-service`, `credits`, `clubs`, `templates`, `validation`, `components`, `app`) found no violation, but nothing enforces it there. Extending the test is a W5-C or owner decision. | open |
+
+## Not changed
+
+No file was moved, no test touched, no migration touched. `vitest.config.mts` and `isolation.test.ts` are unchanged.
