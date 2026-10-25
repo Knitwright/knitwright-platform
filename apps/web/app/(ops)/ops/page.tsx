@@ -39,7 +39,7 @@ export default async function OpsPage() {
             <tbody>
               {waiting.map((o) => (
                 <tr key={o.id} className="border-t border-hairline" data-testid="waiting-order">
-                  <td className="py-1.5 pr-3"><Link href={`/ops/orders/${o.id}` as Route} className="font-medium underline">{o.externalRef}</Link></td>
+                  <td className="py-1.5 pr-3"><Link href={`/ops/orders/${o.id}` as Route} className="break-all font-medium underline">{o.externalRef}</Link></td>
                   <td className="pr-3">{o.articleId}, {o.fabricKey}</td>
                   <td className="pr-3">{o.pieces}</td>
                   <td className="pr-3">{formatDateTime(o.cutoffAt)}</td>
