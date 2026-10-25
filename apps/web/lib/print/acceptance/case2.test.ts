@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { ImageItem, PieceScene } from "../scene";
 import { apply, applyAll, invert, type Pt } from "../geometry/affine";
 import { boundsOf, pointInRing } from "../geometry/polygon";
@@ -15,6 +15,8 @@ import { polkaStack } from "../fixtures/stacks";
  */
 const CARD_W = 6000;
 const CARD_H = 8000;
+/** Full-size pictures through sharp and the print pipeline take 270-310 s here under coverage on a shared runner. */
+const SLOW_MS = 600_000;
 const common = { opacity: 1, blend: "normal", provenance: "user-edited" } as const;
 
 const panel = (assetId: string, view: "front" | "back", extra: Record<string, unknown> = {}) => ({
@@ -25,10 +27,12 @@ let world: RealWorld;
 let assetId: string;
 const stackOf = (extra: Record<string, unknown> = {}) => polkaStack([panel(assetId, "front", extra), panel(assetId, "back", extra)], {});
 
-async function setup() {
+// Rendering and ingesting the 6000 x 8000 card is the costliest step, and no test changes the world it makes (each builds
+// its own builder from it), so it is made once. Before, every test made it again, and each paid for it under coverage.
+beforeAll(async () => {
   world = await realWorld();
   assetId = await world.upload(await testCard(CARD_W, CARD_H), "Test card.png");
-}
+}, SLOW_MS);
 
 /** Where each fiducial should be on the piece, worked out from the design plane alone (cover: the card fills the bleed outline). */
 function expectedFiducials(builder: RealWorld["builder"] extends (...a: never[]) => infer B ? B : never, scene: PieceScene, size: string, view: string): Pt[] {
@@ -43,7 +47,6 @@ const fiducialsFromMatrix = (item: ImageItem): Pt[] => FIDUCIALS.map(([fx, fy]) 
 
 describe("case 2: a user's full panel picture, read through the real intake and reader", () => {
   it("lands every fiducial within 1 mm of its place on the piece, in every size, front and back", async () => {
-    await setup();
     const builder = world.builder(stackOf());
     for (const size of world.pattern.sizes) {
       for (const view of ["front", "back"] as const) {
@@ -56,10 +59,9 @@ describe("case 2: a user's full panel picture, read through the real intake and 
         });
       }
     }
-  }, 240_000);
+  }, SLOW_MS);
 
   it("shows the fiducials in the pixels of the file, not only in the maths, and the picture goes on through the bleed", async () => {
-    await setup();
     const builder = world.builder(stackOf());
     for (const size of ["XS", "3XL"]) {
       const { scene } = (await builder.buildFile(specOf("front", size, "svg"))).scene;
@@ -118,10 +120,9 @@ describe("case 2: a user's full panel picture, read through the real intake and 
       }
       expect(compared).toBeGreaterThan(100);
     }
-  }, 600_000);
+  }, SLOW_MS);
 
   it("reports the effective dpi of the picture on every piece, and warns below the print house's minimum when it is forced small", async () => {
-    await setup();
     const fine = await world.builder(stackOf()).buildFile(specOf("front", "M", "pdf"));
     expect(fine.scene.lowestDpi).toBeGreaterThan(150);
     expect(fine.scene.scene.noteLines.some((l) => /Lowest picture on this piece: \d+ dpi/.test(l))).toBe(true);
@@ -130,19 +131,17 @@ describe("case 2: a user's full panel picture, read through the real intake and 
     const warning = forced.warnings.find((w) => /would print at about \d+ dpi/.test(w));
     expect(warning).toBeDefined();
     expect(forced.scene.scene.noteLines.some((l) => /Check: .*would print at about/.test(l))).toBe(true);
-  }, 240_000);
+  }, SLOW_MS);
 
   it("never reads the screen copy, and reads only the full size print copy", async () => {
-    await setup();
     const reads: string[] = [];
     const asset = await world.assets.getAsset(assetId);
     const spying = { getAsset: async (id: string) => (id === assetId && asset ? { ...asset, readPrintCopy: async () => (reads.push("print"), asset.readPrintCopy()), readScreenCopy: async () => (reads.push("screen"), asset.readScreenCopy()) } : null) };
     await world.builder(stackOf(), { assets: spying }).buildFile(specOf("front", "M", "svg"));
     expect(reads).toEqual(["print"]);
-  }, 240_000);
+  }, SLOW_MS);
 
   it("embeds the brand's colour profile in the TIFF when one is set, and none when it is not", async () => {
-    await setup();
     const p3 = (await sharp({ create: { width: 2, height: 2, channels: 3, background: "#808080" } }).png().withIccProfile("p3").toBuffer().then((b) => sharp(b).metadata())).icc;
     if (!p3) throw new Error("no profile");
     const small = polkaStack([panel(assetId, "front")]);
@@ -151,5 +150,5 @@ describe("case 2: a user's full panel picture, read through the real intake and 
     expect(Buffer.from(embedded ?? []).equals(Buffer.from(p3))).toBe(true);
     const without = await world.builder(small).buildFile(specOf("collar", "M", "tiff"));
     expect(Buffer.from((await sharp(without.bytes).metadata()).icc ?? []).equals(Buffer.from(p3))).toBe(false);
-  }, 240_000);
+  }, SLOW_MS);
 });
