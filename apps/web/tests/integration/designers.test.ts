@@ -178,7 +178,7 @@ describe("the royalty ledger", () => {
     const seen = must(await designer.client.from("royalty_accruals").select("*").eq("order_id", orderId));
     expect(seen).toHaveLength(1);
     expect(Object.keys(seen[0]!).sort()).not.toContain("brand_id");
-    expect(other.client.from("royalty_accruals").select("*").eq("order_id", orderId)).resolves.toMatchObject({ data: [] });
+    expect((await other.client.from("royalty_accruals").select("*").eq("order_id", orderId)).data).toEqual([]);
   });
 
   it("can never be changed or removed, by the server's key either", async () => {

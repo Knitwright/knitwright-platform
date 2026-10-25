@@ -1195,9 +1195,10 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
   // Decision 0061: which designer template a design came from. No browser role reads it, so a designer never learns which brand used their work.
   designer_template_uses: {
     privileges: [],
-    seed: async (brandId) => {
+    seed: async () => {
+      // The designer makes the design in a brand of their own, so they are a member of it.
       const designer = await person("uses-designer");
-      const { orderId } = await seedDesignerOrder(brandId, designer.userId);
+      const { orderId } = await seedDesignerOrder(await brandOf(designer, "Uses Designer FC"), designer.userId);
       return { project_id: (must(await adminClient().from("ops_orders").select("project_id").eq("id", orderId).single()) as { project_id: string }).project_id };
     },
     attempt: (brandId, userId) => ({ template_id: randomUUID(), designer_id: userId, brand_id: brandId, project_id: randomUUID() }),

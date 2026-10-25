@@ -36,7 +36,8 @@ test.describe("designer templates", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Designer" })).toBeVisible();
     await page.getByLabel("Name to show on your templates").fill("Ada E2E");
     await page.getByRole("button", { name: "Become a designer" }).click();
-    await expect(page.getByText("You are a designer now.")).toBeVisible();
+    // The page redraws as the designer's own page once they have opted in.
+    await expect(page.getByRole("heading", { name: "Your submissions" })).toBeVisible();
 
     // A design to offer: a copy of a starter template.
     await page.goto("/templates?sport=football&article=team-jersey");
