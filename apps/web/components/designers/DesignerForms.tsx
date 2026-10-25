@@ -9,8 +9,6 @@ import { SelectField } from "@/components/ui/SelectField";
 import { TEXT_AREA } from "@/components/ui/field-styles";
 import { PAYOUT_LABELS, PAYOUT_STATES, RIGHTS_STATEMENT, type PayoutState } from "@/lib/designers/copy";
 import { acceptSubmissionAction, enrolAction, newSubmissionAction, payoutStateAction, rejectSubmissionAction, sendSubmissionAction } from "@/lib/designers/actions";
-import { SPORT_LABELS, SPORTS, STYLE_IDS, STYLE_LABELS } from "@/lib/templates/catalogue";
-import { COLOUR_FAMILIES, COLOUR_FAMILY_LABELS } from "@/lib/templates/colour-family";
 
 export function EnrolForm() {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(enrolAction);
@@ -24,17 +22,21 @@ export function EnrolForm() {
   );
 }
 
-export function NewSubmissionForm({ designs }: Readonly<{ designs: readonly { id: string; name: string }[] }>) {
+type Choice = Readonly<{ id: string; label: string }>;
+export type SubmissionChoices = Readonly<{ designs: readonly Choice[]; sports: readonly Choice[]; styles: readonly Choice[]; colours: readonly Choice[] }>;
+
+/** The lists come from the page, so this client component does not pull the template catalogue (and zod) into the browser. */
+export function NewSubmissionForm({ designs, sports, styles, colours }: SubmissionChoices) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(newSubmissionAction);
   return (
     <form ref={form} action={submit} noValidate className="flex max-w-md flex-col gap-3">
       <FormSummary message={summary} />
       {state.result?.success === true ? <FormDone>Saved as a draft. Send it for review from your designer page.</FormDone> : null}
-      <SelectField name="projectId" label="Design to offer" hint="The newest saved version is the one offered." options={designs.map((d) => ({ id: d.id, label: d.name }))} placeholder="Choose a design" errors={fieldErrors("projectId")} />
+      <SelectField name="projectId" label="Design to offer" hint="The newest saved version is the one offered." options={designs} placeholder="Choose a design" errors={fieldErrors("projectId")} />
       <Field name="title" label="Template title" errors={fieldErrors("title")} />
-      <SelectField name="sport" label="Sport" options={SPORTS.map((id) => ({ id, label: SPORT_LABELS[id] }))} placeholder="Choose a sport" errors={fieldErrors("sport")} />
-      <SelectField name="style" label="Style" options={STYLE_IDS.map((id) => ({ id, label: STYLE_LABELS[id] }))} placeholder="Choose a style" errors={fieldErrors("style")} />
-      <SelectField name="colourFamily" label="Main colour" options={COLOUR_FAMILIES.map((id) => ({ id, label: COLOUR_FAMILY_LABELS[id] }))} placeholder="Choose the main colour" errors={fieldErrors("colourFamily")} />
+      <SelectField name="sport" label="Sport" options={sports} placeholder="Choose a sport" errors={fieldErrors("sport")} />
+      <SelectField name="style" label="Style" options={styles} placeholder="Choose a style" errors={fieldErrors("style")} />
+      <SelectField name="colourFamily" label="Main colour" options={colours} placeholder="Choose the main colour" errors={fieldErrors("colourFamily")} />
       <Button type="submit" pending={pending}>{pending ? "Saving" : "Save as a draft"}</Button>
     </form>
   );
