@@ -33,8 +33,10 @@ const wrap = (inner: LifestyleProvider, change: (png: Uint8Array, req: Lifestyle
     needsModelImage: inner.needsModelImage,
     calls,
     async generate(req, s) {
-      calls.push(req);
-      return change(await inner.generate(req, s), req, calls.length);
+      // The index is taken when the call is made: the scenes run side by side, and reading calls.length after the
+      // await let a fast scene's retry change the number a slower scene's first attempt saw.
+      const call = calls.push(req);
+      return change(await inner.generate(req, s), req, call);
     },
   };
 };
