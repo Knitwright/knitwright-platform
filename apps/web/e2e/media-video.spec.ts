@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { expect, type Page } from "@playwright/test";
 import ts from "typescript";
 import { UNSUPPORTED_MESSAGE } from "../lib/media/video/copy";
@@ -14,7 +14,7 @@ import { createAccount, signIn, test } from "./support";
  */
 
 const recorderSource = (): string => {
-  const source = readFileSync(fileURLToPath(new URL("../components/media/video/record.ts", import.meta.url)), "utf8");
+  const source = readFileSync(join(process.cwd(), "components/media/video/record.ts"), "utf8");
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
   return `(() => { const exports = {}; ${compiled}; window.__recorder = exports; })();`;
 };
