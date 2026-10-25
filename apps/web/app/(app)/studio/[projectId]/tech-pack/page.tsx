@@ -5,8 +5,10 @@ import { BodySkeleton } from "@/components/techpack/FileSkeleton";
 import { StreamedIllustrations, StreamedQuote } from "@/components/techpack/FileStreamed";
 import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
+import { PatternServiceLink } from "@/components/pattern-service/PatternServiceLink";
 import { PatternSection } from "@/components/techpack/PatternSection";
 import { loadDesignLeads } from "@/lib/leads/service";
+import { slotFor } from "@/lib/pattern-library/slots";
 import { sizeChoices } from "@/lib/patterns/request";
 import { picturesNote } from "@/lib/projects/artwork-images";
 import { colourwayParam } from "@/lib/projects/colour-controls";
@@ -69,7 +71,12 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
         colourwayId={colourwayId}
         section={search.section}
         illustrations={illustrations}
-        patterns={<PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />}
+        patterns={
+          <>
+            <PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />
+            {slotFor(project.garmentType)?.needsDraft ? <PatternServiceLink projectId={projectId} /> : null}
+          </>
+        }
         quote={
           <Suspense fallback={<BodySkeleton what="the quote request" />}>
             <StreamedQuote projectId={projectId} version={project.currentVersion} leads={leads} />

@@ -15,6 +15,7 @@ export default async function OpsLayout({ children }: LayoutProps<"/">) {
           <span className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright ops</span>
           <Link href="/ops" className="font-medium text-ink hover:underline">Batches</Link>
           <Link href="/ops/exceptions" className="font-medium text-ink hover:underline">Exceptions</Link>
+          <Link href="/ops/pattern-requests" className="font-medium text-ink hover:underline">Pattern requests</Link>
           <Link href="/ops/settings" className="font-medium text-ink hover:underline">Settings</Link>
         </nav>
       </header>
