@@ -111,7 +111,7 @@ and are listed in that routine's own section. Each fix below has a unit test tha
 | L4 | Fixed | `x-content-type-options: nosniff` on the media item and video responses. |
 | L5 | Fixed in part; **needs owner** for the default | The default is unchanged. A production server that starts with `CREDITS_ENFORCED` unset logs a warning, and `docs/launch-checklist.md` says to set it on purpose. |
 | L6 | Fixed | The fal video download is read in pieces and stops at `MAX_CLIP_BYTES` even when `content-length` is absent. |
-| L7 | Fixed | `placeOrder` refuses a `fabricKey` the factory profile does not list. |
+| L7 | Fixed | `placeOrder` refuses a `fabricKey` the factory profile does not list, when the profile lists any (with none listed the brand names one, as the builder allows). |
 | L8 to L13 | Not changed here | Database side. |
 | L14 | Fixed | Optional `ASSISTANT_SIGNING_KEY` (32 characters or more); without it the key is derived from `SUPABASE_SECRET_KEY` as before, so existing proposals stay valid. |
 | L15 | Fixed | `tests/architecture/ops-access.test.ts` also checks every platform-only action in `lib/pattern-service`, `lib/designers`, `lib/settings`, and the ops pattern-file route (guard before the body). A new action there must be listed as a member's own or carry a guard. |

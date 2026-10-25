@@ -31,6 +31,10 @@ describe("placeOrder", () => {
     await placeOrder(clients, who, "owner", body());
     expect(state.submit).toHaveBeenCalledWith(client, who, expect.objectContaining({ kind: "run", factoryProfileId: "knitwright-default", sizes: { S: 20, M: 40 }, flags: [], requestKey: "abcdefgh" }));
   });
+  it("lets the brand name a fabric when the profile lists none", async () => {
+    state.context = { ...context, fabrics: [] };
+    await expect(placeOrder(clients, who, "owner", body({ fabricKey: "Mesh 140" }))).resolves.toMatchObject({ created: true });
+  });
   it("refuses a fabric the factory profile does not list (security review L7)", async () => {
     await expect(placeOrder(clients, who, "owner", body({ fabricKey: "x".repeat(100) }))).rejects.toMatchObject({ code: "invalid_input", message: UNKNOWN_FABRIC });
     expect(state.submit).not.toHaveBeenCalled();
