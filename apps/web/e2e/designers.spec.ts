@@ -75,7 +75,9 @@ test.describe("designer templates", () => {
     await expect(queued).toContainText("By Ada E2E");
     await expect(queued).toContainText("Rights statement made");
     await queued.getByRole("button", { name: `Accept: ${TITLE}` }).click();
-    await expect(queued.getByText("Added to the library.")).toBeVisible();
+    // The page redraws without it in the queue, and lists it as decided, in words.
+    await expect(queued).toHaveCount(0);
+    await expect(adminPage.getByTestId("decided-entry").filter({ hasText: TITLE })).toContainText("Live in the template library");
 
     await page.goto("/templates?sport=football&article=team-jersey");
     const card = page.getByRole("list", { name: "Templates" }).getByRole("listitem").filter({ hasText: TITLE });

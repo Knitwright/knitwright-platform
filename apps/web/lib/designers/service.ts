@@ -174,6 +174,22 @@ export async function loadReviewQueue(client: SupabaseClient): Promise<readonly 
   return rows.map((r) => ({ submission: toSubmission(r), designerName: names.get(r.designer_id) ?? "Designer", snapshot: r.snapshot }));
 }
 
+export type DecidedEntry = Readonly<{ submission: Submission; designerName: string }>;
+
+/** Submissions already accepted or rejected, newest first, so the review page keeps showing what was decided. */
+export async function loadDecided(client: SupabaseClient): Promise<readonly DecidedEntry[]> {
+  const { data, error } = await client
+    .from("template_submissions")
+    .select(SUBMISSION_COLUMNS)
+    .in("status", ["approved", "rejected"])
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw unreadable(error);
+  const rows = z.array(submissionRow).parse(data ?? []);
+  const names = await loadDesignerNames(client, rows.map((r) => r.designer_id));
+  return rows.map((r) => ({ submission: toSubmission(r), designerName: names.get(r.designer_id) ?? "Designer" }));
+}
+
 async function loadDesignerNames(client: SupabaseClient, ids: readonly string[]): Promise<ReadonlyMap<string, string>> {
   if (ids.length === 0) return new Map();
   const { data, error } = await client.from("designer_profiles").select("user_id, display_name").in("user_id", [...new Set(ids)]);

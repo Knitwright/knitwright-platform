@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PayoutStateForm, ReviewForm } from "@/components/designers/DesignerForms";
 import { pageFrame } from "@/components/shell/page-width";
 import { Notice } from "@/components/ui/Notice";
-import { NO_PAYMENTS, PAYOUT_LABELS, RATE_NOT_SET, RIGHTS_STATEMENT } from "@/lib/designers/copy";
+import { NO_PAYMENTS, PAYOUT_LABELS, RATE_NOT_SET, RIGHTS_STATEMENT, STATUS_LABELS } from "@/lib/designers/copy";
 import { formatMoney } from "@/lib/designers/royalty";
-import { loadDesignerRows, loadRate, loadReviewQueue } from "@/lib/designers/service";
+import { loadDecided, loadDesignerRows, loadRate, loadReviewQueue } from "@/lib/designers/service";
 import { getType } from "@/lib/garment";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { requirePlatformAdmin } from "@/lib/server/page-guards";
@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "Designer templates", robots: { index
 export default async function AdminTemplatesPage() {
   await requirePlatformAdmin();
   const client = await sessionClient();
-  const [queue, designers, rate] = await Promise.all([loadReviewQueue(client), loadDesignerRows(client), loadRate(adminClient())]);
+  const [queue, decided, designers, rate] = await Promise.all([loadReviewQueue(client), loadDecided(client), loadDesignerRows(client), loadRate(adminClient())]);
   return (
     <main id="main" className={`rise ${pageFrame("content")} flex-1 py-10`}>
       <p className="font-mono text-xs uppercase tracking-wider text-muted">Knitwright team</p>
@@ -39,6 +39,19 @@ export default async function AdminTemplatesPage() {
                 </li>
               );
             })}
+          </ul>
+        )}
+      </section>
+      <section aria-labelledby="decided" className="mt-12">
+        <h2 id="decided" className="text-xl font-semibold text-ink">Already decided</h2>
+        {decided.length === 0 ? <p className="mt-3 text-[15px] text-ink-2">Nothing has been decided yet.</p> : (
+          <ul className="mt-4 flex flex-col gap-3">
+            {decided.map(({ submission: s, designerName }) => (
+              <li key={s.id} className="glass rounded-[1.75rem] p-5" data-testid="decided-entry">
+                <h3 className="text-base font-medium text-ink">{s.title}</h3>
+                <p className="text-sm text-ink-2">By {designerName} · {STATUS_LABELS[s.status]}{s.status === "rejected" && s.rejectionReason ? `: ${s.rejectionReason}` : ""}</p>
+              </li>
+            ))}
           </ul>
         )}
       </section>

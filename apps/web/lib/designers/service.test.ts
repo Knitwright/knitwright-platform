@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AppError } from "@/lib/server/core/errors";
 import { buildSeedTemplates } from "@/lib/templates/seed/build";
 import {
-  acceptSubmission, createSubmission, designerFailure, enrol, loadDesignChoices, loadDesignerHome, loadDesignerRows, loadLedger,
+  acceptSubmission, createSubmission, designerFailure, enrol, loadDesignChoices, loadDesignerHome, loadDecided, loadDesignerRows, loadLedger,
   loadPayoutStates, loadProfile, loadRate, loadReviewQueue, loadSubmissions, rejectSubmission, sendSubmission, setPayoutState,
 } from "./service";
 
@@ -113,6 +113,16 @@ describe("the reads", () => {
     expect(await loadReviewQueue(reads({ template_submissions: { data: [], error: null } }).client)).toEqual([]);
     await expect(loadReviewQueue(reads({ template_submissions: { data: null, error: { message: "x" } } }).client)).rejects.toBeInstanceOf(AppError);
     await expect(loadReviewQueue(reads({ ...tables, designer_profiles: { data: null, error: { message: "x" } } }).client)).rejects.toBeInstanceOf(AppError);
+  });
+
+  it("lists decided submissions with the designer's name", async () => {
+    const tables = { template_submissions: { data: [submission({ status: "approved" })], error: null }, designer_profiles: { data: [{ user_id: B, display_name: "Ada" }], error: null } };
+    const { client, filters } = reads(tables);
+    expect(await loadDecided(client)).toMatchObject([{ designerName: "Ada", submission: { status: "approved" } }]);
+    expect(filters).toContain("in:status");
+    const [anon] = await loadDecided(reads({ ...tables, designer_profiles: { data: [], error: null } }).client);
+    expect(anon!.designerName).toBe("Designer");
+    await expect(loadDecided(reads({ template_submissions: { data: null, error: { message: "x" } } }).client)).rejects.toBeInstanceOf(AppError);
   });
 
   const lines = [
