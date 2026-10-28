@@ -7,13 +7,7 @@ import type { ChartProvenance, Resolution, ResolutionRow, SizesFrom } from "./re
 import type { SizeChart } from "./schemas";
 import { selectChart } from "./select-chart";
 
-export type {
-  MissingRow,
-  Resolution,
-  ResolutionRow,
-  SetRow,
-  SizesFrom,
-} from "./resolution-types";
+export type { Resolution, ResolutionRow } from "./resolution-types";
 
 /** A platform chart only suggests its values. A brand's own chart supplies them. */
 export const chartProvenanceOf = (chart: SizeChart): ChartProvenance =>
@@ -27,7 +21,7 @@ const typedFor = (spec: GarmentSpec, pointId: string, size: string): Typed => ({
 const CHECK_WITH_FACTORY = "not a factory's numbers. Check them with your factory before you order.";
 
 /** What to say about where a chart's values come from. A brand's own chart needs no warning. */
-export const chartNoteOf = (chart: SizeChart): string | null => {
+const chartNoteOf = (chart: SizeChart): string | null => {
   if (chart.supplier === "brand") return null;
   const from = chart.source.person === STARTER_CHART_NAME ? `the ${STARTER_CHART_NAME}` : "a Knitwright size chart";
   return `These measurements are suggestions from ${from}, ${CHECK_WITH_FACTORY}`;

@@ -16,7 +16,7 @@ import type { ImportReport } from "./report";
  */
 
 export const DAILY_BRAND_CAP = 10;
-export const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const OVER_DAILY_CAP = `Your brand has read ${DAILY_BRAND_CAP} pictures in the last day, which is the most for now. Try again tomorrow.`;
 export const IMPORT_NOT_FOUND = "That reading could not be found.";
@@ -95,7 +95,7 @@ export async function assertUnderDailyCap(client: SupabaseClient, brandId: strin
   if ((data ?? []).length >= DAILY_BRAND_CAP) throw new AppError("rate_limited", OVER_DAILY_CAP);
 }
 
-export interface NewImport {
+interface NewImport {
   readonly sourceFileId: string;
   readonly rightsAcceptedAt: Date;
   readonly outcome: Ready;
@@ -133,7 +133,7 @@ export async function getImport(client: SupabaseClient, brandId: string, importI
   return fromRow(data);
 }
 
-export interface ImportSummary {
+interface ImportSummary {
   readonly id: string;
   readonly status: StoredImport["status"];
   readonly createdAt: string;

@@ -6,14 +6,14 @@ import sharp, { type Sharp } from "sharp";
 import type { PieceScene } from "@/lib/print/scene";
 import { rasterise } from "./raster";
 
-export interface TiffOptions {
+interface TiffOptions {
   /** An ICC profile to convert to and embed. */
   readonly icc?: Uint8Array;
   /** Lowers the pixel cap; for tests. */
   readonly pixelCap?: number;
 }
 
-export interface TiffResult {
+interface TiffResult {
   readonly bytes: Uint8Array;
   readonly widthPx: number;
   readonly heightPx: number;

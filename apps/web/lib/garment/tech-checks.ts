@@ -4,7 +4,7 @@ import type { ResolvedType } from "./registry";
 import type { SpecShape } from "./applicability";
 
 /** One thing wrong with the tech pack fields of a spec, and where. Same shape as a spec problem. */
-export interface TechProblem {
+interface TechProblem {
   readonly path: readonly (string | number)[];
   readonly message: string;
 }

@@ -17,7 +17,7 @@ function walk(value: unknown, path: string, visit: Visit): void {
   }
 }
 
-export interface FoundCell {
+interface FoundCell {
   readonly path: string;
   readonly cell: Record<string, unknown>;
 }
@@ -31,7 +31,7 @@ export function allCells(root: unknown): readonly FoundCell[] {
   return found;
 }
 
-export interface Leaf {
+interface Leaf {
   readonly path: string;
   readonly leaf: string | number;
 }

@@ -5,7 +5,7 @@ import { mediaVersionHash } from "./version";
 
 export const NO_DRAWING_MESSAGE = "There is no drawing of this garment to make media from yet.";
 
-export interface StartDeps {
+interface StartDeps {
   readonly store: MediaStore;
   /** The saved version media is made from, or null when the design has no drawing. */
   readonly loadVersion: (asked?: number) => Promise<Readonly<{ version: number }> | null>;
@@ -13,7 +13,7 @@ export interface StartDeps {
   readonly run: (work: Readonly<{ setId: string; request: GenerateRequest }>) => Promise<unknown>;
 }
 
-export type StartInput = Readonly<{ brandId: string; projectId: string; userId: string; version?: number }>;
+type StartInput = Readonly<{ brandId: string; projectId: string; userId: string; version?: number }>;
 
 /**
  * Starts the media set of a design version, once. A second request for the same version gets the set that

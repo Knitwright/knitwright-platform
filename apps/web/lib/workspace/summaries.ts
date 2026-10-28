@@ -13,7 +13,7 @@ export interface Fact {
   readonly value: string;
 }
 
-export interface FabricCard {
+interface FabricCard {
   readonly id: string;
   readonly title: string;
   /** The parts that use the fabric, in words. */

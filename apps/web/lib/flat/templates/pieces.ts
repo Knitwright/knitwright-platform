@@ -115,7 +115,7 @@ export function hemSegment(frame: Frame, x0: number, x1: number, raise = 0): Cha
 }
 
 /** The right half of the body from the neck to the centre of the hem. */
-export function bodyHalf(frame: Frame): Chain {
+function bodyHalf(frame: Frame): Chain {
   const { basis, options } = frame;
   const side = pt(basis.halfHem, basis.length - hemLift(frame, basis.halfHem));
   const shoulder = options.raglan ? chain(pt(basis.seamX, 0)) : chain(pt(basis.seamX, 0), lineTo(basis.top));
@@ -126,13 +126,6 @@ export function bodyHalf(frame: Frame): Chain {
 export function bodyOutline(frame: Frame): Chain {
   const half = bodyHalf(frame);
   return joinChains(half, reverseChain(mirrorChain(half)), reverseChain(bothSides(neckSeam(frame))));
-}
-
-export interface SleevePlan {
-  /** The seam at the shoulder: from the top of the armhole to the underarm. */
-  readonly seam: Chain;
-  readonly topEnd: Point;
-  readonly lowerEnd: Point;
 }
 
 /** Where the open end of the sleeve is. */

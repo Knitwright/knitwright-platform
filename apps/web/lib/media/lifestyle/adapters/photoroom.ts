@@ -8,13 +8,13 @@ import { readBytes, send, type Fetch } from "./http";
  * called by the tests: unverified against the live service until a key exists.
  */
 
-export const PHOTOROOM_NAME = "photoroom";
+const PHOTOROOM_NAME = "photoroom";
 const ENDPOINT = "https://image-api.photoroom.com/v2/edit";
 
 /** A Knitwright estimate, not Photoroom's price list. Reserved so the cap errs on the side of caution. */
-export const PHOTOROOM_COST_MICRODOLLARS = 100_000;
+const PHOTOROOM_COST_MICRODOLLARS = 100_000;
 
-export type PhotoroomOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
+type PhotoroomOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
 
 export function createPhotoroomProvider({ apiKey, fetch: fetcher = fetch }: PhotoroomOptions): LifestyleProvider {
   return {

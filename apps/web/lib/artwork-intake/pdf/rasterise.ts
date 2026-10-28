@@ -8,7 +8,7 @@ import { matte } from "./matte";
 import { scanPdf } from "./scan";
 
 /** One PDF page as pixels, with what was found and left out. */
-export type PdfPage = Readonly<{
+type PdfPage = Readonly<{
   png: Buffer;
   widthPx: number;
   heightPx: number;

@@ -3,7 +3,7 @@ import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET } from "./charts";
 import { selectChart } from "./select-chart";
 
-export type SizingFromChartResult =
+type SizingFromChartResult =
   | { readonly ok: true; readonly action: Extract<SpecAction, { type: "set-sizing" }> }
   | { readonly ok: false; readonly reason: string };
 

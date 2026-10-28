@@ -11,7 +11,7 @@ import { orderVersion } from "./order";
 import { createWithCredits } from "./with-credits";
 
 /** The gate wired to the owner's flag, the credit ledger and the server log. */
-export const productionGate = createGate({
+const productionGate = createGate({
   enforced: () => getEnv().CREDITS_ENFORCED,
   service: creditsService,
   log,

@@ -10,7 +10,7 @@ const MM_PER_INCH = 25.4;
 const round1 = (value: number): number => Math.round(value * 10) / 10 + 0;
 
 /** Text with the keys of every object in order, so the record is the same on any machine. */
-export function stableJson(value: unknown): string {
+function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (typeof value === "object" && value !== null) {
     const entries = Object.entries(value).filter(([, item]) => item !== undefined);

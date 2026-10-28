@@ -13,7 +13,7 @@ import { loadBatch } from "./service";
 import type { OpsSettings } from "./settings";
 
 /** What a batch's files are made from: each order with its release and, when there is one, its team list. */
-export interface BatchSource {
+interface BatchSource {
   readonly order: OpsOrder;
   readonly brandName: string;
   readonly release: StoredRelease;

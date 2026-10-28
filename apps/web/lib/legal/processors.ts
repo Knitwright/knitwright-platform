@@ -3,7 +3,7 @@
  * notice and the data-processing terms, so the two can never disagree.
  */
 
-export type Processor = Readonly<{
+type Processor = Readonly<{
   name: string;
   purpose: string;
   data: string;

@@ -36,7 +36,7 @@ export function standTop(frame: Frame, height: number): Chain {
  * A stand collar: a band that follows the neckline, with its foot on the neck seam and a
  * gently curved top edge. It is used for a band collar on both views.
  */
-export function standCollarChain(frame: Frame, height: number): Chain {
+function standCollarChain(frame: Frame, height: number): Chain {
   const a = frame.basis.neckHalf;
   const bottom = bothSides(chain(pt(a, 0), quarterDown(a, frame.drop)));
   return joinChains(bottom, reverseChain(bothSides(standTop(frame, height))));

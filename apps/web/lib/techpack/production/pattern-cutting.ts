@@ -9,8 +9,8 @@ import type { MarkerSetting, PatternReview } from "./input";
 
 export const DRAFT_PATTERN = "Draft pattern, not reviewed.";
 export const NO_PATTERN = "No pattern yet. A technician's draft or your own DXF file is needed.";
-export const DEFAULT_MARKER_EFFICIENCY_PCT = 80;
-export const DEFAULT_MARKER_LABEL = "Knitwright default, not from your factory";
+const DEFAULT_MARKER_EFFICIENCY_PCT = 80;
+const DEFAULT_MARKER_LABEL = "Knitwright default, not from your factory";
 
 const set = (value: string, provenance: "measured-from-pattern" | "derived" | "user-edited"): Cell => ({ status: "set", value, provenance });
 
@@ -125,7 +125,7 @@ function reviewCell(review: PatternReview | null | undefined): Cell {
   return review ? set(`Reviewed by ${review.name} on ${review.date}`, "user-edited") : set(DRAFT_PATTERN, "derived");
 }
 
-export interface PatternCuttingInput {
+interface PatternCuttingInput {
   readonly pattern: GradedPattern | null | undefined;
   readonly review: PatternReview | null | undefined;
   readonly fabric: FabricProfile | null | undefined;

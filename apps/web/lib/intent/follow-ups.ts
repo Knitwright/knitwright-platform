@@ -31,7 +31,7 @@ export interface SkippedPart {
 }
 
 type SetOption = Extract<WireAction, { type: "set-option" }>;
-export type AskAmount = Extract<WireAction, { type: "ask-amount" }>;
+type AskAmount = Extract<WireAction, { type: "ask-amount" }>;
 
 /** More ways than this are hard to choose between. */
 const MAX_WAYS = 3;
@@ -95,7 +95,7 @@ function switchChoice(spec: GarmentSpec, type: ResolvedType, wire: SetOption): F
  * choice: each one a change of type, the choice, and whatever the choice then needs. `rest`
  * are other changes to make with them.
  */
-export function typeChangeChoices(spec: GarmentSpec, wire: SetOption, rest: readonly WireAction[] = []): FollowUpChoice[] {
+function typeChangeChoices(spec: GarmentSpec, wire: SetOption, rest: readonly WireAction[] = []): FollowUpChoice[] {
   const type = getType(spec.typeId);
   if (!type) return [];
   return listTypes(type.family)

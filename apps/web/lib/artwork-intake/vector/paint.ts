@@ -39,7 +39,7 @@ const pick = <T extends string>(value: string | undefined, allowed: readonly T[]
   allowed.includes(value as T) ? (value as T) : fallback;
 
 /** Attributes, then the sheet's rules in order, then the element's own `style`: the later one wins. */
-export const declarationsOf = (element: XmlElement, rules: readonly Rule[]): Declarations => {
+const declarationsOf = (element: XmlElement, rules: readonly Rule[]): Declarations => {
   const merged = new Map<string, string>();
   for (const key of PRESENTATION) {
     const value = element.attrs.get(key);
@@ -83,7 +83,7 @@ export const computeStyle = (element: XmlElement, parent: Style, rules: readonly
 /** The local id inside `url(#id)`, or null. */
 export const urlId = (value: string): string | null => /^url\(\s*['"]?#([^'")\s]+)['"]?\s*\)/.exec(value.trim())?.[1] ?? null;
 
-export type Warn = (sentence: string) => void;
+type Warn = (sentence: string) => void;
 
 /** The id a model object gets for an id from the file: first come, first named. Deterministic. */
 export class IdMap {

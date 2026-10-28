@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { cellView, classView, toleranceView, type CellTone, type CellView } from "@/lib/projects/tech-pack-view";
+import { cellView, classView, type CellTone, type CellView } from "@/lib/projects/tech-pack-view";
 import type { Cell, ClassCell, LengthValue } from "@/lib/techpack";
 
 /*
@@ -29,8 +29,6 @@ export const CellText = ({ cell, unit }: Readonly<{ cell: Cell; unit?: string }>
 );
 
 export const LengthText = ({ cell }: Readonly<{ cell: LengthValue }>) => <Value view={cellView(cell, "cm")} />;
-
-export const ToleranceText = ({ cell }: Readonly<{ cell: LengthValue }>) => <Value view={toleranceView(cell)} />;
 
 export function ClassText({ cell }: Readonly<{ cell: ClassCell }>) {
   const view = classView(cell);

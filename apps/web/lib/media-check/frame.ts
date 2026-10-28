@@ -4,7 +4,7 @@ import { boxBlur } from "./planes";
 /** The longest side of the analysis copy. Both pictures are shrunk to this before any measuring. */
 export const ANALYSIS_SIDE = 512;
 /** A decompression-bomb guard set before decoding. */
-export const MAX_INPUT_PIXELS = 40_000_000;
+const MAX_INPUT_PIXELS = 40_000_000;
 /** Softens grain and fine texture so a relit or re-rendered copy is not punished for it. */
 const BLUR_RADIUS = 1;
 
@@ -24,7 +24,7 @@ export interface Size {
   readonly height: number;
 }
 
-export const RAW_OPTIONS = { limitInputPixels: MAX_INPUT_PIXELS } as const;
+const RAW_OPTIONS = { limitInputPixels: MAX_INPUT_PIXELS } as const;
 
 /** The size of a picture as it will be shown (after the orientation tag), or null if it cannot be read. */
 export async function readSize(bytes: Uint8Array): Promise<Size | null> {

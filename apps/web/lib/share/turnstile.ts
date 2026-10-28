@@ -12,7 +12,7 @@ export type Send = (url: string, init?: RequestInit) => Promise<Response>;
 
 export type BotCheckOutcome = "passed" | "failed" | "unreachable";
 
-export interface BotCheckRequest {
+interface BotCheckRequest {
   readonly send: Send;
   readonly secret: string;
   readonly token: string;

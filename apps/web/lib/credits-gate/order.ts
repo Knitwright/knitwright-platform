@@ -1,7 +1,7 @@
 import { designVersionHash } from "@/lib/credits/version-hash";
 import type { LogEvent } from "@/lib/server/core/guard";
 
-export type OrderDeps = Readonly<{
+type OrderDeps = Readonly<{
   /** Moves the version to "ordered" (lib/validation `writeDesignStatus`). Throws when the move is refused. */
   writeOrdered: () => Promise<void>;
   refundForOrder: (input: Readonly<{ brandId: string; designVersionHash: string }>) => Promise<Readonly<{ refunded: number }>>;

@@ -9,7 +9,7 @@ import { presetsFor } from "./presets";
  * would pass an end of the range stops at the end and says so.
  */
 
-export interface SchemaParam {
+interface SchemaParam {
   readonly id: string;
   readonly label: string;
   readonly unit: string;
@@ -22,7 +22,7 @@ export interface SchemaParam {
   readonly choices: readonly string[];
 }
 
-export interface SchemaEntry {
+interface SchemaEntry {
   readonly id: string;
   readonly label: string;
   readonly repeat: "tile" | "field";
@@ -69,7 +69,7 @@ const has = (text: string, word: string): boolean => new RegExp(`(^|[^a-z])${esc
 
 const LOTS = ["a lot", "much", "far", "way", "loads", "heaps"];
 const LITTLE = ["a bit", "a little", "slightly", "bit", "little", "touch"];
-export const BIG_MOVE = 3;
+const BIG_MOVE = 3;
 
 /** How many steps a clause asks for: "a lot" is three, anything else is one. */
 export const stepsAsked = (clause: string): number => (LOTS.some((word) => has(clause, word)) && !LITTLE.some((word) => has(clause, word)) ? BIG_MOVE : 1);
@@ -105,7 +105,7 @@ export function generatorFromWords(text: string): PatternGenerator | undefined {
   return [...NEW_GENERATORS, ...GENERATORS].find(named);
 }
 
-export interface ParamChange {
+interface ParamChange {
   readonly paramId: string;
   readonly label: string;
   readonly before: string;
@@ -116,7 +116,7 @@ export interface ParamChange {
   readonly clamped: boolean;
 }
 
-export interface StepOutcome {
+interface StepOutcome {
   /** The new settings: the old ones with each moved setting changed. */
   readonly params: Readonly<Record<string, number | string | boolean>>;
   readonly changes: readonly ParamChange[];

@@ -6,7 +6,7 @@ export const DESIGN_STATUSES = ["draft", "validated", "ordered"] as const;
 export const designStatusSchema = z.enum(DESIGN_STATUSES);
 export type DesignStatus = z.output<typeof designStatusSchema>;
 
-export const FINDING_SEVERITIES = ["blocker", "warning"] as const;
+const FINDING_SEVERITIES = ["blocker", "warning"] as const;
 
 /** One thing a person should look at before a design is ordered. */
 export const findingSchema = z.object({

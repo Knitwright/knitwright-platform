@@ -17,7 +17,6 @@ export {
   AU_STATES,
   COUNTRY_CODES,
   ORGANISATION_TYPES,
-  REGION_MAX,
   countryName,
   countryOptions,
   organisationTypeLabel,
@@ -63,7 +62,7 @@ export const organisationDetailsSchema = z
 
 export type OrganisationDetails = z.output<typeof organisationDetailsSchema>;
 
-export type DetailName = keyof OrganisationDetails;
+type DetailName = keyof OrganisationDetails;
 
 const NONE: OrganisationDetails = { organisationType: null, country: null, region: null };
 

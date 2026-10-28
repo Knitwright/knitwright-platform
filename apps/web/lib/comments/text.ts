@@ -7,13 +7,13 @@
 
 export const COMMENT_MAX_LENGTH = 2000;
 export const EMPTY_COMMENT = "Write something before you send it.";
-export const COMMENT_TOO_LONG = `A comment can be up to ${COMMENT_MAX_LENGTH} characters.`;
+const COMMENT_TOO_LONG = `A comment can be up to ${COMMENT_MAX_LENGTH} characters.`;
 
 /** Control, format (such as right-to-left override), unassigned and private-use characters, except a line break. */
 const HIDDEN = /[^\P{C}\n]/gu;
 const SPACES = /[^\S\n]+/g;
 
-export type CleanComment = { readonly ok: true; readonly text: string } | { readonly ok: false; readonly message: string };
+type CleanComment = { readonly ok: true; readonly text: string } | { readonly ok: false; readonly message: string };
 
 export function cleanComment(raw: string): CleanComment {
   const text = raw

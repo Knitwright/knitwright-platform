@@ -10,14 +10,14 @@ import { fromBase64, send, sleep, toBase64, type Fetch } from "./http";
  * Written from the public documentation and never called by the tests: unverified against the live service until a key exists.
  */
 
-export const FASHN_NAME = "fashn";
-export const FASHN_MODEL = "tryon-v1.6";
+const FASHN_NAME = "fashn";
+const FASHN_MODEL = "tryon-v1.6";
 const BASE = "https://api.fashn.ai/v1";
 
 /** A Knitwright estimate, not FASHN's price list. */
-export const FASHN_COST_MICRODOLLARS = 75_000;
+const FASHN_COST_MICRODOLLARS = 75_000;
 
-export type FashnOptions = Readonly<{ apiKey: string; fetch?: Fetch; pollMs?: number; maxPolls?: number }>;
+type FashnOptions = Readonly<{ apiKey: string; fetch?: Fetch; pollMs?: number; maxPolls?: number }>;
 
 const startSchema = z.object({ id: z.string().min(1) });
 const statusSchema = z.object({ status: z.string(), output: z.array(z.string()).nullish(), error: z.unknown().optional() });

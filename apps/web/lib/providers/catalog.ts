@@ -73,7 +73,7 @@ export const spentMicrodollars = (entry: ModelEntry, usage: { inputTokens: numbe
  * so it was not re-read: re-check it before relying on it. No vision price is stated here: it is the token price
  * of the text model chosen, from MODEL_CATALOG.
  */
-export interface ImageEditEntry {
+interface ImageEditEntry {
   readonly id: string;
   readonly vendor: "fal";
   readonly microdollarsPerImage: number;

@@ -3,7 +3,7 @@
  * invented so a drawing has something realistic to work with. They are not measurements
  * of any garment and must never be loaded as real size chart data.
  */
-import { listTypes, pointsOfMeasureFor, type GarmentSpec } from "@/lib/garment";
+import { pointsOfMeasureFor, type GarmentSpec } from "@/lib/garment";
 import { allCombinations, type Choices } from "@/lib/garment/fixtures/combinations";
 import { start } from "@/lib/garment/fixtures/specs";
 import { checkCombination, validateSpec } from "@/lib/garment";
@@ -39,7 +39,7 @@ export function madeUpValues(choices: Choices, scale = 1): Readonly<Record<strin
 }
 
 /** The choice each option starts with for a type, as the registry says. */
-export function defaultChoices(typeId: string): Choices {
+function defaultChoices(typeId: string): Choices {
   return Object.fromEntries(Object.entries(start(typeId).options).map(([optionId, choice]) => [optionId, choice.choiceId]));
 }
 
@@ -101,5 +101,3 @@ export function pairwise(typeId: string): Choices[] {
   }
   return picked;
 }
-
-export const allTopsTypes = (): readonly string[] => listTypes("tops").map((type) => type.id);

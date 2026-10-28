@@ -8,7 +8,7 @@ export const previewBody = z.object({
 });
 export type PreviewBody = z.output<typeof previewBody>;
 
-export const resolutionSchema = z
+const resolutionSchema = z
   .object({
     index: z.number().int().min(0).max(ROSTER_PLAYERS_MAX * 2),
     action: z.enum(["keep", "leave-out"]).optional(),

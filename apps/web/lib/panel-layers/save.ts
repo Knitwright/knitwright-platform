@@ -1,7 +1,7 @@
 import { garmentSpecSchema, type GarmentSpec } from "@/lib/garment";
 import { parseArtworkStack, writeStack } from "@/lib/artwork-stack";
 
-export type NextDesign = { readonly ok: true; readonly spec: GarmentSpec } | { readonly ok: false; readonly reason: string };
+type NextDesign = { readonly ok: true; readonly spec: GarmentSpec } | { readonly ok: false; readonly reason: string };
 
 /**
  * The design with this stack stored (the dual write of decision 0035). The stack arrives as JSON from a browser, so it is

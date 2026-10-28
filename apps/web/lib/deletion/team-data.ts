@@ -4,7 +4,7 @@
  * database; erasing one team list is a delete of its order. The test beside this file reads the
  * migrations and fails if a table here stops being removed with its design.
  */
-export interface PersonalDataTable {
+interface PersonalDataTable {
   readonly table: string;
   readonly holds: string;
   /** True when a person can erase it on its own, without deleting the design. */

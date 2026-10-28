@@ -13,7 +13,7 @@ import { CLOSE_FITTING_WORDS } from "./words-close-fitting";
 import { OUTERWEAR_WORDS } from "./words-outerwear";
 import type { FamilyWords, Table } from "./words";
 
-export interface VocabularyEntry {
+interface VocabularyEntry {
   readonly phrase: string;
   /** A target key made by `typeTarget`, `choiceTarget` or `wearerTarget`. */
   readonly target: string;
@@ -143,7 +143,7 @@ const entries = (table: Table, target: (id: string) => string): VocabularyEntry[
 const TOPS_WORDS: FamilyWords = { types: TYPES, choices: CHOICES };
 
 /** The words of every family, tops first. */
-export const FAMILY_WORDS: readonly FamilyWords[] = [TOPS_WORDS, BOTTOMS_WORDS, OUTERWEAR_WORDS, CLOSE_FITTING_WORDS];
+const FAMILY_WORDS: readonly FamilyWords[] = [TOPS_WORDS, BOTTOMS_WORDS, OUTERWEAR_WORDS, CLOSE_FITTING_WORDS];
 
 const familyEntries = ({ types, choices }: FamilyWords): VocabularyEntry[] => [
   ...entries(types, typeTarget),
@@ -151,7 +151,7 @@ const familyEntries = ({ types, choices }: FamilyWords): VocabularyEntry[] => [
 ];
 
 /** The target for player names and numbers (decision 0027). Not a family word: every family with a place for them uses it. */
-export const MARKS_TARGET = "marks:names-numbers";
+const MARKS_TARGET = "marks:names-numbers";
 
 const MARKS_PHRASES: readonly string[] = [
   "names and numbers",

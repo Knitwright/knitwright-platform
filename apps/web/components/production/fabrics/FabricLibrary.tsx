@@ -2,7 +2,7 @@ import type { FabricView } from "@/lib/fabrics";
 import { AddTestForm } from "./FabricForms";
 
 /** One fabric: what is known about it, where each number came from, and its tests. */
-export function FabricCard({ fabric }: Readonly<{ fabric: FabricView }>) {
+function FabricCard({ fabric }: Readonly<{ fabric: FabricView }>) {
   return (
     <article aria-labelledby={`fabric-${fabric.id}`} className="rounded-2xl border border-hairline bg-surface p-5" data-testid="fabric-card">
       <h3 id={`fabric-${fabric.id}`} className="text-[15px] font-semibold text-ink">

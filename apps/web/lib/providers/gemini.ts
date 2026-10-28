@@ -32,7 +32,7 @@ const answerSchema = z.object({
 
 type Fetch = (input: string, init: RequestInit) => Promise<Response>;
 
-export type GeminiOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
+type GeminiOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
 
 const toBase64 = (bytes: Uint8Array): string => Buffer.from(bytes).toString("base64");
 

@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { parseRosterCsv, type ColumnMapping, type ImportProblem } from "@/lib/orders/import-csv";
 import { cleanName } from "@/lib/orders/text";
-import { ROSTER_PLAYERS_MAX, WEARER_GROUPS, WEARER_LABELS, type WearerGroup } from "./wording";
+import { ROSTER_PLAYERS_MAX, WEARER_GROUPS } from "./wording";
 
 /**
  * A season roster: one line per player with a name, a number, a size and a wearer group. Player
  * names are personal data. They are cleaned with the same rule as team orders (decision 0027), and
  * they live only in `roster_players`, which is removed with its season or its club.
  */
-export { ROSTER_PLAYERS_MAX, WEARER_GROUPS, WEARER_LABELS, type WearerGroup };
 
 const playerName = z
   .string()
@@ -33,7 +32,7 @@ export type Player = z.output<typeof playerSchema>;
 
 export const playersSchema = z.array(playerSchema).max(ROSTER_PLAYERS_MAX, `A roster holds up to ${ROSTER_PLAYERS_MAX} players.`).readonly();
 
-export type RosterRead =
+type RosterRead =
   | Readonly<{ ok: true; players: readonly Player[]; problems: readonly ImportProblem[]; notes: readonly string[]; headers: readonly string[]; mapping: ColumnMapping }>
   | Readonly<{ ok: false; message: string; needsMapping: boolean; headers: readonly string[]; mapping: ColumnMapping }>;
 

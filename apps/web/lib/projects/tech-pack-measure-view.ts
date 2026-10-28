@@ -8,7 +8,7 @@ import type { CellTone } from "./tech-pack-view";
  * keeps its own source too, for the phone cards and for a pointer resting on it.
  */
 
-export interface MeasureHead {
+interface MeasureHead {
   readonly label: string;
   readonly isBase: boolean;
   /** The label beside a value when the table is stacked into cards on a phone. */
@@ -23,7 +23,7 @@ export interface MeasureCellView {
   readonly source: string | null;
 }
 
-export interface MeasureRowView {
+interface MeasureRowView {
   readonly cells: readonly MeasureCellView[];
   readonly tolerance: MeasureCellView;
   /** Each source of the row's values, once, in the order they first appear. */

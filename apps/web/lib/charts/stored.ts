@@ -18,7 +18,7 @@ export function brandChartFromRow(row: unknown): BrandChart | null {
   return { run: run.data, chart: { ...chart.data, supplier: "brand" } };
 }
 
-export interface ChartSummary {
+interface ChartSummary {
   readonly key: string;
   readonly garment: string;
   readonly wearer: string;

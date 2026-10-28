@@ -25,7 +25,7 @@ export const SETTINGS: PrintSettings = {
   patternReviewed: false,
 };
 
-export interface Rig {
+interface Rig {
   readonly pattern: GradedPattern;
   readonly mapper: PrintMapper;
   readonly zones: PrintZone[];

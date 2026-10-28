@@ -9,7 +9,7 @@ import { FOLD_SEAM, seamsOf, type Seam } from "./seams";
  * Knitwright's own defaults, labelled so, until a factory gives theirs.
  */
 
-export const DEFAULT_ALLOWANCE_MM = { overlock: 6, hem: 20 } as const;
+const DEFAULT_ALLOWANCE_MM = { overlock: 6, hem: 20 } as const;
 
 export type AllowanceChoice = Readonly<{ overlockMm: number; hemMm: number }>;
 
@@ -70,7 +70,7 @@ function segmentDistances(line: readonly Point[], seams: readonly Seam[], choice
 const entries = (seams: readonly Seam[], choice: AllowanceChoice): SeamAllowance[] =>
   [...new Set(seams.map((s) => s.seamId))].map((seamId) => ({ seamId, mm: allowanceMm(seamId, choice), source: "knitwright-default" as const }));
 
-export type WithAllowance =
+type WithAllowance =
   | Readonly<{ ok: true; piece: PatternPiece; derived: string | null }>
   | Readonly<{ ok: false; question: string }>;
 

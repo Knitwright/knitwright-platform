@@ -31,7 +31,7 @@ export interface ExportDeps {
   readonly brandName: string;
 }
 
-export interface ExportInput {
+interface ExportInput {
   readonly projectId: string;
   readonly format: ExportFormat;
   /** The query of the address, as it came. It is checked here. */

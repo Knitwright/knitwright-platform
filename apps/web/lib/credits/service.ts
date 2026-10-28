@@ -25,7 +25,7 @@ export type CreditsDb = Readonly<{
 }>;
 
 /** How many lines the credits page shows. */
-export const HISTORY_LIMIT = 200;
+const HISTORY_LIMIT = 200;
 
 const FAILED = "The credits could not be read or changed.";
 
@@ -60,7 +60,7 @@ const toEntry = (row: z.infer<typeof rowSchema>): LedgerEntry => ({
   createdAt: row.created_at,
 });
 
-export type SpendInput = Readonly<{
+type SpendInput = Readonly<{
   brandId: string;
   userId: string;
   kind: OutputKind;
@@ -70,11 +70,11 @@ export type SpendInput = Readonly<{
   usageEventId?: string;
 }>;
 
-export type SpendOutcome =
+type SpendOutcome =
   | Readonly<{ ok: true; charged: boolean; price: number; balance: number; entryId: string | null }>
   | Readonly<{ ok: false; reason: "insufficient"; price: number; balance: number }>;
 
-export type CreditSummary = Readonly<{
+type CreditSummary = Readonly<{
   balance: number;
   history: readonly HistoryRow[];
   prices: Readonly<Record<OutputKind, number>>;

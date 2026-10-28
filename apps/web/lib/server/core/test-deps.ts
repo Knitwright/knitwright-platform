@@ -4,7 +4,7 @@ import type { Brand, GuardDeps, RateLimitRule, Session } from "./guard";
 export const SESSION: Session = { userId: "user-1", email: "maker@example.com" };
 export const BRAND: Brand = { id: "brand-1", name: "Northfield FC", role: "owner" };
 
-export type Recorded = {
+type Recorded = {
   hits: { key: string; rule: RateLimitRule }[];
   logs: unknown[];
   brandLookups: number;

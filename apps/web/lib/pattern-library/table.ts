@@ -2,13 +2,13 @@ import { POINT_LABELS, pointLabel } from "./labels";
 
 /** The measured table of a block: every point, every size, in centimetres. Pure, so the screen only draws it. */
 
-export type MeasuredSize = Readonly<{
+type MeasuredSize = Readonly<{
   size: string;
   measurements: readonly { pointId: string; tenthsMm: number; method: string }[];
   skipped: readonly { pointId: string; reason: string }[];
 }>;
 
-export type TableRow = Readonly<{
+type TableRow = Readonly<{
   pointId: string;
   label: string;
   /** Centimetres to one decimal, or null where the pattern gives no figure at this size. */

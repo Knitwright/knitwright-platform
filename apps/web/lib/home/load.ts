@@ -30,20 +30,20 @@ import type { HomeAnswer, HomeLink } from "./facts";
  */
 
 /** How many recently changed designs the "Needs you" list looks at for empty fields. */
-export const RECENT_DESIGNS = 12;
+const RECENT_DESIGNS = 12;
 /** The most open share links read for the brand, and the most answers read for them. */
-export const OPEN_LINKS_READ = 50;
-export const ANSWERS_READ = 1000;
+const OPEN_LINKS_READ = 50;
+const ANSWERS_READ = 1000;
 /** The most open quote requests read for the brand. */
-export const OPEN_QUOTES_READ = 20;
+const OPEN_QUOTES_READ = 20;
 
-export interface HomeListing {
+interface HomeListing {
   /** The designs on this page, newest first. */
   readonly projects: readonly ProjectSummary[];
   readonly total: number;
 }
 
-export interface StudioHome {
+interface StudioHome {
   readonly listing: Promise<HomeListing>;
   readonly details: Promise<HomeDetails>;
 }

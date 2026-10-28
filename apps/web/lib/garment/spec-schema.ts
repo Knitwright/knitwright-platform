@@ -14,21 +14,19 @@ import { artworkStackSchema } from "../artwork-stack/schema";
 import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
-import { LIST_LIMITS, specProblems } from "./spec-checks";
+import { specProblems } from "./spec-checks";
 import { componentSchema, constructionEntrySchema, labellingSchema } from "./tech-parts";
 
 export const SPEC_SCHEMA_VERSION = 6;
 
 /** Sanity limits on list sizes, so one spec cannot grow without bound. */
-export const MAX_MEASUREMENTS = 64;
-export const MAX_COLOURWAYS = LIST_LIMITS.colourways;
-export const MAX_ARTWORK = 48;
-export const MAX_FABRICS = LIST_LIMITS.fabrics;
-export const MAX_PANEL_FABRICS = 32;
+const MAX_MEASUREMENTS = 64;
+const MAX_ARTWORK = 48;
+const MAX_PANEL_FABRICS = 32;
 export const MAX_COMPONENTS = 24;
 export const MAX_CONSTRUCTION = 32;
 /** Far more than a real size run needs: a design measured at every size has a few dozen. */
-export const MAX_SIZE_MEASUREMENTS = 512;
+const MAX_SIZE_MEASUREMENTS = 512;
 
 /**
  * The shape of a design, with no check against the registry. A design saved under

@@ -55,8 +55,6 @@ export type ArtworkDetail = Readonly<{
   effectiveDpi: number | null;
 }>;
 
-export const MIN_DPI_SOURCE = "Knitwright default, not from your print house";
-
 /** One artwork, with the dpi check for a printed width when one is given. */
 export const getArtworkDetail = async (
   admin: SupabaseClient,

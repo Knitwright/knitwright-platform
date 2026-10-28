@@ -12,7 +12,7 @@ import { createSpendAlert, logAndReport } from "./wire";
 
 let monitor: Monitor | undefined;
 
-export const appMonitor = (): Monitor => {
+const appMonitor = (): Monitor => {
   monitor ??= createMonitor({
     dsn: process.env.MONITORING_DSN,
     send: (url, init) => fetch(url, init),

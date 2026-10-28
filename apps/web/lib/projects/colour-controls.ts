@@ -19,7 +19,7 @@ export interface ColourRow {
   readonly hasSwatch: boolean;
 }
 
-export type ColourRequest =
+type ColourRequest =
   | Readonly<{ kind: "action"; action: SpecAction }>
   | Readonly<{ kind: "problem"; reason: string }>;
 

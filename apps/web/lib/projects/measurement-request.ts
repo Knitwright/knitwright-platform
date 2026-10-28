@@ -2,7 +2,7 @@ import type { GarmentSpec, SpecAction } from "@/lib/garment";
 import { editMeasurementAction, resetMeasurementAction } from "@/lib/sizing";
 import type { EditIntent } from "./field-text";
 
-export type MeasurementRequest =
+type MeasurementRequest =
   | Readonly<{ kind: "action"; action: SpecAction }>
   | Readonly<{ kind: "problem"; reason: string }>;
 

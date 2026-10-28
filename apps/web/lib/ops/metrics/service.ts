@@ -10,7 +10,7 @@ import { computeMetrics, type Metrics } from "./compute";
 /** Rows read for the home screen. Past this the numbers would be partial, so the screen says so instead of guessing. */
 export const METRICS_ROW_LIMIT = 5000;
 
-export interface LoadedMetrics {
+interface LoadedMetrics {
   readonly metrics: Metrics;
   /** True when a table had more rows than the limit and the numbers cover only the newest. */
   readonly truncated: boolean;

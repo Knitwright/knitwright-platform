@@ -133,8 +133,6 @@ export const LAYERS = {
 
 export type LayerKey = keyof typeof LAYERS;
 
-export const LAYER_ORDER: readonly LayerKey[] = ["panels", "seams", "stitching", "details", "artwork", "measurements"];
-
 export const NOT_TO_SCALE_MISSING = "Not to scale. Some measurements are missing.";
 export const NOT_TO_SCALE_MISFIT = "Not to scale. Some measurements do not fit together.";
 

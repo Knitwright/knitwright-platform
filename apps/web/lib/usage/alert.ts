@@ -32,7 +32,7 @@ export const loggingAlert =
   };
 
 /** What monitoring is told when the day's ceiling is reached (lib/monitoring, plan step 26). */
-export type CeilingHit = Readonly<{ scope: "total"; spentMicros: number; ceilingMicros: number }>;
+type CeilingHit = Readonly<{ scope: "total"; spentMicros: number; ceilingMicros: number }>;
 
 /**
  * The usual alert, then, when the ceiling across everyone is reached, the monitoring hook, so

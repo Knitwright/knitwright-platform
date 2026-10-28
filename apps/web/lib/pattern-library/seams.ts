@@ -23,7 +23,7 @@ export const FOLD_SEAM = "fold";
 export const workLine = (piece: Pick<PatternPiece, "cutOutline" | "sewLine">): readonly Point[] => piece.sewLine ?? piece.cutOutline;
 
 /** A landmark is on the line when a vertex sits within this distance of it. */
-export const ON_LINE_MM = 0.5;
+const ON_LINE_MM = 0.5;
 
 const key = (a: string, b: string): string => [a, b].sort().join("|");
 
@@ -140,7 +140,7 @@ function collarSeams(piece: PatternPiece): Seam[] {
   });
 }
 
-export type Armholes = Readonly<{ front: number; back: number }>;
+type Armholes = Readonly<{ front: number; back: number }>;
 
 /** Lengths of the front and back armholes, when both pieces have them. */
 export function armholeLengths(pieces: readonly PatternPiece[]): Armholes | null {

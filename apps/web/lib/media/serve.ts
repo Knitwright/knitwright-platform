@@ -1,6 +1,6 @@
 import type { MediaFiles, MediaStore } from "./ports";
 
-export type ServedItem = Readonly<{ bytes: Uint8Array; contentType: "image/png"; watermarked: boolean }>;
+type ServedItem = Readonly<{ bytes: Uint8Array; contentType: "image/png"; watermarked: boolean }>;
 
 /**
  * The bytes of one item. The watermarked picture is served until the set has been unlocked by spending credits;

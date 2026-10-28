@@ -55,7 +55,7 @@ export async function getRelease(client: SupabaseClient, brandId: string, projec
   return { ...summaryOf(row), snapshot: row.snapshot, fileSpecs: row.file_specs, orderId: row.order_id };
 }
 
-export type ReleaseToCreate = Readonly<{
+type ReleaseToCreate = Readonly<{
   projectId: string;
   brandId: string;
   userId: string;

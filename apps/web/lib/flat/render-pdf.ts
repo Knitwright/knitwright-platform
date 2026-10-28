@@ -21,7 +21,7 @@ export interface Placement {
   readonly heightPoints: number;
 }
 
-export interface PdfOptions {
+interface PdfOptions {
   /** How wide to draw the whole drawing, in points (72 to the inch). */
   readonly widthPoints: number;
   readonly images: ImageMap;
@@ -144,7 +144,7 @@ export function renderPdf(model: FlatModel, options: PdfOptions): ReactElement {
   );
 }
 
-export interface DocumentOptions {
+interface DocumentOptions {
   readonly widthPoints?: number;
   readonly margin?: number;
 }

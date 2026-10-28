@@ -6,7 +6,7 @@ export type RunKind = "sample" | "run";
 /** A minimum order that may be missing. A missing one is never guessed. */
 export type Moq = Readonly<{ status: "not-set" }> | Readonly<{ status: "set"; value: number }>;
 
-export type FlagCode = "under_moq" | "over_max" | "moq_not_set";
+type FlagCode = "under_moq" | "over_max" | "moq_not_set";
 export type Flag = Readonly<{ code: FlagCode; text: string }>;
 
 export type Breakdown = Readonly<{
@@ -19,7 +19,7 @@ export type Breakdown = Readonly<{
   flags: readonly Flag[];
 }>;
 
-export type BreakdownInput = Readonly<{
+type BreakdownInput = Readonly<{
   kind: RunKind;
   quantities: Readonly<Record<string, unknown>>;
   /** The design's size run. Empty when the design has none. */

@@ -29,7 +29,7 @@ export interface StartDeps extends Omit<RunJobDeps, "provider"> {
   readonly schedule: (work: () => Promise<unknown>) => void;
 }
 
-export type StartInput = Readonly<{ eventId: string; colourwayId?: string }>;
+type StartInput = Readonly<{ eventId: string; colourwayId?: string }>;
 
 export async function startImageJob(deps: StartDeps, input: StartInput): Promise<{ jobId: string }> {
   const provider = deps.provider;

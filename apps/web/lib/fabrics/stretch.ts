@@ -2,14 +2,14 @@ import type { FabricValue } from "@/lib/production/contract";
 import type { FabricWithProfile } from "./profile";
 
 /** What the pattern block was drafted with. */
-export type BlockReduction = Readonly<{
+type BlockReduction = Readonly<{
   /** The stretch reduction the pattern was drafted with, as a percentage of the width. */
   pct: number;
 }>;
 
-export type StretchStatus = "no-stretch-value" | "matches" | "differs" | "beyond-stretch";
+type StretchStatus = "no-stretch-value" | "matches" | "differs" | "beyond-stretch";
 
-export type StretchReductionResult = Readonly<{
+type StretchReductionResult = Readonly<{
   status: StretchStatus;
   blockReductionPct: number;
   /** The reduction a fabric test found right, or null when no test gave one. */
@@ -25,7 +25,7 @@ export const REDUCTION_TOLERANCE_POINTS = 0.5;
  * about 20 % width stretch or more, so about four times the reduction.
  * docs/owner/reference/fashioninsta-2026-10-14/Football_Jersey_No10_EU48_TechPack.pdf.
  */
-export const STRETCH_PER_REDUCTION = 4;
+const STRETCH_PER_REDUCTION = 4;
 
 const known = (v: FabricValue): v is FabricValue & { value: number } =>
   v.value !== null && (v.source === "fabric-test" || v.source === "supplier-sheet");

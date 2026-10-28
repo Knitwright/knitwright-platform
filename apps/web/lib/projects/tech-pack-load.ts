@@ -33,7 +33,7 @@ export interface TechPackSource {
 }
 
 /** The rows a tech pack is made from, before any stored picture is read. */
-export interface TechPackReads {
+interface TechPackReads {
   readonly project: OpenProject;
   readonly history: VersionsPage;
   readonly charts: ChartSet;
@@ -43,14 +43,14 @@ export interface TechPackReads {
   readonly latest: LatestImages | null;
 }
 
-export interface PictureOptions {
+interface PictureOptions {
   /** How pictures are shrunk: for the screen, or for print. */
   readonly shrink: (file: StoredBytes) => Promise<ImageBytes | null>;
   /** The most bytes of pictures to embed. The screen limit when missing. */
   readonly maxEmbeddedBytes?: number;
 }
 
-export interface LoadOptions extends PictureOptions {
+interface LoadOptions extends PictureOptions {
   /** The version to read. The current version when missing. A version the design does not have is not found. */
   readonly version?: number;
 }

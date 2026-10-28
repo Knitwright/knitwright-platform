@@ -6,7 +6,7 @@ import { cross, dot, sub, unit } from "../geometry";
  * lengths and drops; distances "across" it, doubled, give widths. Working from the fold line
  * rather than from the page axes means a piece drawn any way round measures the same.
  */
-export type FoldFrame = Readonly<{
+type FoldFrame = Readonly<{
   along: (p: Point) => number;
   across: (p: Point) => number;
 }>;

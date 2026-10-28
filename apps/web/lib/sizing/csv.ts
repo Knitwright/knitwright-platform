@@ -4,7 +4,7 @@ export interface CsvRecord {
   readonly cells: readonly string[];
 }
 
-export type CsvResult =
+type CsvResult =
   | { readonly ok: true; readonly records: readonly CsvRecord[] }
   | { readonly ok: false; readonly line: number; readonly message: string };
 

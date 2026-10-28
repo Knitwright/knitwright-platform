@@ -2,7 +2,7 @@ import type { GeneratorContext, PatternGenerator } from "@/lib/artwork-stack/gen
 import type { BoundsMm } from "@/lib/artwork-stack/units";
 
 /** For tests: a context over a piece-sized area with three greens and a white ground. */
-export const GREENS = ["#2f5d34", "#6b8f3a", "#c8b27a", "#3b3a2a", "#8a6f3f"];
+const GREENS = ["#2f5d34", "#6b8f3a", "#c8b27a", "#3b3a2a", "#8a6f3f"];
 export const GROUND = "#ffffff";
 export const PIECE: BoundsMm = { minX: 0, minY: 0, maxX: 600, maxY: 800 };
 

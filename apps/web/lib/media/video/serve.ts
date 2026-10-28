@@ -5,7 +5,7 @@ import { sniffVideo, type VideoType } from "./sniff";
 
 export const CLIP_LOCKED_MESSAGE = "The clip is available once credits are spent on this media set. Until then only the preview picture is shown.";
 
-export type ServedVideo =
+type ServedVideo =
   | Readonly<{ state: "ok"; bytes: Uint8Array; contentType: VideoType; aiGenerated: boolean }>
   | Readonly<{ state: "locked" }>
   | Readonly<{ state: "missing" }>;

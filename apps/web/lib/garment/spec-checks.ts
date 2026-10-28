@@ -20,13 +20,13 @@ import { techProblems } from "./tech-checks";
 import type { ComponentEntry, ConstructionEntry } from "./tech-parts";
 
 /** One thing wrong with a spec, in plain words, and where in the spec it is. */
-export interface SpecProblem {
+interface SpecProblem {
   readonly path: readonly (string | number)[];
   readonly message: string;
 }
 
 /** The fields the meaning checks read. */
-export interface CheckedSpec {
+interface CheckedSpec {
   readonly typeId: string;
   readonly wearer: Wearer;
   readonly options: Readonly<Record<string, OptionChoice>>;
@@ -45,7 +45,7 @@ export interface CheckedSpec {
 }
 
 /** The most fabrics and colourways a design may hold. Kept here so the schema stays a plain tuple. */
-export const LIST_LIMITS = { fabrics: 16, colourways: 24 } as const;
+const LIST_LIMITS = { fabrics: 16, colourways: 24 } as const;
 
 const problem = (path: readonly (string | number)[], message: string): SpecProblem => ({ path, message });
 

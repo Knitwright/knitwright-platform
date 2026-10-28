@@ -19,7 +19,7 @@ export interface Budget {
   take(provider: string, microdollars: number): Promise<Spend>;
 }
 
-export type BudgetDeps = Readonly<{
+type BudgetDeps = Readonly<{
   usage: UsageMeter;
   brandId: string;
   userId: string;

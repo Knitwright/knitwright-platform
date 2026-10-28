@@ -3,7 +3,7 @@ import { lumaOf } from "./frame";
 import { boxBlur, gradientMagnitude, pearson } from "./planes";
 
 /** Edge maps with fewer grey levels of spread than this have no seams or stripes to compare. */
-export const MIN_EDGE_SPREAD = 4;
+const MIN_EDGE_SPREAD = 4;
 /** The edge map is softened once more so a seam that moved by a pixel or two still lines up. */
 const EDGE_BLUR = 1;
 

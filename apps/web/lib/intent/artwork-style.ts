@@ -44,19 +44,19 @@ export const adjustArtworkStyleWire = z.strictObject({
   reseed: z.number().int().min(0).max(2_147_483_647).optional(),
 });
 
-export type SetArtworkStyleWire = z.output<typeof setArtworkStyleWire>;
-export type AdjustArtworkStyleWire = z.output<typeof adjustArtworkStyleWire>;
+type SetArtworkStyleWire = z.output<typeof setArtworkStyleWire>;
+type AdjustArtworkStyleWire = z.output<typeof adjustArtworkStyleWire>;
 
 export const ARTWORK_STYLE_PROMPT = `{"type": "set-artwork-style", "generatorId": "camo", "presetId": "camo-woodland"}  puts a printed style over the body; the styles and presets are in the style list
 {"type": "adjust-artwork-style", "changes": [{"paramId": "scale", "direction": "up", "steps": 1}], "colour": {"shade": "darker", "hue": "green", "steps": 1}}  moves a style's settings up or down by their own steps and shades its colours; never state a number`;
 
-export interface StyleStep {
+interface StyleStep {
   readonly what: string;
   readonly before: string;
   readonly after: string;
 }
 
-export type StyleResult =
+type StyleResult =
   | { readonly ok: true; readonly stack: ArtworkStack; readonly steps: readonly StyleStep[]; readonly notes: readonly string[] }
   | { readonly ok: false; readonly reason: string };
 

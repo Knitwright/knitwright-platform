@@ -23,9 +23,8 @@ import { sentences } from "./tables-front";
 
 const COLOUR_HELP = "The colour code is what a factory uses. The screen colour only sets how the drawing looks.";
 
-export function componentsSection(pack: TechPack): ExportSection {
-  const { components } = pack;
-  const fabrics = table(
+const fabricsTable = (components: TechPack["components"]): ExportTable =>
+  table(
     "Fabric",
     [
       textColumn("Used for"),
@@ -48,7 +47,9 @@ export function componentsSection(pack: TechPack): ExportSection {
       value(line.consumption),
     ]),
   );
-  const others = table(
+
+const othersTable = (components: TechPack["components"]): ExportTable =>
+  table(
     "Rib, thread, labels and trims",
     [
       textColumn("Item"),
@@ -69,12 +70,15 @@ export function componentsSection(pack: TechPack): ExportSection {
       value(line.proposalNote),
     ]),
   );
+
+export function componentsSection(pack: TechPack): ExportSection {
+  const { components } = pack;
   return {
     id: "components",
     title: components.title,
     sheet: EXCEL_SHEETS.components,
     paragraphs: sentences(components.note),
-    tables: [fabrics, others],
+    tables: [fabricsTable(components), othersTable(components)],
   };
 }
 

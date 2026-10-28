@@ -1,7 +1,7 @@
 import { conditionsHold, type ChoiceMap } from "./conditions";
 import { getType } from "./registry";
 
-export interface RuleViolation {
+interface RuleViolation {
   readonly ruleId: string;
   /** One plain sentence saying why the combination cannot be made. */
   readonly reason: string;

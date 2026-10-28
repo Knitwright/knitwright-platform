@@ -21,7 +21,7 @@ export const checkUploadFile = (file: Readonly<{ type: string; size: number }>):
   return file.size > UPLOAD_MAX_BYTES ? TOO_BIG : null;
 };
 
-export type UploadResult =
+type UploadResult =
   | Readonly<{ ok: true; fileId: string; width: number; height: number }>
   | Readonly<{ ok: false; reason: string }>;
 
@@ -70,7 +70,7 @@ async function send(
 export const LOGO_RIGHTS_WAITING =
   "Tick the box below to say you own this logo or have permission to use it on garments. Your file is kept and is uploaded as soon as you tick it.";
 
-export type LogoStep = "upload" | "wait-for-rights" | "nothing";
+type LogoStep = "upload" | "wait-for-rights" | "nothing";
 
 /**
  * What to do with a chosen logo. Without the box ticked the file is kept, not thrown away,

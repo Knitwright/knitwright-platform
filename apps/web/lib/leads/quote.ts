@@ -13,17 +13,7 @@ import {
 } from "./quote-terms";
 import { daysUntil } from "./score";
 
-export {
-  MESSAGE_MAX,
-  QUANTITY_MAX,
-  QUOTE_STATUSES,
-  SIZES_NOTE_MAX,
-  describeQuote,
-  firstAllowedDate,
-  isCalendarDate,
-  quoteStatusLabel,
-  type QuoteStatus,
-};
+export { QUANTITY_MAX, describeQuote, firstAllowedDate, isCalendarDate, quoteStatusLabel, type QuoteStatus };
 
 /** The checks on a quote request and on a change of its status, made on the server. */
 

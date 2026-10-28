@@ -8,7 +8,7 @@ export const HOME_AFTER_SIGN_IN = "/studio";
 export const CHOOSE_PASSWORD_PATH = "/reset-password";
 /** Where someone with no brand yet is sent to create their first. */
 export const WELCOME_PATH = "/welcome";
-export const BRANDS_PATH = "/brands";
+const BRANDS_PATH = "/brands";
 
 const NEEDS_SESSION = [
   HOME_AFTER_SIGN_IN,

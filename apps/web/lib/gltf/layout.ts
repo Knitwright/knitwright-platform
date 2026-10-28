@@ -40,7 +40,7 @@ export interface PanelLayout {
   readonly panels: readonly LayoutPanel[];
 }
 
-export interface LayoutOptions {
+interface LayoutOptions {
   readonly roles?: PieceRoles;
   /** Fix the scale, for example to keep every size on the scale of the base size. Refused when the panels do not fit. */
   readonly pxPerMm?: number;

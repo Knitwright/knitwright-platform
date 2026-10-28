@@ -13,7 +13,7 @@ import type { ImportReport } from "./report";
 
 /** The most crests, sponsors and badges stored from one picture. A layer past this keeps its stand-in id and is named in the report. */
 export const MOST_STORED_CROPS = 8;
-export const NOT_STORED = `More than ${MOST_STORED_CROPS} crests, sponsors or badges were found. The extra ones are listed but not stored, so replace them with your own files.`;
+const NOT_STORED = `More than ${MOST_STORED_CROPS} crests, sponsors or badges were found. The extra ones are listed but not stored, so replace them with your own files.`;
 
 export interface DerivedStore {
   /** Stores one PNG as artwork and gives its id. */

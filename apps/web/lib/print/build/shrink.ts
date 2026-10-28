@@ -1,6 +1,6 @@
 import { printScale, type FabricProfile, type PatternPiece } from "@/lib/production/contract";
 
-export interface PieceScale {
+interface PieceScale {
   readonly scaleX: number;
   readonly scaleY: number;
   readonly note: string | null;

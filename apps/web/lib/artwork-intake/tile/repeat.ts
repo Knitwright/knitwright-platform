@@ -6,7 +6,7 @@ import { luma, type Pixels } from "../raster/pixels";
  * it looks like itself again. W7d uses it to find the tile in a picture of a pattern.
  */
 
-export type Repeat = Readonly<{
+type Repeat = Readonly<{
   /** The repeat length in pixels of the picture given, or null when no repeat is found. */
   periodX: number | null;
   periodY: number | null;

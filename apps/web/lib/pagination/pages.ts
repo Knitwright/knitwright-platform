@@ -41,7 +41,7 @@ export const pageCount = (total: number, perPage: number): number =>
 export const pageOf = <T>(rows: readonly T[], request: PageRequest): readonly T[] =>
   rows.slice(request.offset, request.offset + request.perPage);
 
-export type PageMark = number | "gap";
+type PageMark = number | "gap";
 
 /**
  * The page numbers to show: always the first and last, the current page and its

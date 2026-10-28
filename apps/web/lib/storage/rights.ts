@@ -13,7 +13,7 @@ export const LOGO_RIGHTS_MISSING =
 /** What is kept with the file: who confirmed, when, and the version of the words they saw. */
 export type LogoRights = Readonly<{ confirmedBy: string; confirmedAt: string; wordingVersion: string }>;
 
-export type RightsCheck = Readonly<{ ok: true; rights: LogoRights | null }> | Readonly<{ ok: false; message: string }>;
+type RightsCheck = Readonly<{ ok: true; rights: LogoRights | null }> | Readonly<{ ok: false; message: string }>;
 
 export const logoRightsFor = (input: Readonly<{ kind: ImageKind; confirmed: boolean; userId: string; now: Date }>): RightsCheck => {
   if (input.kind !== "artwork") return { ok: true, rights: null };

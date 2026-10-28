@@ -26,7 +26,7 @@ export interface Tile {
 }
 
 /** What a generator's drawing function is given: settings already inside their ranges, and colours padded to what it needs. */
-export interface DrawInput {
+interface DrawInput {
   readonly context: GeneratorContext;
   readonly values: Values;
   /** The pattern's colours, main first; never empty. */
@@ -48,7 +48,7 @@ export interface LibraryGenerator extends PatternGenerator {
   readonly tileFor?: (values: Values) => Tile;
 }
 
-export interface Definition {
+interface Definition {
   readonly id: string;
   readonly label: string;
   readonly summary: string;
@@ -67,7 +67,7 @@ const inksOf = (context: GeneratorContext, most: number): string[] => {
 };
 
 /** The datum moved by a seeded part of one period. Seed 0 leaves it where it is. */
-export function shiftDatum(datum: GeneratorContext["datum"], period: Tile, seed: number): GeneratorContext["datum"] {
+function shiftDatum(datum: GeneratorContext["datum"], period: Tile, seed: number): GeneratorContext["datum"] {
   if (seed === 0) return datum;
   const rng = createRng(hashSeed(seed, 0x5eed));
   return { x: roundMm(datum.x + rng.float() * period.width), y: roundMm(datum.y + rng.float() * period.height) };

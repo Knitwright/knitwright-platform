@@ -17,7 +17,7 @@ import { MEASUREMENT_MAX_TENTHS_MM } from "./units";
 export const PLAYER_MARK_PLACES = ["back-name", "back-number", "front-number", "leg-number"] as const;
 export type PlayerMarkPlace = (typeof PLAYER_MARK_PLACES)[number];
 
-export interface PlaceDefinition {
+interface PlaceDefinition {
   readonly panelId: string;
   readonly anchor: string;
   /** What goes there: the name or the number. */
@@ -34,7 +34,7 @@ export const PLACE_DEFINITIONS: Readonly<Record<PlayerMarkPlace, PlaceDefinition
 
 /** A small fixed set of lettering styles a factory can match. */
 export const LETTERING_STYLES = ["block", "varsity", "rounded", "italic"] as const;
-export type LetteringStyle = (typeof LETTERING_STYLES)[number];
+type LetteringStyle = (typeof LETTERING_STYLES)[number];
 
 export const LETTERING_LABELS: Readonly<Record<LetteringStyle, string>> = {
   block: "Block",
@@ -43,9 +43,9 @@ export const LETTERING_LABELS: Readonly<Record<LetteringStyle, string>> = {
   italic: "Italic",
 };
 
-export const SAMPLE_NAME_MAX_LENGTH = 20;
+const SAMPLE_NAME_MAX_LENGTH = 20;
 /** Team numbers run from 0 to 99, and some codes use 00. */
-export const SAMPLE_NUMBER_PATTERN = /^\d{1,2}$/;
+const SAMPLE_NUMBER_PATTERN = /^\d{1,2}$/;
 export const DEFAULT_SAMPLE_NAME = "PLAYER";
 export const DEFAULT_SAMPLE_NUMBER = "10";
 

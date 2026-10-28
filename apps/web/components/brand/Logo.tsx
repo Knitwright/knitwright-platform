@@ -5,7 +5,7 @@ type LogoProps = Readonly<{
   withName?: boolean;
 }>;
 
-export function LogoMark({ size = 28 }: Readonly<{ size?: number }>) {
+function LogoMark({ size = 28 }: Readonly<{ size?: number }>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

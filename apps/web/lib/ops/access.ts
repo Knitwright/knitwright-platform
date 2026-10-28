@@ -3,7 +3,7 @@ import { amPlatformAdmin } from "@/lib/leads/service";
 import { AppError } from "@/lib/server/core/errors";
 
 /** The answer for anyone who is not a platform admin: the same as a route that does not exist. */
-export const OPS_NOT_FOUND = "Not found.";
+const OPS_NOT_FOUND = "Not found.";
 
 /**
  * Throws "not found" unless the signed-in person (the client's own session) is a platform admin. Every ops

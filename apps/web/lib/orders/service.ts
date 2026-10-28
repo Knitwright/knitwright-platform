@@ -10,10 +10,10 @@ import { throwIfFailed } from "./errors";
  * the user belongs to the brand. The brand always comes from the session.
  */
 
-export const ORDER_NOT_FOUND = "That team order does not exist.";
+const ORDER_NOT_FOUND = "That team order does not exist.";
 const DESIGN_NOT_FOUND = "That design does not exist.";
 
-export interface OrderSummary {
+interface OrderSummary {
   readonly id: string;
   readonly name: string;
   readonly players: number;
@@ -62,7 +62,7 @@ export async function getTeamOrder(client: SupabaseClient, brandId: string, proj
   return { id: order.id, name: order.name, updatedAt: order.updated_at, rows };
 }
 
-export type OrderToSave = Readonly<{
+type OrderToSave = Readonly<{
   orderId?: string;
   projectId: string;
   brandId: string;

@@ -18,7 +18,6 @@ export const boxSchema = z
   })
   .strict()
   .readonly();
-export type Box = z.output<typeof boxSchema>;
 
 /** Landmarks in the picture, by W0 landmark name. */
 export type LandmarkSet = Readonly<Partial<Record<LandmarkId, Pt>>>;
@@ -34,4 +33,3 @@ export const PICTURE_KINDS = ["flat", "mockup", "worn-photo", "sketch", "sheet"]
 export type PictureKind = (typeof PICTURE_KINDS)[number];
 
 export const MARK_KINDS = ["number", "name", "crest", "sponsor", "sleeve-badge"] as const;
-export type MarkKind = (typeof MARK_KINDS)[number];

@@ -20,13 +20,13 @@ export async function makeFiles(builder: Maker, entries: readonly PlanEntry[]): 
 const FORMULA = /^[=+\-@\t\r]/;
 
 /** A spreadsheet cell: quoted, and a cell that could be read as a formula is made plain text. */
-export function csvCell(value: string | number): string {
+function csvCell(value: string | number): string {
   const text = String(value);
   const safe = FORMULA.test(text) ? `'${text}` : text;
   return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
-export const MANIFEST_HEADER = ["file", "piece", "size", "player number", "player name", "format", "sha256", "page width mm", "page height mm", "notes"];
+const MANIFEST_HEADER = ["file", "piece", "size", "player number", "player name", "format", "sha256", "page width mm", "page height mm", "notes"];
 
 /** One line per file, in the order they were made. Notes are joined with " | ". */
 export function manifestCsv(files: readonly MadeFile[]): string {

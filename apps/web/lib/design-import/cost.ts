@@ -7,7 +7,7 @@ import type { Spend } from "./budget";
 
 /** What an import costs and how each call is reserved. The prices come from lib/providers/catalog.ts; none is stated here. */
 
-export const IMAGE_EDIT_MICRODOLLARS = IMAGE_EDIT_CATALOG[0].microdollarsPerImage;
+const IMAGE_EDIT_MICRODOLLARS = IMAGE_EDIT_CATALOG[0].microdollarsPerImage;
 
 /** One vision call at the most it can use: the instructions, the picture and the doubled output limit. */
 export const visionCost = (entry: ModelEntry): Cost => ({ feature: "ai", microdollars: callCost(entry, MAX_TEXT_INPUT_TOKENS + IMAGE_INPUT_TOKENS, MAX_OUTPUT_TOKENS * 2) });

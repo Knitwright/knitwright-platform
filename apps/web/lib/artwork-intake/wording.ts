@@ -5,8 +5,6 @@ import type { SeamReport } from "./tile";
 
 export const FORMATS_HINT = "PNG, JPEG, TIFF, PDF or SVG, up to 50 MB. An Illustrator file needs 'Create PDF compatible file' ticked when it is saved.";
 
-export const SVG_NOT_KEPT_NOTE = "An SVG is read into plain drawing data. The SVG file itself is not kept.";
-
 const FORMAT_NAMES: Readonly<Record<ArtworkRecord["sourceFormat"], string>> = {
   png: "PNG picture",
   jpeg: "JPEG picture",

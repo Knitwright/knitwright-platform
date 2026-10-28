@@ -13,7 +13,7 @@ export function pickFeatured(all: readonly TemplateSummary[]): readonly Template
   return [...firstOfEachSport, ...rest].slice(0, FEATURED_COUNT);
 }
 
-export type FeaturedTemplate = Readonly<{ template: TemplateSummary; preview: TemplatePreview | null }>;
+type FeaturedTemplate = Readonly<{ template: TemplateSummary; preview: TemplatePreview | null }>;
 
 export async function featuredTemplates(client: SupabaseClient): Promise<readonly FeaturedTemplate[]> {
   const picked = pickFeatured(await loadLibrary(client));

@@ -39,7 +39,7 @@ export interface SharePicture {
   readonly notice: string | null;
 }
 
-export interface ShareColour {
+interface ShareColour {
   readonly panel: string;
   /** The colour's name or code, or null when none was given. */
   readonly colour: string | null;

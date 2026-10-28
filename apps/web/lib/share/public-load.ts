@@ -23,7 +23,7 @@ export interface ShareLoadDeps {
   readonly shrink: (file: StoredBytes) => Promise<ImageBytes | null>;
 }
 
-export interface LoadedSharePage {
+interface LoadedSharePage {
   readonly page: SharePageData;
   readonly picturesNote: string | null;
 }

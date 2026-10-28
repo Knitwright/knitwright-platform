@@ -9,7 +9,7 @@ export const RASTER_PIXEL_CAP = 60_000_000;
 /** Each strip of the page is drawn on its own, and holds about this many pixels. */
 const STRIP_PIXELS = 4_000_000;
 
-export interface RasterOptions {
+interface RasterOptions {
   /** Defaults to the scene's own resolution. */
   readonly dpi?: number;
   readonly pixelCap?: number;
@@ -20,7 +20,7 @@ export interface RasterOptions {
   readonly margin: boolean;
 }
 
-export type RasterResult = FlatArt;
+type RasterResult = FlatArt;
 
 type SharpBlend = "over" | "multiply" | "screen" | "overlay";
 

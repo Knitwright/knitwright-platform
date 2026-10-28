@@ -9,7 +9,7 @@ import { SCENE_IDS } from "../scenes";
  */
 
 /** The price the photoreal images already reserve: $0.08 an image (lib/images/cost.ts). */
-export const FAL_COST_MICRODOLLARS = 80_000;
+const FAL_COST_MICRODOLLARS = 80_000;
 
 export const createFalLifestyleProvider = (image: ImageProvider): LifestyleProvider => ({
   name: image.name,

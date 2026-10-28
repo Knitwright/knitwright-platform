@@ -9,14 +9,14 @@ import { dotsRepeatOf, repeatSpecRows } from "./repeat-spec";
 import { layerRows } from "./stack-layers";
 import type { ArtworkAndColourSection } from "./types";
 
-export const NO_PLACEMENT_YET = "Placements are measured on the pattern once it is in the library and the print files have their zones.";
+const NO_PLACEMENT_YET = "Placements are measured on the pattern once it is in the library and the print files have their zones.";
 
-export type StackParts = Pick<
+type StackParts = Pick<
   ArtworkAndColourSection,
   "source" | "description" | "layers" | "layerPlacements" | "layerPlacementNote" | "repeatSpecs" | "images" | "imagesNote" | "picture"
 >;
 
-export interface StackSection {
+interface StackSection {
   readonly parts: StackParts;
   /** The dots' sizes worked out from the stack, or null. */
   readonly dotsRepeat: ReturnType<typeof dotsRepeatOf>;

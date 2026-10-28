@@ -12,9 +12,9 @@ import { parseDxf, type DxfBlock, type DxfDocument, type DxfEntity } from "./par
  * layer is left out and reported, never dropped without a word.
  */
 
-export type DxfFileInfo = Readonly<{ styleName: string | null; sampleSize: string | null }>;
+type DxfFileInfo = Readonly<{ styleName: string | null; sampleSize: string | null }>;
 
-export type ReadDxfResult = Readonly<{
+type ReadDxfResult = Readonly<{
   pieces: readonly PatternPiece[];
   warnings: readonly string[];
   info: DxfFileInfo;
@@ -122,6 +122,43 @@ function namedLandmarks(all: readonly [string, string][], factor: number): Parti
 
 type Context = Readonly<{ factor: number; fileSize: string | null; warn: (s: string) => void }>;
 
+function pieceIdOf(writtenId: string | undefined, label: string): string {
+  return writtenId && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(writtenId) ? writtenId.slice(0, 64) : pieceIdFromName(label);
+}
+
+/** The piece's landmarks: the named ones written in the file, else the ones found on its cut line. */
+function landmarksOf(block: DxfBlock, all: readonly [string, string][], id: string, cutOutline: Point[], factor: number) {
+  const turn = layered(block, "2", "POINT").map((e): Point => [round2(num(e, 10) * factor), round2(num(e, 20) * factor)]);
+  const stated = namedLandmarks(all, factor);
+  return Object.keys(stated).length > 0 ? { landmarks: stated, problem: null } : detectLandmarks(id, cutOutline, turn);
+}
+
+/** The sew, grain, fold and internal lines of a block, and what kind of outline it has. */
+function linesOf(block: DxfBlock, outlineText: string | undefined, factor: number) {
+  const sew = layered(block, "14", "POLYLINE")[0];
+  const grain = layered(block, "7", "LINE")[0] ?? layered(block, "5", "LINE")[0];
+  const fold = lineOf(layered(block, "6", "LINE")[0], factor);
+  const lines = [...layered(block, "8", "POLYLINE").map((e) => closedRunOpen(e.vertices, factor)), ...layered(block, "8", "LINE").flatMap((e) => lineAsRun(e, factor))];
+  const outlineKind: PatternPiece["outlineKind"] = (OUTLINE_KINDS as readonly string[]).includes(outlineText ?? "") ? (outlineText as PatternPiece["outlineKind"]) : sew ? "with-seam-allowance" : "unknown";
+  return {
+    onFold: fold !== null,
+    outlineKind,
+    sewLine: sew ? closedRun(sew.vertices, factor) : null,
+    grainLine: lineOf(grain, factor),
+    foldLine: fold,
+    internalLines: lines.filter((line) => line.length >= 2),
+  };
+}
+
+/** Warns about an annotation other than CUT and about layers the library does not use. */
+function warnAboutExtras(block: DxfBlock, label: string, annotation: string | undefined, warn: (s: string) => void): void {
+  if (annotation && annotation.toUpperCase() !== "CUT") warn(`"${label}" is marked "${annotation}" rather than CUT.`);
+  for (const layer of new Set(block.entities.map((e) => e.layer).filter((l) => !KNOWN_LAYERS.has(l)))) {
+    const count = block.entities.filter((e) => e.layer === layer).length;
+    warn(`"${label}": layer ${layer} holds ${count} ${count === 1 ? "item" : "items"} this library does not use. They were left out.`);
+  }
+}
+
 function pieceFromBlock(block: DxfBlock, context: Context): PatternPiece | null {
   const { factor, warn } = context;
   const { first, all } = annotations(block.entities);
@@ -138,39 +175,27 @@ function pieceFromBlock(block: DxfBlock, context: Context): PatternPiece | null 
     return null;
   }
   const cutOutline = closedRun(outline.vertices, factor);
-  const sew = layered(block, "14", "POLYLINE")[0];
-  const grain = layered(block, "7", "LINE")[0] ?? layered(block, "5", "LINE")[0];
-  const fold = lineOf(layered(block, "6", "LINE")[0], factor);
-  const turn = layered(block, "2", "POINT").map((e): Point => [round2(num(e, 10) * factor), round2(num(e, 20) * factor)]);
-  const writtenId = first.get("PIECE ID");
-  const id = writtenId && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(writtenId) ? writtenId.slice(0, 64) : pieceIdFromName(label);
-  const stated = namedLandmarks(all, factor);
-  const detected = Object.keys(stated).length > 0 ? { landmarks: stated, problem: null } : detectLandmarks(id, cutOutline, turn);
+  const id = pieceIdOf(first.get("PIECE ID"), label);
+  const detected = landmarksOf(block, all, id, cutOutline, factor);
   if (detected.problem) warn(`${label}: ${detected.problem} Its landmarks were not found.`);
-  const outlineText = first.get("OUTLINE");
-  const lines = [...layered(block, "8", "POLYLINE").map((e) => closedRunOpen(e.vertices, factor)), ...layered(block, "8", "LINE").flatMap((e) => lineAsRun(e, factor))];
+  const shape = linesOf(block, first.get("OUTLINE"), factor);
   const candidate: PatternPiece = {
     id,
     name: label.slice(0, 120),
     sizeLabel: sizeLabel.slice(0, 16),
     ...quantityOf(first.get("QUANTITY"), warn),
-    onFold: fold !== null,
-    outlineKind: (OUTLINE_KINDS as readonly string[]).includes(outlineText ?? "") ? (outlineText as PatternPiece["outlineKind"]) : sew ? "with-seam-allowance" : "unknown",
+    onFold: shape.onFold,
+    outlineKind: shape.outlineKind,
     cutOutline,
-    sewLine: sew ? closedRun(sew.vertices, factor) : null,
+    sewLine: shape.sewLine,
     notches: notchesOf(block, factor),
     seamAllowance: allowancesOf(all),
-    grainLine: lineOf(grain, factor),
-    foldLine: fold,
-    internalLines: lines.filter((line) => line.length >= 2),
+    grainLine: shape.grainLine,
+    foldLine: shape.foldLine,
+    internalLines: shape.internalLines,
     landmarks: detected.landmarks,
   };
-  const annotation = first.get("ANNOTATION");
-  if (annotation && annotation.toUpperCase() !== "CUT") warn(`"${label}" is marked "${annotation}" rather than CUT.`);
-  for (const layer of new Set(block.entities.map((e) => e.layer).filter((l) => !KNOWN_LAYERS.has(l)))) {
-    const count = block.entities.filter((e) => e.layer === layer).length;
-    warn(`"${label}": layer ${layer} holds ${count} ${count === 1 ? "item" : "items"} this library does not use. They were left out.`);
-  }
+  warnAboutExtras(block, label, first.get("ANNOTATION"), warn);
   const parsed = patternPieceSchema.safeParse(candidate);
   if (!parsed.success) {
     warn(`"${label}" could not be read as a pattern piece (${parsed.error.issues[0]?.message ?? "invalid"}), so it was left out.`);

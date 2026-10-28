@@ -18,7 +18,7 @@ const ORDER: readonly CheckName[] = ["input", "alignment", "colour", "structure"
 const WHOLE = "garment";
 const plain = (n: number): string => n.toFixed(1);
 
-export function reportOf(findings: readonly Finding[], measurements: readonly Measurement[]): CheckReport {
+function reportOf(findings: readonly Finding[], measurements: readonly Measurement[]): CheckReport {
   return {
     verdict: findings.length === 0 ? "passed" : "rejected",
     findings,

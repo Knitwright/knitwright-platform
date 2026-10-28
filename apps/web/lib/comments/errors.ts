@@ -1,7 +1,7 @@
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { EDIT_WINDOW_MINUTES } from "./limits";
 
-export type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
+type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
 
 export const COMMENT_NOT_FOUND = "That comment does not exist.";
 export const DESIGN_NOT_FOUND = "That design does not exist.";

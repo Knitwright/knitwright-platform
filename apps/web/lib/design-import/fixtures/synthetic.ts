@@ -6,7 +6,7 @@ import type { LandmarkSet, Pt } from "../types";
  * deterministic: no random numbers, no dates. A tee is drawn on a 400 by 400 canvas, centred at x = 200.
  */
 
-export const CANVAS = 400;
+const CANVAS = 400;
 
 const half: readonly Pt[] = [
   { x: 230, y: 40 }, // hps
@@ -36,7 +36,7 @@ export const TEE_TRUTH: LandmarkSet = {
   "side-hem": half[5],
 };
 
-export interface SyntheticOptions {
+interface SyntheticOptions {
   readonly garment?: string;
   readonly background?: string;
   /** A homography strength; 0 is a flat. Above 0 the picture looks like a photo taken from below. */

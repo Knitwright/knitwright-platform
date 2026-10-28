@@ -67,7 +67,7 @@ export const applyFilters = (rows: readonly TemplateSummary[], filters: Template
       (filters.colour === undefined || row.colourFamily === filters.colour),
   );
 
-export interface TemplatePage {
+interface TemplatePage {
   readonly rows: readonly TemplateSummary[];
   readonly total: number;
   readonly totalPages: number;

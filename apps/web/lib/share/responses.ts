@@ -53,7 +53,7 @@ export interface ShareLinkView {
   readonly comments: readonly ShareComment[];
 }
 
-export const VOTE_LABELS: Readonly<Record<ShareVote, string>> = { yes: "Yes", not_yet: "Not yet" };
+const VOTE_LABELS: Readonly<Record<ShareVote, string>> = { yes: "Yes", not_yet: "Not yet" };
 
 export const linkState = (link: ShareLink, now: Date): LinkState => {
   if (link.revokedAt !== null) return "revoked";

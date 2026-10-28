@@ -12,7 +12,7 @@ import type { PatternRequest } from "./request";
  * database's rules decide what they see. Every write goes through the server's client.
  */
 
-export type PatternProvider = "claude-bridge" | "fashioninsta";
+type PatternProvider = "claude-bridge" | "fashioninsta";
 
 const rowSchema = z.object({
   id: z.uuid(),
@@ -34,7 +34,7 @@ const failIf = (error: { message: string } | null, what: string): void => {
   if (error) throw new Error(what, { cause: error });
 };
 
-export type NewPatternJob = Readonly<{
+type NewPatternJob = Readonly<{
   brandId: string;
   projectId: string;
   version: number;
@@ -115,7 +115,7 @@ const openSchema = z.object({
   created_by: z.uuid(),
   created_at: z.string(),
 });
-export type OpenPatternJob = z.output<typeof openSchema>;
+type OpenPatternJob = z.output<typeof openSchema>;
 
 /** The jobs waiting for a pattern, oldest first. */
 export async function openPatternJobs(admin: SupabaseClient, provider: PatternProvider): Promise<OpenPatternJob[]> {
@@ -146,7 +146,7 @@ export async function markPatternRunning(admin: SupabaseClient, jobId: string): 
   return move(admin, jobId, ["queued"], { status: "running" });
 }
 
-export type PatternResult = Readonly<{
+type PatternResult = Readonly<{
   dxf: Uint8Array;
   preview: Uint8Array | null;
   draft: string;
@@ -189,7 +189,7 @@ export async function failPatternJob(admin: SupabaseClient, jobId: string, messa
 // measures them, and the job ends in a block of the pattern library.
 // ---------------------------------------------------------------------------------------
 
-export type PatternSetResult = Readonly<{
+type PatternSetResult = Readonly<{
   set: PatternSet;
   /** The draft the sizes were made from, as the provider names it. */
   draft: string;

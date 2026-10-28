@@ -78,7 +78,7 @@ export const STANDARD_CHOICE = "Standard choice";
  * An option choice that nobody made. The design stores it as `derived`, because nobody chose it,
  * but it is the garment type's standard choice, not a value worked out from other values.
  */
-export interface StandardCell extends SetCell {
+interface StandardCell extends SetCell {
   readonly standard: true;
 }
 

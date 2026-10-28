@@ -22,8 +22,6 @@ export const designDiffSchema = z.discriminatedUnion("kind", [
 ]);
 export type DesignDiff = z.output<typeof designDiffSchema>;
 
-export const DIFF_KINDS = ["set-colour", "move-placement", "swap-style", "change-option"] as const satisfies readonly DesignDiff["kind"][];
-
 /** The model's whole reply: a diff, or the statement that the request is not one of the four kinds. */
 export const diffReplySchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("diff"), diff: designDiffSchema }),

@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
  * What a pattern request freezes: the design as saved in one version. The factory file is made from the same design, so the
  * hash names both. No date, no random id and no unordered map goes in, so the same design always has the same hash.
  */
-export type SnapshotInput = Readonly<{ projectId: string; version: number; garmentType: string; name: string; spec: unknown }>;
+type SnapshotInput = Readonly<{ projectId: string; version: number; garmentType: string; name: string; spec: unknown }>;
 
 export type Snapshot = Readonly<{
   projectId: string;
@@ -15,7 +15,7 @@ export type Snapshot = Readonly<{
   sent: readonly string[];
 }>;
 
-export const SENT_TEXT: readonly string[] = ["The design as saved in this version", "The factory file (tech pack) made from it"];
+const SENT_TEXT: readonly string[] = ["The design as saved in this version", "The factory file (tech pack) made from it"];
 
 export function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map((v) => canonicalJson(v ?? null)).join(",")}]`;

@@ -72,7 +72,7 @@ export const OWNER_INPUTS: Readonly<Record<string, Entry>> = {
 };
 
 /** The note for an item, or null when the item is met or does not wait on the owner. */
-export function ownerInputFor(itemId: string, met: boolean): OwnerInputNote | null {
+function ownerInputFor(itemId: string, met: boolean): OwnerInputNote | null {
   const entry = OWNER_INPUTS[itemId];
   if (met || entry === undefined) return null;
   const codes = entry.codes.join(" and ");

@@ -7,7 +7,7 @@ import { ProviderError, type ImageProvider, type ImageRequest } from "./image-pr
  * always fails, to prove the cost is given back.
  */
 
-export type StubImageProvider = ImageProvider & Readonly<{ requests: readonly ImageRequest[] }>;
+type StubImageProvider = ImageProvider & Readonly<{ requests: readonly ImageRequest[] }>;
 
 const SIDE = 64;
 

@@ -18,12 +18,12 @@ export interface SheetInput {
 export const NOT_SET = "Not set";
 
 /** Packing text is a labelled default: nobody at a factory has agreed it. Owner question O5. */
-export const PACKING_DEFAULT: readonly string[] = [
+const PACKING_DEFAULT: readonly string[] = [
   "Fold flat and bag each order separately. Put the order reference on the outside of the bag.",
   "Where an order has a name and number list, bag each player's piece on its own and mark the bag with that name and number.",
   "Pack the orders of this batch together and mark the carton with the batch cut-off date.",
 ];
-export const PACKING_LABEL = `Packing instructions: ${DEFAULT_SETTINGS_LABEL}.`;
+const PACKING_LABEL = `Packing instructions: ${DEFAULT_SETTINGS_LABEL}.`;
 
 export interface SheetModel {
   readonly title: string;

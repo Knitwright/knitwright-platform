@@ -29,7 +29,7 @@ const UNIT_NAMES: Readonly<Record<string, ChartUnit>> = {
   "″": "in",
 };
 
-export type UnitReading = Readonly<{ ok: true; unit: ChartUnit | null }> | Readonly<{ ok: false }>;
+type UnitReading = Readonly<{ ok: true; unit: ChartUnit | null }> | Readonly<{ ok: false }>;
 
 /** The unit a cell names. An empty cell names none, so the unit chosen on the screen applies. */
 export function readChartUnit(cell: string): UnitReading {

@@ -4,7 +4,6 @@ import { z } from "zod";
 export const useTemplateSchema = z.object({
   templateId: z.uuid("Choose a template from the list."),
 });
-export type UseTemplate = z.output<typeof useTemplateSchema>;
 
 /** Where a person lands in the editor on a new design. */
 export const editorAddress = (projectId: string): string => `/studio/${encodeURIComponent(projectId)}`;

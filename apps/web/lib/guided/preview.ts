@@ -7,7 +7,7 @@ import { formatLength, type LengthUnit } from "@/lib/units/length";
  * changes how they are written.
  */
 
-export interface PreviewRow {
+interface PreviewRow {
   readonly pointId: string;
   readonly label: string;
   readonly value: string;
@@ -15,7 +15,7 @@ export interface PreviewRow {
   readonly source: string | null;
 }
 
-export const NOT_GIVEN = "Not given yet";
+const NOT_GIVEN = "Not given yet";
 
 const TENTHS_PER_CM = 100;
 

@@ -1,7 +1,7 @@
 export type ArtworkFormat = "png" | "jpeg" | "tiff" | "pdf" | "svg";
 
 /** What the first bytes say a file is. A native Illustrator file is named so it can be refused with advice. */
-export type Sniffed = ArtworkFormat | "ai-native";
+type Sniffed = ArtworkFormat | "ai-native";
 
 const startsWith = (bytes: Uint8Array, signature: readonly number[], offset = 0): boolean =>
   signature.every((byte, index) => bytes[offset + index] === byte);

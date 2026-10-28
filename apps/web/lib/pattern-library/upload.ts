@@ -45,7 +45,7 @@ export const uploadFieldsSchema = z.object({
   sizeOrder: z.string().trim().max(300).optional(),
   landmarks: landmarksJson.optional(),
 });
-export type UploadFields = z.output<typeof uploadFieldsSchema>;
+type UploadFields = z.output<typeof uploadFieldsSchema>;
 
 export const programmeFieldsSchema = z.object({
   ...common,
@@ -54,9 +54,9 @@ export const programmeFieldsSchema = z.object({
   sizeMap: z.record(z.string().min(1).max(16), z.string().min(1).max(40)).refine((m) => Object.keys(m).length >= 1 && Object.keys(m).length <= 40, "Give between 1 and 40 sizes."),
   note: z.string().trim().max(500).default(""),
 });
-export type ProgrammeFields = z.output<typeof programmeFieldsSchema>;
+type ProgrammeFields = z.output<typeof programmeFieldsSchema>;
 
-export type UploadedFile = Readonly<{ name: string; bytes: Uint8Array }>;
+type UploadedFile = Readonly<{ name: string; bytes: Uint8Array }>;
 export type Uploaded = Readonly<{
   id: string;
   version: number;

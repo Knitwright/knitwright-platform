@@ -90,7 +90,7 @@ const MM_PER_INCH = 25.4;
 /** Dots per inch for a picture of `pixels` across `mm` of fabric. */
 export const effectiveDpi = (pixels: number, mm: number): number => Math.round((pixels / (mm / MM_PER_INCH)) * 10) / 10;
 
-export const DPI_SOURCE_NOTE = "The 150 dots per inch is Knitwright's default, not from your print house.";
+const DPI_SOURCE_NOTE = "The 150 dots per inch is Knitwright's default, not from your print house.";
 
 /** W7b's warning for a raster of `widthPx` printed `widthMm` wide, or null, with where the minimum comes from. */
 export function dpiWarning(widthPx: number, widthMm: number): string | null {

@@ -7,7 +7,7 @@ import { parseSourceNote } from "./source-note";
 
 export type { ParseProblem } from "./parse-row";
 
-export type ParseResult =
+type ParseResult =
   | { readonly ok: true; readonly charts: readonly SizeChart[]; readonly skippedLines: readonly number[] }
   | { readonly ok: false; readonly problems: readonly ParseProblem[] };
 

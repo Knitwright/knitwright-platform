@@ -5,7 +5,7 @@
 import { rotateAbout } from "./geometry";
 import type { FlatImage, FlatPath, Point } from "./model";
 
-export const DRAWABLE_TYPES = ["image/png", "image/jpeg"] as const;
+const DRAWABLE_TYPES = ["image/png", "image/jpeg"] as const;
 
 export type DrawableType = (typeof DRAWABLE_TYPES)[number];
 

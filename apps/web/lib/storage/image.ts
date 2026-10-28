@@ -17,7 +17,7 @@ export const IMAGE_LIMITS = {
 
 type SniffedType = "image/png" | "image/jpeg" | "image/webp";
 
-export type CheckedImage = Readonly<{
+type CheckedImage = Readonly<{
   bytes: Buffer;
   /** Only formats the PDF export can draw. */
   contentType: "image/png" | "image/jpeg";

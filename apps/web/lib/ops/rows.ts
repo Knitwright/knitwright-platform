@@ -10,7 +10,7 @@ const releaseSnapshot = z.object({
   files: z.number().int().optional(),
 });
 
-export const orderRow = z.object({
+const orderRow = z.object({
   id: z.uuid(),
   release_id: z.uuid(),
   brand_id: z.uuid(),
@@ -83,7 +83,7 @@ export const toOrder = (data: unknown): OpsOrder => {
   };
 };
 
-export const batchRow = z.object({
+const batchRow = z.object({
   id: z.uuid(),
   factory_profile_id: z.string(),
   fabric_key: z.string(),
@@ -98,7 +98,7 @@ export const toBatch = (data: unknown): Batch => {
   return { id: r.id, factoryProfileId: r.factory_profile_id, fabricKey: r.fabric_key, articleId: r.article_id, cutoffAt: iso(r.cutoff_at) };
 };
 
-export const eventRow = z.object({
+const eventRow = z.object({
   id: z.uuid(),
   kind: z.string(),
   from_status: z.string().nullable(),

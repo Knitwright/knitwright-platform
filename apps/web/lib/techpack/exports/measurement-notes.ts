@@ -1,7 +1,7 @@
 import type { MeasureGroup } from "../types";
 import { table, text, textColumn, type ExportTable } from "./table-types";
 
-export const MEASUREMENT_NOTES = "Measurement notes";
+const MEASUREMENT_NOTES = "Measurement notes";
 /** Stands for the name of a measurement at the start of a note, while notes of several rows are compared. */
 const NAME_SLOT = "\u0000";
 const EACH_OF_THESE = "Each of these";

@@ -39,7 +39,7 @@ export interface ProductionReaders {
   acceptedImports(): Promise<readonly AcceptedImport[]>;
 }
 
-export interface ProductionContext {
+interface ProductionContext {
   readonly spec: GarmentSpec;
   readonly names: MemberNames;
 }

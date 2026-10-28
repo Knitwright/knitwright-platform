@@ -19,7 +19,7 @@ const PanelCanvas = dynamic(() => import("./PanelCanvas"), {
 const CANVAS_WIDTH_PX = 480;
 const MARGIN_MM = 30;
 
-export type PanelLayersEditorProps = Readonly<{
+type PanelLayersEditorProps = Readonly<{
   projectId: string;
   designName: string;
   version: number;

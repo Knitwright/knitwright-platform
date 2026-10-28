@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const BLENDS = ["normal", "multiply", "screen", "overlay", "knock-out"] as const;
+const BLENDS = ["normal", "multiply", "screen", "overlay", "knock-out"] as const;
 export const blendSchema = z.enum(BLENDS);
 export type Blend = z.output<typeof blendSchema>;
 
 /** Multiply, screen and overlay mix pixels, so a piece that uses one is printed as a raster. Normal and knock-out stay vector. */
-export const RASTER_BLENDS: readonly Blend[] = ["multiply", "screen", "overlay"];
+const RASTER_BLENDS: readonly Blend[] = ["multiply", "screen", "overlay"];
 export const blendNeedsRaster = (blend: Blend): boolean => RASTER_BLENDS.includes(blend);
 
 export const LAYER_KINDS = ["ground", "pattern", "image-fill", "graphic", "text", "player-mark"] as const;

@@ -20,7 +20,7 @@ import {
 
 export type KitStyleId = "plain" | KitPatternStyle;
 
-export interface KitStyle {
+interface KitStyle {
   readonly id: KitStyleId;
   readonly label: string;
   /** One short line under the tile. */
@@ -118,7 +118,7 @@ export function readClubColours(query: Readonly<Record<string, unknown>>, fallba
   };
 }
 
-export type StyleActions = { readonly ok: true; readonly actions: readonly SpecAction[] } | { readonly ok: false; readonly reason: string };
+type StyleActions = { readonly ok: true; readonly actions: readonly SpecAction[] } | { readonly ok: false; readonly reason: string };
 
 function colourwayWith(spec: GarmentSpec, colourway: Colourway, colours: ClubColours): Colourway {
   const present = new Set(panelsFor(spec).map((panel) => panel.id));

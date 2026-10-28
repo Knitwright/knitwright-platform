@@ -18,10 +18,10 @@ const colour = (id: string, role: string, screen: string, codes: StackColour["co
   provenance: "user-edited",
 });
 
-export const NAVY = colour("navy", "ground", "#1b2a49", [{ system: "factory", value: "NV-204", source: "user-edited" }]);
-export const GOLD = colour("gold", "dots", "#d4af37", [{ system: "pantone-tcx", value: "13-0859 TCX", source: "user-edited" }]);
-export const WHITE = colour("white", "numbers", "#ffffff");
-export const GREEN = colour("green", "camo", "#3b5d2a", [{ system: "factory", value: "GR-7", source: "user-edited" }]);
+const NAVY = colour("navy", "ground", "#1b2a49", [{ system: "factory", value: "NV-204", source: "user-edited" }]);
+const GOLD = colour("gold", "dots", "#d4af37", [{ system: "pantone-tcx", value: "13-0859 TCX", source: "user-edited" }]);
+const WHITE = colour("white", "numbers", "#ffffff");
+const GREEN = colour("green", "camo", "#3b5d2a", [{ system: "factory", value: "GR-7", source: "user-edited" }]);
 
 const base = {
   views: [...FLAT],
@@ -32,7 +32,7 @@ const base = {
 
 const ground: Layer = { ...base, kind: "ground", id: "ground-body", name: "Body", colourId: "navy" };
 
-export const DOTS_LAYER: Layer = {
+const DOTS_LAYER: Layer = {
   ...base,
   kind: "pattern",
   id: "dots",
@@ -43,7 +43,7 @@ export const DOTS_LAYER: Layer = {
   colourIds: ["gold", "white"],
 };
 
-export const CAMO_LAYER: Layer = {
+const CAMO_LAYER: Layer = {
   ...base,
   kind: "pattern",
   id: "camo",
@@ -55,7 +55,7 @@ export const CAMO_LAYER: Layer = {
   colourIds: ["green", "gold", "white"],
 };
 
-export const TILE_LAYER: Layer = {
+const TILE_LAYER: Layer = {
   ...base,
   kind: "image-fill",
   id: "club-tile",
@@ -69,7 +69,7 @@ export const TILE_LAYER: Layer = {
   fit: "cover",
 };
 
-export const PANEL_LAYER: Layer = {
+const PANEL_LAYER: Layer = {
   ...base,
   kind: "image-fill",
   id: "front-art",
@@ -100,7 +100,7 @@ export const CREST_LAYER: GraphicLayer = {
   technique: "sublimation",
 };
 
-export const OLD_LOGO_LAYER: GraphicLayer = {
+const OLD_LOGO_LAYER: GraphicLayer = {
   ...base,
   kind: "graphic",
   id: "sleeve-logo",
@@ -116,7 +116,7 @@ export const OLD_LOGO_LAYER: GraphicLayer = {
   knockOut: false,
 };
 
-export const TEXT_LAYER: Layer = {
+const TEXT_LAYER: Layer = {
   ...base,
   kind: "text",
   id: "sponsor",
@@ -131,7 +131,7 @@ export const TEXT_LAYER: Layer = {
   colourId: "white",
 };
 
-export const MARK_LAYER: Layer = {
+const MARK_LAYER: Layer = {
   ...base,
   kind: "player-mark",
   id: "mark-back-name",

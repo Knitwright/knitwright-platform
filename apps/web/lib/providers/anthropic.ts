@@ -27,7 +27,7 @@ const responseSchema = z.object({
   usage: z.object({ input_tokens: z.number(), output_tokens: z.number() }),
 });
 
-export interface AnthropicOptions {
+interface AnthropicOptions {
   readonly apiKey: string;
   readonly model: string;
   /** False for the models that answer a forced tool choice with an error. */
@@ -35,7 +35,7 @@ export interface AnthropicOptions {
   readonly fetch?: Fetch;
 }
 
-export function anthropicBody(options: Pick<AnthropicOptions, "model" | "forcedTool">, request: ModelRequest) {
+function anthropicBody(options: Pick<AnthropicOptions, "model" | "forcedTool">, request: ModelRequest) {
   const image = request.image
     ? [{ type: "image", source: { type: "base64", media_type: request.image.mediaType, data: request.image.base64 } }]
     : [];

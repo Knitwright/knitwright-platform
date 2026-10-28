@@ -83,7 +83,7 @@ function switchHyphenationOff(): void {
 }
 
 /** The document as a React element for the PDF library. It holds every section, and a footer on every page. */
-export function techPackDocument(pack: TechPack, images: ImageMap, options: PdfOptions = {}): ReactElement<DocumentProps> {
+function techPackDocument(pack: TechPack, images: ImageMap, options: PdfOptions = {}): ReactElement<DocumentProps> {
   registerPdfFont();
   switchHyphenationOff();
   const { safe, replaced } = safety();

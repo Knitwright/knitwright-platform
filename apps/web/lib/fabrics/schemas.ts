@@ -7,7 +7,7 @@ const pct = z.number().finite().min(0).max(100);
 const optionalNumber = (schema: z.ZodNumber) => z.preprocess((v) => (v === "" || v === null || v === undefined ? undefined : typeof v === "string" ? Number(v) : v), schema.optional());
 
 export const MAX_FABRICS_PER_BRAND = 60;
-export const MAX_TEST_PHOTOS = 6;
+const MAX_TEST_PHOTOS = 6;
 
 /** What a supplier's sheet states, each value optional. Anything left out stays "not set". */
 export const supplierSheetSchema = z.object({

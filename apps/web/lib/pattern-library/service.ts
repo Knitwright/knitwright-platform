@@ -73,7 +73,7 @@ export async function getBlock(client: SupabaseClient, brandId: string, blockId:
   return { block: viewOf(blockRowSchema.parse(block.data), all[0] ?? null), sizes: sizeViews, reviews: all };
 }
 
-export type NewBlock = Readonly<{
+type NewBlock = Readonly<{
   brandId: string;
   userId: string;
   productKey: string;
@@ -113,7 +113,7 @@ export async function createBlock(admin: SupabaseClient, input: NewBlock): Promi
   return { id: row.block_id, version: row.block_version, setFileId: setFile };
 }
 
-export type NewProgramme = Readonly<{
+type NewProgramme = Readonly<{
   brandId: string;
   userId: string;
   productKey: string;

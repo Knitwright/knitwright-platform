@@ -11,7 +11,7 @@ import { markReport, resolvePlacement } from "../placement";
 import type { Built, LayerResult, LayerSpace } from "../types";
 
 /** Heights a mark is drawn at when its layer gives none. Knitwright defaults, said in the file. */
-export const DEFAULT_MARK_HEIGHT_MM = { "back-name": 60, "back-number": 200, "front-number": 100, "leg-number": 80 } as const;
+const DEFAULT_MARK_HEIGHT_MM = { "back-name": 60, "back-number": 200, "front-number": 100, "leg-number": 80 } as const;
 
 const NO_COLOUR = "#000000";
 

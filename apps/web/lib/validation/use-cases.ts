@@ -15,9 +15,6 @@ export interface Report extends ValidationResult {
   readonly findings: readonly Finding[];
 }
 
-/** The design as the checks read it: its garment type and the tech pack's readiness section. */
-export type ReadinessGroups = NonNullable<DesignInput["readiness"]>;
-
 /** Runs the checks and reads the stored status. Writes nothing. */
 export async function reportFor(
   client: SupabaseClient,

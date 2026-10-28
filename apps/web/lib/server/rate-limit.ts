@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RateLimitRule } from "./core/guard";
 
-export type RateLimiter = (key: string, rule: RateLimitRule) => Promise<boolean>;
+type RateLimiter = (key: string, rule: RateLimitRule) => Promise<boolean>;
 
 /**
  * Counts requests in Postgres through `rate_limit_hit`, which is atomic. If the count

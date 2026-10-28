@@ -12,7 +12,7 @@ import { layerChecks, type AssetFacts } from "@/lib/panel-layers/guardrail-input
 import { toFabric } from "@/lib/panel-layers/to-fabric";
 
 const VIEW = "front";
-export const NEW_TEXT = "Your text";
+const NEW_TEXT = "Your text";
 
 type Input = Readonly<{ projectId: string; version: number; stack: ArtworkStack; panel: Panel; facts: AssetFacts }>;
 

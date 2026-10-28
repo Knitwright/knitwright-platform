@@ -7,7 +7,7 @@ const CM_PER_MM = 0.1;
 const TOLERANCE_CM = 0.05;
 
 /** Every number written in the text. "52,5" is also read as 52.5. */
-export function statedNumbers(text: string): readonly number[] {
+function statedNumbers(text: string): readonly number[] {
   const plain = [...text.matchAll(/\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
   const comma = [...text.matchAll(/\d+,\d+/g)].map((match) => Number(match[0].replace(",", ".")));
   return [...plain, ...comma].filter(Number.isFinite);

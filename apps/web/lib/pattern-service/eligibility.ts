@@ -4,7 +4,7 @@ import { slotFor } from "@/lib/pattern-library/slots";
 export const HAS_PATTERN_TEXT = "This garment already has a pattern in your library.";
 export const NO_SLOT_TEXT = "Knitwright has no pattern slot for this garment, so it cannot be sent as a pattern request yet.";
 
-export type Eligibility = Readonly<{ ok: true } | { ok: false; reason: string }>;
+type Eligibility = Readonly<{ ok: true } | { ok: false; reason: string }>;
 
 /**
  * A design can be sent to the pattern service when its article has no pattern block in the brand's library

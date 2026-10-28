@@ -23,7 +23,7 @@ export function EnrolForm() {
 }
 
 type Choice = Readonly<{ id: string; label: string }>;
-export type SubmissionChoices = Readonly<{ designs: readonly Choice[]; sports: readonly Choice[]; styles: readonly Choice[]; colours: readonly Choice[] }>;
+type SubmissionChoices = Readonly<{ designs: readonly Choice[]; sports: readonly Choice[]; styles: readonly Choice[]; colours: readonly Choice[] }>;
 
 /** The lists come from the page, so this client component does not pull the template catalogue (and zod) into the browser. */
 export function NewSubmissionForm({ designs, sports, styles, colours }: SubmissionChoices) {

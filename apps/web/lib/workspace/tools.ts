@@ -37,7 +37,7 @@ export type SectionId =
   | "quote"
   | "production";
 
-export interface ToolInfo {
+interface ToolInfo {
   readonly id: ToolId;
   /** The word under the icon on the rail and the tab bar. */
   readonly label: string;
@@ -200,9 +200,9 @@ export function railKeyTarget(current: ToolId, key: string): RailToolId | null {
   return null;
 }
 
-export type JourneyStepId = "design" | "factory" | "committee" | "quote";
+type JourneyStepId = "design" | "factory" | "committee" | "quote";
 
-export interface JourneyStep {
+interface JourneyStep {
   readonly id: JourneyStepId;
   readonly label: string;
   readonly href: string;

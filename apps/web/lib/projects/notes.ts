@@ -1,4 +1,17 @@
-import { KIT_PATTERN_LABELS, LABELLING_LABELS, getType, type GarmentSpec, type SpecAction } from "@/lib/garment";
+import {
+  KIT_PATTERN_LABELS,
+  LABELLING_LABELS,
+  getType,
+  isDetailAction,
+  isMaterialAction,
+  isMeasuredAction,
+  unhandledAction,
+  type DetailAction,
+  type GarmentSpec,
+  type MaterialAction,
+  type MeasuredAction,
+  type SpecAction,
+} from "@/lib/garment";
 import { cmText } from "./measurement-input";
 
 /** The most characters a version note may hold. The database enforces the same limit. */
@@ -47,8 +60,8 @@ const nameOf = (list: readonly { id: string; name: string }[], id: string): stri
 const sentence = (noun: string, name: string | null, verb: string, fallback: string): string =>
   name === null ? fallback : `${noun} ${name} ${verb}.`;
 
-/** Notes for options, measurements, sizing and tolerances. Null when the action is not one of them. */
-function describeMeasured(type: Type | undefined, action: SpecAction): string | null {
+/** Notes for options, measurements, sizing and tolerances. */
+function describeMeasured(type: Type | undefined, action: MeasuredAction): string {
   switch (action.type) {
     case "set-option":
       return clipNote(optionNote(type, action.optionId, action.choiceId));
@@ -66,13 +79,11 @@ function describeMeasured(type: Type | undefined, action: SpecAction): string | 
       return clipNote(`Tolerance for ${pointLabel(type, action.entry.pointId)} set to ${cmText(action.entry.value)} cm.`);
     case "remove-tolerance":
       return clipNote(`Your tolerance for ${pointLabel(type, action.pointId)} was removed.`);
-    default:
-      return null;
   }
 }
 
-/** Notes for fabrics, colourways and artwork. Null when the action is not one of them. */
-function describeMaterials(spec: GarmentSpec, type: Type | undefined, action: SpecAction): string | null {
+/** Notes for fabrics, colourways and artwork. */
+function describeMaterials(spec: GarmentSpec, type: Type | undefined, action: MaterialAction): string {
   switch (action.type) {
     case "add-fabric":
       return clipNote(`Fabric ${action.fabric.name} added.`);
@@ -98,13 +109,11 @@ function describeMaterials(spec: GarmentSpec, type: Type | undefined, action: Sp
       return clipNote(`Artwork ${action.artwork.name} changed.`);
     case "remove-artwork":
       return clipNote(sentence("Artwork", nameOf(spec.artwork, action.id), "removed", "Artwork was removed."));
-    default:
-      return null;
   }
 }
 
-/** Notes for names and numbers, the kit pattern, components, construction, labelling, wearer and type. Null when the action is not one of them. */
-function describeDetails(spec: GarmentSpec, type: Type | undefined, action: SpecAction): string | null {
+/** Notes for names and numbers, the kit pattern, components, construction, labelling, wearer and type. */
+function describeDetails(spec: GarmentSpec, type: Type | undefined, action: DetailAction): string {
   switch (action.type) {
     case "set-names-numbers":
       return spec.namesAndNumbers === undefined ? "Player names and numbers added." : "Player names and numbers changed.";
@@ -128,8 +137,6 @@ function describeDetails(spec: GarmentSpec, type: Type | undefined, action: Spec
       return `Made for ${action.wearer}.`;
     case "change-type":
       return clipNote(`Garment type changed to ${getType(action.typeId)?.label ?? action.typeId}.`);
-    default:
-      return null;
   }
 }
 
@@ -140,7 +147,10 @@ function describeDetails(spec: GarmentSpec, type: Type | undefined, action: Spec
  */
 export const describeAction = (spec: GarmentSpec, action: SpecAction): string => {
   const type = getType(spec.typeId);
-  return describeMeasured(type, action) ?? describeMaterials(spec, type, action) ?? describeDetails(spec, type, action) ?? "";
+  if (isMeasuredAction(action)) return describeMeasured(type, action);
+  if (isMaterialAction(action)) return describeMaterials(spec, type, action);
+  if (isDetailAction(action)) return describeDetails(spec, type, action);
+  return unhandledAction(action, "");
 };
 
 /**

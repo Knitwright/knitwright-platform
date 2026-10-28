@@ -1,12 +1,12 @@
 import { chartSourceSchema, type ChartSource } from "./schemas";
 
-export type SourceNoteResult =
+type SourceNoteResult =
   | { readonly ok: true; readonly source: ChartSource }
   | { readonly ok: false; readonly message: string };
 
 /** A date that does not touch another digit on either side. */
 const DATE_PATTERN = /(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)/g;
-export const EARLIEST_SOURCE_YEAR = 1900;
+const EARLIEST_SOURCE_YEAR = 1900;
 /** Words that link a name to a date, such as "Sameed on 2026-10-02". They are not part of the name. */
 const LINK_WORDS = /\s+(?:on|dated|date|by)$|^(?:by|from)\s+/i;
 /** A dash is only a separator when a space follows it, so "-Sam" keeps its dash and is refused. */

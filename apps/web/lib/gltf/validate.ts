@@ -3,12 +3,12 @@ import { TEXTURE_SIZE, type LayoutPanel, type PanelLayout } from "./layout";
 import type { GltfModel, GltfNode } from "./types";
 
 /** Half a pixel of the 2048 picture. An artist's model must put each island's edges within this of the layout. */
-export const DEFAULT_TOLERANCE_PX = 0.5;
+const DEFAULT_TOLERANCE_PX = 0.5;
 /** The mesh of a panel is centred on its node origin to within this, so grading by node scale grows it about its middle. */
-export const ORIGIN_TOLERANCE_MM = 1;
+const ORIGIN_TOLERANCE_MM = 1;
 const OUTSIDE_PX = 0.5;
 
-export interface PanelReport {
+interface PanelReport {
   readonly panelId: string;
   readonly found: boolean;
   /** The greatest distance, in pixels of the 2048 picture, between an edge of the model's island and the layout's. */
@@ -19,13 +19,13 @@ export interface PanelReport {
   readonly reason: string | null;
 }
 
-export interface ModelReport {
+interface ModelReport {
   readonly ok: boolean;
   readonly panels: readonly PanelReport[];
   readonly issues: readonly string[];
 }
 
-export interface ValidateOptions {
+interface ValidateOptions {
   readonly tolerancePx?: number;
   /** The bytes of each buffer, when they are not in the file as data addresses. */
   readonly buffers?: readonly Uint8Array[];

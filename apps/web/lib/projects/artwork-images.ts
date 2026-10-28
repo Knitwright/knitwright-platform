@@ -12,7 +12,7 @@ export const MAX_EMBEDDED_BYTES = 600 * 1024;
 export const MAX_READS_AT_ONCE = 3;
 
 /** Limits that differ between the screen and a print. The count and the reads at once are always the same. */
-export interface PictureLimits {
+interface PictureLimits {
   /** The most bytes of pictures in one document, counted after they are shrunk. The screen limit when missing. */
   readonly maxEmbeddedBytes?: number;
 }

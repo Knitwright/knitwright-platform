@@ -1,6 +1,6 @@
 import { migrateSpec, repairSpec, type GarmentSpec } from "@/lib/garment";
 
-export type SnapshotCopy =
+type SnapshotCopy =
   | Readonly<{ ok: true; spec: GarmentSpec }>
   | Readonly<{ ok: false; reason: string }>;
 

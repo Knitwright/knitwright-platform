@@ -7,7 +7,7 @@ export const NOT_A_VIDEO_MESSAGE = "That recording is not a video this studio ca
 export const TOO_LARGE_MESSAGE = "That recording is too large to keep. Record a shorter one.";
 export const NO_POSTER_MESSAGE = "The recording has no still picture with it. Record it again.";
 
-export type CheckedRecording = Readonly<{ video: Uint8Array; type: VideoType; poster: Uint8Array; width: number; height: number }>;
+type CheckedRecording = Readonly<{ video: Uint8Array; type: VideoType; poster: Uint8Array; width: number; height: number }>;
 
 /**
  * Checks what a browser sent for a turntable: the video by its first bytes and size, the still picture by decoding it.

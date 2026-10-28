@@ -4,7 +4,7 @@ import type { ProductionInput } from "./input";
 import { patternSizeOf } from "./measured";
 
 /** Two joined edges agree when they differ by no more than this, or by the ease the pattern states. */
-export const SEAM_TOLERANCE_MM = 2;
+const SEAM_TOLERANCE_MM = 2;
 
 type Item = ReadinessItem;
 
@@ -23,7 +23,7 @@ const named = (pieces: readonly PatternPiece[]): string => listOf([...new Set(pi
 const FINISHED_EDGE = /(^|-)hem$/;
 
 /** Seams that two or more pieces share, so they are sewn together. A hem is not one. */
-export function joinedSeams(pieces: readonly PatternPiece[]): string[] {
+function joinedSeams(pieces: readonly PatternPiece[]): string[] {
   const owners = new Map<string, Set<string>>();
   for (const piece of pieces) {
     for (const edge of piece.seamAllowance) owners.set(edge.seamId, (owners.get(edge.seamId) ?? new Set()).add(piece.id));

@@ -64,7 +64,7 @@ const LABELS_BY_CUT: Readonly<Record<Exclude<Cut, "unisex">, readonly string[]>>
   junior: AU_JUNIOR_RUN.sizes,
 };
 
-export type CutOfProduct = Readonly<{
+type CutOfProduct = Readonly<{
   cut: Exclude<Cut, "unisex">;
   /** The starter chart this cut takes its values from, or null when there is none. */
   chart: SizeChart | null;
@@ -83,7 +83,7 @@ export function cutsOfProduct(typeId: string): readonly CutOfProduct[] {
   }));
 }
 
-export type LabelValue = Readonly<{
+type LabelValue = Readonly<{
   pointId: string;
   /** Tenths of a millimetre, the garment laid flat. */
   valueTenthsMm: number;
@@ -91,7 +91,7 @@ export type LabelValue = Readonly<{
   provenance: "suggested-chart";
 }>;
 
-export type LabelValues = Readonly<{
+type LabelValues = Readonly<{
   label: string;
   cut: Cut;
   status: "suggested" | "no-starter-values";

@@ -6,7 +6,7 @@ import type { PatternOnlyTarget } from "./input";
 import type { OnPatternCell, OnPatternRow, OnPatternTable, PatternOnlyRow } from "./types";
 
 /** Names for the points only a pattern can give. An id not listed is named from the id itself. */
-export const PATTERN_ONLY_LABELS: Readonly<Record<string, string>> = {
+const PATTERN_ONLY_LABELS: Readonly<Record<string, string>> = {
   "cap-height": "Sleeve cap height",
   "armhole-curve": "Armhole curve, front and back",
   "cap-curve": "Sleeve cap curve",

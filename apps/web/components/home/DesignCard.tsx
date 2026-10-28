@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ProjectSummary } from "@/lib/projects/service";
 
-export interface CardBasics extends ProjectSummary {
+interface CardBasics extends ProjectSummary {
   /** When it was last changed, in words. */
   readonly changed: string;
 }

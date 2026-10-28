@@ -3,7 +3,6 @@
  * without shipping the schema library (tests/architecture/client-weight.test.ts).
  */
 export const KIT_FONTS = ["geist"] as const;
-export const FONT_LABELS: Readonly<Record<(typeof KIT_FONTS)[number], string>> = { geist: "Geist (the bundled font)" };
 export const SPONSORS_MAX = 3;
 
 export const WEARER_GROUPS = ["mens", "womens", "junior", "unisex"] as const;

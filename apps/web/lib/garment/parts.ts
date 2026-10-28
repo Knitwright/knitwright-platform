@@ -13,9 +13,9 @@ export const FABRIC_WEIGHT_MAX_GSM = 2000;
 export const COMPONENT_TEXT_MAX_LENGTH = 200;
 export const QUANTITY_MAX_LENGTH = 60;
 export const STITCH_DENSITY_MAX_LENGTH = 60;
-export const MAX_ROTATION_DEGREES = 359;
-export const SIZE_LABEL_MAX_LENGTH = 12;
-export const MAX_SIZES = 24;
+const MAX_ROTATION_DEGREES = 359;
+const SIZE_LABEL_MAX_LENGTH = 12;
+const MAX_SIZES = 24;
 
 /** One measured value. It always says where it came from. */
 export const measurementShape = {
@@ -44,7 +44,7 @@ const fabricSourcesSchema = z
     stretch: provenanceSchema.optional(),
   })
   .readonly();
-export type FabricSources = z.output<typeof fabricSourcesSchema>;
+type FabricSources = z.output<typeof fabricSourcesSchema>;
 
 type FabricValues = {
   readonly composition: string;

@@ -9,7 +9,7 @@ import { clamp01, type LandmarkSet, type Pt } from "./types";
  * give different certainty; each landmark carries its own.
  */
 
-export interface FoundLandmarks {
+interface FoundLandmarks {
   readonly points: LandmarkSet;
   /** 0 to 1 for each landmark found. */
   readonly confidence: Readonly<Partial<Record<LandmarkId, number>>>;
@@ -103,6 +103,26 @@ function shoulderPoint(mask: Mask, hps: Pt, limitX: number): Pt | null {
   return null;
 }
 
+/** The high shoulder point: moving out from the centre, the first column whose top is at the garment's top edge. */
+function highShoulderPoint(mask: Mask, centre: number): Pt | null {
+  const { minY, maxY, minX, maxX } = mask.bbox;
+  const edge = Math.round(minY + Math.max(2, (maxY - minY) * 0.008));
+  for (let step = 1; step <= (maxX - minX) / 2; step += 1) {
+    const y = topAt(mask, centre + step);
+    if (y !== null && y <= edge) return { x: centre + step, y };
+  }
+  return null;
+}
+
+/** The shoulder point where the top edge steepens, else a less sure one most of the way from the neck to the underarm. */
+function shoulderOrEstimate(mask: Mask, hps: Pt, underarmX: number, body: Body): { point: Pt; sure: number } | null {
+  const shoulder = shoulderPoint(mask, hps, underarmX + Math.round(body.width * 0.4));
+  if (shoulder !== null) return { point: shoulder, sure: 0.7 };
+  const x = Math.round(hps.x + (underarmX - hps.x) * 0.95);
+  const y = topAt(mask, x);
+  return y !== null ? { point: { x, y }, sure: 0.4 } : null;
+}
+
 /** The two body views. Sleeves and collars are not fitted in this version (decision 0034: body only). */
 export function findBodyLandmarks(mask: Mask, view: ViewId): FoundLandmarks {
   const notes: string[] = [];
@@ -112,7 +132,7 @@ export function findBodyLandmarks(mask: Mask, view: ViewId): FoundLandmarks {
     points[id] = point;
     confidence[id] = clamp01(sure);
   };
-  const { minY, maxY, minX, maxX } = mask.bbox;
+  const { minY, maxY } = mask.bbox;
   const height = maxY - minY;
   const body = bodyColumn(mask);
   const centre = Math.round(body.centre);
@@ -125,12 +145,7 @@ export function findBodyLandmarks(mask: Mask, view: ViewId): FoundLandmarks {
     set(neckId, { x: centre, y: neckTop }, dip > 0.04 ? 0.9 : 0.5);
     if (dip <= 0.04) notes.push("The neckline is hard to see, so the neck point is approximate.");
   }
-  const edge = Math.round(minY + Math.max(2, height * 0.008));
-  let hps: Pt | null = null;
-  for (let step = 1; step <= (maxX - minX) / 2 && hps === null; step += 1) {
-    const y = topAt(mask, centre + step);
-    if (y !== null && y <= edge) hps = { x: centre + step, y };
-  }
+  const hps = highShoulderPoint(mask, centre);
   if (hps !== null) set("hps", hps, 0.85);
 
   const found = underarmPoint(mask, body);
@@ -142,13 +157,8 @@ export function findBodyLandmarks(mask: Mask, view: ViewId): FoundLandmarks {
   if (!sleeved) notes.push("No sleeves were found, so the underarm is a rough place.");
 
   if (hps !== null && extent) {
-    const shoulder = shoulderPoint(mask, hps, extent.right + Math.round(body.width * 0.4));
-    if (shoulder !== null) set("shoulder-point", shoulder, 0.7);
-    else {
-      const x = Math.round(hps.x + (extent.right - hps.x) * 0.95);
-      const y = topAt(mask, x);
-      if (y !== null) set("shoulder-point", { x, y }, 0.4);
-    }
+    const shoulder = shoulderOrEstimate(mask, hps, extent.right, body);
+    if (shoulder !== null) set("shoulder-point", shoulder.point, shoulder.sure);
   }
 
   const bottom = rowExtent(mask, maxY - 1);

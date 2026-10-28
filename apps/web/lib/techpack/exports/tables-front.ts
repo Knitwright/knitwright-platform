@@ -12,6 +12,7 @@ import {
   value,
   valueColumn,
   type ExportSection,
+  type ExportTable,
 } from "./table-types";
 
 /** The paragraphs of a section: its note, when it has one, then the others. */
@@ -21,6 +22,32 @@ export const sentences = (...lines: readonly (string | null)[]): readonly string
 const MEASURE_HELP =
   "Lengths are in centimetres. The tolerance is how far a measurement may be out, in either direction. Each value says where it came from, and notes on single measurements are listed by code under Measurement notes.";
 const NO_REVISIONS = "No revisions have been recorded yet.";
+
+const revisionsTable = (cover: TechPack["cover"]): ExportTable =>
+  table(
+    "Revision history, newest first",
+    [textColumn("Version"), textColumn("Date"), textColumn("Date (year, month, day)"), textColumn("What changed"), textColumn("Made by")],
+    cover.revisions.map((revision) => [
+      text(String(revision.version)),
+      text(revision.date),
+      text(revision.dateIso),
+      text(revision.note),
+      text(revision.by),
+    ]),
+  );
+
+const documentTable = (pack: TechPack): ExportTable =>
+  table(
+    "Document",
+    [textColumn("Field"), textColumn("Value")],
+    [
+      [text("Version"), text(String(pack.cover.version))],
+      [text("Date of this version"), text(pack.cover.date)],
+      [text("Date of this version (year, month, day)"), text(pack.cover.dateIso)],
+      [text("Printed on"), text(pack.printedOn)],
+      [text("Printed on (year, month, day)"), text(pack.printedOnIso)],
+    ],
+  );
 
 export function coverSection(pack: TechPack): ExportSection {
   const { cover } = pack;
@@ -38,33 +65,13 @@ export function coverSection(pack: TechPack): ExportSection {
       [text("Size run"), value(cover.sizeRun)],
     ],
   );
-  const document = table(
-    "Document",
-    [textColumn("Field"), textColumn("Value")],
-    [
-      [text("Version"), text(String(cover.version))],
-      [text("Date of this version"), text(cover.date)],
-      [text("Date of this version (year, month, day)"), text(cover.dateIso)],
-      [text("Printed on"), text(pack.printedOn)],
-      [text("Printed on (year, month, day)"), text(pack.printedOnIso)],
-    ],
-  );
+  const document = documentTable(pack);
   const options = table(
     "Design options",
     [textColumn("Option"), valueColumn("Choice")],
     cover.options.map((option) => [text(option.label), value(option.choice)]),
   );
-  const revisions = table(
-    "Revision history, newest first",
-    [textColumn("Version"), textColumn("Date"), textColumn("Date (year, month, day)"), textColumn("What changed"), textColumn("Made by")],
-    cover.revisions.map((revision) => [
-      text(String(revision.version)),
-      text(revision.date),
-      text(revision.dateIso),
-      text(revision.note),
-      text(revision.by),
-    ]),
-  );
+  const revisions = revisionsTable(cover);
   return {
     id: "cover",
     title: cover.title,

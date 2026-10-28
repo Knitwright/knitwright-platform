@@ -19,7 +19,7 @@ export const STORAGE_FULL_MESSAGE =
   `Your brand has used its ${megabytes(BRAND_STORAGE_QUOTA_BYTES)} MB of storage, so nothing more can be saved. ` +
   "Delete designs you no longer need, then try again.";
 
-export type StorageRoom = Readonly<{ ok: true }> | Readonly<{ ok: false; message: string }>;
+type StorageRoom = Readonly<{ ok: true }> | Readonly<{ ok: false; message: string }>;
 
 const isAmount = (value: number): boolean => Number.isFinite(value) && value >= 0;
 

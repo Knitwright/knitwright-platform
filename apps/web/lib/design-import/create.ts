@@ -24,7 +24,7 @@ export const NOT_FOUND = "That picture could not be found. Upload it again. Noth
 export const TOO_LARGE_TO_READ = `That picture is too large to read. Use one under ${INTAKE_LIMITS.maxFileBytes / (1024 * 1024)} MB. Nothing was changed.`;
 export const FAILED = "The picture could not be read just now. Nothing was changed. Try again in a moment.";
 
-export type CreateResult =
+type CreateResult =
   | { readonly kind: "ready"; readonly view: ImportView }
   | { readonly kind: "rejection"; readonly reason: string };
 

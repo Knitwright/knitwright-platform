@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { EXCEPTION_KINDS, type ExceptionKind } from "./rules";
 
-export const exceptionRow = z.object({
+const exceptionRow = z.object({
   id: z.uuid(),
   order_id: z.uuid(),
   kind: z.enum(EXCEPTION_KINDS),

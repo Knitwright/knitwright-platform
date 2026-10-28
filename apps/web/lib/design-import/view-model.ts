@@ -38,7 +38,7 @@ export interface ImportView {
   readonly savedAsDesign: boolean;
 }
 
-export const HEADING = `A ${CLOSE_READING}`;
+const HEADING = `A ${CLOSE_READING}`;
 
 function rowsOf(stack: ArtworkStack, report: ImportReport): LayerRow[] {
   const own = new Set(needsOwnFile(stack));

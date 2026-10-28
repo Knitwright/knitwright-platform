@@ -24,7 +24,7 @@ export type TurntableDeps = Readonly<{
   reload: () => Promise<MediaSetView | null>;
 }>;
 
-export type TurntableOutcome = Readonly<{ message: string; tone: "ok" | "warn"; set: MediaSetView | null }>;
+type TurntableOutcome = Readonly<{ message: string; tone: "ok" | "warn"; set: MediaSetView | null }>;
 
 const warn = (message: string): TurntableOutcome => ({ message, tone: "warn", set: null });
 

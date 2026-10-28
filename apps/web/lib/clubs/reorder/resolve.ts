@@ -4,7 +4,7 @@ import type { PlanLine, ReorderPlan } from "./plan";
 /** What a person decided for one line that needed fixing. Any field may be left out. */
 export type Resolution = Readonly<{ index: number; action?: "keep" | "leave-out"; sizeLabel?: string; number?: string }>;
 
-export type Resolved =
+type Resolved =
   | Readonly<{ ok: true; rows: readonly RosterRow[]; leftOut: number }>
   | Readonly<{ ok: false; unresolved: readonly number[] }>;
 

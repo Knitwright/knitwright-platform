@@ -9,7 +9,7 @@ import {
 /** Who is typing. A value they type becomes theirs, and no longer a suggestion. */
 export type Editor = "brand-supplied" | "user-edited";
 
-export type EditResult =
+type EditResult =
   | { readonly ok: true; readonly action: SpecAction }
   | { readonly ok: false; readonly reason: string };
 

@@ -1,7 +1,7 @@
 import type { Measurement } from "./checklist";
 
 /** A line of a form field, as text. Nothing is guessed: a line that cannot be read is reported, not skipped. */
-export type Parsed<T> = Readonly<{ ok: true; value: T }> | Readonly<{ ok: false; problem: string }>;
+type Parsed<T> = Readonly<{ ok: true; value: T }> | Readonly<{ ok: false; problem: string }>;
 
 const lines = (text: string): string[] => text.split(/\r?\n|;/).map((l) => l.trim()).filter((l) => l !== "");
 

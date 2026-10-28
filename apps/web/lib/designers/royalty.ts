@@ -4,9 +4,9 @@
  * rate is not set, or the order carries no currency, the units are counted and nothing accrues.
  */
 
-export const MAX_RATE_MINOR = 1_000_000;
+const MAX_RATE_MINOR = 1_000_000;
 
-export type Accrual = Readonly<{ rateMinor: number | null; currency: string | null; accruedMinor: number }>;
+type Accrual = Readonly<{ rateMinor: number | null; currency: string | null; accruedMinor: number }>;
 
 /** The rate the platform setting holds, or null when it is not set or not a whole number in range. */
 export const rateFromSetting = (value: unknown): number | null =>

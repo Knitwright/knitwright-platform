@@ -48,7 +48,7 @@ export function replayImageCase(entry: Pick<ImageCase, "start">, reply: unknown)
   return resolveImageReading({ spec: startSpec(entry.start), raw });
 }
 
-export interface ImageScore {
+interface ImageScore {
   readonly id: string;
   readonly kindCorrect: boolean;
   /** Null when the case expects a rejection. */

@@ -1,7 +1,7 @@
 import { applyAction, createSpec, type GarmentSpec, type Wearer } from "@/lib/garment";
 import { sizingFromChart, type ChartSet } from "@/lib/sizing";
 
-export type StartingSpec =
+type StartingSpec =
   | Readonly<{ ok: true; spec: GarmentSpec }>
   | Readonly<{ ok: false; reason: string }>;
 

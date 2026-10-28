@@ -14,7 +14,7 @@ export const VISION_MAX_BYTES = 5 * 1024 * 1024;
 /** The longest side of a picture re-encoded for the reading model. */
 const MODEL_EDGE = 1568;
 
-export interface PictureIn {
+interface PictureIn {
   readonly bytes: Uint8Array;
   readonly mediaType: ModelImageType;
   /** What intake said about the file, in its words. */

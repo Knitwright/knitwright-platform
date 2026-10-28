@@ -6,7 +6,7 @@ export type { GeneratedImage, ImageProvider, ImageRequest } from "./image-provid
 export { ProviderError } from "./image-provider";
 export { buildImagePrompt } from "./prompt";
 
-export type ImageProviderEnv = Readonly<{ GEMINI_API_KEY?: string; FAL_KEY?: string; IMAGE_PROVIDER?: "gemini" | "fal" }>;
+type ImageProviderEnv = Readonly<{ GEMINI_API_KEY?: string; FAL_KEY?: string; IMAGE_PROVIDER?: "gemini" | "fal" }>;
 
 /**
  * The image provider the configuration names, or null when its key is not set. Null means the

@@ -31,7 +31,7 @@ const path = (segments: unknown[], extra: Record<string, unknown>) => ({
 });
 
 /** A crest as W7b's vector model: a navy shield with a gold bar edged in white. 100 wide, 120 high. */
-export const CREST_JSON = JSON.stringify({
+const CREST_JSON = JSON.stringify({
   schemaVersion: 1,
   viewBox: { x: 0, y: 0, width: 100, height: 120 },
   statedSizeMm: null,
@@ -43,7 +43,7 @@ export const CREST_JSON = JSON.stringify({
   ],
 });
 
-export interface FakeAsset {
+interface FakeAsset {
   readonly id: string;
   readonly kind: "raster" | "vector";
   readonly widthPx: number;

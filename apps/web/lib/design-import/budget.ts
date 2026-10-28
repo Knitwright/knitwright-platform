@@ -1,6 +1,6 @@
 /** The most one import may spend: 3 vision calls and 2 image edits (plan W7d). A counter, not a promise of cost. */
-export const MAX_VISION_CALLS = 3;
-export const MAX_IMAGE_EDITS = 2;
+const MAX_VISION_CALLS = 3;
+const MAX_IMAGE_EDITS = 2;
 
 export interface Spend {
   readonly visionCalls: number;

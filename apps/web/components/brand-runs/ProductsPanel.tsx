@@ -10,7 +10,7 @@ import { addProductAction, confirmStageAction } from "@/lib/brand-runs/actions";
 import type { ProductView } from "@/lib/brand-runs/service";
 import { canConfirm, nextStage, STAGE_LABELS } from "@/lib/brand-runs/stage";
 
-export type DesignChoice = Readonly<{ id: string; label: string }>;
+type DesignChoice = Readonly<{ id: string; label: string }>;
 type Note = Readonly<{ tone: "ok" | "warn"; text: string }>;
 
 type Props = Readonly<{ products: readonly ProductView[]; designs: readonly DesignChoice[]; canEdit: boolean; selectedId: string | null }>;

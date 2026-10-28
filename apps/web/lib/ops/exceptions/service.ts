@@ -15,7 +15,7 @@ export async function listExceptions(client: SupabaseClient, filter: Readonly<{ 
   return (data ?? []).map(toException);
 }
 
-export interface ExceptionToRaise {
+interface ExceptionToRaise {
   readonly orderId: string;
   readonly kind: ExceptionKind;
   readonly owner: string;

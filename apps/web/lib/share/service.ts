@@ -16,8 +16,8 @@ export const LINK_NOT_FOUND = "That link does not exist.";
 const DESIGN_NOT_FOUND = "That design does not exist.";
 
 /** The most links listed for one design, and the most answers read for them. */
-export const LINKS_LISTED = 50;
-export const ANSWERS_LISTED = 1000;
+const LINKS_LISTED = 50;
+const ANSWERS_LISTED = 1000;
 
 type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }> | null;
 
@@ -47,7 +47,7 @@ const throwIf = (error: DatabaseError, notFound: string): void => {
   if (error) throw shareFailure(error, notFound);
 };
 
-export interface NewShareLink {
+interface NewShareLink {
   readonly id: string;
   readonly version: number;
   readonly expiresAt: string;
@@ -101,7 +101,7 @@ const answerRow = z.object({
   updated_at: z.string(),
 });
 
-export interface ShareLinksOfDesign {
+interface ShareLinksOfDesign {
   readonly links: readonly ShareLink[];
   readonly answers: readonly ShareAnswer[];
 }

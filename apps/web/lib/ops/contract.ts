@@ -30,11 +30,11 @@ import { ORDER_STATUSES } from "./status";
  */
 export const SUBMIT_ORDER_FUNCTION = "submit_order_for_production";
 
-export const SIZES_MAX = 40;
-export const PIECES_PER_SIZE_MAX = 99_999;
+const SIZES_MAX = 40;
+const PIECES_PER_SIZE_MAX = 99_999;
 
 const sizeLabel = z.string().min(1).max(16).refine((s) => s.trim() === s && !/\p{C}/u.test(s), "A size label has no spaces at the ends and no control characters.");
-export const sizesSchema = z
+const sizesSchema = z
   .record(sizeLabel, z.number().int().min(1).max(PIECES_PER_SIZE_MAX))
   .refine((r) => Object.keys(r).length >= 1 && Object.keys(r).length <= SIZES_MAX, `Give between 1 and ${SIZES_MAX} sizes.`);
 
@@ -52,7 +52,7 @@ export const submitOrderInputSchema = z
     currency: z.string().regex(/^[A-Z]{3}$/).nullable().default(null),
   })
   .refine((o) => (o.valueMinor === null) === (o.currency === null), "A value and its currency come together or not at all.");
-export type SubmitOrderInput = z.input<typeof submitOrderInputSchema>;
+type SubmitOrderInput = z.input<typeof submitOrderInputSchema>;
 
 export const submitOrderResultSchema = z.object({
   order_id: z.uuid(),
@@ -63,7 +63,7 @@ export const submitOrderResultSchema = z.object({
   created: z.boolean(),
 });
 
-export interface SubmittedOrder {
+interface SubmittedOrder {
   readonly orderId: string;
   readonly status: (typeof ORDER_STATUSES)[number];
   readonly cutoffAt: string;
@@ -72,7 +72,7 @@ export interface SubmittedOrder {
   readonly created: boolean;
 }
 
-export type SubmitOrderErrorCode = "release_not_found" | "external_ref_conflict" | "invalid_sizes" | "invalid_value" | "invalid_input" | "unexpected_answer" | "database";
+type SubmitOrderErrorCode = "release_not_found" | "external_ref_conflict" | "invalid_sizes" | "invalid_value" | "invalid_input" | "unexpected_answer" | "database";
 const KNOWN_HINTS: readonly SubmitOrderErrorCode[] = ["release_not_found", "external_ref_conflict", "invalid_sizes", "invalid_value"];
 
 export class SubmitOrderError extends Error {

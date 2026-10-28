@@ -6,7 +6,7 @@ import { flatModels } from "@/lib/images/reference";
 import { DEFAULT_CHART_SET } from "@/lib/sizing";
 import type { StudioDesign } from "../studio";
 
-export const CREST_ID = "0b4a5b1e-7c7e-4e57-9d6a-3f1a2b3c4d5e";
+const CREST_ID = "0b4a5b1e-7c7e-4e57-9d6a-3f1a2b3c4d5e";
 
 const crest = {
   id: "crest",
@@ -24,7 +24,7 @@ const crest = {
 };
 
 /** A crest with real detail (a chequer), so a missing or warped one can be told from a plain patch. */
-export const chequer = async (): Promise<Uint8Array> => {
+const chequer = async (): Promise<Uint8Array> => {
   const size = 64;
   const raw = Buffer.alloc(size * size * 3);
   for (let y = 0; y < size; y++) {

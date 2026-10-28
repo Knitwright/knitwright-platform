@@ -16,7 +16,7 @@ export function falModelId(id: ModelId): string {
   return id.startsWith("claude-") ? `anthropic/${id.replace(/-(\d+)-(\d+)$/, "-$1.$2")}` : `openai/${id}`;
 }
 
-export interface FalTextOptions {
+interface FalTextOptions {
   readonly apiKey: string;
   readonly model: ModelId;
   readonly forcedTool: boolean;

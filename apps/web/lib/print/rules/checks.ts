@@ -6,8 +6,8 @@ import { outlineText } from "../text/outline";
  * The smallest a name is printed when no rule says. A Knitwright default, not a competition's rule;
  * the file says so when it is what held a name back.
  */
-export const DEFAULT_MIN_NAME_HEIGHT_MM = 35;
-export const DEFAULT_MIN_NAME_LABEL = "Knitwright default, not from your print house";
+const DEFAULT_MIN_NAME_HEIGHT_MM = 35;
+const DEFAULT_MIN_NAME_LABEL = "Knitwright default, not from your print house";
 
 export const effectiveDpi = (widthPx: number, printedWidthMm: number): number => (widthPx / printedWidthMm) * 25.4;
 
@@ -22,7 +22,7 @@ export function dpiIssue(dpi: number, minDpi: number): PrintIssue | null {
   };
 }
 
-export interface TextFit {
+interface TextFit {
   /** The height to print at, or null when the text does not fit even at the smallest height. */
   readonly heightMm: number | null;
   readonly widthMm: number;

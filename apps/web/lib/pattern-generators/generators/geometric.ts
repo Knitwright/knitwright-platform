@@ -15,7 +15,7 @@ const PARAMS: readonly GeneratorParam[] = [
 ];
 
 /** Whole tile for one motif at one size. Rounded to 0.01 mm, so copies are exactly one tile apart. */
-export function tileOf(values: Values): Tile {
+function tileOf(values: Values): Tile {
   const s = values.size;
   switch (Math.round(values.motif)) {
     case 3:

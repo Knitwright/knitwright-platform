@@ -6,14 +6,14 @@ import type { ImportView } from "./view-model";
  * Types only are imported, so the browser takes none of the server's code.
  */
 
-export interface DrawnView {
+interface DrawnView {
   readonly view: string;
   /** SVG points, "x,y x,y ...". */
   readonly points: string;
   readonly fill: string;
 }
 
-export interface DrawnMark {
+interface DrawnMark {
   readonly layerId: string;
   readonly kind: string;
   readonly x: number;

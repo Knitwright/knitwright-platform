@@ -14,7 +14,7 @@ export interface PlanEntry {
   readonly player: RosterRow | null;
 }
 
-export interface PlanInput {
+interface PlanInput {
   readonly pattern: GradedPattern;
   readonly stack: ArtworkStack;
   readonly sizes: readonly string[];

@@ -8,9 +8,9 @@ import { microdollars, type Cost } from "@/lib/usage/cost";
  * fal-ai/nano-banana-2/edit at 1K (fal's model page, checked 2026-10-13). Google directly is
  * $0.067 (checked 2026-09-29, docs/data-processing.md).
  */
-export const PRICE_PER_IMAGE_DOLLARS = 0.08;
+const PRICE_PER_IMAGE_DOLLARS = 0.08;
 
-export const IMAGES_PER_REQUEST = 2;
+const IMAGES_PER_REQUEST = 2;
 
 export const PHOTOREAL_COST: Cost = {
   feature: "photoreal",

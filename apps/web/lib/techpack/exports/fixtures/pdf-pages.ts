@@ -16,7 +16,7 @@ export interface ReadPage {
 
 const NAMES: Readonly<Record<number, string>> = Object.fromEntries(Object.entries(OPS).map(([name, code]) => [code as number, name]));
 
-export const squash = (text: string): string => text.replace(/\s+/g, " ").trim();
+const squash = (text: string): string => text.replace(/\s+/g, " ").trim();
 
 /** Reading the drawing operations is slow, so it is done only when asked for. */
 export async function readPages(bytes: Uint8Array, options: { readonly operations?: boolean } = {}): Promise<readonly ReadPage[]> {

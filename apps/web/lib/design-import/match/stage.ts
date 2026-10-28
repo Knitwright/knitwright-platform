@@ -20,16 +20,16 @@ import { trial, type Scene, type Trial } from "./search";
 /** A proposed style must differ from the picture on no more than this share of the pixels scored. A setting, not a measurement. */
 export const ERROR_LIMIT = 0.15;
 /** With no repeat, a block must hold this many separate patches of colour to count as a pattern rather than plain blocks of colour. */
-export const BUSY_REGIONS = 8;
+const BUSY_REGIONS = 8;
 /** A patch smaller than this many pixels is a speck, not counted. */
 const LEAST_PATCH_PX = 12;
 /** A colour under this share of the scored block is a speck, not part of a pattern. */
-export const MIN_INK_SHARE = 0.02;
+const MIN_INK_SHARE = 0.02;
 const MARGIN_PX = 3;
 const MIN_BLOCK_PX = 24;
 const MOST_TILE_PX = 2048;
 
-export interface StageOptions {
+interface StageOptions {
   readonly budget: MatchBudget;
   readonly lookup?: (id: string) => PatternGenerator | undefined;
 }

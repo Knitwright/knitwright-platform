@@ -6,7 +6,7 @@ import { sizingSchema, type Sizing, type SpecAction } from "@/lib/garment";
  * message beside the field it belongs to.
  */
 
-export type SizingFormResult =
+type SizingFormResult =
   | Readonly<{ ok: true; action: Extract<SpecAction, { type: "set-sizing" }> }>
   | Readonly<{ ok: false; errors: Readonly<{ sizes?: string; baseSize?: string }> }>;
 

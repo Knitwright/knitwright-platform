@@ -8,7 +8,7 @@ import { PICTURE_LEFT_OUT } from "./limits";
 
 const DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>';
 
-export interface SvgOptions {
+interface SvgOptions {
   /** True when a picture was left out for size, so the file says so in words. */
   readonly pictureLeftOut?: boolean;
 }

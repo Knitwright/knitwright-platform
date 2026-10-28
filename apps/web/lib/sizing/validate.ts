@@ -5,7 +5,7 @@ import { gradeChart, type ChartProblem } from "./grading";
 import { runSystemMismatch } from "./run-system";
 import { sizeChartSchema, sizeRunSchema, type SizeChart, type SizeRun } from "./schemas";
 
-export type ChartSetResult =
+type ChartSetResult =
   | { readonly ok: true; readonly set: ChartSet }
   | { readonly ok: false; readonly problems: readonly string[] };
 

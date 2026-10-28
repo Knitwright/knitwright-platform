@@ -77,8 +77,6 @@ export function turnedRect(centre: Pt, width: number, height: number, radians: n
   return [corner(-hw, -hh), corner(hw, -hh), corner(hw, hh), corner(-hw, hh)];
 }
 
-export const roundRing = (ring: readonly Pt[]): Ring => ring.map(([x, y]): Pt => [round2(x), round2(y)]);
-
 /** A circle as a regular polygon: 64 corners keeps the error of a 15 mm radius under 0.02 mm. */
 export function circleRing(centre: Pt, radius: number, corners = 64): Ring {
   return Array.from({ length: corners }, (_, i): Pt => {

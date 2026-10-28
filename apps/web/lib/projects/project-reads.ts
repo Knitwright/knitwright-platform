@@ -21,7 +21,7 @@ import type { HistoryRow } from "./undo";
  * that the user belongs to the brand. The brand always comes from the session.
  */
 
-export { PROJECTS_LISTED, UNDO_SCAN_LIMIT, VERSIONS_LISTED };
+export { PROJECTS_LISTED };
 
 export interface ProjectSummary {
   readonly id: string;
@@ -53,12 +53,12 @@ export interface VersionSummary {
   readonly createdBy?: string | null;
 }
 
-export interface OpenVersion extends VersionSummary {
+interface OpenVersion extends VersionSummary {
   readonly spec: GarmentSpec;
   readonly dropped: readonly Dropped[];
 }
 
-export type ProjectRow = z.output<typeof projectRowSchema>;
+type ProjectRow = z.output<typeof projectRowSchema>;
 type Failing = Readonly<{ code?: string; hint?: string | null; message: string }> | null;
 
 export const throwIfFailed = (error: Failing): void => {
@@ -131,7 +131,7 @@ export const loadVersion = async (
   return versionWithSpecRowSchema.parse(data);
 };
 
-export interface ProjectsPage {
+interface ProjectsPage {
   readonly projects: ProjectSummary[];
   /** True when the brand has more designs than were read. */
   readonly hasMore: boolean;
@@ -239,7 +239,7 @@ export const currentVersion = async (
   projectId: string,
 ): Promise<number> => (await loadRow(client, brandId, projectId)).current_version;
 
-export type VersionCheck = Readonly<{
+type VersionCheck = Readonly<{
   /** The version the design is at now. */
   version: number;
   /** How many versions after `since` were made by someone other than the user. */

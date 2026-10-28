@@ -5,7 +5,7 @@ import { listFabrics, listSavedSizeMaps, seedBenchmarkFabrics } from "./service"
 import { effectiveSizeMaps } from "./size-maps";
 import { fabricView, type FabricView } from "./view";
 
-export type FabricLibrary = Readonly<{
+type FabricLibrary = Readonly<{
   fabrics: readonly FabricView[];
   sizeMaps: readonly SizeLabelMap[];
   /** The open item for the size label map, for the "Ready for the factory" list. */

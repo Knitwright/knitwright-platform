@@ -30,7 +30,7 @@ export function segmentCross([a, b]: Seg, [c, d]: Seg): Point | null {
 }
 
 /** Where a line (not a polygon) crosses the edges of a box, first hit. */
-export function firstCrossing(seg: Seg, box: Box): Point | null {
+function firstCrossing(seg: Seg, box: Box): Point | null {
   for (const edge of boxEdges(box)) {
     const hit = segmentCross(seg, edge);
     if (hit !== null) return hit;
@@ -38,7 +38,7 @@ export function firstCrossing(seg: Seg, box: Box): Point | null {
   return null;
 }
 
-export function distancePointSegment([px, py]: Point, [[ax, ay], [bx, by]]: Seg): number {
+function distancePointSegment([px, py]: Point, [[ax, ay], [bx, by]]: Seg): number {
   const dx = bx - ax;
   const dy = by - ay;
   const len2 = dx * dx + dy * dy;

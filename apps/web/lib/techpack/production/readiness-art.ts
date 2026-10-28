@@ -3,7 +3,7 @@ import { listOf } from "../text";
 import type { ArtworkAndColourSection } from "./types";
 
 type Item = ReadinessItem;
-export type ArtworkFacts = Pick<ArtworkAndColourSection, "images" | "picture" | "layers">;
+type ArtworkFacts = Pick<ArtworkAndColourSection, "images" | "picture" | "layers">;
 
 const item = (id: string, whoActs: Item["whoActs"], met: boolean, whenMet: string, whenOpen: string): Item => ({
   id,

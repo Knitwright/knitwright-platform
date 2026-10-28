@@ -38,7 +38,7 @@ const latest = z.object({
 });
 const link = z.object({ success: z.literal(true), data: z.object({ url: z.string() }) });
 
-export type AskResult = Readonly<{ ok: true; job: PatternJobView }> | Readonly<{ ok: false; reason: string }>;
+type AskResult = Readonly<{ ok: true; job: PatternJobView }> | Readonly<{ ok: false; reason: string }>;
 
 export async function askForPattern(projectId: string, size: string, fetcher: Fetch = fetch, kind: "single" | "size-set" = "single"): Promise<AskResult> {
   try {
@@ -55,7 +55,7 @@ export async function askForPattern(projectId: string, size: string, fetcher: Fe
   }
 }
 
-export type Latest = Readonly<{ available: boolean; job: PatternJobView | null }>;
+type Latest = Readonly<{ available: boolean; job: PatternJobView | null }>;
 
 /** The newest pattern, or null when the server could not be asked; the section asks again. */
 export async function readLatestPattern(projectId: string, fetcher: Fetch = fetch): Promise<Latest | null> {

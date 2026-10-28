@@ -6,7 +6,7 @@ import { outlineText } from "../text/outline";
 const LINE_MM = 2.6;
 const MIN_BLEED_FOR_NOTE_MM = 6;
 
-export interface NoteInput {
+interface NoteInput {
   readonly pieceName: string;
   readonly size: string;
   readonly player: string | null;

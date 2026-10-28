@@ -1,6 +1,6 @@
 import type { FabricProfile, FabricValue } from "@/lib/production/contract";
 
-export const NOT_SET: FabricValue = { value: null, source: "not-set" };
+const NOT_SET: FabricValue = { value: null, source: "not-set" };
 
 /** An empty profile: every number "not set". */
 export const EMPTY_PROFILE: FabricProfile = Object.freeze({

@@ -17,7 +17,7 @@ export const stitchClassById = (id: string): StitchClass | undefined =>
 export const seamClassById = (id: string): SeamClass | undefined => SEAM_CLASSES.find((entry) => entry.id === id);
 
 /** A seam of a design, with the classes the registry rule proposes and the panels it joins by name. */
-export interface ResolvedSeam {
+interface ResolvedSeam {
   readonly id: string;
   readonly label: string;
   readonly panels: readonly { readonly id: string; readonly label: string }[];

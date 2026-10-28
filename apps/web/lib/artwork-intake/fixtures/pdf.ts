@@ -5,7 +5,7 @@ import { deflateSync } from "node:zlib";
  * written, or hidden in a compressed object stream), an embedded file or a link, and several pages.
  */
 
-export type PdfOptions = Readonly<{
+type PdfOptions = Readonly<{
   pages?: number;
   /** A JavaScript action that runs when the file opens. */
   openScript?: string;

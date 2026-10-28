@@ -17,9 +17,9 @@ import { orderSizes } from "./sizes";
 
 export const MAX_SIZES = 30;
 
-export type SetFile = Readonly<{ name: string; text: string }>;
+type SetFile = Readonly<{ name: string; text: string }>;
 
-export type SetInput = Readonly<{
+type SetInput = Readonly<{
   files: readonly SetFile[];
   /** What the outline is, when the files do not say. Left out, the library asks. */
   outline?: OutlineAnswer | null;

@@ -14,7 +14,7 @@ const hat = (index: number, length: number): number => {
  * the middle, fading into the shifted copy towards the edges. Deterministic. It softens detail near the edges,
  * so it suits textures better than photographs.
  */
-export const blendSeamless = (pixels: Pixels): Pixels => {
+const blendSeamless = (pixels: Pixels): Pixels => {
   const { width, height, channels } = pixels;
   const out = new Uint8Array(pixels.data.length);
   const halfX = Math.floor(width / 2);
@@ -35,7 +35,7 @@ export const blendSeamless = (pixels: Pixels): Pixels => {
 };
 
 /** 2 x 2 mirroring: the picture, its mirror to the right, below, and both. Always seamless, twice the size. */
-export const mirrorSeamless = (pixels: Pixels): Pixels => {
+const mirrorSeamless = (pixels: Pixels): Pixels => {
   const { width, height, channels } = pixels;
   const outWidth = width * 2;
   const out = new Uint8Array(outWidth * height * 2 * channels);

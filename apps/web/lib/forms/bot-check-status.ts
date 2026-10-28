@@ -4,7 +4,7 @@
  * reached by keyboard. Instead the form says what it is waiting for.
  */
 
-export type BotCheckInput = Readonly<{
+type BotCheckInput = Readonly<{
   /** The form's current attempt. */
   attempt: number;
   /** The attempt whose check has passed, or null when there is no usable token. */

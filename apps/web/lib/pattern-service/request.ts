@@ -20,7 +20,7 @@ export type RequestDeps = Readonly<{
   log: (event: LogEvent) => void;
 }>;
 
-export type RequestedPattern = Created & Readonly<{ quote: Quote; snapshotHash: string }>;
+type RequestedPattern = Created & Readonly<{ quote: Quote; snapshotHash: string }>;
 
 /**
  * Sends the design's current version to the pattern service. The price and the turnaround are copied from the settings now and kept

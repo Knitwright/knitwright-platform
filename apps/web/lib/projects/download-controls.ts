@@ -54,7 +54,7 @@ export const DOWNLOAD_CONTROLS: readonly DownloadControl[] = [
   },
 ];
 
-export interface AddressOptions {
+interface AddressOptions {
   /** The version the page shows, so the file is that version. */
   readonly version: number;
   /** The colourway of the page, when the address names one. */
@@ -140,7 +140,7 @@ export function busyAnnouncement(busy: Busy): string {
   return control ? `Preparing the ${control.noun}. This can take a few seconds.` : "";
 }
 
-export type DownloadResult =
+type DownloadResult =
   | Readonly<{ ok: true; name: string; blob: Blob }>
   | Readonly<{ ok: false; sentence: string }>;
 

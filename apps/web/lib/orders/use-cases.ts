@@ -12,7 +12,7 @@ import { getTeamOrder, saveTeamOrder, type StoredOrder } from "./service";
 type Who = Readonly<{ brandId: string; userId: string }>;
 type Clients = Readonly<{ client: SupabaseClient; admin: SupabaseClient }>;
 
-export interface SavedOrder {
+interface SavedOrder {
   readonly id: string;
   readonly issues: readonly RosterIssue[];
 }
@@ -28,7 +28,7 @@ export async function saveOrder(clients: Clients, who: Who, projectId: string, o
   return { id, issues: checkRoster(body.rows, rosterContextOf(project.spec)) };
 }
 
-export interface OrderView extends StoredOrder {
+interface OrderView extends StoredOrder {
   readonly issues: readonly RosterIssue[];
 }
 
@@ -37,7 +37,7 @@ export async function openOrder(client: SupabaseClient, brandId: string, project
   return { ...order, issues: checkRoster(order.rows, rosterContextOf(project.spec)) };
 }
 
-export type ImportPreview =
+type ImportPreview =
   | (Extract<ImportResult, { ok: true }> & { readonly issues: readonly RosterIssue[] })
   | Extract<ImportResult, { ok: false }>;
 
@@ -53,13 +53,13 @@ export async function previewImport(client: SupabaseClient, brandId: string, pro
   return result.ok ? { ...result, issues: checkRoster(result.rows, context) } : result;
 }
 
-export interface ManifestFile {
+interface ManifestFile {
   readonly body: Uint8Array<ArrayBuffer> | string;
   readonly contentType: string;
   readonly fileName: string;
 }
 
-export type ManifestFormat = "csv" | "pdf" | "roster";
+type ManifestFormat = "csv" | "pdf" | "roster";
 
 /** The manifest of a team order as a file. `roster` is the plain list that an import reads back. */
 export async function manifestFile(client: SupabaseClient, brandId: string, projectId: string, orderId: string, format: ManifestFormat): Promise<ManifestFile> {

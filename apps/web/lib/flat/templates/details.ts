@@ -19,7 +19,7 @@ const LIGHT_LINE = "#e5e7eb";
 const DARK_COLLAR = 300;
 
 /** Where the buttons go: evenly down the placket. On a polo the top one sits just below the collar points. */
-export function buttonCentres(frame: Frame): { centres: number[]; radius: number } {
+function buttonCentres(frame: Frame): { centres: number[]; radius: number } {
   const radius = Math.min(BUTTON_RADIUS * frame.basis.chest, frame.placketWidth * 0.32);
   const top = placketTop(frame);
   const bottom = top + frame.placketLength;
@@ -32,7 +32,7 @@ export function buttonCentres(frame: Frame): { centres: number[]; radius: number
 }
 
 /** Buttons down the placket. Each is a small circle with a smaller one inside. */
-export function buttonPaths(frame: Frame): FlatPath[] {
+function buttonPaths(frame: Frame): FlatPath[] {
   const { centres, radius } = buttonCentres(frame);
   return centres.map((y, index) =>
     detailPath(`Button ${index + 1}`, closedCommands(circle(pt(0, y), radius), circle(pt(0, y), radius * 0.35)), WHITE),
@@ -40,7 +40,7 @@ export function buttonPaths(frame: Frame): FlatPath[] {
 }
 
 /** A zip: the teeth as two lines and a pull tab at the top. On a band collar it runs through the band to its top edge. */
-export function zipPaths(frame: Frame, collarFill: string = WHITE): FlatPath[] {
+function zipPaths(frame: Frame, collarFill: string = WHITE): FlatPath[] {
   const top = frame.options.collar === "band-collar" ? frame.drop - frame.collarHeight : placketTop(frame);
   const bottom = placketTop(frame) + frame.placketLength;
   const tooth = frame.placketWidth * 0.12;
@@ -60,7 +60,7 @@ export function zipPaths(frame: Frame, collarFill: string = WHITE): FlatPath[] {
 }
 
 /** The fold line of each collar leaf on a polo, seen from the front. */
-export function foldLines(frame: Frame, collarFill: string): FlatPath[] {
+function foldLines(frame: Frame, collarFill: string): FlatPath[] {
   if (frame.options.collar !== "polo-collar" || frame.view !== "front") return [];
   const right = poloFoldLine(frame);
   const colour = brightness(collarFill) < DARK_COLLAR ? LIGHT_LINE : DETAIL_COLOUR;
@@ -71,7 +71,7 @@ export function foldLines(frame: Frame, collarFill: string): FlatPath[] {
 }
 
 /** A split at the bottom of each side seam: a short line up the seam and a small bar across it. */
-export function ventPaths(frame: Frame): FlatPath[] {
+function ventPaths(frame: Frame): FlatPath[] {
   const { basis } = frame;
   const x = basis.halfHem - VENT_INSET * basis.chest;
   const bottom = basis.length - hemLift(frame, x);

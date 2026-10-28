@@ -11,7 +11,7 @@ const NAME_RULE = `A design name has 1 to ${PROJECT_NAME_MAX} characters.`;
 
 const CONTROL_CHARACTER = /\p{Cc}/u;
 
-export const projectNameSchema = z
+const projectNameSchema = z
   .string()
   .trim()
   .min(1, NAME_RULE)
@@ -19,7 +19,7 @@ export const projectNameSchema = z
   .refine((text) => !CONTROL_CHARACTER.test(text), "Remove line breaks and hidden characters.");
 
 /** A style number or a season. It may be empty. */
-export const projectTextSchema = freeText(PROJECT_TEXT_MAX).default("");
+const projectTextSchema = freeText(PROJECT_TEXT_MAX).default("");
 
 /** The largest whole number the database holds in an integer column. */
 export const MAX_VERSION = 2147483647;
@@ -73,7 +73,7 @@ export const versionCheckSchema = z.object({ projectId, since: expectedVersion.o
 export const undoDesignSchema = z.object({ projectId, expectedVersion });
 
 /** A proposal the assistant made, handed back to be applied. It is signed by the server. */
-export const PROPOSAL_TOKEN_MAX = 64_000;
+const PROPOSAL_TOKEN_MAX = 64_000;
 
 export const applyProposalSchema = z.object({
   projectId,

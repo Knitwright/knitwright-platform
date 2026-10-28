@@ -18,7 +18,7 @@ export const REFERENCE_EDGE = 1024;
 
 export const VIEWS = ["front", "back"] as const satisfies readonly View[];
 
-export type ViewModels = Readonly<Record<(typeof VIEWS)[number], FlatModel>>;
+type ViewModels = Readonly<Record<(typeof VIEWS)[number], FlatModel>>;
 
 /**
  * Front and back of the design, without measurement callouts. Null for a type with no drawing.

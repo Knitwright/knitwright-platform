@@ -34,7 +34,7 @@ export type FileSectionId = (typeof FILE_SECTION_IDS)[number];
 /** The section shown when the address names none, or one the file does not have. */
 export const DEFAULT_SECTION: FileSectionId = "cover";
 
-export interface NavSection {
+interface NavSection {
   readonly id: FileSectionId;
   readonly label: string;
   /** The sections of the document that are shown in it. */
@@ -70,7 +70,7 @@ export interface FileSection {
   readonly left: number;
 }
 
-export interface SectionsAvailable {
+interface SectionsAvailable {
   /** True when illustrations were made for the design. */
   readonly illustrations: boolean;
 }

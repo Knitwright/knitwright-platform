@@ -12,7 +12,7 @@ import { SYNTHETIC_TEMPLATE } from "./template";
  * be compared with it. Deterministic: no random numbers, no dates.
  */
 
-export const generatorOf = (id: string): PatternGenerator => {
+const generatorOf = (id: string): PatternGenerator => {
   const found = getGenerator(id);
   if (!found) throw new Error(`No generator ${id}`);
   return found;
@@ -84,7 +84,7 @@ export const TEE_AREA = { minX: -330, minY: -120, maxX: 330, maxY: 420 } as cons
 const teePath = TEE_OUTLINE.map((p, i) => `${i === 0 ? "M" : "L"}${p.x} ${p.y}`).join(" ") + " Z";
 
 /** SVG that paints a display list (design millimetres) onto the tee, cut to its outline, through the true fit. */
-export function teeOverlay(list: DisplayList, fit: ViewFit): string {
+function teeOverlay(list: DisplayList, fit: ViewFit): string {
   const [m0, m1, m2, m3, m4, m5] = fit.inverse;
   const body = list.shapes.map((s) => shapeSvg(s, (x, y) => [x, y], (mm) => mm)).join("");
   return `<defs><clipPath id="tee"><path d="${teePath}"/></clipPath></defs><g clip-path="url(#tee)"><g transform="matrix(${m0} ${m3} ${m1} ${m4} ${m2} ${m5})">${body}</g></g>`;

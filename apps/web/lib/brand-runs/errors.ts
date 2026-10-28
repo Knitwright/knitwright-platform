@@ -1,6 +1,6 @@
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 
-export type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
+type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
 
 export const NOT_ALLOWED = "Your role in this brand does not allow that.";
 

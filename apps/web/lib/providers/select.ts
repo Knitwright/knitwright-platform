@@ -17,7 +17,7 @@ export interface ModelChoice {
   readonly retry: PricedProvider | null;
 }
 
-export interface ModelSettings {
+interface ModelSettings {
   readonly ANTHROPIC_API_KEY?: string;
   readonly OPENAI_API_KEY?: string;
   /** With it, a failed call to Anthropic or OpenAI is tried once more through fal. */

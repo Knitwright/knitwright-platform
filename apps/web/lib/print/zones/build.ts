@@ -6,7 +6,7 @@ import { apply, type Pt } from "../geometry/affine";
 import { round2 } from "../geometry/polygon";
 import { JUNIOR_ZONE_SCALE, type ZoneBox, type ZoneTemplate } from "./templates";
 
-export interface ZoneOptions {
+interface ZoneOptions {
   /** Sizes whose marks are carried smaller. */
   readonly juniorSizes?: ReadonlySet<string>;
   readonly roles?: PieceRoles;
@@ -20,7 +20,7 @@ function scaled(box: ZoneBox, by: number): ZoneBox {
 }
 
 /** The four corners of a zone box on a piece instance, in that piece's own millimetres (the opened piece). */
-export function zonePolygon(instance: PieceInstance, anchors: DesignAnchors, box: ZoneBox): Pt[] {
+function zonePolygon(instance: PieceInstance, anchors: DesignAnchors, box: ZoneBox): Pt[] {
   const { toPiece } = frameFor(instance, anchors);
   const chest = anchors[instance.view]?.underarm?.y ?? anchors[instance.view]?.["underarm-a"]?.y ?? 0;
   const corners: Pt[] = [

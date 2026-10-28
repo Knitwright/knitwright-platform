@@ -4,9 +4,9 @@ import type { Point } from "../../model";
 import type { BottomsOptions } from "./options";
 
 /** Shares of the hip width for parts of the drawing that have no point of measure. */
-export const CUFF_HEIGHT = 0.1;
-export const STRIPE_WIDTH = 0.045;
-export const LEG_GAP = 0.025;
+const CUFF_HEIGHT = 0.1;
+const STRIPE_WIDTH = 0.045;
+const LEG_GAP = 0.025;
 export const GUSSET_SIZE = 0.07;
 /** The crotch sits a little above the length of the front rise, which is measured along its curve. */
 const CROTCH_SHARE = 0.93;
@@ -46,7 +46,7 @@ export interface BottomsBasis {
   readonly bottomY: number;
 }
 
-export interface BottomsBasisResult {
+interface BottomsBasisResult {
   readonly basis: BottomsBasis | null;
   readonly problems: readonly string[];
 }
@@ -60,6 +60,22 @@ const KNEE_FIT = "The knee is not between the thigh and the leg opening.";
 const OUTSEAM_FIT = "The outside leg does not match the rise and the inside leg.";
 const BACK_RISE = "The back rise is shorter than the front rise.";
 
+type Placed = Readonly<{ hip: number; bandHeight: number; hipY: number; thigh: number; opening: number; hemY: number; hasKnee: boolean }>;
+
+/** Why the measurements cannot be drawn together, in a fixed order; empty when they can. */
+function fitProblems(d: (id: string) => number, { hip, bandHeight, hipY, thigh, opening, hemY, hasKnee }: Placed): string[] {
+  const problems: string[] = [];
+  if (d("waist-relaxed") >= hip) problems.push(WAIST_WIDER);
+  if (d("waist-stretched") < d("waist-relaxed")) problems.push(STRETCH_SMALLER);
+  if (bandHeight >= hipY * 0.8) problems.push(BAND_DEEP);
+  if (thigh < 0.35 * hip || thigh > 0.8 * hip) problems.push(THIGH_FIT);
+  if (opening > thigh * 1.05) problems.push(OPENING_WIDE);
+  if (hasKnee && (d("knee") > thigh || d("knee") < opening * 0.9)) problems.push(KNEE_FIT);
+  if (Math.abs(d("outseam") - hemY) > OUTSEAM_TOLERANCE * hemY) problems.push(OUTSEAM_FIT);
+  if (d("back-rise") < d("front-rise")) problems.push(BACK_RISE);
+  return problems;
+}
+
 /** Draws nothing. Says whether the measurements can be drawn together, and places everything if so. */
 export function bottomsBasisOf(dims: Dims, options: BottomsOptions): BottomsBasisResult {
   const d = (id: string): number => need(dims, id);
@@ -72,15 +88,7 @@ export function bottomsBasisOf(dims: Dims, options: BottomsOptions): BottomsBasi
   const inseam = d("inseam");
   const hemY = crotchY + inseam;
   const hasKnee = options.legLength !== "short";
-  const problems: string[] = [];
-  if (d("waist-relaxed") >= hip) problems.push(WAIST_WIDER);
-  if (d("waist-stretched") < d("waist-relaxed")) problems.push(STRETCH_SMALLER);
-  if (bandHeight >= hipY * 0.8) problems.push(BAND_DEEP);
-  if (thigh < 0.35 * hip || thigh > 0.8 * hip) problems.push(THIGH_FIT);
-  if (opening > thigh * 1.05) problems.push(OPENING_WIDE);
-  if (hasKnee && (d("knee") > thigh || d("knee") < opening * 0.9)) problems.push(KNEE_FIT);
-  if (Math.abs(d("outseam") - hemY) > OUTSEAM_TOLERANCE * hemY) problems.push(OUTSEAM_FIT);
-  if (d("back-rise") < d("front-rise")) problems.push(BACK_RISE);
+  const problems = fitProblems(d, { hip, bandHeight, hipY, thigh, opening, hemY, hasKnee });
   if (problems.length > 0) return { basis: null, problems };
   const waistHalf = d("waist-relaxed") / 2;
   const hipHalf = hip / 2;
@@ -177,7 +185,7 @@ export function insideEdgeUp(basis: BottomsBasis, bottom: number): Chain {
 }
 
 /** The right leg from under the waistband round to the crotch, stopping at `bottom`. */
-export function rightLeg(basis: BottomsBasis, bottom: number): Chain {
+function rightLeg(basis: BottomsBasis, bottom: number): Chain {
   return joinChains(outsideEdge(basis, bottom), insideEdgeUp(basis, bottom));
 }
 

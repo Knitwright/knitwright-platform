@@ -25,7 +25,7 @@ export interface ClipDeps {
 
 export type ClipAsk = Readonly<{ brandId: string; projectId: string; setId: string; view?: MediaView | undefined }>;
 
-export type ClipPlan =
+type ClipPlan =
   | Readonly<{ state: "exists"; set: SetRecord; clip: ItemRecord }>
   | Readonly<{ state: "ready"; set: SetRecord; still: ItemRecord }>;
 

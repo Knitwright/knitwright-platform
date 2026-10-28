@@ -4,7 +4,7 @@ import { cleanName } from "./text";
 
 export const ROSTER_ROWS_MAX = 1000;
 
-export const ROSTER_FIELDS = ["name", "number", "sizeLabel", "cut", "quantity"] as const;
+const ROSTER_FIELDS = ["name", "number", "sizeLabel", "cut", "quantity"] as const;
 export type RosterField = (typeof ROSTER_FIELDS)[number];
 /** The column (0-based) that holds each field. A field with no column is left out. */
 export type ColumnMapping = Readonly<Partial<Record<RosterField, number>>>;
@@ -35,7 +35,7 @@ export function detectMapping(headers: readonly string[]): ColumnMapping {
   return found;
 }
 
-export interface ImportOptions {
+interface ImportOptions {
   readonly mapping?: ColumnMapping;
   /** False when the first line is already a player. */
   readonly header?: boolean;

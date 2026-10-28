@@ -4,7 +4,7 @@ import { transformPiece } from "../frames/instances";
 import { scaling } from "../geometry/affine";
 
 /** Test sizes made by stretching the benchmark's EU 48 pieces: the length (x) and the width (y) of every piece. */
-export const TEST_SIZES: Readonly<Record<string, { readonly length: number; readonly width: number }>> = {
+const TEST_SIZES: Readonly<Record<string, { readonly length: number; readonly width: number }>> = {
   "44": { length: 0.94, width: 0.92 },
   "46": { length: 0.97, width: 0.96 },
   "48": { length: 1, width: 1 },

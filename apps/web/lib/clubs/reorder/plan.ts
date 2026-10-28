@@ -31,7 +31,7 @@ export interface ReorderPlan {
   readonly counts: Readonly<{ ready: number; fix: number; sizeChanged: number; newPlayers: number }>;
 }
 
-export type PlanInput = Readonly<{
+type PlanInput = Readonly<{
   /** The chosen season's players, or null to reorder the earlier order's own list. */
   players: readonly Player[] | null;
   /** The earlier order's rows, or null when its list is gone. */

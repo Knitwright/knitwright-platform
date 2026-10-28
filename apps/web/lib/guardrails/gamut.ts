@@ -8,7 +8,7 @@ import type { Finding, UsedColour } from "./types";
  * from green through blue (140 to 290 degrees), where print gamuts are usually tighter than sRGB. A colour not flagged
  * may still print differently; a colour flagged may print fine.
  */
-export const APPROX_GAMUT = { maxChroma: 80, maxChromaGreenBlue: 65, greenBlueHue: [140, 290] as const };
+const APPROX_GAMUT = { maxChroma: 80, maxChromaGreenBlue: 65, greenBlueHue: [140, 290] as const };
 
 export function isInsideApproxGamut(hex: string): boolean {
   if (!HEX.test(hex)) return true;
@@ -20,7 +20,7 @@ export function isInsideApproxGamut(hex: string): boolean {
   return chroma <= limit;
 }
 
-export const GAMUT_NOTE =
+const GAMUT_NOTE =
   "This is a rough estimate, not a colour match. The true range needs your print house's ICC profile, which Knitwright does not have.";
 
 /** One warning per colour that falls outside the estimate. Never a blocker. */

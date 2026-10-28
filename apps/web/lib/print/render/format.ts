@@ -40,7 +40,7 @@ export function escapeText(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-export interface PageOrigin {
+interface PageOrigin {
   readonly x: number;
   readonly y: number;
 }

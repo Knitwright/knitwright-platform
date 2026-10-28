@@ -24,7 +24,7 @@ export function artworkElements(spec: Decorated, frame: Frame): readonly FlatEle
 }
 
 /** What a design puts on the garment: artwork, and player names and numbers. */
-export type Decorated = Pick<GarmentSpec, "artwork" | "namesAndNumbers">;
+type Decorated = Pick<GarmentSpec, "artwork" | "namesAndNumbers">;
 
 /** Artwork, then names and numbers, placed from the anchors a family's drawing knows. */
 export function placedDecoration(
@@ -36,7 +36,7 @@ export function placedDecoration(
 }
 
 /** Artwork placed from the anchors a family's drawing knows. See `artworkElements`. */
-export function placedArtwork(
+function placedArtwork(
   artwork: readonly Artwork[],
   view: View,
   anchorOf: (panelId: string, anchorId: string) => Point | null,

@@ -41,7 +41,7 @@ export interface Evaluation {
   readonly reasons: readonly string[];
 }
 
-export interface InspectionInput {
+interface InspectionInput {
   readonly checklist: readonly ChecklistItem[];
   readonly measurements: readonly Measurement[];
   readonly defectCount: number;

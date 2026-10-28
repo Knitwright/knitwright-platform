@@ -23,7 +23,7 @@ export interface WorkspaceLayout {
 /** An element to scroll to, by id, and the tool whose panel holds it. */
 export type PendingScroll = Readonly<{ id: string; tool: ToolId }>;
 
-export type LayoutEvent =
+type LayoutEvent =
   | { readonly type: "toggleDock" }
   | { readonly type: "openSheet" }
   | { readonly type: "closeSheet" }

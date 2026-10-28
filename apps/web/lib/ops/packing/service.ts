@@ -23,7 +23,7 @@ export async function listCartons(client: SupabaseClient, orderId: string): Prom
   return (data ?? []).map(toCarton);
 }
 
-export interface TeamList {
+interface TeamList {
   readonly teamOrderId: string | null;
   /** Null when the order has no team list, or it was erased. */
   readonly roster: readonly RosterRow[] | null;
@@ -63,7 +63,7 @@ export async function setBags(admin: Admin, actor: string, orderId: string, team
   return typeof data === "number" ? data : bags.length;
 }
 
-export interface CartonToSet {
+interface CartonToSet {
   readonly cartonNo: number;
   readonly weightG: number | null;
   readonly lengthMm: number | null;

@@ -42,7 +42,7 @@ export function buildThreads(comments: readonly CommentView[]): readonly Thread[
 }
 
 export type StatusFilter = "open" | "resolved" | "all";
-export interface ThreadFilter {
+interface ThreadFilter {
   readonly status: StatusFilter;
   readonly panelId?: string;
   readonly version?: number;

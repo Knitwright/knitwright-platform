@@ -9,7 +9,7 @@ import { collectIds, scanTree } from "./security";
 import { parseStyleSheet, type Rule } from "./style";
 import { readXml, type XmlElement } from "./xml";
 
-export type Embed = Context["embed"];
+type Embed = Context["embed"];
 
 export type ParsedSvg = Readonly<{ model: VectorModel; warnings: readonly string[] }>;
 

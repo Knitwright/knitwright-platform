@@ -1,13 +1,13 @@
 import type { PanelLayout } from "./layout";
 import type { GltfModel } from "./types";
 
-export interface GradeFactor {
+interface GradeFactor {
   readonly panelId: string;
   readonly sx: number;
   readonly sy: number;
 }
 
-export interface Graded {
+interface Graded {
   readonly model: GltfModel;
   readonly factors: readonly GradeFactor[];
   readonly issues: readonly string[];

@@ -10,7 +10,7 @@ import type { LogEvent } from "@/lib/server/core/guard";
 
 export type GateService = Pick<CreditsService, "spendCredits" | "ensureMonthlyAllowance">;
 
-export type GateDeps = Readonly<{
+type GateDeps = Readonly<{
   /** Read on every call, so the owner's flag is not cached by a module. */
   enforced: () => boolean;
   /** Built only when a charge is made, so a flag that is off never reaches the database. */
@@ -19,7 +19,7 @@ export type GateDeps = Readonly<{
   now: () => Date;
 }>;
 
-export type GateRequest = Readonly<{
+type GateRequest = Readonly<{
   brandId: string;
   userId: string;
   kind: OutputKind;

@@ -72,7 +72,7 @@ function sleeveMirror(piece: PatternPiece): Affine | null {
   return reflectionAcross(mid, [-(b[1] - a[1]), b[0] - a[0]]);
 }
 
-export interface InstanceSet {
+interface InstanceSet {
   readonly instances: readonly PieceInstance[];
   /** Piece names the roles table does not place on any view; they are not printed. */
   readonly unplaced: readonly string[];

@@ -1,5 +1,5 @@
 /** A colour as the model holds it: a hex string and an opacity. Nothing else is stored. */
-export type Rgba = Readonly<{ hex: string; opacity: number }>;
+type Rgba = Readonly<{ hex: string; opacity: number }>;
 
 const NAMED: Readonly<Record<string, string>> = {
   black: "#000000", white: "#ffffff", red: "#ff0000", lime: "#00ff00", blue: "#0000ff", yellow: "#ffff00",

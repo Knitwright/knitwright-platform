@@ -22,7 +22,7 @@ export interface Crop {
   readonly rect: Rect;
 }
 
-export interface MarksResult {
+interface MarksResult {
   readonly layers: readonly Layer[];
   readonly items: readonly ReportItem[];
   readonly colours: readonly StackColour[];
@@ -30,7 +30,7 @@ export interface MarksResult {
   readonly crops: readonly Crop[];
 }
 
-export interface MarksInput {
+interface MarksInput {
   readonly marks: readonly ReadMark[];
   readonly readingConfidence: number;
   readonly raster: Raster;

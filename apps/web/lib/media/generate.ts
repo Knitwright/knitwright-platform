@@ -12,9 +12,9 @@ import { watermark } from "./watermark";
  */
 
 export const FAILED_MESSAGE = "The media could not be made. Nothing was charged. Try again.";
-export const TIME_LIMIT_MS = 50_000;
+const TIME_LIMIT_MS = 50_000;
 
-export interface GenerateDeps {
+interface GenerateDeps {
   readonly store: MediaStore;
   readonly files: MediaFiles;
   readonly generators: readonly MediaGenerator[];
@@ -22,7 +22,7 @@ export interface GenerateDeps {
   readonly timeoutMs?: number;
 }
 
-export type SetWork = Readonly<{ setId: string; brandId: string; request: GenerateRequest }>;
+type SetWork = Readonly<{ setId: string; brandId: string; request: GenerateRequest }>;
 
 const WHERE = "media set";
 

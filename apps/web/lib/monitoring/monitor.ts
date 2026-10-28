@@ -50,7 +50,7 @@ export const parseTarget = (dsn: string | undefined): Target => {
  * stored in Frankfurt, Germany, and the privacy notice says so. An EU project's DSN names an
  * ingest host under de.sentry.io, such as o123.ingest.de.sentry.io.
  */
-export const SENTRY_EU_HOST = "de.sentry.io";
+const SENTRY_EU_HOST = "de.sentry.io";
 
 export const NOT_EU_REGION =
   "MONITORING_DSN is a Sentry project outside the EU region (de.sentry.io). The privacy notice names the EU region: use an EU project's DSN.";
@@ -94,7 +94,7 @@ const chainOf = (error: unknown): ExceptionValue[] => {
 
 export type Send = (url: string, init: RequestInit) => Promise<Response>;
 
-export type MonitorOptions = Readonly<{
+type MonitorOptions = Readonly<{
   dsn: string | undefined;
   send: Send;
   /** Where a failure to send is written. Never the monitor itself. */

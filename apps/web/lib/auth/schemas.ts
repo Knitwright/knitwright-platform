@@ -2,7 +2,7 @@ import { z } from "zod";
 import { MARKETING_FIELD } from "@/lib/consent/fields";
 import { CAPTCHA_FIELD, PASSWORD_MAX_BYTES, PASSWORD_MIN } from "./fields";
 
-export { CAPTCHA_FIELD, PASSWORD_MAX_BYTES, PASSWORD_MIN };
+export { CAPTCHA_FIELD };
 
 const byteLength = (text: string): number => new TextEncoder().encode(text).byteLength;
 

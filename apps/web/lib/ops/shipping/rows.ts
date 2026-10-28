@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const shipmentRow = z.object({
+const shipmentRow = z.object({
   id: z.uuid(),
   order_id: z.uuid(),
   provider: z.literal("manual"),

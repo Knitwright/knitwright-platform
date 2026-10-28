@@ -1,11 +1,11 @@
 import type { OrderStatus } from "../status";
 
-export interface ShipmentLike {
+interface ShipmentLike {
   readonly sizes: Readonly<Record<string, number>>;
   readonly pieces: number;
 }
 
-export type Fulfilment = "not_shipped" | "part_shipped" | "shipped";
+type Fulfilment = "not_shipped" | "part_shipped" | "shipped";
 
 export const FULFILMENT_LABELS: Readonly<Record<Fulfilment, string>> = {
   not_shipped: "Not shipped",

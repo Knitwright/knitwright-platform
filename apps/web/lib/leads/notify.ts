@@ -9,7 +9,7 @@ import type { LogEvent } from "@/lib/server/core/guard";
  * The line names ids and numbers only: no email address or message reaches the log.
  */
 
-export interface QuoteNotice {
+interface QuoteNotice {
   readonly quoteId: string;
   readonly brandId: string;
   readonly projectId: string;
@@ -18,7 +18,7 @@ export interface QuoteNotice {
   readonly neededBy: string;
 }
 
-export type QuoteNotifier = (notice: QuoteNotice) => Promise<void>;
+type QuoteNotifier = (notice: QuoteNotice) => Promise<void>;
 
 export const loggingQuoteNotifier =
   (log: (event: LogEvent) => void): QuoteNotifier =>

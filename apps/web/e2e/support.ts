@@ -130,7 +130,7 @@ export const createAccount = async (
 };
 
 /** Gives a user a brand directly, as the server may. Returns the brand id. */
-export const createBrandFor = async (userId: string, name: string): Promise<string> => {
+const createBrandFor = async (userId: string, name: string): Promise<string> => {
   const brand = await admin()
     .from("brands")
     .insert({ name, created_by: userId })
@@ -199,7 +199,7 @@ export const signIn = async (page: Page, email: string, password = PASSWORD): Pr
   await page.getByRole("button", { name: "Sign in" }).click();
 };
 
-export interface DownloadRecord {
+interface DownloadRecord {
   readonly spec_version: number;
   readonly format: string;
   readonly view: string | null;
@@ -236,7 +236,7 @@ export const userIdOf = async (email: string): Promise<string> => {
   return user.id;
 };
 
-export interface ConsentRecord {
+interface ConsentRecord {
   readonly granted: boolean;
   readonly source: string;
   readonly wording_version: string;

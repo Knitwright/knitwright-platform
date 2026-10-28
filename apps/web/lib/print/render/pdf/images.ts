@@ -3,7 +3,7 @@ import type { ImageItem } from "@/lib/print/scene";
 import { deflate } from "./writer";
 
 /** A picture ready to write: colour and, when any pixel is see-through, a separate alpha channel. */
-export interface PdfPicture {
+interface PdfPicture {
   readonly widthPx: number;
   readonly heightPx: number;
   readonly rgb: Uint8Array;

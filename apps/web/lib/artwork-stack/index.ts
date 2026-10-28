@@ -13,5 +13,4 @@ export * from "./piece-mapper";
 export * from "./registry";
 export * from "./schema";
 export * from "./units";
-export { kitGeneratorId, kitStyleOf, KIT_STYLE_GENERATORS } from "./legacy/kit-styles";
-export { panelColourId, toLegacy, type LegacyFields } from "./legacy/to-legacy";
+export { kitGeneratorId, KIT_STYLE_GENERATORS } from "./legacy/kit-styles";

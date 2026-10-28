@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 
-export interface JourneyStep {
+interface JourneyStep {
   readonly label: string;
   /** Where the step is, or null when it cannot be reached from here. */
   readonly href: Route | null;

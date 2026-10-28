@@ -77,7 +77,7 @@ const SKETCH_READING = JSON.stringify({
 
 const MODEL = "stand-in";
 
-export const standInProvider = (): TextModelProvider => ({
+const standInProvider = (): TextModelProvider => ({
   provider: "stand-in",
   model: MODEL,
   async complete(request: ModelRequest) {

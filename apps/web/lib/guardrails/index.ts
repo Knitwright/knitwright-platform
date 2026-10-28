@@ -17,7 +17,7 @@ export * from "./types";
  * The planned shape of V1's `CheckModule`: an id and a pure function from the design's inputs to findings. These
  * are exported, not registered; they join V1's registry in a follow-up once V1 has merged.
  */
-export interface GuardrailModule {
+interface GuardrailModule {
   readonly id: "seam_cross" | "dpi" | "bleed" | "safe_zone" | "gamut";
   run(input: GuardrailInput): readonly Finding[];
 }
@@ -25,7 +25,7 @@ export interface GuardrailModule {
 const perPanel = (fn: (panel: GuardrailInput["panels"][number], input: GuardrailInput) => Finding[]) => (input: GuardrailInput): Finding[] =>
   input.panels.flatMap((panel) => fn(panel, input));
 
-export const GUARDRAIL_MODULES: readonly GuardrailModule[] = [
+const GUARDRAIL_MODULES: readonly GuardrailModule[] = [
   { id: "seam_cross", run: perPanel((panel, i) => seamCrossCheck(panel, i.items)) },
   { id: "dpi", run: (i) => minDpiCheck(i.items, i.settings) },
   { id: "bleed", run: perPanel((panel, i) => bleedCheck(panel, i.items, i.settings)) },

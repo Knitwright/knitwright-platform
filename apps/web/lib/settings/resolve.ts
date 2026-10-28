@@ -76,7 +76,7 @@ export function creditSettingsWith(base: CreditSettingsShape, stored: StoredSett
   };
 }
 
-export const FACTORY_KEYS = [
+const FACTORY_KEYS = [
   "factory.moq_by_article",
   "factory.price_ladder",
   "factory.lead_time_days",

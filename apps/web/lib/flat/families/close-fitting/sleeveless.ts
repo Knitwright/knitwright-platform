@@ -5,8 +5,8 @@ import type { Point, View } from "../../model";
 import type { CloseFitOptions } from "./options";
 
 /** Shares of the chest width for parts of the drawing that have no point of measure. */
-export const BINDING_WIDTH = 0.025;
-export const UNDERBAND_HEIGHT = 0.14;
+const BINDING_WIDTH = 0.025;
+const UNDERBAND_HEIGHT = 0.14;
 const SHOULDER_SLOPE = 0.25;
 const KAPPA = 0.5522847498;
 /** How far down the armhole the back is narrowest, as a share of the armhole depth. */
@@ -32,7 +32,7 @@ export interface SleevelessShape {
   readonly binding: number;
 }
 
-export interface SleevelessResult {
+interface SleevelessResult {
   readonly shape: SleevelessShape | null;
   readonly problems: readonly string[];
 }
@@ -112,7 +112,7 @@ export function neckEdge(shape: SleevelessShape): Chain {
 }
 
 /** The right half of the body, from the neck at the strap round to the centre of the hem. */
-export function sleevelessHalf(shape: SleevelessShape): Chain {
+function sleevelessHalf(shape: SleevelessShape): Chain {
   return joinChains(chain(pt(shape.neckHalf, 0), lineTo(shape.strapTop)), armholeEdge(shape), chain(shape.underarm, lineTo(pt(shape.hemHalf, shape.length)), lineTo(pt(0, shape.length))));
 }
 

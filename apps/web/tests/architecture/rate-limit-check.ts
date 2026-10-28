@@ -8,7 +8,7 @@ import { localNamesOf, parse, type Imported, type SourceText } from "./source";
  * Plan step 26, task 2.
  */
 
-export type RateLimitViolation = Readonly<{ file: string; detail: string }>;
+type RateLimitViolation = Readonly<{ file: string; detail: string }>;
 
 const WRAPPERS: readonly Imported[] = [
   { module: "@/lib/server/define-route", name: "defineRoute" },
@@ -17,7 +17,7 @@ const WRAPPERS: readonly Imported[] = [
 
 const LIMITS: Imported = { module: "@/lib/server/limits", name: "LIMITS" };
 
-export type WrapperCall = Readonly<{ file: string; line: number; rule: string | null }>;
+type WrapperCall = Readonly<{ file: string; line: number; rule: string | null }>;
 
 const lineOf = (source: ts.SourceFile, node: ts.Node): number =>
   source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;

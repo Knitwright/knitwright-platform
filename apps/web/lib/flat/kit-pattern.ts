@@ -199,7 +199,7 @@ function chestBand(area: Bounds, size: number, inks: readonly string[], place: P
 const channel = (colour: string, from: number): number => Number.parseInt(colour.slice(from, from + 2), 16);
 
 /** The colour `share` of the way from one colour to another. */
-export function mix(from: string, to: string, share: number): string {
+function mix(from: string, to: string, share: number): string {
   const part = (at: number): string =>
     Math.round(channel(from, at) + (channel(to, at) - channel(from, at)) * share)
       .toString(16)

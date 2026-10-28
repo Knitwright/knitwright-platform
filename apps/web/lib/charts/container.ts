@@ -10,7 +10,7 @@ import { CHART_IMPORT_LIMITS } from "./limits";
  * nothing between or before the parts, and each part is unpacked here with its stated
  * size as a hard stop, since a packed stream can hold far more than its header claims.
  */
-export type SheetKind =
+type SheetKind =
   | { readonly ok: true; readonly kind: "xlsx" }
   | { readonly ok: true; readonly kind: "csv"; readonly text: string }
   | { readonly ok: false; readonly message: string };

@@ -15,7 +15,7 @@ const NO_PROPOSALS = "Nothing in this document is proposed by Knitwright.";
 const SOME_PROPOSALS = `${PROPOSAL_WORDS} These are the seam and stitch classes, and the parts, that Knitwright proposes from general knitwear practice.`;
 
 /** The document without the parts that are made from it: the suggestions, the contents and the readiness list. */
-export type Finished = Omit<TechPack, "suggested" | "sections" | "readiness">;
+type Finished = Omit<TechPack, "suggested" | "sections" | "readiness">;
 
 interface Group {
   readonly sectionId: SuggestedItem["sectionId"];

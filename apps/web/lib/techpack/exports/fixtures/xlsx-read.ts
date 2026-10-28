@@ -4,7 +4,6 @@
  */
 import { strFromU8, unzipSync } from "fflate";
 import readExcelFile from "read-excel-file/node";
-import { TO_BE_CONFIRMED } from "../../cell";
 
 export type Value = string | number | boolean | Date | null;
 export interface ReadSheet {
@@ -55,5 +54,3 @@ export function pairsOf(sheet: ReadSheet): readonly Pair[] {
   }
   return pairs;
 }
-
-export const TBC_WORDS = TO_BE_CONFIRMED;

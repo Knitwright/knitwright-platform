@@ -15,7 +15,7 @@ import { tenthsFromMm } from "../units";
 import { dotsLayoutOf, kitStyleOf, sizeParamOf } from "./kit-styles";
 
 /** The fields of the older design that a stack stands in for. */
-export interface LegacyFields {
+interface LegacyFields {
   readonly kitPattern?: KitPattern;
   readonly artwork: readonly Artwork[];
   readonly namesAndNumbers?: NamesAndNumbers;
@@ -23,7 +23,7 @@ export interface LegacyFields {
 }
 
 /** The id of the colour a panel has in every colourway: `panel-` and the panel's id. */
-export const PANEL_COLOUR_PREFIX = "panel-";
+const PANEL_COLOUR_PREFIX = "panel-";
 export const panelColourId = (panelId: string): string => `${PANEL_COLOUR_PREFIX}${panelId}`;
 
 const colourOf = (stack: ArtworkStack, id: string | undefined): ColourValue | undefined => {

@@ -47,7 +47,7 @@ function endsFor(pointId: string, frame: Frame, dims: Dims): Ends | null {
   return table[pointId] ?? null;
 }
 
-export interface CalloutPoint {
+interface CalloutPoint {
   readonly id: string;
   readonly label: string;
   /** Tenths of a millimetre. */

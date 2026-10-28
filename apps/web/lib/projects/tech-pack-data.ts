@@ -84,7 +84,7 @@ export interface TechPackCoreData {
   readonly spec: GarmentSpec;
 }
 
-export type TechPackPageData = TechPackCoreData & TechPackPictures;
+type TechPackPageData = TechPackCoreData & TechPackPictures;
 
 /** What the cover's forms hold: the design's details, and its sizes. */
 export interface CoverFormData {
@@ -142,7 +142,7 @@ const NO_NAMES: MemberNames = new Map();
 /** Front and back left undrawn, for a count that never shows them. */
 const UNDRAWN: ReturnType<typeof flatsForTechPack> = { front: null, back: null };
 
-export interface PackOptions {
+interface PackOptions {
   /**
    * False leaves the front and back flats undrawn. Nothing that is counted or confirmed is read
    * from a drawing, so the studio home counts empty fields without drawing them. True by default.

@@ -7,7 +7,7 @@ import type { ViewLandmarks } from "@/lib/design-import/types";
 const UNREACHABLE = "We could not reach the server. Check your connection and try again.";
 const ODD_ANSWER = "The server gave an answer we could not read. Nothing was changed.";
 
-export type Answer<T> = { readonly ok: true; readonly data: T } | { readonly ok: false; readonly message: string };
+type Answer<T> = { readonly ok: true; readonly data: T } | { readonly ok: false; readonly message: string };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 

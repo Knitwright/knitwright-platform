@@ -16,8 +16,6 @@ import { ORGANISATION_TYPES, type OrganisationType } from "./organisation";
  * Platform admins read the requests on the leads page.
  */
 
-export { ACCESS_MESSAGE_MAX, ACCESS_NAME_MAX, ACCESS_ORGANISATION_MAX };
-
 const CONTROL = /\p{Cc}/u;
 const CONTROL_BUT_LINES = /(?![\n\r\t])\p{Cc}/u;
 const TYPE_IDS = ORGANISATION_TYPES.map((type) => type.id) as [OrganisationType, ...OrganisationType[]];

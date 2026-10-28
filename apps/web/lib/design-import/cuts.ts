@@ -28,7 +28,7 @@ export const MOST_CUT_PX = 2048;
 /** The lowest resolution a PNG can state. A picture cut at fewer dots per inch is stated as this many, and its layer is scaled up to make up the difference. */
 export const LEAST_STATED_DPI = 50;
 
-export interface CutSource {
+interface CutSource {
   /** The picture at its best resolution with the marks repaired from the cloth around them. */
   readonly raster: Raster;
   /** Pixels of `raster` for each pixel of the picture the fit was made on. */

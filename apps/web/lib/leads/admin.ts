@@ -94,7 +94,6 @@ const leadRow = z
   }));
 
 export type LeadRow = z.output<typeof leadRow>;
-export type LeadQuote = LeadRow["quotes"][number];
 
 export const parseLeadRows = (data: unknown): LeadRow[] => z.array(leadRow).parse(data);
 
@@ -141,8 +140,6 @@ export function buildLeadList(rows: readonly LeadRow[], now: Date): LeadListItem
     })
     .sort((a, b) => b.score.total - a.score.total || Date.parse(b.lastActivity) - Date.parse(a.lastActivity));
 }
-
-export { NEXT_STEP_MAX };
 
 export const leadFormSchema = z.object({
   brandId: z.uuid("That is not a brand."),

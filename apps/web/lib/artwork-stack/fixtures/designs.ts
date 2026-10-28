@@ -43,7 +43,7 @@ export function jersey(extra: Partial<GarmentSpec> = {}, choices: Readonly<Recor
   return { ...base, colourways: [{ ...base.colourways[0], colours }, second], ...extra };
 }
 
-export const FILE_ID = "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f";
+const FILE_ID = "6f1c1d2e-3b4a-4c5d-8e9f-0a1b2c3d4e5f";
 
 export const LOGO_AND_TEXT: GarmentSpec["artwork"] = [
   {

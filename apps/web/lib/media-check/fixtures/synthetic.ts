@@ -6,7 +6,7 @@ import type { PanelRegion, ProtectedRegion } from "../types";
  * real generation; the variants stand in for the ways a generation goes wrong.
  */
 
-export interface Variant {
+interface Variant {
   readonly base?: string;
   readonly sleeve?: string;
   /** How far the middle stripe moves, in canvas units of 1000. */

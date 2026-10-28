@@ -4,7 +4,7 @@ import { z } from "zod";
 /** The fit choices a chart may be given for. They match the fit option of a top. */
 export const FIT_CHOICES = ["regular", "slim", "relaxed"] as const;
 export const SIZE_LABEL_MAX_LENGTH = 12;
-export const CHART_SUPPLIERS = ["platform", "brand"] as const;
+const CHART_SUPPLIERS = ["platform", "brand"] as const;
 export const MAX_SIZES_IN_RUN = 30;
 
 const idText = z

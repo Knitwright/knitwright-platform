@@ -5,19 +5,19 @@ import { SPEC_SCHEMA_VERSION, garmentSpecSchema, type GarmentSpec } from "./spec
 
 export type { GarmentSpec } from "./spec-schema";
 
-export type SpecResult =
+type SpecResult =
   | { readonly ok: true; readonly spec: GarmentSpec }
   | { readonly ok: false; readonly reason: string };
 
-export type ValidationResult =
+type ValidationResult =
   | { readonly ok: true; readonly spec: GarmentSpec }
   | { readonly ok: false; readonly issues: readonly string[] };
 
 /** The id of the colourway a new design starts with. */
-export const FIRST_COLOURWAY_ID = "main";
+const FIRST_COLOURWAY_ID = "main";
 const FIRST_COLOURWAY_NAME = "Main colourway";
 /** The id of the fabric a new design starts with. */
-export const FIRST_FABRIC_ID = "main";
+const FIRST_FABRIC_ID = "main";
 const FIRST_FABRIC_NAME = "Main fabric";
 
 const EMPTY_LIST_MESSAGES: Readonly<Record<string, string>> = {

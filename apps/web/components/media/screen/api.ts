@@ -8,8 +8,8 @@ import { UNREACHABLE_MESSAGE } from "./copy";
  * Hand-written checks, not zod, because zod stays out of client components (tests/architecture/client-weight.test.ts).
  */
 
-export type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
-export type Failure = Readonly<{ ok: false; message: string }>;
+type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
+type Failure = Readonly<{ ok: false; message: string }>;
 
 type Json = Record<string, unknown>;
 type Check<T> = (value: unknown) => value is T;

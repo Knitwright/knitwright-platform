@@ -48,7 +48,7 @@ function flatten(contour: Contour): Pt[] {
   return out.length > 1 && out[0]![0] === out[out.length - 1]![0] && out[0]![1] === out[out.length - 1]![1] ? out.slice(0, -1) : out;
 }
 
-export interface TextOutline {
+interface TextOutline {
   /** All glyph outlines together, to be filled with the even-odd rule. Origin: the left end of the baseline. */
   readonly rings: readonly Ring[];
   /** Width of the whole line. */
