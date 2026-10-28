@@ -92,6 +92,32 @@ const copies = (intake: Intake) => [
   intake.screen,
 ];
 
+type FileIds = Readonly<{ screenFileId: string; printFileId: string | null; vectorFileId: string | null }>;
+
+/** The `user_artworks` row for an intake whose files are stored. */
+const artworkRow = ({ brandId, userId, intake, rights }: StoreInput, files: FileIds) => ({
+  brand_id: brandId,
+  kind: intake.kind,
+  source_format: intake.sourceFormat,
+  label: intake.label,
+  source_sha256: intake.sourceSha256,
+  print_sha256: intake.printSha256,
+  print_file_id: files.printFileId,
+  vector_file_id: files.vectorFileId,
+  screen_file_id: files.screenFileId,
+  width_px: intake.widthPx,
+  height_px: intake.heightPx,
+  dpi_meta: intake.dpiMeta,
+  colour_space: intake.colourSpace,
+  profile_name: intake.profileName,
+  has_alpha: intake.hasAlpha,
+  rights_confirmed_by: rights.confirmedBy,
+  rights_confirmed_at: rights.confirmedAt,
+  rights_wording_version: rights.wordingVersion,
+  warnings: intake.warnings,
+  created_by: userId,
+});
+
 /**
  * Stores an intake: the screen copy (an ordinary artwork file), the print copy or the vector JSON, and the record.
  * Either all of it is stored or none: a failure removes what was written. The original file is never stored.
@@ -119,28 +145,7 @@ export const storeArtwork = async (input: StoreInput): Promise<ArtworkRecord> =>
     const vectorFileId = intake.vector ? await put("artwork-vector", "exports", intake.vector, false) : null;
     const inserted = await admin
       .from("user_artworks")
-      .insert({
-        brand_id: brandId,
-        kind: intake.kind,
-        source_format: intake.sourceFormat,
-        label: intake.label,
-        source_sha256: intake.sourceSha256,
-        print_sha256: intake.printSha256,
-        print_file_id: printFileId,
-        vector_file_id: vectorFileId,
-        screen_file_id: screenFileId,
-        width_px: intake.widthPx,
-        height_px: intake.heightPx,
-        dpi_meta: intake.dpiMeta,
-        colour_space: intake.colourSpace,
-        profile_name: intake.profileName,
-        has_alpha: intake.hasAlpha,
-        rights_confirmed_by: rights.confirmedBy,
-        rights_confirmed_at: rights.confirmedAt,
-        rights_wording_version: rights.wordingVersion,
-        warnings: intake.warnings,
-        created_by: userId,
-      })
+      .insert(artworkRow(input, { screenFileId, printFileId, vectorFileId }))
       .select(COLUMNS)
       .single();
     if (inserted.error) throw new Error("The artwork's record could not be written.", { cause: inserted.error });

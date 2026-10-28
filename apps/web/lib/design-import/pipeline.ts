@@ -150,17 +150,36 @@ async function workingRaster(input: PipelineInput, raster: Raster, reading: Read
   return second.analyses.length > first.analyses.length ? { raster: cleaned.raster, generated: true, ...second } : { raster, generated: false, ...first };
 }
 
+/** The reading to work from: the one kept from an earlier run, or a fresh read of the picture by the vision model. */
+async function readingFor(input: PipelineInput, deps: PipelineDeps): Promise<{ ok: true; reading: Reading; notes: string[] } | { ok: false; reason: string }> {
+  if (input.reading) return { ok: true, reading: input.reading, notes: [] };
+  if (!deps.provider) return { ok: false, reason: NO_PROVIDER };
+  const read = await readPicture({ image: { mediaType: input.mediaType, base64: Buffer.from(input.bytes).toString("base64") }, provider: deps.provider, budget: deps.budget, signal: input.signal });
+  if (!read.ok) return { ok: false, reason: read.reason };
+  return { ok: true, reading: read.reading, notes: [...read.notes] };
+}
+
+/** Every pixel inside any fitted outline. */
+function fittedMask(raster: Raster, fitted: readonly ViewAnalysis[]): Uint8Array {
+  const union = new Uint8Array(raster.width * raster.height);
+  for (const a of fitted) a.outline.mask.forEach((v, at) => (union[at] |= v));
+  return union;
+}
+
+function reportNotes(input: PipelineInput, notes: readonly string[], work: Awaited<ReturnType<typeof workingRaster>>): string[] {
+  return [
+    ...(input.notes ?? []),
+    ...notes,
+    ...("note" in work && work.note ? [work.note] : []),
+    ...(work.generated ? ["The outline was found after an image model cleaned the picture up, so the colours are from generated pixels. Generated pixels are used as print artwork only if you accept them."] : []),
+  ];
+}
+
 export async function runImport(input: PipelineInput, deps: PipelineDeps): Promise<ImportOutcome> {
   const spend = (): ImportReport["spend"] => deps.budget.spent();
-  let reading = input.reading;
-  const notes: string[] = [];
-  if (!reading) {
-    if (!deps.provider) return { ok: false, reason: NO_PROVIDER, spend: spend() };
-    const read = await readPicture({ image: { mediaType: input.mediaType, base64: Buffer.from(input.bytes).toString("base64") }, provider: deps.provider, budget: deps.budget, signal: input.signal });
-    if (!read.ok) return { ok: false, reason: read.reason, spend: spend() };
-    reading = read.reading;
-    notes.push(...read.notes);
-  }
+  const read = await readingFor(input, deps);
+  if (!read.ok) return { ok: false, reason: read.reason, spend: spend() };
+  const { reading, notes } = read;
   const base = await decodeRaster(input.bytes);
   const work = await workingRaster(input, base, reading, deps);
   const { fits, failed } = fitAll(work.analyses, deps, reading.kind);
@@ -169,19 +188,15 @@ export async function runImport(input: PipelineInput, deps: PipelineDeps): Promi
 
   const markRects = reading.marks.filter((m) => fits.has(m.view)).map((m) => markRect(m, work.raster));
   const repaired = repairGround(work.raster, markRects);
-  const union = new Uint8Array(work.raster.width * work.raster.height);
-  for (const a of fitted) a.outline.mask.forEach((v, at) => (union[at] |= v));
-  const clusters = clusterColours(repaired, union);
+  const clusters = clusterColours(repaired, fittedMask(work.raster, fitted));
   if (clusters.length === 0) return { ok: false, reason: NOTHING_FITTED, spend: spend() };
   const photo = reading.kind === "worn-photo";
   const marks = readMarks({ marks: reading.marks, readingConfidence: reading.confidence, raster: work.raster, fits, template: deps.template, colours: toStackColours(clusters) });
   const source = await sourceCopy(input.bytes, work.raster, work.generated);
   const found = await findPatterns({ stage: deps.pattern, template: deps.template, repaired, source, generated: work.generated, marks: reading.marks, analyses: fitted, fits, colours: marks.colours });
   const cropFiles = await Promise.all(marks.crops.slice(0, MOST_STORED_CROPS).map((crop) => cropFile(crop, source)));
-  const proposals = found.proposals;
   const layers: Layer[] = [...found.layers, ...marks.layers];
-  const views = fitted.map((a) => a.view);
-  const built = buildStack(views, marks.colours, layers);
+  const built = buildStack(fitted.map((a) => a.view), marks.colours, layers);
   if (!built.ok) return { ok: false, reason: built.reason, spend: spend() };
 
   const absent = VIEW_IDS.filter((v) => !reading.views.some((entry) => entry.view === v));
@@ -193,11 +208,11 @@ export async function runImport(input: PipelineInput, deps: PipelineDeps): Promi
     fitItems: fitItems(work.analyses, fits, deps),
     groundItem: { id: "ground", layerId: "ground", label: "Ground and colours", confidence: colourConfidence(clusters, photo), note: `${clusters.length} ${clusters.length === 1 ? "colour" : "colours"} read as screen colours. No colour codes are guessed: type your own.` },
     markItems: marks.items,
-    proposals,
+    proposals: found.proposals,
     patternReads: deps.pattern.reads,
     absent,
     failed: failures.filter((f) => !absent.includes(f.view)),
-    notes: [...(input.notes ?? []), ...notes, ...("note" in work && work.note ? [work.note] : []), ...(work.generated ? ["The outline was found after an image model cleaned the picture up, so the colours are from generated pixels. Generated pixels are used as print artwork only if you accept them."] : [])],
+    notes: reportNotes(input, notes, work),
     guessed: [...guessedWords(fitted), ...(deps.standIn ? [STAND_IN_SENTENCE] : [])],
     fittedTo: deps.template.description,
     generatedPixels: work.generated,

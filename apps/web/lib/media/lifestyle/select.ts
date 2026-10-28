@@ -11,9 +11,6 @@ import { stubLifestyleProvider } from "./stub";
  * unset no lifestyle picture is made. A provider whose key is missing is left out and named, never guessed.
  */
 
-export const SCENE_PROVIDERS = ["stub", "photoroom", "google-recontext", "fal"] as const;
-export const TRYON_PROVIDERS = ["stub", "google-tryon", "fashn", "fal"] as const;
-
 /**
  * Read from the process environment: LIFESTYLE_SCENE_PROVIDER, LIFESTYLE_TRYON_PROVIDER, PHOTOROOM_API_KEY, FASHN_API_KEY,
  * FAL_KEY, GOOGLE_VERTEX_ACCESS_TOKEN, GOOGLE_VERTEX_PROJECT, GOOGLE_VERTEX_LOCATION and LIFESTYLE_DAILY_CAP_MICRODOLLARS.

@@ -81,7 +81,29 @@ export function repairClashes(options: Options, type: ResolvedType): Reconciled<
  */
 export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<GarmentSpec> {
   const dropped: Dropped[] = [];
-  const measurements = spec.measurements.filter((measurement) => {
+  const measurements = keptMeasurements(spec, type, dropped);
+  const { colourways, panelFabrics } = keptPanelEntries(spec, type, dropped);
+  const artwork = spec.artwork.filter((art) => {
+    const found = artworkProblem(art, type, spec);
+    if (found === null) return true;
+    dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
+    return false;
+  });
+  const rest = withoutKitPattern(withoutMarks(spec));
+  const marks = keptMarks(spec, type, dropped);
+  const pattern = keptKitPattern(spec, type, dropped);
+  const kept = keepApplyingSizeValues(
+    { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks, ...pattern },
+    type,
+    dropped,
+  );
+  const tech = dropStaleTechFields(kept, type);
+  return { value: tech.value, dropped: [...dropped, ...tech.dropped] };
+}
+
+/** The measurements whose point still applies. Each one removed is reported. */
+function keptMeasurements(spec: GarmentSpec, type: ResolvedType, dropped: Dropped[]): GarmentSpec["measurements"] {
+  return spec.measurements.filter((measurement) => {
     const point = type.pointsOfMeasure.find((entry) => entry.id === measurement.pointId);
     if (point && conditionsHold(point.appliesWhen, spec.options)) return true;
     const reason = point?.unavailableReason ?? `${type.label} does not have it.`;
@@ -92,6 +114,10 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
     });
     return false;
   });
+}
+
+/** Colours and fabric assignments for the panels the garment still has. Each one removed is reported. */
+function keptPanelEntries(spec: GarmentSpec, type: ResolvedType, dropped: Dropped[]) {
   const panels = new Set(
     type.panels.filter((panel) => conditionsHold(panel.appliesWhen, spec.options)).map((panel) => panel.id),
   );
@@ -115,22 +141,7 @@ export function reconcile(spec: GarmentSpec, type: ResolvedType): Reconciled<Gar
     dropped.push({ kind: "fabric-assignment", id: entry.panelId, message: `The fabric for ${gone(entry.panelId)}` });
     return false;
   });
-  const artwork = spec.artwork.filter((art) => {
-    const found = artworkProblem(art, type, spec);
-    if (found === null) return true;
-    dropped.push({ kind: "artwork", id: art.id, message: `${found} It was removed.` });
-    return false;
-  });
-  const rest = withoutKitPattern(withoutMarks(spec));
-  const marks = keptMarks(spec, type, dropped);
-  const pattern = keptKitPattern(spec, type, dropped);
-  const kept = keepApplyingSizeValues(
-    { ...rest, measurements, colourways: nonEmpty(colourways) ?? spec.colourways, panelFabrics, artwork, ...marks, ...pattern },
-    type,
-    dropped,
-  );
-  const tech = dropStaleTechFields(kept, type);
-  return { value: tech.value, dropped: [...dropped, ...tech.dropped] };
+  return { colourways, panelFabrics };
 }
 
 /** Names and numbers with only the places the garment still has. Each place dropped is reported. */

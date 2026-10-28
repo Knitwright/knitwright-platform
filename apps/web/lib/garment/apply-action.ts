@@ -1,3 +1,12 @@
+import {
+  isDetailAction,
+  isMaterialAction,
+  isMeasuredAction,
+  unhandledAction,
+  type DetailAction,
+  type MaterialAction,
+  type MeasuredAction,
+} from "./action-groups";
 import { specActionSchema, type SpecAction } from "./action-schema";
 import type { Dropped } from "./dropped";
 import { fabricChanges } from "./fabric-changes";
@@ -118,8 +127,8 @@ function assignFabric(spec: GarmentSpec, panelId: string, fabricId: string): Act
   return accept({ ...spec, panelFabrics: [...others, { panelId, fabricId }] });
 }
 
-/** Options, measurements, sizing and tolerances. Null when the action is not one of them. */
-function runMeasured(spec: GarmentSpec, action: SpecAction): ActionResult | null {
+/** Options, measurements, sizing and tolerances. */
+function runMeasured(spec: GarmentSpec, action: MeasuredAction): ActionResult {
   switch (action.type) {
     case "set-option":
       return setOption(spec, action);
@@ -137,13 +146,11 @@ function runMeasured(spec: GarmentSpec, action: SpecAction): ActionResult | null
       return setTolerance(spec, action.entry);
     case "remove-tolerance":
       return removeTolerance(spec, action.pointId);
-    default:
-      return null;
   }
 }
 
-/** Fabrics, colourways and artwork. Null when the action is not one of them. */
-function runMaterials(spec: GarmentSpec, action: SpecAction): ActionResult | null {
+/** Fabrics, colourways and artwork. */
+function runMaterials(spec: GarmentSpec, action: MaterialAction): ActionResult {
   switch (action.type) {
     case "add-fabric":
       return fabricList(spec, { kind: "add", item: action.fabric });
@@ -167,13 +174,11 @@ function runMaterials(spec: GarmentSpec, action: SpecAction): ActionResult | nul
       return artworkList(spec, { kind: "update", item: action.artwork });
     case "remove-artwork":
       return artworkList(spec, { kind: "remove", id: action.id });
-    default:
-      return null;
   }
 }
 
-/** Names and numbers, kit pattern, components, construction, labelling, wearer and type. Null when the action is not one of them. */
-function runDetails(spec: GarmentSpec, action: SpecAction): ActionResult | null {
+/** Names and numbers, kit pattern, components, construction, labelling, wearer and type. */
+function runDetails(spec: GarmentSpec, action: DetailAction): ActionResult {
   switch (action.type) {
     case "set-names-numbers":
       return accept({ ...spec, namesAndNumbers: action.namesAndNumbers });
@@ -197,13 +202,14 @@ function runDetails(spec: GarmentSpec, action: SpecAction): ActionResult | null 
       return accept({ ...spec, wearer: action.wearer });
     case "change-type":
       return changeType(spec, action.typeId);
-    default:
-      return null;
   }
 }
 
 function run(spec: GarmentSpec, action: SpecAction): ActionResult {
-  return runMeasured(spec, action) ?? runMaterials(spec, action) ?? runDetails(spec, action) ?? reject("That change is not understood.");
+  if (isMeasuredAction(action)) return runMeasured(spec, action);
+  if (isMaterialAction(action)) return runMaterials(spec, action);
+  if (isDetailAction(action)) return runDetails(spec, action);
+  return unhandledAction(action, reject("That change is not understood."));
 }
 
 /**

@@ -19,6 +19,7 @@ export {
   type ResolvedSeam,
 } from "./construction";
 export { specActionSchema, type SpecAction } from "./action-schema";
+export { isDetailAction, isMaterialAction, isMeasuredAction, unhandledAction, type DetailAction, type MaterialAction, type MeasuredAction } from "./action-groups";
 export { checkCombination, type RuleViolation } from "./combinations";
 export {
   conditionSchema,

@@ -83,6 +83,23 @@ async function withItems(admin: SupabaseClient, brandId: string, set: { id: stri
   return toRecord({ ...set, media_items: data ?? [] });
 }
 
+async function putMediaItem(admin: SupabaseClient, setId: string, item: Parameters<MediaStore["putItem"]>[1]): Promise<string> {
+  const { data, error } = await admin.rpc("media_item_put", {
+    p_set_id: setId,
+    p_kind: item.kind,
+    p_view: item.view,
+    p_file_id: item.fileId,
+    p_clean_path: item.cleanPath,
+    p_width: item.width,
+    p_height: item.height,
+    p_provider: item.provider,
+    p_cost_microdollars: item.costMicrodollars,
+    p_verdict: item.checker,
+  });
+  failIf(error, "The media item could not be recorded.");
+  return z.uuid().parse(data);
+}
+
 export function mediaStore(admin: SupabaseClient, client: SupabaseClient): MediaStore {
   return {
     async start(input) {
@@ -101,22 +118,7 @@ export function mediaStore(admin: SupabaseClient, client: SupabaseClient): Media
       failIf(error, "The media set could not be updated.");
       return data === true;
     },
-    async putItem(setId, item) {
-      const { data, error } = await admin.rpc("media_item_put", {
-        p_set_id: setId,
-        p_kind: item.kind,
-        p_view: item.view,
-        p_file_id: item.fileId,
-        p_clean_path: item.cleanPath,
-        p_width: item.width,
-        p_height: item.height,
-        p_provider: item.provider,
-        p_cost_microdollars: item.costMicrodollars,
-        p_verdict: item.checker,
-      });
-      failIf(error, "The media item could not be recorded.");
-      return z.uuid().parse(data);
-    },
+    putItem: (setId, item) => putMediaItem(admin, setId, item),
     async unlock(setId, userId) {
       const { data, error } = await admin.rpc("media_set_unlock", { p_set_id: setId, p_user_id: userId });
       failIf(error, "The media set could not be unlocked.");

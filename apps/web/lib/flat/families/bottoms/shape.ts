@@ -60,6 +60,22 @@ const KNEE_FIT = "The knee is not between the thigh and the leg opening.";
 const OUTSEAM_FIT = "The outside leg does not match the rise and the inside leg.";
 const BACK_RISE = "The back rise is shorter than the front rise.";
 
+type Placed = Readonly<{ hip: number; bandHeight: number; hipY: number; thigh: number; opening: number; hemY: number; hasKnee: boolean }>;
+
+/** Why the measurements cannot be drawn together, in a fixed order; empty when they can. */
+function fitProblems(d: (id: string) => number, { hip, bandHeight, hipY, thigh, opening, hemY, hasKnee }: Placed): string[] {
+  const problems: string[] = [];
+  if (d("waist-relaxed") >= hip) problems.push(WAIST_WIDER);
+  if (d("waist-stretched") < d("waist-relaxed")) problems.push(STRETCH_SMALLER);
+  if (bandHeight >= hipY * 0.8) problems.push(BAND_DEEP);
+  if (thigh < 0.35 * hip || thigh > 0.8 * hip) problems.push(THIGH_FIT);
+  if (opening > thigh * 1.05) problems.push(OPENING_WIDE);
+  if (hasKnee && (d("knee") > thigh || d("knee") < opening * 0.9)) problems.push(KNEE_FIT);
+  if (Math.abs(d("outseam") - hemY) > OUTSEAM_TOLERANCE * hemY) problems.push(OUTSEAM_FIT);
+  if (d("back-rise") < d("front-rise")) problems.push(BACK_RISE);
+  return problems;
+}
+
 /** Draws nothing. Says whether the measurements can be drawn together, and places everything if so. */
 export function bottomsBasisOf(dims: Dims, options: BottomsOptions): BottomsBasisResult {
   const d = (id: string): number => need(dims, id);
@@ -72,15 +88,7 @@ export function bottomsBasisOf(dims: Dims, options: BottomsOptions): BottomsBasi
   const inseam = d("inseam");
   const hemY = crotchY + inseam;
   const hasKnee = options.legLength !== "short";
-  const problems: string[] = [];
-  if (d("waist-relaxed") >= hip) problems.push(WAIST_WIDER);
-  if (d("waist-stretched") < d("waist-relaxed")) problems.push(STRETCH_SMALLER);
-  if (bandHeight >= hipY * 0.8) problems.push(BAND_DEEP);
-  if (thigh < 0.35 * hip || thigh > 0.8 * hip) problems.push(THIGH_FIT);
-  if (opening > thigh * 1.05) problems.push(OPENING_WIDE);
-  if (hasKnee && (d("knee") > thigh || d("knee") < opening * 0.9)) problems.push(KNEE_FIT);
-  if (Math.abs(d("outseam") - hemY) > OUTSEAM_TOLERANCE * hemY) problems.push(OUTSEAM_FIT);
-  if (d("back-rise") < d("front-rise")) problems.push(BACK_RISE);
+  const problems = fitProblems(d, { hip, bandHeight, hipY, thigh, opening, hemY, hasKnee });
   if (problems.length > 0) return { basis: null, problems };
   const waistHalf = d("waist-relaxed") / 2;
   const hipHalf = hip / 2;
