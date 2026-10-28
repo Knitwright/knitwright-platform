@@ -17,14 +17,10 @@ type CardProps = Readonly<{
   onChanged: () => void;
 }>;
 
-/** One artwork: its screen picture, what it is, how sharp it prints at a width, and the changes that can be made. */
-export function ArtworkCard({ artwork, onChanged }: CardProps) {
+/** The artwork's screen picture and its detail, read when the card opens. */
+function useArtworkLoad(artwork: ArtworkRecord) {
   const [picture, setPicture] = useState<string | null>(null);
   const [detail, setDetail] = useState<ArtworkDetail | null>(null);
-  const [widthMm, setWidthMm] = useState("");
-  const [seam, setSeam] = useState<SeamReport | null>(null);
-  const [shown, setShown] = useState<ChangeSummary | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -34,6 +30,15 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
       live = false;
     };
   }, [artwork.id, artwork.screenFileId]);
+  return { picture, detail, setDetail };
+}
+
+/** The card's checks and changes, and the sentence to show when one fails. */
+function useArtworkActions(artwork: ArtworkRecord, onChanged: () => void, setDetail: (detail: ArtworkDetail) => void) {
+  const [widthMm, setWidthMm] = useState("");
+  const [seam, setSeam] = useState<SeamReport | null>(null);
+  const [shown, setShown] = useState<ChangeSummary | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const askWidth = async () => {
     const width = Number(widthMm);
@@ -49,13 +54,13 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
     else setMessage(answer.reason);
   };
 
-  const show = async (change: Parameters<typeof changeArtwork>[2]) => {
+  const show = async (change: Change) => {
     const answer = await changeArtwork(call, artwork.id, change, false);
     if (answer.ok && !answer.data.accepted) setShown(answer.data.summary);
     else if (!answer.ok) setMessage(answer.reason);
   };
 
-  const accept = async (change: Parameters<typeof changeArtwork>[2]) => {
+  const accept = async (change: Change) => {
     const answer = await changeArtwork(call, artwork.id, change, true);
     if (answer.ok) {
       setShown(null);
@@ -68,20 +73,17 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
     if (answer.ok) onChanged();
     else setMessage(answer.reason);
   };
+  return { widthMm, setWidthMm, seam, shown, setShown, message, askWidth, checkTile, show, accept, remove };
+}
+
+/** One artwork: its screen picture, what it is, how sharp it prints at a width, and the changes that can be made. */
+export function ArtworkCard({ artwork, onChanged }: CardProps) {
+  const { picture, detail, setDetail } = useArtworkLoad(artwork);
+  const { widthMm, setWidthMm, seam, shown, setShown, message, askWidth, checkTile, show, accept, remove } = useArtworkActions(artwork, onChanged, setDetail);
 
   return (
     <article className="flex flex-col gap-3 rounded-2xl border border-hairline p-4">
-      <h3 className="text-base font-medium text-ink">{artwork.label}</h3>
-      {picture ? (
-        // eslint-disable-next-line @next/next/no-img-element -- A short-lived storage link, drawn as it is.
-        <img src={picture} alt={`Screen copy of ${artwork.label}`} className="max-h-56 w-auto self-start rounded-lg border border-hairline bg-[repeating-conic-gradient(#8881_0_25%,transparent_0_50%)] bg-[length:16px_16px]" />
-      ) : null}
-      <p className="text-sm text-ink-2">{describeArtwork(artwork)}</p>
-      {artwork.warnings.map((warning) => (
-        <p key={warning} className="text-sm text-muted">
-          {warning}
-        </p>
-      ))}
+      <ArtworkHeading artwork={artwork} picture={picture} />
 
       <WidthCheck widthMm={widthMm} onWidth={setWidthMm} onCheck={() => void askWidth()} detail={detail} />
 
@@ -100,6 +102,24 @@ export function ArtworkCard({ artwork, onChanged }: CardProps) {
         </Button>
       </div>
     </article>
+  );
+}
+
+function ArtworkHeading({ artwork, picture }: Readonly<{ artwork: ArtworkRecord; picture: string | null }>) {
+  return (
+    <>
+      <h3 className="text-base font-medium text-ink">{artwork.label}</h3>
+      {picture ? (
+        // eslint-disable-next-line @next/next/no-img-element -- A short-lived storage link, drawn as it is.
+        <img src={picture} alt={`Screen copy of ${artwork.label}`} className="max-h-56 w-auto self-start rounded-lg border border-hairline bg-[repeating-conic-gradient(#8881_0_25%,transparent_0_50%)] bg-[length:16px_16px]" />
+      ) : null}
+      <p className="text-sm text-ink-2">{describeArtwork(artwork)}</p>
+      {artwork.warnings.map((warning) => (
+        <p key={warning} className="text-sm text-muted">
+          {warning}
+        </p>
+      ))}
+    </>
   );
 }
 
