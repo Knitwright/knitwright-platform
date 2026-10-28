@@ -54,11 +54,19 @@ describe("formatLogEvent", () => {
     expect(JSON.parse(line).error).toEqual({ value: "boom" });
   });
 
-  it("keeps the code, message, details and hint of a database error that caused an error", () => {
+  it("never keeps the details of a database error, which echo row values", () => {
+    const database = { code: "23505", message: "duplicate key", details: "Key (email)=(ada@example.com) already exists." };
+    const line = formatLogEvent({ level: "error", message: "Failed", where: "x", error: database });
+
+    expect(line).not.toContain("ada@example.com");
+    expect(JSON.parse(line).error).toEqual({ code: "23505", message: "duplicate key" });
+  });
+
+  it("keeps the code, message and hint of a database error that caused an error", () => {
     const database = {
       code: "42501",
       message: "permission denied for function rate_limit_hit",
-      details: null,
+      details: "Key (email)=(a@b.example)",
       hint: "Ask with key sb_secret_abc123",
     };
     const error = new Error("The rate limit could not be counted.", { cause: database });
@@ -68,7 +76,6 @@ describe("formatLogEvent", () => {
     expect(cause).toEqual({
       code: "42501",
       message: "permission denied for function rate_limit_hit",
-      details: null,
       hint: "Ask with key [removed]",
     });
   });

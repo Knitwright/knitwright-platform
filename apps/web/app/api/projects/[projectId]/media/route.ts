@@ -1,11 +1,14 @@
 import { after } from "next/server";
 import { z } from "zod";
+import { getEnv } from "@/lib/config/env";
+import { lifestyleEnv } from "@/lib/media/lifestyle/env";
 import { loadStudioDesign } from "@/lib/media/design";
 import { runMediaSet } from "@/lib/media/generate";
 import { lifestyleGenerators } from "@/lib/media/lifestyle/register";
 import { mediaFiles, mediaStore } from "@/lib/media/service";
 import { startMediaSet } from "@/lib/media/start";
 import { studioGenerator } from "@/lib/media/studio-generator";
+import { MEDIA_SET_RESERVE_BYTES } from "@/lib/media/video/limits";
 import { setView } from "@/lib/media/view";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, productionDeps, sessionClient } from "@/lib/server/deps";
@@ -35,10 +38,10 @@ export const POST = defineRoute({
     // Lifestyle pictures are made only when the owner has chosen a provider (decision 0057); by default this adds nothing.
     const generators = [
       studioGenerator(loadDesign),
-      ...lifestyleGenerators({ env: process.env, usage: productionDeps.usage, client, brandId, userId: session.userId, loadDesign, log }),
+      ...lifestyleGenerators({ env: lifestyleEnv(getEnv()), usage: productionDeps.usage, client, brandId, userId: session.userId, loadDesign, log }),
     ];
 
-    await ensureStorageRoom(admin, brandId, 1);
+    await ensureStorageRoom(admin, brandId, MEDIA_SET_RESERVE_BYTES);
     const { set, created } = await startMediaSet(
       {
         store,

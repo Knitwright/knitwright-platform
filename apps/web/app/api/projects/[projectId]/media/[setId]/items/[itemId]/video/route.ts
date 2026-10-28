@@ -24,6 +24,7 @@ export const GET = defineRoute({
       headers: {
         "content-type": served.contentType,
         "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
         "x-media-ai-generated": String(served.aiGenerated),
         "content-disposition": `inline; filename="knitwright-${input.params.itemId}.${served.contentType === "video/mp4" ? "mp4" : "webm"}"`,
       },

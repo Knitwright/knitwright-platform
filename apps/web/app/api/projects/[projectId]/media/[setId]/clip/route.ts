@@ -4,6 +4,7 @@ import { getEnv } from "@/lib/config/env";
 import { withCredits } from "@/lib/credits-gate/server";
 import { mediaFiles, mediaStore } from "@/lib/media/service";
 import { startClip } from "@/lib/media/video/start-clip";
+import { MAX_CLIP_BYTES } from "@/lib/media/video/limits";
 import { CLIP_COST } from "@/lib/media/video/cost";
 import { videoFiles } from "@/lib/media/video/files";
 import { chooseVideoProvider } from "@/lib/media/video/select";
@@ -12,6 +13,7 @@ import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
+import { ensureStorageRoom } from "@/lib/storage/store";
 
 /** The work carried on by after() must fit the platform's limit (decision record 0002). */
 export const maxDuration = 60;
@@ -44,12 +46,13 @@ export const POST = defineRoute({
       const client = await sessionClient();
       const brandId = session.brand.id;
       const env = getEnv();
+      await ensureStorageRoom(admin, brandId, MAX_CLIP_BYTES);
       return startClip(
         {
           store: mediaStore(admin, client),
           files: mediaFiles(admin, client, { brandId, userId: session.userId }),
           videos: videoFiles(admin, brandId),
-          provider: chooseVideoProvider({ FAL_KEY: env.FAL_KEY, MEDIA_VIDEO_LIVE: process.env.MEDIA_VIDEO_LIVE }),
+          provider: chooseVideoProvider({ FAL_KEY: env.FAL_KEY, MEDIA_VIDEO_LIVE: env.MEDIA_VIDEO_LIVE }),
           log,
           schedule: (work) => after(work),
           refund: async () => usage?.refund(),

@@ -23,7 +23,7 @@ export const GET = defineRoute({
 /** Records "validated" (no blockers against the profile today) or returns the design to draft. */
 export const POST = defineRoute({
   auth: "member",
-  rateLimit: LIMITS.read,
+  rateLimit: LIMITS.validationWrite,
   schema: { params, body },
   handler: async ({ input, session }) => {
     const client = await sessionClient();

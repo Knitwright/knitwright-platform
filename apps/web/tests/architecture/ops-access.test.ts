@@ -53,6 +53,32 @@ describe("the ops console is for platform admins only", () => {
     }
   });
 
+  it("guards each platform-only entry point outside ops too: pattern service, designers, settings and the pattern-file route (L15)", () => {
+    // Every action or route in these places is either listed as a member's own, or must ask for a platform admin in its own body.
+    const MEMBER_OWN = new Set(["requestPatternAction", "enrolAction", "newSubmissionAction", "sendSubmissionAction"]);
+    const GUARD = /assertPlatformAdmin\(|opsContext\(|reviewer\(/;
+    const files = [
+      ...walk("lib/pattern-service"), ...walk("lib/designers"), ...walk("lib/settings"),
+      "app/(ops)/ops/pattern-requests/[requestId]/files/route.ts",
+    ].filter((f) => /route\.ts$|actions\.ts$/.test(f));
+    expect(files.length).toBeGreaterThanOrEqual(4);
+    let guarded = 0;
+    for (const path of files) {
+      const blocks = read(path).split(/\n(?=export const )/).filter((block) => /^export const \w+ = define(Action|Route)\(/.test(block));
+      expect(blocks.length, path).toBeGreaterThan(0);
+      for (const block of blocks) {
+        const name = /^export const (\w+)/.exec(block)![1]!;
+        if (MEMBER_OWN.has(name)) continue;
+        expect(block, `${path} ${name}`).toMatch(GUARD);
+        guarded += 1;
+      }
+    }
+    // The ops pattern-file route also checks before it reads the body (M7), not after.
+    const upload = read("app/(ops)/ops/pattern-requests/[requestId]/files/route.ts");
+    expect(upload).toMatch(/authorize:[^\n]*assertPlatformAdmin\(/);
+    expect(guarded).toBeGreaterThanOrEqual(6);
+  });
+
   it("is linked from nowhere in the public shell, the studio or the home page", () => {
     const places = ["app/page.tsx", "app/layout.tsx", "components/shell", "components/home", "components/studio", "components/brand", "lib/navigation", "app/(app)", "app/(auth)", "app/legal"];
     const files = places.flatMap((p) => (/\.tsx?$/.test(p) ? [p] : walk(p)));

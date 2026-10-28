@@ -48,4 +48,9 @@ describe("LIMITS for production outputs", () => {
       expect(rule.limit / rule.windowSeconds).toBeLessThanOrEqual(2 / 60);
     }
   });
+
+  it("holds a status write and a tile render tighter than a plain read (security review L1)", () => {
+    expect(LIMITS.validationWrite.limit / LIMITS.validationWrite.windowSeconds).toBeLessThan(LIMITS.read.limit / LIMITS.read.windowSeconds);
+    expect(LIMITS.variantsRender.limit / LIMITS.variantsRender.windowSeconds).toBeLessThan(LIMITS.read.limit / LIMITS.read.windowSeconds);
+  });
 });

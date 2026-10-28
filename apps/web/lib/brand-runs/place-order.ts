@@ -10,6 +10,7 @@ import { canOrder, whyNotOrder } from "./stage";
 
 type Clients = Readonly<{ client: SupabaseClient; admin: SupabaseClient }>;
 
+export const UNKNOWN_FABRIC = "Choose one of the fabrics the factory lists.";
 export const FLAGS_NOT_READ = "Read the notes about this quantity and tick the box to send it anyway.";
 
 /**
@@ -24,6 +25,8 @@ export async function placeOrder(clients: Clients, who: Who, role: ClubRole, bod
   if (!canOrder(product.stage, body.kind) && refusal) throw new AppError("conflict", refusal);
 
   const context = await loadRunContext(clients.client, who.brandId, product.projectId);
+  // A profile with no fabrics listed lets the brand name one (the builder shows a text box then); a listed profile does not.
+  if (context.fabrics.length > 0 && !context.fabrics.includes(body.fabricKey)) throw new AppError("invalid_input", UNKNOWN_FABRIC);
   const breakdown = checkBreakdown({ kind: body.kind, quantities: numbersOf(body.quantities), sizeRun: context.sizeRun, moq: context.moq });
   if (breakdown.errors.length > 0) throw new AppError("invalid_input", breakdown.errors.join(" "));
   if (breakdown.flags.length > 0 && !body.acknowledgeFlags) throw new AppError("conflict", FLAGS_NOT_READ);

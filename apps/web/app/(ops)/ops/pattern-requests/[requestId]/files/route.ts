@@ -20,8 +20,8 @@ export const POST = defineRoute({
   rateLimit: LIMITS.upload,
   maxBodyBytes: 5 * MAX_FILE_BYTES + FORM_OVERHEAD_BYTES,
   schema: { params: attachParams, form: z.looseObject({ files: filesOf }) },
+  authorize: async () => assertPlatformAdmin(await sessionClient()),
   handler: async ({ input, session }) => {
-    await assertPlatformAdmin(await sessionClient());
     const { files } = input.form;
     if (files.length < 1 || files.length > 5) throw new AppError("invalid_input", "Attach 1 to 5 DXF files at a time.");
     const uploads = await Promise.all(files.map(async (file) => ({ name: file.name, bytes: new Uint8Array(await file.arrayBuffer()) })));

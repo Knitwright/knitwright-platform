@@ -8,6 +8,10 @@ import type { DeletionClient, StoredObject } from "./client";
 /** Every bucket that holds brand files. Each path starts with the brand's id. */
 export const BUCKETS = ["uploads", "images", "exports"] as const;
 
+/** Clean generated pictures, turntable videos and clips: no `files` row, unreadable through storage rules, in the images bucket. */
+export const PRIVATE_MEDIA_BUCKET = "images";
+const privateFolder = (brandId: string): string => `_private/${brandId}`;
+
 /** The most paths sent in one remove call. */
 export const REMOVE_BATCH = 100;
 
@@ -82,6 +86,9 @@ export const emptyBrandFolders = async (
       await removeObjects(client, paths.map((path) => ({ bucket, path })));
       removed += paths.length;
     }
+    const clean = await pathsUnder(client, PRIVATE_MEDIA_BUCKET, privateFolder(brandId), 2);
+    await removeObjects(client, clean.map((path) => ({ bucket: PRIVATE_MEDIA_BUCKET, path })));
+    removed += clean.length;
   }
   return removed;
 };

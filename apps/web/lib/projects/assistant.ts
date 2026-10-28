@@ -1,5 +1,5 @@
 import "server-only";
-import { getEnv } from "@/lib/config/env";
+import { assistantSigningSecret, getEnv } from "@/lib/config/env";
 import { proposalKey } from "@/lib/intent/proposal-token";
 import { chooseModels, type ModelChoice } from "@/lib/providers/select";
 import { standInModels } from "@/lib/providers/stand-in";
@@ -20,7 +20,7 @@ export const assistantModels = (): ModelChoice => {
 
 export const assistantAvailable = (): boolean => assistantModels().primary !== null;
 
-/** The key proposals are signed with, derived from the server's secret. */
-export const proposalSigningKey = (): Buffer => proposalKey(getEnv().SUPABASE_SECRET_KEY);
+/** The key proposals are signed with: a dedicated secret when set, else derived from the server's secret. */
+export const proposalSigningKey = (): Buffer => proposalKey(assistantSigningSecret(getEnv()));
 
 export const nowSeconds = (): number => Math.floor(Date.now() / 1000);
