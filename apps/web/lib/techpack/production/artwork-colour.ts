@@ -12,8 +12,6 @@ import { stackParts } from "./stack-section";
 import type { ArtworkAndColourSection, ColourStandardRow, PlacementRow, PrintParameterRow, PrintRuleRow, ZoneRow } from "./types";
 import { ZONE_LABELS } from "./zone-labels";
 
-export { ZONE_LABELS };
-
 export const NO_LEAGUE_RULES = "No league rules set: check with the competition.";
 const NO_AVOID_COLOURS = "The print house has listed no colours to avoid. The list is empty.";
 const FACTORY_CODE_NOTE =

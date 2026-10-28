@@ -18,7 +18,7 @@ export interface TileView {
 
 export const UNREADABLE = "The alternatives could not be read. Try again.";
 
-export type ListAnswer = Readonly<{ ok: true; version: number; tiles: readonly TileView[] }> | Readonly<{ ok: false; message: string }>;
+type ListAnswer = Readonly<{ ok: true; version: number; tiles: readonly TileView[] }> | Readonly<{ ok: false; message: string }>;
 type ApplyAnswer = Readonly<{ ok: true; version: number; created: boolean }> | Readonly<{ ok: false; message: string }>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);

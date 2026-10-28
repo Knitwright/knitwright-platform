@@ -21,7 +21,7 @@ export const IMAGE_SOURCE = "read-from-image" as const;
 /** Where a model's value came from: a message, or a picture. */
 export type ModelSource = typeof AI_SOURCE | typeof IMAGE_SOURCE;
 
-export type Converted = { readonly ok: true; readonly action: SpecAction } | { readonly ok: false; readonly reason: string };
+type Converted = { readonly ok: true; readonly action: SpecAction } | { readonly ok: false; readonly reason: string };
 
 const done = (action: SpecAction): Converted => ({ ok: true, action });
 
@@ -123,6 +123,3 @@ export function toSpecAction(spec: GarmentSpec, wire: WireAction, source: ModelS
       return done({ type: "remove-kit-pattern" });
   }
 }
-
-/** Pattern styles (plan W7c): words to steps on a stack, with a before and an after. See artwork-style.ts. */
-export { ARTWORK_STYLE_PROMPT, applyArtworkStyle, readArtworkStyleWords } from "./artwork-style";

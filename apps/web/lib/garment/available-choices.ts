@@ -3,7 +3,7 @@ import { plainChoices } from "./conditions";
 import { getType } from "./registry";
 import type { SpecShape } from "./applicability";
 
-export interface AvailableChoice {
+interface AvailableChoice {
   readonly choiceId: string;
   readonly label: string;
   readonly help: string | undefined;

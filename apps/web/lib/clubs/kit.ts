@@ -1,12 +1,11 @@
 import { z } from "zod";
 import { cleanName } from "@/lib/orders/text";
-import { FONT_LABELS, KIT_FONTS, SPONSORS_MAX } from "./wording";
+import { KIT_FONTS, SPONSORS_MAX } from "./wording";
 
 /**
  * The club kit: what a club wears and who pays for it. Nothing is guessed: a colour nobody chose is
  * null. Only the bundled font (Geist) can be chosen for names and numbers until more are bundled.
  */
-export { FONT_LABELS, KIT_FONTS, SPONSORS_MAX };
 
 const colour = z
   .string()

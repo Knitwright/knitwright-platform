@@ -7,7 +7,7 @@ import { findZone } from "../zones/build";
 import type { PrintIssue, Ring } from "../scene";
 import type { LayerSpace, PlacedMark } from "./types";
 
-export interface Placed {
+interface Placed {
   /** Where the mark's centre goes, in design space, before its own offset. */
   readonly centre: PointMm;
   readonly zone: PrintZone | null;

@@ -25,7 +25,7 @@ export type CreditsDb = Readonly<{
 }>;
 
 /** How many lines the credits page shows. */
-export const HISTORY_LIMIT = 200;
+const HISTORY_LIMIT = 200;
 
 const FAILED = "The credits could not be read or changed.";
 

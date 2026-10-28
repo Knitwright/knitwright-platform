@@ -17,7 +17,6 @@ export {
   AU_STATES,
   COUNTRY_CODES,
   ORGANISATION_TYPES,
-  REGION_MAX,
   countryName,
   countryOptions,
   organisationTypeLabel,

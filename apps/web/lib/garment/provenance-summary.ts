@@ -7,7 +7,7 @@ import type { GarmentSpec } from "./spec-schema";
 /** Values the tech pack must list, because a person did not type them in. */
 const LISTED: readonly Provenance[] = ["ai-suggested", "read-from-image", "suggested-chart"];
 
-export interface ProvenanceItem {
+interface ProvenanceItem {
   readonly kind: "option" | "measurement" | "fabric" | "colour" | "artwork" | "component" | "construction" | "labelling";
   readonly id: string;
   /** For a colour, the id of its colourway. */

@@ -16,7 +16,7 @@ import type { ImportReport } from "./report";
  */
 
 export const DAILY_BRAND_CAP = 10;
-export const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const OVER_DAILY_CAP = `Your brand has read ${DAILY_BRAND_CAP} pictures in the last day, which is the most for now. Try again tomorrow.`;
 export const IMPORT_NOT_FOUND = "That reading could not be found.";

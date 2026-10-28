@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { ArrowMark } from "./ArrowMark";
 
-export type Variant = "primary" | "secondary" | "quiet";
+type Variant = "primary" | "secondary" | "quiet";
 
 type ButtonProps = Readonly<
   ButtonHTMLAttributes<HTMLButtonElement> & {

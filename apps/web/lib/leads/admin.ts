@@ -141,8 +141,6 @@ export function buildLeadList(rows: readonly LeadRow[], now: Date): LeadListItem
     .sort((a, b) => b.score.total - a.score.total || Date.parse(b.lastActivity) - Date.parse(a.lastActivity));
 }
 
-export { NEXT_STEP_MAX };
-
 export const leadFormSchema = z.object({
   brandId: z.uuid("That is not a brand."),
   owner: z.preprocess(emptyToNull, z.enum(ids<LeadOwner>(LEAD_OWNERS), "Choose who owns the lead.").nullable().default(null)),

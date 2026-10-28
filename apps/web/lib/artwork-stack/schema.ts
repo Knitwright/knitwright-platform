@@ -59,7 +59,7 @@ export const artworkStackSchema = structureSchema
   .readonly();
 export type ArtworkStack = z.output<typeof artworkStackSchema>;
 
-export type StackResult =
+type StackResult =
   | { readonly ok: true; readonly stack: ArtworkStack }
   | { readonly ok: false; readonly reason: string };
 

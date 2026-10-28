@@ -13,7 +13,7 @@ const LOCAL_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 const CONTROL_CHARACTER = /\p{Cc}/u;
 
 const ID_MAX_LENGTH = 64;
-export const LABEL_MAX_LENGTH = 200;
+const LABEL_MAX_LENGTH = 200;
 const SENTENCE_MAX_LENGTH = 500;
 
 /** An id written in registry data, such as `crew-tee`. */

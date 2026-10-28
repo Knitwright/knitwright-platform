@@ -3,7 +3,7 @@ import type { Cell, LengthValue, NumberValue } from "../cell";
 import type { SectionHead } from "../types";
 import type { ImageRow, LayerPlacementRow, LayerRow, PictureReadBlock, RepeatSpecRow } from "./types-art";
 
-export type { ImageRow, ImageStatus, LayerPlacementRow, LayerRow, PictureReadBlock, RepeatSpecRow } from "./types-art";
+export type { ImageRow, LayerPlacementRow, LayerRow, PictureReadBlock, RepeatSpecRow } from "./types-art";
 
 /** The sections of tech pack v2 (plans/production-outputs.md, W5). Plain data like the rest of the document. */
 

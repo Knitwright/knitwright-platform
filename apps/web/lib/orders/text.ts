@@ -4,7 +4,7 @@
  * because a stored name is only as safe as the last place it is written to.
  */
 
-export const NAME_MAX_LENGTH = 40;
+const NAME_MAX_LENGTH = 40;
 export const NAME_PROBLEM =
   "Use letters, digits, spaces and the marks ' - . & only, up to 40 characters. Names are printed as typed.";
 

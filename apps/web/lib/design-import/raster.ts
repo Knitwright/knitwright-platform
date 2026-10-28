@@ -8,9 +8,9 @@ export interface Raster {
 }
 
 /** The longest side of the analysis copy. The reading model gets the original; the maths gets this. */
-export const ANALYSIS_SIDE = 480;
+const ANALYSIS_SIDE = 480;
 /** A decompression-bomb guard set before decoding. */
-export const MAX_INPUT_PIXELS = 40_000_000;
+const MAX_INPUT_PIXELS = 40_000_000;
 
 export const RASTER_UNREADABLE = "That picture could not be opened. Use a PNG, JPEG or WebP image.";
 

@@ -7,7 +7,7 @@ import type { Ring } from "../scene";
 import { JERSEY_ZONES, type ZoneTemplate } from "./templates";
 
 /** Plain names for the places, as a club would say them. */
-export const ZONE_LABELS: Readonly<Record<string, string>> = {
+const ZONE_LABELS: Readonly<Record<string, string>> = {
   crest: "Crest",
   sponsor: "Sponsor",
   "front-number": "Number on the front",

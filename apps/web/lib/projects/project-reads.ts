@@ -21,7 +21,7 @@ import type { HistoryRow } from "./undo";
  * that the user belongs to the brand. The brand always comes from the session.
  */
 
-export { PROJECTS_LISTED, UNDO_SCAN_LIMIT, VERSIONS_LISTED };
+export { PROJECTS_LISTED };
 
 export interface ProjectSummary {
   readonly id: string;

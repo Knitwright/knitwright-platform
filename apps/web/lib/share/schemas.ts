@@ -3,7 +3,7 @@ import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { COMMENT_MAX, DEFAULT_LINK_DAYS, LINK_DAYS, NAME_MAX } from "./fields";
 import { isShareToken } from "./token";
 
-export { COMMENT_MAX, DEFAULT_LINK_DAYS, LINK_DAYS, NAME_MAX };
+export { COMMENT_MAX, NAME_MAX };
 
 const projectId = z.uuid("That is not a design.");
 

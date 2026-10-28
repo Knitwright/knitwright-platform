@@ -31,7 +31,7 @@ export interface SkippedPart {
 }
 
 type SetOption = Extract<WireAction, { type: "set-option" }>;
-export type AskAmount = Extract<WireAction, { type: "ask-amount" }>;
+type AskAmount = Extract<WireAction, { type: "ask-amount" }>;
 
 /** More ways than this are hard to choose between. */
 const MAX_WAYS = 3;

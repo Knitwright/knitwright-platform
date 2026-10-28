@@ -15,7 +15,7 @@ export interface Candidate {
  * The named zones artwork may be moved between, by panel. They are the anchors the flat drawing knows
  * (lib/flat/templates/anchors.ts); the sleeve has one, so nothing moves there.
  */
-export const ZONES: Readonly<Record<string, readonly { readonly anchor: string; readonly label: string }[]>> = {
+const ZONES: Readonly<Record<string, readonly { readonly anchor: string; readonly label: string }[]>> = {
   "body-front": [
     { anchor: "centre-chest", label: "centre of the chest" },
     { anchor: "left-chest", label: "left chest" },

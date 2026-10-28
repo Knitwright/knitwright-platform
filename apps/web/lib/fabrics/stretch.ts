@@ -2,14 +2,14 @@ import type { FabricValue } from "@/lib/production/contract";
 import type { FabricWithProfile } from "./profile";
 
 /** What the pattern block was drafted with. */
-export type BlockReduction = Readonly<{
+type BlockReduction = Readonly<{
   /** The stretch reduction the pattern was drafted with, as a percentage of the width. */
   pct: number;
 }>;
 
 type StretchStatus = "no-stretch-value" | "matches" | "differs" | "beyond-stretch";
 
-export type StretchReductionResult = Readonly<{
+type StretchReductionResult = Readonly<{
   status: StretchStatus;
   blockReductionPct: number;
   /** The reduction a fabric test found right, or null when no test gave one. */

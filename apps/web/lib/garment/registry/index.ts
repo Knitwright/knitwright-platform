@@ -8,10 +8,9 @@ import { SIZE_SYSTEMS } from "./size-systems";
 import { CRICKET, FOOTBALL, WINTER_CODE } from "./teamwear";
 import { TOPS } from "./tops";
 
-export type { Registry, ResolvedOption, ResolvedType } from "./build";
+export type { ResolvedOption, ResolvedType } from "./build";
 export { buildRegistry, checkFamilyData } from "./build";
-export { SEAM_CLASSES, STITCH_CLASSES } from "./construction-classes";
-export { SIZE_SYSTEMS, USUAL_SIZE_SYSTEM } from "./size-systems";
+export { USUAL_SIZE_SYSTEM } from "./size-systems";
 
 /**
  * ADDING A FAMILY takes these steps.

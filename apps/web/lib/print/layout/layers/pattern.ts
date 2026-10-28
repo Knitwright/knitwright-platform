@@ -8,7 +8,7 @@ import { isSound } from "../field";
 import { joinFor, reflectBox, reflectShape } from "../seam";
 
 /** The most shapes one pattern layer may add to one piece. Over it, the layer is left off and said so. */
-export const SHAPE_BUDGET = 60_000;
+const SHAPE_BUDGET = 60_000;
 
 const stopped = (text: string): LayerResult => ({ built: [], knock: [], colours: [], dpis: [], issues: [{ severity: "stop", text }] });
 

@@ -4,7 +4,7 @@ import { boxBlur } from "./planes";
 /** The longest side of the analysis copy. Both pictures are shrunk to this before any measuring. */
 export const ANALYSIS_SIDE = 512;
 /** A decompression-bomb guard set before decoding. */
-export const MAX_INPUT_PIXELS = 40_000_000;
+const MAX_INPUT_PIXELS = 40_000_000;
 /** Softens grain and fine texture so a relit or re-rendered copy is not punished for it. */
 const BLUR_RADIUS = 1;
 

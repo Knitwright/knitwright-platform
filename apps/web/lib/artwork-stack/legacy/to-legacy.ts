@@ -15,7 +15,7 @@ import { tenthsFromMm } from "../units";
 import { dotsLayoutOf, kitStyleOf, sizeParamOf } from "./kit-styles";
 
 /** The fields of the older design that a stack stands in for. */
-export interface LegacyFields {
+interface LegacyFields {
   readonly kitPattern?: KitPattern;
   readonly artwork: readonly Artwork[];
   readonly namesAndNumbers?: NamesAndNumbers;

@@ -6,7 +6,7 @@ import { flatModels } from "@/lib/images/reference";
 import { DEFAULT_CHART_SET } from "@/lib/sizing";
 import type { StudioDesign } from "../studio";
 
-export const CREST_ID = "0b4a5b1e-7c7e-4e57-9d6a-3f1a2b3c4d5e";
+const CREST_ID = "0b4a5b1e-7c7e-4e57-9d6a-3f1a2b3c4d5e";
 
 const crest = {
   id: "crest",

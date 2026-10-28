@@ -21,7 +21,7 @@ const MOVES: Readonly<Record<DesignStatus, readonly DesignStatus[]>> = {
 
 export const canMove = (from: DesignStatus, to: DesignStatus): boolean => MOVES[from].includes(to);
 
-export type Transition = { readonly ok: true; readonly record: StatusRecord } | { readonly ok: false; readonly reason: string };
+type Transition = { readonly ok: true; readonly record: StatusRecord } | { readonly ok: false; readonly reason: string };
 
 interface TransitionContext {
   readonly profileId: string;

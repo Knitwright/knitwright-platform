@@ -8,7 +8,7 @@ export function cellsNear(bounds: BoundsMm, origin: PointMm, cellW: number, cell
   return span(j0, j1).flatMap((j) => span(i0, i1).map((i) => ({ i, j })));
 }
 
-export const areaOf = (bounds: BoundsMm): { w: number; h: number } => ({ w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY });
+const areaOf = (bounds: BoundsMm): { w: number; h: number } => ({ w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY });
 
 /** How many cells of this size `cellsNear` will visit, near enough to plan a budget. */
 export function cellEstimate(bounds: BoundsMm, cellW: number, cellH: number, reach: number): number {

@@ -47,7 +47,7 @@ export const guidedStartSchema = z.discriminatedUnion("method", [
   }),
 ]);
 
-export type GuidedStart = z.output<typeof guidedStartSchema>;
+type GuidedStart = z.output<typeof guidedStartSchema>;
 
 interface GuidedStartPlan {
   readonly typeId: string;

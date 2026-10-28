@@ -13,7 +13,7 @@ import tops from "./images/images.json";
  * review screen instead), so a case with words or an expected question is left out, with why.
  */
 
-export type Converted =
+type Converted =
   | Readonly<{ ok: true; entry: ImageCase }>
   | Readonly<{ ok: false; id: string; reason: string }>;
 

@@ -4,8 +4,8 @@ import type { Point } from "../../model";
 import type { BottomsOptions } from "./options";
 
 /** Shares of the hip width for parts of the drawing that have no point of measure. */
-export const CUFF_HEIGHT = 0.1;
-export const STRIPE_WIDTH = 0.045;
+const CUFF_HEIGHT = 0.1;
+const STRIPE_WIDTH = 0.045;
 const LEG_GAP = 0.025;
 export const GUSSET_SIZE = 0.07;
 /** The crotch sits a little above the length of the front rise, which is measured along its curve. */

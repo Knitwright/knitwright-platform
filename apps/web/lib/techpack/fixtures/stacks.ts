@@ -18,10 +18,10 @@ const colour = (id: string, role: string, screen: string, codes: StackColour["co
   provenance: "user-edited",
 });
 
-export const NAVY = colour("navy", "ground", "#1b2a49", [{ system: "factory", value: "NV-204", source: "user-edited" }]);
-export const GOLD = colour("gold", "dots", "#d4af37", [{ system: "pantone-tcx", value: "13-0859 TCX", source: "user-edited" }]);
-export const WHITE = colour("white", "numbers", "#ffffff");
-export const GREEN = colour("green", "camo", "#3b5d2a", [{ system: "factory", value: "GR-7", source: "user-edited" }]);
+const NAVY = colour("navy", "ground", "#1b2a49", [{ system: "factory", value: "NV-204", source: "user-edited" }]);
+const GOLD = colour("gold", "dots", "#d4af37", [{ system: "pantone-tcx", value: "13-0859 TCX", source: "user-edited" }]);
+const WHITE = colour("white", "numbers", "#ffffff");
+const GREEN = colour("green", "camo", "#3b5d2a", [{ system: "factory", value: "GR-7", source: "user-edited" }]);
 
 const base = {
   views: [...FLAT],

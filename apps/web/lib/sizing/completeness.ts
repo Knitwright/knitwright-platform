@@ -3,7 +3,7 @@ import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET } from "./charts";
 import type { SizeChart } from "./schemas";
 
-export interface CompletenessEntry {
+interface CompletenessEntry {
   readonly typeId: string;
   readonly typeLabel: string;
   readonly wearer: Wearer;
@@ -14,7 +14,7 @@ export interface CompletenessEntry {
   readonly message: string;
 }
 
-export interface CompletenessReport {
+interface CompletenessReport {
   readonly entries: readonly CompletenessEntry[];
   readonly withChart: number;
   readonly complete: boolean;

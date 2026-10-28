@@ -46,7 +46,7 @@ export const readBlock = (blockId: string, fetcher: Fetch = fetch) => call(fetch
 
 export const uploadSet = (form: FormData, fetcher: Fetch = fetch) => call(fetcher, "/api/pattern-library", { method: "POST", body: form }, isUploaded);
 
-export type ReviewForm = Readonly<{ reviewerName: string; reviewerRole: string; note: string; reviewedOn: string }>;
+type ReviewForm = Readonly<{ reviewerName: string; reviewerRole: string; note: string; reviewedOn: string }>;
 
 export const sendReview = (blockId: string, review: ReviewForm, fetcher: Fetch = fetch) =>
   call(fetcher, `/api/pattern-library/${blockId}/review`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(review) }, hasId);

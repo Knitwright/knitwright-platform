@@ -13,7 +13,7 @@ import { throwIfFailed } from "./errors";
 const ORDER_NOT_FOUND = "That team order does not exist.";
 const DESIGN_NOT_FOUND = "That design does not exist.";
 
-export interface OrderSummary {
+interface OrderSummary {
   readonly id: string;
   readonly name: string;
   readonly players: number;

@@ -9,7 +9,6 @@ import { familySchema, kebabId, labelText, sentenceText, wearerSchema } from "./
 const choiceSchema = z
   .object({ id: kebabId, label: labelText, help: sentenceText.optional() })
   .readonly();
-export type OptionChoice = z.output<typeof choiceSchema>;
 
 const hasUniqueIds = (items: readonly { id: string }[]): boolean =>
   new Set(items.map((item) => item.id)).size === items.length;
@@ -199,7 +198,7 @@ export const seamSchema = z
   .readonly();
 export type SeamDefinition = z.output<typeof seamSchema>;
 
-export const COMPONENT_KINDS = ["rib", "thread", "label", "trim"] as const;
+const COMPONENT_KINDS = ["rib", "thread", "label", "trim"] as const;
 export const componentKindSchema = z.enum(COMPONENT_KINDS);
 export type ComponentKind = z.output<typeof componentKindSchema>;
 

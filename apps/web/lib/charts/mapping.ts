@@ -74,7 +74,7 @@ export interface RowAssignment {
   readonly chosen: boolean;
 }
 
-export type ImportResult =
+type ImportResult =
   | { readonly ok: true; readonly chart: SizeChart; readonly run: SizeRun }
   | { readonly ok: false; readonly problems: readonly string[]; readonly missing: readonly string[] };
 

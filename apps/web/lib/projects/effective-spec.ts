@@ -3,7 +3,7 @@ import { colourAction } from "./colour-controls";
 import type { EditorState, Request, SavedChange } from "./editor-state";
 
 /** A request made ready to send, or the reason it cannot be. */
-export type Resolved =
+type Resolved =
   | Readonly<{ kind: "ready"; request: Request }>
   | Readonly<{ kind: "problem"; reason: string }>;
 

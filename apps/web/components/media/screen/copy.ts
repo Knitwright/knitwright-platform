@@ -41,6 +41,7 @@ export const DOWNLOAD_LABEL = "Download";
 export const SHARE_FAILED_MESSAGE = "The picture could not be shared. Download it instead.";
 
 export const TURNTABLE_NOTE = "Records the 3D view turning once. Free.";
+export const TURNTABLE_NEEDS_3D = "Open the 3D view first, then record the turntable.";
 export const RECORD_LABEL = "Record turntable";
 
 export const VERDICT_PENDING = "Being compared with your design";

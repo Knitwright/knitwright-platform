@@ -63,7 +63,7 @@ export function parseIntakeReply(text: string): Pick<Observation, "prediction" |
 }
 
 /** The most one prompt can cost, priced at the full output limit. Reserved before the call. */
-export const reserveFor = (entry: ModelEntry, user: string): number =>
+const reserveFor = (entry: ModelEntry, user: string): number =>
   callCost(entry, estimateTokens(INTAKE_SYSTEM) + estimateTokens(user), INTAKE_MAX_OUTPUT_TOKENS);
 
 /**

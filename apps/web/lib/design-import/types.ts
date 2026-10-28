@@ -18,7 +18,6 @@ export const boxSchema = z
   })
   .strict()
   .readonly();
-export type Box = z.output<typeof boxSchema>;
 
 /** Landmarks in the picture, by W0 landmark name. */
 export type LandmarkSet = Readonly<Partial<Record<LandmarkId, Pt>>>;

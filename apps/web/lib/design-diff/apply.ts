@@ -3,7 +3,7 @@ import type { FactoryProfile } from "@/lib/validation";
 import type { DesignDiff } from "./diff";
 import { previewDiff, type GuardrailRun } from "./preview";
 
-export interface ApplyDeps {
+interface ApplyDeps {
   /** The version the person was looking at. The save refuses if the design has moved on. */
   readonly expectedVersion: number;
   /** Stores the actions as one new version (the existing version-save path). */

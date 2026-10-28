@@ -22,7 +22,7 @@ export interface GradedRow {
   readonly values: readonly GradedValue[];
 }
 
-export type GradeResult =
+type GradeResult =
   | { readonly ok: true; readonly rows: readonly GradedRow[] }
   | { readonly ok: false; readonly problems: readonly ChartProblem[] };
 

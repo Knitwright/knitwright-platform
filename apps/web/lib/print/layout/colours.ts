@@ -5,7 +5,7 @@ import { HEX } from "../rules/colour";
 /** A colour with no screen colour is printed white and said so. */
 const UNSET_COLOUR = "#ffffff";
 
-export interface Resolved {
+interface Resolved {
   readonly hex: string;
   readonly issue: PrintIssue | null;
 }

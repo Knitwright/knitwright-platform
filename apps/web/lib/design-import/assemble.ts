@@ -20,7 +20,7 @@ const PICTURE_NOTES: Readonly<Record<PictureKind, string>> = {
   sheet: "A sheet of views: each view was read on its own.",
 };
 
-export type StackResult = { readonly ok: true; readonly stack: ArtworkStack } | { readonly ok: false; readonly reason: string };
+type StackResult = { readonly ok: true; readonly stack: ArtworkStack } | { readonly ok: false; readonly reason: string };
 
 export function buildStack(views: readonly ViewId[], colours: readonly StackColour[], layers: readonly Layer[]): StackResult {
   const ground: Layer = { id: "ground", kind: "ground", name: "Ground", views: [...views], opacity: 1, blend: "normal", provenance: "read-from-image", colourId: colours[0].id };

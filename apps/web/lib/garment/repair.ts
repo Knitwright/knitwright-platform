@@ -20,7 +20,7 @@ export function repairSpec(spec: GarmentSpec): ActionResult {
     : { ok: false, reason: checked.issues.join(" ") };
 }
 
-export type MigrateResult =
+type MigrateResult =
   | {
       readonly ok: true;
       readonly spec: GarmentSpec;

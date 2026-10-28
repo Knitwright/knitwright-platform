@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-export const projectParams = z.object({ projectId: z.uuid() });
-
 /** Ops moves a request. A reason is required when it is declined. */
 export const moveSchema = z
   .object({

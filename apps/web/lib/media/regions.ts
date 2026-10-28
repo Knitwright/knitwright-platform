@@ -1,7 +1,7 @@
 import type { FlatElement, FlatModel } from "@/lib/flat/model";
 
 /** A rectangle of the picture, in pixels. */
-export type Region = Readonly<{ x: number; y: number; width: number; height: number; label: string }>;
+type Region = Readonly<{ x: number; y: number; width: number; height: number; label: string }>;
 
 /** Roughly how wide a character is, as a share of the type size. Only used to size a box around text. */
 const CHARACTER_WIDTH = 0.65;

@@ -5,8 +5,8 @@ import { capEase, collarReadings, sleeveReadings } from "./sleeve";
 import { torsoReadings } from "./torso";
 import { isSkip, skip, type Outcome, type SizeMeasures, type SizeSet } from "./types";
 
-export type { Reading, Skip, SizeMeasures } from "./types";
-export { compareToTargets, type Target, type Comparison } from "./compare";
+export type { Skip } from "./types";
+export { compareToTargets } from "./compare";
 
 /** The points of measure for tops that the registry names (lib/garment/registry/tops). */
 export const TOPS_POINT_IDS = [

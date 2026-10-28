@@ -9,7 +9,7 @@ import { SIGN_OFF_ROLES, STRIKE_OFF_STATUSES, type ColourNote, type SignOff, typ
  * refuses any change to a record that has been decided.
  */
 
-export const RELEASE_NOT_FOUND = "That release does not exist.";
+const RELEASE_NOT_FOUND = "That release does not exist.";
 const STRIKE_OFF_NOT_FOUND = "That strike-off does not exist.";
 
 const strikeOffRow = z.object({

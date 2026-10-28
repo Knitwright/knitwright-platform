@@ -150,7 +150,7 @@ export function progressOf(set: MediaSetView | null): Progress {
   return { ready: readyCount, total: counted.length, done: set.status === "succeeded", text: `${readyCount} of ${counted.length} pictures ready.` };
 }
 
-export type ClipPlan = Readonly<{ enabled: boolean; view: "scene" | "on_model" | null; reason: string | null }>;
+type ClipPlan = Readonly<{ enabled: boolean; view: "scene" | "on_model" | null; reason: string | null }>;
 
 const CLIP_VIEWS: readonly MediaView[] = ["on_model", "scene"];
 

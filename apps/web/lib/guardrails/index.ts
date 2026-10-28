@@ -25,7 +25,7 @@ interface GuardrailModule {
 const perPanel = (fn: (panel: GuardrailInput["panels"][number], input: GuardrailInput) => Finding[]) => (input: GuardrailInput): Finding[] =>
   input.panels.flatMap((panel) => fn(panel, input));
 
-export const GUARDRAIL_MODULES: readonly GuardrailModule[] = [
+const GUARDRAIL_MODULES: readonly GuardrailModule[] = [
   { id: "seam_cross", run: perPanel((panel, i) => seamCrossCheck(panel, i.items)) },
   { id: "dpi", run: (i) => minDpiCheck(i.items, i.settings) },
   { id: "bleed", run: perPanel((panel, i) => bleedCheck(panel, i.items, i.settings)) },

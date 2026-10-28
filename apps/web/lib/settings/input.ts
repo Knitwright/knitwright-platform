@@ -1,6 +1,6 @@
 import type { SettingDef } from "./types";
 
-export type Parsed = { readonly ok: true; readonly value: unknown } | { readonly ok: false; readonly message: string };
+type Parsed = { readonly ok: true; readonly value: unknown } | { readonly ok: false; readonly message: string };
 
 const fail = (message: string): Parsed => ({ ok: false, message });
 const TIME = /^([01]\d|2[0-3]):([0-5]\d)$/;

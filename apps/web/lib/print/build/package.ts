@@ -20,7 +20,7 @@ export async function makeFiles(builder: Maker, entries: readonly PlanEntry[]): 
 const FORMULA = /^[=+\-@\t\r]/;
 
 /** A spreadsheet cell: quoted, and a cell that could be read as a formula is made plain text. */
-export function csvCell(value: string | number): string {
+function csvCell(value: string | number): string {
   const text = String(value);
   const safe = FORMULA.test(text) ? `'${text}` : text;
   return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;

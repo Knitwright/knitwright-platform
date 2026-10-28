@@ -317,7 +317,7 @@ export const undoDesign = async (
   return restoreVersion(admin, client, { ...input, version: target });
 };
 
-export type RenameInput = Readonly<{
+type RenameInput = Readonly<{
   brandId: string;
   userId: string;
   projectId: string;

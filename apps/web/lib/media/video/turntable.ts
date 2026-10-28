@@ -12,7 +12,7 @@ const TURNTABLE_PROVIDER = "browser-recorder";
 const TURNTABLE_VIEW = "three_quarter" as const;
 export const SET_NOT_FINISHED = "Make the media set first, and wait for it to finish, then record the turntable.";
 
-export interface TurntableDeps {
+interface TurntableDeps {
   readonly store: MediaStore;
   readonly files: MediaFiles;
   readonly videos: VideoFiles;

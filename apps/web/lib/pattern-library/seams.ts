@@ -140,7 +140,7 @@ function collarSeams(piece: PatternPiece): Seam[] {
   });
 }
 
-export type Armholes = Readonly<{ front: number; back: number }>;
+type Armholes = Readonly<{ front: number; back: number }>;
 
 /** Lengths of the front and back armholes, when both pieces have them. */
 export function armholeLengths(pieces: readonly PatternPiece[]): Armholes | null {

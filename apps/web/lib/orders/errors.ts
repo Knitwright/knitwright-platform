@@ -1,6 +1,6 @@
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 
-export type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
+type DatabaseError = Readonly<{ code?: string; hint?: string | null; message: string }>;
 
 const CONFLICTS: Readonly<Record<string, string>> = {
   too_many_orders: "This design has as many team orders as it can hold. Delete one first.",

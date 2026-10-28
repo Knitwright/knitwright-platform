@@ -11,10 +11,10 @@ import { APPLY_PARTS, type ApplyPart } from "./wording";
  * Where the crest and sponsors go is not in the kit. The places and sizes below are labelled starting
  * points for a person to move in the editor; they are not a measurement and not a club rule.
  */
-export { APPLY_PARTS, type ApplyPart };
+export { APPLY_PARTS };
 
 export const CLUB_COLOURWAY_ID = "club-colours";
-export const CREST_ID = "club-crest";
+const CREST_ID = "club-crest";
 const sponsorId = (index: number): string => `club-sponsor-${index + 1}`;
 
 /** Tenths of a millimetre. Starting sizes only: "Knitwright starting size, not from your club". */

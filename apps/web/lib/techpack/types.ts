@@ -12,7 +12,7 @@ import type {
   StrikeOffLine,
 } from "./production/types";
 
-export type { Cell, ClassCell, LengthCell, LengthValue, NumberCell, NumberValue, ProposalCell, SetCell, TbcCell } from "./cell";
+export type { Cell, ClassCell, LengthValue, NumberValue, ProposalCell } from "./cell";
 export type * from "./production/types";
 
 /**

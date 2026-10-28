@@ -9,8 +9,6 @@ import { DISPLAY_NAME_MAX } from "./limits";
  * (supabase/migrations/20260930060000_member_names.sql).
  */
 
-export { DISPLAY_NAME_MAX };
-
 const CONTROL = /\p{Cc}/u;
 
 export const displayNameFormSchema = z.object({

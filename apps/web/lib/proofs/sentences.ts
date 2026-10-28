@@ -1,6 +1,6 @@
 import { SIGN_OFF_ROLES, type SignOff, type SignOffRole, type StrikeOff } from "./types";
 
-export const ROLE_LABELS: Readonly<Record<SignOffRole, string>> = {
+const ROLE_LABELS: Readonly<Record<SignOffRole, string>> = {
   pattern: "Pattern",
   print: "Print",
   production: "Production",

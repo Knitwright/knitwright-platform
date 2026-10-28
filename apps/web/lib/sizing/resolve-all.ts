@@ -5,14 +5,14 @@ import { resolveMeasurements } from "./resolve";
 import type { ChartProvenance, Resolution, SizesFrom } from "./resolution-types";
 import { selectChart } from "./select-chart";
 
-export interface SizeEntry {
+interface SizeEntry {
   readonly size: string;
   /** True for the base size of the design. */
   readonly isBase: boolean;
   readonly resolution: Resolution;
 }
 
-export interface AllSizesResolution {
+interface AllSizesResolution {
   /** A plain sentence when nothing can be shown, otherwise null. */
   readonly message: string | null;
   readonly baseSize: string | null;

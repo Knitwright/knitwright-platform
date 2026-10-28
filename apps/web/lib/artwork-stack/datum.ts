@@ -7,7 +7,7 @@ import { pointMmSchema, roundMm, type PointMm } from "./units";
  * the centre front and centre back. A stack may move it with an offset.
  */
 export const datumSchema = z.object({ anchor: z.literal("chest-line"), offsetMm: pointMmSchema }).readonly();
-export type Datum = z.output<typeof datumSchema>;
+type Datum = z.output<typeof datumSchema>;
 
 export const DEFAULT_DATUM: Datum = Object.freeze({ anchor: "chest-line", offsetMm: Object.freeze({ x: 0, y: 0 }) });
 

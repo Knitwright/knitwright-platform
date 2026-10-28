@@ -71,5 +71,3 @@ export async function renderStudioSet(design: StudioDesign): Promise<readonly Ge
     media("flat_lay", flatLay, FLAT_LAY.width, FLAT_LAY.height),
   ];
 }
-
-export { REFERENCE_EDGE };

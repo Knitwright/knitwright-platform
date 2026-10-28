@@ -8,7 +8,7 @@ type MeasuredSize = Readonly<{
   skipped: readonly { pointId: string; reason: string }[];
 }>;
 
-export type TableRow = Readonly<{
+type TableRow = Readonly<{
   pointId: string;
   label: string;
   /** Centimetres to one decimal, or null where the pattern gives no figure at this size. */

@@ -2,7 +2,7 @@ import type { RosterRow } from "@/lib/production/contract";
 import type { OpsOrder } from "../rows";
 import type { Carton, PackBag } from "./rows";
 
-export const NOT_SET = "Not set";
+const NOT_SET = "Not set";
 
 interface PackingInput {
   readonly order: OpsOrder;

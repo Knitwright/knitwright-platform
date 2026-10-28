@@ -30,15 +30,8 @@ export const rectangle = (x0: number, y0: number, x1: number, y1: number, fill: 
 /** A shape's local points moved to `origin`. */
 export const placed = (origin: PointMm, local: readonly PointMm[]): PointMm[] => local.map((point) => ({ x: origin.x + point.x, y: origin.y + point.y }));
 
-export const rotateAbout = (point: PointMm, centre: PointMm, degrees: number): PointMm => {
-  const radians = (degrees * Math.PI) / 180;
-  const [cos, sin] = [Math.cos(radians), Math.sin(radians)];
-  const [dx, dy] = [point.x - centre.x, point.y - centre.y];
-  return { x: centre.x + dx * cos - dy * sin, y: centre.y + dx * sin + dy * cos };
-};
-
 /** The box around a shape. */
-export function boxOf(shape: DisplayShape): BoundsMm {
+function boxOf(shape: DisplayShape): BoundsMm {
   if (shape.kind === "circle") {
     const { centre, radius } = shape;
     return { minX: centre.x - radius, minY: centre.y - radius, maxX: centre.x + radius, maxY: centre.y + radius };
@@ -48,7 +41,7 @@ export function boxOf(shape: DisplayShape): BoundsMm {
   return { minX: Math.min(...xs), minY: Math.min(...ys), maxX: Math.max(...xs), maxY: Math.max(...ys) };
 }
 
-export const overlaps = (a: BoundsMm, b: BoundsMm): boolean => a.minX <= b.maxX && a.maxX >= b.minX && a.minY <= b.maxY && a.maxY >= b.minY;
+const overlaps = (a: BoundsMm, b: BoundsMm): boolean => a.minX <= b.maxX && a.maxX >= b.minX && a.minY <= b.maxY && a.maxY >= b.minY;
 
 /** Leaves out the shapes that cannot touch the bounds. What is left looks the same inside the bounds. */
 export const cullTo = (shapes: readonly DisplayShape[], bounds: BoundsMm): DisplayShape[] => shapes.filter((shape) => overlaps(boxOf(shape), bounds));

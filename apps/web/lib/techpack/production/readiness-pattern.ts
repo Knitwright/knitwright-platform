@@ -4,7 +4,7 @@ import type { ProductionInput } from "./input";
 import { patternSizeOf } from "./measured";
 
 /** Two joined edges agree when they differ by no more than this, or by the ease the pattern states. */
-export const SEAM_TOLERANCE_MM = 2;
+const SEAM_TOLERANCE_MM = 2;
 
 type Item = ReadinessItem;
 

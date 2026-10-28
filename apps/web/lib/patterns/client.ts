@@ -55,7 +55,7 @@ export async function askForPattern(projectId: string, size: string, fetcher: Fe
   }
 }
 
-export type Latest = Readonly<{ available: boolean; job: PatternJobView | null }>;
+type Latest = Readonly<{ available: boolean; job: PatternJobView | null }>;
 
 /** The newest pattern, or null when the server could not be asked; the section asks again. */
 export async function readLatestPattern(projectId: string, fetcher: Fetch = fetch): Promise<Latest | null> {

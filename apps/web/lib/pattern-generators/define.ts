@@ -26,7 +26,7 @@ export interface Tile {
 }
 
 /** What a generator's drawing function is given: settings already inside their ranges, and colours padded to what it needs. */
-export interface DrawInput {
+interface DrawInput {
   readonly context: GeneratorContext;
   readonly values: Values;
   /** The pattern's colours, main first; never empty. */

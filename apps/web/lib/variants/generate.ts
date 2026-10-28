@@ -5,8 +5,7 @@ import { applyAll, colourwayCandidates, kitStyleCandidates, placementCandidates,
 import { shortHash, shuffled } from "./random";
 import { MAX_VARIANTS, MIN_VARIANTS, type GenerateOptions, type Variant, type VariantFinding, type VariantGate, type VariantKind } from "./types";
 
-export type { GenerateOptions, Variant, VariantFinding, VariantGate, VariantKind } from "./types";
-export { MAX_VARIANTS, MIN_VARIANTS } from "./types";
+export type { VariantGate } from "./types";
 
 const KIND_ORDER: readonly VariantKind[] = ["colourway", "kit-style", "placement"];
 

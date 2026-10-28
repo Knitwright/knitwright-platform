@@ -87,7 +87,6 @@ export const LABELLING_LABELS: Readonly<Record<LabellingField, string>> = {
 const labellingValue = z
   .object({ text: freeText(COMPONENT_TEXT_MAX_LENGTH).min(1, "Enter some text."), provenance: provenanceSchema })
   .readonly();
-export type LabellingValue = z.output<typeof labellingValue>;
 
 /** Each field the user has filled in, with its source. A field not filled in is left out. */
 export const labellingSchema = z

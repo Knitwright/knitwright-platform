@@ -19,7 +19,7 @@ export const LATENCY_BUDGET_MS = 10_000;
 const hex = z.string().regex(/^#[0-9a-f]{6}$/);
 const articleId = z.string().min(1);
 
-export const expectedSchema = z.discriminatedUnion("kind", [
+const expectedSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("article"), articleId }),
   z.strictObject({
     kind: z.literal("out-of-catalogue"),
