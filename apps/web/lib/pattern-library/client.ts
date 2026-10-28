@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import type { BlockDetail } from "./records";
 import type { SlotState } from "./slots";
 
@@ -16,7 +17,7 @@ type Answer<T> = Readonly<{ ok: true; data: T }> | Readonly<{ ok: false; reason:
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 
 async function answerOf<T>(response: Response, accept: (data: unknown) => data is T): Promise<Answer<T>> {
-  const body: unknown = await response.json().catch(() => null);
+  const body: unknown = await readJson(response);
   if (!isRecord(body)) return { ok: false, reason: ODD };
   if (body.success === true && accept(body.data)) return { ok: true, data: body.data };
   const error = body.error;

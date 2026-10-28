@@ -1,5 +1,6 @@
 import type { Raster } from "./raster";
 import { clamp01, type Pt } from "./types";
+import { signedAreaXY } from "@/lib/print/geometry/polygon";
 
 /**
  * Step 3, classical first: the background is the colour of the region's corners, the garment is the largest
@@ -92,6 +93,25 @@ function fillHoles(foreground: Uint8Array, raster: Raster, rect: Rect): Uint8Arr
   return out;
 }
 
+/** The pixels of the mask that join `start`, marking each as seen. */
+function growRegion(mask: Uint8Array, width: number, rect: Rect, seen: Uint8Array, start: number): number[] {
+  const region: number[] = [];
+  const stack = [start];
+  seen[start] = 1;
+  while (stack.length > 0) {
+    const at = stack.pop() as number;
+    region.push(at);
+    const [px, py] = [at % width, Math.floor(at / width)];
+    for (const [nx, ny] of [[px + 1, py], [px - 1, py], [px, py + 1], [px, py - 1]]) {
+      const next = ny * width + nx;
+      if (nx < rect.x0 || nx >= rect.x1 || ny < rect.y0 || ny >= rect.y1 || mask[next] === 0 || seen[next] === 1) continue;
+      seen[next] = 1;
+      stack.push(next);
+    }
+  }
+  return region;
+}
+
 /** The biggest 4-connected region; every other pixel is cleared. */
 function largestRegion(mask: Uint8Array, raster: Raster, rect: Rect): { mask: Uint8Array; size: number } {
   const { width } = raster;
@@ -101,20 +121,7 @@ function largestRegion(mask: Uint8Array, raster: Raster, rect: Rect): { mask: Ui
     for (let x = rect.x0; x < rect.x1; x += 1) {
       const start = y * width + x;
       if (mask[start] === 0 || seen[start] === 1) continue;
-      const region: number[] = [];
-      const stack = [start];
-      seen[start] = 1;
-      while (stack.length > 0) {
-        const at = stack.pop() as number;
-        region.push(at);
-        const [px, py] = [at % width, Math.floor(at / width)];
-        for (const [nx, ny] of [[px + 1, py], [px - 1, py], [px, py + 1], [px, py - 1]]) {
-          const next = ny * width + nx;
-          if (nx < rect.x0 || nx >= rect.x1 || ny < rect.y0 || ny >= rect.y1 || mask[next] === 0 || seen[next] === 1) continue;
-          seen[next] = 1;
-          stack.push(next);
-        }
-      }
+      const region = growRegion(mask, width, rect, seen, start);
       if (region.length > best.length) best = region;
     }
   }
@@ -171,14 +178,7 @@ export function simplify(points: readonly Pt[], epsilon: number): Pt[] {
   return [...simplify(points.slice(0, at + 1), epsilon).slice(0, -1), ...simplify(points.slice(at), epsilon)];
 }
 
-export function polygonArea(polygon: readonly Pt[]): number {
-  let sum = 0;
-  polygon.forEach((p, i) => {
-    const q = polygon[(i + 1) % polygon.length];
-    sum += p.x * q.y - q.x * p.y;
-  });
-  return Math.abs(sum) / 2;
-}
+export const polygonArea = (polygon: readonly Pt[]): number => Math.abs(signedAreaXY(polygon));
 
 export function pointInPolygon(point: Pt, polygon: readonly Pt[]): boolean {
   let inside = false;

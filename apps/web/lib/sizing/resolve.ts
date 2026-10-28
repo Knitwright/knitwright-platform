@@ -1,9 +1,9 @@
 import { pointsOfMeasureFor, sizeValueFor, toleranceFor, type GarmentSpec } from "@/lib/garment";
 import type { ChartSet } from "./chart-set";
 import { DEFAULT_CHART_SET, STARTER_CHART_NAME } from "./charts";
-import { gradeChart } from "./grading";
+import { gradeChart, type GradedRow } from "./grading";
 import { resolvePoint, userOnlyRow, type Typed } from "./resolve-point";
-import type { ChartProvenance, Resolution, ResolutionRow } from "./resolution-types";
+import type { ChartProvenance, Resolution, ResolutionRow, SizesFrom } from "./resolution-types";
 import type { SizeChart } from "./schemas";
 import { selectChart } from "./select-chart";
 
@@ -47,6 +47,29 @@ function withoutChart(spec: GarmentSpec, size: string, message: string): Resolut
   return { status: "no-chart", message, size, rows };
 }
 
+type Where = Parameters<typeof resolvePoint>[3];
+
+const unknownSize = (size: string, sizes: readonly string[], sizesFrom: SizesFrom): Resolution => ({
+  status: "unknown-size",
+  message: `"${size}" is not a size of this design. The sizes are ${sizes.join(", ")}.`,
+  size,
+  sizes,
+  sizesFrom,
+  rows: [],
+});
+
+/** One row per point of measure, with the chart row found by point. */
+const resolvedRows = (spec: GarmentSpec, chartRows: readonly GradedRow[], where: Where): ResolutionRow[] =>
+  pointsOfMeasureFor(spec).map((point) =>
+    resolvePoint(
+      point,
+      spec.measurements.find((entry) => entry.pointId === point.id),
+      chartRows.find((row) => row.pointId === point.id),
+      where,
+      typedFor(spec, point.id, where.size),
+    ),
+  );
+
 /**
  * Every measurement that applies to a design, at one size. The order is the chart value
  * (suggested from a chart), then the chart for the design fit, then a value set on the
@@ -75,16 +98,7 @@ export function resolveMeasurements(
   const sizesFrom = spec.sizing ? "design" : "chart";
   const sizes = spec.sizing?.sizes ?? run.sizes;
   const baseSize = spec.sizing?.baseSize ?? chart.baseSize;
-  if (!sizes.includes(size)) {
-    return {
-      status: "unknown-size",
-      message: `"${size}" is not a size of this design. The sizes are ${sizes.join(", ")}.`,
-      size,
-      sizes,
-      sizesFrom,
-      rows: [],
-    };
-  }
+  if (!sizes.includes(size)) return unknownSize(size, sizes, sizesFrom);
   const where = {
     size,
     baseSize,
@@ -92,15 +106,7 @@ export function resolveMeasurements(
     baseIndex: run.sizes.indexOf(baseSize),
     chartProvenance: chartProvenanceOf(chart),
   };
-  const rows = pointsOfMeasureFor(spec).map((point) =>
-    resolvePoint(
-      point,
-      spec.measurements.find((entry) => entry.pointId === point.id),
-      graded.rows.find((row) => row.pointId === point.id),
-      where,
-      typedFor(spec, point.id, size),
-    ),
-  );
+  const rows = resolvedRows(spec, graded.rows, where);
   return {
     status: "resolved",
     size,

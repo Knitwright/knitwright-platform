@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import type { ExportFormat } from "@/lib/techpack/exports/formats";
 
@@ -165,7 +166,7 @@ export async function downloadFile(
   } catch {
     return { ok: false, sentence: UNREACHABLE };
   }
-  if (!response.ok) return { ok: false, sentence: failureSentence(response.status, await response.json().catch(() => null)) };
+  if (!response.ok) return { ok: false, sentence: failureSentence(response.status, await readJson(response)) };
   if (!(response.headers.get("content-type") ?? "").startsWith(TYPE_PREFIX[control.format])) return { ok: false, sentence: NOT_WORKING };
   const blob = await response.blob();
   return { ok: true, name: fileNameFromDisposition(response.headers.get("content-disposition"), control.fallbackName), blob };

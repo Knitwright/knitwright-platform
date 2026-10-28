@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import type { JobView } from "./job-view";
 
@@ -34,7 +35,7 @@ export async function requestImages(projectId: string, colourway: string | undef
       headers: { "content-type": "application/json" },
       body: JSON.stringify(colourway ? { colourway } : {}),
     });
-    const parsed = started.safeParse(await response.json().catch(() => null));
+    const parsed = started.safeParse(await readJson(response));
     if (!parsed.success) return { ok: false, reason: FAILED };
     return parsed.data.success ? { ok: true, jobId: parsed.data.data.jobId } : { ok: false, reason: parsed.data.error.message };
   } catch {
@@ -46,7 +47,7 @@ export async function requestImages(projectId: string, colourway: string | undef
 export async function pollImageJob(projectId: string, jobId: string, fetcher: Fetch = fetch): Promise<JobView | null> {
   try {
     const response = await fetcher(`/api/projects/${projectId}/images/${jobId}`, { cache: "no-store" });
-    const parsed = polled.safeParse(await response.json().catch(() => null));
+    const parsed = polled.safeParse(await readJson(response));
     return parsed.success ? parsed.data.data : null;
   } catch {
     return null;

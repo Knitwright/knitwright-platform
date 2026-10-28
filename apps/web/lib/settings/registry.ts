@@ -187,5 +187,3 @@ export const GROUPS: Readonly<Record<string, string>> = {
 };
 
 export const findSetting = (key: string): SettingDef | undefined => SETTINGS.find((s) => s.key === key);
-
-export const priceSettingKey = priceKey;

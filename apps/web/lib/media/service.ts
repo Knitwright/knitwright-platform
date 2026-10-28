@@ -5,8 +5,8 @@ import type { ItemRecord, MediaFiles, MediaStore, SetRecord } from "./ports";
 import { storeImage } from "@/lib/storage/store";
 
 /**
- * Media sets in the database and storage. Reads go through the user's own client, so the database's rules decide as
- * well as this code. Writes go through the functions of migration 20261027010000, with the server's key: no browser
+ * Media sets in the database and storage. A set is read with the user's own client, so the database's rules decide; its items are read with the server's key,
+ * because members hold no grant on an item's cost, provider or clean path (migration 20261030010000). Writes go through the functions of migration 20261027010000, with the server's key: no browser
  * may write a set, an item or a history line.
  */
 
@@ -39,8 +39,8 @@ const setRow = z.object({
   media_items: z.array(itemRow),
 });
 
-const COLUMNS =
-  "id, brand_id, project_id, version, version_hash, status, error, unlocked_at, media_items(id, kind, view, file_id, clean_path, width, height, checker_verdict, provider, cost_microdollars)";
+const SET_COLUMNS = "id, brand_id, project_id, version, version_hash, status, error, unlocked_at";
+const ITEM_COLUMNS = "id, kind, view, file_id, clean_path, width, height, checker_verdict, provider, cost_microdollars";
 
 const KIND_ORDER = ["front", "back", "flat_lay", "three_quarter", "on_model", "scene"];
 
@@ -72,6 +72,16 @@ const toRecord = (raw: unknown): SetRecord => {
     items,
   };
 };
+
+/**
+ * A set found through the member's client (so row level security still decides whose it is), with its items read with the
+ * server's key for that set and brand: members hold no grant on an item's cost, provider or clean path.
+ */
+async function withItems(admin: SupabaseClient, brandId: string, set: { id: string }): Promise<SetRecord> {
+  const { data, error } = await admin.from("media_items").select(ITEM_COLUMNS).eq("brand_id", brandId).eq("set_id", set.id);
+  failIf(error, "The media items could not be read.");
+  return toRecord({ ...set, media_items: data ?? [] });
+}
 
 export function mediaStore(admin: SupabaseClient, client: SupabaseClient): MediaStore {
   return {
@@ -113,14 +123,14 @@ export function mediaStore(admin: SupabaseClient, client: SupabaseClient): Media
       return data === true;
     },
     async read(brandId, projectId, setId) {
-      const { data, error } = await client.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).eq("id", setId).maybeSingle();
+      const { data, error } = await client.from("media_sets").select(SET_COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).eq("id", setId).maybeSingle();
       failIf(error, "The media set could not be read.");
-      return data ? toRecord(data) : null;
+      return data ? withItems(admin, brandId, data) : null;
     },
     async latest(brandId, projectId) {
-      const { data, error } = await client.from("media_sets").select(COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await client.from("media_sets").select(SET_COLUMNS).eq("brand_id", brandId).eq("project_id", projectId).order("created_at", { ascending: false }).limit(1).maybeSingle();
       failIf(error, "The media sets could not be read.");
-      return data ? toRecord(data) : null;
+      return data ? withItems(admin, brandId, data) : null;
     },
   };
 }

@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { ProviderError, type GeneratedImage, type ImageProvider } from "./image-provider";
 
@@ -89,7 +90,7 @@ export function createGeminiProvider({ apiKey, fetch: fetcher = fetch }: GeminiO
         });
       }
 
-      return imageFrom(await response.json().catch(() => null));
+      return imageFrom(await readJson(response));
     },
   };
 }

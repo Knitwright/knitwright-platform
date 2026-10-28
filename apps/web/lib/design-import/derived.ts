@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ArtworkStack, Layer } from "@/lib/artwork-stack";
 import { deleteArtwork, uploadArtwork } from "@/lib/artwork-intake";
+import { log } from "@/lib/server/log";
 import type { CropFile, PictureFile } from "./cuts";
 import type { ImportReport } from "./report";
 
@@ -28,7 +29,9 @@ export function createDerivedStore(admin: SupabaseClient, who: { readonly brandI
       return record.id;
     },
     async remove(ids) {
-      await Promise.all(ids.map((id) => deleteArtwork(admin, who.brandId, id).catch(() => undefined)));
+      await Promise.all(ids.map((id) => deleteArtwork(admin, who.brandId, id).catch(
+          (error: unknown) => log({ level: "warn", message: `A cut picture could not be removed: ${id}`, where: "design import cleanup", error }),
+        )));
     },
   };
 }

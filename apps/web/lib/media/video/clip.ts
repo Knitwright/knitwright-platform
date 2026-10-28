@@ -73,8 +73,12 @@ export async function makeClip(deps: ClipDeps, ask: ClipAsk, plan: Extract<ClipP
     return { ok: true, itemId };
   } catch (error) {
     deps.log({ level: "error", message: "A clip could not be made", where: "media clip", error });
-    await deps.files.remove({ fileIds: saved.fileId ? [saved.fileId] : [], cleanPaths: [posterPath] }).catch(() => undefined);
-    await deps.videos.remove([moviePath]).catch(() => undefined);
+    await deps.files.remove({ fileIds: saved.fileId ? [saved.fileId] : [], cleanPaths: [posterPath] }).catch(
+      (error: unknown) => deps.log({ level: "warn", message: `Leftover files could not be removed: ${posterPath}`, where: "media clip cleanup", error }),
+    );
+    await deps.videos.remove([moviePath]).catch(
+      (error: unknown) => deps.log({ level: "warn", message: `A leftover clip could not be removed: ${moviePath}`, where: "media clip cleanup", error }),
+    );
     return { ok: false, message: CLIP_FAILED_MESSAGE };
   }
 }

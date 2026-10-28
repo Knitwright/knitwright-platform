@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import type { Grid } from "./grid";
 import { CHART_IMPORT_LIMITS } from "./limits";
@@ -43,7 +44,7 @@ export async function uploadChart(file: File, post: (form: FormData) => Promise<
   const form = new FormData();
   form.set("file", file);
   try {
-    const parsed = answer.safeParse(await (await post(form)).json().catch(() => null));
+    const parsed = answer.safeParse(await readJson(await post(form)));
     if (!parsed.success) return { ok: false, reason: FAILED };
     if (!parsed.data.success) return { ok: false, reason: parsed.data.error.message };
     return { ok: true, ...parsed.data.data };

@@ -38,6 +38,50 @@ function productionSections(
   };
 }
 
+type Pack = Omit<TechPack, "readiness" | "suggested" | "sections">;
+
+/** Whether the pack is ready to order: the production records checked against what the pack says. */
+function readinessOf(
+  spec: TechPackInput["spec"],
+  pack: Pack,
+  suggested: TechPack["suggested"],
+  parts: { production: Parameters<typeof buildReadiness>[0]["input"]; stack: ReturnType<typeof stackOf>; colourways: TechPack["colourways"] },
+) {
+  const { production, stack, colourways } = parts;
+  const { measurements, artwork } = pack;
+  return buildReadiness({
+    input: production,
+    orderedSizes: measurements.columns.flatMap((column) => (column.size === null ? [] : [column.size])),
+    measurements,
+    onPattern: measurements.onPattern,
+    completeness: completenessReport({ ...pack, suggested }),
+    colours: coloursFor(production, stack, colourways),
+    needsRoster: spec.namesAndNumbers !== undefined || artwork.playerMarks.length > 0,
+    artwork: pack.artworkAndColour,
+  });
+}
+
+/** The section heads in reading order. */
+const sectionsOf = (pack: Pack, readiness: TechPack["readiness"], suggested: TechPack["suggested"]): SectionHead[] =>
+  [
+    pack.cover,
+    readiness,
+    pack.flats,
+    pack.measurements,
+    pack.howToMeasure,
+    pack.patternAndCutting,
+    pack.components,
+    pack.fabric,
+    pack.construction,
+    pack.colourways,
+    pack.artwork,
+    pack.artworkAndColour,
+    pack.operations,
+    pack.labelling,
+    suggested,
+    pack.signOff,
+  ].map(head);
+
 /**
  * The tech pack document for one version of a design. It is a pure function of its input:
  * no clock, no database, no network. Each section is made from the design alone, so the
@@ -71,33 +115,7 @@ export function buildTechPack(input: TechPackInput): TechPack {
     ...productionSections(production, colourways, construction, technique, artwork.playerMarks.length > 0),
   };
   const suggested = buildSuggested(pack);
-  const readiness = buildReadiness({
-    input: production,
-    orderedSizes: measurements.columns.flatMap((column) => (column.size === null ? [] : [column.size])),
-    measurements,
-    onPattern: measurements.onPattern,
-    completeness: completenessReport({ ...pack, suggested }),
-    colours: coloursFor(production, stack, colourways),
-    needsRoster: spec.namesAndNumbers !== undefined || artwork.playerMarks.length > 0,
-    artwork: pack.artworkAndColour,
-  });
-  const sections = [
-    pack.cover,
-    readiness,
-    pack.flats,
-    pack.measurements,
-    pack.howToMeasure,
-    pack.patternAndCutting,
-    pack.components,
-    pack.fabric,
-    pack.construction,
-    pack.colourways,
-    pack.artwork,
-    pack.artworkAndColour,
-    pack.operations,
-    pack.labelling,
-    suggested,
-    pack.signOff,
-  ].map(head);
+  const readiness = readinessOf(spec, pack, suggested, { production, stack, colourways });
+  const sections = sectionsOf(pack, readiness, suggested);
   return { ...pack, readiness, suggested, sections };
 }

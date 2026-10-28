@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emptyToNull } from "@/lib/server/empty-to-null";
 import { NEXT_STEP_MAX } from "./limits";
 import { BUYER_KINDS, type BuyerKind } from "./buyer-kind";
 import { ORGANISATION_TYPES, type OrganisationType } from "./organisation";
@@ -140,8 +141,6 @@ export function buildLeadList(rows: readonly LeadRow[], now: Date): LeadListItem
     })
     .sort((a, b) => b.score.total - a.score.total || Date.parse(b.lastActivity) - Date.parse(a.lastActivity));
 }
-
-const emptyToNull = (value: unknown) => (typeof value === "string" && value.trim() === "" ? null : value);
 
 export { NEXT_STEP_MAX };
 

@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { parseEvent, splitLines, type BrowserFollowUp, type BrowserOutcome, type StreamEvent } from "@/lib/intent/stream";
 
@@ -160,6 +161,6 @@ const refusalSchema = z.object({ error: z.object({ message: z.string() }) });
 
 /** The message of a request the server refused before answering (an allowance, the rate limit, a conflict). */
 export async function refusalMessage(response: Response): Promise<string> {
-  const parsed = refusalSchema.safeParse(await response.json().catch(() => null));
+  const parsed = refusalSchema.safeParse(await readJson(response));
   return parsed.success ? parsed.data.error.message : FAILED_TEXT;
 }

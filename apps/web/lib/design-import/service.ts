@@ -3,6 +3,7 @@ import { z } from "zod";
 import { deleteArtwork } from "@/lib/artwork-intake";
 import { MM_LIMIT, parseArtworkStack, roundMm, type ArtworkStack, type AssetReader, type Layer } from "@/lib/artwork-stack";
 import { AppError } from "@/lib/server/core/errors";
+import { log } from "@/lib/server/log";
 import { derivedAssetOf, derivedIds } from "./derived";
 import type { ImportOutcome, Overlay } from "./pipeline";
 import { readingSchema } from "./read";
@@ -186,7 +187,9 @@ export const needsOwnFile = (stack: ArtworkStack): readonly string[] =>
 
 /** Removes the pictures cut for layers that are not kept. A picture that cannot be removed is left in the person's artwork, where they can delete it. */
 async function forget(admin: SupabaseClient, brandId: string, layers: readonly Layer[]): Promise<void> {
-  await Promise.all(derivedIds(layers).map((id) => deleteArtwork(admin, brandId, id).catch(() => undefined)));
+  await Promise.all(derivedIds(layers).map((id) => deleteArtwork(admin, brandId, id).catch(
+    (error: unknown) => log({ level: "warn", message: `A cut picture could not be removed: ${id}`, where: "design import cleanup", error }),
+  )));
 }
 
 export async function acceptImport(admin: SupabaseClient, who: Who, importId: string, layerIds: readonly string[] | "all", now: Date = new Date()): Promise<{ stack: ArtworkStack; needsOwnFile: readonly string[] }> {
@@ -239,5 +242,7 @@ export async function replaceGraphic(admin: SupabaseClient, who: Who, importId: 
   const { error } = await admin.from("design_imports").update({ report, result: stack.stack, updated_at: new Date().toISOString() }).eq("id", importId).eq("brand_id", who.brandId).eq("status", "ready");
   failIf(error, "The design import could not be updated.");
   const crop = derivedAssetOf(layer);
-  if (crop !== null) await deleteArtwork(admin, who.brandId, crop).catch(() => undefined);
+  if (crop !== null) await deleteArtwork(admin, who.brandId, crop).catch(
+    (error: unknown) => log({ level: "warn", message: `A cut picture could not be removed: ${crop}`, where: "design import cleanup", error }),
+  );
 }

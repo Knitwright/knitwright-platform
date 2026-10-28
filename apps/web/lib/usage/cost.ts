@@ -9,8 +9,6 @@
 /** "ai" is text and image reading. "photoreal" is generated pictures, with an allowance of their own. */
 export type UsageFeature = "ai" | "photoreal";
 
-export const USAGE_FEATURES = ["ai", "photoreal"] as const satisfies readonly UsageFeature[];
-
 export type Cost = Readonly<{ feature: UsageFeature; microdollars: number }>;
 
 export const MICRODOLLARS_PER_DOLLAR = 1_000_000;

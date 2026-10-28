@@ -1,3 +1,4 @@
+import { readJson } from "@/lib/http/read-json";
 import { z } from "zod";
 import { REPLY_TOOL_DESCRIPTION, REPLY_TOOL_NAME, replyToolSchema } from "@/lib/intent/reply-tool";
 import { ModelCallError, type Fetch, type ModelReply, type ModelRequest, type TextModelProvider } from "./text-model";
@@ -81,7 +82,7 @@ export function createAnthropicProvider(options: AnthropicOptions): TextModelPro
         throw new ModelCallError("The model could not be reached.", null, { cause: error });
       }
       if (!response.ok) throw new ModelCallError(`The model answered with status ${response.status}.`, response.status);
-      const parsed = responseSchema.safeParse(await response.json().catch(() => null));
+      const parsed = responseSchema.safeParse(await readJson(response));
       if (!parsed.success) throw new ModelCallError("The model's answer was not in the expected form.");
       return {
         text: anthropicReplyText(parsed.data.content),

@@ -41,6 +41,9 @@ export function signedArea(ring: readonly Pt[]): number {
   return sum / 2;
 }
 
+/** `signedArea` for points written as `{ x, y }`. */
+export const signedAreaXY = (points: readonly { readonly x: number; readonly y: number }[]): number => signedArea(points.map((p): Pt => [p.x, p.y]));
+
 export const areaOf = (ring: readonly Pt[]): number => Math.abs(signedArea(ring));
 
 /** Even-odd test. A point exactly on the edge counts as inside. */

@@ -1,5 +1,6 @@
 "use client";
 
+import { readJson } from "@/lib/http/read-json";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { FormSummary } from "@/components/forms/FormSummary";
@@ -49,7 +50,7 @@ function UploadForm({ requestId }: Readonly<{ requestId: string }>) {
     setPending(true);
     try {
       const response = await fetch(`/ops/pattern-requests/${requestId}/files`, { method: "POST", body });
-      const answer = (await response.json().catch(() => null)) as { success?: boolean; error?: { message?: string } } | null;
+      const answer = (await readJson(response)) as { success?: boolean; error?: { message?: string } } | null;
       if (answer?.success) {
         setMessage(null);
         if (input.current) input.current.value = "";
