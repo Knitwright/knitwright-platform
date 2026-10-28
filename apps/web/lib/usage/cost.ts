@@ -24,7 +24,7 @@ export type Allowances = Readonly<{
   globalCeiling: number;
 }>;
 
-export type UsageConfig = Readonly<{
+type UsageConfig = Readonly<{
   USAGE_USER_MONTHLY_AI: number;
   USAGE_BRAND_MONTHLY_AI: number;
   USAGE_USER_MONTHLY_PHOTOREAL: number;

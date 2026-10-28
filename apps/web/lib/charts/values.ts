@@ -5,7 +5,7 @@ import { formatLength } from "@/lib/units/length";
 import { readLength, UNIT_WORDS, type ChartUnit } from "./units";
 
 /** Where one row's values are and what they are called, for plain messages. */
-export interface RowContext {
+interface RowContext {
   readonly line: number;
   /** The point's name in the registry. */
   readonly label: string;
@@ -17,7 +17,7 @@ export interface RowContext {
   readonly unit: ChartUnit;
 }
 
-export type RowValues =
+type RowValues =
   | { readonly ok: true; readonly value: Omit<ChartPoint, "pointId"> }
   | { readonly ok: false; readonly problems: readonly string[] };
 

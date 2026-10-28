@@ -5,7 +5,7 @@ import { armholeChain, hemLift, hemSegment, type Frame } from "./pieces";
 /** How far up the armhole the inner end of a side panel reaches, as a share of the armhole from the top. */
 const TOP_REACH = 0.8;
 
-export interface SidePanel {
+interface SidePanel {
   /** The whole strip on the right, closed: side seam, hem, inner edge and a piece of the armhole. */
   readonly strip: Chain;
   /** The inner edge, from the hem up to the armhole, which is sewn to the body. */

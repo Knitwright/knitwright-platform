@@ -21,7 +21,7 @@ import { IMAGE_SOURCE } from "./to-spec-action";
 export { IMAGE_INPUT_TOKENS };
 
 export const IMAGE_UNAVAILABLE = `Reading pictures is not switched on yet. Describe the garment in the chat instead. ${NOTHING_CHANGED}`;
-export const NUMBERS_NOT_USED = "Numbers in the picture were not used. Type measurements and fabric weights in yourself.";
+const NUMBERS_NOT_USED = "Numbers in the picture were not used. Type measurements and fabric weights in yourself.";
 const SAME_AS_NOW = `The picture shows the design as it already is. ${NOTHING_CHANGED}`;
 
 const IMAGE_RULES = `

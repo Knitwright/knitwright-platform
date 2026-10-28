@@ -28,7 +28,7 @@ const responseSchema = z.object({
   usage: z.object({ prompt_tokens: z.number(), completion_tokens: z.number() }),
 });
 
-export interface OpenAiOptions {
+interface OpenAiOptions {
   readonly apiKey: string;
   readonly model: string;
   readonly fetch?: Fetch;
@@ -44,7 +44,7 @@ export interface OpenAiOptions {
   readonly forcedTool?: boolean;
 }
 
-export function openAiBody(model: string, request: ModelRequest, forcedTool = true) {
+function openAiBody(model: string, request: ModelRequest, forcedTool = true) {
   const image = request.image
     ? [{ type: "image_url", image_url: { url: `data:${request.image.mediaType};base64,${request.image.base64}` } }]
     : [];

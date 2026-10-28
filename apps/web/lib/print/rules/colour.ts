@@ -28,7 +28,7 @@ export function deltaE(a: string, b: string): number {
 }
 
 /** How close a colour must be to one on the avoid list to count as it. A setting, not a measurement. */
-export const AVOID_DELTA_E = 4;
+const AVOID_DELTA_E = 4;
 
 /** The colours used that sit on the avoid list, each once, in the order first used. */
 export function avoidedColours(used: readonly string[], avoid: readonly string[]): string[] {

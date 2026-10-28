@@ -59,4 +59,3 @@ export const applyKitStyleSchema = z.object({
   third: z.union([z.literal("").transform(() => null), swatch]),
   from: z.enum(GALLERY_FROM),
 });
-export type ApplyKitStyle = z.output<typeof applyKitStyleSchema>;

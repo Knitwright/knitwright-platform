@@ -12,7 +12,7 @@ export const NAME_PROBLEM =
 const HIDDEN = /\p{C}/gu;
 const ALLOWED = /^[\p{L}\p{M}\p{N} '’.&-]*$/u;
 
-export type CleanName = { readonly ok: true; readonly name: string } | { readonly ok: false; readonly message: string };
+type CleanName = { readonly ok: true; readonly name: string } | { readonly ok: false; readonly message: string };
 
 export function cleanName(raw: string): CleanName {
   const name = raw.normalize("NFC").replace(HIDDEN, "").replace(/\s+/g, " ").trim();

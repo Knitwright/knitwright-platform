@@ -9,7 +9,7 @@ export type StartClipDeps = ClipDeps &
     timeoutMs?: number;
   }>;
 
-export const CLIP_TIME_LIMIT_MS = 50_000;
+const CLIP_TIME_LIMIT_MS = 50_000;
 
 /**
  * Starts the clip for a set once. If the clip is already there nothing is called and the reservation is given back, so a second

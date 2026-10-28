@@ -12,7 +12,7 @@ import type { LengthUnit } from "@/lib/units/length";
 export const STEP_IDS = ["start", "review", "adjust", "download", "make"] as const;
 export type StepId = (typeof STEP_IDS)[number];
 
-export interface GuidedStep {
+interface GuidedStep {
   readonly id: StepId;
   readonly label: string;
   /** One sentence on what happens in the step. */
@@ -70,7 +70,7 @@ export function guideAddress(projectId: string, step: StepId, options: GuideOpti
   return `/studio/${encodeURIComponent(projectId)}/guide?${query.toString()}`;
 }
 
-export interface StartingDesign {
+interface StartingDesign {
   readonly typeId: string;
   readonly wearer: Wearer;
 }

@@ -4,7 +4,7 @@ import { freeText, localId } from "@/lib/garment/primitives";
 import { provenanceSchema } from "@/lib/garment/provenance";
 
 /** The colour systems a person can name. No Pantone data ships (open item P6): a code is whatever the person typed. */
-export const COLOUR_SYSTEMS = ["factory", "pantone-tcx", "pantone-tpg", "ral", "custom"] as const;
+const COLOUR_SYSTEMS = ["factory", "pantone-tcx", "pantone-tpg", "ral", "custom"] as const;
 export const COLOUR_SYSTEM_LABELS: Readonly<Record<(typeof COLOUR_SYSTEMS)[number], string>> = {
   factory: "Factory code",
   "pantone-tcx": "Pantone TCX",
@@ -19,10 +19,9 @@ export const stackId = z
   .max(80)
   .regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/, "Use lower case words joined by dashes.");
 
-export const colourCodeSchema = z
+const colourCodeSchema = z
   .object({ system: z.enum(COLOUR_SYSTEMS), value: freeText(COLOUR_MAX_LENGTH).min(1, "Enter the colour code."), source: provenanceSchema })
   .readonly();
-export type ColourCode = z.output<typeof colourCodeSchema>;
 
 /** What a colour is in one colourway. The screen colour is for drawings only; it is never a factory reference. */
 const valueShape = {

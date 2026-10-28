@@ -4,7 +4,7 @@
  * also keep these inside compressed streams; the reader looks again at what it finds there (see rasterise.ts).
  */
 
-export type PdfFindings = Readonly<{
+type PdfFindings = Readonly<{
   /** A script was found. The file is refused. */
   script: boolean;
   /** Embedded files, launch actions, address actions or form submission. These are left out, not kept. */

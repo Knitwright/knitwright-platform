@@ -29,7 +29,7 @@ const clearSpace = z.number().finite().min(0).max(200);
 export const groundLayerSchema = z.object({ ...common, kind: z.literal("ground"), colourId: stackId }).readonly();
 
 /** Parameters are plain values with a name. The generator says which names it has and their ranges. */
-export const patternParamsSchema = z
+const patternParamsSchema = z
   .record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9]{0,39}$/), z.union([z.number().finite(), z.string().max(60), z.boolean()]))
   .refine((params) => Object.keys(params).length <= 16, { message: "A pattern takes at most 16 settings." })
   .readonly();
@@ -71,11 +71,10 @@ export const placementSchema = z.discriminatedUnion("kind", [
 export type Placement = z.output<typeof placementSchema>;
 
 /** A picture or vector: an uploaded asset (a vector asset is read as vectors), or a file stored by the older logo path. */
-export const graphicSourceSchema = z.discriminatedUnion("kind", [
+const graphicSourceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("asset"), assetId: localId }).readonly(),
   z.object({ kind: z.literal("file"), fileId: z.uuid() }).readonly(),
 ]);
-export type GraphicSource = z.output<typeof graphicSourceSchema>;
 
 export const graphicLayerSchema = z
   .object({

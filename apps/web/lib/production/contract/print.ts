@@ -53,7 +53,7 @@ export const printRuleSetSchema = z.object({
 export type PrintRuleSet = z.output<typeof printRuleSetSchema>;
 
 /** SVG is a format to build on download. It is never stored (see the exports bucket). */
-export const PRINT_FORMATS = ["pdf", "svg", "tiff"] as const;
+const PRINT_FORMATS = ["pdf", "svg", "tiff"] as const;
 
 export const printFileSpecSchema = z.object({
   pieceId: idSchema,

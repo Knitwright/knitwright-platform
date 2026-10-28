@@ -16,7 +16,7 @@ export const UNREADABLE = "The comments could not be read. Try again.";
 export type ListAnswer =
   | Readonly<{ ok: true; comments: readonly CommentView[]; members: readonly MemberView[]; viewer: Viewer }>
   | Readonly<{ ok: false; message: string }>;
-export type SavedAnswer = Readonly<{ ok: true }> | Readonly<{ ok: false; message: string }>;
+type SavedAnswer = Readonly<{ ok: true }> | Readonly<{ ok: false; message: string }>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value);
 const text = (value: unknown): value is string => typeof value === "string";

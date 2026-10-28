@@ -12,7 +12,7 @@ import { sidePanelChains } from "./side-panels";
 const INSIDE_TONE = 0.86;
 
 /** What a template needs from the design to draw its panels. */
-export interface PanelContext {
+interface PanelContext {
   readonly frame: Frame;
   readonly view: View;
   readonly nameOf: (panelId: string) => string;
@@ -21,7 +21,7 @@ export interface PanelContext {
 }
 
 /** The sleeves and the cuffs. In the front view the wearer's left sleeve is on the right of the page. */
-export function sleeveShapes(frame: Frame): { left: Chain; right: Chain; cuffs: Chain[] } {
+function sleeveShapes(frame: Frame): { left: Chain; right: Chain; cuffs: Chain[] } {
   const cuffLength = frame.options.cuffs ? CUFF_HEIGHT * frame.basis.chest : 0;
   const { sleeve, cuff } = sleeveChains(frame, cuffLength);
   const onRight = sleeve;

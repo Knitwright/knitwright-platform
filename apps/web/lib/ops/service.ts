@@ -20,7 +20,7 @@ export async function loadSettings(client: SupabaseClient): Promise<OpsSettings>
   return toSettings(data);
 }
 
-export interface BatchListItem extends Batch {
+interface BatchListItem extends Batch {
   readonly orders: number;
   readonly summary: OrderSummary;
   readonly byStatus: Readonly<Partial<Record<OrderStatus, number>>>;

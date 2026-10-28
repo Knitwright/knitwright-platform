@@ -29,7 +29,7 @@ export const imageCost = (entry: ModelEntry): Cost => ({
   microdollars: callCost(entry, MAX_TEXT_INPUT_TOKENS + IMAGE_INPUT_TOKENS, MAX_OUTPUT_TOKENS),
 });
 
-export type ImageRequestResult =
+type ImageRequestResult =
   | {
       readonly kind: "proposal";
       readonly explanations: readonly string[];

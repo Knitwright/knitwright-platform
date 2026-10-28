@@ -26,7 +26,7 @@ const capital = (text: string): string => `${text.charAt(0).toUpperCase()}${text
 const cm = (mm: number): string => formatCm(Math.round(mm * 10));
 const viewsOf = (views: readonly string[]): string => spaced(views.join(" and "));
 
-export interface LayerContext {
+interface LayerContext {
   /** The technique of the whole design, used when a layer names none. */
   readonly technique?: string | null;
   readonly colourwayId?: string;

@@ -18,7 +18,7 @@ const isAuthErrorLike = (error: unknown): error is AuthErrorLike =>
   typeof error.message === "string";
 
 /** True when the database hook refused a new account because sign-up is closed. */
-export const isSignupClosed = (error: unknown): boolean =>
+const isSignupClosed = (error: unknown): boolean =>
   isAuthErrorLike(error) && SIGNUP_CLOSED.test(error.message);
 
 /**

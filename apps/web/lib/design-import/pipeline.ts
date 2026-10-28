@@ -37,7 +37,7 @@ export interface PipelineDeps {
   readonly standIn: boolean;
 }
 
-export interface PipelineInput {
+interface PipelineInput {
   readonly bytes: Uint8Array;
   readonly mediaType: ModelImageType;
   /** A reading kept from an earlier run: redoing a fit after the user moves a landmark costs no vision call. */

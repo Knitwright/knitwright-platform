@@ -12,7 +12,7 @@ const FAILED = "The images could not be started. Try again.";
 
 type Fetch = (input: string, init?: RequestInit) => Promise<Response>;
 
-export type StartResult = Readonly<{ ok: true; jobId: string }> | Readonly<{ ok: false; reason: string }>;
+type StartResult = Readonly<{ ok: true; jobId: string }> | Readonly<{ ok: false; reason: string }>;
 
 const failure = z.object({ success: z.literal(false), error: z.object({ message: z.string() }) });
 

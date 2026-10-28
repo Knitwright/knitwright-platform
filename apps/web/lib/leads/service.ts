@@ -111,7 +111,7 @@ const designQuoteRow = z.object({
   created_at: z.string(),
 });
 
-export const DESIGN_QUOTES_LISTED = 10;
+const DESIGN_QUOTES_LISTED = 10;
 
 /** The latest quote requests for one design of the brand, newest first. */
 export async function listDesignQuotes(

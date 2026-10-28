@@ -13,7 +13,7 @@ import type { GarmentSpec } from "./spec-schema";
 
 type Options = Readonly<Record<string, OptionChoice>>;
 
-export interface Reconciled<T> {
+interface Reconciled<T> {
   readonly value: T;
   /** What was removed or reset, one entry each. */
   readonly dropped: readonly Dropped[];

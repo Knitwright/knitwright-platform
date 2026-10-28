@@ -23,7 +23,7 @@ export interface ParcelToRecord {
   readonly rest: Readonly<{ owner: string; dueOn: string }> | null;
 }
 
-export interface RecordedShipment {
+interface RecordedShipment {
   readonly shipmentId: string;
   readonly pieces: number;
   readonly complete: boolean;

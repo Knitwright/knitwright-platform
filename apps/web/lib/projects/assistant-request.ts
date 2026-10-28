@@ -164,7 +164,7 @@ export function eventStream(work: (emit: (event: StreamEvent) => void) => Promis
   });
 }
 
-export type ProposalSave = (input: {
+type ProposalSave = (input: {
   readonly expectedVersion: number;
   readonly actions: readonly SpecAction[];
   readonly source: Proposal["source"];

@@ -10,9 +10,9 @@ export const SPEC_TARGET = {
   status: "unmeasured",
 } as const;
 
-export type RunStep = Readonly<{ name: string; ms: number }>;
+type RunStep = Readonly<{ name: string; ms: number }>;
 
-export type RunReport = Readonly<{
+type RunReport = Readonly<{
   providers: string;
   steps: readonly RunStep[];
   totalMs: number;

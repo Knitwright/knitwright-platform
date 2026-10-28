@@ -43,9 +43,9 @@ export const expireCredits = (ledger: Ledger, p: Posting): { ledger: Ledger; app
   return { ledger: [...ledger, entry], applied: true };
 };
 
-export type SpendRequest = Readonly<{ kind: OutputKind; hash: string; price: number; id: string; at: string }>;
+type SpendRequest = Readonly<{ kind: OutputKind; hash: string; price: number; id: string; at: string }>;
 
-export type SpendResult =
+type SpendResult =
   | Readonly<{ ok: true; charged: boolean; ledger: Ledger }>
   | Readonly<{ ok: false; reason: "insufficient"; ledger: Ledger }>;
 
@@ -61,7 +61,7 @@ export const spendCredits = (ledger: Ledger, r: SpendRequest): SpendResult => {
   return { ok: true, charged: true, ledger: [...ledger, entry] };
 };
 
-export type RefundRequest = Readonly<{ hash: string; ids: () => string; at: string }>;
+type RefundRequest = Readonly<{ hash: string; ids: () => string; at: string }>;
 
 /** Gives back every spend on a saved version that has not been given back yet. */
 export const refundForVersion = (ledger: Ledger, r: RefundRequest): { ledger: Ledger; refunded: number } => {

@@ -23,7 +23,7 @@ export interface ZoneTemplate {
   readonly clearSpaceMm: number;
 }
 
-export const CLEAR_SPACE_MM = 10;
+const CLEAR_SPACE_MM = 10;
 
 export const JERSEY_ZONES: readonly ZoneTemplate[] = [
   { id: "crest", purpose: "crest", views: ["front"], box: { x0: 70, y0: -135, x1: 150, y1: -60 }, clearSpaceMm: CLEAR_SPACE_MM },

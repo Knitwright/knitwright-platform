@@ -28,7 +28,7 @@ export interface OuterwearShape {
   readonly pocketHeight: number;
 }
 
-export interface OuterwearShapeResult {
+interface OuterwearShapeResult {
   readonly shape: OuterwearShape | null;
   readonly problems: readonly string[];
 }

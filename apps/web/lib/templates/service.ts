@@ -13,7 +13,7 @@ import type { TemplateSummary } from "./filters";
  */
 
 /** The library is small and platform-owned. Beyond this many rows it would be paged by the database instead. */
-export const LIBRARY_READ_LIMIT = 500;
+const LIBRARY_READ_LIMIT = 500;
 
 const SUMMARY_COLUMNS = "id, slug, title, sport, article_id, style_tags, colour_family, review_state, attribution";
 
@@ -62,7 +62,7 @@ export async function loadSnapshots(client: SupabaseClient, ids: readonly string
   return new Map(parsed.data.map((row) => [row.id, row.snapshot]));
 }
 
-export type NewFromTemplate = Readonly<{ brandId: string; userId: string; templateId: string }>;
+type NewFromTemplate = Readonly<{ brandId: string; userId: string; templateId: string }>;
 
 /**
  * Makes a new design in the brand from a template, as version 1, and returns its id. The design is a deep copy of

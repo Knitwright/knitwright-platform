@@ -25,7 +25,7 @@ export function gradedFromDetail(detail: Pick<BlockDetail, "block" | "sizes">): 
   return parsed.success ? parsed.data : null;
 }
 
-export interface PatternAsk {
+interface PatternAsk {
   /** The design's garment type, which is the library's product key. */
   readonly typeId: string;
   /** A named pattern: a release is frozen with one. Without it the newest pattern for the garment is used. */

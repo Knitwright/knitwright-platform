@@ -29,9 +29,9 @@ export const LEAD_POINTS = {
 
 /** From this score a person contacts the lead within 24 hours. */
 export const HOT_SCORE = 60;
-export const NEEDED_SOON_WEEKS = 12;
+const NEEDED_SOON_WEEKS = 12;
 /** Saved changes after the first version. */
-export const ENGAGED_EDITS = 3;
+const ENGAGED_EDITS = 3;
 
 export interface ScoreInput {
   readonly organisationType: OrganisationType | null;

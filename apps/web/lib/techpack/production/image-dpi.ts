@@ -20,7 +20,7 @@ export function imageNote(min: MinDpiSetting, scale: number): string {
   return `The smallest resolution that counts as good is ${min.value} dpi. ${source}${enlarged} A vector has no resolution to meet.`;
 }
 
-export interface ImageContext {
+interface ImageContext {
   readonly assets: readonly PlacedAsset[];
   readonly minDpi: MinDpiSetting;
   /** How much larger artwork is printed than drawn, across. 1 when the fabric has no shrink test. */

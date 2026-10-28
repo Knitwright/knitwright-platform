@@ -38,7 +38,7 @@ const designSchema = z.object({
   trims: z.record(z.string(), z.string()),
   technique: z.string(),
 });
-export type PolkaJerseyDesign = z.output<typeof designSchema>;
+type PolkaJerseyDesign = z.output<typeof designSchema>;
 export const POLKA_JERSEY_DESIGN: PolkaJerseyDesign = designSchema.parse(designJson);
 
 /** 22 players with fictional names, one with a 14-letter name. All sizes are in the men's run. */

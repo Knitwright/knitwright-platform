@@ -22,7 +22,7 @@ const TURN_ORDER: Readonly<Record<"front" | "back", readonly LandmarkId[]>> = {
 };
 
 /** The landmarks every piece of a role must have for its measurements. */
-export const EXPECTED_LANDMARKS: Readonly<Record<PieceRole, readonly LandmarkId[]>> = {
+const EXPECTED_LANDMARKS: Readonly<Record<PieceRole, readonly LandmarkId[]>> = {
   front: TURN_ORDER.front,
   back: TURN_ORDER.back,
   sleeve: ["underarm-a", "underarm-b", "hem-a", "hem-b", "cap-top"],
@@ -32,7 +32,7 @@ export const EXPECTED_LANDMARKS: Readonly<Record<PieceRole, readonly LandmarkId[
 
 export type Landmarks = PatternPiece["landmarks"];
 
-export type LandmarkResult = Readonly<{ landmarks: Landmarks; problem: string | null }>;
+type LandmarkResult = Readonly<{ landmarks: Landmarks; problem: string | null }>;
 
 const SAME_PLACE_MM = 0.05;
 

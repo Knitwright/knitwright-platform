@@ -11,7 +11,7 @@ import { MM_LIMIT, mmFromTenths, tenthsFromMm, type PointMm } from "../units";
  * today's drawing. That file is read, never edited.
  */
 
-export const KIT_GENERATOR_PREFIX = "kit-";
+const KIT_GENERATOR_PREFIX = "kit-";
 export const kitGeneratorId = (style: KitPatternStyle): string => `${KIT_GENERATOR_PREFIX}${style}`;
 
 /** The style a generator id names, or null when it is not one of the seven. */

@@ -13,7 +13,7 @@ export interface ResolvedDimensions {
   readonly problems: readonly string[];
 }
 
-export interface DimensionInput {
+interface DimensionInput {
   /** The measurements the drawing needs: the points that apply to the design. */
   readonly needed: readonly { readonly id: string; readonly label: string }[];
   /** The measurements that are present, by point id, in tenths of a millimetre. */

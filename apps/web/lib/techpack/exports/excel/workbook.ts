@@ -7,7 +7,7 @@ import { exportSections } from "../tables";
 import { noteCell, sheetNameProblem, type SheetCell } from "./cells";
 import { sheetOf } from "./sheet";
 
-export interface WorkbookSheet {
+interface WorkbookSheet {
   readonly name: string;
   readonly data: readonly (readonly SheetCell[])[];
   readonly columns?: readonly { readonly width: number }[];
@@ -52,7 +52,7 @@ export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uin
   return new Uint8Array(written);
 }
 
-export interface WorkbookOptions {
+interface WorkbookOptions {
   /** When AI pictures were made, a last sheet says so. The pictures themselves are only in the PDF. */
   readonly illustrations?: ExportIllustrations | null;
 }

@@ -28,7 +28,7 @@ const answerSchema = z.object({
 
 type Fetch = (input: string, init: RequestInit) => Promise<Response>;
 
-export type FalOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
+type FalOptions = Readonly<{ apiKey: string; fetch?: Fetch }>;
 
 const DATA_ADDRESS = /^data:([^;,]+)?;base64,([A-Za-z0-9+/=]*)$/;
 

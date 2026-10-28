@@ -7,7 +7,7 @@ import type { DeletionClient, StorageEntry } from "../client";
 
 type RpcAnswer = Readonly<{ data: unknown; error: { code?: string; hint?: string | null; message: string } | null }>;
 
-export type FakeOptions = Readonly<{
+type FakeOptions = Readonly<{
   /** The answer for each database function, by name. A function may answer differently each call. */
   rpc?: Readonly<Record<string, RpcAnswer | readonly RpcAnswer[]>>;
   /** Objects in storage, by bucket, as full paths. */

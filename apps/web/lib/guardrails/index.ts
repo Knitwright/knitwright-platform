@@ -17,7 +17,7 @@ export * from "./types";
  * The planned shape of V1's `CheckModule`: an id and a pure function from the design's inputs to findings. These
  * are exported, not registered; they join V1's registry in a follow-up once V1 has merged.
  */
-export interface GuardrailModule {
+interface GuardrailModule {
   readonly id: "seam_cross" | "dpi" | "bleed" | "safe_zone" | "gamut";
   run(input: GuardrailInput): readonly Finding[];
 }

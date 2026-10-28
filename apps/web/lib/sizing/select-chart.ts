@@ -3,7 +3,7 @@ import type { ChartSet } from "./chart-set";
 import { runSystemMismatch } from "./run-system";
 import type { SizeChart, SizeRun } from "./schemas";
 
-export type ChartChoice =
+type ChartChoice =
   | {
       readonly kind: "found";
       readonly chart: SizeChart;

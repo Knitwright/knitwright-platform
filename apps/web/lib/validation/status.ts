@@ -23,7 +23,7 @@ export const canMove = (from: DesignStatus, to: DesignStatus): boolean => MOVES[
 
 export type Transition = { readonly ok: true; readonly record: StatusRecord } | { readonly ok: false; readonly reason: string };
 
-export interface TransitionContext {
+interface TransitionContext {
   readonly profileId: string;
   readonly findings: readonly Finding[];
   readonly at: Date;

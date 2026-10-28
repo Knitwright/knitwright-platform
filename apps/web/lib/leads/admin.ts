@@ -94,7 +94,6 @@ const leadRow = z
   }));
 
 export type LeadRow = z.output<typeof leadRow>;
-export type LeadQuote = LeadRow["quotes"][number];
 
 export const parseLeadRows = (data: unknown): LeadRow[] => z.array(leadRow).parse(data);
 

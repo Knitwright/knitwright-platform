@@ -36,7 +36,7 @@ export type SaveOutcome =
   | Readonly<{ ok: true; spec: GarmentSpec; version: number; dropped: readonly Dropped[] }>
   | Readonly<{ ok: false; reason: string }>;
 
-export type NewProject = Readonly<{
+type NewProject = Readonly<{
   brandId: string;
   userId: string;
   name: string;
@@ -92,7 +92,7 @@ const appendVersion = async (admin: SupabaseClient, input: Append): Promise<numb
   return z.number().int().min(1).parse(data);
 };
 
-export type SaveInput = Readonly<{
+type SaveInput = Readonly<{
   brandId: string;
   userId: string;
   projectId: string;
@@ -162,7 +162,7 @@ export const saveAction = async (
   return storeAction(admin, client, input, current, action.data);
 };
 
-export type BatchInput = Omit<SaveInput, "action"> & Readonly<{ actions: readonly unknown[] }>;
+type BatchInput = Omit<SaveInput, "action"> & Readonly<{ actions: readonly unknown[] }>;
 
 /**
  * Applies several changes from a browser to the current design, all or none, and stores the
@@ -215,7 +215,7 @@ export const saveTrustedAction = async (
   return storeAction(admin, client, input, current, action.data);
 };
 
-export type TrustedBatchInput = Omit<SaveInput, "action"> &
+type TrustedBatchInput = Omit<SaveInput, "action"> &
   Readonly<{
     actions: readonly SpecAction[];
     source: ProposalSource;
@@ -265,7 +265,7 @@ export const loadCurrentDesign = async (
   input: Pick<SaveInput, "brandId" | "projectId" | "expectedVersion">,
 ): Promise<GarmentSpec> => (await loadCurrent(client, input)).read.spec;
 
-export type RestoreInput = Readonly<{
+type RestoreInput = Readonly<{
   brandId: string;
   userId: string;
   projectId: string;
@@ -300,7 +300,7 @@ export const restoreVersion = async (
   return { ok: true, spec, version, dropped };
 };
 
-export type UndoInput = Omit<RestoreInput, "version">;
+type UndoInput = Omit<RestoreInput, "version">;
 
 /**
  * Goes back one design, as a new version. The target is worked out here, from the version

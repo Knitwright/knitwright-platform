@@ -11,18 +11,18 @@ import type { ViewAnalysis } from "./views";
 /** Runs the all-over pattern stage for each fitted view and cuts the pictures its proposals need, at the original's own sharpness. */
 
 /** The longest side of the copy the pictures are cut from. */
-export const SOURCE_SIDE = 1600;
+const SOURCE_SIDE = 1600;
 /** A flat for the stage is this many pixels across. */
 const FLAT_ACROSS = 300;
 
-export interface FoundPatterns {
+interface FoundPatterns {
   readonly proposals: readonly PatternProposal[];
   readonly pictures: readonly PictureFile[];
   /** Layers in drawing order: each proposal, then its alternative. */
   readonly layers: readonly Layer[];
 }
 
-export interface PatternRun {
+interface PatternRun {
   readonly stage: PatternStage;
   readonly template: LandmarkTemplate;
   /** The picture the analysis ran on, with the marks repaired from their neighbours. */
@@ -39,7 +39,7 @@ export interface PatternRun {
 const NONE: FoundPatterns = { proposals: [], pictures: [], layers: [] };
 
 /** The picture at its best resolution, and how many of its pixels there are for each pixel of the analysis copy. */
-export interface SourceCopy {
+interface SourceCopy {
   readonly raster: Raster;
   readonly scale: number;
 }

@@ -19,7 +19,7 @@ type Brand = Readonly<{ id: string; name: string }>;
 const ORDER_GONE = "The team list of that order has been erased. Choose a season to reorder from.";
 const NAME_MAX = 120;
 
-export interface ValidationSummary {
+interface ValidationSummary {
   readonly profileName: string;
   readonly profileLabel: string;
   readonly blockers: number;
@@ -28,7 +28,7 @@ export interface ValidationSummary {
   readonly blockerMessages: readonly string[];
 }
 
-export interface ReorderPreview {
+interface ReorderPreview {
   readonly releaseId: string;
   readonly releaseLabel: string;
   readonly projectId: string;
@@ -94,7 +94,7 @@ export async function previewReorder(client: SupabaseClient, brand: Brand, body:
   };
 }
 
-export interface ConfirmedReorder {
+interface ConfirmedReorder {
   readonly orderId: string;
   readonly projectId: string;
   readonly players: number;

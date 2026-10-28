@@ -19,7 +19,7 @@ export interface Thumbnail {
   readonly src: string;
 }
 
-export interface CardFacts {
+interface CardFacts {
   readonly toConfirm: number;
   /** Null when the garment type has no drawing. */
   readonly thumbnail: Thumbnail | null;

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 type NavItem = Readonly<{ href: Route; label: string; matches: (path: string) => boolean }>;
 
 /** The studio's sections. A section is current for its own page and the pages under it. */
-export const STUDIO_SECTIONS: readonly NavItem[] = [
+const STUDIO_SECTIONS: readonly NavItem[] = [
   {
     href: "/studio",
     label: "Designs",

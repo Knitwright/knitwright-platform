@@ -5,7 +5,7 @@ import { parseCmInput } from "./measurement-input";
  * length, never as text: "52,5", " 52.5 " and "52.50" all mean 52.5.
  */
 
-export type RowFacts = Readonly<{
+type RowFacts = Readonly<{
   /** The value the server holds, as shown in a field. Empty when there is none. */
   valueCm: string;
   valueTenths: number | null;
@@ -56,7 +56,7 @@ export type FieldState = Readonly<{
   changedElsewhere: boolean;
 }>;
 
-export type FieldEvent =
+type FieldEvent =
   | Readonly<{ type: "type"; text: string }>
   | Readonly<{ type: "sent" }>
   | Readonly<{ type: "server"; valueCm: string }>;

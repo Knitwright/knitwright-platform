@@ -27,7 +27,7 @@ const failIf = (error: { message: string } | null, what: string): void => {
   if (error) throw new Error(what, { cause: error });
 };
 
-export type NewJob = Readonly<{
+type NewJob = Readonly<{
   brandId: string;
   projectId: string;
   version: number;

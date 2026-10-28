@@ -30,7 +30,7 @@ export type MigrateResult =
   | { readonly ok: false; readonly reason: string };
 
 /** Turns a stored design of version n into version n + 1. */
-export type Upgrade = (input: Record<string, unknown>) => Record<string, unknown>;
+type Upgrade = (input: Record<string, unknown>) => Record<string, unknown>;
 
 /** Version 4 becomes 5: empty tech pack fields and an empty fabric consumption. Nothing is guessed. */
 function addTechPackFields(input: Record<string, unknown>): Record<string, unknown> {
@@ -66,7 +66,7 @@ function addFabricSources(input: Record<string, unknown>): Record<string, unknow
  * nothing written into a stored design. Version 4 becomes 5 with the tech pack fields, and 5 becomes 6 with a source for each fabric field.
  * The next version bump adds its upgrade here.
  */
-export const UPGRADES: Readonly<Record<number, Upgrade>> = {
+const UPGRADES: Readonly<Record<number, Upgrade>> = {
   3: (input) => ({ ...input }),
   4: addTechPackFields,
   5: addFabricSources,

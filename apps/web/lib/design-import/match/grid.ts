@@ -53,9 +53,9 @@ const segmentDistance = (p: Rgb, a: Rgb, b: Rgb): number => {
 };
 
 /** A colour this near the line between two stronger colours is where they blend at an edge, not a colour of its own. */
-export const BLEND_DISTANCE = 45;
+const BLEND_DISTANCE = 45;
 /** A colour holding at least this share of the block is its own colour even when it lies between two others. */
-export const OWN_SHARE = 0.15;
+const OWN_SHARE = 0.15;
 
 /**
  * Which palette colours are the garment's own: the first always, then in order of share any that is not a blend of

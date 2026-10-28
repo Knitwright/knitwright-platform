@@ -11,7 +11,7 @@ import {
   type SessionFor,
 } from "./guard";
 
-export type ActionConfig<A extends Auth, S extends z.ZodType, T> = Readonly<{
+type ActionConfig<A extends Auth, S extends z.ZodType, T> = Readonly<{
   /** "public" actions must also be listed in lib/server/public-routes.ts. */
   auth: A;
   rateLimit: RateLimitRule;

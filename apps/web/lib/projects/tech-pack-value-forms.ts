@@ -47,7 +47,7 @@ export interface MeasurementFormRow {
   readonly tolerance: MeasureField;
 }
 
-export const TOLERANCE_FIELD = "tolerance";
+const TOLERANCE_FIELD = "tolerance";
 
 /** One form for each point of measure: a field for each size, and one for the tolerance. */
 export function measurementFormRows(spec: GarmentSpec, pack: TechPack): readonly MeasurementFormRow[] {

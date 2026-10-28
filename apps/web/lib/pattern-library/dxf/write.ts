@@ -10,7 +10,7 @@ import { LANDMARK_IDS, type GradedPattern, type PatternPiece, type Point } from 
 
 export const DRAFT_NOTICE = "Draft pattern, not reviewed.";
 
-export type WriteOptions = Readonly<{
+type WriteOptions = Readonly<{
   styleName: string;
   /** The sentence the file carries about its review. */
   status?: string;

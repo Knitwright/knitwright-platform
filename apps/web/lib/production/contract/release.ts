@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { printProfileSchema, sha256Schema } from "./print";
 
-export const releaseFileSchema = z.object({
+const releaseFileSchema = z.object({
   /** A name that says what the file is, such as "print/front-48.pdf". */
   path: z
     .string()

@@ -19,10 +19,10 @@ import { promptFor, SCENE_IDS, SCENE_VIEWS, type SceneId } from "./scenes";
  * renders beside them stay.
  */
 
-export const GENERATOR_NAME = "lifestyle";
+const GENERATOR_NAME = "lifestyle";
 export const ATTEMPTS = 2;
 
-export type DropReason = "no_provider" | "daily_cap" | "allowance" | "provider_failed" | "rejected" | "check_failed";
+type DropReason = "no_provider" | "daily_cap" | "allowance" | "provider_failed" | "rejected" | "check_failed";
 
 export type SceneOutcome = Readonly<{
   scene: SceneId;

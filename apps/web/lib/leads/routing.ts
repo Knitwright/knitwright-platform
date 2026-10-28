@@ -17,7 +17,7 @@ export type LeadOwner = (typeof LEAD_OWNERS)[number]["id"];
 export const leadOwnerLabel = (owner: LeadOwner | null): string =>
   LEAD_OWNERS.find((entry) => entry.id === owner)?.label ?? "Unassigned";
 
-export interface RoutingInput {
+interface RoutingInput {
   readonly owner: LeadOwner | null;
   readonly country: string | null;
   readonly organisationType: string | null;

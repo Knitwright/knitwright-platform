@@ -10,7 +10,7 @@ import type { Built, LayerResult, LayerSpace } from "../types";
 import { readVectorArt, VECTOR_REFUSED, type VectorArt } from "../vector-art";
 
 /** A logo added before full size copies were kept has only a screen copy, which never goes to print. */
-export const OLD_LOGO = "This logo was added before full size copies were kept, so it was left off. Upload it again to print it.";
+const OLD_LOGO = "This logo was added before full size copies were kept, so it was left off. Upload it again to print it.";
 
 const stop = (text: string): LayerResult => ({ built: [], knock: [], colours: [], dpis: [], issues: [{ severity: "stop", text }] });
 

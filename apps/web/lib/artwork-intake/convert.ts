@@ -7,7 +7,7 @@ import { INTAKE_LIMITS } from "./settings";
 import { makeSeamless, previewGrid, seamReport, type SeamlessMethod, type SeamReport } from "./tile";
 
 /** The biggest picture changed here. Changes read every pixel into memory, so they are held to a smaller size. */
-export const CONVERT_MAX_PIXELS = 16_000_000;
+const CONVERT_MAX_PIXELS = 16_000_000;
 
 const decode = async (print: Uint8Array): Promise<Pixels> => {
   try {

@@ -12,16 +12,16 @@ import { fromBase64, send, toBase64, type Fetch } from "./http";
  * the public documentation and never called by the tests: unverified against the live service until a key exists.
  */
 
-export const RECONTEXT_NAME = "google-recontext";
-export const TRYON_NAME = "google-tryon";
-export const RECONTEXT_MODEL = "imagen-product-recontext-preview-06-30";
-export const TRYON_MODEL = "virtual-try-on-001";
+const RECONTEXT_NAME = "google-recontext";
+const TRYON_NAME = "google-tryon";
+const RECONTEXT_MODEL = "imagen-product-recontext-preview-06-30";
+const TRYON_MODEL = "virtual-try-on-001";
 
 /** Knitwright estimates, not Google's price list. */
-export const RECONTEXT_COST_MICRODOLLARS = 120_000;
-export const TRYON_COST_MICRODOLLARS = 60_000;
+const RECONTEXT_COST_MICRODOLLARS = 120_000;
+const TRYON_COST_MICRODOLLARS = 60_000;
 
-export type GoogleOptions = Readonly<{
+type GoogleOptions = Readonly<{
   /** A short-lived OAuth access token for a service account that may call Vertex AI. Owner question: how it is refreshed. */
   accessToken: string;
   project: string;

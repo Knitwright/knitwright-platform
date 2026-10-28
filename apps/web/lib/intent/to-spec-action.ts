@@ -56,7 +56,7 @@ function setColour(spec: GarmentSpec, wire: SetColour, source: ModelSource): Con
   return done({ type: "update-colourway", colourway: { ...colourway, colours: [...kept, ...added] } });
 }
 
-export const NO_PLACE_FOR_MARKS = "This garment has no place for player names or numbers.";
+const NO_PLACE_FOR_MARKS = "This garment has no place for player names or numbers.";
 
 /**
  * Names and numbers at the usual places, with a sample to draw. Nothing else is chosen for the

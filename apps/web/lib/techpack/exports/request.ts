@@ -30,6 +30,4 @@ export function exportQuerySchema(format: ExportFormat) {
     ? z.strictObject({ ...shared, view: z.enum(EXPORT_VIEWS) })
     : z.strictObject(shared);
 }
-
-export type ExportParams = z.output<typeof exportParamsSchema>;
 export type ExportQuery = Readonly<{ version?: number; colourway?: string; view?: (typeof EXPORT_VIEWS)[number] }>;

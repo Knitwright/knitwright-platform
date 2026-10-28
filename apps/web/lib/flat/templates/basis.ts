@@ -4,7 +4,7 @@ import type { Point } from "../model";
 import type { TopsOptions } from "./options";
 
 /** Shares of the chest width for parts of a drawing that have no point of measure. */
-export const SHOULDER_DROP = 0.07;
+const SHOULDER_DROP = 0.07;
 export const BAND_WIDTH = 0.04;
 export const CUFF_HEIGHT = 0.1;
 export const SIDE_PANEL_WIDTH = 0.1;
@@ -41,7 +41,7 @@ export interface Basis {
   readonly shoulderSlope: number;
 }
 
-export interface BasisResult {
+interface BasisResult {
   readonly basis: Basis | null;
   /** Plain sentences saying why the measurements cannot be drawn together. */
   readonly problems: readonly string[];

@@ -32,7 +32,7 @@ export const setKitPatternWire = z.strictObject({
 
 export const removeKitPatternWire = z.strictObject({ type: z.literal("remove-kit-pattern") });
 
-export type SetKitPatternWire = z.output<typeof setKitPatternWire>;
+type SetKitPatternWire = z.output<typeof setKitPatternWire>;
 
 /** The lines that tell a model about kit patterns. */
 export const KIT_PATTERN_PROMPT = `{"type": "set-kit-pattern", "style": "${KIT_PATTERN_STYLES.join('" | "')}", "colours": [{"colour": "gold", "swatch": "#d4af37"}]}  a pattern printed over the body (tops only); colours are the pattern's, one or two, swatch optional; leave colours out if the customer named none; set the body colour with set-colour; "dots" is polka dots, row one in the first colour and row two in the second

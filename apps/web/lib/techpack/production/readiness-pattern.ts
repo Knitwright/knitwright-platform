@@ -23,7 +23,7 @@ const named = (pieces: readonly PatternPiece[]): string => listOf([...new Set(pi
 const FINISHED_EDGE = /(^|-)hem$/;
 
 /** Seams that two or more pieces share, so they are sewn together. A hem is not one. */
-export function joinedSeams(pieces: readonly PatternPiece[]): string[] {
+function joinedSeams(pieces: readonly PatternPiece[]): string[] {
   const owners = new Map<string, Set<string>>();
   for (const piece of pieces) {
     for (const edge of piece.seamAllowance) owners.set(edge.seamId, (owners.get(edge.seamId) ?? new Set()).add(piece.id));

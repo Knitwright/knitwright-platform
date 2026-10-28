@@ -32,12 +32,12 @@ export type RouteUsage = Readonly<{
 }>;
 
 /** What a refused call answers. The safety ceiling is per UTC day; allowances per UTC month. */
-export const refusalFor = (refused: RefusedBy, now: Date): Failure =>
+const refusalFor = (refused: RefusedBy, now: Date): Failure =>
   refused === "global"
     ? { code: "unavailable", message: "This is not available for the rest of today. Try again tomorrow." }
     : { code: "over_allowance", message: allowanceRefusal(refused, now) };
 
-export type Metered<T> =
+type Metered<T> =
   | Readonly<{ ok: true; value: T }>
   | Readonly<{ ok: false; failure: Failure }>;
 

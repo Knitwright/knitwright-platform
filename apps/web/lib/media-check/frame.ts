@@ -24,7 +24,7 @@ export interface Size {
   readonly height: number;
 }
 
-export const RAW_OPTIONS = { limitInputPixels: MAX_INPUT_PIXELS } as const;
+const RAW_OPTIONS = { limitInputPixels: MAX_INPUT_PIXELS } as const;
 
 /** The size of a picture as it will be shown (after the orientation tag), or null if it cannot be read. */
 export async function readSize(bytes: Uint8Array): Promise<Size | null> {

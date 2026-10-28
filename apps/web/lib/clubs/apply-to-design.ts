@@ -5,7 +5,7 @@ import { applyKit } from "./apply-kit";
 import type { ApplyKitBody } from "./schemas";
 import { getKit, type Who } from "./service";
 
-export type KitUse = Readonly<{
+type KitUse = Readonly<{
   /** The design's version after the change; the same version when nothing needed changing. */
   version: number;
   changed: boolean;

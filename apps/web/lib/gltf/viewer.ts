@@ -40,7 +40,7 @@ export function presetCamera(view: PresetView, box: ModelBox, fovDegrees: number
   }
 }
 
-export interface AtlasDraw {
+interface AtlasDraw {
   readonly panelId: string;
   readonly x: number;
   readonly y: number;

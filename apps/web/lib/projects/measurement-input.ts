@@ -13,7 +13,7 @@ const TRY_AGAIN = "Enter a length in centimetres, such as 52.5.";
 const OUT_OF_RANGE = `Enter a length above zero and up to ${MAX_CM_TEXT} cm.`;
 const CM_PATTERN = /^(\d+)(?:[.,](\d{0,2}))?$/;
 
-export type CmInput =
+type CmInput =
   | Readonly<{ ok: true; tenths: number }>
   | Readonly<{ ok: false; reason: string }>;
 

@@ -12,9 +12,9 @@ import { parseDxf, type DxfBlock, type DxfDocument, type DxfEntity } from "./par
  * layer is left out and reported, never dropped without a word.
  */
 
-export type DxfFileInfo = Readonly<{ styleName: string | null; sampleSize: string | null }>;
+type DxfFileInfo = Readonly<{ styleName: string | null; sampleSize: string | null }>;
 
-export type ReadDxfResult = Readonly<{
+type ReadDxfResult = Readonly<{
   pieces: readonly PatternPiece[];
   warnings: readonly string[];
   info: DxfFileInfo;

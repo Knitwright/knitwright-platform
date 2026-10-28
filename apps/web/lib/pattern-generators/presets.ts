@@ -3,7 +3,7 @@
  * never a picture. (`lib/kit-styles/presets.ts` is the older list of whole kit looks, and is only read.)
  */
 
-export interface GeneratorPreset {
+interface GeneratorPreset {
   readonly id: string;
   readonly generatorId: string;
   readonly label: string;

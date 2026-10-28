@@ -10,7 +10,7 @@ import { foldFrame } from "./measure/frame";
  * sides of a seam, so a sleeve cap that is a little longer than its armhole is matched evenly.
  */
 
-export const NOTCH_AT = 0.5;
+const NOTCH_AT = 0.5;
 
 /** Seams that carry a notch on every piece they join. */
 export const NOTCHED_SEAMS: ReadonlySet<string> = new Set([
@@ -57,7 +57,7 @@ function necklinesOf(pieces: readonly PatternPiece[], seams: ReadonlyMap<string,
   return pieces.length > 0 && front !== undefined && back !== undefined ? { front, back } : null;
 }
 
-export type Notched = Readonly<{ pieces: readonly PatternPiece[]; derived: string[] }>;
+type Notched = Readonly<{ pieces: readonly PatternPiece[]; derived: string[] }>;
 
 /**
  * Notches for the pieces of one size. A piece that already has notches in its file keeps them

@@ -38,7 +38,6 @@ export const WIRE_ACTION_TYPES = [
   "set-kit-pattern",
   "remove-kit-pattern",
 ] as const;
-export type WireActionType = (typeof WIRE_ACTION_TYPES)[number];
 
 export const wireActionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("set-option"), optionId: id, choiceId: id }),

@@ -4,11 +4,11 @@ import { pearson } from "./planes";
 import type { Rect } from "./types";
 
 /** A mark with less spread than this (grey levels) is a flat patch: nothing to correlate. */
-export const MIN_MARK_SPREAD = 3;
+const MIN_MARK_SPREAD = 3;
 /** The generated crop may sit this many pixels off (analysis pixels) and still count as the same mark. */
-export const SEARCH_RADIUS = 2;
+const SEARCH_RADIUS = 2;
 
-export interface MarkMatch {
+interface MarkMatch {
   /** Best normalised cross-correlation over the small search. Null when the reference mark is flat. */
   readonly correlation: number | null;
   /** The offset, in pixels of the whole frame, at which the best match was found. */

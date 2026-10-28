@@ -3,11 +3,11 @@ import { DETAIL_COLOUR, OUTLINE_COLOUR, SEAM_COLOUR, STITCH_COLOUR } from "./col
 import type { FlatPath, PathCommand, Point, Stroke } from "./model";
 
 /** Line widths and dash lengths, in tenths of a millimetre. */
-export const OUTLINE_WIDTH = 6;
-export const SEAM_WIDTH = 4;
-export const STITCH_WIDTH = 3;
-export const DETAIL_WIDTH = 4;
-export const STITCH_DASH: readonly number[] = [16, 10];
+const OUTLINE_WIDTH = 6;
+const SEAM_WIDTH = 4;
+const STITCH_WIDTH = 3;
+const DETAIL_WIDTH = 4;
+const STITCH_DASH: readonly number[] = [16, 10];
 
 const round = (point: Point): Point => ({ x: tidy(point.x), y: tidy(point.y) });
 

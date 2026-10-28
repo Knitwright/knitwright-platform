@@ -14,7 +14,7 @@ import type { Observation, Observer, Prediction } from "./schema";
  */
 
 /** A reply is a few lines. This is well under the product's limit and keeps a run's worst case small. */
-export const INTAKE_MAX_OUTPUT_TOKENS = 400;
+const INTAKE_MAX_OUTPUT_TOKENS = 400;
 
 const articleLines = listTypes()
   .map((type) => `- ${type.id}: ${type.label}${isOffered(type.id) ? "" : " (not offered in the beta yet)"}`)

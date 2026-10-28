@@ -70,10 +70,9 @@ export function readingInput(): { system: string; user: string } {
 }
 
 export const READING_UNREADABLE = "The picture could not be read with confidence. Try a clearer picture, or one that shows the whole garment. Nothing was changed.";
-export const READING_UNAVAILABLE = "Reading pictures is not switched on yet. Nothing was changed.";
 export const OVERRIDE_NOTE = "Some words in your picture read like instructions. They were treated as printed text only and were not acted on.";
 
-export type ReadingOutcome =
+type ReadingOutcome =
   | { readonly ok: true; readonly reading: Reading; readonly notes: readonly string[] }
   | { readonly ok: false; readonly reason: string };
 

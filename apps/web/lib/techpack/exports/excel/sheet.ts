@@ -7,7 +7,7 @@ import { LENGTH_FORMAT, headerCell, noteCell, numberCell, textCell, titleCell, t
 /** One row of cells, and the plain values in it, which decide the column widths. */
 export type Row = readonly SheetCell[];
 
-export interface SheetLayout {
+interface SheetLayout {
   readonly rows: readonly Row[];
   /** The rows of tables only, as plain text and numbers, for the column widths. */
   readonly measured: readonly (readonly (string | number | null)[])[];

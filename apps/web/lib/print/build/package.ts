@@ -26,7 +26,7 @@ export function csvCell(value: string | number): string {
   return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
-export const MANIFEST_HEADER = ["file", "piece", "size", "player number", "player name", "format", "sha256", "page width mm", "page height mm", "notes"];
+const MANIFEST_HEADER = ["file", "piece", "size", "player number", "player name", "format", "sha256", "page width mm", "page height mm", "notes"];
 
 /** One line per file, in the order they were made. Notes are joined with " | ". */
 export function manifestCsv(files: readonly MadeFile[]): string {

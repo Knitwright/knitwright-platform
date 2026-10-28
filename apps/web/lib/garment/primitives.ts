@@ -12,9 +12,9 @@ const KEBAB_PATTERN = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const LOCAL_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 const CONTROL_CHARACTER = /\p{Cc}/u;
 
-export const ID_MAX_LENGTH = 64;
+const ID_MAX_LENGTH = 64;
 export const LABEL_MAX_LENGTH = 200;
-export const SENTENCE_MAX_LENGTH = 500;
+const SENTENCE_MAX_LENGTH = 500;
 
 /** An id written in registry data, such as `crew-tee`. */
 export const kebabId = z

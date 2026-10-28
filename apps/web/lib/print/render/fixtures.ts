@@ -2,9 +2,9 @@ import sharp from "sharp";
 import type { Blend } from "@/lib/artwork-stack";
 import type { Box, FillItem, ImageItem, PieceScene, Ring, StrokeItem } from "@/lib/print/scene";
 
-export const BLEED = 3;
+const BLEED = 3;
 
-export const rectRing = (minX: number, minY: number, maxX: number, maxY: number): Ring => [
+const rectRing = (minX: number, minY: number, maxX: number, maxY: number): Ring => [
   [minX, minY],
   [maxX, minY],
   [maxX, maxY],

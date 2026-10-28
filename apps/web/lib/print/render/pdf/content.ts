@@ -6,7 +6,7 @@ export const POINTS_PER_MM = 72 / 25.4;
 const PDF_BLEND: Readonly<Record<string, string>> = { multiply: "Multiply", screen: "Screen", overlay: "Overlay" };
 
 /** What the page's drawing refers to by name. */
-export interface PageResources {
+interface PageResources {
   /** ExtGState dictionaries, named GS0, GS1... */
   readonly graphicsStates: readonly string[];
   /** Pictures named Im0, Im1... */

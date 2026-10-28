@@ -40,7 +40,7 @@ export function buildStack(views: readonly ViewId[], colours: readonly StackColo
   return parsed.ok ? parsed : { ok: false, reason: parsed.reason };
 }
 
-export interface ReportParts {
+interface ReportParts {
   readonly kind: PictureKind;
   readonly readingConfidence: number;
   readonly fits: readonly ViewFit[];

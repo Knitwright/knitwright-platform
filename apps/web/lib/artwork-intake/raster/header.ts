@@ -5,7 +5,7 @@ import type { ArtworkFormat } from "../sniff";
  * the file, so a decompression bomb (a tiny file that claims an enormous picture) is turned away unopened.
  */
 
-export type ClaimedSize = Readonly<{ width: number; height: number }>;
+type ClaimedSize = Readonly<{ width: number; height: number }>;
 
 const pngSize = (view: DataView): ClaimedSize | null =>
   view.byteLength >= 24 && view.getUint32(12) === 0x49484452 ? { width: view.getUint32(16), height: view.getUint32(20) } : null;

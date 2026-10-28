@@ -3,7 +3,7 @@ import type { PrintIssue } from "../scene";
 import { HEX } from "../rules/colour";
 
 /** A colour with no screen colour is printed white and said so. */
-export const UNSET_COLOUR = "#ffffff";
+const UNSET_COLOUR = "#ffffff";
 
 export interface Resolved {
   readonly hex: string;

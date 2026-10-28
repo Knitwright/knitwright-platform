@@ -2,7 +2,7 @@ import { scanText } from "./security";
 import { refuse } from "./refusal";
 
 /** The style properties the model understands. Anything else in a style is dropped. */
-export const STYLE_PROPERTIES = new Set([
+const STYLE_PROPERTIES = new Set([
   "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "opacity",
   "fill-opacity", "stroke-opacity", "fill-rule", "clip-rule", "display", "visibility", "stop-color",
   "stop-opacity", "color", "clip-path",

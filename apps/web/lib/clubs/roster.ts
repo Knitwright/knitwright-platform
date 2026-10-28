@@ -33,7 +33,7 @@ export type Player = z.output<typeof playerSchema>;
 
 export const playersSchema = z.array(playerSchema).max(ROSTER_PLAYERS_MAX, `A roster holds up to ${ROSTER_PLAYERS_MAX} players.`).readonly();
 
-export type RosterRead =
+type RosterRead =
   | Readonly<{ ok: true; players: readonly Player[]; problems: readonly ImportProblem[]; notes: readonly string[]; headers: readonly string[]; mapping: ColumnMapping }>
   | Readonly<{ ok: false; message: string; needsMapping: boolean; headers: readonly string[]; mapping: ColumnMapping }>;
 

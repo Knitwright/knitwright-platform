@@ -4,7 +4,7 @@
  * still belongs to a brand underneath; only the words change.
  */
 
-export interface WelcomeWording {
+interface WelcomeWording {
   readonly nameLabel: string;
   readonly nameHint: string;
   readonly submit: string;

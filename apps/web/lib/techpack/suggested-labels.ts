@@ -6,7 +6,7 @@ import type { SectionId } from "./types";
  * suggested values page names each cell it finds. A path this file does not know is named by the
  * path itself, so a new kind of cell is listed with an ugly name rather than left off.
  */
-export interface CellPlace {
+interface CellPlace {
   readonly sectionId: SectionId;
   /** What the value belongs to, such as "Chest width". */
   readonly subject: string;

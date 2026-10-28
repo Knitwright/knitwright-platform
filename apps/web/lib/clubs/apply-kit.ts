@@ -15,10 +15,10 @@ export { APPLY_PARTS, type ApplyPart };
 
 export const CLUB_COLOURWAY_ID = "club-colours";
 export const CREST_ID = "club-crest";
-export const sponsorId = (index: number): string => `club-sponsor-${index + 1}`;
+const sponsorId = (index: number): string => `club-sponsor-${index + 1}`;
 
 /** Tenths of a millimetre. Starting sizes only: "Knitwright starting size, not from your club". */
-export const STARTING_SIZES = {
+const STARTING_SIZES = {
   crest: { width: 800, height: 800 },
   chestSponsor: { width: 2000, height: 500 },
   sleeveSponsor: { width: 800, height: 300 },
@@ -36,7 +36,7 @@ export function colourForPanel(panelId: string, kit: Kit): string | null {
   return kit.primaryColour;
 }
 
-export type KitApplication = Readonly<{
+type KitApplication = Readonly<{
   actions: readonly SpecAction[];
   /** What was put on the design, and what could not be, in plain words. */
   notes: readonly string[];

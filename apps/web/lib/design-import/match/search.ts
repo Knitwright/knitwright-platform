@@ -48,7 +48,7 @@ const LOCAL_REACH = 2;
 const SAMPLE_PIXELS = 16_000;
 
 /** Every how many pixels the block is sampled. */
-export const strideOf = (rect: Rect): number => Math.max(1, Math.ceil(Math.sqrt(((rect.x1 - rect.x0) * (rect.y1 - rect.y0)) / SAMPLE_PIXELS)));
+const strideOf = (rect: Rect): number => Math.max(1, Math.ceil(Math.sqrt(((rect.x1 - rect.x0) * (rect.y1 - rect.y0)) / SAMPLE_PIXELS)));
 
 /** The share of sampled pixels of the block that differ from the drawing slid by `shift`. */
 export function mismatch(scene: Scene, big: Labels, shift: Shift, stride: number, window: Rect): { errors: number; total: number } {
@@ -94,7 +94,7 @@ const clampShift = (scene: Scene, shift: Shift): Shift => ({
 });
 
 /** Where the pattern starts: a coarse slide over one period, then finer slides around the best. */
-export function findShift(scene: Scene, big: Labels, window: Rect, budget: MatchBudget): { shift: Shift; error: number } | null {
+function findShift(scene: Scene, big: Labels, window: Rect, budget: MatchBudget): { shift: Shift; error: number } | null {
   const base = strideOf(window);
   const coarseX = Math.max(1, Math.ceil((scene.periodX ?? 1) / MOST_COARSE_SHIFTS));
   const coarseY = Math.max(1, Math.ceil((scene.periodY ?? 1) / MOST_COARSE_SHIFTS));
@@ -105,7 +105,7 @@ export function findShift(scene: Scene, big: Labels, window: Rect, budget: Match
 }
 
 /** The best shift within `reach` pixels of `from`, sampled every `stride` pixels over a window of the block. */
-export function nearby(scene: Scene, big: Labels, from: Shift, reach: number, stride: number, window: Rect, budget: MatchBudget): { shift: Shift; error: number } | null {
+function nearby(scene: Scene, big: Labels, from: Shift, reach: number, stride: number, window: Rect, budget: MatchBudget): { shift: Shift; error: number } | null {
   const shifts: Shift[] = [];
   for (let dy = -reach; dy <= reach; dy += 1) {
     for (let dx = -reach; dx <= reach; dx += 1) shifts.push(clampShift(scene, { sx: from.sx + dx, sy: from.sy + dy }));
@@ -121,7 +121,7 @@ export function nearby(scene: Scene, big: Labels, from: Shift, reach: number, st
 /** A block this many periods across or more is scored in four windows, each finding its own start, so a slightly skewed fit of a photo is not counted against the pattern. */
 const SPLIT_PERIODS = 4;
 
-export function windowsOf(scene: Scene): Rect[] {
+function windowsOf(scene: Scene): Rect[] {
   const { rect } = scene;
   const [w, h] = [rect.x1 - rect.x0, rect.y1 - rect.y0];
   const splitX = scene.periodX !== null && w >= SPLIT_PERIODS * scene.periodX;

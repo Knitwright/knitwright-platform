@@ -14,7 +14,7 @@ const PARAMS: readonly GeneratorParam[] = [
 ];
 
 /** The colour a fade has `t` of the way through (0 to 1), over two to four stops spread evenly. */
-export function stopColour(stops: readonly string[], t: number): string {
+function stopColour(stops: readonly string[], t: number): string {
   const clamped = Math.min(1, Math.max(0, t));
   if (stops.length === 1) return stops[0];
   const place = clamped * (stops.length - 1);

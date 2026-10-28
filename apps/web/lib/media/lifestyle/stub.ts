@@ -8,7 +8,7 @@ import { SCENE_IDS, type SceneId } from "./scenes";
  * different gradient and no person is drawn.
  */
 
-export const STUB_NAME = "stub-lifestyle";
+const STUB_NAME = "stub-lifestyle";
 
 const GRADIENTS: Readonly<Record<SceneId, readonly [string, string]>> = {
   pitch: ["#9fd0f0", "#3f8f3a"],

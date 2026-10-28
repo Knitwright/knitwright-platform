@@ -144,7 +144,7 @@ export function renderPdf(model: FlatModel, options: PdfOptions): ReactElement {
   );
 }
 
-export interface DocumentOptions {
+interface DocumentOptions {
   readonly widthPoints?: number;
   readonly margin?: number;
 }

@@ -26,7 +26,7 @@ export interface InspectionToRecord {
   readonly remake: Readonly<{ sizes: Readonly<Record<string, number>>; owner: string; dueOn: string }> | null;
 }
 
-export interface RecordedInspection {
+interface RecordedInspection {
   readonly inspectionId: string;
   readonly result: "pass" | "fail";
   readonly exceptionId: string | null;

@@ -19,7 +19,7 @@ import { emptyBrandFolders, removeObjects } from "./storage";
 export const SHARED_BRAND_MESSAGE =
   "A brand you belong to has other members. Ask them to take it over before you delete your account.";
 
-export const ACCOUNT_NOT_FOUND_MESSAGE = "That account does not exist.";
+const ACCOUNT_NOT_FOUND_MESSAGE = "That account does not exist.";
 
 const objectsSchema = z.array(z.object({ bucket: z.string().min(1), path: z.string().min(1) }));
 const idsSchema = z.array(z.uuid());
@@ -42,7 +42,7 @@ const call = async (
   return data;
 };
 
-export type DesignToDelete = Readonly<{ brandId: string; userId: string; projectId: string }>;
+type DesignToDelete = Readonly<{ brandId: string; userId: string; projectId: string }>;
 
 /** Deletes a design, its versions, its download records and the pictures only it uses. */
 export const deleteDesign = async (

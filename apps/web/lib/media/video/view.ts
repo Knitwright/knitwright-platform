@@ -1,6 +1,6 @@
 import type { SetRecord } from "../ports";
 
-export type VideoItemView = Readonly<{ id: string; kind: "turntable" | "clip"; videoHref: string | null; locked: boolean; aiGenerated: boolean }>;
+type VideoItemView = Readonly<{ id: string; kind: "turntable" | "clip"; videoHref: string | null; locked: boolean; aiGenerated: boolean }>;
 
 /**
  * The video items of a set as the browser sees them. A clip that is still locked has no address for its file at all; the

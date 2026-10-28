@@ -5,11 +5,11 @@ import { z } from "zod";
  * turntable and the clip (stage 2) add `MediaGenerator`s and change nothing here.
  */
 
-export const MEDIA_KINDS = ["studio_render", "lifestyle", "turntable", "clip"] as const;
+const MEDIA_KINDS = ["studio_render", "lifestyle", "turntable", "clip"] as const;
 export const MEDIA_VIEWS = ["front", "back", "flat_lay", "three_quarter", "on_model", "scene"] as const;
 /** What the generated-image checker (W3-C) said. A studio render is drawn from the design, so it is not checked. */
-export const CHECKER_VERDICTS = ["pending", "passed", "rejected", "not_checked"] as const;
-export const SET_STATUSES = ["queued", "running", "succeeded", "failed"] as const;
+const CHECKER_VERDICTS = ["pending", "passed", "rejected", "not_checked"] as const;
+const SET_STATUSES = ["queued", "running", "succeeded", "failed"] as const;
 
 export const mediaKindSchema = z.enum(MEDIA_KINDS);
 export const mediaViewSchema = z.enum(MEDIA_VIEWS);

@@ -2,7 +2,7 @@
  * Test fixture: a baseline CMYK TIFF written by hand, so a test can have real CMYK pixels with or without an
  * embedded ICC profile and a stated resolution. The image library cannot make one from raw channels.
  */
-export type CmykTiffOptions = Readonly<{
+type CmykTiffOptions = Readonly<{
   width: number;
   height: number;
   /** Ink amounts per pixel, 0 to 255, c m y k. */

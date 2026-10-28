@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const FABRIC_VALUE_SOURCES = ["fabric-test", "supplier-sheet", "suggested", "not-set"] as const;
+const FABRIC_VALUE_SOURCES = ["fabric-test", "supplier-sheet", "suggested", "not-set"] as const;
 
 /** One number about a fabric and where it came from. `value` is null exactly when it is not set. */
 export const fabricValueSchema = z

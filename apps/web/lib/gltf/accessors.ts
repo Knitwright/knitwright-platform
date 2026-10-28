@@ -4,7 +4,7 @@ const COMPONENTS = { SCALAR: 1, VEC2: 2, VEC3: 3 } as const;
 const BYTES = { 5126: 4, 5125: 4, 5123: 2, 5121: 1 } as const;
 const DATA_URI = /^data:[^,]*;base64,/;
 
-export interface AccessorData {
+interface AccessorData {
   readonly values: readonly number[];
   readonly components: number;
 }

@@ -28,7 +28,7 @@ export interface ArtworkForm {
   readonly technique: string;
 }
 
-export type ArtworkRequest =
+type ArtworkRequest =
   | Readonly<{ kind: "action"; action: SpecAction }>
   | Readonly<{ kind: "problem"; reason: string }>;
 

@@ -95,7 +95,7 @@ function switchChoice(spec: GarmentSpec, type: ResolvedType, wire: SetOption): F
  * choice: each one a change of type, the choice, and whatever the choice then needs. `rest`
  * are other changes to make with them.
  */
-export function typeChangeChoices(spec: GarmentSpec, wire: SetOption, rest: readonly WireAction[] = []): FollowUpChoice[] {
+function typeChangeChoices(spec: GarmentSpec, wire: SetOption, rest: readonly WireAction[] = []): FollowUpChoice[] {
   const type = getType(spec.typeId);
   if (!type) return [];
   return listTypes(type.family)

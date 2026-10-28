@@ -18,7 +18,7 @@ const BASE =
   "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium disabled:cursor-not-allowed disabled:opacity-55";
 
 /** The classes of each kind of button. Shared with LinkButton so links and buttons match. */
-export const BUTTON_VARIANTS: Readonly<Record<Variant, string>> = {
+const BUTTON_VARIANTS: Readonly<Record<Variant, string>> = {
   primary: "chip-cta thread-ring bg-white/5 text-white",
   secondary: "chip-btn border border-white/20 bg-white/[0.04] text-ink backdrop-blur-md",
   quiet: "soft-link text-muted transition-colors hover:text-ink",

@@ -7,7 +7,7 @@ import { ModelCallError, type ModelReply, type ModelRequest, type TextModelProvi
  */
 export type StubAnswer = string | Error | ((request: ModelRequest) => string);
 
-export interface StubProvider extends TextModelProvider {
+interface StubProvider extends TextModelProvider {
   /** Every request the stub was sent, in order. */
   readonly requests: readonly ModelRequest[];
 }

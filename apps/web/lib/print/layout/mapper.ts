@@ -11,7 +11,7 @@ export interface PrintMapper extends PieceMapper {
   placed(size: string): readonly { readonly instance: PieceInstance; readonly frame: PieceFrame }[];
 }
 
-export interface MapperOptions {
+interface MapperOptions {
   /** The size the design plane is taken from when no flat supplies anchors. Defaults to the first size. */
   readonly baseSize?: string;
   readonly anchors?: DesignAnchors;

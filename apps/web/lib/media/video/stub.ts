@@ -3,7 +3,7 @@ import { AI_GENERATED_LABEL } from "./limits";
 import type { VideoProvider } from "./provider";
 import { element, text, uint } from "./webm";
 
-export const STUB_PROVIDER = "stub-video";
+const STUB_PROVIDER = "stub-video";
 
 /**
  * A placeholder WebM for tests and for a studio with no video key: a valid EBML header and an info block that says what the

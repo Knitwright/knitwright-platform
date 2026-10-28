@@ -8,7 +8,7 @@ import type { BlockView } from "./records";
  * programme, not a pattern, and hold the factory's programme and a size map, never pieces.
  */
 
-export type SlotKind = "pieces" | "knit-programme";
+type SlotKind = "pieces" | "knit-programme";
 
 export type Slot = Readonly<{
   productKey: string;

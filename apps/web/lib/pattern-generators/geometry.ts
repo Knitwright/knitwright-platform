@@ -17,7 +17,7 @@ export const circle = (centre: PointMm, radius: number, fill: string, name?: str
   ...(name === undefined ? {} : { name }),
 });
 
-export const rectPoints = (x0: number, y0: number, x1: number, y1: number): PointMm[] => [
+const rectPoints = (x0: number, y0: number, x1: number, y1: number): PointMm[] => [
   { x: x0, y: y0 },
   { x: x1, y: y0 },
   { x: x1, y: y1 },

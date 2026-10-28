@@ -40,11 +40,11 @@ export interface BuiltFile extends PrintFileResult {
   readonly scene: BuiltScene;
 }
 
-export interface FileOptions {
+interface FileOptions {
   readonly transferOnly?: boolean;
 }
 
-export /** The seam join as a layout field, left out when the pattern has no underarm landmark to join by. */
+/** The seam join as a layout field, left out when the pattern has no underarm landmark to join by. */
 const joinOf = (placed: Parameters<typeof seamJoinFor>[0]): { seamJoinMm?: number } => {
   const join = seamJoinFor(placed);
   return join === undefined ? {} : { seamJoinMm: join };
@@ -53,7 +53,7 @@ const joinOf = (placed: Parameters<typeof seamJoinFor>[0]): { seamJoinMm?: numbe
 /** Layouts kept so the PDF, SVG and TIFF of one piece share one. Few, because a layout holds its pictures and a release asks for thousands of files. */
 const KEPT_SCENES = 8;
 
-export const sha256Of = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
+const sha256Of = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
 /** What the files need of a team order (W4): its rows. */
 export type Roster = { readonly rows: readonly RosterRow[] };

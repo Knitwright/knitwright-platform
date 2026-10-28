@@ -54,7 +54,7 @@ const colourNotes = (space: string | undefined, profile: string | null, hasProfi
 };
 
 /** Makes the small copy a browser may be given, from the print copy. */
-export const makeScreenCopy = async (print: Buffer, hasAlpha: boolean, asPng: boolean): Promise<RasterIntake["screen"]> => {
+const makeScreenCopy = async (print: Buffer, hasAlpha: boolean, asPng: boolean): Promise<RasterIntake["screen"]> => {
   const resized = sharp(print, { limitInputPixels: INTAKE_LIMITS.maxPixels })
     .resize({ width: INTAKE_LIMITS.screenEdgePx, height: INTAKE_LIMITS.screenEdgePx, fit: "inside", withoutEnlargement: true });
   const usePng = asPng || hasAlpha;

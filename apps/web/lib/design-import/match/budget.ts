@@ -23,7 +23,7 @@ export interface MatchBudget {
   spent(): { readonly renders: number; readonly comparisons: number; readonly stoppedEarly: boolean };
 }
 
-export interface MatchLimits {
+interface MatchLimits {
   readonly renders: number;
   readonly comparisons: number;
   readonly milliseconds: number;

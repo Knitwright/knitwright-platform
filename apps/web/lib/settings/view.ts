@@ -21,7 +21,7 @@ export interface SettingView {
   readonly history: readonly string[];
 }
 
-export interface GroupView {
+interface GroupView {
   readonly id: string;
   readonly title: string;
   readonly settings: readonly SettingView[];

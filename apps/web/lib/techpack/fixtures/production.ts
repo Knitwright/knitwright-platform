@@ -175,7 +175,6 @@ export function matchingMeasured(table: MeasurementsSection, sizes: readonly str
 }
 
 const TESTED = (value: number) => ({ value, source: "fabric-test" as const, testId: "T-1" });
-const NOT_SET = { value: null, source: "not-set" as const };
 
 /** A fabric with every value from a fabric test or a supplier's sheet. */
 export const TESTED_FABRIC: FabricProfile = {
@@ -187,8 +186,6 @@ export const TESTED_FABRIC: FabricProfile = {
   gsm: TESTED(180),
   usableWidthMm: { value: 1500, source: "supplier-sheet" },
 };
-
-export const UNTESTED_FABRIC: FabricProfile = { ...TESTED_FABRIC, stretchLengthPct: NOT_SET, shrinkLengthPct: NOT_SET };
 
 /** Every record the production services could give for the targeted jersey: nothing is missing. */
 export function completeProduction(): ProductionInput {

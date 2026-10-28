@@ -28,7 +28,7 @@ export interface PanelState {
   readonly message: string | null;
 }
 
-export type PanelEvent =
+type PanelEvent =
   | Readonly<{ type: "start" }>
   | Readonly<{ type: "started"; jobId: string }>
   | Readonly<{ type: "start-failed"; message: string }>

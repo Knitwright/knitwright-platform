@@ -23,25 +23,25 @@ export const UNAVAILABLE_REASON = `The assistant is not switched on yet, so only
 
 export type Stage = "model" | "retry";
 
-export type AnsweredBy = "guard" | "rules" | "unavailable" | "model" | "retry";
+type AnsweredBy = "guard" | "rules" | "unavailable" | "model" | "retry";
 
-export interface ModelCall {
+interface ModelCall {
   readonly model: string;
   readonly usage: ModelUsage;
 }
 
-export interface TextFlowResult {
+interface TextFlowResult {
   readonly outcome: IntentOutcome;
   readonly answeredBy: AnsweredBy;
   readonly calls: readonly ModelCall[];
 }
 
 /** A reservation for the retry's cost. Given back if the retry fails. */
-export interface RetryReservation {
+interface RetryReservation {
   refund(): Promise<void>;
 }
 
-export interface TextFlowDeps {
+interface TextFlowDeps {
   readonly primary: TextModelProvider | null;
   readonly retry: TextModelProvider | null;
   /** Reserves the retry's cost. Null means the allowance refused it. Left out, the retry is free (tests, evaluation). */

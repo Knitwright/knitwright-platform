@@ -5,7 +5,7 @@ import type { HistoryEntry, VersionView } from "@/lib/projects/editor-data";
 import { VERSIONS_LISTED } from "@/lib/projects/limits";
 
 /** How many entries show before the person asks for the rest. */
-export const HISTORY_SHOWN = 3;
+const HISTORY_SHOWN = 3;
 
 type HistoryProps = Readonly<{
   entries: readonly HistoryEntry[];

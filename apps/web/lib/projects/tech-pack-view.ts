@@ -38,7 +38,7 @@ export function cellView(cell: Cell, unit?: string): CellView {
 /** A tolerance is a length in centimetres, written with its plus or minus sign already. */
 export const toleranceView = (cell: LengthValue): CellView => cellView(cell, "cm");
 
-export interface ClassView extends CellView {
+interface ClassView extends CellView {
   /** "ISO 514", the number that names the kind of stitch or seam. */
   readonly iso: string;
   readonly explanation: string;
@@ -89,7 +89,7 @@ export const SECTION_GUIDANCE: Readonly<Partial<Record<SectionId, string>>> = {
 };
 
 /** Where the confirm list takes the person: the form, and the field in it, or null for the form's first empty field. */
-export interface FieldTarget {
+interface FieldTarget {
   /** The `data-field` of the form, or of the field itself. */
   readonly form: string;
   readonly field: string | null;

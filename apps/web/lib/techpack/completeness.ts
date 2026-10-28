@@ -48,7 +48,7 @@ export function confirmSentence(report: Pick<CompletenessReport, "total" | "sugg
 }
 
 /** The parts of the document the report reads. */
-export type CompletenessSource = Pick<TechPack, "cover" | "measurements" | "components" | "construction" | "colourways" | "labelling" | "suggested">;
+type CompletenessSource = Pick<TechPack, "cover" | "measurements" | "components" | "construction" | "colourways" | "labelling" | "suggested">;
 
 const missing = (cell: Cell): boolean => cell.status !== "set";
 

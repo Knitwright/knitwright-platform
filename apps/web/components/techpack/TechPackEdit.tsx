@@ -13,7 +13,7 @@ import { isSaving } from "@/lib/projects/saving-key";
 const NO_DIRTY_FIELDS: readonly boolean[] = [];
 
 /** What the forms on the tech pack page can do. They send changes through the same queue as the editor. */
-export interface TechPackEditApi {
+interface TechPackEditApi {
   readonly save: (key: string, action: SpecAction) => void;
   /** Saves several changes as one version, so one undo takes them all back. Nothing is sent for none. */
   readonly saveMany: (key: string, actions: readonly SpecAction[]) => void;

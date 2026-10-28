@@ -11,7 +11,7 @@ const length = (mm: number): LengthCell => ({ status: "set", value: formatCm(mm 
 const word = (text: string): Cell => ({ status: "set", value: text, provenance: "user-edited" });
 
 /** The distance between the centres of the closest two dots of the repeat, in millimetres. */
-export function closestCentres(r: Pick<RepeatSpec, "pitchMm" | "rowStepMm" | "halfDrop">): number {
+function closestCentres(r: Pick<RepeatSpec, "pitchMm" | "rowStepMm" | "halfDrop">): number {
   // Along a row; to the next row; and, when every other row drops by half a pitch, to the row after.
   const nextRow = r.halfDrop ? Math.hypot(r.pitchMm / 2, r.rowStepMm) : r.rowStepMm;
   return Math.min(r.pitchMm, nextRow, ...(r.halfDrop ? [2 * r.rowStepMm] : []));

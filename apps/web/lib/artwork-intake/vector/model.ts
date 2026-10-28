@@ -11,9 +11,9 @@ const finite = z.number().finite();
 const hex = z.string().regex(/^#[0-9a-f]{6}$/);
 const id = z.string().regex(/^[a-z][a-z0-9-]{0,31}$/);
 
-export const matrixSchema = z.tuple([finite, finite, finite, finite, finite, finite]);
+const matrixSchema = z.tuple([finite, finite, finite, finite, finite, finite]);
 
-export const segmentSchema = z.union([
+const segmentSchema = z.union([
   z.tuple([z.literal("M"), finite, finite]),
   z.tuple([z.literal("L"), finite, finite]),
   z.tuple([z.literal("C"), finite, finite, finite, finite, finite, finite]),
@@ -85,7 +85,7 @@ export type GroupNode = {
 };
 export type VectorNode = PathNode | ImageNode | GroupNode;
 
-export const nodeSchema: z.ZodType<VectorNode> = z.lazy(() =>
+const nodeSchema: z.ZodType<VectorNode> = z.lazy(() =>
   z.union([
     pathNodeSchema,
     imageNodeSchema,

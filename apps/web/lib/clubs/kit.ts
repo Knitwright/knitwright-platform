@@ -27,7 +27,7 @@ const sponsorName = z
     return cleaned.name;
   });
 
-export const sponsorSchema = z.object({ name: sponsorName, logoFileId: z.uuid().nullable() }).readonly();
+const sponsorSchema = z.object({ name: sponsorName, logoFileId: z.uuid().nullable() }).readonly();
 export type Sponsor = z.output<typeof sponsorSchema>;
 
 export const kitSchema = z

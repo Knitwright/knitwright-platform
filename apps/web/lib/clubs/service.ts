@@ -13,7 +13,7 @@ import type { SeasonBody } from "./schemas";
  * the person's role themselves; the brand and the person always come from the session.
  */
 
-export const SEASON_NOT_FOUND = "That season does not exist.";
+const SEASON_NOT_FOUND = "That season does not exist.";
 const CLUB_NOT_FOUND = "That club does not exist.";
 const MEMBER_NOT_FOUND = "That member does not exist.";
 const INVITATION_NOT_FOUND = "That invitation does not exist.";
@@ -32,7 +32,7 @@ export async function saveKit(admin: SupabaseClient, who: Who, kit: Kit): Promis
   throwIfFailed(error, CLUB_NOT_FOUND);
 }
 
-export interface SeasonSummary {
+interface SeasonSummary {
   readonly id: string;
   readonly name: string;
   readonly startsOn: string | null;
@@ -153,7 +153,7 @@ export async function cancelInvitation(admin: SupabaseClient, who: Who, invitati
   throwIfFailed(error, INVITATION_NOT_FOUND);
 }
 
-export interface MyInvitation {
+interface MyInvitation {
   readonly id: string;
   readonly brandId: string;
   readonly brandName: string;
@@ -176,7 +176,7 @@ export async function acceptInvitation(admin: SupabaseClient, userId: string, in
   return z.uuid().parse(data);
 }
 
-export interface OrderHistoryEntry {
+interface OrderHistoryEntry {
   readonly releaseId: string;
   readonly projectId: string;
   readonly designName: string;

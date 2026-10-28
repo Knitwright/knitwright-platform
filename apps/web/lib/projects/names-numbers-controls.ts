@@ -45,7 +45,7 @@ export interface NamesNumbersPanel {
   readonly placeLabels: Readonly<Record<string, string>>;
 }
 
-export type NamesNumbersRequest =
+type NamesNumbersRequest =
   | Readonly<{ kind: "action"; action: SpecAction }>
   | Readonly<{ kind: "problem"; reason: string }>;
 

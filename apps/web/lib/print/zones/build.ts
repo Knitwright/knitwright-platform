@@ -6,7 +6,7 @@ import { apply, type Pt } from "../geometry/affine";
 import { round2 } from "../geometry/polygon";
 import { JUNIOR_ZONE_SCALE, type ZoneBox, type ZoneTemplate } from "./templates";
 
-export interface ZoneOptions {
+interface ZoneOptions {
   /** Sizes whose marks are carried smaller. */
   readonly juniorSizes?: ReadonlySet<string>;
   readonly roles?: PieceRoles;

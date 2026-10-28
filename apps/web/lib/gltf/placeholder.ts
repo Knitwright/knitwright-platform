@@ -6,7 +6,7 @@ import type { GltfAccessor, GltfBufferView, GltfMaterial, GltfModel, GltfNode } 
 export type { GltfModel } from "./types";
 
 export const PLACEHOLDER_LABEL = "placeholder, not an artist model";
-export const MODEL_UNITS = "glTF positions in metres; panel layout in millimetres";
+const MODEL_UNITS = "glTF positions in metres; panel layout in millimetres";
 const GENERATOR = "Knitwright placeholder generator";
 const THICKNESS_M = 0.004;
 const MM = 1e-3;

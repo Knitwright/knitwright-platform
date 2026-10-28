@@ -34,4 +34,3 @@ export const PICTURE_KINDS = ["flat", "mockup", "worn-photo", "sketch", "sheet"]
 export type PictureKind = (typeof PICTURE_KINDS)[number];
 
 export const MARK_KINDS = ["number", "name", "crest", "sponsor", "sleeve-badge"] as const;
-export type MarkKind = (typeof MARK_KINDS)[number];

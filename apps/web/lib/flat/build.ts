@@ -31,7 +31,7 @@ import { outlineOf } from "./templates/outline";
 import { panelPaths } from "./templates/panels";
 import { frameOf, sleeveEnds, type Frame } from "./templates/pieces";
 
-export interface BuildInput {
+interface BuildInput {
   readonly spec: GarmentSpec;
   /** The measurements for one size, from `resolveMeasurements`. */
   readonly measurements: Resolution;

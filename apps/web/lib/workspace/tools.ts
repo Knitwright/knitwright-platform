@@ -37,7 +37,7 @@ export type SectionId =
   | "quote"
   | "production";
 
-export interface ToolInfo {
+interface ToolInfo {
   readonly id: ToolId;
   /** The word under the icon on the rail and the tab bar. */
   readonly label: string;

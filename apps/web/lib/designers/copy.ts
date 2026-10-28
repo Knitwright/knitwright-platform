@@ -1,7 +1,7 @@
 /** The words the designer screens use. Plain words; nothing says a design is checked or approved (lib/techpack/wording.test.ts). */
 
 export const SUBMISSION_STATUSES = ["draft", "submitted", "approved", "rejected"] as const;
-export type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
+type SubmissionStatus = (typeof SUBMISSION_STATUSES)[number];
 
 export const STATUS_LABELS: Readonly<Record<SubmissionStatus, string>> = {
   draft: "Draft, not sent yet",

@@ -11,7 +11,7 @@ import type { ProductBody } from "./schemas";
  * the person always come from the session.
  */
 
-export const PRODUCT_NOT_FOUND = "That product does not exist.";
+const PRODUCT_NOT_FOUND = "That product does not exist.";
 export type Who = Readonly<{ brandId: string; userId: string }>;
 
 const runRow = z.object({
@@ -91,7 +91,7 @@ async function readOrders(client: SupabaseClient, ids: readonly string[]): Promi
   return new Map(z.array(orderRow).parse(data ?? []).map((o) => [o.id, { status: o.status, promisedOn: o.promised_on, cutoffAt: o.cutoff_at }]));
 }
 
-export type ProductRef = Readonly<{ id: string; projectId: string; stage: Stage }>;
+type ProductRef = Readonly<{ id: string; projectId: string; stage: Stage }>;
 
 /** One product of the brand: enough to decide whether an order may be placed for it. */
 export async function getProduct(client: SupabaseClient, brandId: string, productId: string): Promise<ProductRef> {
@@ -114,7 +114,7 @@ export async function confirmStage(admin: SupabaseClient, who: Who, productId: s
   return z.string().refine(isStage).parse(data) as Stage;
 }
 
-export type RunToSubmit = Readonly<{
+type RunToSubmit = Readonly<{
   productId: string;
   kind: "sample" | "run";
   releaseId: string;

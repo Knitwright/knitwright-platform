@@ -4,7 +4,7 @@
  * files the screen shows only the download.
  */
 
-export type ShareNavigator = Readonly<{
+type ShareNavigator = Readonly<{
   share?: (data: ShareData) => Promise<void>;
   canShare?: (data: ShareData) => boolean;
 }>;

@@ -1,7 +1,7 @@
 import type { ArtworkStack, TextLayer, ViewId } from "@/lib/artwork-stack";
 
 /** The height a new text layer starts at, in millimetres. A starting size the person changes, not a measurement. */
-export const NEW_TEXT_HEIGHT_MM = 30;
+const NEW_TEXT_HEIGHT_MM = 30;
 
 const freeId = (stack: ArtworkStack): string => {
   const taken = new Set(stack.layers.map((layer) => layer.id));

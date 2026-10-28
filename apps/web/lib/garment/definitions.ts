@@ -121,7 +121,6 @@ const typeOptionSchema = z
     message: "The default must be one of the offered choices.",
     path: ["default"],
   });
-export type TypeOption = z.output<typeof typeOptionSchema>;
 
 export const garmentTypeSchema = z
   .object({

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CHECKLIST_KEYS, CHECKLIST_RESULTS, type ChecklistItem, type Measurement } from "./checklist";
 
-export const inspectionRow = z.object({
+const inspectionRow = z.object({
   id: z.uuid(),
   order_id: z.uuid(),
   factory_profile_id: z.string(),

@@ -34,7 +34,7 @@ export type AuthContext = Readonly<{
 }>;
 
 /** Where a confirmed link leads next. */
-export type AfterConfirm = "choose-password" | "signed-in";
+type AfterConfirm = "choose-password" | "signed-in";
 
 const LINK_UNUSABLE = "That link has expired or was already used. Ask for a new one.";
 
@@ -42,7 +42,7 @@ const LINK_UNUSABLE = "That link has expired or was already used. Ask for a new 
 const confirmUrl = (siteUrl: string): string => new URL("/auth/confirm", siteUrl).toString();
 
 /** The owner may register while sign-up is closed. Safe to call on every attempt. */
-export const ensureOwnerAllowed = async (context: AuthContext): Promise<void> => {
+const ensureOwnerAllowed = async (context: AuthContext): Promise<void> => {
   if (!context.ownerEmail) return;
   const { error } = await context.admin.rpc("allow_signup_email", {
     p_email: context.ownerEmail,

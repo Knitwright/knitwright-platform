@@ -6,9 +6,9 @@ import { toolHref } from "@/lib/workspace/tools";
  * these, and the first three open their panel in the design workspace, so nobody reaches a dead end.
  */
 
-export type DesignActionId = "share" | "photoreal" | "quote" | "editor" | "tech-pack";
+type DesignActionId = "share" | "photoreal" | "quote" | "editor" | "tech-pack";
 
-export interface DesignAction {
+interface DesignAction {
   readonly id: DesignActionId;
   readonly label: string;
   /** One sentence on what the action does. */

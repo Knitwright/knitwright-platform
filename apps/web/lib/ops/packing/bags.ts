@@ -8,7 +8,7 @@ export interface PlannedBag {
 }
 
 /** The most pieces the database lets one bag hold. A limit of the record, not a packing rule. */
-export const BAG_PIECES_MAX = 999;
+const BAG_PIECES_MAX = 999;
 export const BAGS_MAX = 1000;
 
 const bySize = (a: string, b: string): number => a.localeCompare(b, "en", { numeric: true });

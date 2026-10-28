@@ -7,7 +7,7 @@ export type BlockReduction = Readonly<{
   pct: number;
 }>;
 
-export type StretchStatus = "no-stretch-value" | "matches" | "differs" | "beyond-stretch";
+type StretchStatus = "no-stretch-value" | "matches" | "differs" | "beyond-stretch";
 
 export type StretchReductionResult = Readonly<{
   status: StretchStatus;
@@ -25,7 +25,7 @@ export const REDUCTION_TOLERANCE_POINTS = 0.5;
  * about 20 % width stretch or more, so about four times the reduction.
  * docs/owner/reference/fashioninsta-2026-10-14/Football_Jersey_No10_EU48_TechPack.pdf.
  */
-export const STRETCH_PER_REDUCTION = 4;
+const STRETCH_PER_REDUCTION = 4;
 
 const known = (v: FabricValue): v is FabricValue & { value: number } =>
   v.value !== null && (v.source === "fabric-test" || v.source === "supplier-sheet");

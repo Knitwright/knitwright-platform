@@ -26,7 +26,7 @@ export interface GroupableVersion {
   readonly createdBy?: string | null;
 }
 
-export interface VersionGroup<T extends GroupableVersion = GroupableVersion> {
+interface VersionGroup<T extends GroupableVersion = GroupableVersion> {
   /** The newest version of the run. Its design is the one the entry stands for. */
   readonly newest: T;
   /** Every version of the run, newest first. */

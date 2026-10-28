@@ -84,7 +84,7 @@ export const discard = async (admin: SupabaseClient, brandId: string, written: r
   }
 };
 
-export type StoreInput = Readonly<{ admin: SupabaseClient; brandId: string; userId: string; intake: Intake; rights: Rights }>;
+type StoreInput = Readonly<{ admin: SupabaseClient; brandId: string; userId: string; intake: Intake; rights: Rights }>;
 
 const copies = (intake: Intake) => [
   ...(intake.print ? [intake.print] : []),

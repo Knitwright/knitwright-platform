@@ -31,7 +31,7 @@ const row = z.object({
   design_comment_mentions: z.array(z.object({ user_id: z.uuid() })),
 });
 
-export interface CommentList {
+interface CommentList {
   readonly comments: readonly CommentView[];
   readonly members: readonly MemberView[];
   readonly viewer: Viewer;

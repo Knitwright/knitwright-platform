@@ -10,7 +10,7 @@ import { SIGN_OFF_ROLES, STRIKE_OFF_STATUSES, type ColourNote, type SignOff, typ
  */
 
 export const RELEASE_NOT_FOUND = "That release does not exist.";
-export const STRIKE_OFF_NOT_FOUND = "That strike-off does not exist.";
+const STRIKE_OFF_NOT_FOUND = "That strike-off does not exist.";
 
 const strikeOffRow = z.object({
   id: z.uuid(),
@@ -97,7 +97,7 @@ export async function requestStrikeOff(admin: SupabaseClient, who: Who, input: R
   return idOf(data);
 }
 
-export type Receipt = Readonly<{
+type Receipt = Readonly<{
   strikeOffId: string;
   shrinkLengthPct: number | null;
   shrinkWidthPct: number | null;
@@ -134,7 +134,7 @@ export async function decideStrikeOff(admin: SupabaseClient, who: Who, decision:
   if (error) throw productionFailure(error, STRIKE_OFF_NOT_FOUND);
 }
 
-export type NewSignOff = Readonly<{ releaseId: string; role: SignOff["role"]; name: string; signedOn: string; note: string }>;
+type NewSignOff = Readonly<{ releaseId: string; role: SignOff["role"]; name: string; signedOn: string; note: string }>;
 
 export async function addSignOff(admin: SupabaseClient, who: Who, signOff: NewSignOff): Promise<string> {
   const { data, error } = await admin.rpc("add_sign_off", {

@@ -95,7 +95,7 @@ export async function assertUnderDailyCap(client: SupabaseClient, brandId: strin
   if ((data ?? []).length >= DAILY_BRAND_CAP) throw new AppError("rate_limited", OVER_DAILY_CAP);
 }
 
-export interface NewImport {
+interface NewImport {
   readonly sourceFileId: string;
   readonly rightsAcceptedAt: Date;
   readonly outcome: Ready;
@@ -133,7 +133,7 @@ export async function getImport(client: SupabaseClient, brandId: string, importI
   return fromRow(data);
 }
 
-export interface ImportSummary {
+interface ImportSummary {
   readonly id: string;
   readonly status: StoredImport["status"];
   readonly createdAt: string;

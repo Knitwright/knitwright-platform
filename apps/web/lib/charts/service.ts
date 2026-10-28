@@ -19,7 +19,7 @@ import { brandChartFromRow } from "./stored";
 
 const MOST_CHARTS_READ = 200;
 
-export type UploadedChart = Readonly<{ fileId: string; grid: Grid; suggestion: MappingSuggestion }>;
+type UploadedChart = Readonly<{ fileId: string; grid: Grid; suggestion: MappingSuggestion }>;
 
 type Who = Readonly<{ brandId: string; userId: string }>;
 
@@ -34,7 +34,7 @@ export const uploadChartFile = async (admin: SupabaseClient, who: Who, bytes: Ui
 const FILE_GONE = "That file is no longer there. Upload it again.";
 
 /** The grid of a stored chart file of the user's brand, read with the user's own rights. */
-export const readStoredChart = async (reader: FileReader, fileId: string): Promise<Grid> => {
+const readStoredChart = async (reader: FileReader, fileId: string): Promise<Grid> => {
   const found = await reader.read(fileId, CHART_IMPORT_LIMITS.maxBytes);
   if (found === null) throw new AppError("not_found", FILE_GONE);
   if (found === TOO_LARGE) throw new AppError("invalid_input", "That file is too large to be a size chart.");
@@ -43,7 +43,7 @@ export const readStoredChart = async (reader: FileReader, fileId: string): Promi
   return read.grid;
 };
 
-export type ImportedChart = Readonly<{ garmentType: string; wearer: string; fit: string | null; sizes: readonly string[] }>;
+type ImportedChart = Readonly<{ garmentType: string; wearer: string; fit: string | null; sizes: readonly string[] }>;
 
 type ImportInput = Who & Readonly<{ fileId: string; mapping: ChartMapping; today: string }>;
 

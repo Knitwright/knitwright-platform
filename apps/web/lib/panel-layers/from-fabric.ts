@@ -3,9 +3,9 @@ import { roundMm } from "@/lib/artwork-stack";
 import type { FabricDocJson, FabricObjectJson, PanelFrame } from "./fabric-types";
 import { clamp01, same, wrapDegrees } from "./geometry";
 
-export type MergeResult = { readonly ok: true; readonly stack: ArtworkStack } | { readonly ok: false; readonly reason: string };
+type MergeResult = { readonly ok: true; readonly stack: ArtworkStack } | { readonly ok: false; readonly reason: string };
 
-export const STRANGER_SENTENCE = "Something on the canvas was not made from a layer, so nothing was saved.";
+const STRANGER_SENTENCE = "Something on the canvas was not made from a layer, so nothing was saved.";
 
 /** The value read from the canvas when it differs from what was drawn, else the layer's own (which may have more digits, or none). */
 const edited = <T,>(now: number, drawn: number, made: (value: number) => T, kept: T): T => (same(now, drawn) ? kept : made(now));

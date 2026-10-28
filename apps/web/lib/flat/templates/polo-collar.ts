@@ -9,7 +9,7 @@ const KAPPA = 0.5522847498;
  * collar is a band behind the neck whose top edge, the fold, runs almost level a little above
  * the shoulder line. It never rises round the head.
  */
-export const POLO_TIP_DROP = 0.5;
+const POLO_TIP_DROP = 0.5;
 const POLO_REACH = 0.8;
 /** How far the fold at the top of the collar sits above the back neck seam, at the centre back. */
 const POLO_FOLD_RISE = 0.6;

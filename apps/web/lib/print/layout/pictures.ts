@@ -2,7 +2,7 @@ import sharp from "sharp";
 import { createHash } from "node:crypto";
 
 /** A picture as pixels, ready to place: RGBA 8 bit, written to PNG, resampled once. */
-export interface Prepared {
+interface Prepared {
   readonly png: Uint8Array;
   readonly widthPx: number;
   readonly heightPx: number;
@@ -12,7 +12,7 @@ export interface Prepared {
 }
 
 /** Most pixels read from one picture. Intake caps files lower; this guards the print path on its own. */
-export const MAX_SOURCE_PIXELS = 100_000_000;
+const MAX_SOURCE_PIXELS = 100_000_000;
 
 /**
  * Reads the print copy and resamples it ONCE to the resolution it will print at, never up: a picture with fewer

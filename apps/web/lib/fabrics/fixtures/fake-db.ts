@@ -8,7 +8,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type Row = Record<string, unknown>;
 type Failure = { code?: string; message: string };
 
-export type FakeDb = Readonly<{
+type FakeDb = Readonly<{
   client: SupabaseClient;
   tables: Record<string, Row[]>;
   failOn: (table: string, op: string, error: Failure) => void;

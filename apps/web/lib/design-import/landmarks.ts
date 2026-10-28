@@ -9,7 +9,7 @@ import { clamp01, type LandmarkSet, type Pt } from "./types";
  * give different certainty; each landmark carries its own.
  */
 
-export interface FoundLandmarks {
+interface FoundLandmarks {
   readonly points: LandmarkSet;
   /** 0 to 1 for each landmark found. */
   readonly confidence: Readonly<Partial<Record<LandmarkId, number>>>;

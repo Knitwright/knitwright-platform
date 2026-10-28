@@ -9,7 +9,7 @@ const NOT_SAFE = /[^A-Za-z0-9_-]/g;
 /** Control characters, marks that change the direction of text, and the characters a path is made of. */
 const NOT_KEPT = /[\p{Cc}\p{Cf}\p{Cs}\/\\:*?"<>|]/gu;
 
-export interface FileNameInput {
+interface FileNameInput {
   readonly styleNumber: string;
   readonly designName: string;
   readonly version: number;
@@ -24,7 +24,7 @@ export interface FileNameInput {
 }
 
 /** The longest the colourway part of a drawing's file name may be, in characters. */
-export const MAX_COLOURWAY_LENGTH = 30;
+const MAX_COLOURWAY_LENGTH = 30;
 
 export interface FileName {
   /** Letters, digits, hyphen and underscore only. Safe in any header. */

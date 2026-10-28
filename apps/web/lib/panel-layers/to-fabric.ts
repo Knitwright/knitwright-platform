@@ -2,10 +2,10 @@ import { resolveColour, type ArtworkStack, type Blend, type Layer, type ViewId }
 import type { FabricDocJson, FabricObjectJson, Geometry, PanelFrame } from "./fabric-types";
 
 /** The Fabric version this mapping was written against. */
-export const FABRIC_VERSION = "7.4.0";
+const FABRIC_VERSION = "7.4.0";
 
 /** Fabric's names for our blends. Knock-out removes what is under it. */
-export const COMPOSITE: Readonly<Record<Blend, string>> = {
+const COMPOSITE: Readonly<Record<Blend, string>> = {
   normal: "source-over",
   multiply: "multiply",
   screen: "screen",

@@ -13,7 +13,7 @@ import type { LogEvent } from "@/lib/server/core/guard";
  */
 
 /** Within the 60 seconds a request may run (decision record 0002), with room to store. */
-export const JOB_TIME_LIMIT_MS = 50_000;
+const JOB_TIME_LIMIT_MS = 50_000;
 
 export const FAILED_MESSAGE = "The images could not be made. The cost has been given back. Try again.";
 export const UNAVAILABLE_MESSAGE =
@@ -37,7 +37,7 @@ export interface RunJobDeps {
   readonly timeoutMs?: number;
 }
 
-export interface JobWork {
+interface JobWork {
   readonly jobId: string;
   readonly eventId: string;
   readonly requests: Readonly<Record<"front" | "back", ImageRequest>>;

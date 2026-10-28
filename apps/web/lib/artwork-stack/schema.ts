@@ -10,8 +10,8 @@ export const ARTWORK_STACK_VERSION = 1;
 export const NEWER_STACK_SENTENCE =
   "This artwork was saved by a newer version of Knitwright than this one, so it is not opened. Nothing was changed.";
 
-export const MAX_LAYERS = 64;
-export const MAX_COLOURS = 48;
+const MAX_LAYERS = 64;
+const MAX_COLOURS = 48;
 
 const versionSchema = z.literal(ARTWORK_STACK_VERSION, { error: NEWER_STACK_SENTENCE });
 

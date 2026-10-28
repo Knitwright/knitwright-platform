@@ -13,7 +13,7 @@ import { insideLoop, openEdges, triangulateRegion, type Region } from "./triangu
  */
 
 
-export interface MeshInput {
+interface MeshInput {
   readonly front: ShapeSource;
   readonly back: ShapeSource;
 }

@@ -4,7 +4,7 @@ import type { Carton, PackBag } from "./rows";
 
 export const NOT_SET = "Not set";
 
-export interface PackingInput {
+interface PackingInput {
   readonly order: OpsOrder;
   readonly brandName: string;
   readonly bags: readonly PackBag[];

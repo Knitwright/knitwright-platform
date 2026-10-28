@@ -8,7 +8,7 @@ import type { Built, LayerResult, LayerSpace } from "../types";
 import { softPictureIssue } from "./graphic";
 
 /** The most tiles one piece may hold. Over it the tile is too small to be worth printing as a repeat. */
-export const TILE_BUDGET = 2500;
+const TILE_BUDGET = 2500;
 /** A picture that states no resolution is read as this many dots per inch. */
 export const ASSUMED_DPI = 72;
 

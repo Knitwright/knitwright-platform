@@ -26,7 +26,7 @@ export const signUnsubscribe = (userId: string, key: Buffer): string => {
   return `${payload}.${mac(key, payload).toString("base64url")}`;
 };
 
-export type VerifiedUnsubscribe = { readonly ok: true; readonly userId: string } | { readonly ok: false; readonly reason: string };
+type VerifiedUnsubscribe = { readonly ok: true; readonly userId: string } | { readonly ok: false; readonly reason: string };
 
 export const verifyUnsubscribe = (token: string, key: Buffer): VerifiedUnsubscribe => {
   const parts = token.length <= MAX_TOKEN_LENGTH ? token.split(".") : [];

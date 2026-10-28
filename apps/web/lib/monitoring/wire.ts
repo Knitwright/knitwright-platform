@@ -25,9 +25,9 @@ export const logAndReport =
     }
   };
 
-export type SpendScope = "user" | "brand" | "total";
+type SpendScope = "user" | "brand" | "total";
 
-export type SpendCeilingHit = Readonly<{
+type SpendCeilingHit = Readonly<{
   scope: SpendScope;
   spentMicros: number;
   ceilingMicros: number;

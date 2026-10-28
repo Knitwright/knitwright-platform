@@ -16,7 +16,7 @@ export const MAX_GARMENT_COLOURS = 6;
 /** Colours closer than this (CIE76 delta E) are one colour. */
 export const MERGE_DELTA_E = 12;
 /** A colour under this share of the garment is a fold, an edge or a speck, and is folded into its neighbour. */
-export const MIN_SHARE = 0.015;
+const MIN_SHARE = 0.015;
 
 const linear = (c: number): number => {
   const v = c / 255;

@@ -61,7 +61,7 @@ const runsGuardFirst = (source: ts.SourceFile, accepted: readonly Imported[]): b
   return first !== undefined && isGuardStatement(first, names);
 };
 
-export type PageReport = Readonly<{ violations: Violation[]; isPublicPage: boolean }>;
+type PageReport = Readonly<{ violations: Violation[]; isPublicPage: boolean }>;
 
 export const checkPage = (
   path: string,

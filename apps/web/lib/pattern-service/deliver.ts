@@ -3,9 +3,9 @@ import { AppError } from "@/lib/server/core/errors";
 import { storeProductionFile } from "@/lib/storage/store";
 import { attachFiles, getRequest } from "./service";
 
-export type DeliveredUpload = Readonly<{ name: string; bytes: Uint8Array }>;
+type DeliveredUpload = Readonly<{ name: string; bytes: Uint8Array }>;
 
-export const MAX_DELIVERED_BYTES = 10 * 1024 * 1024;
+const MAX_DELIVERED_BYTES = 10 * 1024 * 1024;
 
 /** A DXF file is plain text that starts with a section marker. A name alone proves nothing, so the bytes are looked at. */
 export function looksLikeDxf(bytes: Uint8Array): boolean {

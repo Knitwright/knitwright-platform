@@ -24,7 +24,7 @@ const crest = {
 };
 
 /** A crest with real detail (a chequer), so a missing or warped one can be told from a plain patch. */
-export const chequer = async (): Promise<Uint8Array> => {
+const chequer = async (): Promise<Uint8Array> => {
   const size = 64;
   const raw = Buffer.alloc(size * size * 3);
   for (let y = 0; y < size; y++) {

@@ -5,7 +5,7 @@ import type { PieceFrame } from "../frames/frame";
 import type { PieceInstance } from "../frames/instances";
 
 /** How far above the chest line a repeat field starts, at least. Fixed, so the field does not move from size to size. */
-export const FIELD_TOP_MM = 400;
+const FIELD_TOP_MM = 400;
 /** Room kept beyond the garment on the other three sides. */
 const MARGIN_MM = 100;
 

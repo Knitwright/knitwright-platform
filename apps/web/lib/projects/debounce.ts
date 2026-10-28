@@ -7,7 +7,7 @@ export const CHOICE_SETTLE_MS = 350;
  * settle on should be sent. Enter and blur send at once. `asked` is true when the person
  * asked for the save with Enter.
  */
-export type Settler<T> = Readonly<{
+type Settler<T> = Readonly<{
   change: (key: string, value: T) => void;
   flush: (key: string, asked: boolean) => void;
   flushAll: () => void;

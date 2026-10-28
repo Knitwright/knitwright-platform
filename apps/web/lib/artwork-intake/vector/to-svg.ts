@@ -50,7 +50,7 @@ const gradientElement = (gradient: Gradient): string => {
   return `<radialGradient id="${gradient.id}" cx="${num(gradient.cx)}" cy="${num(gradient.cy)}" r="${num(gradient.r)}" fx="${num(gradient.fx)}" fy="${num(gradient.fy)}"${units}>${stops}</radialGradient>`;
 };
 
-export type ToSvgOptions = Readonly<{ widthPx: number; heightPx: number }>;
+type ToSvgOptions = Readonly<{ widthPx: number; heightPx: number }>;
 
 /** The model as SVG text at the given pixel size. */
 export const modelToSvg = (model: VectorModel, size: ToSvgOptions): string => {

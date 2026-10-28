@@ -2,7 +2,7 @@ import type { Finding } from "@/lib/guardrails";
 
 const SEVERITY: Readonly<Record<Finding["severity"], string>> = { blocker: "Must fix", warning: "Warning" };
 
-export const NOT_CHECKED_YET =
+const NOT_CHECKED_YET =
   "Not looked at here yet: where names and numbers sit (it needs the piece mapper), and the drawn pixels of rotated art (a turned box is used). Colour limits are an estimate, not your print house's profile.";
 
 /** The guardrails' findings for the panel as it is on the canvas, updated while an object moves. */

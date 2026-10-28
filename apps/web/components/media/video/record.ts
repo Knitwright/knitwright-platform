@@ -20,7 +20,7 @@ export type RecordOptions = Readonly<{
 export type Recording = Readonly<{ video: Blob; poster: Blob }>;
 export type RecordResult = { ok: true; recording: Recording } | { ok: false; reason: "unsupported" | "failed" | "too_large" };
 
-export type RecorderEnv = Readonly<{
+type RecorderEnv = Readonly<{
   MediaRecorder?: { new (stream: MediaStream, options?: MediaRecorderOptions): MediaRecorder; isTypeSupported(type: string): boolean } | undefined;
   wait?: (ms: number) => Promise<void>;
 }>;

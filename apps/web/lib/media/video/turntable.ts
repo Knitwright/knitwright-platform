@@ -8,8 +8,8 @@ import { videoPath } from "./paths";
 import type { VideoFiles } from "./ports";
 import { checkRecording } from "./recording";
 
-export const TURNTABLE_PROVIDER = "browser-recorder";
-export const TURNTABLE_VIEW = "three_quarter" as const;
+const TURNTABLE_PROVIDER = "browser-recorder";
+const TURNTABLE_VIEW = "three_quarter" as const;
 export const SET_NOT_FINISHED = "Make the media set first, and wait for it to finish, then record the turntable.";
 
 export interface TurntableDeps {
@@ -18,7 +18,7 @@ export interface TurntableDeps {
   readonly videos: VideoFiles;
 }
 
-export type TurntableAsk = Readonly<{ brandId: string; projectId: string; setId: string; video: Uint8Array; poster: Uint8Array }>;
+type TurntableAsk = Readonly<{ brandId: string; projectId: string; setId: string; video: Uint8Array; poster: Uint8Array }>;
 
 /**
  * Keeps a turntable recorded in the browser as the `turntable` item of a finished set. It is free (the spec renders it from the

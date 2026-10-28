@@ -38,7 +38,7 @@ const latest = z.object({
 });
 const link = z.object({ success: z.literal(true), data: z.object({ url: z.string() }) });
 
-export type AskResult = Readonly<{ ok: true; job: PatternJobView }> | Readonly<{ ok: false; reason: string }>;
+type AskResult = Readonly<{ ok: true; job: PatternJobView }> | Readonly<{ ok: false; reason: string }>;
 
 export async function askForPattern(projectId: string, size: string, fetcher: Fetch = fetch, kind: "single" | "size-set" = "single"): Promise<AskResult> {
   try {

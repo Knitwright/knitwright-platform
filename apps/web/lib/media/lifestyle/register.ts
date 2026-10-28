@@ -7,7 +7,7 @@ import { DEFAULT_DAILY_CAP_MICRODOLLARS, spentTodayBy, usageBudget } from "./bud
 import { lifestyleGenerator, type LifestyleReport } from "./generator";
 import { selectProviders, type LifestyleEnv } from "./select";
 
-export type RegisterDeps = Readonly<{
+type RegisterDeps = Readonly<{
   env: LifestyleEnv;
   usage: UsageMeter;
   /** The member's own client: usage rows are read with it. */

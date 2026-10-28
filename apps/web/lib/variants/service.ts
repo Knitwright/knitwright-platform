@@ -18,7 +18,7 @@ async function variantsAt(client: SupabaseClient, who: Pick<Who, "brandId" | "br
   return { reads, variants: variantsFor(reads.project.spec, projectId, reads.project.currentVersion, gate) };
 }
 
-export interface VariantList {
+interface VariantList {
   readonly version: number;
   readonly tiles: readonly VariantTile[];
 }

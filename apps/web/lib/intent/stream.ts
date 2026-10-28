@@ -16,7 +16,7 @@ const followUpChoiceSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("apply"), label: text, token: z.string() }),
   z.object({ kind: z.enum(["say", "fill"]), label: text, text }),
 ]);
-export type BrowserFollowUpChoice = z.output<typeof followUpChoiceSchema>;
+type BrowserFollowUpChoice = z.output<typeof followUpChoiceSchema>;
 
 const followUpsSchema = z.array(z.object({ text, choices: z.array(followUpChoiceSchema) })).optional();
 export type BrowserFollowUp = NonNullable<z.output<typeof followUpsSchema>>[number];

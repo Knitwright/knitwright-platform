@@ -15,7 +15,7 @@ export const variantsFor = (spec: GarmentSpec, projectId: string, version: numbe
 
 export const findVariant = (variants: readonly Variant[], id: string): Variant | undefined => variants.find((variant) => variant.id === id);
 
-export type ApplyDecision = "save" | "already" | "conflict";
+type ApplyDecision = "save" | "already" | "conflict";
 
 /**
  * What to do with a press on a variant. A person looking at the current version saves it. A person one version

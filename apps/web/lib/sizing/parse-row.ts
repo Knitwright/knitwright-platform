@@ -37,7 +37,7 @@ export interface ParsedRow {
   readonly sourceText: string;
 }
 
-export type RowResult =
+type RowResult =
   | { readonly ok: true; readonly row: ParsedRow }
   | { readonly ok: false; readonly problems: readonly ParseProblem[] };
 

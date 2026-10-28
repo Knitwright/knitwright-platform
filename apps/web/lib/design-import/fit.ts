@@ -27,7 +27,7 @@ export interface ViewFit {
   readonly notes: readonly string[];
 }
 
-export type FitResult = { readonly ok: true; readonly fit: ViewFit } | { readonly ok: false; readonly reason: string };
+type FitResult = { readonly ok: true; readonly fit: ViewFit } | { readonly ok: false; readonly reason: string };
 
 export const TOO_FEW_LANDMARKS = "Too few landmarks were found to fit this view to the pattern, so its layers are left empty.";
 

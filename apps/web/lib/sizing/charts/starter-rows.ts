@@ -12,7 +12,7 @@ import type { ChartPoint, ChartSource, Grade, SizeChart } from "../schemas";
 export const STARTER_CHART_NAME = "Knitwright starter chart";
 
 /** The day the starter charts were put together from published sources. */
-export const STARTER_CHART_SOURCE: ChartSource = { person: STARTER_CHART_NAME, date: "2026-10-13" };
+const STARTER_CHART_SOURCE: ChartSource = { person: STARTER_CHART_NAME, date: "2026-10-13" };
 
 const TENTHS_MM_PER_CM = 100;
 
