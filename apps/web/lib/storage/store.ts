@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sheetKind } from "@/lib/charts/container";
 import { AppError } from "@/lib/server/core/errors";
 import { checkImage } from "./image";
+import { privateMediaBytes } from "./private-usage";
 import { isQuotaRefusal, STORAGE_FULL_MESSAGE, storageRoom } from "./quota";
 import type { LogoRights } from "./rights";
 
@@ -73,7 +74,8 @@ type FileRecord = Readonly<{
 export const ensureStorageRoom = async (admin: SupabaseClient, brandId: string, incomingBytes: number): Promise<void> => {
   const { data, error } = await admin.rpc("brand_storage_used", { p_brand_id: brandId });
   if (error) throw new Error("The brand's storage could not be measured.", { cause: error });
-  const room = storageRoom(Number(data ?? 0), incomingBytes);
+  // Clean pictures and videos have no `files` row, so the prefix is summed as well.
+  const room = storageRoom(Number(data ?? 0) + (await privateMediaBytes(admin, brandId)), incomingBytes);
   if (!room.ok) throw new AppError("over_quota", room.message);
 };
 

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import type { GarmentSpec } from "@/lib/garment";
 import { failureFromDatabase } from "@/lib/projects/database-errors";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { loadStored } from "@/lib/settings/store";
@@ -44,6 +45,14 @@ export async function enrol(admin: SupabaseClient, userId: string, displayName: 
 }
 
 /**
+ * A submission is public once approved, so it must not carry ids of the brand's own files: pictures are dropped, text stays.
+ * (The ids would only render as missing pictures to other readers, but they are the brand's, not the designer's to publish.)
+ */
+export function withoutFileIds(spec: GarmentSpec): GarmentSpec {
+  return { ...spec, artwork: spec.artwork.filter((art) => art.source.kind !== "file") };
+}
+
+/**
  * Freezes the newest saved version of one of the member's designs as a draft submission. The design is read with the
  * member's own client, so it must be in a brand they belong to, and it must be readable as a design.
  */
@@ -68,7 +77,7 @@ export async function createSubmission(admin: SupabaseClient, client: SupabaseCl
     p_wearer: copy.spec.wearer,
     p_style_tags: [input.style],
     p_colour_family: input.colourFamily,
-    p_snapshot: copy.spec,
+    p_snapshot: withoutFileIds(copy.spec),
   });
   return z.uuid().parse(id);
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireAbility } from "@/lib/clubs/guards";
 import { assertPlatformAdmin } from "@/lib/ops/access";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -34,6 +35,7 @@ export const newSubmissionAction = defineAction({
   rateLimit: LIMITS.createProject,
   schema: newSubmissionSchema,
   handler: async ({ input, session }) => {
+    requireAbility(session, "manageKit");
     const id = await createSubmission(adminClient(), await sessionClient(), session.userId, input);
     revalidatePath("/designer");
     return { id };

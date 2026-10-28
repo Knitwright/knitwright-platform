@@ -90,4 +90,8 @@ export const LIMITS = {
   artworkConvert: { name: "artwork-convert", limit: 40, windowSeconds: 10 * MINUTE },
   // Club workspace (decision 0042): kit, seasons, rosters, members. Every one is a small write checked against the member's role.
   clubWrite: { name: "club-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // Moving a design between draft and validated writes its status (security review L1); reading the list stays on `read`.
+  validationWrite: { name: "validation-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // The variants list draws 8 to 12 tiles on the server per request, so it is held tighter than a plain read (security review L1).
+  variantsRender: { name: "variants-render", limit: 30, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

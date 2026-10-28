@@ -1,3 +1,4 @@
+import { MAX_CLIP_BYTES } from "./limits";
 import { describe, expect, it, vi } from "vitest";
 import { createFalVideoProvider, FAL_VIDEO_MODEL } from "./fal";
 import { stubWebm } from "./stub";
@@ -43,5 +44,18 @@ describe("the fal video adapter", () => {
   ])("refuses %s", async (_name, second) => {
     const fetcher = async (url: string) => (url.includes("fal.run") ? json({ video: { url: "https://cdn.fal.media/x.mp4" } }) : second());
     expect(await provider(fetcher).generate(request, signal)).toMatchObject({ ok: false });
+  });
+
+  it("stops reading a file of unknown length once it passes the cap (security review L6)", async () => {
+    let pulled = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        controller.enqueue(new Uint8Array(1024 * 1024));
+      },
+    });
+    const fetcher = async (url: string) => (url.includes("fal.run") ? json({ video: { url: "https://cdn.fal.media/x.mp4" } }) : new Response(endless));
+    expect(await provider(fetcher).generate(request, signal)).toMatchObject({ ok: false });
+    expect(pulled).toBeLessThanOrEqual(MAX_CLIP_BYTES / (1024 * 1024) + 3);
   });
 });

@@ -19,6 +19,7 @@ const recording = () => {
           return { error: null };
         },
         remove: async () => ({ error: null }),
+        list: async () => ({ data: [], error: null }),
       }),
     },
     from: () => ({

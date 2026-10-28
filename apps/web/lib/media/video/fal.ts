@@ -18,6 +18,25 @@ const FILE_HOST = /^https:\/\/(?:[a-z0-9-]+\.)*fal\.media\//;
 
 const answerSchema = z.object({ video: z.object({ url: z.string() }).optional() });
 
+/** The body, read piece by piece; null as soon as it passes `max`, so a body with no declared length is never held whole. */
+async function readCapped(response: Response, max: number): Promise<Uint8Array | null> {
+  if (!response.body) return new Uint8Array(0);
+  const reader = response.body.getReader();
+  const pieces: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > max) {
+      await reader.cancel();
+      return null;
+    }
+    pieces.push(value);
+  }
+  return new Uint8Array(Buffer.concat(pieces));
+}
+
 export type Fetch = (input: string, init: RequestInit) => Promise<Response>;
 
 const refused = (message: string) => ({ ok: false, message }) as const;
@@ -41,9 +60,9 @@ export function createFalVideoProvider({ apiKey, fetch: fetcher = fetch }: Reado
         if (!url || !FILE_HOST.test(url)) return refused(FAILED);
         const file = await fetcher(url, { method: "GET", signal });
         if (!file.ok || Number(file.headers.get("content-length") ?? 0) > MAX_CLIP_BYTES) return refused(FAILED);
-        const video = new Uint8Array(await file.arrayBuffer());
-        const type = sniffVideo(video);
-        return type && video.byteLength <= MAX_CLIP_BYTES ? { ok: true, video, type } : refused(FAILED);
+        const video = await readCapped(file, MAX_CLIP_BYTES);
+        const type = video && sniffVideo(video);
+        return video && type ? { ok: true, video, type } : refused(FAILED);
       } catch {
         return refused(FAILED);
       }

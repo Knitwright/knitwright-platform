@@ -156,6 +156,30 @@ describe("defineRoute", () => {
     expect(Object.keys(json.error.fields)).toEqual(["body.name"]);
   });
 
+  it("refuses in authorize before the body is read", async () => {
+    const { deps } = makeDeps();
+    let handled = false;
+    const route = createDefineRoute(deps)({
+      auth: "user",
+      rateLimit: RULE,
+      schema: { body: z.object({ name: z.string() }) },
+      authorize: async () => {
+        throw new AppError("not_found", "Not found.");
+      },
+      handler: async () => {
+        handled = true;
+        return {};
+      },
+    });
+    const request = post({ name: "x" });
+
+    const response = await route(request, noParams);
+
+    expect(response.status).toBe(404);
+    expect(request.bodyUsed).toBe(false);
+    expect(handled).toBe(false);
+  });
+
   it("rejects a body that is not JSON", async () => {
     const { deps } = makeDeps();
     const route = createDefineRoute(deps)({

@@ -45,7 +45,7 @@ Nothing here blocks the build. Each item replaces a labelled placeholder. Questi
 
 ### Do first (questionnaire)
 
-- [ ] Q1 credit prices, and then whether to set `CREDITS_ENFORCED=true`
+- [ ] Q1 credit prices, and then whether to set `CREDITS_ENFORCED=true`. Set it on purpose in production, either way: while it is unset, unlock and every credit-gated output are free, and the server logs a warning at start (security review L5)
 - [ ] Q4 price ladder and minimum order per article (from the factories, in writing)
 - [ ] Q6 weekly batch cut-off (and its time zone, UTC in the console)
 - [ ] Q7 factory per article

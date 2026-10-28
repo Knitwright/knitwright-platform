@@ -95,7 +95,7 @@ filters in `lib/artwork-intake/service.ts` and have no RLS backup. Designer subm
 ## Fixed in the follow-up (database findings)
 
 Migration `supabase/migrations/20261030010000_security_review_fixes.sql`, tests in `apps/web/tests/integration/security-review-fixes.test.ts`.
-The app-side findings (M1 to M4, M7, L1 to L8, L14 to L16) are handled by another change and are not listed here.
+The application findings (M1 to M4, M7, L1 to L7, L14 to L16) are in the next section. L8 is changed by neither follow-up.
 
 | Finding | Result |
 |---|---|
@@ -107,3 +107,29 @@ The app-side findings (M1 to M4, M7, L1 to L8, L14 to L16) are handled by anothe
 | L11 | **Fixed, minimal.** `ops_orders` and `designer_template_uses` get a key to `brands` with `on delete cascade`, added `not valid` so rows left by brands deleted earlier are not touched. Keys from the ops tables to an order change from `restrict` to `cascade` so the brand cascade works in either order (the append-only triggers still refuse a delete while the brand exists, and the ops order history trigger now lets a delete through once its brand is gone). `club_invitations.expires_at` defaults to 14 days (existing ones get 14 days from the migration), inviting again renews it, `my_club_invitations` hides expired ones and `accept_invitation` refuses them (P0002, hint `invitation_expired`). **Not changed:** `batches` hold no brand or person and serve many brands; a member of a shared brand still cannot delete their account (deliberate, `SHARED_BRAND_MESSAGE`). Orphan rows from earlier deletions are left for the owner to decide on. |
 | L12 | **Fixed.** `designer_record_use` refuses a project that is not the brand's (P0002). A designer who belongs to the brand using their own template is not recorded and the call answers false, so the studio still works for them. `designer_accrue_after_order` already warned with the reason; the warning now also carries the SQLSTATE. It stays non-blocking. |
 | L13 | **Partly fixed.** `ops_delay_order` refuses a null date (hint `date_needed`). `ops_refuse_change` now sets `search_path = ''`. **Not changed:** `pattern_request_create` still takes the quote and charge flag from its caller. Its only caller is the server's own key (`lib/pattern-service`), which reads the price from the same platform setting, and the charge flag comes from the `CREDITS_ENFORCED` environment variable, which the database cannot see; reading the price in the function would also make the existing price tests depend on a global setting. |
+
+## Fixed in the follow-up (application)
+
+Branch `fix/security-app-v4`. Application code only; the database findings (M5, M6, M8, L9 to L13) are in the section above.
+Each fix below has a unit test that failed before it.
+
+| Finding | Status | What changed |
+|---|---|---|
+| M1 | Fixed | `newSubmissionAction` calls `requireAbility(session, "manageKit")`; `withoutFileIds` drops picture artwork (file ids) from the submitted snapshot. Text artwork stays. |
+| M2 | **Needs owner** | Not changed. Whether a `viewer` may spend credits is an owner decision. |
+| M3 | Fixed | `ensureStorageRoom` now adds the size of `_private/<brand>/` (`lib/storage/private-usage.ts`, summed from the storage listing) to `brand_storage_used`. The media route reserves `MEDIA_SET_RESERVE_BYTES` (12 MB), not 1 byte; the clip route checks `MAX_CLIP_BYTES` (30 MB) before starting. Cost: one storage listing per check. |
+| M4 | Fixed | `emptyBrandFolders` also empties `_private/<brandId>` in the `images` bucket. Unit test uses the existing fake client. |
+| M5, M6, M8 | See above | Database side. |
+| M7 | Fixed | `defineRoute` takes an optional `authorize` that runs after the rate limit and before the body is read; the ops pattern-file route uses it for the platform-admin check. |
+| L1 | Fixed | `LIMITS.validationWrite` (60 per 10 minutes) on the validation POST; `LIMITS.variantsRender` (30 per 10 minutes) on the variants GET. |
+| L2 | Fixed | Postgres `details` removed from the logged fields of a database error. |
+| L3 | Fixed | `PHOTOROOM_API_KEY`, `FASHN_API_KEY`, `GOOGLE_VERTEX_*`, `LIFESTYLE_*` and `MEDIA_VIDEO_LIVE` are optional entries in `lib/config/env.ts`, read through `getEnv()`, and documented in `.env.example`. |
+| L4 | Fixed | `x-content-type-options: nosniff` on the media item and video responses. |
+| L5 | Fixed in part; **needs owner** for the default | The default is unchanged. A production server that starts with `CREDITS_ENFORCED` unset logs a warning, and `docs/launch-checklist.md` says to set it on purpose. |
+| L6 | Fixed | The fal video download is read in pieces and stops at `MAX_CLIP_BYTES` even when `content-length` is absent. |
+| L7 | Fixed | `placeOrder` refuses a `fabricKey` the factory profile does not list, when the profile lists any (with none listed the brand names one, as the builder allows). |
+| L8 | **Open** | Not changed by either follow-up. It is what `club_members`, `templates` and `royalty_accruals` return to members, so the fix is on the database side. |
+| L9 to L13 | See above | Database side. |
+| L14 | Fixed | Optional `ASSISTANT_SIGNING_KEY` (32 characters or more); without it the key is derived from `SUPABASE_SECRET_KEY` as before, so existing proposals stay valid. |
+| L15 | Fixed | `tests/architecture/ops-access.test.ts` also checks every platform-only action in `lib/pattern-service`, `lib/designers`, `lib/settings`, and the ops pattern-file route (guard before the body). A new action there must be listed as a member's own or carry a guard. |
+| L16 | **Needs owner** | Not changed. Inherent to a visible watermark. |

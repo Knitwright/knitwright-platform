@@ -16,7 +16,7 @@ const adminWhere = (removal: () => Promise<unknown>) => {
   const admin = {
     rpc: noneUsed,
     storage: {
-      from: () => ({ upload: async () => ({ error: null }), remove }),
+      from: () => ({ upload: async () => ({ error: null }), remove, list: async () => ({ data: [], error: null }) }),
     },
     from: () => ({ insert: async () => ({ error: recordError }) }),
   } as unknown as SupabaseClient;
@@ -76,6 +76,7 @@ const workingAdmin = () => {
           uploads.push({ path, type: options.contentType });
           return { error: null };
         },
+        list: async () => ({ data: [], error: null }),
       }),
     },
     from: () => ({ insert: async () => ({ error: null }) }),
@@ -122,6 +123,7 @@ describe("storeChartFile", () => {
             return { error: null };
           },
           remove: async () => ({ error: null }),
+          list: async () => ({ data: [], error: null }),
         }),
       },
       from: () => ({
@@ -161,7 +163,7 @@ describe("storeImage, for a generated picture", () => {
       storage: {
         from: (bucket: string) => {
           buckets.push(bucket);
-          return { upload: async () => ({ error: null }) };
+          return { upload: async () => ({ error: null }), list: async () => ({ data: [], error: null }) };
         },
       },
       from: () => ({
@@ -174,7 +176,7 @@ describe("storeImage, for a generated picture", () => {
 
     const stored = await storeImage({ ...(await input(admin)), kind: "render" });
 
-    expect(buckets).toEqual(["images"]);
+    expect([...new Set(buckets)]).toEqual(["images"]);
     expect(rows[0]).toMatchObject({ bucket: "images", kind: "render" });
     expect(String(rows[0].path)).toMatch(/^11111111-1111-4111-8111-111111111111\/render\//);
     expect(stored.kind).toBe("render");
@@ -194,6 +196,7 @@ describe("the storage quota (security finding S-01)", () => {
             return { error: null };
           },
           remove,
+          list: async () => ({ data: [], error: null }),
         }),
       },
       from: () => ({ insert: async () => ({ error: insertError }) }),
@@ -206,6 +209,23 @@ describe("the storage quota (security finding S-01)", () => {
     const failure = await storeImage(await input(admin)).catch((error: unknown) => error);
     expect(failure).toBeInstanceOf(AppError);
     expect(failure).toMatchObject({ code: "over_quota", message: STORAGE_FULL_MESSAGE });
+    expect(uploads).toEqual([]);
+  });
+
+  it("counts clean pictures and videos under _private/<brand>/ toward the quota", async () => {
+    const { admin, uploads } = standIn(0);
+    const sets = [{ name: "set-1", id: null }];
+    const files = [{ name: "clip.mp4", id: "f1", metadata: { size: BRAND_STORAGE_QUOTA_BYTES } }];
+    const lists: string[] = [];
+    (admin as unknown as { storage: unknown }).storage = {
+      from: () => ({
+        upload: async (path: string) => (uploads.push(path), { error: null }),
+        list: async (prefix: string) => (lists.push(prefix), { data: prefix.endsWith("set-1") ? files : sets, error: null }),
+      }),
+    };
+    const failure = await storeImage(await input(admin)).catch((error: unknown) => error);
+    expect(failure).toMatchObject({ code: "over_quota" });
+    expect(lists[0]).toBe("_private/11111111-1111-4111-8111-111111111111");
     expect(uploads).toEqual([]);
   });
 
