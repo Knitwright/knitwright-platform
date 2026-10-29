@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JSY-SS-01 Tech Pack</title>
+<style>
+  :root { --ink: #111; --muted: #666; --line: #bbb; --soft: #f3f3f1; --accent: #0b1f4b; --gold: #f2b705; --warn: #b45309; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #e7e7e4; color: var(--ink); font: 10.5px/1.4 Arial, Helvetica, sans-serif; }
+  .page { width: 297mm; height: 210mm; margin: 8mm auto; background: #fff; padding: 9mm 11mm 8mm; display: flex; flex-direction: column; box-shadow: 0 1px 4px rgba(0,0,0,.15); position: relative; }
+  header.hb { display: grid; grid-template-columns: 1.4fr repeat(6, 1fr); border: 1px solid var(--ink); margin-bottom: 6mm; }
+  header.hb div { padding: 3px 6px; border-left: 1px solid var(--line); }
+  header.hb div:first-child { border-left: 0; font-weight: 700; font-size: 13px; display: flex; align-items: center; }
+  header.hb b { display: block; font-size: 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 400; }
+  h1 { font-size: 16px; margin: 0 0 4mm; }
+  h2 { font-size: 12px; margin: 4mm 0 2mm; }
+  .content { flex: 1; overflow: hidden; }
+  footer.fb { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; border-top: 1px solid var(--line); padding-top: 2mm; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid var(--line); padding: 3px 5px; text-align: left; vertical-align: top; }
+  th { background: var(--soft); font-weight: 700; font-size: 9.5px; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+  .flat { width: 100%; height: 120mm; }
+  .cap { text-align: center; color: var(--muted); font-size: 9px; margin-top: 1mm; }
+  .tag { display: inline-block; padding: 0 5px; border-radius: 8px; font-size: 8.5px; border: 1px solid var(--line); color: var(--muted); }
+  .tag.base { border-color: #1a7f37; color: #1a7f37; }
+  .tag.design { border-color: #0b5cad; color: #0b5cad; }
+  .tag.input { border-color: var(--warn); color: var(--warn); }
+  .note { background: #fff8e6; border: 1px solid #f0d58a; padding: 3mm 4mm; margin: 2mm 0; }
+  .sign td { height: 9mm; }
+  .blank { background: repeating-linear-gradient(135deg, #fff, #fff 6px, #fafafa 6px, #fafafa 12px); }
+  .swatch { display: inline-block; width: 14px; height: 14px; border: 1px solid #999; vertical-align: middle; margin-right: 4px; }
+  .photo { border: 1px dashed var(--line); height: 52mm; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  ul.tight { margin: 1mm 0; padding-left: 5mm; }
+  .pattern-img { width: 100%; height: 106mm; object-fit: contain; border: 1px solid var(--line); }
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    @page { size: A4 landscape; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Shared drawings. Flat scale: 0.423 px per mm, CF at x = 200, HPS at y = 40 (size M). -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <path id="front-outline" d="M162,40 L102,59 L34,116 L80,171 L90,146 L90,345 L310,345 L310,146 L320,171 L366,116 L298,59 L238,40 C236,58 222,67.5 200,67.5 C178,67.5 164,58 162,40 Z"/>
+    <path id="back-outline" d="M162,40 L102,59 L34,116 L80,171 L90,146 L90,345 L310,345 L310,146 L320,171 L366,116 L298,59 L238,40 C230,42 210,44 200,44 C190,44 170,42 162,40 Z"/>
+    <path id="sleeve-l" d="M102,59 L34,116 L80,171 L90,146 Q92,105 102,59 Z"/>
+    <path id="sleeve-r" d="M298,59 L366,116 L320,171 L310,146 Q308,105 298,59 Z"/>
+    <g id="front-seams" fill="none" stroke="#111" stroke-width="0.8">
+      <path d="M102,59 Q92,105 90,146"/><path d="M298,59 Q308,105 310,146"/>
+      <path d="M162,40 C160,64 180,76 200,76 C220,76 240,64 238,40"/>
+      <path d="M162,40 Q200,52 238,40" stroke="#999"/>
+      <g stroke-dasharray="3 2" stroke-width="0.6">
+        <path d="M40.5,110.5 L86.5,165.5"/><path d="M42.4,108.9 L88.4,163.9"/>
+        <path d="M359.5,110.5 L313.5,165.5"/><path d="M357.6,108.9 L311.6,163.9"/>
+        <path d="M90,334.4 L310,334.4"/><path d="M90,337 L310,337"/>
+      </g>
+    </g>
+    <g id="back-seams" fill="none" stroke="#111" stroke-width="0.8">
+      <path d="M102,59 Q92,105 90,146"/><path d="M298,59 Q308,105 310,146"/>
+      <path d="M162,40 C166,50 185,52.5 200,52.5 C215,52.5 234,50 238,40"/>
+      <g stroke-dasharray="3 2" stroke-width="0.6">
+        <path d="M168,44 C175,58 190,60 200,60 C210,60 225,58 232,44"/>
+        <path d="M40.5,110.5 L86.5,165.5"/><path d="M42.4,108.9 L88.4,163.9"/>
+        <path d="M359.5,110.5 L313.5,165.5"/><path d="M357.6,108.9 L311.6,163.9"/>
+        <path d="M90,334.4 L310,334.4"/><path d="M90,337 L310,337"/>
+      </g>
+    </g>
+    <marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#c00"/></marker>
+  </defs>
+</svg>
+
+<!-- 1 OVERVIEW -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Overview</h1>
+    <div class="two">
+      <div>
+        <table>
+          <tr><th style="width:38%">Category</th><td>Teamwear / training jersey</td></tr>
+          <tr><th>Silhouette</th><td>Short sleeve, set-in sleeve, crew neck (C01), straight hem</td></tr>
+          <tr><th>Fit</th><td>Regular fit, unisex adult</td></tr>
+          <tr><th>Size range</th><td>XS – 3XL (base M)</td></tr>
+          <tr><th>Production class</th><td>A: sublimated on demand, from 1 piece</td></tr>
+          <tr><th>Main fabric</th><td>F-POLY-INT 100% polyester interlock 140–160 gsm, white, sublimation-ready <span class="tag input">factory to confirm</span></td></tr>
+          <tr><th>Decoration</th><td>Full dye sublimation (all panels), names and numbers in the same pass</td></tr>
+          <tr><th>HS code / origin</th><td>6110.30 / Pakistan</td></tr>
+          <tr><th>Factory</th><td class="blank"></td></tr>
+          <tr><th>Status</th><td>Draft for factory review: the factory's pattern master and production manager confirm or correct every value, then sign page 17</td></tr>
+        </table>
+        <h2>Key construction features</h2>
+        <ul class="tight">
+          <li>Shoulder, sleeve and side seams: 4-thread overlock (ISO 514), 12–14 SPI.</li>
+          <li>Crew neck: 1x1 rib, 20 mm finished, CB join, back neck taped and coverstitched.</li>
+          <li>Hems: 2-needle coverstitch (ISO 406); body 25 mm, sleeve 20 mm.</li>
+          <li>Labels: heat-transfer neck label; care label in wearer's left side seam, 80 mm above hem.</li>
+          <li>Panels printed oversize with 10 mm bleed, cut flat after pressing; left and right sleeves cut separately.</li>
+        </ul>
+        <p class="cap">Legend for value sources: <span class="tag base">from base</span> <span class="tag design">from design</span> <span class="tag input">needs input</span></p>
+      </div>
+      <div>
+        <div class="two" style="gap:2mm">
+          <div><svg class="flat" viewBox="20 20 360 340"><use href="#front-outline" fill="var(--accent)"/><use href="#sleeve-l" fill="var(--gold)"/><use href="#sleeve-r" fill="var(--gold)"/><use href="#front-seams" stroke="#fff"/></svg><div class="cap">Front · illustration (Home colourway)</div></div>
+          <div><svg class="flat" viewBox="20 20 360 340"><use href="#back-outline" fill="var(--accent)"/><use href="#sleeve-l" fill="var(--gold)"/><use href="#sleeve-r" fill="var(--gold)"/><use href="#back-seams" stroke="#fff"/><text x="200" y="88" text-anchor="middle" font-size="20" font-weight="700" fill="var(--gold)">SMITH</text><text x="200" y="185" text-anchor="middle" font-size="90" font-weight="700" fill="var(--gold)">7</text></svg><div class="cap">Back · illustration</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1 · Knitwright Production Package</span><span>Page 1 of 17</span></footer>
+</section>
+
+<!-- 2 TECHNICAL FLATS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Technical flats · black &amp; white</h1>
+    <div class="two">
+      <div><svg class="flat" style="height:150mm" viewBox="20 20 360 340"><use href="#front-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#front-seams"/></svg><div class="cap">FRONT · solid = seam / edge, dashed = coverstitch</div></div>
+      <div><svg class="flat" style="height:150mm" viewBox="20 20 360 340"><use href="#back-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#back-seams"/></svg><div class="cap">BACK · back neck tape coverstitched</div></div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 2 of 17</span></footer>
+</section>
+
+<!-- 3 COLOUR VIEWS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Colour views</h1>
+    <p class="note">In the platform this page shows deterministic 3D renders of the design version, labelled "render, not photo". For a base-article pack it shows the default colourway on the flats.</p>
+    <div class="grid3">
+      <div><svg class="flat" style="height:95mm" viewBox="20 20 360 340"><use href="#front-outline" fill="var(--accent)"/><use href="#sleeve-l" fill="var(--gold)"/><use href="#sleeve-r" fill="var(--gold)"/><use href="#front-seams" stroke="#fff"/></svg><div class="cap">Home · front</div></div>
+      <div><svg class="flat" style="height:95mm" viewBox="20 20 360 340"><use href="#front-outline" fill="#ffffff" stroke="#999"/><use href="#sleeve-l" fill="var(--accent)"/><use href="#sleeve-r" fill="var(--accent)"/><use href="#front-seams"/></svg><div class="cap">Away · front</div></div>
+      <div><svg class="flat" style="height:95mm" viewBox="20 20 360 340"><use href="#front-outline" fill="#1a7f37"/><use href="#front-seams" stroke="#fff"/></svg><div class="cap">Goalkeeper · front</div></div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 3 of 17</span></footer>
+</section>
+
+<!-- 4 BOM -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Bill of materials</h1>
+    <table>
+      <tr><th>#</th><th>Category</th><th>Description</th><th>Fibre / material</th><th>Weight / GSM</th><th>Colour / Pantone</th><th>Supplier code</th><th>Consumption (M)</th><th>Notes</th></tr>
+      <tr><td>01</td><td>Fabric</td><td>Body fabric, all printed panels</td><td>F-POLY-INT 100% polyester interlock</td><td>140–160</td><td>White, sublimated</td><td class="blank"></td><td>0.80 m @ 180 cm</td><td><span class="tag input">factory confirms from marker</span></td></tr>
+      <tr><td>02</td><td>Fabric</td><td>Neck rib (C01) / cuffs (K02)</td><td>F-POLY-RIB 95/5 poly/elastane 1x1 rib</td><td>220</td><td>White, sublimated, or stock colour</td><td class="blank"></td><td>0.05 m</td><td></td></tr>
+      <tr><td>03</td><td>Thread</td><td>Needle thread</td><td>Poly core-spun Tex 27 (Tkt 120)</td><td></td><td>Match dominant colour</td><td class="blank"></td><td>60 m</td><td><span class="tag input">placeholder</span></td></tr>
+      <tr><td>04</td><td>Thread</td><td>Looper thread</td><td>Textured polyester Tex 18</td><td></td><td>Match dominant colour</td><td class="blank"></td><td>110 m</td><td><span class="tag input">placeholder</span></td></tr>
+      <tr><td>05</td><td>Trim</td><td>Back neck tape</td><td>Polyester twill tape 10 mm</td><td></td><td>White or match</td><td class="blank"></td><td>0.20 m</td><td></td></tr>
+      <tr><td>06</td><td>Label</td><td>Neck label, heat transfer</td><td>Heat-transfer film</td><td></td><td>Contrast to ground</td><td class="blank"></td><td>1 pc</td><td>Size, brand, "Made in Pakistan"</td></tr>
+      <tr><td>07</td><td>Label</td><td>Care and fibre label</td><td>Printed polyester satin 30 × 60 mm</td><td></td><td>White</td><td class="blank"></td><td>1 pc</td><td>Per market (UK / AU)</td></tr>
+      <tr><td>08</td><td>Packaging</td><td>Polybag</td><td>Recycled LDPE 30 × 40 cm, suffocation warning, size sticker</td><td></td><td>Clear</td><td class="blank"></td><td>1 pc</td><td></td></tr>
+      <tr><td>09</td><td>Process</td><td>Sublimation transfer paper and ink</td><td>Factory standard</td><td></td><td></td><td class="blank"></td><td>≈ 1.6 m² paper</td><td>For costing only</td></tr>
+    </table>
+    <p class="cap">Shaded cells: factory to fill in. No value may stay blank or "TBC" when the base article goes live.</p>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 4 of 17</span></footer>
+</section>
+
+<!-- 5 CONSTRUCTION DETAILS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Construction details</h1>
+    <table>
+      <tr><th>#</th><th>Seam / area</th><th>Operation</th><th>Stitches</th><th>Seam allowance</th><th>Rule</th><th>Factory comment</th></tr>
+      <tr><td>1</td><td>Shoulder seams</td><td>4-thread overlock (ISO 514); back neck to shoulder taped with 10 mm poly tape</td><td>12–14 SPI</td><td>6 mm</td><td>R-CON-001</td><td class="blank"></td></tr>
+      <tr><td>2</td><td>Neck (C01)</td><td>Rib joined into a loop (6 mm seam), quartered, attached with 4-thread overlock, join at CB</td><td>12–14 SPI</td><td>6 mm</td><td>R-CON-004</td><td class="blank"></td></tr>
+      <tr><td>3</td><td>Back neck</td><td>Neck seam covered with tape, 2-needle coverstitch (ISO 406)</td><td>10–12 SPI</td><td>–</td><td>R-CON-002</td><td class="blank"></td></tr>
+      <tr><td>4</td><td>Sleeve attach</td><td>4-thread overlock, sleeve set flat before side seams, notches matched</td><td>12–14 SPI</td><td>6 mm</td><td>R-CON-001</td><td class="blank"></td></tr>
+      <tr><td>5</td><td>Side + underarm</td><td>4-thread overlock, one continuous seam hem to sleeve hem, underarm seams matched</td><td>12–14 SPI</td><td>6 mm</td><td>R-CON-003</td><td class="blank"></td></tr>
+      <tr><td>6</td><td>Sleeve hem (K01)</td><td>20 mm turn-up, 2-needle coverstitch, 6.4 mm gauge</td><td>10–12 SPI</td><td>20 mm</td><td>R-CON-007</td><td class="blank"></td></tr>
+      <tr><td>7</td><td>Body hem</td><td>25 mm turn-up, 2-needle coverstitch, 6.4 mm gauge</td><td>10–12 SPI</td><td>25 mm</td><td>R-CON-007</td><td class="blank"></td></tr>
+      <tr><td>8</td><td>Care label</td><td>Inserted in the wearer's left side seam, 80 mm above hem</td><td>–</td><td>–</td><td>R-LAB-002</td><td class="blank"></td></tr>
+      <tr><td>9</td><td>Neck label</td><td>Heat-transfer neck label inside back neck; no sewn neck label</td><td>–</td><td>–</td><td>R-LAB-001</td><td class="blank"></td></tr>
+    </table>
+    <h2>Thread</h2>
+    <p>Needle: polyester core-spun Tex 27 (Tkt 120). Looper: textured polyester Tex 18. Colour matched to the dominant print colour, or white. (R-CON-009)</p>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 5 of 17</span></footer>
+</section>
+
+<!-- 6 CONSTRUCTION ANNOTATIONS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Construction annotations</h1>
+    <div class="two">
+      <div>
+        <svg class="flat" style="height:145mm" viewBox="10 10 380 350">
+          <use href="#front-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#front-seams"/>
+          <g font-size="11" font-weight="700" fill="#fff">
+            <circle cx="130" cy="38" r="8" fill="#c00"/><text x="130" y="42" text-anchor="middle">1</text>
+            <circle cx="200" cy="90" r="8" fill="#c00"/><text x="200" y="94" text-anchor="middle">2</text>
+            <circle cx="82" cy="98" r="8" fill="#c00"/><text x="82" y="102" text-anchor="middle">4</text>
+            <circle cx="322" cy="250" r="8" fill="#c00"/><text x="322" y="254" text-anchor="middle">5</text>
+            <circle cx="48" cy="150" r="8" fill="#c00"/><text x="48" y="154" text-anchor="middle">6</text>
+            <circle cx="200" cy="325" r="8" fill="#c00"/><text x="200" y="329" text-anchor="middle">7</text>
+            <circle cx="300" cy="312" r="8" fill="#c00"/><text x="300" y="316" text-anchor="middle">8</text>
+          </g>
+          <path d="M310,312 L305,312" stroke="#c00"/>
+        </svg>
+        <div class="cap">Front</div>
+      </div>
+      <div>
+        <svg class="flat" style="height:92mm" viewBox="10 10 380 350">
+          <use href="#back-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#back-seams"/>
+          <g font-size="11" font-weight="700" fill="#fff">
+            <circle cx="200" cy="74" r="8" fill="#c00"/><text x="200" y="78" text-anchor="middle">3</text>
+            <circle cx="200" cy="26" r="8" fill="#c00"/><text x="200" y="30" text-anchor="middle">9</text>
+          </g>
+        </svg>
+        <table>
+          <tr><th>#</th><th>Detail</th></tr>
+          <tr><td>1</td><td>Shoulder seam: 4-thread overlock, taped at back neck</td></tr>
+          <tr><td>2</td><td>Crew neck: 1x1 rib 20 mm, overlocked, CB join</td></tr>
+          <tr><td>3</td><td>Back neck: tape + 2-needle coverstitch</td></tr>
+          <tr><td>4</td><td>Sleeve attach: 4-thread overlock, notches matched</td></tr>
+          <tr><td>5</td><td>Side + underarm: continuous 4-thread overlock</td></tr>
+          <tr><td>6</td><td>Sleeve hem: 20 mm, 2-needle coverstitch</td></tr>
+          <tr><td>7</td><td>Body hem: 25 mm, 2-needle coverstitch</td></tr>
+          <tr><td>8</td><td>Care label: wearer's left side seam, 80 mm above hem</td></tr>
+          <tr><td>9</td><td>Heat-transfer neck label, inside back neck</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 6 of 17</span></footer>
+</section>
+
+<!-- 7 MEASUREMENT ANNOTATION -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Measurement annotation · base size M</h1>
+    <div class="two">
+      <svg class="flat" style="height:150mm" viewBox="0 0 400 370">
+        <use href="#front-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#front-seams" stroke="#999"/>
+        <g stroke="#c00" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)" fill="none">
+          <line x1="90" y1="156" x2="310" y2="156"/>
+          <line x1="150" y1="40" x2="150" y2="345"/>
+          <line x1="102" y1="14" x2="298" y2="14"/>
+          <line x1="96" y1="52" x2="30" y2="109"/>
+          <line x1="66" y1="160" x2="92" y2="132"/>
+          <line x1="38" y1="124" x2="76" y2="168"/>
+          <line x1="338" y1="40" x2="338" y2="146"/>
+          <line x1="162" y1="32" x2="238" y2="32"/>
+          <line x1="215" y1="40" x2="215" y2="76"/>
+          <line x1="90" y1="356" x2="310" y2="356"/>
+        </g>
+        <g font-size="12" font-weight="700" fill="#c00">
+          <text x="250" y="152">A</text><text x="154" y="250">B</text><text x="120" y="11">C</text><text x="52" y="72">D</text>
+          <text x="60" y="140">E</text><text x="40" y="160">F</text><text x="344" y="98">G</text><text x="242" y="30">H</text>
+          <text x="219" y="62">I</text><text x="195" y="368">K</text>
+        </g>
+      </svg>
+      <div>
+        <table>
+          <tr><th>POM</th><th>Description</th><th class="n">M (mm)</th><th class="n">Tol ±</th><th>How to measure</th></tr>
+          <tr><td>A</td><td>Chest width, half</td><td class="n">520</td><td class="n">10</td><td>Flat, 25 mm below armhole, side to side</td></tr>
+          <tr><td>B</td><td>Body length, front</td><td class="n">720</td><td class="n">10</td><td>HPS straight down to hem edge</td></tr>
+          <tr><td>C</td><td>Across shoulder</td><td class="n">460</td><td class="n">7</td><td>Shoulder seam to shoulder seam</td></tr>
+          <tr><td>D</td><td>Sleeve length</td><td class="n">210</td><td class="n">7</td><td>Shoulder point to sleeve hem, along top</td></tr>
+          <tr><td>E</td><td>Bicep, half</td><td class="n">195</td><td class="n">5</td><td>25 mm below armhole, perpendicular to sleeve fold</td></tr>
+          <tr><td>F</td><td>Sleeve opening, half</td><td class="n">170</td><td class="n">5</td><td>Flat across hem edge</td></tr>
+          <tr><td>G</td><td>Armhole depth</td><td class="n">250</td><td class="n">7</td><td>HPS level straight down to underarm</td></tr>
+          <tr><td>H</td><td>Neck width</td><td class="n">180</td><td class="n">5</td><td>Seam to seam at HPS</td></tr>
+          <tr><td>I</td><td>Front neck drop</td><td class="n">85</td><td class="n">5</td><td>HPS line to CF neck seam</td></tr>
+          <tr><td>J</td><td>Back neck drop</td><td class="n">20</td><td class="n">3</td><td>HPS line to CB neck seam</td></tr>
+          <tr><td>K</td><td>Hem width, half</td><td class="n">520</td><td class="n">10</td><td>Flat across hem edge</td></tr>
+          <tr><td>L</td><td>Neck rib height</td><td class="n">20</td><td class="n">2</td><td>Finished, seam to edge</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 7 of 17</span></footer>
+</section>
+
+<!-- 8 SIZE GRADING -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Size grading (mm)</h1>
+    <table>
+      <tr><th>POM</th><th>Description</th><th>Grade type</th><th class="n">Grade</th><th class="n">Tol ±</th><th class="n">XS</th><th class="n">S</th><th class="n" style="background:#e8eefc">M (base)</th><th class="n">L</th><th class="n">XL</th><th class="n">2XL</th><th class="n">3XL</th></tr>
+      <tr><td>A</td><td>Chest width, half</td><td>Linear</td><td class="n">30</td><td class="n">10</td><td class="n">460</td><td class="n">490</td><td class="n">520</td><td class="n">550</td><td class="n">580</td><td class="n">610</td><td class="n">640</td></tr>
+      <tr><td>B</td><td>Body length, front</td><td>Linear</td><td class="n">20</td><td class="n">10</td><td class="n">680</td><td class="n">700</td><td class="n">720</td><td class="n">740</td><td class="n">760</td><td class="n">780</td><td class="n">800</td></tr>
+      <tr><td>C</td><td>Across shoulder</td><td>Linear</td><td class="n">15</td><td class="n">7</td><td class="n">430</td><td class="n">445</td><td class="n">460</td><td class="n">475</td><td class="n">490</td><td class="n">505</td><td class="n">520</td></tr>
+      <tr><td>D</td><td>Sleeve length</td><td>Linear</td><td class="n">10</td><td class="n">7</td><td class="n">190</td><td class="n">200</td><td class="n">210</td><td class="n">220</td><td class="n">230</td><td class="n">240</td><td class="n">250</td></tr>
+      <tr><td>E</td><td>Bicep, half</td><td>Linear</td><td class="n">10</td><td class="n">5</td><td class="n">175</td><td class="n">185</td><td class="n">195</td><td class="n">205</td><td class="n">215</td><td class="n">225</td><td class="n">235</td></tr>
+      <tr><td>F</td><td>Sleeve opening, half</td><td>Linear</td><td class="n">10</td><td class="n">5</td><td class="n">150</td><td class="n">160</td><td class="n">170</td><td class="n">180</td><td class="n">190</td><td class="n">200</td><td class="n">210</td></tr>
+      <tr><td>G</td><td>Armhole depth</td><td>Linear</td><td class="n">10</td><td class="n">7</td><td class="n">230</td><td class="n">240</td><td class="n">250</td><td class="n">260</td><td class="n">270</td><td class="n">280</td><td class="n">290</td></tr>
+      <tr><td>H</td><td>Neck width</td><td>Linear</td><td class="n">5</td><td class="n">5</td><td class="n">170</td><td class="n">175</td><td class="n">180</td><td class="n">185</td><td class="n">190</td><td class="n">195</td><td class="n">200</td></tr>
+      <tr><td>I</td><td>Front neck drop</td><td>Linear</td><td class="n">3</td><td class="n">5</td><td class="n">79</td><td class="n">82</td><td class="n">85</td><td class="n">88</td><td class="n">91</td><td class="n">94</td><td class="n">97</td></tr>
+      <tr><td>J</td><td>Back neck drop</td><td>Fixed</td><td class="n">0</td><td class="n">3</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td></tr>
+      <tr><td>K</td><td>Hem width, half</td><td>Linear</td><td class="n">30</td><td class="n">10</td><td class="n">460</td><td class="n">490</td><td class="n">520</td><td class="n">550</td><td class="n">580</td><td class="n">610</td><td class="n">640</td></tr>
+      <tr><td>L</td><td>Neck rib height</td><td>Fixed</td><td class="n">0</td><td class="n">2</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td><td class="n">20</td></tr>
+    </table>
+    <p class="note">Draft values from Knitwright. Where the factory's proven block differs, the factory's values win: write them on this page and Knitwright updates article.json and redrafts the pattern.</p>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 8 of 17</span></footer>
+</section>
+
+<!-- 9 PATTERN PIECES -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Pattern pieces · size M (overview, not to scale)</h1>
+    <img class="pattern-img" src="../pattern/JSY-SS-01_M.svg" alt="Pattern pieces size M: front, back, sleeve, neck rib">
+    <table style="margin-top:3mm">
+      <tr><th>Piece</th><th>Cut</th><th>Fabric</th><th>Notches</th><th>Files (1:1)</th></tr>
+      <tr><td>Front</td><td>1, flat</td><td>F-POLY-INT</td><td>CF neck, CF hem, 1 per armhole</td><td rowspan="4">pattern/JSY-SS-01_&lt;size&gt;.svg and .dxf for XS–3XL; graded nest JSY-SS-01_nest.svg; measurements check in pattern/pattern-report.md</td></tr>
+      <tr><td>Back</td><td>1, flat</td><td>F-POLY-INT</td><td>CB neck, CB hem, 2 per armhole</td></tr>
+      <tr><td>Sleeve</td><td>2 (left + right printed separately)</td><td>F-POLY-INT</td><td>Top (shoulder), 1 front, 2 back</td></tr>
+      <tr><td>Neck rib C01</td><td>1, folded</td><td>F-POLY-RIB</td><td>Quarters</td></tr>
+    </table>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 9 of 17</span></footer>
+</section>
+
+<!-- 10 GRAPHICS & PRINTS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Graphics &amp; print files</h1>
+    <table>
+      <tr><th style="width:28%">Item</th><th>Specification</th><th>Rule</th></tr>
+      <tr><td>Method</td><td>Dye sublimation on transfer paper, heat press, then cut</td><td>R-SUB-001</td></tr>
+      <tr><td>File per panel per size</td><td>PDF/X-4, 1:1, 150 DPI embedded raster (vectors kept), sRGB, <b>not mirrored</b> (the RIP mirrors)</td><td>R-SUB-003</td></tr>
+      <tr><td>Bleed</td><td>10 mm beyond the cut line on every panel</td><td>R-SUB-002</td></tr>
+      <tr><td>Press shrink allowance</td><td>Print oversize by 1.5% length / 1.0% width <span class="tag input">factory measures per fabric batch</span></td><td>R-SUB-006</td></tr>
+      <tr><td>Seam safe zone</td><td>Crests, numbers and text at least 15 mm from any seam line; artwork crossing seams may offset up to 3 mm</td><td>R-SUB-004</td></tr>
+      <tr><td>Fine detail</td><td>Minimum line 0.5 mm, minimum text 6 pt (2 mm cap height)</td><td>R-SUB-007</td></tr>
+      <tr><td>Black</td><td>Use the factory's rich black recipe ("Kit black"), not 0/0/0</td><td>R-SUB-008</td></tr>
+      <tr><td>File naming</td><td>&lt;order|SAMPLE&gt;_JSY-SS-01_&lt;panel&gt;_&lt;size&gt;.pdf, e.g. SAMPLE_JSY-SS-01_back_M.pdf</td><td>–</td></tr>
+      <tr><td>Factory: format you prefer</td><td class="blank">PDF / TIFF / CDR / other: ________ &nbsp; DPI: ____ &nbsp; Colour profile: ________</td><td>–</td></tr>
+    </table>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 10 of 17</span></footer>
+</section>
+
+<!-- 11 PRINT PLACEMENT -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Print placement · size M</h1>
+    <div class="two">
+      <svg class="flat" style="height:145mm" viewBox="20 20 360 340">
+        <use href="#front-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#front-seams" stroke="#bbb"/>
+        <rect x="225.2" y="86.6" width="29.6" height="33.8" fill="rgba(11,31,75,.12)" stroke="#0b1f4b" stroke-dasharray="3 2"/>
+        <text x="240" y="106" text-anchor="middle" font-size="8">CREST</text>
+        <rect x="147.1" y="133.1" width="105.8" height="33.8" fill="rgba(242,183,5,.18)" stroke="#b07f00" stroke-dasharray="3 2"/>
+        <text x="200" y="153" text-anchor="middle" font-size="8">MAIN SPONSOR</text>
+        <line x1="200" y1="40" x2="200" y2="345" stroke="#c00" stroke-width="0.5" stroke-dasharray="2 2"/>
+        <text x="203" y="340" font-size="7" fill="#c00">CF</text>
+      </svg>
+      <div>
+        <table>
+          <tr><th>Graphic</th><th>Panel</th><th class="n">Box W × H (mm)</th><th>Box centre</th><th>By size</th></tr>
+          <tr><td>Crest</td><td>Front, wearer's left chest</td><td class="n">70 × 80</td><td>95 mm from CF, 150 mm below HPS</td><td>Fixed size</td></tr>
+          <tr><td>Main sponsor</td><td>Front, centre chest</td><td class="n">250 × 80</td><td>On CF, 260 mm below HPS</td><td>Fixed size</td></tr>
+          <tr><td>Sleeve sponsor</td><td>Sleeve, centre</td><td class="n">80 × 80</td><td>On sleeve centre line, 60 mm below cap top</td><td>Fixed size</td></tr>
+        </table>
+        <p class="cap" style="text-align:left">Positions are measured on the finished garment at size M. For other sizes, fixed-size graphics keep their distance from CF and HPS; background patterns scale with the panel.</p>
+      </div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 11 of 17</span></footer>
+</section>
+
+<!-- 12 PERSONALISATION -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Personalisation · names and numbers</h1>
+    <div class="two">
+      <svg class="flat" style="height:145mm" viewBox="20 20 360 340">
+        <use href="#back-outline" fill="#fff" stroke="#111" stroke-width="1.2"/><use href="#back-seams" stroke="#bbb"/>
+        <rect x="150" y="69.6" width="100" height="25.4" fill="none" stroke="#c00" stroke-dasharray="3 2"/>
+        <text x="200" y="88" text-anchor="middle" font-size="18" font-weight="700">SMITH</text>
+        <rect x="150" y="103.5" width="100" height="93" fill="none" stroke="#c00" stroke-dasharray="3 2"/>
+        <text x="200" y="185" text-anchor="middle" font-size="90" font-weight="700">7</text>
+      </svg>
+      <table>
+        <tr><th>Zone</th><th>Size</th><th>Position</th><th>Rule</th></tr>
+        <tr><td>Back name</td><td>60 mm cap height, max 12 characters</td><td>Top 70 mm below back neck, centred</td><td>R-PER-001</td></tr>
+        <tr><td>Back number</td><td>220 mm high</td><td>Top 150 mm below back neck, centred</td><td>R-PER-002</td></tr>
+        <tr><td>Front number</td><td>100 mm high (optional)</td><td>Centre chest or wearer's right chest</td><td>R-PER-003</td></tr>
+        <tr><td>Method</td><td colspan="2">Printed in the same sublimation pass; one print file per player; list in names_numbers.csv</td><td>R-PER-004</td></tr>
+        <tr><td>Font</td><td colspan="2">kw-block-01 (licensed), optional outline in a contrast colour</td><td>–</td></tr>
+      </table>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 12 of 17</span></footer>
+</section>
+
+<!-- 13 LABELS & PACKAGING -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Labels &amp; packaging</h1>
+    <table>
+      <tr><th>Item</th><th>Position</th><th>Content</th><th>Rule</th></tr>
+      <tr><td>Neck label (heat transfer)</td><td>Inside back neck, centred, 20 mm below neck seam</td><td>Brand logo, size, "Made in Pakistan"</td><td>R-LAB-001</td></tr>
+      <tr><td>Care &amp; fibre label (UK)</td><td>Wearer's left side seam, 80 mm above hem</td><td>"100% Polyester"; care symbols: wash 30 °C, do not bleach, do not tumble dry, do not iron print, do not dry clean; "Made in Pakistan"; size; brand/importer name and address</td><td>R-LAB-002</td></tr>
+      <tr><td>Care &amp; fibre label (AU)</td><td>Same</td><td>"100% Polyester"; care instructions in words; "Made in Pakistan"; size</td><td>R-LAB-002</td></tr>
+      <tr><td>Fold</td><td>–</td><td>Front facing out, sleeves folded behind, 25 × 30 cm folded size</td><td>–</td></tr>
+      <tr><td>Polybag</td><td>–</td><td>Recycled LDPE 30 × 40 cm, suffocation warning, size sticker with order no. and player name</td><td>–</td></tr>
+      <tr><td>Carton</td><td>–</td><td>Packed per order; one bag per player; pack list on top</td><td>–</td></tr>
+    </table>
+    <p class="note">Label wording is a draft. It must be confirmed in the legal consultation (Phase 0, task 0.6) before the first order.</p>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 13 of 17</span></footer>
+</section>
+
+<!-- 14 COLOURWAYS -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Colourways (example design on this base)</h1>
+    <table>
+      <tr><th>Colourway</th><th>Fabric</th><th>Colour role</th><th>Hex</th><th>Pantone TCX</th><th>Swatch ID</th><th>Tolerance</th></tr>
+      <tr><td rowspan="2">Home</td><td rowspan="2">F-POLY-INT</td><td><span class="swatch" style="background:#0b1f4b"></span>Primary (body)</td><td>#0B1F4B</td><td>19-4024 TCX</td><td class="blank"></td><td>ΔE CMC(2:1) ≤ 1.5</td></tr>
+      <tr><td><span class="swatch" style="background:#f2b705"></span>Secondary (sleeves, name, number)</td><td>#F2B705</td><td>14-0957 TCX (approx.)</td><td class="blank"></td><td>ΔE CMC(2:1) ≤ 1.5</td></tr>
+      <tr><td rowspan="2">Away</td><td rowspan="2">F-POLY-INT</td><td><span class="swatch" style="background:#fff"></span>Primary (body)</td><td>#FFFFFF</td><td>Fabric white (not printed)</td><td>–</td><td>–</td></tr>
+      <tr><td><span class="swatch" style="background:#0b1f4b"></span>Secondary (sleeves)</td><td>#0B1F4B</td><td>19-4024 TCX</td><td class="blank"></td><td>ΔE CMC(2:1) ≤ 1.5</td></tr>
+    </table>
+    <p class="cap" style="text-align:left">Pantone references are approximate until the strike-off is measured. The printed strike-off is the colour standard (R-SUB-005).</p>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 14 of 17</span></footer>
+</section>
+
+<!-- 15 QC -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>QC checklist</h1>
+    <div class="two">
+      <div>
+        <h2>Sampling</h2>
+        <p>Class A (from 1 piece): 100% inspection. Runs: AQL 0 critical / 2.5 major / 4.0 minor, general inspection level II (ISO 2859-1). (R-QC-001)</p>
+        <h2>Measure</h2>
+        <p>POM A, B, C, D, E, H, I against page 8 tolerances. Outside tolerance = major defect.</p>
+        <h2>Colour</h2>
+        <p>Each colour role vs the strike-off, ΔE CMC(2:1) ≤ 1.5. Record the reading.</p>
+        <h2>Photos for every order</h2>
+        <p>Front · back · neck label · care label · side-seam close-up · print-edge close-up.</p>
+      </div>
+      <div>
+        <table>
+          <tr><th>Check</th><th>Defect class</th></tr>
+          <tr><td>Print alignment across shoulder and side seams within 3 mm (R-QC-002)</td><td>Major</td></tr>
+          <tr><td>White creases, ghosting or blurred print edges</td><td>Major</td></tr>
+          <tr><td>Names and numbers match the roster, correct size and position</td><td>Critical</td></tr>
+          <tr><td>Neck rib lies flat, no ripple; CB join centred</td><td>Major</td></tr>
+          <tr><td>Hems flat, no waving or tunnelling</td><td>Minor</td></tr>
+          <tr><td>Seams: no skipped stitches, no open seams</td><td>Major</td></tr>
+          <tr><td>Loose threads over 10 mm</td><td>Minor</td></tr>
+          <tr><td>Labels present and correct for destination market</td><td>Major</td></tr>
+          <tr><td>Stains, holes, needle damage</td><td>Major</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 15 of 17</span></footer>
+</section>
+
+<!-- 16 REFERENCE IMAGES -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Reference images</h1>
+    <p>After the sample is approved, photos of the golden sample replace these placeholders. Until then, the factory may attach photos of its own existing jersey on this block.</p>
+    <div class="grid3">
+      <div class="photo">Golden sample · front</div>
+      <div class="photo">Golden sample · back</div>
+      <div class="photo">Neck rib close-up</div>
+      <div class="photo">Side seam + care label</div>
+      <div class="photo">Fabric swatch F-POLY-INT</div>
+      <div class="photo">Rib swatch F-POLY-RIB</div>
+    </div>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 16 of 17</span></footer>
+</section>
+
+<!-- 17 FACTORY SIGN-OFF -->
+<section class="page">
+  <header class="hb"><div>Knitwright · Tech pack</div><div><b>Style name</b>Short-sleeve jersey</div><div><b>Style #</b>JSY-SS-01</div><div><b>Season</b>Base article</div><div><b>Base size</b>M</div><div><b>Version</b>0.1 draft</div><div><b>Date</b>25 Oct 2026</div></header>
+  <div class="content">
+    <h1>Factory sign-off</h1>
+    <div class="two">
+      <div>
+        <table class="sign">
+          <tr><th style="width:44%">Item</th><th>Approved</th><th>Change requested (write the new value)</th></tr>
+          <tr><td>Fabric F-POLY-INT (blend, GSM, supplier)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Rib F-POLY-RIB</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Pattern vs your master (differences over 2 mm)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Grading (page 8)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Construction and seam allowances (page 5)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Pattern format used: DXF / SVG / PDF</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Print file format, bleed, shrink % (page 10)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Colour tolerance you can hold (ΔE)</td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Labels and packaging (page 13)</td><td class="blank"></td><td class="blank"></td></tr>
+        </table>
+      </div>
+      <div>
+        <table class="sign">
+          <tr><th>Commercial</th><th class="n">1 pc (weekly slot)</th><th class="n">50</th><th class="n">100</th><th class="n">300</th></tr>
+          <tr><td>Unit price (USD, FOB)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Names + numbers per piece</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Lead time (working days)</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+        </table>
+        <table class="sign" style="margin-top:3mm">
+          <tr><th>Weekly Class A capacity (pieces)</th><td class="blank"></td><th>Sample cost / days</th><td class="blank"></td></tr>
+        </table>
+        <table class="sign" style="margin-top:3mm">
+          <tr><th>Role</th><th>Name</th><th>Signature</th><th>Date</th></tr>
+          <tr><td>Pattern master</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Production manager</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+          <tr><td>Knitwright</td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+        </table>
+      </div>
+    </div>
+    <h2>Sample measurements (fill in after sewing sizes S, M and XL)</h2>
+    <table class="sign">
+      <tr><th>Size</th><th>A chest</th><th>B length</th><th>C shoulder</th><th>D sleeve</th><th>E bicep</th><th>H neck w.</th><th>I neck drop</th><th>ΔE primary</th><th>ΔE secondary</th></tr>
+      <tr><td>S</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>M</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+      <tr><td>XL</td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td><td class="blank"></td></tr>
+    </table>
+  </div>
+  <footer class="fb"><span>JSY-SS-01 · v0.1</span><span>Page 17 of 17</span></footer>
+</section>
+
+</body>
+</html>
