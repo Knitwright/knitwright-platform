@@ -1,4 +1,5 @@
 import { BUNDLED_ARTICLES, type ArticleDefinition, type ArticleSource } from "./article";
+import { SEEDED_DRAFT_CONSTANTS, type DraftConstantsSource } from "./constants";
 import { JSY_SS_01 } from "./jsy-ss-01";
 import { resolveInput } from "./params";
 import type { ArticleScript } from "./script";
@@ -9,24 +10,30 @@ export const ARTICLE_SCRIPTS: readonly ArticleScript[] = [JSY_SS_01];
 
 export const scriptFor = (code: string): ArticleScript | null => ARTICLE_SCRIPTS.find((s) => s.code === code) ?? null;
 
+/** Where the drafter reads an article and the constants it is drawn with. */
+export type DraftSources = Readonly<{ articles?: ArticleSource; constants?: DraftConstantsSource }>;
+
 const notDrafted = (articleCode: string, reason: string, ruleId: string | null = null) =>
   ({ kind: "not-drafted-yet", articleCode, reason, ruleId }) as const;
 
 /**
  * Drafts one size of a base article. The outcome is the pieces, "not drafted yet" with the reason
- * (no script, no article data, or an option or parameter whose shape the article does not define),
- * or "invalid" with a finding per value the article does not offer. Nothing is guessed or clamped.
+ * (no script, no article data, no drafting constants, or an option or parameter whose shape the
+ * article does not define), or "invalid" with a finding per value the article does not offer.
+ * Nothing is guessed or clamped.
  */
-export function draftArticle(code: string, size: string, input: DraftInput = {}, source: ArticleSource = BUNDLED_ARTICLES): DraftOutcome {
+export function draftArticle(code: string, size: string, input: DraftInput = {}, sources: DraftSources = {}): DraftOutcome {
   const script = scriptFor(code);
   if (!script) return notDrafted(code, `${NOT_DRAFTED_YET}: there is no drafting script for ${code}.`);
-  const article = source.get(code);
+  const article = (sources.articles ?? BUNDLED_ARTICLES).get(code);
   if (!article) return notDrafted(code, `${NOT_DRAFTED_YET}: the article data for ${code} is not available.`);
+  const constants = (sources.constants ?? SEEDED_DRAFT_CONSTANTS).get(code);
+  if (!constants) return notDrafted(code, `${NOT_DRAFTED_YET}: there are no drafting constants on file for ${code}.`);
   const resolved = resolveInput(article, size, input);
   if (!resolved.ok) return { kind: "invalid", articleCode: code, findings: resolved.findings };
-  const stop = script.gate(article, resolved.input);
+  const stop = script.gate(article, resolved.input, constants);
   if (stop) return notDrafted(code, `${NOT_DRAFTED_YET}: ${stop.reason}`, stop.ruleId);
-  return script.draft(article, size, resolved.input, resolved.warnings);
+  return script.draft(article, size, resolved.input, constants, resolved.warnings);
 }
 
 export type GradedOutcome =
@@ -36,13 +43,13 @@ export type GradedOutcome =
 type NotDrafted = Exclude<DraftOutcome, { kind: "drafted" }>;
 
 /** Every size of the article with the same parameters and options, in the article's size order. */
-export function draftAllSizes(code: string, input: DraftInput = {}, source: ArticleSource = BUNDLED_ARTICLES): GradedOutcome {
-  const article = scriptFor(code) ? source.get(code) : null;
+export function draftAllSizes(code: string, input: DraftInput = {}, sources: DraftSources = {}): GradedOutcome {
+  const article = scriptFor(code) ? (sources.articles ?? BUNDLED_ARTICLES).get(code) : null;
   // Without a script or article data, drafting any size gives the same "not drafted yet".
-  if (!article) return draftArticle(code, "", input, source) as NotDrafted;
+  if (!article) return draftArticle(code, "", input, sources) as NotDrafted;
   const drafts: ArticleDraft[] = [];
   for (const size of article.sizes) {
-    const outcome = draftArticle(code, size, input, source);
+    const outcome = draftArticle(code, size, input, sources);
     if (outcome.kind !== "drafted") return outcome;
     drafts.push(outcome.draft);
   }

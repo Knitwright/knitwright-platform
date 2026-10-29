@@ -102,13 +102,16 @@ export function offsetOutline(points: Polyline, allow: readonly number[]): Pt[] 
   );
 }
 
-/** A notch: a 5 mm slit cut in from the cut line, at an arc length along a curve drawn in sewing order. */
-export function notch(curve: Polyline, dist: number, allow: number): [Pt, Pt] {
+/**
+ * A notch: a slit `slit` mm long cut in from the cut line, at an arc length along a curve drawn in
+ * sewing order. How long the slit is is a drafting constant of the article, not of this helper.
+ */
+export function notch(curve: Polyline, dist: number, allow: number, slit: number): [Pt, Pt] {
   const r = at(curve, dist);
   const nx = r.d[1];
   const ny = -r.d[0];
   const cut: Pt = [r.p[0] + nx * allow, r.p[1] + ny * allow];
-  return [cut, [cut[0] - nx * 5, cut[1] - ny * 5]];
+  return [cut, [cut[0] - nx * slit, cut[1] - ny * slit]];
 }
 
 export type Box = Readonly<{ x0: number; x1: number; y0: number; y1: number }>;

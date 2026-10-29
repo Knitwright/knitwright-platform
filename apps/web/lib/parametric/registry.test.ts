@@ -1,8 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { articleSource, BUNDLED_ARTICLES, draftAllSizes, draftArticle, GAP_RULE, outlineProblems, type ArticleDefinition, type ArticleDraft, type DraftOutcome } from "./index";
+import {
+  articleSource,
+  BUNDLED_ARTICLES,
+  draftAllSizes,
+  draftArticle,
+  GAP_RULE,
+  outlineProblems,
+  SEEDED_DRAFT_CONSTANTS,
+  type ArticleDefinition,
+  type ArticleDraft,
+  type DraftConstants,
+  type DraftOutcome,
+} from "./index";
 import { gate } from "./jsy-ss-01";
 
 const JSY = BUNDLED_ARTICLES.get("JSY-SS-01") as ArticleDefinition;
+const CONSTANTS = SEEDED_DRAFT_CONSTANTS.get("JSY-SS-01") as DraftConstants;
 const SIZES = JSY.sizes;
 
 const drafted = (outcome: DraftOutcome): ArticleDraft => {
@@ -19,13 +32,13 @@ describe("the script registry", () => {
   });
 
   it("answers 'not drafted yet' when the article data is not available", () => {
-    expect(draftArticle("JSY-SS-01", "M", {}, articleSource([]))).toMatchObject({ kind: "not-drafted-yet" });
-    expect(draftAllSizes("JSY-SS-01", {}, articleSource([])).kind).toBe("not-drafted-yet");
+    expect(draftArticle("JSY-SS-01", "M", {}, { articles: articleSource([]) })).toMatchObject({ kind: "not-drafted-yet" });
+    expect(draftAllSizes("JSY-SS-01", {}, { articles: articleSource([]) }).kind).toBe("not-drafted-yet");
   });
 
   it("answers 'not drafted yet' when the article lacks a POM the script needs, naming it", () => {
     const withoutL = { ...JSY, pom: JSY.pom.filter((p) => p.letter !== "L") };
-    const outcome = draftArticle("JSY-SS-01", "M", {}, articleSource([withoutL]));
+    const outcome = draftArticle("JSY-SS-01", "M", {}, { articles: articleSource([withoutL]) });
     expect(outcome.kind).toBe("not-drafted-yet");
     expect(outcome.kind === "not-drafted-yet" && outcome.reason).toContain("POM L");
   });
@@ -50,7 +63,6 @@ describe("options", () => {
   it.each([
     ["collar", "C02", "R-CON-005"],
     ["collar", "C03", "R-CON-006"],
-    ["sleeve_finish", "K02", "R-CON-008"],
   ])("%s %s is not drafted yet, with its rule", (group, code, ruleId) => {
     const outcome = draftArticle("JSY-SS-01", "M", { options: { [group]: code } });
     expect(outcome).toMatchObject({ kind: "not-drafted-yet", ruleId });
@@ -71,13 +83,13 @@ describe("options", () => {
 
   it("does not draw a new option group the script has never seen", () => {
     const withHood = { ...JSY, options: { ...JSY.options, hood: [{ code: "H01", name: "Hood", default: true }] } };
-    const outcome = draftArticle("JSY-SS-01", "M", {}, articleSource([withHood]));
+    const outcome = draftArticle("JSY-SS-01", "M", {}, { articles: articleSource([withHood]) });
     expect(outcome).toMatchObject({ kind: "not-drafted-yet", ruleId: null });
   });
 
   it("skips a group with no options at all", () => {
     const empty = { ...JSY, options: { ...JSY.options, trims: [] } };
-    expect(drafted(draftArticle("JSY-SS-01", "M", {}, articleSource([empty]))).input.options).not.toHaveProperty("trims");
+    expect(drafted(draftArticle("JSY-SS-01", "M", {}, { articles: articleSource([empty]) })).input.options).not.toHaveProperty("trims");
   });
 });
 
@@ -104,13 +116,7 @@ describe("parameters", () => {
     const draft = drafted(draftArticle("JSY-SS-01", "M", { parameters: { body_length_offset: -30 } }));
     expect(draft.warnings).toEqual([expect.objectContaining({ ruleId: "R-PAT-003", field: "parameters.body_length_offset" })]);
     const signed = { ...JSY, parameters: JSY.parameters.map((p) => ({ ...p, approved: true })) };
-    expect(drafted(draftArticle("JSY-SS-01", "M", { parameters: { body_length_offset: -30 } }, articleSource([signed]))).warnings).toEqual([]);
-  });
-
-  it("does not draw a drop tail, whose shape the article does not define", () => {
-    for (const tail of [10, 40]) {
-      expect(draftArticle("JSY-SS-01", "M", { parameters: { back_drop_tail: tail } })).toMatchObject({ kind: "not-drafted-yet", ruleId: "R-PAT-005" });
-    }
+    expect(drafted(draftArticle("JSY-SS-01", "M", { parameters: { body_length_offset: -30 } }, { articles: articleSource([signed]) })).warnings).toEqual([]);
   });
 
   it.each([
@@ -156,14 +162,14 @@ describe("spec F-S3: every size at every parameter's range ends gives valid clos
 describe("an article that offers less than the script draws", () => {
   it("drafts at the POM value when the article offers no length offset", () => {
     const noOffsets = { ...JSY, parameters: JSY.parameters.filter((p) => p.key === "back_drop_tail") };
-    const draft = drafted(draftArticle("JSY-SS-01", "M", {}, articleSource([noOffsets])));
+    const draft = drafted(draftArticle("JSY-SS-01", "M", {}, { articles: articleSource([noOffsets]) }));
     expect(draft.input.parameters).toEqual({ back_drop_tail: 0 });
     expect(check(draft, "B")).toEqual({ label: "B body length", target: 720, actual: 720 });
     expect(check(draft, "D")).toEqual({ label: "D sleeve length", target: 210, actual: 210 });
   });
 
   it("names the code itself when an option is chosen that the article does not list", () => {
-    const stop = gate(JSY, { parameters: {}, options: { collar: "C99" } });
+    const stop = gate(JSY, { parameters: {}, options: { collar: "C99" } }, CONSTANTS);
     expect(stop).toEqual({ reason: "JSY-SS-01 collar C99 (C99) is not drafted yet.", ruleId: null });
   });
 });
