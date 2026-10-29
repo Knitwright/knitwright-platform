@@ -21,7 +21,7 @@ separate. The one door between them is a database function, `submit_order_for_pr
 
 ## Run it
 
-Node 20.12 or newer, pnpm 10 and Docker.
+Node 22.13 or newer, pnpm 10 and Docker.
 
 ```
 pnpm install
