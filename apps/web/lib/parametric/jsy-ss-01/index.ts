@@ -56,7 +56,7 @@ function dropTailGate(article: ArticleDefinition, input: ResolvedInput, k: Draft
   if (!problem) return null;
   return {
     reason: `${article.code} ${DROP_TAIL} = ${drop} mm is not drafted yet: its convention on file says ${problem}.`,
-    ruleId: ruleOf(k, "drop_tail.convention") ?? article.parameters.find((p) => p.key === DROP_TAIL)?.rule ?? null,
+    ruleId: ruleOf(k, "drop_tail.convention"),
   };
 }
 
