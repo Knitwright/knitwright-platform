@@ -117,6 +117,18 @@ describe("the seed", () => {
     expect(wide).toEqual([]);
   });
 
+  it("stays small enough to be read whole, which is how rulesFor filters it", async () => {
+    // rulesFor reads every version and filters in TypeScript, and PostgREST stops a read at max_rows = 1000
+    // (supabase/config.toml, which the plan forbids editing). Past 500 versions of real rules the read needs an
+    // index on (rule_id, version) and a filter in SQL instead; decision 0067's revision section says so.
+    const { count, error } = await adminClient()
+      .from("rulebook_entries")
+      .select("rule_id", { count: "exact", head: true })
+      .not("rule_id", "like", "R-TEST-%");
+    expect(error).toBeNull();
+    expect(count ?? 0).toBeLessThan(500);
+  });
+
   it("takes the supplier source kind, and no kind the enum does not name", async () => {
     expect(must(await save(admin.userId, "R-TEST-020", "A supplier said so"))).toBeGreaterThan(0);
     const supplier = await adminClient().rpc("rulebook_entry_save", {
