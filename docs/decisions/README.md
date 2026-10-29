@@ -80,3 +80,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0063 | [Design comments](0063-design-comments.md) | Proposed; owner questions listed |
 | 0064 | [Phone layout and accessibility pass](0064-phone-layout-accessibility.md) | Proposed |
 | 0065 | [Two-click reorder with sizes pre-filled](0065-two-click-reorder.md) | Proposed |
+| 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |
