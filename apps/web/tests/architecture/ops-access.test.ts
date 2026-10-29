@@ -55,11 +55,11 @@ describe("the ops console is for platform admins only", () => {
 
   it("guards each platform-only entry point outside ops too: pattern service, designers, settings and the pattern-file route (L15)", () => {
     // Every action or route in these places is either listed as a member's own, or must ask for a platform admin in its own body.
-    const MEMBER_OWN = new Set(["requestPatternAction", "enrolAction", "newSubmissionAction", "sendSubmissionAction"]);
+    const MEMBER_OWN = new Set(["requestPatternAction", "enrolAction", "newSubmissionAction", "sendSubmissionAction", "reportMarkAction"]);
     const GUARD = /assertPlatformAdmin\(|opsContext\(|reviewer\(/;
     const files = [
-      ...walk("lib/pattern-service"), ...walk("lib/designers"), ...walk("lib/settings"),
-      "app/(ops)/ops/pattern-requests/[requestId]/files/route.ts",
+      ...walk("lib/pattern-service"), ...walk("lib/designers"), ...walk("lib/settings"), ...walk("lib/moderation"),
+      "app/(ops)/ops/pattern-requests/[requestId]/files/route.ts", "app/(ops)/ops/review/marks/route.ts",
     ].filter((f) => /route\.ts$|actions\.ts$/.test(f));
     expect(files.length).toBeGreaterThanOrEqual(4);
     let guarded = 0;

@@ -11,6 +11,7 @@ import { withSlot } from "./slots";
 import { discard, rightsFor, storeArtwork } from "./store";
 import type { SeamReport, SeamlessMethod } from "./tile";
 import { dpiWarning } from "./dpi";
+import type { UploadGate } from "@/lib/moderation/gate";
 
 export type Actor = Readonly<{ brandId: string; userId: string }>;
 
@@ -21,12 +22,16 @@ export const uploadArtwork = async (
   admin: SupabaseClient,
   actor: Actor,
   input: Readonly<{ bytes: Uint8Array; fileName: string; rightsConfirmed: boolean; now: Date }>,
+  // Moderation (decision 0073): refuses a blocked upload before anything is stored, and keeps the result against the new asset.
+  screen?: UploadGate,
 ): Promise<ArtworkRecord & { whiteBackground: boolean }> => {
   // Rights are asked for before any file is read.
   const rights = rightsFor({ confirmed: input.rightsConfirmed, userId: actor.userId, now: input.now });
   return withSlot(actor.brandId, async () => {
     const intake = await intakeArtwork(input.bytes, input.fileName);
+    const afterStore = await screen?.({ ...actor, label: intake.label, image: intake.screen.bytes, sourceSha256: intake.sourceSha256 });
     const record = await storeArtwork({ admin, brandId: actor.brandId, userId: actor.userId, intake, rights });
+    await afterStore?.(record.id);
     return { ...record, whiteBackground: intake.whiteBackground };
   });
 };

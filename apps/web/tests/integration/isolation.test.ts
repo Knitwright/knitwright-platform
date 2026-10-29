@@ -1416,6 +1416,49 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: (brandId, userId) => ({ template_id: randomUUID(), designer_id: userId, brand_id: brandId, project_id: randomUUID() }),
     change: { brand_id: randomUUID() },
   },
+  // Plan v5 X8 (decision 0073): moderation. Read by platform admins only; written by the moderation functions only.
+  moderation_checks: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const id = must(
+        await adminClient().rpc("moderation_record", {
+          p_brand_id: brandId, p_user_id: null, p_target_kind: "text", p_target_id: null, p_hook: "text", p_label: "Seeded",
+          p_subject_sha256: null, p_result: "flagged", p_reasons: [{ code: "brand_term", severity: "flag", message: "Seeded", ruleId: "R-GAP-000" }],
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, target_kind: "text", hook: "text", result: "clear" }),
+    change: { decision: "allowed", decision_reason: "Changed by a member", reviewed_at: new Date().toISOString() },
+  },
+  rights_holder_marks: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      const ops = await person("marks-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+      const id = must(
+        await adminClient().rpc("rights_mark_add", {
+          p_actor: ops.userId, p_holder: "Seeded Holder", p_mark_text: `Seeded ${randomUUID().slice(0, 8)}`, p_image_hash: null, p_contact: "", p_source: "ops",
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: () => ({ holder: "Intruder", mark_text: "Intruder mark", source: "ops" }),
+    change: { active: false },
+  },
+  takedown_notices: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      const id = must(
+        await adminClient().rpc("takedown_submit", {
+          p_reporter_name: "Seeded", p_reporter_email: "seeded@example.com", p_holder: "Holder", p_mark: "Mark", p_location: "A product", p_details: "",
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: () => ({ reporter_name: "Intruder", reporter_email: "x@example.com", holder: "H", mark: "M", location: "L" }),
+    change: { status: "rejected" },
+  },
   platform_admins: {
     privileges: [],
     seed: async () => {
