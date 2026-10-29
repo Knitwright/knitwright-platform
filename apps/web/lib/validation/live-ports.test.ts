@@ -131,6 +131,12 @@ describe("the catalogue port", () => {
     ]);
   });
 
+  it("leaves out a stored row that cannot be expressed as a range, rather than inventing one", async () => {
+    const broken = { ...ARTICLE_ROW, parameter_defs: [{ ...ARTICLE_ROW.parameter_defs[0]!, min: null }] };
+
+    expect(await catalogueFrom(fakeClient({ "JSY-SS-01": broken }).client).parameterDefs("JSY-SS-01")).toEqual([]);
+  });
+
   it("gives null for an article the catalogue does not offer", async () => {
     expect(await catalogueFrom(fakeClient({}).client).parameterDefs("ZZZ-ZZ-01")).toBeNull();
   });
