@@ -40,6 +40,10 @@ describe("textOf", () => {
     expect(text("factory_capabilities", "lead_time_days", capabilityRows[0]!)).toBe("8");
     expect(text("factory_capabilities", "colour_delta_max", capabilityRows[0]!)).toBe("1.50");
     expect(text("factory_capabilities", "colour_delta_max", capabilityRows[1]!)).toBe("");
+    // The row reaches the page through toCapability, which puts the numeric through Number() and so
+    // drops the trailing zero the column keeps. Both decimals are shown either way.
+    expect(text("factory_capabilities", "colour_delta_max", { ...capabilityRows[0]!, colour_delta_max: 1.2 })).toBe("1.20");
+    expect(text("factory_capabilities", "colour_delta_max", { ...capabilityRows[0]!, colour_delta_max: 2 })).toBe("2.00");
     expect(text("factory_capabilities", "rule_id", capabilityRows[0]!)).toBe("R-GAP-000");
   });
 

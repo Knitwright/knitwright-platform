@@ -39,6 +39,10 @@ export function textOf(field: EditableField, row: Row): string {
   switch (field.kind) {
     case "money":
       return major(Number(value));
+    // numeric(5, 2) in the database, so the form shows both decimal places whether the row arrived
+    // with its scale intact (a string from PostgREST) or already through Number(), which drops it.
+    case "optionalDecimal":
+      return Number(value).toFixed(2);
     case "percent":
       return percent(Number(value));
     case "boolean":
