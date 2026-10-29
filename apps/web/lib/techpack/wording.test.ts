@@ -183,6 +183,8 @@ describe("the words in the other parts of the product", () => {
     "lib/clubs",
     "lib/templates",
     "lib/validation",
+    // Decision 0067: the rulebook's own words, where "confirmed" is a factory sign-off on a rule, not on a design.
+    "lib/rulebook",
     "components",
     "app",
   ];
@@ -201,6 +203,12 @@ describe("the words in the other parts of the product", () => {
     "This link could not be checked.", // says the check did not happen
     "passed the first time", // the lifestyle picture check, not a tech pack claim
     "a lifestyle picture that passed the check", // the same
+    // Decision 0067. These three are about one rulebook rule being signed off by the factory, never about a
+    // design, a measurement or a tech pack. The first says the sign-off has NOT happened; the other two are
+    // shown only from a record, with the date and the person, as the tech pack's "Reviewed by … on …" is.
+    "Draft, not yet confirmed by the factory", // says the factory has not signed the rule off
+    "Confirmed by the factory on", // one rule's sign-off, from the record that holds who and when
+    "The factory confirmed version", // the button that records that sign-off
   ];
   const withoutWide = (text: string): string => WIDE_ALLOWED.reduce((left, phrase) => left.split(phrase).join(" "), text);
 
