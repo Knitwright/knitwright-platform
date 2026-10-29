@@ -18,6 +18,7 @@ export default async function OpsLayout({ children }: LayoutProps<"/">) {
           <Link href="/ops/pattern-requests" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Pattern requests</Link>
           <Link href="/ops/review" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Review</Link>
           <Link href="/ops/settings" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Settings</Link>
+          <Link href="/admin/rulebook" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Rulebook</Link>
         </nav>
       </header>
       <div className={`${pageFrame("content")} flex-1 py-8`}>{children}</div>

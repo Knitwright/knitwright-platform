@@ -36,7 +36,7 @@ const type = buildRegistry([family]).getType("test-wing");
 if (!type) throw new Error("fixture type missing");
 
 const spec: GarmentSpec = {
-  schemaVersion: 6,
+  schemaVersion: 7,
   typeId: "test-wing",
   wearer: "men",
   options: { wing: { choiceId: "none", provenance: "user-edited" } },

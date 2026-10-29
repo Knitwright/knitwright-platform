@@ -1,9 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { designStatusSchema, type DesignStatus } from "@/lib/production/contract";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { DEFAULT_PROFILE_LABEL, defaultFactoryProfile, factoryProfileSchema, type FactoryProfile } from "./profile";
-import { DRAFT, type StatusRecord } from "./status";
+import { DRAFT, versionStatusSchema, type StatusRecord, type VersionStatus } from "./status";
 
 export const DEFAULT_PROFILE_ID = "knitwright-default";
 const NOT_FOUND = "That design does not exist.";
@@ -38,7 +37,7 @@ async function withOwnerTerms(client: SupabaseClient, base: FactoryProfile): Pro
 }
 
 const statusRow = z.object({
-  status: designStatusSchema,
+  status: versionStatusSchema,
   profile_id: z.string().nullable(),
   findings_hash: z.string().nullable(),
   changed_at: z.string(),
@@ -61,7 +60,8 @@ export async function readDesignStatus(client: SupabaseClient, brandId: string, 
 
 const HINTS: Readonly<Record<string, string>> = {
   status_ordered: "An ordered version can never change its status.",
-  status_move: "A draft cannot be ordered. Check it against a factory profile first.",
+  status_move: "That move is not allowed. A version goes through a factory profile before it is accepted for ordering, or ordered.",
+  status_approved: "A version accepted for ordering can only be ordered. Change the design to start a new draft.",
 };
 
 /** Stores a status the app has already decided on. Only the server's own client may call it. */
@@ -70,7 +70,7 @@ export async function writeDesignStatus(
   who: Readonly<{ brandId: string; userId: string }>,
   projectId: string,
   version: number,
-  to: DesignStatus,
+  to: VersionStatus,
   record: Pick<StatusRecord, "profileId" | "findingsHash">,
 ): Promise<void> {
   const { error } = await admin.rpc("set_design_status", {
