@@ -71,6 +71,9 @@ const nextConfig: NextConfig = {
     "/api/ops/batches/\\[batchId\\]/print-files": ["./assets/fonts/**"],
     // The ops packing list (decision 0050) draws text in the same font.
     "/api/ops/orders/\\[orderId\\]/packing-list": ["./assets/fonts/**"],
+    // A factory's job packet (decision 0072) downloads the same factory sheet and print files.
+    "/api/job/\\[token\\]/sheet": ["./assets/fonts/**"],
+    "/api/job/\\[token\\]/files": ["./assets/fonts/**"],
     // Reading an uploaded PDF draws a page with pdfjs-dist and its native canvas package, which are loaded by name at
     // run time, so the host cannot see them in the code. Ship the canvas binaries and the PDF reader's own fonts.
     "/api/artwork": ["../../node_modules/.pnpm/@napi-rs+canvas{,-linux-x64-gnu}@*/node_modules/@napi-rs/canvas{,-linux-x64-gnu}/*.{js,cjs,mjs,json,node}", "./node_modules/pdfjs-dist/standard_fonts/**"],
@@ -79,6 +82,9 @@ const nextConfig: NextConfig = {
     { source: "/:path*", headers: SECURITY_HEADERS },
     { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },
     { source: "/s/:token", headers: SHARE_HEADERS },
+    // A factory's job packet (decision 0072) carries its token in the address in the same way.
+    { source: "/job/:token", headers: SHARE_HEADERS },
+    { source: "/api/job/:token/:path*", headers: SHARE_HEADERS },
   ],
 };
 
