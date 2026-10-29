@@ -170,7 +170,7 @@ Fixtures and seeds are labelled as made by Knitwright and not reviewed by a fact
 
 ## Running it locally
 
-You need Node 20.12 or newer (CI uses 24), pnpm 10 and Docker (for local Supabase).
+You need Node 22.13 or newer (CI uses 24), pnpm 10 and Docker (for local Supabase).
 
 ```
 pnpm install
