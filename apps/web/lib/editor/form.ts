@@ -36,6 +36,8 @@ export interface OptionTile {
   readonly code: string;
   readonly label: string;
   readonly chosen: boolean;
+  /** True for the option the article is drafted in, which is the one a plain design has. */
+  readonly isDefault: boolean;
   /** True when no golden sample has signed this option off yet. */
   readonly notSampled: boolean;
   /** The words beside the lock mark, or null when a sample has signed the option off. */
@@ -75,6 +77,7 @@ const tileOf = (option: OptionDef, chosen: string | null): OptionTile => ({
   code: option.code,
   label: option.label,
   chosen: option.code === chosen,
+  isDefault: option.isDefault,
   notSampled: option.approvedBySampleId === null,
   lockNote: option.approvedBySampleId === null ? NOT_YET_SAMPLED : null,
   ruleId: option.ruleId || RULE_GAP,
