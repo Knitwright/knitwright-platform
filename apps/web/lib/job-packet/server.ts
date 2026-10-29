@@ -7,8 +7,9 @@ import { loadSettings } from "@/lib/ops/service";
 import { loadBatchSources, releaseFilesOf, sheetInputOf } from "@/lib/ops/sheet-data";
 import { printFileBuilder } from "@/lib/releases/builder";
 import { adminClient } from "@/lib/server/deps";
+import { draftedPatterns } from "./drafted-patterns";
 import type { PacketLoadDeps } from "./load";
-import { noPatterns, type PatternSource } from "./patterns";
+import type { PatternSource } from "./patterns";
 import { listFactoryEvents, openPacket } from "./service";
 import { jobZip } from "./zip";
 
@@ -18,8 +19,8 @@ import { jobZip } from "./zip";
  * batch the token's packet names. The database tests and the end-to-end test cover this file.
  */
 
-/** Where the factory's patterns come from. The production package assembler (X5) replaces this in a later wave. */
-export const patternSource: PatternSource = noPatterns;
+/** Where the factory's patterns come from: the production package's writers over the graded drafter. */
+export const patternSource: PatternSource = draftedPatterns;
 
 export const packetLoadDeps = (): PacketLoadDeps => {
   const admin = adminClient();
@@ -49,5 +50,5 @@ export async function packetZip(token: string): Promise<{ batch: Batch; zip: Uin
   const sheet = await factorySheetPdf(buildSheet(sheetInputOf(batch, sources, await loadSettings(admin))));
   const prints = await printZip(releaseFilesOf(sources, (brandId) => printFileBuilder({ client: admin, admin }, brandId)));
   const patterns = await patternSource.filesFor(batch, sources.map((s) => s.order));
-  return { batch, zip: jobZip({ sheet, printZip: prints, patterns, patternNote: patterns.length === 0 ? patternSource.note : null }) };
+  return { batch, zip: jobZip({ sheet, printZip: prints, patterns: patterns.files, patternNote: patterns.note }) };
 }
