@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Finding } from "@/lib/production/contract";
 import { AppError } from "@/lib/server/core/errors";
-import { createCheckRegistry } from "./registry";
+import { writeValidationResult } from "./results";
 import { loadFactoryProfile, readDesignStatus, writeDesignStatus } from "./service";
+import { standardRegistry } from "./spec-input";
 import { statusSentence, transition, type StatusRecord } from "./status";
 import { validateDesign, type ValidationResult } from "./validate";
 import type { DesignInput } from "./registry";
@@ -24,24 +25,28 @@ export async function reportFor(
   design: DesignInput,
 ): Promise<Report> {
   const [profile, status] = await Promise.all([loadFactoryProfile(client), readDesignStatus(client, brandId, projectId, version)]);
-  const result = validateDesign(design, profile, createCheckRegistry());
+  const result = validateDesign(design, profile, standardRegistry());
   return { ...result, profileName: profile.name, profileLabel: profile.label, status: status.status, statusSentence: statusSentence(status) };
 }
 
-/** Moves a version to validated, or back to draft. Ordering is not offered here: the order flow does it. */
+/**
+ * Moves a version to validated or approved, or back to draft, and stores the full checks it was judged on. Ordering is
+ * not offered here: the order flow does it.
+ */
 export async function moveStatus(
   deps: Readonly<{ client: SupabaseClient; admin: SupabaseClient }>,
   who: Readonly<{ brandId: string; userId: string }>,
   projectId: string,
   version: number,
-  to: "validated" | "draft",
+  to: "validated" | "approved" | "draft",
   design: DesignInput,
   now: Date,
 ): Promise<Report> {
   const [profile, current] = await Promise.all([loadFactoryProfile(deps.client), readDesignStatus(deps.client, who.brandId, projectId, version)]);
-  const result = validateDesign(design, profile, createCheckRegistry());
+  const result = validateDesign(design, profile, standardRegistry());
   const moved = transition(current, to, { profileId: profile.id, findings: result.findings, at: now });
   if (!moved.ok) throw new AppError("conflict", moved.reason);
+  await writeValidationResult(deps.admin, who, { projectId, version, profileId: profile.id, scope: "full", checks: result.checks });
   await writeDesignStatus(deps.admin, who, projectId, version, to, moved.record);
   return { ...result, profileName: profile.name, profileLabel: profile.label, status: moved.record.status, statusSentence: statusSentence(moved.record) };
 }

@@ -15,6 +15,8 @@ const PDF_TESTS = [
   "lib/techpack/exports/pdf/**/*.test.ts",
   "lib/techpack/exports/formats.test.ts",
   "lib/projects/export-download.test.ts",
+  // The production package writes a PDF for every size and reads several back (decision 0070).
+  "lib/kpp/**/*.test.ts",
 ];
 
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
@@ -54,6 +56,11 @@ export default defineConfig({
         "lib/pattern-service/server.ts",
         // Joins the comment tables and functions to the routes; the database tests and the end-to-end test of comments cover it.
         "lib/comments/service.ts",
+        // Two lines joining the package to the tech pack generator and to the environment; nothing
+        // calls either yet (decision 0070), and the generator has its own tests.
+        "lib/kpp/sources/techpack.ts",
+        // Joins the screens to the database, the configured model and the meter; the database and end-to-end tests cover it.
+        "lib/moderation/server.ts",
         // Joins the factory's job packet to the database, storage and the ops file builders; the database and end-to-end tests cover it.
         "lib/job-packet/server.ts",
       ],
@@ -71,9 +78,12 @@ export default defineConfig({
         "lib/techpack/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // Two-click reorder from the club's order history (plan v4 W4-F, decision 0065).
         "lib/clubs/reorder/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The production package is what a factory makes the garment from (plan v5 X5, decision 0070).
+        "lib/kpp/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "job-packet"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "job-packet"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

@@ -24,6 +24,9 @@ export const PUBLIC_PAGES = [
   // A design a member shared with their committee (decision 0026). The token in the address is the
   // only key: the page reads through the share functions, which check it, and shows no other data.
   "app/s/[token]/page.tsx",
+  // The rights-holder report form (decision 0073): a rights holder has no account. The page shows no data; its action is
+  // guarded by the bot check and a limit per address.
+  "app/report-a-mark/page.tsx",
   // A factory's job packet (decision 0072). The token in the address is the only key: the page reads through the
   // job packet functions, which check it, and shows only that batch's lists.
   "app/job/[token]/page.tsx",
