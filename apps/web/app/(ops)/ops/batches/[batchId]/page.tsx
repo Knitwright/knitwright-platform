@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { PacketSection } from "@/components/job-packet/PacketSection";
 import { AppError } from "@/lib/server/core/errors";
 import { batchLabel, orderValue, sizesLine } from "@/lib/ops/format";
 import { summariseOrders } from "@/lib/ops/grouping";
@@ -19,7 +20,8 @@ export default async function BatchPage({ params }: PageProps<"/ops/batches/[bat
   await requirePlatformAdmin();
   const parsed = z.uuid().safeParse((await params).batchId);
   if (!parsed.success) notFound();
-  const loaded = await loadBatch(await sessionClient(), parsed.data).catch((error: unknown) => {
+  const client = await sessionClient();
+  const loaded = await loadBatch(client, parsed.data).catch((error: unknown) => {
     if (error instanceof AppError && error.code === "not_found") notFound();
     throw error;
   });
@@ -53,6 +55,7 @@ export default async function BatchPage({ params }: PageProps<"/ops/batches/[bat
           ))}
         </tbody>
       </table>
+      <PacketSection client={client} batchId={batch.id} />
     </main>
   );
 }
