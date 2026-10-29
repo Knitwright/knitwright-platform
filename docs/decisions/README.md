@@ -81,5 +81,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0064 | [Phone layout and accessibility pass](0064-phone-layout-accessibility.md) | Proposed |
 | 0065 | [Two-click reorder with sizes pre-filled](0065-two-click-reorder.md) | Proposed |
 | 0066 | [The base article catalogue](0066-base-article-catalogue.md) | Proposed; owner questions listed |
+| 0067 | [Rulebook and "Why?" v1](0067-rulebook-and-why.md) | Proposed; owner questions listed |
 | 0068 | [The graded parametric drafter](0068-graded-parametric-drafter.md) | Proposed; owner questions listed |
 | 0069 | [Design object v2, validation on every save, and a rule behind every check](0069-design-object-v2-and-validation.md) | Proposed; owner questions listed |
