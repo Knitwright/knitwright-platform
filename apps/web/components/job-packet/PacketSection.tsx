@@ -3,7 +3,7 @@ import { listFactoryEvents, listPackets } from "@/lib/job-packet/service";
 import { EVENT_LABELS } from "@/lib/job-packet/steps";
 import { livePacket, packetStateLine, sentLine } from "@/lib/job-packet/view";
 import { formatDateTime } from "@/lib/projects/dates";
-import { CreatePacketForm, ResendPacketForm, RevokePacketForm } from "./PacketControls";
+import { PacketForms } from "./PacketControls";
 
 /**
  * The batch's factory link on the ops batch page (decision 0072): make, send again or revoke it, and what the
@@ -19,15 +19,8 @@ export async function PacketSection({ client, batchId }: Readonly<{ client: Supa
       <p className="text-sm text-muted">
         The factory opens the batch with this link, without an account: job sheet, orders, sizes, names and numbers, materials, the files ZIP and the due date. Its buttons move the orders on.
       </p>
-      {live ? (
-        <>
-          <p className="text-sm text-ink" data-testid="job-packet-state">{packetStateLine(live, now)}. {sentLine(live)}.</p>
-          <ResendPacketForm batchId={batchId} packetId={live.id} />
-          <RevokePacketForm batchId={batchId} packetId={live.id} />
-        </>
-      ) : (
-        <CreatePacketForm batchId={batchId} />
-      )}
+      {live ? <p className="text-sm text-ink" data-testid="job-packet-state">{packetStateLine(live, now)}. {sentLine(live)}.</p> : null}
+      <PacketForms batchId={batchId} packetId={live?.id ?? null} />
       <h3 className="text-base font-semibold text-ink">From the factory</h3>
       {events.length === 0 ? (
         <p className="text-sm text-muted">Nothing yet.</p>

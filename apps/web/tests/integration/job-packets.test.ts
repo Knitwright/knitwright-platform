@@ -60,13 +60,18 @@ const makeRelease = async (owner: Person, brandId: string, label: string): Promi
   return created[0]!.id;
 };
 
-/** A batch of one order of Alice's brand, cut as ops would on the day. Returns the batch and the order. */
+/**
+ * A batch of one order of Alice's brand, cut as ops would on the day. Returns the batch and the order.
+ * The fabric is unique per call: `ops_cut_batches` groups by factory, fabric, article and cut-off and
+ * reuses the batch for a group it has already cut, so a shared fabric would hand every test the same
+ * batch, and a batch takes only one open packet at a time.
+ */
 const batchOf = async (): Promise<{ batchId: string; orderId: string }> => {
   const releaseId = await makeRelease(alice, aliceBrand, "Round 1 jerseys");
   const submitted = must(
     await adminClient().rpc("submit_order_for_production", {
       p_release_id: releaseId, p_external_ref: `packet-${randomUUID()}`, p_factory_profile_id: "f1",
-      p_fabric_key: "mesh", p_article_id: "crew-tee", p_sizes: { M: 2, L: 1 },
+      p_fabric_key: `mesh-${randomUUID()}`, p_article_id: "crew-tee", p_sizes: { M: 2, L: 1 },
     }),
   ) as { order_id: string }[];
   const orderId = submitted[0]!.order_id;
@@ -422,8 +427,13 @@ describe("what a member and a visitor may see", () => {
     const theirEvents = await alice.client.from("factory_events").select("id").eq("batch_id", made.batchId);
     expect(asMember.error ?? asMember.data).toEqual([]);
     expect(theirEvents.error ?? theirEvents.data).toEqual([]);
-    const asVisitor = await anonClient().from("job_packets").select("id");
-    expect(asVisitor.error ?? asVisitor.data).toEqual([]);
+    // A visitor is refused both tables outright: neither is granted to anon at all, which is
+    // stronger than an empty answer, so assert the refusal rather than weaken the grant to match.
+    for (const table of ["job_packets", "factory_events"]) {
+      const asVisitor = await anonClient().from(table).select("id");
+      expect(asVisitor.data, table).toBeNull();
+      expect(asVisitor.error?.code, table).toBe("42501");
+    }
   });
 
   it("lets no browser role write either table, whatever it sends", async () => {

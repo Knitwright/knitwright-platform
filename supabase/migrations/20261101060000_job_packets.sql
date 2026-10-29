@@ -287,9 +287,12 @@ begin
 
   if p_kind in ('received', 'in_production', 'ready_for_qc') then
     v_last := private.job_packet_last_step(v_packet.batch_id);
-    if not ((p_kind = 'received' and v_last is null)
-         or (p_kind = 'in_production' and v_last = 'received')
-         or (p_kind = 'ready_for_qc' and v_last = 'in_production')) then
+    -- Said as what is refused, with `is distinct from`, because `v_last` is null until the first step
+    -- is recorded: `v_last = 'received'` would be null there, the whole test would be null rather than
+    -- false, and `if not null` never fires -- which let a new packet jump straight to ready for QC.
+    if (p_kind = 'received' and v_last is not null)
+       or (p_kind = 'in_production' and v_last is distinct from 'received')
+       or (p_kind = 'ready_for_qc' and v_last is distinct from 'in_production') then
       raise exception 'The steps go one at a time: received, in production, ready for QC.'
         using errcode = 'P0001', hint = 'illegal_step';
     end if;

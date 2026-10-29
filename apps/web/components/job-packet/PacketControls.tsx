@@ -22,44 +22,7 @@ function IssuedLink({ issued }: Readonly<{ issued: Issued }>) {
   );
 }
 
-function SendFields({ errors }: Readonly<{ errors: (name: string) => readonly string[] }>) {
-  return (
-    <>
-      <Field name="whatsapp" label="Factory WhatsApp number (optional)" inputMode="tel" placeholder="+923001234567" errors={errors("whatsapp")} />
-      <Field name="days" label="Days the link works" type="number" min={1} max={MAX_PACKET_DAYS} defaultValue={DEFAULT_PACKET_DAYS} errors={errors("days")} />
-    </>
-  );
-}
-
-export function CreatePacketForm({ batchId }: Readonly<{ batchId: string }>) {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(createPacketAction);
-  return (
-    <form ref={form} action={submit} noValidate className="flex flex-col gap-3">
-      <FormSummary message={summary} />
-      <input type="hidden" name="batchId" value={batchId} />
-      <div className="grid gap-3 sm:grid-cols-2"><SendFields errors={fieldErrors} /></div>
-      <div><Button type="submit" pending={pending}>{pending ? "Making" : "Make factory link"}</Button></div>
-      {state.result?.success === true ? <IssuedLink issued={state.result.data} /> : null}
-    </form>
-  );
-}
-
-export function ResendPacketForm({ batchId, packetId }: Readonly<{ batchId: string; packetId: string }>) {
-  const { form, state, submit, pending, summary, fieldErrors } = useFormAction(resendPacketAction);
-  return (
-    <form ref={form} action={submit} noValidate className="flex flex-col gap-3">
-      <FormSummary message={summary} />
-      <input type="hidden" name="batchId" value={batchId} />
-      <input type="hidden" name="packetId" value={packetId} />
-      <div className="grid gap-3 sm:grid-cols-2"><SendFields errors={fieldErrors} /></div>
-      <p className="text-sm text-faint">Sending again makes a new address. The old one stops working.</p>
-      <div><Button type="submit" variant="secondary" pending={pending}>{pending ? "Sending" : "Send again"}</Button></div>
-      {state.result?.success === true ? <IssuedLink issued={state.result.data} /> : null}
-    </form>
-  );
-}
-
-export function RevokePacketForm({ batchId, packetId }: Readonly<{ batchId: string; packetId: string }>) {
+function RevokePacketForm({ batchId, packetId }: Readonly<{ batchId: string; packetId: string }>) {
   const { form, submit, pending, summary } = useFormAction(revokePacketAction);
   return (
     <form ref={form} action={submit} noValidate className="flex flex-col gap-2">
@@ -68,5 +31,45 @@ export function RevokePacketForm({ batchId, packetId }: Readonly<{ batchId: stri
       <input type="hidden" name="packetId" value={packetId} />
       <div><Button type="submit" variant="secondary" pending={pending}>{pending ? "Revoking" : "Revoke factory link"}</Button></div>
     </form>
+  );
+}
+
+/**
+ * The batch's factory link: make it, send it again, or revoke it, with the address above the buttons.
+ *
+ * One form and one hook do both making and sending again, chosen by whether the batch already has a live
+ * packet. That is not tidiness: `PacketSection` is a server component, and the moment an action makes a
+ * packet, `revalidatePath` swaps "Make factory link" for "Send again" in the same commit that delivers
+ * the action's answer. A separate create component would already be unmounted by then, so neither its
+ * state nor an effect of its own could show what it had just been given -- and the address is only ever
+ * knowable at that moment, because the token is stored hashed and never read back. Losing it left ops
+ * with a link they could not pass to the factory and no way but revoking to get another. Keeping one
+ * hook across both states is what `SharePanel` does, where the create form happens never to be swapped.
+ */
+export function PacketForms({ batchId, packetId }: Readonly<{ batchId: string; packetId: string | null }>) {
+  const again = packetId !== null;
+  const { form, state, submit, pending, summary, fieldErrors } = useFormAction<Issued>(
+    again ? resendPacketAction : createPacketAction,
+  );
+  return (
+    <>
+      {state.result?.success === true ? <IssuedLink key={state.attempt} issued={state.result.data} /> : null}
+      <form ref={form} action={submit} noValidate className="flex flex-col gap-3">
+        <FormSummary message={summary} />
+        <input type="hidden" name="batchId" value={batchId} />
+        {packetId === null ? null : <input type="hidden" name="packetId" value={packetId} />}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field name="whatsapp" label="Factory WhatsApp number (optional)" inputMode="tel" placeholder="+923001234567" errors={fieldErrors("whatsapp")} />
+          <Field name="days" label="Days the link works" type="number" min={1} max={MAX_PACKET_DAYS} defaultValue={DEFAULT_PACKET_DAYS} errors={fieldErrors("days")} />
+        </div>
+        {again ? <p className="text-sm text-faint">Sending again makes a new address. The old one stops working.</p> : null}
+        <div>
+          <Button type="submit" variant={again ? "secondary" : "primary"} pending={pending}>
+            {pending ? (again ? "Sending" : "Making") : again ? "Send again" : "Make factory link"}
+          </Button>
+        </div>
+      </form>
+      {packetId === null ? null : <RevokePacketForm batchId={batchId} packetId={packetId} />}
+    </>
   );
 }

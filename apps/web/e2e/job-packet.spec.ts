@@ -17,7 +17,14 @@ const check = <T>(result: { data: T; error: { message: string } | null }): NonNu
 };
 
 /** A release for a brand the account owns, an order for it the way the Store submits one, then the batch. */
-async function batchFor(email: string, ref: string): Promise<void> {
+/**
+ * A batch of this brand's one order, cut as ops would on the day. The fabric is the caller's, and unique
+ * per test: `ops_cut_batches` groups by factory, fabric, article and cut-off and reuses a batch it has
+ * already cut, so the shared "mesh-140" of `ops.spec.ts`, `ops-qc.spec.ts` and `journeys.spec.ts` would
+ * hand this test the same batch as those specs, which run beside it against the same database. A batch
+ * takes only one live factory link, so sharing one makes "Make factory link" fail.
+ */
+async function batchFor(email: string, ref: string, fabric: string): Promise<void> {
   const db = service();
   const userId = await userIdOf(email);
   const membership = check(await db.from("memberships").select("brand_id").eq("user_id", userId).limit(1).single()) as { brand_id: string };
@@ -35,7 +42,7 @@ async function batchFor(email: string, ref: string): Promise<void> {
   check(
     await db.rpc("submit_order_for_production", {
       p_release_id: release[0]!.id, p_external_ref: ref, p_factory_profile_id: "knitwright-default",
-      p_fabric_key: "mesh-140", p_article_id: "crew-tee", p_sizes: { M: 3, L: 2 },
+      p_fabric_key: fabric, p_article_id: "crew-tee", p_sizes: { M: 3, L: 2 },
     }),
   );
   // The test cannot wait for Friday: cut the batches as of just after this order's cut-off, as ops would.
@@ -51,12 +58,13 @@ test.describe("the factory's job packet", () => {
     const email = await createAccount("packet-admin", { brand: "Northside Cricket Club" });
     await makePlatformAdmin(email);
     const ref = `E2E-PACKET-${Date.now()}`;
-    await batchFor(email, ref);
+    const fabric = `mesh-packet-${Date.now()}`;
+    await batchFor(email, ref, fabric);
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
 
     await page.goto("/ops");
-    await page.getByRole("link", { name: /crew-tee, mesh-140/ }).first().click();
+    await page.getByRole("link", { name: new RegExp(`crew-tee, ${fabric}`) }).first().click();
     await expect(page.getByTestId("batch-order").filter({ hasText: ref })).toBeVisible();
 
     // Ops makes the link. Its address is shown once, and only now.
