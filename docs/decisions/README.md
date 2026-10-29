@@ -80,4 +80,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0063 | [Design comments](0063-design-comments.md) | Proposed; owner questions listed |
 | 0064 | [Phone layout and accessibility pass](0064-phone-layout-accessibility.md) | Proposed |
 | 0065 | [Two-click reorder with sizes pre-filled](0065-two-click-reorder.md) | Proposed |
+| 0066 | [The base article catalogue](0066-base-article-catalogue.md) | Proposed; owner questions listed |
+| 0068 | [The graded parametric drafter](0068-graded-parametric-drafter.md) | Proposed; owner questions listed |
 | 0070 | [The production package (KPP) and the files-service seam](0070-production-package-and-files-service.md) | Proposed; owner questions listed |

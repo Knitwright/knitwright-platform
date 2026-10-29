@@ -26,6 +26,38 @@ Builds on: `plans/platform-v4.md` (all five waves merged). Where v4's shared rul
    platform spec; it is not the stored shape. Supabase stays (decision 0001); the spec's Neon/R2/Modal/Drizzle choices are not
    adopted. IDs stay `gen_random_uuid()`. New money columns are integer minor units plus a currency.
 
+## Owner decisions, delegated to the orchestrator (2026-10-29)
+
+5. **The orchestrator answers owner questions.** The owner has delegated the plan's owner questions to the orchestrating session.
+   An agent still records its questions in its PR comment and never waits on them; the orchestrator answers here or in the
+   workstream's decision record, and the answer binds later waves. The exception, still the owner's: anything that commits money,
+   takes a legal position, or changes a factory relationship.
+6. **The drop tail is drafted from a labelled convention, not left undrafted.** The hem is level from centre front to the side
+   seam; the drop begins at the side seam; side-seam length is unchanged, so the front hem never moves; the back hem falls on one
+   smooth curve from side seam to centre back, horizontal where it meets the centre-back fold, dropping by `back_drop_tail` mm
+   within R-PAT-005's range (max 40 mm). Those four facts are `draft_constants`, per article, settable by a factory, seeded
+   "Knitwright draft v0.1, not reviewed by a factory". The rulebook gives the one measurement that matters, the centre-back drop;
+   the rest is drafting convention, not an invented measurement, and the plan's own rule is a labelled default plus a question,
+   never a dead parameter.
+7. **Every drafting number is data.** The 3 mm sleeve-cap ease, its 0–6 mm allowed window and decision 6's convention move into
+   `draft_constants` per article, with the PowerShell script's current values as labelled defaults. No drafting number stays a
+   literal in TypeScript.
+8. **A POM is what a tape measure reads on the finished garment.** POM D (sleeve length) is measured to the finished sleeve edge,
+   cuff included; the cuff seam is derived by subtracting the cuff's finished depth, never the reverse. The same holds for every
+   POM: the finished edge, never an internal seam. K02 then drafts as a folded rectangle — height 2 × finished cuff depth plus two
+   seam allowances, width the sleeve opening less a labelled `rib_negative_ease` default. C02 and C03 stay "not drafted yet" until
+   the factory supplies their block shapes: a collar outline is a shape, not a number, and nothing in the pack implies it. C03
+   keeps C01's 85 mm front drop unless that shape says otherwise.
+9. **The reference pattern pack is immutable evidence.** `docs/spec/articles/JSY-SS-01/pattern/` stays exactly as the factory
+   received it. Where the port deviates — the two XS back-armhole self-intersections, 0.063 mm — the deviation is recorded in the
+   decision record with its magnitude, and the platform ships its own output, not the pack. The XS loops are raised with the
+   factory as a fault in the original; they are never copied forward.
+10. **An article cannot go `live` without a factory-checked master pattern.** The F-S3 ±2 mm check needs a master pattern and none
+    exists in the repo, so it is built as a gate that reports "no master pattern on file", and that state blocks `live`. Articles
+    stay `draft v0.1` until the factory returns a signed pattern, stored as a reference artifact on the base article. The drafter
+    is authoritative for what the platform produces; the factory's master is authoritative for whether an article may be sold.
+    Wave 3 (Z8) implements the gate; X3b only writes down the contract.
+
 ## How to use this plan
 
 Each workstream is one cloud agent, one branch `feat/v5-<id>-<slug>` cut from `main`, one PR into `main`. Read, before code:
@@ -164,6 +196,27 @@ lists updated.
    writer if none fits. A graded nest (all sizes stacked) as DXF and SVG.
 
 **Done when.** Golden tests green; nest file deterministic (same bytes twice); coverage 90%.
+
+## X3b. Drafter follow-up, from owner decisions 6 to 10 (one PR, after X3 merges)
+
+**Goal.** Close the gaps X3 left, now that the conventions are decided. Same owner as X3.
+
+**Owns.** `apps/web/lib/parametric/**`, and a revision section appended to decision 0068 — every number 0074 onward is already
+assigned to a later wave, and this is the same decision as X3's. Migration only if `draft_constants` needs a table rather than a
+settings row.
+
+**Do.**
+1. `draft_constants` per article (decision 7): sleeve-cap ease 3 mm, its 0–6 mm window, and the drop-tail convention of decision 6,
+   seeded as labelled defaults and read by the drafter. No drafting literal left in TypeScript.
+2. Draft `back_drop_tail` to decision 6's convention, with golden tests: side-seam length unchanged across the whole range, the
+   front hem untouched, the back curve horizontal at the centre-back fold, closed and non-self-intersecting at both range ends.
+3. Draft K02 to decision 8, with `rib_negative_ease` a labelled default. POM D measured to the finished sleeve edge; assert the
+   cuff seam is derived, not assumed.
+4. Record decision 9 in 0068's revision section: the XS deviation, its 0.063 mm magnitude, and that the pack is never regenerated.
+5. Write the master-pattern contract of decision 10 as types plus a stub reporting "no master pattern on file" — the gate itself is
+   Z8's, not yours. C02 and C03 stay "not drafted yet"; do not invent a collar shape.
+
+**Done when.** Golden tests green including the new range-end cases; coverage 90%; no drafting literal in the drafter.
 
 ## X4. Design object v2 and validation (F-0)
 
