@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { createAccount, makePlatformAdmin, passBotCheck, signIn, summary, test } from "./support";
 
 /**
@@ -6,6 +6,18 @@ import { createAccount, makePlatformAdmin, passBotCheck, signIn, summary, test }
  * review queue at /ops/review, a page nobody else has, and decides with a reason. The vision check is the stub here
  * (AI_PROVIDER_STUB), so no model is ever called.
  */
+
+/**
+ * A signed-in member, waited for. `signIn` only presses the button: the session cookie arrives
+ * with the redirect, so a test that navigates before it lands has no session and every guarded
+ * page answers 404. Same helper as `leads.spec.ts`.
+ */
+const signedIn = async (page: Page, label: string): Promise<string> => {
+  const email = await createAccount(label);
+  await signIn(page, email);
+  await expect(page).toHaveURL(/\/studio$/);
+  return email;
+};
 
 test.describe("the rights-holder report", () => {
   test("takes a report from somebody with no account, and asks for what is missing", async ({ page }) => {
@@ -37,8 +49,7 @@ test.describe("the ops review page", () => {
     expect(signedOut?.status()).toBe(404);
     await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
 
-    const email = await createAccount("moderation-member");
-    await signIn(page, email);
+    const email = await signedIn(page, "moderation-member");
     const member = await page.goto("/ops/review");
     expect(member?.status()).toBe(404);
 
@@ -54,30 +65,31 @@ test.describe("the ops review page", () => {
     await page.getByLabel("Your name", { exact: true }).fill("Grace Hopper");
     await page.getByLabel("Email", { exact: true }).fill("grace@example.com");
     await page.getByLabel("Who owns the mark or work", { exact: true }).fill("Example Rugby Union");
-    await page.getByLabel("The mark or work", { exact: true }).fill("The union badge");
+    // Unique per run: a retry, or a second run against the same database, must not find the
+    // notice its own earlier attempt left behind.
+    const mark = `The union badge ${Date.now()}`;
+    await page.getByLabel("The mark or work", { exact: true }).fill(mark);
     await page.getByLabel("Where you saw it").fill("A training top");
     await page.getByRole("checkbox", { name: /I own this mark or work/ }).check();
     await page.getByRole("button", { name: "Send the report" }).click();
     await expect(page.getByText("We have your report.")).toBeVisible();
 
-    const email = await createAccount("moderation-ops");
+    const email = await signedIn(page, "moderation-ops");
     await makePlatformAdmin(email);
-    await signIn(page, email);
     await page.goto("/ops/review");
 
-    const notice = page.getByTestId("takedown-notice").filter({ hasText: "The union badge" }).first();
+    const notice = page.getByTestId("takedown-notice").filter({ hasText: mark }).first();
     await expect(notice).toBeVisible();
     await expect(notice.getByText("Example Rugby Union")).toBeVisible();
 
     await notice.getByLabel("Reason", { exact: true }).fill("The reporter could not show they own it.");
     await notice.getByRole("button", { name: "Reject" }).click();
-    await expect(page.getByTestId("takedown-notice").filter({ hasText: "The union badge" }).first().getByText("rejected")).toBeVisible();
+    await expect(page.getByTestId("takedown-notice").filter({ hasText: mark }).first().getByText("rejected")).toBeVisible();
   });
 
   test("adds a mark to the registry by name and switches it off again", async ({ page }) => {
-    const email = await createAccount("moderation-marks");
+    const email = await signedIn(page, "moderation-marks");
     await makePlatformAdmin(email);
-    await signIn(page, email);
     await page.goto("/ops/review");
 
     const name = `Example Mark ${Date.now()}`;
