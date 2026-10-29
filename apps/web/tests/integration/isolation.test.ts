@@ -996,7 +996,15 @@ const seedRelease = async (brandId: string, ownerId: string): Promise<{ releaseI
   return { releaseId: rows[0].id };
 };
 
-/** An order in production, submitted the way the Store submits one. Returns its id. */
+/**
+ * An order in production, submitted the way the Store submits one. Returns its id.
+ *
+ * The fabric is unique per order because `ops_cut_batches` groups by factory, fabric, article and
+ * cut-off and *reuses* a batch it has already cut. With one shared fabric every seed here was handed
+ * the same batch, which is invisible until a table puts a one-per-batch constraint on it: `job_packets`
+ * is the first, and its two entries below then fought over the single live packet that batch allows.
+ * Every seed in this file wants a row of its own, so each asks for its own batch.
+ */
 const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> => {
   const { releaseId } = await seedRelease(brandId, ownerId);
   const rows = must(
@@ -1004,7 +1012,7 @@ const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> =
       p_release_id: releaseId,
       p_external_ref: `isolation-${randomUUID()}`,
       p_factory_profile_id: "f1",
-      p_fabric_key: "mesh",
+      p_fabric_key: `mesh-${randomUUID()}`,
       p_article_id: "crew-tee",
       p_sizes: { M: 1 },
     }),
