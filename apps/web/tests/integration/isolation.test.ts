@@ -1029,7 +1029,15 @@ const seedRelease = async (brandId: string, ownerId: string): Promise<{ releaseI
   return { releaseId: rows[0].id };
 };
 
-/** An order in production, submitted the way the Store submits one. Returns its id. */
+/**
+ * An order in production, submitted the way the Store submits one. Returns its id.
+ *
+ * The fabric is unique per order because `ops_cut_batches` groups by factory, fabric, article and
+ * cut-off and *reuses* a batch it has already cut. With one shared fabric every seed here was handed
+ * the same batch, which is invisible until a table puts a one-per-batch constraint on it: `job_packets`
+ * is the first, and its two entries below then fought over the single live packet that batch allows.
+ * Every seed in this file wants a row of its own, so each asks for its own batch.
+ */
 const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> => {
   const { releaseId } = await seedRelease(brandId, ownerId);
   const rows = must(
@@ -1037,7 +1045,7 @@ const seedOpsOrder = async (brandId: string, ownerId: string): Promise<string> =
       p_release_id: releaseId,
       p_external_ref: `isolation-${randomUUID()}`,
       p_factory_profile_id: "f1",
-      p_fabric_key: "mesh",
+      p_fabric_key: `mesh-${randomUUID()}`,
       p_article_id: "crew-tee",
       p_sizes: { M: 1 },
     }),
@@ -1078,6 +1086,22 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
     await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
   ) as { run_id: string }[];
   return rows[0]!.run_id;
+};
+
+/** A job packet of a new batch, made the way ops makes one (decision 0072). */
+const seedJobPacket = async (brandId: string): Promise<{ id: string; batchId: string; token: string; actor: string }> => {
+  const owner = must(await adminClient().from("memberships").select("user_id").eq("brand_id", brandId).limit(1).single()) as { user_id: string };
+  const ops = await person("packet-admin");
+  must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+  const orderId = await seedOpsOrder(brandId, owner.user_id);
+  const order = must(await adminClient().from("ops_orders").select("cutoff_at").eq("id", orderId).single()) as { cutoff_at: string };
+  must(await adminClient().rpc("ops_cut_batches", { p_actor: ops.userId, p_now: new Date(Date.parse(order.cutoff_at) + 1000).toISOString() }));
+  const placed = must(await adminClient().from("ops_orders").select("batch_id").eq("id", orderId).single()) as { batch_id: string };
+  const token = randomBytes(32).toString("base64url");
+  const rows = must(
+    await adminClient().rpc("create_job_packet", { p_actor: ops.userId, p_batch_id: placed.batch_id, p_token: token, p_days: 28 }),
+  ) as { id: string }[];
+  return { id: rows[0]!.id, batchId: placed.batch_id, token, actor: ops.userId };
 };
 
 /** A share link made the way the server makes one, to a new design. */
@@ -1389,6 +1413,24 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
     change: { tracking_number: "changed" },
+  },
+  // Factory job packets (decision 0072): the factory has no account, so the link is the only key. Platform admins read
+  // both tables; no member and no visitor reads or writes either, and factory_events is append-only.
+  job_packets: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => ({ id: (await seedJobPacket(brandId)).id }),
+    attempt: (brandId) => ({ batch_id: brandId, token_hash: "\\x" + "00".repeat(32), expires_at: "2099-01-01T00:00:00Z" }),
+    change: { revoked_at: "2026-01-01T00:00:00Z", expires_at: "2099-01-01T00:00:00Z" },
+  },
+  factory_events: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const made = await seedJobPacket(brandId);
+      must(await adminClient().rpc("job_packet_record", { p_token: made.token, p_kind: "received", p_note: "Seeded", p_photo_key: null }));
+      return { packet_id: made.id };
+    },
+    attempt: () => ({ packet_id: randomUUID(), batch_id: randomUUID(), kind: "received" }),
+    change: { note: "Changed by a stranger." },
   },
   // Platform settings console (decision 0056): no browser role reads or writes either table. Only the server's key reads them and
   // platform_setting_set writes them.

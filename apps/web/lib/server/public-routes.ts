@@ -29,4 +29,12 @@ export const PUBLIC_ENTRY_POINTS = [
   // A rights holder reports a mark used without permission (F-G1 notice and takedown, decision 0073). No account. It can only add
   // one notice, kept by takedown_submit; the bot check and a limit per address guard it, and the answer reveals nothing.
   "lib/moderation/actions.ts#reportMarkAction",
+  // A factory's job packet (decision 0072): the factory has no account. The token in the form or address is the
+  // only key; the database hashes it and answers only for a packet that is open (not expired, not revoked). Each is
+  // limited per address, and the writes per packet as well. Photos are checked and rewritten before they are kept.
+  "lib/job-packet/actions.ts#recordStepAction",
+  "lib/job-packet/actions.ts#recordNoteAction",
+  "app/api/job/[token]/photos/route.ts#POST",
+  "app/api/job/[token]/sheet/route.ts#GET",
+  "app/api/job/[token]/files/route.ts#GET",
 ] as const;

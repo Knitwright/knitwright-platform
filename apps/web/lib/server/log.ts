@@ -20,6 +20,9 @@ const SECRETS = [
 /** The token in a share link's address (decision 0026). The path stays, so the log still says what was asked for. */
 const SHARE_TOKEN = /(\/s\/)[A-Za-z0-9_-]{43}/g;
 
+/** The token in a factory's job packet address, page or download (decision 0072). */
+const JOB_TOKEN = /(\/job\/)[A-Za-z0-9_-]{43}/g;
+
 /** Values that follow a telling name. The name stays, so the log still says what was there. */
 const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[^\s&"',;]+/g;
 
@@ -27,7 +30,8 @@ const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[
 export const scrub = (text: string): string =>
   SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text)
     .replace(LABELLED, "$1[removed]")
-    .replace(SHARE_TOKEN, "$1[removed]");
+    .replace(SHARE_TOKEN, "$1[removed]")
+    .replace(JOB_TOKEN, "$1[removed]");
 
 type Described = Readonly<Record<string, unknown>>;
 

@@ -94,4 +94,16 @@ export const LIMITS = {
   validationWrite: { name: "validation-write", limit: 60, windowSeconds: 10 * MINUTE },
   // The variants list draws 8 to 12 tiles on the server per request, so it is held tighter than a plain read (security review L1).
   variantsRender: { name: "variants-render", limit: 30, windowSeconds: 10 * MINUTE },
+  // Factory job packets (decision 0072). Ops makes, sends again and revokes links. The factory has no account: the
+  // page, the downloads and its buttons are limited per address, and the buttons and photos per packet too.
+  manageJobPackets: { name: "manage-job-packets", limit: 60, windowSeconds: 10 * MINUTE },
+  jobPacketView: { name: "job-packet-view", limit: 60, windowSeconds: MINUTE },
+  // The sheet and the ZIP are built on the spot, so they are held per address and per link: one leaked link
+  // cannot be used from many addresses to build the same files over and over.
+  jobPacketFiles: { name: "job-packet-files", limit: 20, windowSeconds: 10 * MINUTE },
+  jobPacketFilesLink: { name: "job-packet-files-link", limit: 40, windowSeconds: 10 * MINUTE },
+  jobPacketRecord: { name: "job-packet-record", limit: 30, windowSeconds: 10 * MINUTE },
+  jobPacketRecordLink: { name: "job-packet-record-link", limit: 60, windowSeconds: 10 * MINUTE },
+  jobPacketPhoto: { name: "job-packet-photo", limit: 20, windowSeconds: 10 * MINUTE },
+  jobPacketPhotoLink: { name: "job-packet-photo-link", limit: 40, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
