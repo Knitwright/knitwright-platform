@@ -4,6 +4,7 @@ import { listArtworks, uploadArtwork } from "@/lib/artwork-intake/service";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { uploadGate } from "@/lib/moderation/server";
 
 /** Room for the form's own text around the file. */
 const FORM_OVERHEAD_BYTES = 64 * 1024;
@@ -41,5 +42,6 @@ export const POST = defineRoute({
         rightsConfirmed: input.form.rights === "yes",
         now: new Date(),
       },
+      uploadGate("POST /api/artwork"),
     ),
 });

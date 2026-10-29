@@ -28,8 +28,8 @@ const setConstruction = (seamId: string, patch: object = {}) => ({ type: "set-co
 const label = (field: string, text: string) => ({ type: "set-labelling", field, text, provenance: "user-edited" });
 
 describe("the design version", () => {
-  it("is version 6", () => {
-    expect(SPEC_SCHEMA_VERSION).toBe(6);
+  it("is version 7", () => {
+    expect(SPEC_SCHEMA_VERSION).toBe(7);
   });
 
   it("starts with no components, no construction overrides and no labelling", () => {
@@ -58,7 +58,7 @@ describe("migrating a version 4 design", () => {
   it("adds empty components, construction and labelling and an empty consumption for every fabric", () => {
     const result = migrateSpec(version4("polo"));
     if (!result.ok) throw new Error(result.reason);
-    expect(result.spec.schemaVersion).toBe(6);
+    expect(result.spec.schemaVersion).toBe(7);
     expect(result.spec.components).toEqual([]);
     expect(result.spec.construction).toEqual([]);
     expect(result.spec.labelling).toEqual({});

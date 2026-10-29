@@ -26,7 +26,7 @@ Builds on: `plans/platform-v4.md` (all five waves merged). Where v4's shared rul
    platform spec; it is not the stored shape. Supabase stays (decision 0001); the spec's Neon/R2/Modal/Drizzle choices are not
    adopted. IDs stay `gen_random_uuid()`. New money columns are integer minor units plus a currency.
 
-## Owner decisions, delegated to the orchestrator (2026-10-29)
+## Owner decisions, delegated to the orchestrator (2026-10-29, decisions 5 to 20)
 
 5. **The orchestrator answers owner questions.** The owner has delegated the plan's owner questions to the orchestrating session.
    An agent still records its questions in its PR comment and never waits on them; the orchestrator answers here or in the
@@ -57,6 +57,39 @@ Builds on: `plans/platform-v4.md` (all five waves merged). Where v4's shared rul
     stay `draft v0.1` until the factory returns a signed pattern, stored as a reference artifact on the base article. The drafter
     is authoritative for what the platform produces; the factory's master is authoritative for whether an article may be sold.
     Wave 3 (Z8) implements the gate; X3b only writes down the contract.
+11. **A "Why?" shows the newest confirmed version, never a draft.** Where a newer draft exists, the popover shows the confirmed
+    words plus the line "a newer draft is waiting for the factory to confirm it". Ops and admin see the draft itself, marked
+    draft. Showing unconfirmed words as the reason for a rule is exactly the settled-sounding claim the wording rules exist to
+    stop.
+12. **Shared rules are scoped to what their source covers, not to "every article".** R-SUB, R-LAB, R-QC and R-COST came out of
+    one sublimated jersey's rulebook, so they are seeded against the sublimation method with the scope field labelled "scope not
+    reviewed by a factory". Widening them to every article would state a fact the rulebook does not contain. A factory widens
+    them by confirming them.
+13. **A source says who actually said it.** "Supplier price lists, May 2026" is not the factory's word and is not filed as
+    `factory`: it takes a `supplier` source kind, added to the enum. "Grading practice" stays `standard`, because
+    `pattern_master` means a real master pattern artifact and decision 10 says none exists yet. Misfiling a source implies a
+    sign-off nobody gave.
+14. **A confirmation records the person.** The name and role of the factory person and the date, as the rulebook's sign-off
+    column asks, shown as "Reviewed by NAME, ROLE, on DATE". A rule confirmed by nobody in particular cannot be audited.
+15. **Our colour numbers are D65, 2 degree, and the package says so.** `docs/spec/04-production-package.md` shows `#0B1F4B` as
+    Lab [12.9, 4.1, -27.6]; the same maths as `lib/print/rules/colour` gives [13, 10.7, -29.6], and a b* differing by 6.6 is not
+    a rounding difference. We keep our own figure, because it is the one the platform can reproduce and test, and the package
+    README states the space and observer so the colour house knows what the numbers are in. The spec's example is recorded as
+    unverified. Until the colour house states its white point, Delta-E <= 1.5 is defined against ours. **Owner action: ask the
+    colour house which white point and observer they work to, and whether that example was measured or computed.**
+16. **A sample print file keeps its `SAMPLE_` prefix.** The spec's folder tree and its naming paragraph disagree; the naming
+    paragraph wins. A factory must never be able to mistake a sample file for a production one, and the cost of the stricter
+    reading is only a longer filename.
+17. **One notch style in the DXF for now**, with V-notch or slit stated in the README and the 1:1 PDF. Notch style is a
+    cutter-room setting the factory's own CAM applies. Revisit if a factory asks for it in the geometry.
+18. **The gate keeps refusing a POM that has no tolerance.** The spec's +/-10/5/3 mm defaults are placeholders, and inventing a
+    tolerance is exactly the invented measurement the rules forbid. A missing tolerance is a question for the factory, not a
+    guess.
+19. **AQL as built.** A Knitwright-made Class A sample inspects every piece; a partner factory's sample uses the plan on the
+    input.
+20. **A sample package for a factory Knitwright does not own stays charged**, free when Knitwright makes it and free for a batch,
+    seeded as a labelled placeholder price. **This one is money, so the owner may overturn it**; it is flagged here rather than
+    settled quietly.
 
 ## How to use this plan
 
@@ -118,11 +151,26 @@ record, seeds labelled. In addition, from the spec:
    `gh pr checks <n> --watch` and fix failures from the annotations
    (`gh api repos/Knitwright/knitwright-platform/check-runs/<job-id>/annotations`). Up to four rounds. Then post the PR comment.
 8. **Local gate:** `pnpm install`, `pnpm --filter web typecheck`, `pnpm --filter web lint`,
-   `pnpm --filter web exec vitest run --project unit <your dirs>`. There is no Docker in the cloud sandbox: database and e2e tests
-   run in CI only, so write them with extra care (Lesson 1).
+   `pnpm --filter web exec vitest run --project unit <your dirs>`. Write database and e2e tests with extra care either way
+   (Lesson 1), but do not assume you cannot run them: **`podman` works in the agent sandboxes**, so the full local stack is
+   available. Start the socket with `systemctl --user start podman.socket`, export
+   `DOCKER_HOST=unix:///run/user/$(id -u)/podman/podman.sock`, then `cp supabase/.env.example supabase/.env` (the bot check needs
+   `TURNSTILE_SECRET_KEY`, and without it every sign-in fails and every guarded page answers 404), `pnpm db:start`,
+   `pnpm --filter web build`, and `pnpm --filter web e2e <your spec>`. Earlier briefs said "no Docker"; that was wrong, and
+   wave 1 paid for it in PRs whose database and browser tests had never once been run.
 9. **Interfaces before the other side exists.** When your section says "through an interface", define the smallest TypeScript
    interface in your owned directory with a test double, and depend on that. The orchestrator wires real implementations in a
    later wave. Never import from another workstream's unmerged directory.
+10. **Commit and push after every step, not at the end.** Two wave-1 orchestrator sessions died mid-wave. The first took eight
+    agents' uncommitted work with it, recoverable only out of `.claude/worktrees`; the second left X7 finished but unpushed, and
+    it sat invisible until someone went looking. A crash should cost one step, not a workstream.
+11. **Your fixture shares the database with every other spec.** The browser tests run in parallel against one database, and the
+    database tests share theirs. Anything you create from a grouping key that another spec also uses lands on *their* row: in
+    particular `ops_cut_batches` groups by factory, fabric, article and cut-off and *reuses* a batch it has already cut, so the
+    `knitwright-default` / `mesh-140` / `crew-tee` order used by `ops.spec.ts`, `ops-qc.spec.ts` and `journeys.spec.ts` always
+    gives out the same batch. X7 was the first workstream to put a one-per-batch constraint on it and so the first to break.
+    Vary the key — your own fabric per test — as `ops-batches.test.ts` does. Make anything you filter a locator on unique per run
+    too: CI retries once, and a retry that finds its own leftover row fails exactly like the attempt before it.
 
 ---
 
@@ -175,6 +223,27 @@ lists updated.
 5. A platform-admin page `/admin/rulebook` to list, edit (new version, never overwrite) and confirm entries, and to see gaps.
 
 **Done when.** All 45 seeded and tested; popover a11y test; versioning test; admin guard test; e2e opens a Why? popover.
+
+## X2b. Rulebook follow-up, from owner decisions 11 to 14 (one PR, after X2 merges)
+
+**Goal.** Close the gaps X2 left, now that the questions it raised are decided. Same owner as X2.
+
+**Owns.** `apps/web/lib/rulebook/**`, `apps/web/components/rulebook/**`, and a revision section appended to decision 0067 — this
+is the same decision as X2's. Migration only for the `supplier` source kind of decision 13.
+
+**Do.**
+1. Decision 11: a "Why?" resolves to the newest *confirmed* version. Where a newer draft exists, add the line "a newer draft is
+   waiting for the factory to confirm it". Ops and admin see the draft itself, marked draft. Test both readers.
+2. Decision 12: reseed R-SUB, R-LAB, R-QC and R-COST against the sublimation method, with the scope field labelled "scope not
+   reviewed by a factory". Assert no shared rule claims a scope wider than its source.
+3. Decision 13: add the `supplier` source kind and refile "Supplier price lists, May 2026" under it. Assert nothing is filed as
+   `factory` that a factory did not say, and that `pattern_master` is unused while decision 10 holds.
+4. Decision 14: a confirmation records the factory person's name and role and the date, shown as "Reviewed by NAME, ROLE, on
+   DATE". A rule confirmed by nobody in particular is refused.
+5. `rulesFor` reads the whole table and filters in TypeScript. Leave it until the rule count passes a few hundred, then add the
+   index and filter in SQL; note the threshold in the revision section rather than optimising now.
+
+**Done when.** Confirmed-versus-draft tests for both readers; the scope and source assertions above; coverage 90%.
 
 ## X3. Graded parametric drafter (F-S3 geometry)
 
@@ -270,6 +339,29 @@ needs one (`20261101040000_package_exports.sql`).
 
 **Done when.** Layout test lists every path in 04; determinism test; gate test; files-service stub test; build under 60 s in a
 test for one article × 7 sizes.
+
+## X5b. Production package follow-up, from owner decisions 15 to 20 (one PR, after X1, X4 and X6 merge)
+
+**Goal.** Everything X5 could not finish because it owned none of the inputs. Same owner as X5. It waits for X1's POMs, X4's
+provenance and X6's factory, fabric and price rows.
+
+**Owns.** `apps/web/lib/kpp/**`, `apps/web/lib/files-service/**`, a revision section appended to decision 0070, and the
+`package_exports` migration. It also needs, and may edit for its own entries only, `lib/credits/kinds.ts`,
+`lib/credits/settings.ts` and `.env.example` + `lib/config/env.ts` — none of which were X5's, which is why this is a second PR.
+
+**Do.**
+1. The real `KppInput` builder over X1's POMs, X4's provenance and X6's factory, fabric and price rows, replacing X5's stubs.
+2. The export route and the `production_package` credit kind: add the kind to `lib/credits/kinds.ts`, its placeholder price to
+   `lib/credits/settings.ts` per decision 20, and a migration reseeding `credit_prices`. The price is labelled a placeholder, and
+   the decision record says the owner may overturn it.
+3. The `package_exports` migration, now that there is a route whose exports are worth storing.
+4. `FILES_SERVICE_URL` and `FILES_SERVICE_TOKEN` in `.env.example` and `lib/config/env.ts`, both optional, with the stub still
+   answering "not available" when they are unset (owner decision 2).
+5. Record decisions 15 to 19 in 0070's revision section: our D65 2-degree figure against the spec's unverified example and the
+   open question for the colour house, the `SAMPLE_` prefix, the single notch style, the tolerance gate, and the AQL rule.
+
+**Done when.** The package builds from real catalogue rows for one article × 7 sizes; the gate still refuses a POM with no
+tolerance; determinism test green; coverage 90%.
 
 ## X6. Factory model as data (factory profile read model, F-O1 data, F-S7 dates)
 
