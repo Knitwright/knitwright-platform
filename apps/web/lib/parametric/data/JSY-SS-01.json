@@ -1,0 +1,145 @@
+{
+  "code": "JSY-SS-01",
+  "name": "Short-sleeve sublimated jersey, set-in sleeve, regular fit",
+  "status": "draft_for_factory_review",
+  "version": "0.1",
+  "date": "2026-10-25",
+  "class": "A",
+  "uses": ["teamwear", "studio"],
+  "sports": ["football", "training", "esports", "running"],
+  "hs_code": "6110.30",
+  "origin": "PK",
+  "base_size": "M",
+  "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+  "units": "mm",
+  "note": "All measurements are Knitwright's draft. The factory's pattern master replaces any value that differs from their proven block. Values marked placeholder must be confirmed in the sample round.",
+
+  "fabrics": {
+    "body": { "code": "F-POLY-INT", "description": "100% polyester interlock, white, sublimation-ready, moisture-wicking finish, PFAS-free", "gsm": "140-160", "width_cm": 180, "press_shrink_length_pct": 1.5, "press_shrink_width_pct": 1.0, "status": "placeholder: factory to confirm fabric, GSM and shrink" },
+    "rib": { "code": "F-POLY-RIB", "description": "1x1 rib, 95% polyester 5% elastane, white, sublimation-ready", "gsm": "220", "status": "placeholder" }
+  },
+
+  "pom": [
+    { "letter": "A", "code": "CH", "description": "Chest width, 25 mm below armhole, half", "grade_type": "linear", "grade": 30, "tol": 10, "rule": "R-FIT-001", "values": { "XS": 460, "S": 490, "M": 520, "L": 550, "XL": 580, "2XL": 610, "3XL": 640 } },
+    { "letter": "B", "code": "BL", "description": "Body length, front, HPS to hem", "grade_type": "linear", "grade": 20, "tol": 10, "rule": "R-FIT-002", "values": { "XS": 680, "S": 700, "M": 720, "L": 740, "XL": 760, "2XL": 780, "3XL": 800 } },
+    { "letter": "C", "code": "SW", "description": "Across shoulder, seam to seam", "grade_type": "linear", "grade": 15, "tol": 7, "rule": "R-FIT-003", "values": { "XS": 430, "S": 445, "M": 460, "L": 475, "XL": 490, "2XL": 505, "3XL": 520 } },
+    { "letter": "D", "code": "SL", "description": "Sleeve length, shoulder point to hem", "grade_type": "linear", "grade": 10, "tol": 7, "rule": "R-FIT-004", "values": { "XS": 190, "S": 200, "M": 210, "L": 220, "XL": 230, "2XL": 240, "3XL": 250 } },
+    { "letter": "E", "code": "BI", "description": "Bicep width, 25 mm below armhole, half", "grade_type": "linear", "grade": 10, "tol": 5, "rule": "R-FIT-005", "values": { "XS": 175, "S": 185, "M": 195, "L": 205, "XL": 215, "2XL": 225, "3XL": 235 } },
+    { "letter": "F", "code": "SO", "description": "Sleeve opening, half", "grade_type": "linear", "grade": 10, "tol": 5, "rule": "R-FIT-005", "values": { "XS": 150, "S": 160, "M": 170, "L": 180, "XL": 190, "2XL": 200, "3XL": 210 } },
+    { "letter": "G", "code": "AD", "description": "Armhole depth, HPS to underarm, straight down", "grade_type": "linear", "grade": 10, "tol": 7, "rule": "R-FIT-006", "values": { "XS": 230, "S": 240, "M": 250, "L": 260, "XL": 270, "2XL": 280, "3XL": 290 } },
+    { "letter": "H", "code": "NW", "description": "Neck width, seam to seam", "grade_type": "linear", "grade": 5, "tol": 5, "rule": "R-FIT-007", "values": { "XS": 170, "S": 175, "M": 180, "L": 185, "XL": 190, "2XL": 195, "3XL": 200 } },
+    { "letter": "I", "code": "FND", "description": "Front neck drop, HPS to seam (crew C01)", "grade_type": "linear", "grade": 3, "tol": 5, "rule": "R-FIT-007", "values": { "XS": 79, "S": 82, "M": 85, "L": 88, "XL": 91, "2XL": 94, "3XL": 97 } },
+    { "letter": "J", "code": "BND", "description": "Back neck drop, HPS to seam", "grade_type": "fixed", "grade": 0, "tol": 3, "rule": "R-FIT-007", "values": { "XS": 20, "S": 20, "M": 20, "L": 20, "XL": 20, "2XL": 20, "3XL": 20 } },
+    { "letter": "K", "code": "HW", "description": "Hem width, half (straight body)", "grade_type": "linear", "grade": 30, "tol": 10, "rule": "R-FIT-001", "values": { "XS": 460, "S": 490, "M": 520, "L": 550, "XL": 580, "2XL": 610, "3XL": 640 } },
+    { "letter": "L", "code": "NR", "description": "Neck rib height, finished (C01)", "grade_type": "fixed", "grade": 0, "tol": 2, "rule": "R-CON-004", "values": { "XS": 20, "S": 20, "M": 20, "L": 20, "XL": 20, "2XL": 20, "3XL": 20 } }
+  ],
+
+  "draft_constants": {
+    "shoulder_slope": 45,
+    "back_length_extra": 0,
+    "sleeve_cap_ease_target": [0, 6],
+    "rib_ratio": 0.85
+  },
+
+  "parameters": [
+    { "key": "body_length_offset", "type": "range", "min": -30, "max": 40, "step": 10, "default": 0, "affects": ["front", "back"], "pom": ["B"], "rule": "R-PAT-003", "approved": false },
+    { "key": "sleeve_length_offset", "type": "range", "min": -20, "max": 40, "step": 10, "default": 0, "affects": ["sleeve"], "pom": ["D"], "rule": "R-PAT-004", "approved": false },
+    { "key": "back_drop_tail", "type": "range", "min": 0, "max": 40, "step": 10, "default": 0, "affects": ["back"], "pom": [], "rule": "R-PAT-005", "approved": false }
+  ],
+
+  "options": {
+    "collar": [
+      { "code": "C01", "name": "Crew neck, 1x1 rib, 20 mm finished", "default": true, "rule": "R-CON-004" },
+      { "code": "C02", "name": "V-neck, self-fabric binding 15 mm, mitred V, front drop 140 mm", "rule": "R-CON-005" },
+      { "code": "C03", "name": "Crew neck, self-fabric binding 15 mm", "rule": "R-CON-006" }
+    ],
+    "sleeve_finish": [
+      { "code": "K01", "name": "Coverstitch hem, 20 mm", "default": true, "rule": "R-CON-007" },
+      { "code": "K02", "name": "1x1 rib cuff, 25 mm finished", "rule": "R-CON-008" }
+    ],
+    "pattern_fill": [
+      { "code": "P00", "name": "Plain", "default": true },
+      { "code": "P01", "name": "Vertical stripes" },
+      { "code": "P02", "name": "Diagonal gradient" }
+    ]
+  },
+
+  "pieces": [
+    { "id": "front", "name": "Front", "cut": 1, "notes": "Cut flat, not on fold (printed panel)" },
+    { "id": "back", "name": "Back", "cut": 1, "notes": "Cut flat, not on fold (printed panel)" },
+    { "id": "sleeve", "name": "Sleeve", "cut": 2, "notes": "Cut as a mirrored pair: left and right are printed separately" },
+    { "id": "neck_rib", "name": "Neck rib (C01)", "cut": 1, "notes": "F-POLY-RIB, folded in half lengthways" }
+  ],
+
+  "seam_allowance": {
+    "shoulder": 6, "side": 6, "armhole": 6, "sleeve_underarm": 6, "neck": 6, "body_hem": 25, "sleeve_hem": 20, "rib": 6,
+    "rule": "R-PAT-001"
+  },
+
+  "construction": [
+    { "n": 1, "seam": "Shoulder seams", "operation": "4-thread overlock (ISO 514), back neck to shoulder taped with 10 mm poly tape", "spi": "12-14 per inch (5-5.5 per cm)", "rule": "R-CON-001" },
+    { "n": 2, "seam": "Neck (C01)", "operation": "Rib joined into a loop with a 6 mm seam, quartered, attached with 4-thread overlock, seam at centre back", "spi": "12-14", "rule": "R-CON-004" },
+    { "n": 3, "seam": "Back neck", "operation": "Neck seam covered with self-fabric or poly tape, topstitched 2-needle coverstitch (ISO 406)", "spi": "10-12", "rule": "R-CON-002" },
+    { "n": 4, "seam": "Sleeve attach", "operation": "4-thread overlock (ISO 514), sleeve set in flat before side seams, notches matched", "spi": "12-14", "rule": "R-CON-001" },
+    { "n": 5, "seam": "Side and underarm seams", "operation": "4-thread overlock (ISO 514), one continuous seam hem to sleeve hem, underarm seams matched", "spi": "12-14", "rule": "R-CON-003" },
+    { "n": 6, "seam": "Sleeve hem (K01)", "operation": "20 mm turn-up, 2-needle coverstitch (ISO 406), 6.4 mm gauge", "spi": "10-12", "rule": "R-CON-007" },
+    { "n": 7, "seam": "Body hem", "operation": "25 mm turn-up, 2-needle coverstitch (ISO 406), 6.4 mm gauge", "spi": "10-12", "rule": "R-CON-007" },
+    { "n": 8, "seam": "Care label", "operation": "Inserted in the wearer's left side seam, 80 mm above the hem", "spi": "", "rule": "R-LAB-002" },
+    { "n": 9, "seam": "Neck label", "operation": "Heat-transfer or sublimated neck label inside back neck; no sewn neck label", "spi": "", "rule": "R-LAB-001" }
+  ],
+
+  "thread": { "needle": "Polyester core-spun Tex 27 (Tkt 120), colour-matched to dominant colour or white", "looper": "Textured polyester Tex 18 for stretch and softness", "rule": "R-CON-009" },
+
+  "bom": [
+    { "item": 1, "category": "Fabric", "description": "Body fabric, all printed panels", "material": "F-POLY-INT 100% polyester interlock", "gsm": "140-160", "colour": "White (sublimated)", "supplier_code": "TBD by factory", "consumption": "0.80 m at 180 cm width (size M, incl. bleed and press shrink)", "notes": "Placeholder consumption; factory confirms from marker" },
+    { "item": 2, "category": "Fabric", "description": "Neck rib (C01) or cuffs (K02)", "material": "F-POLY-RIB 95/5 poly/elastane 1x1 rib", "gsm": "220", "colour": "White (sublimated) or stock colour", "supplier_code": "TBD", "consumption": "0.05 m", "notes": "" },
+    { "item": 3, "category": "Thread", "description": "Needle thread", "material": "Poly core-spun Tex 27", "gsm": "", "colour": "Match dominant colour", "supplier_code": "TBD", "consumption": "60 m", "notes": "Placeholder" },
+    { "item": 4, "category": "Thread", "description": "Looper thread", "material": "Textured polyester Tex 18", "gsm": "", "colour": "Match dominant colour", "supplier_code": "TBD", "consumption": "110 m", "notes": "Placeholder" },
+    { "item": 5, "category": "Trim", "description": "Back neck tape", "material": "Polyester twill tape 10 mm", "gsm": "", "colour": "White or match", "supplier_code": "TBD", "consumption": "0.20 m", "notes": "" },
+    { "item": 6, "category": "Label", "description": "Neck label, heat transfer", "material": "Heat-transfer film", "gsm": "", "colour": "Contrast to ground", "supplier_code": "TBD", "consumption": "1 pc", "notes": "Size, brand, 'Made in Pakistan'" },
+    { "item": 7, "category": "Label", "description": "Care and fibre label", "material": "Printed polyester satin 30 x 60 mm", "gsm": "", "colour": "White", "supplier_code": "TBD", "consumption": "1 pc", "notes": "Per destination market (UK/AU)" },
+    { "item": 8, "category": "Packaging", "description": "Polybag", "material": "Recycled LDPE 30 x 40 cm, suffocation warning, size sticker", "gsm": "", "colour": "Clear", "supplier_code": "TBD", "consumption": "1 pc", "notes": "" },
+    { "item": 9, "category": "Process", "description": "Sublimation transfer paper and ink", "material": "Factory standard", "gsm": "", "colour": "", "supplier_code": "TBD", "consumption": "about 1.6 m2 paper (size M)", "notes": "For costing only" }
+  ],
+
+  "print": {
+    "method": "Dye sublimation on transfer paper, heat press, then cut",
+    "bleed_mm": 10,
+    "resolution_dpi": 150,
+    "file_format": "PDF/X-4 per panel per size, sRGB, not mirrored",
+    "seam_safe_mm": 15,
+    "colour_tolerance": "dE CMC(2:1) <= 1.5 against strike-off",
+    "rules": ["R-SUB-001", "R-SUB-002", "R-SUB-003", "R-SUB-004", "R-SUB-005", "R-SUB-006"]
+  },
+
+  "personalisation": {
+    "zones": [
+      { "zone": "back_name", "panel": "back", "cap_height_mm": 60, "top_from_neck_mm": 70, "max_chars": 12, "rule": "R-PER-001" },
+      { "zone": "back_number", "panel": "back", "height_mm": 220, "top_from_neck_mm": 150, "rule": "R-PER-002" },
+      { "zone": "front_number", "panel": "front", "height_mm": 100, "position": "centre chest or wearer's right chest", "rule": "R-PER-003" }
+    ],
+    "method": "Printed in the same sublimation pass (no extra layer)",
+    "font": "kw-block-01 (licensed), outline optional"
+  },
+
+  "placements": [
+    { "asset": "crest", "panel": "front", "position": "wearer's left chest", "box_mm": "70 x 80", "x_from_cf_mm": 95, "y_from_hps_mm": 150, "anchor": "box centre", "scale_by_size": "fixed" },
+    { "asset": "main_sponsor", "panel": "front", "position": "centre chest", "box_mm": "250 x 80", "x_from_cf_mm": 0, "y_from_hps_mm": 260, "anchor": "box centre", "scale_by_size": "fixed" },
+    { "asset": "sleeve_sponsor", "panel": "sleeve", "position": "sleeve centre", "box_mm": "80 x 80", "x_from_cf_mm": 0, "y_from_hps_mm": 60, "anchor": "box centre, measured from the cap top", "scale_by_size": "fixed" }
+  ],
+
+  "labels": {
+    "uk": ["100% Polyester", "Care symbols: wash 30 C, do not bleach, do not tumble dry, do not iron print, do not dry clean", "Made in Pakistan", "Size", "Brand/importer name and address"],
+    "au": ["100% Polyester", "Care instructions in words (Australian care labelling standard)", "Made in Pakistan", "Size"],
+    "rule": "R-LAB-002"
+  },
+
+  "qc": {
+    "aql": "Class A: 100% inspection. Runs: AQL 0 critical / 2.5 major / 4.0 minor, level II",
+    "measure": ["A", "B", "C", "D", "E", "H", "I"],
+    "colour": "Each colour role vs strike-off, dE CMC(2:1) <= 1.5",
+    "visual": ["Print alignment across side and shoulder seams within 3 mm", "No white creases or ghosting", "No ink bleed or blurred edges", "Names and numbers match roster", "Neck rib lies flat, no ripple", "Hems flat, no wave or tunnelling"],
+    "photos": ["Front", "Back", "Neck label", "Care label", "Side seam close-up", "Print edge close-up"],
+    "rule": "R-QC-001"
+  }
+}
