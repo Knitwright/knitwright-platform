@@ -186,7 +186,10 @@ export interface PanelPrintFile {
   readonly bytes: Uint8Array;
 }
 
-/** The graded pattern pieces. Wave 2 wires the graded drafter (lib/parametric); until then the pattern library's blocks. */
+/**
+ * The graded pattern pieces. `sources/pattern.ts` draws them from the graded drafter (lib/parametric,
+ * decision 0068); the pattern library's synthetic run stays on as the fixture's test double.
+ */
 export interface PatternSource {
   pattern(): Promise<GradedPattern>;
 }
