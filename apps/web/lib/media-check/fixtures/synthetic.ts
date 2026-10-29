@@ -51,8 +51,11 @@ export const toPng = (svg: string, size: number): Promise<Uint8Array> => sharp(B
 /** The deterministic render: the clean jersey on a transparent canvas. */
 export const referencePng = (size = 640): Promise<Uint8Array> => toPng(jerseySvg(), size);
 
+/** The plain grey a generated picture sits on. The checker tells garment from background by colour, so a variant that paints the garment this colour has no garment to find. */
+export const GENERATED_BACKGROUND = "#dcdcdc";
+
 /** A generated picture: the jersey (clean or changed) on a plain grey background. */
-export const generatedPng = (variant: Variant = {}, size = 640): Promise<Uint8Array> => toPng(jerseySvg({ background: "#dcdcdc", ...variant }), size);
+export const generatedPng = (variant: Variant = {}, size = 640): Promise<Uint8Array> => toPng(jerseySvg({ background: GENERATED_BACKGROUND, ...variant }), size);
 
 export const panelsFor = (size: number): PanelRegion[] => {
   const k = size / 1000;
