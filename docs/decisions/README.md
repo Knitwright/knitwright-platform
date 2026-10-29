@@ -84,3 +84,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0067 | [Rulebook and "Why?" v1](0067-rulebook-and-why.md) | Proposed; owner questions listed |
 | 0068 | [The graded parametric drafter](0068-graded-parametric-drafter.md) | Proposed; owner questions listed |
 | 0069 | [Design object v2, validation on every save, and a rule behind every check](0069-design-object-v2-and-validation.md) | Proposed; owner questions listed |
+| 0070 | [The production package (KPP) and the files-service seam](0070-production-package-and-files-service.md) | Proposed; owner questions listed |
