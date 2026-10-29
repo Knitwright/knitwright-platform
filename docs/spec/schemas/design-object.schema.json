@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://knitwright.com/schemas/design-object/2.0",
+  "title": "Knitwright design object",
+  "type": "object",
+  "required": ["schema_version", "article", "colourway", "panels", "assets", "name_number", "labels", "provenance"],
+  "additionalProperties": false,
+  "$defs": {
+    "colour": {
+      "type": "object",
+      "required": ["role", "hex"],
+      "properties": {
+        "role": { "type": "string", "pattern": "^[a-z_]+$" },
+        "hex": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "lab": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 },
+        "pantone": { "type": "string" }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["fill", "gradient", "pattern", "artwork", "text"] },
+        "colour_role": { "type": "string" },
+        "colours": { "type": "array", "items": { "type": "string" } },
+        "gradient": {
+          "type": "object",
+          "properties": {
+            "angle_deg": { "type": "number" },
+            "stops": { "type": "array", "items": { "type": "object", "properties": { "at": { "type": "number", "minimum": 0, "maximum": 1 }, "colour_role": { "type": "string" } } } }
+          }
+        },
+        "pattern_id": { "type": "string" },
+        "asset_id": { "type": "string" },
+        "text": { "type": "string", "maxLength": 60 },
+        "font_id": { "type": "string" },
+        "path_id": { "type": "string" },
+        "x_mm": { "type": "number" },
+        "y_mm": { "type": "number" },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "rotation_deg": { "type": "number" },
+        "scale": { "type": "number", "exclusiveMinimum": 0 },
+        "scale_by_size": { "enum": ["grade", "fixed", "anchor"] },
+        "anchor": { "type": "string" },
+        "crosses_seam_ok": { "type": "boolean" }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "article": {
+      "type": "object",
+      "required": ["base_article_code", "class", "parameters", "options", "fabric"],
+      "properties": {
+        "base_article_code": { "type": "string", "pattern": "^[A-Z]{3}-[A-Z]{2}-[0-9]{2}$" },
+        "class": { "enum": ["A", "B"] },
+        "parameters": { "type": "object", "additionalProperties": { "type": ["number", "string", "boolean"] } },
+        "options": { "type": "object", "additionalProperties": { "type": "string" } },
+        "fabric": {
+          "type": "object",
+          "required": ["code"],
+          "properties": { "code": { "type": "string" }, "colour": { "type": ["string", "null"] } }
+        }
+      }
+    },
+    "colourway": {
+      "type": "object",
+      "required": ["name", "colours"],
+      "properties": {
+        "name": { "type": "string" },
+        "colours": { "type": "array", "items": { "$ref": "#/$defs/colour" }, "minItems": 1, "maxItems": 8 }
+      }
+    },
+    "panels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["panel_id", "layers"],
+        "properties": {
+          "panel_id": { "type": "string" },
+          "layers": { "type": "array", "items": { "$ref": "#/$defs/layer" } }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "kind", "file_key", "moderation"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "kind": { "enum": ["crest", "logo", "sponsor", "artwork", "label"] },
+          "file_key": { "type": "string" },
+          "vector": { "type": "boolean" },
+          "min_dpi_at_print": { "type": "number" },
+          "moderation": { "enum": ["pending", "clear", "flagged", "blocked"] }
+        }
+      }
+    },
+    "name_number": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "font_id": { "type": "string" },
+        "colour_role": { "type": "string" },
+        "outline_role": { "type": ["string", "null"] },
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["panel_id", "kind"],
+            "properties": {
+              "panel_id": { "type": "string" },
+              "kind": { "enum": ["name", "number", "front_number", "sleeve_number"] },
+              "y_mm": { "type": "number" },
+              "height_mm": { "type": "number" },
+              "max_chars": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "labels": {
+      "type": "object",
+      "properties": {
+        "care": { "enum": ["auto", "custom"] },
+        "size": { "enum": ["auto", "custom", "printed"] },
+        "brand_label_asset_id": { "type": ["string", "null"] },
+        "packaging": { "type": "string" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "intake": { "enum": ["template", "crest", "prompt", "image", "blank"] },
+        "template_id": { "type": ["string", "null"] },
+        "benchmark_ids": { "type": "array", "items": { "type": "string" } },
+        "ai_assisted": { "type": "boolean" }
+      }
+    }
+  }
+}
