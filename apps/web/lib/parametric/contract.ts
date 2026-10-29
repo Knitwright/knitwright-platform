@@ -1,7 +1,7 @@
 import { writeDxfAllSizes, writeDxfPerSize } from "@/lib/pattern-library/dxf/write";
 import { gradedPatternSchema, patternPieceSchema, type GradedPattern, type LandmarkId, type PatternPiece, type Point } from "@/lib/production/contract";
 import { bbox, type Pt } from "./geometry";
-import type { ArticleDraft, DraftPiece } from "./types";
+import { isFoldedRib, type ArticleDraft, type DraftPiece } from "./types";
 
 /**
  * The drafted pieces as the production contract's pattern pieces. The contract uses the DXF frame
@@ -15,7 +15,7 @@ const up = (p: Pt): Point => [p[0], p[1] === 0 ? 0 : -p[1]];
 function grainLine(piece: DraftPiece): { from: Point; to: Point } {
   const bb = bbox(piece.cutLine);
   const h = bb.y1 - bb.y0;
-  if (piece.id === "neck-rib") return { from: up([bb.x0 + 30, bb.y0 + 4]), to: up([bb.x0 + 30, bb.y1 - 4]) };
+  if (isFoldedRib(piece)) return { from: up([bb.x0 + 30, bb.y0 + 4]), to: up([bb.x0 + 30, bb.y1 - 4]) };
   const x = bb.x0 + (bb.x1 - bb.x0) / 2;
   return { from: up([x, bb.y0 + h * 0.3]), to: up([x, bb.y0 + h * 0.8]) };
 }

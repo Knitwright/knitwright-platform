@@ -37,6 +37,12 @@ export type DraftPiece = Readonly<{
   landmarks: Readonly<Record<string, Pt>>;
 }>;
 
+/**
+ * A rib or cuff is cut as a long folded rectangle, so the review sheet draws its grain line and
+ * its label differently from a panel's.
+ */
+export const isFoldedRib = (piece: DraftPiece): boolean => /rib|cuff/.test(piece.id);
+
 /** A measurement the pattern was built to, beside the value it was meant to have. */
 export type PomCheck = Readonly<{ label: string; target: number; actual: number }>;
 
