@@ -165,6 +165,39 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "ordered" },
   },
+  // Design object v2, X4 (migration 20261101030000): a member reads what validate() found for their
+  // brand's design versions; only record_validation_result, run by the server, writes them.
+  validation_results: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("record_validation_result", {
+          p_project_id: projectId,
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_version: 1,
+          p_profile_id: "knitwright-default",
+          p_scope: "save",
+          p_checks: [],
+          p_passed: true,
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      project_id: randomUUID(),
+      brand_id: brandId,
+      version: 1,
+      profile_id: "knitwright-default",
+      scope: "save",
+      checks: [],
+      passed: true,
+      checked_by: userId,
+    }),
+    change: { passed: false },
+  },
   export_downloads: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
