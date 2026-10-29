@@ -19,6 +19,7 @@ import { historyRows, loadRow, loadVersion, readSpec, throwIfFailed, type ReadSp
 import { sameDesign } from "./same-design";
 import { undoTarget } from "./undo";
 import { startingSpec } from "./starting-spec";
+import { validateOnSave } from "@/lib/validation/on-save";
 
 export * from "./project-reads";
 
@@ -65,10 +66,13 @@ export const createProject = async (admin: SupabaseClient, input: NewProject): P
     p_schema_version: started.spec.schemaVersion,
   });
   throwIfFailed(error);
-  return z.uuid().parse(data);
+  const projectId = z.uuid().parse(data);
+  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId, version: 1, spec: started.spec });
+  return projectId;
 };
 
 type Append = Readonly<{
+  brandId: string;
   userId: string;
   projectId: string;
   expectedVersion: number;
@@ -77,7 +81,7 @@ type Append = Readonly<{
   restoredFrom: number | null;
 }>;
 
-/** Stores a design as the next version. The database refuses if the version has moved on. */
+/** Stores a design as the next version, then validates it (spec F-0). The database refuses if the version has moved on. */
 const appendVersion = async (admin: SupabaseClient, input: Append): Promise<number> => {
   const { data, error } = await admin.rpc("append_spec_version", {
     p_project_id: input.projectId,
@@ -89,7 +93,9 @@ const appendVersion = async (admin: SupabaseClient, input: Append): Promise<numb
     p_restored_from: input.restoredFrom,
   });
   throwIfFailed(error);
-  return z.number().int().min(1).parse(data);
+  const version = z.number().int().min(1).parse(data);
+  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId: input.projectId, version, spec: input.spec });
+  return version;
 };
 
 type SaveInput = Readonly<{
@@ -132,6 +138,7 @@ const storeAction = async (
   const dropped = [...repaired, ...applied.dropped];
   if (sameDesign(applied.spec, base)) return { ok: true, spec: applied.spec, version: current.version, dropped };
   const version = await appendVersion(admin, {
+    brandId: input.brandId,
     userId: input.userId,
     projectId: input.projectId,
     expectedVersion: input.expectedVersion,
@@ -189,6 +196,7 @@ export const saveActions = async (admin: SupabaseClient, client: SupabaseClient,
   }
   if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
   const version = await appendVersion(admin, {
+    brandId: input.brandId,
     userId: input.userId,
     projectId: input.projectId,
     expectedVersion: input.expectedVersion,
@@ -249,6 +257,7 @@ export const saveTrustedActions = async (
   }
   if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
   const version = await appendVersion(admin, {
+    brandId: input.brandId,
     userId: input.userId,
     projectId: input.projectId,
     expectedVersion: input.expectedVersion,
@@ -290,6 +299,7 @@ export const restoreVersion = async (
   const { spec, dropped } = await dropUnreadableArtwork(client, input.brandId, readSpec(old.spec));
   if (sameDesign(spec, current.read.spec)) return { ok: true, spec, version: current.version, dropped };
   const version = await appendVersion(admin, {
+    brandId: input.brandId,
     userId: input.userId,
     projectId: input.projectId,
     expectedVersion: input.expectedVersion,
