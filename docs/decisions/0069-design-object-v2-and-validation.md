@@ -152,3 +152,50 @@ by the catalogue, so a real range answers to its own rule even while the generic
    the editor be brought down to the export's limits, or the export format raised?
 5. Is a picture still waiting for the content review a warning (today) or a blocker before an order?
 6. The rulebook gaps listed above: each needs an entry, or a decision that the check should not exist.
+
+---
+
+# 0069 revision 1: the two ports are wired (wave 2 prerequisite)
+
+Status: Proposed. Date: 2026-10-30. Plan step: `plans/platform-v5.md`, the opening paragraph of "# Wave 2" (the
+orchestrator wires the wave 1 interfaces in one small PR). No migration.
+
+Point 8 above left `ArticleCatalogue` and `ModerationReader` unwired. They are wired now, in
+`apps/web/lib/validation/live-ports.ts`:
+
+- **X1 into X4.** `catalogueFrom(client)` answers `articleForType` from `lib/catalogue`'s `baseArticleForType`
+  (decision 0066's registry map) plus `getBaseArticle` for the article's production class, and `parameterDefs`
+  from that same article's `parameter_defs` rows. The whole article is read once per port and kept, because a
+  save asks about one article twice. A garment type the map does not cover still gives null, so a design on
+  socks or a cap keeps the `article-not-set` warning rather than gaining a blocker.
+- **The two `ParameterDef` shapes are mapped explicitly, never cast.** The catalogue keeps one row with
+  nullable `min`, `max` and `enumValues`; validation takes a union on `type`. `toValidationParameter` maps
+  range, enum and bool, and answers null for a row that cannot be expressed — a range with no minimum or
+  maximum, an enum with no values. `parameter_defs` itself refuses both (migration 20261101010000), so null
+  means a row the database could not have stored; it is dropped rather than given a range nobody approved.
+- **X8 into X4.** `moderationReader(store)` reads decision 0073's own `ModerationStore.latest`, the existing
+  "latest check of each target", for the asset and text targets a design uses. A reviewer's decision wins over
+  the automatic result: allowed reads as `clear`, blocked as `blocked`. A target with no kept screening is left
+  out of the answer, as the interface says, so an unscreened picture still raises nothing at save time; it is
+  `screenBeforeOrder` that holds the order for a person. The brand is not part of the lookup, because
+  `moderation_checks` is read with the server's own key and `latest` is keyed by the target's own id.
+- **Where they are passed.** Both call sites of `validateOnSave` in `lib/projects/service.ts` (`createProject`
+  and the private `appendVersion`) now pass `livePorts(admin)`.
+
+`UNWIRED_CATALOGUE`, `UNWIRED_MODERATION` and `UNWIRED_PORTS` stay exported and tested: they are what the unit
+tests of both sides and the plan's test doubles use.
+
+**Not wired.** `readinessFor` in `lib/validation/design-input.ts` — the `full` scope, read when a status is
+recorded — still defaults to `UNWIRED_PORTS`. Its two callers are `app/api/projects/[projectId]/validation/`
+and `lib/clubs/reorder/use-cases.ts`, neither of which this PR owns, and a member's own client cannot read
+`moderation_checks` at all (platform admins only), so wiring that path needs a decision about which client it
+reads the screenings with. Raised on the PR.
+
+## Evidence
+
+| Claim | Test |
+|---|---|
+| Both shapes of parameter are mapped, and a row the database could not hold is dropped, not invented | `lib/validation/live-ports.test.ts` |
+| One article is read once however often a save asks about it | `lib/validation/live-ports.test.ts` |
+| A reviewer's decision wins over the automatic result, and an unscreened target is left out | `lib/validation/live-ports.test.ts` |
+| The ports read the real catalogue and the real screenings with the server's own key | `tests/integration/wave2-wiring.test.ts` |
