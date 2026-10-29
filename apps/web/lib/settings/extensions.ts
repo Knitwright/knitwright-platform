@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FACTORY_SETTINGS } from "@/lib/factory/settings";
 import { PATTERN_SERVICE_SETTINGS } from "@/lib/pattern-service/settings";
 import type { SettingDef } from "./types";
 
@@ -19,4 +20,6 @@ export const EXTENSION_SETTINGS: readonly SettingDef[] = [
     fallback: null,
   },
   ...PATTERN_SERVICE_SETTINGS,
+  // Plan v5 X6 (decision 0071): the Class A cut-off on the factory's clock, and QC days.
+  ...FACTORY_SETTINGS,
 ];
