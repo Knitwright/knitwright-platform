@@ -1,4 +1,4 @@
-import type { BaseArticle, BaseArticleSummary } from "@/lib/catalogue/types";
+import type { BaseArticle } from "@/lib/catalogue/types";
 import type { SellCurrency } from "@/lib/factory/schemas";
 import { fromPrice, type FromPrice, type PriceSource } from "./price";
 
@@ -37,14 +37,16 @@ export const sortFromQuery = (value: string | readonly string[] | undefined): So
   return SORTS.find((sort) => sort.id === asked)?.id ?? "name";
 };
 
-const BY: Readonly<Record<SortId, (a: BaseArticleSummary, b: BaseArticleSummary) => number>> = {
+/** Sorting needs only a name and a code, so it works on a summary and on a whole article alike. */
+type Sortable = Readonly<{ name: string; code: string }>;
+
+const BY: Readonly<Record<SortId, (a: Sortable, b: Sortable) => number>> = {
   name: (a, b) => a.name.localeCompare(b.name, "en"),
   "name-desc": (a, b) => b.name.localeCompare(a.name, "en"),
   code: (a, b) => a.code.localeCompare(b.code, "en"),
 };
 
-export const sortArticles = (articles: readonly BaseArticleSummary[], sort: SortId): readonly BaseArticleSummary[] =>
-  [...articles].sort(BY[sort]);
+export const sortArticles = <T extends Sortable>(articles: readonly T[], sort: SortId): readonly T[] => [...articles].sort(BY[sort]);
 
 /** What a base article has reached, in words a reader can act on. */
 export const STATUS_LABELS = {

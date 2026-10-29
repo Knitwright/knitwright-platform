@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ACTION_CARDS, CREATE_GROUPS, CREATE_WAYS, waysOf } from "./actions";
+import { ACTION_CARDS, CREATE_GROUPS, CREATE_WAYS, waysOf } from "./cards";
 import { hrefOf, isLater } from "./targets";
 
 /**
