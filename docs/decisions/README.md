@@ -85,4 +85,5 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0068 | [The graded parametric drafter](0068-graded-parametric-drafter.md) | Proposed; owner questions listed |
 | 0069 | [Design object v2, validation on every save, and a rule behind every check](0069-design-object-v2-and-validation.md) | Proposed; owner questions listed |
 | 0070 | [The production package (KPP) and the files-service seam](0070-production-package-and-files-service.md) | Proposed; owner questions listed |
+| 0071 | [The factory model as data](0071-factory-model-as-data.md) | Proposed; every seeded price, tier and lead time is a placeholder, owner questions listed |
 | 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |

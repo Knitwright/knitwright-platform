@@ -1197,6 +1197,26 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
     change: { name: "Changed by a member" },
   },
+  // Plan v5 X6 (decision 0071): the fabric programme's spec cards (spec F-S8) and its stock colours.
+  programme_fabrics: {
+    privileges: ["SELECT"],
+    row: { code: "F-POLY-INT" },
+    attempt: { code: "F-MADE-UP", name: "Made directly", production_class: "A", blend: "Made directly", label: "Made directly" },
+    change: { name: "Changed by a member" },
+  },
+  programme_fabric_colours: {
+    privileges: ["SELECT"],
+    row: { fabric_code: "F-STK-TEE", name: "Navy" },
+    attempt: { fabric_code: "F-STK-TEE", name: "Made directly", hex: "#000000", label: "Made directly" },
+    change: { hex: "#FFFFFF" },
+  },
+  // Plan v5 X6 (decision 0071): market rules, so a member sees the VAT treatment of their own market.
+  country_rules: {
+    privileges: ["SELECT"],
+    row: { country: "GB" },
+    attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
+    change: { selling_enabled: false },
+  },
   // Plan v5 X1 (decision 0066): the base article catalogue, seeded by its migration.
   base_articles: {
     privileges: ["SELECT"],
@@ -1415,6 +1435,26 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: (brandId, userId) => ({ template_id: randomUUID(), designer_id: userId, brand_id: brandId, project_id: randomUUID() }),
     change: { brand_id: randomUUID() },
+  },
+  // Plan v5 X6 (decision 0071): the factory, what it makes and what it costs. No browser role reaches any of the
+  // three: they carry the factory's contact and Knitwright's cost prices. The migration seeds the rows.
+  factories: {
+    privileges: [],
+    seed: async () => ({ slug: "sialkot-partner" }),
+    attempt: () => ({ slug: "made-directly", name: "Made directly", city: "Nowhere", country: "GB", time_zone: "UTC", label: "Made directly" }),
+    change: { name: "Changed by a member" },
+  },
+  factory_capabilities: {
+    privileges: [],
+    seed: async () => ({ article_code: "JSY-SS-01", fabric_code: "F-POLY-INT" }),
+    attempt: () => ({ factory_id: randomUUID(), article_code: "AAA-BB-01", fabric_code: "F-POLY-INT", label: "Made directly" }),
+    change: { moq: 999 },
+  },
+  price_tiers: {
+    privileges: [],
+    seed: async () => ({ qty_min: 10 }),
+    attempt: () => ({ capability_id: randomUUID(), qty_min: 1, label: "Made directly" }),
+    change: { sell_gbp_minor: 1 },
   },
   // Plan v5 X8 (decision 0073): moderation. Read by platform admins only; written by the moderation functions only.
   moderation_checks: {
