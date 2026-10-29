@@ -63,8 +63,21 @@ describe("migrateSpec", () => {
   it("upgrades a version 3 design, which needs nothing added, to the current version", () => {
     const old = { ...plain("polo"), schemaVersion: 3 };
     const result = migrateSpec(old);
-    expect(result.ok && result.spec.schemaVersion).toBe(6);
+    expect(result.ok && result.spec.schemaVersion).toBe(7);
     expect(result.ok && result.stale).toBe(false);
+  });
+
+  it("upgrades a version 6 design to 7 without inventing a base article, and keeps one that has it", () => {
+    const old = { ...plain("polo"), schemaVersion: 6 };
+    const result = migrateSpec(old);
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.spec.schemaVersion).toBe(7);
+    expect(result.spec.article).toBeUndefined();
+    expect(result.stale).toBe(false);
+
+    const article = { baseArticleCode: "JSY-SS-01", productionClass: "A" as const, parameters: { body_length_offset: 10 } };
+    const withArticle = migrateSpec({ ...plain("polo"), schemaVersion: 6, article });
+    expect(withArticle.ok && withArticle.spec.article).toEqual(article);
   });
 
   it("keeps the colours of a version 3 design as they were", () => {

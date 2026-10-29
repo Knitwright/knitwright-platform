@@ -165,6 +165,39 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { status: "ordered" },
   },
+  // Design object v2, X4 (migration 20261101030000): a member reads what validate() found for their
+  // brand's design versions; only record_validation_result, run by the server, writes them.
+  validation_results: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("record_validation_result", {
+          p_project_id: projectId,
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_version: 1,
+          p_profile_id: "knitwright-default",
+          p_scope: "save",
+          p_checks: [],
+          p_passed: true,
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      project_id: randomUUID(),
+      brand_id: brandId,
+      version: 1,
+      profile_id: "knitwright-default",
+      scope: "save",
+      checks: [],
+      passed: true,
+      checked_by: userId,
+    }),
+    change: { passed: false },
+  },
   export_downloads: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1361,6 +1394,16 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: () => ({ key: "isolation.made_directly", value: 1 }),
     change: { value: 99 },
   },
+  // Decision 0067: questions and check codes with no rulebook entry. No browser role reads it; rulebook_gap_log writes it.
+  rulebook_gaps: {
+    privileges: [],
+    seed: async () => {
+      must(await adminClient().rpc("rulebook_gap_log", { p_code: "R-ISOLATION-001", p_context: "isolation" }));
+      return { code: "R-ISOLATION-001" };
+    },
+    attempt: () => ({ code: "R-MADE-001", context: "made directly" }),
+    change: { count: 99 },
+  },
   // Decision 0061: which designer template a design came from. No browser role reads it, so a designer never learns which brand used their work.
   designer_template_uses: {
     privileges: [],
@@ -1390,6 +1433,9 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
 /** Platform-owned tables every signed-in user may read and nobody but the server writes; tests/integration/templates.test.ts covers them. */
 const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privileges">>> = {
   templates: { privileges: ["SELECT"] },
+  // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
+  // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
+  rulebook_entries: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;
