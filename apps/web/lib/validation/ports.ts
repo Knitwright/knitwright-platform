@@ -2,8 +2,10 @@ import type { ArticleRef } from "@/lib/garment/spec-schema";
 
 /**
  * The two things validation reads from workstreams that are built beside it (plan v5 Lessons 9). Each is the smallest
- * interface validation needs. The base article catalogue (X1) and moderation (X8) provide real ones in wave 2; until
- * then the unwired versions below say "nothing known", which raises no finding about parameters or moderation.
+ * interface validation needs. The real implementations over the base article catalogue (X1) and moderation (X8) are in
+ * `live-ports.ts` and are what `lib/projects/service.ts` passes on a save. The unwired versions below stay: they say
+ * "nothing known", which raises no finding about parameters or moderation, and they are what the unit tests of both
+ * sides and the plan's test doubles use.
  */
 
 /** One structural parameter of a base article, as the catalogue approves it. */
