@@ -13,8 +13,8 @@ const suggested = () =>
   ).spec;
 
 describe("the design version", () => {
-  it("is version 6", () => {
-    expect(SPEC_SCHEMA_VERSION).toBe(6);
+  it("is version 7", () => {
+    expect(SPEC_SCHEMA_VERSION).toBe(7);
   });
 });
 
@@ -104,7 +104,7 @@ describe("migrating a version 5 design", () => {
   it("copies the old source of a fabric onto each field that has a value", () => {
     const result = migrateSpec(version5([fabric("main", { composition: "Cotton", weightGsm: 150, provenance: "brand-supplied", consumption: "" })]));
     if (!result.ok) throw new Error(result.reason);
-    expect(result.spec.schemaVersion).toBe(6);
+    expect(result.spec.schemaVersion).toBe(7);
     expect(result.spec.fabrics[0].sources).toEqual({
       composition: "brand-supplied",
       weightGsm: "brand-supplied",

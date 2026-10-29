@@ -17,7 +17,24 @@ import { kebabId, wearerSchema } from "./primitives";
 import { specProblems } from "./spec-checks";
 import { componentSchema, constructionEntrySchema, labellingSchema } from "./tech-parts";
 
-export const SPEC_SCHEMA_VERSION = 6;
+export const SPEC_SCHEMA_VERSION = 7;
+
+/**
+ * The base article a design sits on (plan v5 X4, decision 0069): its catalogue code, production class and the
+ * structural parameters chosen inside the article's approved ranges. Added in version 7 and optional: a design saved
+ * before has none, and validation works one out from the garment type (lib/validation `articleOf`).
+ */
+export const articleRefSchema = z
+  .strictObject({
+    baseArticleCode: z.string().regex(/^[A-Z]{3}-[A-Z]{2}-[0-9]{2}$/),
+    productionClass: z.enum(["A", "B"]),
+    parameters: z
+      .record(z.string().regex(/^[a-z][a-z0-9_]{0,63}$/), z.union([z.number().finite(), z.string().max(64), z.boolean()]))
+      .refine((params) => Object.keys(params).length <= 32, { message: "A design takes at most 32 parameters." })
+      .readonly(),
+  })
+  .readonly();
+export type ArticleRef = z.output<typeof articleRefSchema>;
 
 /** Sanity limits on list sizes, so one spec cannot grow without bound. */
 const MAX_MEASUREMENTS = 64;
@@ -78,6 +95,8 @@ export const garmentSpecStructureSchema = z
      * `namesAndNumbers` and the panel colours; the older fields are kept in step when it is written.
      */
     artworkStack: artworkStackSchema.optional(),
+    /** The base article and its parameters (version 7). Absent on older designs. */
+    article: articleRefSchema.optional(),
   })
   .readonly();
 

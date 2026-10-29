@@ -70,6 +70,8 @@ const UPGRADES: Readonly<Record<number, Upgrade>> = {
   3: (input) => ({ ...input }),
   4: addTechPackFields,
   5: addFabricSources,
+  // 6 becomes 7 with the optional base article (decision 0069). An older design has none; it is worked out when read.
+  6: (input) => ({ ...input }),
 };
 
 const NOT_A_DESIGN = "This is not a saved design.";
