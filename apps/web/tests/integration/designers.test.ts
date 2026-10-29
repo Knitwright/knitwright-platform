@@ -50,6 +50,8 @@ const orderFrom = async (templateId: string, sizes: Record<string, number>, curr
   return { orderId: submitted[0]!.order_id, releaseId: release[0]!.id };
 };
 
+/** What a designer may read of a ledger line. */
+const LEDGER_COLUMNS = "id, seq, designer_id, template_id, units, rate_minor, currency, accrued_minor, created_at";
 const lines = async (orderId: string) => must(await adminClient().from("royalty_accruals").select("*").eq("order_id", orderId));
 /** Settings are written through platform_setting_set, as the console does; null puts the setting back to its default. */
 const setRate = async (value: unknown) => {
@@ -177,10 +179,13 @@ describe("the royalty ledger", () => {
 
   it("holds counts, never names: a designer sees units, not the brand or the roster", async () => {
     const { orderId } = await orderFrom(await liveTemplate(), { M: 2 });
-    const seen = must(await designer.client.from("royalty_accruals").select("*").eq("order_id", orderId));
+    const [line] = (await lines(orderId)) as { id: string }[];
+    const seen = must(await designer.client.from("royalty_accruals").select(LEDGER_COLUMNS).eq("id", line!.id));
     expect(seen).toHaveLength(1);
     expect(Object.keys(seen[0]!).sort()).not.toContain("brand_id");
-    expect((await other.client.from("royalty_accruals").select("*").eq("order_id", orderId)).data).toEqual([]);
+    // The order, the design and the release are the buying brand's (migration 20261030020000).
+    expect((await designer.client.from("royalty_accruals").select("*").eq("id", line!.id)).error).not.toBeNull();
+    expect((await other.client.from("royalty_accruals").select(LEDGER_COLUMNS).eq("id", line!.id)).data).toEqual([]);
   });
 
   it("can never be changed or removed, by the server's key either", async () => {
