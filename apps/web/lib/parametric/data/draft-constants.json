@@ -1,0 +1,109 @@
+{
+  "note": "Per-article drafting constants (plan v5 owner decisions 6 and 7). Every number the drafter draws with lives here, not in TypeScript. `values` holds the numbers; `labels` says, for every group of them, which rulebook entry covers it, where it came from and whether a factory has seen it. A factory sets these per article; nothing here is confirmed.",
+  "articles": {
+    "JSY-SS-01": {
+      "labels": [
+        {
+          "key": "curves.front_neck",
+          "rule": "R-FIT-007",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 line 109, the front neck Bezier"
+        },
+        {
+          "key": "curves.front_armhole",
+          "rule": "R-FIT-006",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 line 110, the front armhole Bezier"
+        },
+        {
+          "key": "curves.back_neck",
+          "rule": "R-FIT-007",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 line 111, the back neck Bezier"
+        },
+        {
+          "key": "curves.back_armhole",
+          "rule": "R-FIT-006",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 line 112, the back armhole Bezier"
+        },
+        {
+          "key": "curves.sleeve_cap",
+          "rule": "R-PAT-007",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 lines 138 to 149: 3 mm total ease inside article.json's 0 to 6 mm window, solved by forty halvings of the 30 to 200 mm bracket"
+        },
+        {
+          "key": "notches.armhole",
+          "rule": "R-PAT-006",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 lines 172 to 183, measured from the underarm along the seam; the sleeve cap carries the same distances so the notches meet"
+        },
+        {
+          "key": "notches.neck_rib",
+          "rule": "R-PAT-006",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 line 187, the rib quartered"
+        },
+        {
+          "key": "notches.cut",
+          "rule": "R-PAT-006",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/articles/JSY-SS-01/tools/draft-pattern.ps1 lines 91 to 92: a 5 mm slit cut in from the cut line. The epsilon is where along a curve 'at its start' is read, not a measurement of the garment"
+        },
+        {
+          "key": "drop_tail.convention",
+          "rule": "R-PAT-005",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "plans/platform-v5.md owner decision 6. The rulebook (R-PAT-005) gives the one measurement, the centre-back drop; the rest is drafting convention. The two control fractions place the Bezier handles that make the one smooth curve, and no measurement in the pack gives them"
+        },
+        {
+          "key": "cuff_k02.rib",
+          "rule": "R-CON-008",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "plans/platform-v5.md owner decision 8. The finished depth is the 25 mm of article.json's K02 option name; `negative_ease_mm` is a labelled default with no source in the pack and an owner question against it"
+        },
+        {
+          "key": "master_pattern.check",
+          "rule": "R-GAP-000",
+          "label": "Knitwright draft v0.1, not reviewed by a factory",
+          "source": "docs/spec/02-features.md F-S3: the size-M default output is checked against the factory's master pattern within 2 mm. No master pattern exists yet (owner decision 10), and the rulebook has no entry for the check"
+        }
+      ],
+      "values": {
+        "curves": {
+          "front_neck": { "control_1_drop_fraction": 0.55, "control_2_width_fraction": 0.5 },
+          "front_armhole": { "control_1_inset_fraction": 0.12, "control_1_drop_fraction": 0.4, "control_2_inset_mm": 10 },
+          "back_neck": { "control_1_inset_mm": 5, "control_1_drop_fraction": 0.8, "control_2_width_fraction": 0.5 },
+          "back_armhole": { "control_1_inset_fraction": 0.08, "control_1_drop_fraction": 0.4, "control_2_inset_mm": 5 },
+          "sleeve_cap": {
+            "control_1_width_fraction": 0.6,
+            "control_2_width_fraction": 0.35,
+            "ease_mm": 3,
+            "solve_bracket_mm": [30, 200],
+            "solve_halvings": 40
+          }
+        },
+        "notches": {
+          "armhole": { "front_from_underarm_mm": [75], "back_from_underarm_mm": [85, 95] },
+          "neck_rib": { "fractions": [0.25, 0.5, 0.75] },
+          "cut": { "slit_mm": 5, "curve_start_epsilon_mm": 0.01 }
+        },
+        "drop_tail": {
+          "convention": {
+            "hem_level_to_side_seam": true,
+            "drop_starts_at": "side-seam",
+            "side_seam_length_unchanged": true,
+            "front_hem_moves": false,
+            "back_hem_curve": "one-smooth-curve",
+            "horizontal_at_centre_back": true,
+            "side_control_fraction": 0.5,
+            "centre_control_fraction": 0.5
+          }
+        },
+        "cuff_k02": { "rib": { "finished_depth_mm": 25, "negative_ease_mm": 20 } },
+        "master_pattern": { "check": { "tolerance_mm": 2 } }
+      }
+    }
+  }
+}

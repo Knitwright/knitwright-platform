@@ -1,3 +1,4 @@
+import type { DraftConstantValues } from "../constants";
 import { bez, len, type Pt } from "../geometry";
 
 /** The measurements one size is drafted from, after the parameters are applied. */
@@ -30,43 +31,63 @@ export type BodyCurves = Readonly<{
   bArm: Pt[];
 }>;
 
-/** The neck and armhole curves of the front and back, right half (the script's first block). */
-export function bodyCurves(m: SizeMeasures): BodyCurves {
+type Curves = DraftConstantValues["curves"];
+export type CapConstants = Curves["sleeve_cap"];
+
+/**
+ * The neck and armhole curves of the front and back, right half (the script's first block). Every
+ * control point comes from the article's drafting constants, so the shape of the block is data.
+ */
+export function bodyCurves(m: SizeMeasures, k: Curves): BodyCurves {
   const cx = m.A / 2;
   const sx = m.C / 2;
   const hx = m.H / 2;
   const { G, I, J, slope } = m;
+  const depth = G - slope;
   return {
     cx,
     sx,
     hx,
     // HPS -> centre front
-    fNeck: bez([hx, 0], [hx, I * 0.55], [hx * 0.5, I], [0, I]),
+    fNeck: bez([hx, 0], [hx, I * k.front_neck.control_1_drop_fraction], [hx * k.front_neck.control_2_width_fraction, I], [0, I]),
     // shoulder point -> underarm
-    fArm: bez([sx, slope], [sx - 0.12 * (G - slope), slope + 0.4 * (G - slope)], [sx - 10, G], [cx, G]),
-    bNeck: bez([hx, 0], [hx - 5, J * 0.8], [hx * 0.5, J], [0, J]),
-    bArm: bez([sx, slope], [sx - 0.08 * (G - slope), slope + 0.4 * (G - slope)], [sx - 5, G], [cx, G]),
+    fArm: bez(
+      [sx, slope],
+      [sx - k.front_armhole.control_1_inset_fraction * depth, slope + k.front_armhole.control_1_drop_fraction * depth],
+      [sx - k.front_armhole.control_2_inset_mm, G],
+      [cx, G],
+    ),
+    bNeck: bez(
+      [hx, 0],
+      [hx - k.back_neck.control_1_inset_mm, J * k.back_neck.control_1_drop_fraction],
+      [hx * k.back_neck.control_2_width_fraction, J],
+      [0, J],
+    ),
+    bArm: bez(
+      [sx, slope],
+      [sx - k.back_armhole.control_1_inset_fraction * depth, slope + k.back_armhole.control_1_drop_fraction * depth],
+      [sx - k.back_armhole.control_2_inset_mm, G],
+      [cx, G],
+    ),
   };
 }
 
-/** The total ease the cap is drafted to: 3 mm, inside the article's 0 to 6 mm target (R-PAT-007). */
-export const CAP_EASE_MM = 3;
-
-const capCurve = (E: number, capH: number): Pt[] => bez([E, capH], [E * 0.6, capH], [E * 0.35, 0], [0, 0]);
+const capCurve = (E: number, capH: number, k: CapConstants): Pt[] =>
+  bez([E, capH], [E * k.control_1_width_fraction, capH], [E * k.control_2_width_fraction, 0], [0, 0]);
 
 /**
  * Solves the sleeve cap height so each half of the cap is half the armhole plus half the ease.
- * Forty halvings of the 30 to 200 mm bracket, as the script does. The cap runs underarm -> top.
+ * The ease, the bracket and the number of halvings are the article's constants, as the script's
+ * own values. The cap runs underarm -> top.
  */
-export function solveCap(E: number, frontArmhole: number, backArmhole: number): { capH: number; cap: Pt[] } {
-  const target = (frontArmhole + backArmhole + CAP_EASE_MM) / 2;
-  let lo = 30;
-  let hi = 200;
-  for (let it = 0; it < 40; it++) {
+export function solveCap(E: number, frontArmhole: number, backArmhole: number, k: CapConstants): { capH: number; cap: Pt[] } {
+  const target = (frontArmhole + backArmhole + k.ease_mm) / 2;
+  let [lo, hi] = k.solve_bracket_mm;
+  for (let it = 0; it < k.solve_halvings; it++) {
     const capH = (lo + hi) / 2;
-    if (len(capCurve(E, capH)) > target) hi = capH;
+    if (len(capCurve(E, capH, k)) > target) hi = capH;
     else lo = capH;
   }
   const capH = (lo + hi) / 2;
-  return { capH, cap: capCurve(E, capH) };
+  return { capH, cap: capCurve(E, capH, k) };
 }

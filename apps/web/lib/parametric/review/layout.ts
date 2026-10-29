@@ -1,5 +1,5 @@
 import { bbox } from "../geometry";
-import type { ArticleDraft, DraftPiece } from "../types";
+import { isFoldedRib, type ArticleDraft, type DraftPiece } from "../types";
 
 /** Sheet spacing of the reference files, in mm. */
 export const GAP = 50;
@@ -16,8 +16,6 @@ export type PlacedPiece = Readonly<{
 
 export type Sheet = Readonly<{ pieces: readonly PlacedPiece[]; width: number; height: number }>;
 
-const isRib = (piece: DraftPiece): boolean => piece.label.startsWith("NECK RIB");
-
 /** The five label lines printed on every piece. */
 export const labelLines = (draft: ArticleDraft, piece: DraftPiece): string[] => [
   `${draft.articleCode} v${draft.articleVersion}`,
@@ -31,7 +29,7 @@ function place(draft: ArticleDraft, piece: DraftPiece, x: number): PlacedPiece &
   const bb = bbox(piece.cutLine);
   const w = bb.x1 - bb.x0;
   const hgt = bb.y1 - bb.y0;
-  const rib = isRib(piece);
+  const rib = isFoldedRib(piece);
   const grain = rib
     ? { x: x + 30, y0: MARGIN + 4, y1: MARGIN + hgt - 4 }
     : { x: x + w / 2, y0: MARGIN + hgt * 0.3, y1: MARGIN + hgt * 0.8 };

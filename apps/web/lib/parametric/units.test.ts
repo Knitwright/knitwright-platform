@@ -45,7 +45,7 @@ describe("the geometry helpers", () => {
   });
 
   it("cuts a notch 5 mm into the allowance, square to the edge", () => {
-    const [cut, inner] = notch([[0, 0], [100, 0]], 50, 6);
+    const [cut, inner] = notch([[0, 0], [100, 0]], 50, 6, 5);
     expect(cut).toEqual([50, -6]);
     expect(inner).toEqual([50, -1]);
   });
