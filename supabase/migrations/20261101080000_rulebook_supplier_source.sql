@@ -55,7 +55,10 @@ alter table public.rulebook_entries
   add constraint rulebook_entries_confirmation_names_the_person
     check (
       (status = 'draft' and confirmed_name is null and confirmed_role is null)
+      -- The two IS NOT NULL tests come first on purpose: a check constraint lets a NULL result pass, so a
+      -- confirmed version with no name would slip through a test that only measured the length.
       or (status = 'confirmed'
+          and confirmed_name is not null and confirmed_role is not null
           and length(btrim(confirmed_name)) between 1 and 120
           and length(btrim(confirmed_role)) between 1 and 120)
     )

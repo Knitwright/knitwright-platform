@@ -285,8 +285,8 @@ describe("who may write", () => {
 
   it("refuses every function to a browser", async () => {
     for (const client of [anonClient(), member.client, admin.client]) {
-      expect((await client.rpc("rulebook_entry_save", { p_actor: admin.userId, p_rule_id: "R-TEST-006", p_topic: "print", p_article_codes: [], p_title: "t", p_rule: "r", p_body: "b", p_best_practice: "", p_source: "knitwright", p_source_note: "" })).error).not.toBeNull();
-      expect((await client.rpc("rulebook_entry_confirm", { p_actor: admin.userId, p_rule_id: "R-GAP-000", p_version: 1 })).error).not.toBeNull();
+      expect((await client.rpc("rulebook_entry_save", { p_actor: admin.userId, p_rule_id: "R-TEST-006", p_topic: "print", p_article_codes: ["JSY-SS-01"], p_scope_methods: [], p_scope_note: "", p_title: "t", p_rule: "r", p_body: "b", p_best_practice: "", p_source: "knitwright", p_source_note: "" })).error).not.toBeNull();
+      expect((await client.rpc("rulebook_entry_confirm", { p_actor: admin.userId, p_rule_id: "R-GAP-000", p_version: 1, p_name: "Ana Lima", p_role: "pattern master" })).error).not.toBeNull();
       expect((await client.rpc("rulebook_gap_log", { p_code: "R-TEST-007", p_context: "" })).error).not.toBeNull();
     }
     expect(await versions("R-TEST-006")).toEqual([]);
