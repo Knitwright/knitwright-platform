@@ -93,6 +93,13 @@ describe("reads", () => {
     expect(gaps).toEqual([{ code: "R-NONE-999", context: "x", count: 3, firstSeen: "a", lastSeen: "b" }]);
   });
 
+  it("reads an empty rulebook as nothing, not as a failure", async () => {
+    const empty = fake({ data: null });
+    expect(await loadEntries(empty.client)).toEqual([]);
+    expect(await resolveRule(fake({ data: null }).client, "R-SUB-004")).toEqual({ shown: null, newerDraft: null, newest: null });
+    expect(await loadGaps(fake({ data: null }).client)).toEqual([]);
+  });
+
   it("throws a generic error on a failed read", async () => {
     const broken = fake({ error: { message: "x" } }).client;
     await expect(loadEntries(broken)).rejects.toMatchObject({ code: "internal" });

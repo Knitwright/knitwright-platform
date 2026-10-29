@@ -46,7 +46,7 @@ export function RuleEditor({ entry }: Readonly<{ entry?: RulebookEntry }>) {
       <SelectField name="topic" label="Topic" options={TOPIC_OPTIONS} defaultValue={entry?.topic ?? ""} placeholder="Choose a topic" errors={fieldErrors("topic")} />
       <Field name="articleCodes" label="Article codes" hint="The articles this rule covers. Leave empty when it covers a way of making a garment instead." defaultValue={entry?.articleCodes.join(", ") ?? ""} errors={fieldErrors("articleCodes")} />
       <Field name="methods" label="Methods" hint="The ways of making a garment this rule covers, for example sublimation." defaultValue={entry?.methods.join(", ") ?? ""} errors={fieldErrors("methods")} />
-      <Field name="scopeNote" label="Scope note" hint="How far the scope has been checked, in plain words." defaultValue={entry?.scopeNote ?? ""} errors={fieldErrors("scopeNote")} />
+      <Field name="scopeNote" label="Scope note" hint="Who has reviewed this scope, in plain words." defaultValue={entry?.scopeNote ?? ""} errors={fieldErrors("scopeNote")} />
       <Field name="title" label="Applies to" defaultValue={entry?.title ?? ""} errors={fieldErrors("title")} />
       <Area name="rule" label="Rule" defaultValue={entry?.rule ?? ""} errors={fieldErrors} />
       <Area name="body" label="Why" defaultValue={entry?.body ?? ""} errors={fieldErrors} />
