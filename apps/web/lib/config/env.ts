@@ -79,6 +79,11 @@ const envSchema = z.object({
   GOOGLE_VERTEX_ACCESS_TOKEN: z.string().regex(/^\S{1,4000}$/).optional(),
   GOOGLE_VERTEX_PROJECT: z.string().regex(/^\S{1,200}$/).optional(),
   GOOGLE_VERTEX_LOCATION: z.string().regex(/^[a-z0-9-]{1,60}$/).optional(),
+  // The WhatsApp Business Cloud API, which tells a factory its job packet link (decision 0072). Both optional
+  // and server only: without both, lib/job-packet/notify.ts answers with the stub and ops sends the link itself.
+  // Never set where tests run: no test calls WhatsApp for real.
+  WHATSAPP_TOKEN: z.string().regex(/^\S{1,400}$/).optional(),
+  WHATSAPP_PHONE_ID: z.string().regex(/^\d{1,30}$/).optional(),
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
   // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from
