@@ -835,9 +835,14 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     privileges: ["SELECT"],
     brandColumn: "designer_id",
     ownedBy: "user",
-    seed: async (brandId, ownerId) => ({ order_id: (await seedDesignerOrder(brandId, ownerId)).orderId }),
+    seed: async (brandId, ownerId) => {
+      const { orderId } = await seedDesignerOrder(brandId, ownerId);
+      return must(await adminClient().from("royalty_accruals").select("id").eq("order_id", orderId).single());
+    },
     attempt: (ownerId) => ({ designer_id: ownerId, template_id: randomUUID(), project_id: randomUUID(), order_id: randomUUID(), release_id: randomUUID(), units: 1 }),
     change: { units: 99 },
+    // A designer holds no grant on order_id, project_id or release_id: they are the buying brand's (migration 20261030020000).
+    readColumns: "id, seq, designer_id, template_id, units, rate_minor, currency, accrued_minor, created_at",
   },
   designer_payout_events: {
     privileges: ["SELECT"],

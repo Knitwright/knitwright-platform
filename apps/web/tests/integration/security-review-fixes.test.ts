@@ -6,7 +6,8 @@ import { adminClient, brandOf, must, person, type Person } from "./support";
 /**
  * Migration 20261030010000: the database findings of the v4 security review (docs/reviews/security-v4.md).
  * M5 brand details, M6 kit files, M8 media columns, L10 actors of history, L11 brand deletion and invitation expiry,
- * L12 designer use, L13 delays. Needs `pnpm db:start`.
+ * L12 designer use, L13 delays. Migration 20261030020000: L8 what members and designers read.
+ * Needs `pnpm db:start`.
  */
 
 const rpc = (name: string, args: Record<string, unknown>) => adminClient().rpc(name, args);
@@ -249,5 +250,68 @@ describe("L13: a delay needs a date", () => {
     const missing = await rpc("ops_delay_order", { p_actor: admin.userId, p_order_id: orderId, p_new_date: null, p_reason: "Yarn late" });
     expect(missing.error?.hint).toBe("date_needed");
     must(await rpc("ops_delay_order", { p_actor: admin.userId, p_order_id: orderId, p_new_date: "2099-01-01", p_reason: "Yarn late" }));
+  });
+});
+
+describe("L8: members and designers read only what is theirs to read", () => {
+  it("shows member emails to owners and admins only; other members get a profile name or nothing", async () => {
+    const [owner, admin, kitManager, viewer, named] = await Promise.all([
+      person("l8-owner"), person("l8-admin"), person("l8-kit"), person("l8-viewer"), person("l8-named"),
+    ]);
+    const brand = await brandOf(owner, "Members Fix FC");
+    for (const [member, role] of [[admin, "admin"], [kitManager, "kit_manager"], [viewer, "viewer"], [named, "viewer"]] as const) {
+      await join(owner, brand, member, role);
+    }
+    const updated = await adminClient().auth.admin.updateUserById(named.userId, { user_metadata: { display_name: "Named Member" } });
+    expect(updated.error).toBeNull();
+    const emails = [owner, admin, kitManager, viewer, named].map((p) => p.email);
+
+    for (const who of [kitManager, viewer]) {
+      const seen = must(await who.client.rpc("club_members", { p_brand_id: brand })) as { user_id: string; role: string; name: string | null }[];
+      expect(seen).toHaveLength(5);
+      expect(seen.filter((m) => m.name !== null && emails.includes(m.name))).toEqual([]);
+      expect(seen.find((m) => m.user_id === named.userId)?.name).toBe("Named Member");
+      expect(seen.find((m) => m.user_id === owner.userId)?.name).toBeNull();
+    }
+    for (const who of [owner, admin]) {
+      const seen = must(await who.client.rpc("club_members", { p_brand_id: brand })) as { user_id: string; name: string | null }[];
+      expect(seen.find((m) => m.user_id === viewer.userId)?.name).toBe(viewer.email);
+      expect(seen.find((m) => m.user_id === named.userId)?.name).toBe("Named Member");
+    }
+  });
+
+  it("does not show a template's designer to a signed-in reader, and the server still has it", async () => {
+    const [designer, reader] = await Promise.all([person("l8-template-designer"), person("l8-template-reader")]);
+    const templateId = await designerTemplate(designer.userId);
+
+    for (const who of [reader, designer]) {
+      expect((await who.client.from("templates").select("designer_id").eq("id", templateId)).error).not.toBeNull();
+      expect((await who.client.from("templates").select("*").eq("id", templateId)).error).not.toBeNull();
+      const row = must(await who.client.from("templates").select("id, title, source, attribution, snapshot").eq("id", templateId).single());
+      expect(row).toMatchObject({ source: "designer", attribution: "Fix Designer" });
+    }
+    const asServer = must(await adminClient().from("templates").select("designer_id").eq("id", templateId).single());
+    expect(asServer).toEqual({ designer_id: designer.userId });
+  });
+
+  it("shows a designer the units of a ledger line, never the buying brand's order, design or release", async () => {
+    const [designer, buyer] = await Promise.all([person("l8-ledger-designer"), person("l8-ledger-buyer")]);
+    const brand = await brandOf(buyer, "Ledger Buyer FC");
+    const templateId = await designerTemplate(designer.userId);
+    const project = await createProject(brand, buyer);
+    expect(must(await rpc("designer_record_use", { p_template_id: templateId, p_brand_id: brand, p_project_id: project }))).toBe(true);
+    const release = must(
+      await rpc("create_release", { p_project_id: project, p_brand_id: brand, p_user_id: buyer.userId, p_label: "Round 1", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+    ) as { id: string }[];
+    const orderId = await submitOrder(release[0]!.id);
+    const line = must(await adminClient().from("royalty_accruals").select("id, order_id, project_id, release_id").eq("order_id", orderId).single()) as { id: string };
+    expect(line).toMatchObject({ project_id: project, release_id: release[0]!.id });
+
+    for (const column of ["order_id", "project_id", "release_id"]) {
+      expect((await designer.client.from("royalty_accruals").select(column).eq("id", line.id)).error, column).not.toBeNull();
+    }
+    expect((await designer.client.from("royalty_accruals").select("*").eq("id", line.id)).error).not.toBeNull();
+    const seen = must(await designer.client.from("royalty_accruals").select("id, template_id, units").eq("id", line.id));
+    expect(seen).toEqual([{ id: line.id, template_id: templateId, units: 2 }]);
   });
 });
