@@ -14,6 +14,8 @@ export const entryRow = z.object({
   version: z.number().int().min(1),
   topic: z.enum(TOPICS).nullable(),
   article_codes: z.array(z.string()),
+  scope_methods: z.array(z.string()),
+  scope_note: z.string(),
   title: z.string(),
   rule: z.string(),
   body: z.string(),
@@ -21,8 +23,11 @@ export const entryRow = z.object({
   source: z.enum(SOURCES),
   source_note: z.string(),
   status: z.enum(STATUSES),
-  // Only the server's key reads who confirmed a rule; a member's read leaves the column out.
+  // Only the server's key reads which ACCOUNT recorded a confirmation; a member's read leaves the column out.
+  // The factory person's name and role (owner decision 14) are shown to everyone who sees the rule.
   confirmed_by: z.string().nullish(),
+  confirmed_name: z.string().nullable(),
+  confirmed_role: z.string().nullable(),
   confirmed_at: z.string().nullable(),
   created_at: z.string(),
 });
@@ -34,6 +39,8 @@ export const toEntry = (row: EntryRow): RulebookEntry => ({
   version: row.version,
   topic: row.topic,
   articleCodes: row.article_codes,
+  methods: row.scope_methods,
+  scopeNote: row.scope_note,
   title: row.title,
   rule: row.rule,
   body: row.body,
@@ -42,6 +49,8 @@ export const toEntry = (row: EntryRow): RulebookEntry => ({
   sourceNote: row.source_note,
   status: row.status,
   confirmedBy: row.confirmed_by ?? null,
+  confirmedName: row.confirmed_name,
+  confirmedRole: row.confirmed_role,
   confirmedAt: row.confirmed_at,
   createdAt: row.created_at,
 });

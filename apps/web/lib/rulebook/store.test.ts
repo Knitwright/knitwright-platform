@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
-import { confirmEntry, loadEntries, loadGaps, logGap, resolveRule, rulesFor, saveEntry } from "./store";
+import { confirmEntry, loadEntries, loadGaps, logGap, NEEDS_A_PERSON, resolveRule, rulesFor, saveEntry } from "./store";
+
+const confirmInput = { ruleId: "R-SUB-004", version: 1, confirmedName: "Ana Lima", confirmedRole: "pattern master" };
 
 type Answer = { data?: unknown; error?: { message: string; code?: string } | null };
 type Call = { table?: string; fn?: string; args?: unknown; select?: string; filters: unknown[] };
@@ -32,9 +34,13 @@ const fake = (answer: Answer) => {
 };
 
 const row = {
-  id: "e1", rule_id: "R-SUB-004", version: 2, topic: "print", article_codes: [], title: "Seam crossings", rule: "r", body: "b",
-  best_practice: "bp", source: "standard", source_note: "Sublimation practice", status: "draft", confirmed_at: null, created_at: "2026-11-01T00:00:00Z",
+  id: "e1", rule_id: "R-SUB-004", version: 2, topic: "print", article_codes: [], scope_methods: ["sublimation"],
+  scope_note: "scope not reviewed by a factory", title: "Seam crossings", rule: "r", body: "b", best_practice: "bp",
+  source: "standard", source_note: "Sublimation practice", status: "draft", confirmed_name: null, confirmed_role: null,
+  confirmed_at: null, created_at: "2026-11-01T00:00:00Z",
 };
+
+const signed = { status: "confirmed", confirmed_at: "2026-11-02T10:00:00Z", confirmed_name: "Ana Lima", confirmed_role: "pattern master" };
 
 describe("reads", () => {
   it("reads every version, leaving out who confirmed unless the server asks", async () => {
@@ -48,23 +54,38 @@ describe("reads", () => {
     expect(server.calls[0]!.select).toContain("confirmed_by");
   });
 
-  it("resolves an id to its newest version, or null", async () => {
-    const found = fake({ data: row });
-    expect((await resolveRule(found.client, "R-SUB-004"))?.version).toBe(2);
-    expect(found.calls[0]!.filters).toEqual([["eq", "rule_id", "R-SUB-004"], ["order", "version", { ascending: false }], ["limit", 1]]);
+  it("resolves an id to the version its reader may see, out of every version it has", async () => {
+    const found = fake({ data: [row, { ...row, id: "e0", version: 1, ...signed }] });
+    expect(await resolveRule(found.client, "R-SUB-004", "member")).toMatchObject({
+      shown: { version: 1, confirmedName: "Ana Lima", confirmedRole: "pattern master" },
+      newerDraft: { version: 2 },
+      newest: { version: 2 },
+    });
+    expect(found.calls[0]!.filters).toEqual([["eq", "rule_id", "R-SUB-004"], ["order", "version", { ascending: false }]]);
+    expect(found.calls[0]!.select).toContain("scope_methods");
 
-    expect(await resolveRule(fake({ data: null }).client, "R-NONE-999")).toBeNull();
+    const team = fake({ data: [row, { ...row, id: "e0", version: 1, ...signed }] });
+    expect(await resolveRule(team.client, "R-SUB-004", "ops")).toMatchObject({ shown: { version: 2 }, newerDraft: null });
+
+    expect(await resolveRule(fake({ data: [] }).client, "R-NONE-999")).toEqual({ shown: null, newerDraft: null, newest: null });
   });
 
   it("does not ask the database about something that is not a rule id", async () => {
-    const none = fake({ data: row });
-    expect(await resolveRule(none.client, "drop table")).toBeNull();
+    const none = fake({ data: [row] });
+    expect(await resolveRule(none.client, "drop table")).toEqual({ shown: null, newerDraft: null, newest: null });
     expect(none.calls).toEqual([]);
   });
 
-  it("filters the rules for an article and topic", async () => {
-    const rules = await rulesFor(fake({ data: [row, { ...row, id: "e2", rule_id: "R-PAT-001", topic: "pattern", article_codes: ["JSY-SS-01"] }] }).client, { topic: "pattern" });
-    expect(rules.map((r) => r.ruleId)).toEqual(["R-PAT-001"]);
+  it("filters the rules for an article, a method and a topic, for the reader asking", async () => {
+    const rows = [
+      { ...row, ...signed },
+      { ...row, id: "e2", rule_id: "R-PAT-001", topic: "pattern", article_codes: ["JSY-SS-01"], scope_methods: [], scope_note: "", ...signed },
+    ];
+    expect((await rulesFor(fake({ data: rows }).client, { topic: "pattern" })).map((r) => r.ruleId)).toEqual(["R-PAT-001"]);
+    expect((await rulesFor(fake({ data: rows }).client, { method: "sublimation" })).map((r) => r.ruleId)).toEqual(["R-SUB-004"]);
+    // A member sees nothing the factory has not confirmed, whatever the filter asks for.
+    expect(await rulesFor(fake({ data: [row] }).client, {}, "member")).toEqual([]);
+    expect((await rulesFor(fake({ data: [row] }).client, {}, "ops")).map((r) => r.ruleId)).toEqual(["R-SUB-004"]);
   });
 
   it("reads the gaps", async () => {
@@ -82,7 +103,9 @@ describe("reads", () => {
 
 describe("writes", () => {
   const input = {
-    ruleId: "R-SUB-009", topic: "print" as const, articleCodes: [], title: "t", rule: "r", body: "b", bestPractice: "bp", source: "factory" as const, sourceNote: "",
+    ruleId: "R-SUB-009", topic: "print" as const, articleCodes: [], methods: ["sublimation"],
+    scopeNote: "scope not reviewed by a factory", title: "t", rule: "r", body: "b", bestPractice: "bp",
+    source: "supplier" as const, sourceNote: "Supplier price lists, May 2026",
   };
 
   it("logs a gap, cut to the lengths the table takes", async () => {
@@ -95,19 +118,30 @@ describe("writes", () => {
   it("saves a new version and returns its number", async () => {
     const f = fake({ data: 3 });
     expect(await saveEntry(f.client, "u1", input)).toBe(3);
-    expect(f.calls[0]).toMatchObject({ fn: "rulebook_entry_save", args: { p_actor: "u1", p_rule_id: "R-SUB-009", p_source_note: "" } });
+    expect(f.calls[0]).toMatchObject({
+      fn: "rulebook_entry_save",
+      args: { p_actor: "u1", p_rule_id: "R-SUB-009", p_scope_methods: ["sublimation"], p_scope_note: "scope not reviewed by a factory", p_source: "supplier" },
+    });
   });
 
-  it("confirms a version", async () => {
+  it("confirms a version, naming the factory person who reviewed it (owner decision 14)", async () => {
     const f = fake({});
-    await confirmEntry(f.client, "u1", "R-SUB-004", 2);
-    expect(f.calls[0]).toMatchObject({ fn: "rulebook_entry_confirm", args: { p_actor: "u1", p_rule_id: "R-SUB-004", p_version: 2 } });
+    await confirmEntry(f.client, "u1", { ruleId: "R-SUB-004", version: 2, confirmedName: "Ana Lima", confirmedRole: "pattern master" });
+    expect(f.calls[0]).toMatchObject({
+      fn: "rulebook_entry_confirm",
+      args: { p_actor: "u1", p_rule_id: "R-SUB-004", p_version: 2, p_name: "Ana Lima", p_role: "pattern master" },
+    });
+  });
+
+  it("passes on the database's refusal of a confirmation that names nobody", async () => {
+    const refused = fake({ error: { message: "names nobody", code: "P0001" } }).client;
+    await expect(confirmEntry(refused, "u1", confirmInput)).rejects.toMatchObject({ code: "invalid_input", message: NEEDS_A_PERSON });
   });
 
   it("answers 'not found' to someone who is not a platform admin, and a generic error otherwise", async () => {
     const refused = fake({ error: { message: "Not found.", code: "P0002" } }).client;
     await expect(saveEntry(refused, "u2", input)).rejects.toMatchObject({ code: "not_found" });
-    await expect(confirmEntry(refused, "u2", "R-SUB-004", 1)).rejects.toMatchObject({ code: "not_found" });
-    await expect(confirmEntry(fake({ error: { message: "x" } }).client, "u1", "R-SUB-004", 1)).rejects.toMatchObject({ code: "internal" });
+    await expect(confirmEntry(refused, "u2", confirmInput)).rejects.toMatchObject({ code: "not_found" });
+    await expect(confirmEntry(fake({ error: { message: "x" } }).client, "u1", confirmInput)).rejects.toMatchObject({ code: "internal" });
   });
 });
