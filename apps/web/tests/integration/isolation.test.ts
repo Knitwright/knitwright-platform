@@ -1197,6 +1197,43 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { id: "made-directly", name: "Made directly", label: "Made directly", profile: {} },
     change: { name: "Changed by a member" },
   },
+  // Plan v5 X1 (decision 0066): the base article catalogue, seeded by its migration.
+  base_articles: {
+    privileges: ["SELECT"],
+    row: { code: "JSY-SS-01" },
+    attempt: { code: "ZZZ-ZZ-01", name: "Made by a member", article_type: "ZZZ", production_class: "A", data_label: "Mine" },
+    change: { name: "Changed by a member" },
+  },
+  article_poms: {
+    privileges: ["SELECT"],
+    row: { code: "FND" },
+    attempt: { code: "ZZ" },
+    change: { grade_mm: 99 },
+  },
+  parameter_defs: {
+    privileges: ["SELECT"],
+    row: { key: "body_length_offset" },
+    attempt: { key: "made_by_a_member" },
+    change: { max: 999 },
+  },
+  option_defs: {
+    privileges: ["SELECT"],
+    row: { code: "C02" },
+    attempt: { code: "C99" },
+    change: { label: "Changed by a member" },
+  },
+  article_construction: {
+    privileges: ["SELECT"],
+    row: { seam: "Back neck" },
+    attempt: { seam: "Made by a member" },
+    change: { operation: "Changed by a member" },
+  },
+  article_fabrics: {
+    privileges: ["SELECT"],
+    row: { fabric_code: "F-POLY-RIB" },
+    attempt: { fabric_code: "F-MINE" },
+    change: { gsm: "999" },
+  },
 };
 
 /**
