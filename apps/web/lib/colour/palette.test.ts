@@ -29,8 +29,13 @@ describe("colourCounts", () => {
     expect(counts.get("#c8102e")).toBe(10);
   });
 
-  it("has nothing to count in an empty picture", () => {
+  it("has nothing to count in an empty picture, or one whose size makes no sense", () => {
     expect(colourCounts({ width: 0, height: 0, data: [] }).size).toBe(0);
+    expect(colourCounts({ width: -5, height: 4, data: [] }).size).toBe(0);
+  });
+
+  it("stops at a pixel whose bytes run out, rather than reading past the end", () => {
+    expect([...colourCounts({ width: 2, height: 1, data: [255, 0, 0, 255, 17] })]).toEqual([["#ff0000", 1]]);
   });
 });
 
@@ -71,6 +76,12 @@ describe("extractPalette", () => {
   it("shares add up to the pixels it looked at", () => {
     const palette = extractPalette(picture([["#c8102e", 7], ["#ffffff", 3], ["#00843d", 5]]), { colours: 3 });
     expect(palette.reduce((sum, swatch) => sum + swatch.share, 0)).toBeCloseTo(1, 10);
+  });
+
+  it("puts two colours of exactly the same share in a settled order, by hex", () => {
+    const palette = extractPalette(picture([["#ffd100", 20], ["#0b1f4b", 20]]), { colours: 2 });
+    expect(palette.map((swatch) => swatch.share)).toEqual([0.5, 0.5]);
+    expect(palette[0]!.hex < palette[1]!.hex).toBe(true);
   });
 
   it("settles on a picture of many colours without running away", () => {

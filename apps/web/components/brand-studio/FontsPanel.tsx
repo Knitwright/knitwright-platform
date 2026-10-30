@@ -47,6 +47,7 @@ export function FontsPanel({ fonts, kitFonts, canEdit }: Props) {
           <span className="text-sm font-medium text-ink">{FONT_ROLE_LABELS[role]}</span>
           <select
             className={FIELD_CONTROL}
+            aria-label={`${FONT_ROLE_LABELS[role]} font`}
             disabled={!canEdit}
             value={chosen[role] ?? ""}
             onChange={(event) => setChosen({ ...chosen, [role]: event.target.value })}

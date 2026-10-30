@@ -63,9 +63,12 @@ const generator = (seed: number) => {
 const square = (value: number): number => value * value;
 const labGap = (a: Lab, b: Lab): number => square(a[0] - b[0]) + square(a[1] - b[1]) + square(a[2] - b[2]);
 
-/** The `#rrggbb` of one pixel, lower case. */
+/**
+ * The `#rrggbb` of one pixel, lower case. The caller has already read the pixel's alpha byte, which
+ * is the last of its four, so the three colour bytes before it are certainly there.
+ */
 const hexAt = (data: Pixels["data"], at: number): string =>
-  `#${[0, 1, 2].map((channel) => (data[at + channel] ?? 0).toString(16).padStart(2, "0")).join("")}`;
+  `#${[0, 1, 2].map((channel) => (data[at + channel] as number).toString(16).padStart(2, "0")).join("")}`;
 
 /** Each colour of the picture with how many pixels hold it, in the order first met. Transparent pixels are left out. */
 export function colourCounts(pixels: Pixels, options: PaletteOptions = {}): ReadonlyMap<string, number> {

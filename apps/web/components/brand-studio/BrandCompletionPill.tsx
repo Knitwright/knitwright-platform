@@ -20,10 +20,11 @@ async function Pill() {
     <Link
       href="/brand-studio"
       className="nav-pill hidden shrink-0 items-center rounded-full border border-white/12 px-3 py-2.5 text-sm text-ink-2 sm:inline-flex"
-      data-testid="brand-completion-pill"
     >
       <span className="sr-only">Brand Studio. Your brand is {percent} per cent complete.</span>
-      <span aria-hidden="true">{percent}%</span>
+      <span aria-hidden="true" data-testid="brand-completion-pill">
+        {percent}%
+      </span>
     </Link>
   );
 }

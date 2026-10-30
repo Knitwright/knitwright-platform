@@ -773,6 +773,63 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     change: { signer_name: "Changed by a stranger" },
   },
   // Plan V4 (decision 0042): a club's kit, seasons, rosters and invitations; only the server writes.
+  // Brand Studio (decision 0079). Every write goes through a brand_studio_* function; club_kits is
+  // untouched and read through, so nothing here holds a copy of a club's colours or crest.
+  brand_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("brand_studio_save_profile", { p_brand_id: brandId, p_user_id: ownerId, p_profile: { category: "club", about: "Seeded" } }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, category: "gym" }),
+    change: { about: "Changed by a stranger" },
+  },
+  brand_palettes: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedPalette(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly", position: 1 }),
+    change: { name: "Changed by a stranger" },
+  },
+  brand_colours: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedPalette(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ palette_id: randomUUID(), brand_id: brandId, position: 1, name: "Made directly", hex: "#000000" }),
+    change: { hex: "#ff0000" },
+  },
+  brand_fonts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("brand_studio_save_fonts", { p_brand_id: brandId, p_user_id: ownerId, p_fonts: [{ role: "headline", fontKey: "geist" }] }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, role: "body", font_key: "geist" }),
+    change: { font_key: "geist-mono" },
+  },
+  brand_assets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const artwork = (await TABLES.user_artworks.seed(brandId, ownerId)) as { id: string };
+      must(
+        await adminClient().rpc("brand_studio_save_assets", {
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_kind: "crest",
+          p_assets: [{ artworkId: artwork.id, label: "Seeded crest", printWidthMm: null }],
+        }),
+      );
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, kind: "logo", artwork_id: randomUUID(), label: "Made directly", position: 1 }),
+    change: { label: "Changed by a stranger" },
+  },
   club_kits: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -995,6 +1052,18 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     change: { role: "admin" },
   },
 };
+
+/** A Brand Studio palette with one colour, made the way the server makes one (decision 0079). */
+const seedPalette = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("brand_studio_save_palette", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_palette_id: null,
+      p_name: `Palette ${randomUUID().slice(0, 8)}`,
+      p_colours: [{ name: "Seeded", hex: "#0b3d91", pantoneTcx: null }],
+    }),
+  ) as string;
 
 /** A season of a brand, made the way the server makes one. */
 const seedSeason = async (brandId: string, ownerId: string): Promise<string> =>
@@ -1561,6 +1630,9 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
   // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
   rulebook_entries: { privileges: ["SELECT"] },
+  // Decision 0079: the licensed kit-font list of Brand Studio. Every signed-in person reads it; nothing
+  // writes it but this migration's own seed. tests/integration/brand-studio.test.ts covers it.
+  brand_studio_fonts: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;

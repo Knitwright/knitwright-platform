@@ -260,11 +260,11 @@ begin
     p_profile ->> 'category',
     nullif(btrim(coalesce(p_profile ->> 'website', '')), ''),
     coalesce(p_profile ->> 'about', ''),
-    coalesce(array(select jsonb_array_elements_text(p_profile -> 'voiceTags')), '{}'::text[]),
+    coalesce(array(select jsonb_array_elements_text(coalesce(p_profile -> 'voiceTags', '[]'::jsonb))), '{}'::text[]),
     coalesce(p_profile ->> 'setting', ''),
     coalesce(p_profile ->> 'artDirection', ''),
     coalesce(p_profile ->> 'rulesBoundaries', ''),
-    coalesce(array(select jsonb_array_elements_text(p_profile -> 'defaultSizeRange')), '{}'::text[]),
+    coalesce(array(select jsonb_array_elements_text(coalesce(p_profile -> 'defaultSizeRange', '[]'::jsonb))), '{}'::text[]),
     p_user_id,
     now()
   )
