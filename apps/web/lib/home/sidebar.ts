@@ -48,7 +48,7 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     items: [
       { id: "all", label: "All", target: page("/studio") },
       { id: "designs", label: "Designs", target: page("/studio?jump=designs") },
-      { id: "collections", label: "Collections", target: later },
+      { id: "collections", label: "Collections", target: page("/studio/collections") },
       { id: "moodboards", label: "Moodboards", target: later },
       { id: "pattern-fills", label: "Pattern fills", target: later },
       { id: "mockups", label: "Mockups", target: later },

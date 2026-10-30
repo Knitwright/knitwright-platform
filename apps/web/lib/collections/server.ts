@@ -4,6 +4,9 @@ import { getBaseArticle } from "@/lib/catalogue";
 import type { FactorySnapshot } from "@/lib/factory/schemas";
 import { factoryStore } from "@/lib/factory/server";
 import { listProducts, type ProductView } from "@/lib/brand-runs/service";
+import { loadIllustrations } from "@/lib/images/illustrations";
+import { latestImages } from "@/lib/images/service";
+import { createFileReader } from "@/lib/storage/read";
 import { articleCodesOf, emptySource, pricingFor, type RatesSource } from "./pricing";
 import { listCollections, listFreightRates, loadPlan } from "./service";
 import type { CollectionPlan, CollectionSummary, PricingByStyle } from "./types";
@@ -60,3 +63,37 @@ export async function loadPlanView(client: SupabaseClient, brandId: string, coll
 
 /** The plans of the brand for the index page. */
 export const loadCollections = (client: SupabaseClient, brandId: string): Promise<readonly CollectionSummary[]> => listCollections(client, brandId);
+
+export interface Market {
+  readonly country: string;
+  readonly name: string;
+  readonly currency: string;
+}
+
+/** The markets a plan may be landed in: the country rules that are open for selling (spec decision 3). */
+export async function loadMarkets(): Promise<readonly Market[]> {
+  const rules = await factoryStore().listCountryRules();
+  return rules
+    .filter((rule) => rule.sellingEnabled)
+    .map((rule) => ({ country: rule.country, name: rule.name, currency: rule.currency }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export interface StyleRender {
+  readonly src: string;
+  /** Said under the picture: it is a render, never a photo of a garment. */
+  readonly label: string;
+}
+
+/**
+ * The render on a style card: the newest illustration of the design behind it, as the studio home and
+ * the make page read it. A style with no design, or a design with no render yet, has none, and the card
+ * draws an outline instead.
+ */
+export async function loadStyleRender(client: SupabaseClient, brandId: string, projectId: string | null): Promise<StyleRender | null> {
+  if (projectId === null) return null;
+  const latest = await latestImages(client, brandId, projectId).catch(() => null);
+  const loaded = latest ? await loadIllustrations(createFileReader(client, brandId), latest) : null;
+  const first = loaded?.illustrations[0];
+  return first ? { src: first.src, label: "A render, not a photo of a garment" } : null;
+}

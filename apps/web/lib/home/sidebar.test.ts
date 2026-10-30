@@ -49,10 +49,12 @@ describe("the studio sidebar", () => {
     expect(hrefOf(sidebarItem("templates")!.target)).toBe("/catalogue?tab=templates");
     expect(hrefOf(sidebarItem("fabrics")!.target)).toBe("/brands/fabrics");
     expect(hrefOf(sidebarItem("size-charts")!.target)).toBe("/studio/charts");
+    // The collection plan of F-S10 is built (plan v5 Z4, decision 0085), so the entry is a link.
+    expect(hrefOf(sidebarItem("collections")!.target)).toBe("/studio/collections");
   });
 
   it("marks the Projects sections that are not built as coming later, never as a link", () => {
-    for (const id of ["collections", "moodboards", "pattern-fills", "mockups", "flows", "trash"]) {
+    for (const id of ["moodboards", "pattern-fills", "mockups", "flows", "trash"]) {
       const item = sidebarItem(id);
       expect(item, id).toBeDefined();
       expect(isLater(item!.target), id).toBe(true);
