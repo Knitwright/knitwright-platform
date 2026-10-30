@@ -40,8 +40,6 @@ export interface ExportTable {
 export interface ExportSection {
   readonly id: SectionId;
   readonly title: string;
-  /** The name of the Excel sheet, or null when the Excel file has none for this section. */
-  readonly sheet: string | null;
   /** Sentences before the tables. */
   readonly paragraphs: readonly string[];
   readonly tables: readonly ExportTable[];

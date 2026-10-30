@@ -32,6 +32,16 @@ export function titleCell(text: string): SheetCell {
   return text === "" ? null : { value: text, type: String, format: TEXT_FORMAT, fontWeight: "bold" };
 }
 
+/**
+ * The address of something on the web, written as text and underlined so it reads as a link.
+ * `write-excel-file` writes no hyperlink relationship, so the address is in the cell itself, where
+ * a person can read it and most spreadsheet programs make it clickable. It is never a formula:
+ * a HYPERLINK() call would be one, and nothing here can make one.
+ */
+export function linkCell(address: string): SheetCell {
+  return address === "" ? null : { value: address, type: String, format: TEXT_FORMAT, textColor: "#1b4ab5", textDecoration: { underline: true } };
+}
+
 /** A bold column header. */
 export function headerCell(text: string): SheetCell {
   return text === "" ? null : { value: text, type: String, format: TEXT_FORMAT, fontWeight: "bold", wrap: true };

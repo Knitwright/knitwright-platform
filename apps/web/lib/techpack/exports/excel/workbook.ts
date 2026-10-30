@@ -4,8 +4,9 @@ import { ExportRefused } from "../errors";
 import { assertEverySetCellHasSource } from "../guard";
 import { illustrationSheetRows, type ExportIllustrations } from "../illustrations";
 import { exportSections } from "../tables";
+import { tabPlan } from "../tabs";
 import { noteCell, sheetNameProblem, type SheetCell } from "./cells";
-import { sheetOf } from "./sheet";
+import { sheetOfTab, type OpenInKnitwright } from "./sheet";
 
 interface WorkbookSheet {
   readonly name: string;
@@ -52,9 +53,15 @@ export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uin
   return new Uint8Array(written);
 }
 
-interface WorkbookOptions {
+export interface WorkbookOptions {
   /** When AI pictures were made, a last sheet says so. The pictures themselves are only in the PDF. */
   readonly illustrations?: ExportIllustrations | null;
+  /**
+   * The address of this design in the editor, written into a cell at the top of every sheet
+   * (spec F-S6). The caller passes it because only the caller knows which design and which
+   * version this file is of; without it no sheet claims a link.
+   */
+  readonly openIn?: OpenInKnitwright | null;
 }
 
 const illustrationSheet = (illustrations: ExportIllustrations): WorkbookSheet => ({
@@ -62,13 +69,12 @@ const illustrationSheet = (illustrations: ExportIllustrations): WorkbookSheet =>
   data: illustrationSheetRows(illustrations).map((line) => [noteCell(line)]),
 });
 
-/** The Excel file of a tech pack: one sheet for each section that holds values. */
+/** The Excel file of a tech pack: one sheet for each tab of the tech pack view (spec F-S6). */
 export async function buildWorkbook(pack: TechPack, options: WorkbookOptions = {}): Promise<Uint8Array<ArrayBuffer>> {
   assertEverySetCellHasSource(pack);
-  const sheets = exportSections(pack).flatMap((section) => {
-    if (section.sheet === null) return [];
-    const layout = sheetOf(section);
-    return [{ name: section.sheet, data: layout.rows, columns: columnWidths(layout.measured), frozenRows: layout.frozenRows }];
+  const sheets = tabPlan(exportSections(pack)).map((tab) => {
+    const layout = sheetOfTab(tab, options.openIn ?? null);
+    return { name: tab.sheet, data: layout.rows, columns: columnWidths(layout.measured), frozenRows: layout.frozenRows };
   });
   return writeSheets(options.illustrations ? [...sheets, illustrationSheet(options.illustrations)] : sheets);
 }

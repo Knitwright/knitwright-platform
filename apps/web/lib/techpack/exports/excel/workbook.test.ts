@@ -9,7 +9,8 @@ import { benchmarkJerseyInput, completeProduction, targetedJersey } from "../../
 import type { TechPack } from "../../types";
 import { allCells } from "../../walk";
 import { ILLUSTRATION_LABEL } from "@/lib/images/panel-state";
-import { EXCEL_SHEETS } from "../contents";
+import { TECH_PACK_TABS } from "../tabs";
+import { OPEN_IN_KNITWRIGHT } from "./sheet";
 import { measurementNotes } from "../measurement-notes";
 import {
   pairsOf,
@@ -70,27 +71,46 @@ const designs = (): readonly (readonly [string, TechPack])[] => [
 ];
 
 describe("the Excel file equals the document (T2)", () => {
-  it("holds one sheet for each section that holds values, in order, with names Excel accepts", async () => {
+  it("holds one sheet for each tab of the tech pack view, in order, with names Excel accepts (F-S6)", async () => {
     const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee"))));
     const names = sheets.map((sheet) => sheet.sheet);
-    expect(names).toEqual(Object.values(EXCEL_SHEETS).filter((name): name is string => name !== null));
+    expect(names).toEqual(TECH_PACK_TABS.map((tab) => tab.sheet));
     expect(names).toEqual([
-      "Cover",
-      "Ready for the factory",
+      "Overview",
+      "Body size chart",
       "Measurements",
-      "Pattern and cutting",
-      "Components",
-      "Fabric",
-      "Construction",
+      "Materials",
+      "Callouts",
+      "Artworks",
       "Colourways",
-      "Artwork",
-      "Artwork and colour",
-      "Order of work",
-      "Labels and packing",
-      "Suggested values",
-      "Sign-off",
+      "Personalisation",
+      "Labels and packaging",
+      "QC",
+      "Review",
     ]);
     for (const name of names) expect(name).toMatch(/^[^\\/?*[\]:]{1,31}$/);
+  });
+
+  it("puts the link back to the design at the top of every sheet, as text and never as a formula", async () => {
+    const openIn = { label: OPEN_IN_KNITWRIGHT, address: "https://knitwright.test/studio/6f0b1c1e-6a3b-4f6e-9f43-0f5f3a1a2b11?ver=2" };
+    const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee")), { openIn }));
+    for (const sheet of sheets) {
+      expect(sheet.data.flat(), sheet.sheet).toContain(OPEN_IN_KNITWRIGHT);
+      expect(sheet.data.flat(), sheet.sheet).toContain(openIn.address);
+    }
+    const xml = unzipText(await buildWorkbook(packFor(fullDesign("crew-tee")), { openIn }));
+    expect(Object.values(xml).join("")).not.toContain("HYPERLINK(");
+  });
+
+  it("claims no link when the caller gave none", async () => {
+    const sheets = await readWorkbook(await buildWorkbook(packFor(fullDesign("crew-tee"))));
+    expect(sheets.flatMap((sheet) => sheet.data.flat())).not.toContain(OPEN_IN_KNITWRIGHT);
+  });
+
+  it("writes the same bytes twice for the same design", async () => {
+    const pack = packFor(fullDesign("crew-tee"), { charts: CHARTS });
+    const [first, second] = await Promise.all([buildWorkbook(pack), buildWorkbook(pack)]);
+    expect(Buffer.from(first).equals(Buffer.from(second))).toBe(true);
   });
 
   it("adds a last sheet saying the AI illustrations are in the PDF, only when some were made", async () => {
@@ -159,7 +179,7 @@ describe("the Excel file equals the document (T2)", () => {
   it("puts the code first in the measurement table, and the notes on single measurements in a table by code under it", async () => {
     const pack = packFor(start("polo"));
     const sheets = await readWorkbook(await buildWorkbook(pack));
-    const sheet = sheets.find((entry) => entry.sheet === EXCEL_SHEETS.measurements);
+    const sheet = sheets.find((entry) => entry.sheet === "Measurements");
     const rows = sheet?.data ?? [];
     const header = rows.findIndex((row) => row[0] === "Code" && row[1] === "Measurement");
     expect(rows[header + 1]?.[0]).toBe("A");

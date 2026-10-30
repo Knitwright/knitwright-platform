@@ -79,7 +79,6 @@ export function tableGroup(table: ExportTable, index: number, safe: Safe, marks:
 const asSection = (block: PageBlock): ExportSection => ({
   id: block.sectionId,
   title: block.title,
-  sheet: null,
   paragraphs: block.paragraphs,
   tables: block.tables,
 });
