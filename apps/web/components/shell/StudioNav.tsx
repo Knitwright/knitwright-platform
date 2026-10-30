@@ -14,6 +14,7 @@ const STUDIO_SECTIONS: readonly NavItem[] = [
     matches: (path) => (path === "/studio" || path.startsWith("/studio/")) && !path.startsWith("/studio/charts"),
   },
   { href: "/templates", label: "Templates", matches: (path) => path.startsWith("/templates") },
+  { href: "/catalogue", label: "Catalogue", matches: (path) => path.startsWith("/catalogue") },
   { href: "/studio/charts", label: "Size charts", matches: (path) => path.startsWith("/studio/charts") },
   { href: "/designer", label: "Designer", matches: (path) => path.startsWith("/designer") },
   { href: "/club", label: "Club", matches: (path) => path === "/club" || path.startsWith("/club/") },
