@@ -48,6 +48,7 @@ const fabricsTable = (components: TechPack["components"]): ExportTable =>
     ]),
   );
 
+/** Page 5 of the specification's sixteen: the second half of the bill of materials. */
 const othersTable = (components: TechPack["components"]): ExportTable =>
   table(
     "Rib, thread, labels and trims",
@@ -69,6 +70,8 @@ const othersTable = (components: TechPack["components"]): ExportTable =>
       text(sentences(line.help, line.note).join(" ")),
       value(line.proposalNote),
     ]),
+    null,
+    "bom-parts",
   );
 
 export function componentsSection(pack: TechPack): ExportSection {
@@ -182,7 +185,7 @@ function playerMarksTables(pack: TechPack): ExportTable[] {
     value(item.screenColour),
     value(item.technique),
   ]);
-  return rows.length > 0 ? [table("Player names and numbers", PLAYER_MARK_COLUMNS, rows)] : [];
+  return rows.length > 0 ? [table("Player names and numbers", PLAYER_MARK_COLUMNS, rows, null, "personalisation")] : [];
 }
 
 export function labellingSection(pack: TechPack): ExportSection {

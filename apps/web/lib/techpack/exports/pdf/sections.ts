@@ -4,8 +4,9 @@ import type { ImageMap } from "@/lib/flat/images";
 import type { FlatModel } from "@/lib/flat/model";
 import { PDF_FONT_FAMILY } from "@/lib/flat/pdf-font";
 import { renderPdf } from "@/lib/flat/render-pdf";
-import type { FlatViewSection, TechPack } from "../../types";
+import type { FlatViewSection, SectionId, TechPack } from "../../types";
 import { PICTURE_LEFT_OUT } from "../limits";
+import type { PageBlock } from "../pages";
 import type { ExportSection, ExportTable } from "../tables";
 import { keepsSectionWhole, keepsTableWhole } from "./keep";
 import type { SourceMarks } from "./marks";
@@ -24,6 +25,9 @@ export interface Context {
 
 const DRAWING_GAP = 16;
 const DRAWING_WIDTH = (CONTENT_WIDTH - DRAWING_GAP) / 2;
+
+/** The sections whose pictures may have been left out for size, so the page says so. */
+export const PICTURE_SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>(["flats", "artwork"]);
 
 /** The drawing with the text in it made safe for the font. The drawing it is given is not changed. */
 function withSafeText(model: FlatModel, safe: Safe): FlatModel {
@@ -52,21 +56,12 @@ function drawing(view: FlatViewSection, context: Context): ReactElement {
   );
 }
 
-const drawingRow = (key: string, views: readonly FlatViewSection[], context: Context): ReactElement =>
+/** A row of drawings, two to a row, each whole on its page (owner decision 2026-09-30). */
+export const drawingRow = (key: string, views: readonly FlatViewSection[], context: Context): ReactElement =>
   h(
     View,
     { key, style: { flexDirection: "row", flexWrap: "wrap", gap: DRAWING_GAP, marginVertical: 6 } },
     ...views.map((view, index) => h(View, { key: `${key}-${index}`, wrap: false }, drawing(view, context))),
-  );
-
-const drawings = (context: Context): ReactElement => drawingRow("drawings", context.pack.flats.views, context);
-
-/** One drawing for each colourway, two to a row, each whole on its page (owner decision 2026-09-30). */
-const colourwayDrawings = (context: Context): ReactElement =>
-  drawingRow(
-    "colourway-drawings",
-    context.pack.colourways.colourways.map((block) => block.drawing),
-    context,
   );
 
 /** A table with its heading and sentence. A short table is not split across pages. */
@@ -80,36 +75,29 @@ export function tableGroup(table: ExportTable, index: number, safe: Safe, marks:
   );
 }
 
-/**
- * The heading of the flats, its sentences and the drawings, as one block that is never split, so
- * the heading is never left alone at the foot of a page. The block is shorter than a page.
- */
-function flatsLead(section: ExportSection, context: Context, leftOut: boolean): ReactElement {
-  const { safe } = context;
-  return h(
-    View,
-    { key: "lead", wrap: false },
-    heading(2, section.title, safe),
-    ...section.paragraphs.map((text, index) => paragraph(text, safe, `p${index}`)),
-    ...(leftOut ? [paragraph(PICTURE_LEFT_OUT, safe, "left-out")] : []),
-    drawings(context),
-  );
-}
+/** A block as a section, so the height estimate of `keep.ts` can be read for it. */
+const asSection = (block: PageBlock): ExportSection => ({
+  id: block.sectionId,
+  title: block.title,
+  sheet: null,
+  paragraphs: block.paragraphs,
+  tables: block.tables,
+});
 
-/** One section: its title, its sentences, its drawings when it is the flats, then its tables. */
-export function sectionElement(section: ExportSection, context: Context): ReactElement {
+/**
+ * One section's share of a page: its title, its sentences, then its tables. The title and the
+ * first sentence are kept together, so a heading is never left alone at the foot of a page.
+ */
+export function blockElement(block: PageBlock, context: Context): ReactElement {
   const { safe, marks } = context;
-  const leftOut = context.pictureLeftOut && (section.id === "flats" || section.id === "artwork");
-  const tables = section.tables.map((table, index) => tableGroup(table, index, safe, marks));
-  if (section.id === "flats") return h(View, { key: section.id }, flatsLead(section, context, leftOut), ...tables);
-  const [first, ...others] = section.paragraphs;
+  const leftOut = context.pictureLeftOut && PICTURE_SECTIONS.has(block.sectionId);
+  const [first, ...others] = block.paragraphs;
   return h(
     View,
-    { key: section.id, wrap: !keepsSectionWhole(section) },
-    h(View, { key: "lead", wrap: false }, heading(2, section.title, safe), ...(first === undefined ? [] : [paragraph(first, safe, "p0")])),
+    { key: block.sectionId, wrap: !keepsSectionWhole(asSection(block)) },
+    h(View, { key: "lead", wrap: false }, heading(2, block.title, safe), ...(first === undefined ? [] : [paragraph(first, safe, "p0")])),
     ...others.map((text, index) => paragraph(text, safe, `p${index + 1}`)),
     ...(leftOut ? [paragraph(PICTURE_LEFT_OUT, safe, "left-out")] : []),
-    ...(section.id === "colourways" ? [colourwayDrawings(context)] : []),
-    ...tables,
+    ...block.tables.map((table, index) => tableGroup(table, index, safe, marks)),
   );
 }

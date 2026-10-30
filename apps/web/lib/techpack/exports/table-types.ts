@@ -1,4 +1,5 @@
 import type { Cell, ClassCell, LengthValue, NumberValue, SectionId } from "../types";
+import type { AnyPageId } from "./pages";
 
 /**
  * What every format is made from: plain tables, in reading order. A datum is a piece of text,
@@ -29,6 +30,11 @@ export interface ExportTable {
   readonly columns: readonly Column[];
   /** No rows means the table is only its heading and sentence. */
   readonly rows: readonly (readonly Datum[])[];
+  /**
+   * The page of the PDF this table belongs to, when it is not the page of its section
+   * (`SECTION_PAGE`). A section whose tables go to different pages of the sixteen names them here.
+   */
+  readonly page?: AnyPageId;
 }
 
 export interface ExportSection {
@@ -63,7 +69,8 @@ export const table = (
   columns: readonly Column[],
   rows: readonly (readonly Datum[])[],
   intro: string | null = null,
-): ExportTable => ({ title, intro, columns, rows });
+  page?: AnyPageId,
+): ExportTable => ({ title, intro, columns, rows, ...(page === undefined ? {} : { page }) });
 
 /** The panels a line names, as one line of words. */
 export const namesOf = (panels: readonly { readonly label: string }[]): string => panels.map((panel) => panel.label).join(", ");
