@@ -90,6 +90,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |
 | 0074 | [The studio home, the create-new modal and the catalogue](0074-studio-home-and-catalogue.md) | Proposed; every catalogue price is a labelled placeholder, owner questions listed |
 | 0075 | [The editor shell and the Form toolbar](0075-editor-shell-and-form-toolbar.md) | Proposed; owner questions listed |
+| 0076 | [The 2D pattern view and the Library toolbar](0076-view-2d-and-library-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
