@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorSlotProps } from "@/lib/editor/slots";
-import { applyItem, type Applied } from "@/lib/panel-layers/apply";
+import { applyItem, runSteps } from "@/lib/panel-layers/apply";
 import { DRAG_TYPE, itemFromDrag } from "@/lib/panel-layers/drag";
 import { sheetRules } from "@/lib/panel-layers/sheet-rules";
 import { gridStep } from "@/lib/panel-layers/sheet-view";
@@ -52,13 +52,7 @@ export default function PatternView({ design, commands }: EditorSlotProps) {
     (panelId: string, id: string | null) => {
       const item = itemFromDrag(design, id);
       if (item === null) return setSaid("That is not something from your library, so nothing was changed.");
-      const result: Applied = applyItem(design, item, { kind: "panel", panelId });
-      if (!result.ok) return setSaid(result.reason);
-      for (const step of result.steps) {
-        if (step.kind === "save") commands.save(step.key, step.action);
-        else commands.setOption(step.group, step.code);
-      }
-      setSaid(result.words);
+      setSaid(runSteps(applyItem(design, item, { kind: "panel", panelId }), commands));
     },
     [commands, design],
   );

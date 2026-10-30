@@ -1,4 +1,4 @@
-import type { EditorDesign } from "@/lib/editor/slots";
+import type { EditorCommands, EditorDesign } from "@/lib/editor/slots";
 import { panelsFor, SWATCH_PATTERN, type Colourway, type SpecAction } from "@/lib/garment";
 import { kitPatternProblem } from "@/lib/garment/kit-pattern";
 import { sizeParamOf } from "@/lib/artwork-stack/legacy/kit-styles";
@@ -27,6 +27,19 @@ export type Applied =
   | { readonly ok: false; readonly reason: string };
 
 const fail = (reason: string): Applied => ({ ok: false, reason });
+
+/**
+ * Hands each step to the shell and gives back the sentence to show. The shell checks every value
+ * against the article's approved options and ranges, so a step is a request, not a write.
+ */
+export function runSteps(result: Applied, commands: EditorCommands): string {
+  if (!result.ok) return result.reason;
+  for (const step of result.steps) {
+    if (step.kind === "save") commands.save(step.key, step.action);
+    else commands.setOption(step.group, step.code);
+  }
+  return result.words;
+}
 
 /** The panels the change goes on: one, or every panel the garment has. */
 export function panelsOf(design: EditorDesign, target: ApplyTarget): readonly string[] {
