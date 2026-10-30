@@ -31,11 +31,19 @@ export function namesCsv(input: KppInput): string {
 
 const versionLabel = (input: KppInput): string => `${input.design.code} v${input.design.version}`;
 
+/**
+ * What the Lab numbers in this file are in (owner decision 15 of plan v5). The colour house needs the space and
+ * the observer to read a delta E against them: `docs/spec/04`'s own example for `#0B1F4B` is not what this maths
+ * gives, the spec calls its numbers illustrative, and ours is the one the platform can reproduce and test.
+ */
+export const LAB_SPACE = "sRGB, D65 white point, two-degree observer. Computed from the screen colour, not measured.";
+
 export function colourJson(input: KppInput): string {
   const c = input.colour;
   return stableJson({
     design_version: versionLabel(input),
     fabric: c.fabric,
+    lab_space: LAB_SPACE,
     tolerance: c.tolerance,
     colours: c.colours.map((k) => ({ role: k.role, hex: k.hex, lab: k.hex === null ? null : hexToLab(k.hex), pantone_tcx: k.pantoneTcx, swatch_id: k.swatchId })),
     strike_off_required: c.strikeOffRequired,

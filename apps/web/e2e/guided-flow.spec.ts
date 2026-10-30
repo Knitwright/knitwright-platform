@@ -83,8 +83,9 @@ test.describe("the guided flow", () => {
   for (const { family, sentence, garment } of SENTENCES) {
     test(`goes from one sentence to all four downloads (${family})`, async ({ page }) => {
       await signedIn(page, `guided-${family}`);
-      await page.getByRole("link", { name: "Start a design", exact: true }).click();
-      await expect(page).toHaveURL(/\/studio\/start$/);
+      // The guided flow is reached by address: the studio home's cards open the create-new modal
+      // instead of linking to it (plan v5 Y1).
+      await page.goto("/studio/start");
       await accessible(page);
 
       await page.getByRole("radio", { name: /Team kit/ }).check();
