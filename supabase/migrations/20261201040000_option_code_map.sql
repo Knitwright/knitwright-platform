@@ -49,8 +49,11 @@ create table public.option_code_map (
       else option_code is null and jsonb_array_length(sources) = 0 and note is not null
     end
   ),
+  -- `on delete cascade` so that removing an option removes its mapping, and so that removing a whole article does
+  -- not leave this key fighting the cascade from base_articles.
   constraint option_code_map_code_is_approved
     foreign key (article_id, option_group, option_code) references public.option_defs (article_id, option_group, code)
+    on delete cascade
 );
 
 comment on table public.option_code_map is
