@@ -101,7 +101,9 @@ decision. Where two workstreams asked the same question it is one decision namin
 They are grouped so they can be answered in sittings rather than in workstream order: **A money** (21 to 25), **B colour,
 print and licences** (26 to 32), **C sizing, measurement and article data** (33 to 45), **D factory terms, dates, markets and
 the Class B programme** (46 to 61), **E legal, labelling and moderation policy** (62 to 68), **F rules, sources and the
-wording on screens** (69 to 87). Each decision ends with the workstream and the record or PR comment it came from.
+wording on screens** (69 to 87), and **G the inspiration board** (88 to 92), which merged while this collection was being
+written. Each decision ends with the workstream and the record or PR comment it came from. **Decision 90 is money too**, and
+belongs with group A when the owner sits down to it.
 
 **Nothing here blocks anything.** Every one of them is live on `main` (or on the open PR named) behind its labelled default,
 and the plan's rule holds: missing owner input never blocks, it only labels.
@@ -120,7 +122,9 @@ count may not match what Y7 originally wrote. Y6's four are taken from its comme
 decision record 0079 is not yet on `main`.
 
 **Four questions the workstreams raised are not the owner's and are not numbered here.** The `full` validation scope's client
-(the wave-2 wiring's question 1) is settled by the orchestrator in PR #114; when the factory job packet should read a design
+(the wave-2 wiring's question 1) is answered and shipped: the readiness list, the status move and the reorder preview read
+the live ports, merged as PR #114, so **no owner question remains about those paths under-reporting**. When the factory job
+packet should read a design
 version's chosen parameters rather than the article's defaults (wiring question 4) is wave sequencing; whether a 22-file
 package ZIP fits the function time limit (wiring question 5) is a measurement, not a decision; and `lib/rulebook`'s missing
 `SHO` and `FAB` topic families (Z9 question 5) are X2's file. The wiring's other two questions are decisions 32 and 66. The
@@ -251,7 +255,9 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
     `apps/web/lib/make/run.ts` and `supabase/migrations/20261110040000_class_b_flag.sql`, which bring Y7's two call sites into
     line with the brand-run builder of decision 0062. A refusal would assert that a factory will not cut 400 of a style, and
     no factory has confirmed that: the same reasoning as decisions 12 and 18. **The question that remains for the owner is
-    what the real range is, if any.** (Y7, decision 0080 point 7, PR #102; decision 0062.)
+    what the real range is, if any.** This is the quantity range only: moderation's own Class B gate, the person's look before
+    a Class B run (decision 0073), is a genuine block and is not in question. (Y7, decision 0080 point 7, PR #102;
+    decision 0062.)
 48. **Which factory makes which article, and whether the two ideas of "factory" are one.** Prices, lead times and dates come
     from X6's `factories` rows — one seeded, `sialkot-partner`, labelled "Placeholder, not agreed with a factory" — while the
     id handed to `submit_order_for_production` is still the existing factory profile's (`knitwright-default`), so ops batching
@@ -313,8 +319,9 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
 66. **Is a picture still waiting for the content review a warning or a blocker?** At save time it is neither — the
     `ModerationReader` contract leaves an unscreened target out of the answer, so nothing is raised — while
     `screenBeforeOrder` flags it as `not_screened` at order time. That is two different answers about the same picture at two
-    moments, and the owner's answer picks one. Also: does a Class B run need a person's look at the design version only, or at
-    every picture in it? (The wave-2 wiring, PR #98 question 2; X4, decision 0069 question 5; X8, decision 0073 question 5.)
+    moments, and the owner's answer picks one. Also, and only about the reviewer's scope: does a Class B run need a person's
+    look at the design version only, or at every picture in it as well? That the run waits for a person at all is settled and
+    shipped. (The wave-2 wiring, PR #98 question 2; X4, decision 0069 question 5; X8, decision 0073 question 5.)
 67. **Should the offensive-word list be reviewed by somebody, and may a club ask for a word on it to be allowed for its own
     name?** The list ships as seeded data and nothing can be allowed per club today. (X8, decision 0073 question 2.)
 68. **A set of real uploads, good and bad, with the marks they should and should not match**, so the moderation check's two
@@ -379,6 +386,23 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
 87. **Should the fabric programme gain a rib row?** `F-POLY-RIB` is in `JSY-SS-01`'s `article.json` but is not one of X6's six
     programme fabrics, so its spec card has only the article's own sentence and no programme row behind it. (Y1 question 3 and
     decision 0074.)
+
+### G. The inspiration board, which merged while this collection was being written.
+
+88. **Which stock providers do we hold keys for?** The code is ready for Unsplash and Pexels and both are behind their env
+    keys. Unsplash's free tier is 50 requests an hour, which one busy designer can spend in a morning, and its production
+    tier needs Unsplash's approval of the application. Do we apply for both, or run one? (Z1, decision 0082 question 1.)
+89. **Do we apply for Pinterest Standard access now?** Without it the boards source is a demo for the owner's own account
+    only. It is behind a flag either way. (Z1, decision 0082 question 2.)
+90. **What is an AI mood image worth?** `MOOD_IMAGE_COST_MICRODOLLARS` is a labelled default of $0.04 charged against the
+    usage meter's `photoreal` allowance, because `lib/credits` has three output kinds and none of them is an inspiration
+    image, and adding one is a change to a shared file Z1 does not own. So no credit is spent on a mood image today, while
+    the spec says they are "charged as credits". **This one is money.** (Z1, decision 0082 question 3.)
+91. **Should a product page be fetched by the inspiration board at all, or only by F-S2?** The board fetches a page once for
+    its Open Graph words and keeps nothing; Z3's benchmark fetcher will do it again with robots.txt and a rate limit per
+    brand. Two fetchers, and the orchestrator may want one of them to go. (Z1, decision 0082 question 4.)
+92. **Sixty items a moodboard, two seconds a source, twelve tags a query** are Knitwright defaults chosen in Z1 and none of
+    them was measured. (Z1, decision 0082 question 5.)
 
 ## How to use this plan
 
