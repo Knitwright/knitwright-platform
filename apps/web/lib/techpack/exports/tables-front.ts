@@ -1,6 +1,5 @@
 import type { TechPack } from "../types";
 import { SECTION_TITLES } from "../types";
-import { EXCEL_SHEETS } from "./contents";
 import { measurementNotes } from "./measurement-notes";
 import { onPatternTables } from "./tables-on-pattern";
 import {
@@ -75,7 +74,6 @@ export function coverSection(pack: TechPack): ExportSection {
   return {
     id: "cover",
     title: cover.title,
-    sheet: EXCEL_SHEETS.cover,
     paragraphs: sentences(cover.note, cover.revisions.length === 0 ? NO_REVISIONS : null, cover.olderRevisionsNote),
     tables: [facts, document, options, ...(cover.revisions.length === 0 ? [] : [revisions])],
   };
@@ -91,7 +89,6 @@ export function flatsSection(pack: TechPack): ExportSection {
   return {
     id: "flats",
     title: flats.title,
-    sheet: EXCEL_SHEETS.flats,
     paragraphs: sentences(flats.note),
     tables: flats.callouts.length > 0 ? [codes] : [],
   };
@@ -116,7 +113,6 @@ export function measurementsSection(pack: TechPack): ExportSection {
   return {
     id: "measurements",
     title: measurements.title,
-    sheet: EXCEL_SHEETS.measurements,
     paragraphs: sentences(measurements.note, MEASURE_HELP),
     tables: [...groups, ...onPatternTables(pack)],
     notes: notes === null ? [] : [notes],
@@ -128,7 +124,6 @@ export function howToMeasureSection(pack: TechPack): ExportSection {
   return {
     id: "how-to-measure",
     title: SECTION_TITLES["how-to-measure"],
-    sheet: EXCEL_SHEETS["how-to-measure"],
     paragraphs: sentences(section.note),
     tables: [
       table(

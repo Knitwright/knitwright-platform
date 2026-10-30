@@ -36,7 +36,7 @@ describe("pictures in the PDF", () => {
 });
 
 describe("illustrations in the PDF", () => {
-  it("adds the AI pictures after the specification, each labelled as an illustration", async () => {
+  it("puts the AI pictures on the reference images page, each labelled as an illustration", async () => {
     const jpeg = await sharp({ create: { width: 32, height: 32, channels: 3, background: "#8899aa" } }).jpeg().toBuffer();
     const src = `data:image/jpeg;base64,${jpeg.toString("base64")}`;
     const illustrations = {
@@ -49,7 +49,8 @@ describe("illustrations in the PDF", () => {
     expect(text).toContain(noSpace(ILLUSTRATION_LABEL));
     expect(text).toContain(noSpace("Front. Illustration, not a specification."));
     expect(text).toContain(noSpace("Made from version 2."));
-    expect(pages.at(-1)?.operations).toContain("paintImageXObject");
+    const sheet = pages.find((page) => page.text.includes("Reference images"));
+    expect(sheet?.operations).toContain("paintImageXObject");
   });
 
   it("has no illustrations section when none were made", async () => {
