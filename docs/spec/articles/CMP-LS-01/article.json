@@ -1,0 +1,128 @@
+{
+  "code": "CMP-LS-01",
+  "name": "Compression top / rash guard",
+  "status": "draft_no_factory_block",
+  "version": "0.1",
+  "date": "2026-10-30",
+  "label": "Knitwright draft, not reviewed by a factory",
+  "class": "A",
+  "uses": [
+    "studio"
+  ],
+  "sports": [],
+  "hs_code": null,
+  "origin": null,
+  "base_size": null,
+  "sizes": [],
+  "units": "mm",
+  "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+  "fabrics": {
+    "body": {
+      "code": "F-POLY-EL"
+    }
+  },
+  "pom": [],
+  "draft_constants": {},
+  "parameters": [],
+  "options": {},
+  "pieces": [],
+  "seam_allowance": {},
+  "construction": [],
+  "thread": null,
+  "bom": [],
+  "print": {},
+  "personalisation": {},
+  "placements": [],
+  "labels": {},
+  "qc": {},
+  "parametric_script": {
+    "status": "not drafted yet",
+    "reason": "Compression top / rash guard has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+    "rule": "R-PAT-601",
+    "needs": [
+      "chest width",
+      "body length",
+      "across shoulder",
+      "sleeve length",
+      "bicep width",
+      "cuff opening",
+      "armhole depth",
+      "neck width",
+      "collar height",
+      "hem width"
+    ]
+  },
+  "rulebook": "rulebook.md",
+  "sources": [
+    {
+      "field": "code",
+      "value": "CMP-LS-01",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "name",
+      "value": "Compression top / rash guard",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "class",
+      "value": "A",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5"
+    },
+    {
+      "field": "uses",
+      "value": "studio",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+    },
+    {
+      "field": "units",
+      "value": "mm",
+      "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+    },
+    {
+      "field": "fabrics.body.code",
+      "value": "F-POLY-EL",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5 (\"Fabric (programme code)\" column)"
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "fabric",
+      "field": "fabrics.body",
+      "value": "Poly/elastane 85/15, 200-220 gsm (F-POLY-EL)",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5",
+      "caveat": "Published as a placeholder; F-S5 repeats the blend as an example of a rulebook topic (\"why 85/15 poly/elastane for compression\"), which is a reason rather than a confirmed fabric."
+    },
+    {
+      "kind": "tolerance",
+      "field": "pom[*].tol",
+      "value": "3 mm on compression articles",
+      "source": "docs/spec/04-production-package.md, \"Default tolerances\"",
+      "caveat": "The build pack's own placeholder, which owner decision 18 does not let the platform apply."
+    },
+    {
+      "kind": "construction",
+      "field": "construction[side seams]",
+      "value": "4-needle flatlock, ISO 607, flat finish against skin",
+      "source": "docs/spec/02-features.md, F-S5, \"Examples\"; docs/spec/04-production-package.md, page 1, \"Key construction features\" example",
+      "caveat": "Published as the worked example of a \"Why?\" answer, with the rule id R-CON-011. The stitch class is named; the seam allowance, stitch density and thread are not."
+    },
+    {
+      "kind": "construction",
+      "field": "options[collar] mock neck",
+      "value": "2-layer self-fabric collar with a flatlock join",
+      "source": "docs/spec/02-features.md, F-S5, \"Best practice\" card example",
+      "caveat": "Published as the worked example of a best-practice card. A collar is a shape, not a number, so this cannot be drafted from the sentence."
+    }
+  ],
+  "open_questions": [
+    "Compression means negative ease, and no body size chart or ease figure is published. Which block and ease does the factory use?",
+    "Long sleeve, short sleeve or both, and is the rash guard the same article as the compression top?",
+    "R-CON-011 is the build pack's own rule id for the compression side seam. R-CON-010 is unassigned: is that number spoken for?",
+    "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+    "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+    "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+    "The construction table, seam allowances and thread the factory really uses.",
+    "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+  ]
+}

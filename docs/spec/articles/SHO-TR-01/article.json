@@ -1,0 +1,163 @@
+{
+  "code": "SHO-TR-01",
+  "name": "Football/training shorts",
+  "status": "draft_no_factory_block",
+  "version": "0.1",
+  "date": "2026-10-30",
+  "label": "Knitwright draft, not reviewed by a factory",
+  "class": "A",
+  "uses": [
+    "teamwear",
+    "studio"
+  ],
+  "sports": [
+    "football",
+    "training"
+  ],
+  "hs_code": null,
+  "origin": null,
+  "base_size": null,
+  "sizes": [],
+  "units": "mm",
+  "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+  "fabrics": {
+    "body": {
+      "code": "F-POLY-INT"
+    }
+  },
+  "pom": [],
+  "draft_constants": {},
+  "parameters": [],
+  "options": {},
+  "pieces": [],
+  "seam_allowance": {},
+  "construction": [],
+  "thread": null,
+  "bom": [],
+  "print": {},
+  "personalisation": {},
+  "placements": [],
+  "labels": {},
+  "qc": {},
+  "parametric_script": {
+    "status": "not drafted yet",
+    "reason": "Football/training shorts has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+    "rule": "R-PAT-101",
+    "needs": [
+      "waist relaxed",
+      "waist stretched",
+      "front rise",
+      "back rise",
+      "inseam",
+      "thigh width",
+      "leg opening",
+      "waistband finished depth"
+    ]
+  },
+  "rulebook": "rulebook.md",
+  "sources": [
+    {
+      "field": "code",
+      "value": "SHO-TR-01",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "name",
+      "value": "Football/training shorts",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "class",
+      "value": "A",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2"
+    },
+    {
+      "field": "uses",
+      "value": "teamwear + studio",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+    },
+    {
+      "field": "sports",
+      "value": "football, training",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2 (the sports named in the article's own row)"
+    },
+    {
+      "field": "units",
+      "value": "mm",
+      "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+    },
+    {
+      "field": "fabrics.body.code",
+      "value": "F-POLY-INT",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2 (\"Fabric (programme code)\" column)"
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "pom",
+      "field": "pom[A] waist relaxed",
+      "value": "linear, grade 40 mm, tolerance 10 mm, base M: XS 300, S 340, M 380, L 420, XL 460, 2XL 500, 3XL 540 mm",
+      "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+      "caveat": "The build pack says \"The measurement values above are illustrative only; real values come from the factory's pattern master in Phase 0\". The same file's JSY-SS-01 rows disagree with that article's own article.json, so these figures describe the file format, not the garment."
+    },
+    {
+      "kind": "pom",
+      "field": "pom[B] inseam",
+      "value": "fixed, grade 0 mm, tolerance 5 mm, 127 mm in every size",
+      "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+      "caveat": "Illustrative only, as above. 127 mm is 5 in, which is the inseam the design-object example uses."
+    },
+    {
+      "kind": "size_range",
+      "field": "sizes",
+      "value": "XS, S, M, L, XL, 2XL, 3XL, base size M",
+      "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+      "caveat": "The columns of the illustrative CSV, not a size run any factory has graded."
+    },
+    {
+      "kind": "parameter",
+      "field": "parameters[inseam_in]",
+      "value": "3 to 9 in, rule R-SHO-002, example value 5 in",
+      "source": "docs/spec/02-features.md, F-S5, \"Examples\"; docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+      "caveat": "The build pack gives the range as an example of what a shorts base carries and names the rule id; no factory has approved the range, and no step is published."
+    },
+    {
+      "kind": "parameter",
+      "field": "parameters[waistband]",
+      "value": "elastic, drawcord or both; example value \"elastic_drawcord\"",
+      "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+      "caveat": "An example of the option group, not a factory-approved option list with codes."
+    },
+    {
+      "kind": "parameter",
+      "field": "parameters[side_split]",
+      "value": "on or off; example value true",
+      "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+      "caveat": "An example of the parameter, with no geometry: the split's length and position are not published."
+    },
+    {
+      "kind": "option",
+      "field": "options[pocket]",
+      "value": "\"pockets from a list\"; example value \"zip_back\"",
+      "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+      "caveat": "The list itself is not published, so there are no option codes to offer."
+    },
+    {
+      "kind": "fabric",
+      "field": "fabrics.body",
+      "value": "Poly micro-mesh or interlock (F-POLY-INT)",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2",
+      "caveat": "\"All fabric codes, weights and blends are placeholders until confirmed in the Phase 0 factory test\". Only the programme code is kept in the article; the mesh-or-interlock choice and the weight are not."
+    }
+  ],
+  "open_questions": [
+    "The inseam range 3 to 9 in is the build pack's own example (R-SHO-002). Is it the factory's range, and what step and default does it take?",
+    "The waistband (elastic, drawcord or both), the side split and the pocket list need option codes before they can be offered.",
+    "pom.csv's waist and inseam figures are illustrative. Do the factory's own numbers agree with 380 mm waist and 127 mm inseam at M?",
+    "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+    "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+    "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+    "The construction table, seam allowances and thread the factory really uses.",
+    "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+  ]
+}
