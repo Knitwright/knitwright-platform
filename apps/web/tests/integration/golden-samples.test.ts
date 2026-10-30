@@ -240,11 +240,19 @@ describe("a make order", () => {
     expect(typeof must(await rpc("start_golden_sample", { p_brand_id: annBrand, p_user_id: ann.userId, p_product_id: productId, p_run_id: runId }))).toBe("string");
   });
 
-  it("holds a Class B run to 50 to 300 pieces per style and lets a Class A run be any quantity", async () => {
+  it("notes a Class B run outside 50 to 300 pieces rather than refusing it, and lets a Class A run be any quantity", async () => {
     const { productId, releaseId, runId } = await sampled(ann, annBrand);
     must(await signOff(ann, annBrand, await judged(ann, annBrand, productId, runId)));
-    expect((await order(ann, annBrand, productId, releaseId, { p_kind: "run", p_sizes: { M: 20 } })).error?.hint).toBe("class_b_quantity");
-    expect((await order(ann, annBrand, productId, releaseId, { p_kind: "run", p_sizes: { M: 301 } })).error?.hint).toBe("class_b_quantity");
+
+    // The range is Knitwright's own draft programme, not a quantity any factory has refused, so the
+    // run goes and carries the note (orchestrator decision, plan v5 wave 2).
+    for (const pieces of [20, 301]) {
+      const [sent] = must(await order(ann, annBrand, productId, releaseId, { p_kind: "run", p_sizes: { M: pieces } })) as { run_id: string }[];
+      const row = must(await ann.client.from("brand_runs").select("pieces, flags").eq("id", sent!.run_id).single()) as { pieces: number; flags: { code: string; text: string }[] };
+      expect(row.pieces).toBe(pieces);
+      expect(row.flags.map((flag) => flag.code)).toContain("class_b_quantity");
+      expect(row.flags.find((flag) => flag.code === "class_b_quantity")?.text).toContain("not a quantity a factory has refused");
+    }
 
     const classA = await sampled(ann, annBrand, "football-shirt");
     must(await signOff(ann, annBrand, await judged(ann, annBrand, classA.productId, classA.runId)));
