@@ -229,8 +229,11 @@ describe("the tables", () => {
   });
 
   it("lets signed-in users read the price list, and visitors not", async () => {
-    // One row per output kind, wherever it was seeded: plan v5 X5b added `production_package` in its own migration.
-    expect(must(await alice.client.from("credit_prices").select("output_kind")).length).toBe(OUTPUT_KINDS.length);
+    // Every output kind has a price, wherever it was seeded: the credits migration seeded the first three and
+    // plan v5 X5b's package_exports migration adds `production_package`. Asserting the kinds rather than a count
+    // means the next kind someone adds does not break this test.
+    const seen = must(await alice.client.from("credit_prices").select("output_kind")) as { output_kind: string }[];
+    expect(seen.map((row) => row.output_kind).sort()).toEqual([...OUTPUT_KINDS].sort());
     expect((await anonClient().from("credit_prices").select("output_kind")).error).not.toBeNull();
   });
 
