@@ -83,8 +83,11 @@ export default defineConfig({
         // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
         // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
         "lib/make/server.ts",
-        // Joins the benchmark screens to the database, the configured model, the usage meter and the limiter; every
-        // rule it hands over is tested on its own, and the database and end-to-end tests cover the joining (plan v5 Z3).
+        // Join the benchmark screens to the outside world: one gathers the comparison, the catalogue and the design's
+        // own shape, the other hands over the database, the configured model, the usage meter and the limiter. Every
+        // rule they hand over is tested on its own, and the database and end-to-end tests cover the joining (plan v5
+        // Z3, decision 0084).
+        "lib/benchmarks/load.ts",
         "lib/benchmarks/server.ts",
       ],
       thresholds: {
