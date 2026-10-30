@@ -45,12 +45,16 @@ export function viewsShown(main: CanvasView, beside: CanvasView | null): readonl
   return CANVAS_VIEWS.filter((view) => view === main || view === beside);
 }
 
-/** Which view a click on the toggle leaves showing: the one asked for, alone, or added beside the one already there. */
-export function toggled(main: CanvasView, beside: CanvasView | null, asked: CanvasView, alongside: boolean): { main: CanvasView; beside: CanvasView | null } {
-  if (!alongside) return { main: asked, beside: null };
-  if (asked === main) return { main: beside ?? asked, beside: null };
-  if (asked === beside) return { main, beside: null };
-  return { main, beside: asked };
+/**
+ * Which views a click on the toggle leaves showing: the one asked for, alone, or added beside the
+ * one already there. The field names are the shell state's own (`view`, `beside`), so the result
+ * can be spread over it without a rename losing the change.
+ */
+export function toggled(view: CanvasView, beside: CanvasView | null, asked: CanvasView, alongside: boolean): { view: CanvasView; beside: CanvasView | null } {
+  if (!alongside) return { view: asked, beside: null };
+  if (asked === view) return { view: beside ?? asked, beside: null };
+  if (asked === beside) return { view, beside: null };
+  return { view, beside: asked };
 }
 
 /** Whether a view is on the canvas now, so the shell draws it and the toggle marks it. */

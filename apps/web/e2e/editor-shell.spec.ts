@@ -204,6 +204,30 @@ test.describe("the editor shell", () => {
     await expect(page.getByTestId("flat-front")).toBeVisible();
   });
 
+  test("offers a redo only once something has been undone, and puts that version back", async ({ page }) => {
+    await signedIn(page, "shell-redo");
+    await startDesign(page, "Crew neck tee", "Redo tee");
+    const redo = page.getByRole("button", { name: "Redo" });
+
+    await expect(redo).toBeDisabled();
+    await openTool(page, "Sizes");
+    const chest = page.getByLabel("Chest width in centimetres");
+    await chest.fill("48");
+    await chest.press("Enter");
+    await expect(page.getByTestId("save-status")).toHaveText("Saved as version 2.");
+
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.getByTestId("save-status")).toHaveText("Saved as version 3.");
+    await expect(chest).toHaveValue("51");
+
+    await expect(redo).toBeEnabled();
+    await redo.click();
+
+    await expect(page.getByTestId("save-status")).toHaveText("Saved as version 4.");
+    await expect(chest).toHaveValue("48");
+    await expect(redo).toBeDisabled();
+  });
+
   test("lists the panels of the shell in the File menu, and opens one in place", async ({ page }) => {
     await signedIn(page, "shell-file");
     await startJersey(page, "File kit");

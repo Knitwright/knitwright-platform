@@ -125,20 +125,27 @@ Library), Y4 (tech pack view, Specs), Y5 (Export) and Y8 (names & numbers, repea
    the trigger is this workstream's. The rulebook's own popover should be raised to 40 px by whoever
    next owns that file.
 
-10. **The credits counter is not repeated.** Spec F-S4 puts a credits counter in the editor's top
+10. **Redo is a session's memory, not a stored state.** The design's history (decision 0039) knows
+    which version an undo goes back to and nothing about what was undone, so a redo cannot be worked
+    out from the database. The shell remembers the version the last undo of this session moved away
+    from and restores it, through the existing `restore` path, so a redo is an ordinary new version
+    like every other change. A reload clears it rather than guessing, and the button is disabled
+    until there is something to put back.
+
+11. **The credits counter is not repeated.** Spec F-S4 puts a credits counter in the editor's top
     bar. `components/credits/BalanceChip` already shows it in the studio header, one row above the
     editor and on every studio screen, with `data-testid="credit-balance"`. A second counter would be
     two elements with the same test id and the same number twice on one screen, so the top bar leaves
     it to the header.
 
-11. **The Design Summary is built from the factory file's own lines.** Fabrics and Trims & labels
+12. **The Design Summary is built from the factory file's own lines.** Fabrics and Trims & labels
     come from `lib/workspace/summaries` (which reads `lib/techpack`), colours and graphics from the
     editor's existing rows, pattern fills from the article's chosen `pattern_fill` option, and
     stitches from `article_construction`. The summary and the tech pack therefore cannot disagree,
     because they are the same sums. Every editable row opens its tool through
     `lib/workspace/tools.toolForSection`.
 
-12. **The bottom bar's "+ New colourway" uses the kit names of the spec.** A new colourway takes the
+13. **The bottom bar's "+ New colourway" uses the kit names of the spec.** A new colourway takes the
     next of Home, Away, GK the design has not used, then numbers them, through the existing
     `add-colourway` action. A design made before keeps the name it has ("Main colourway"); nothing is
     renamed.
