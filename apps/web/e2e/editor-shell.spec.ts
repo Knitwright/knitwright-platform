@@ -154,7 +154,10 @@ test.describe("the editor shell", () => {
 
     await collar.getByRole("button", { name: "Why? Rulebook R-CON-004" }).click();
 
-    await expect(page.getByTestId("why-rule")).toContainText("R-CON-004");
+    // Owner decision 11: no factory has confirmed a rule yet, so the popover names the rule and
+    // says the words are not shown rather than reading out a draft.
+    await expect(page.getByTestId("why-panel")).toContainText("R-CON-004");
+    await expect(page.getByTestId("why-panel")).toContainText("not yet confirmed by the factory");
   });
 
   test("shows every finding with a Why? behind the Validate chip", async ({ page }) => {

@@ -54,6 +54,7 @@ export function WhyButton({ ruleId, context }: Readonly<{ ruleId: string; contex
         <div
           ref={panel}
           {...whyPanelProps(ids, pending)}
+          data-testid="why-panel"
           onKeyDown={(event) => {
             if (event.key === "Escape") close();
           }}
