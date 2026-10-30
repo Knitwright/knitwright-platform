@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { createAccount, signIn, test, userIdOf } from "./support";
+import { createAccount, openTool, signIn, test, userIdOf } from "./support";
 
 /**
  * Make (plan v5 Y7, F-S7): the product-created page, a sample of one piece per size, the golden sample the founder
@@ -17,15 +17,15 @@ import { createAccount, signIn, test, userIdOf } from "./support";
 const service = () =>
   createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", process.env.SUPABASE_SECRET_KEY ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
 
-const SNAPSHOT = {
-  specVersion: 1,
+const snapshotOf = (specVersion: number) => ({
+  specVersion,
   patternBlockId: "crew-tee",
   patternBlockVersion: 1,
   fabricTestIds: [],
   printProfile: { bleedMm: 3, dpi: 300, iccFileId: null, maxPrintWidthMm: null, source: "knitwright-default" },
   rosterHash: null,
   files: [],
-};
+});
 
 const startDesign = async (page: Page, name: string): Promise<string> => {
   await page.goto("/studio/new");
@@ -36,6 +36,10 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   const id = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1];
   if (!id) throw new Error(`No design id in ${page.url()}`);
+  // A new design holds no size run until the sizes are saved, and the make pages offer the sizes the design has.
+  await openTool(page, "Sizes");
+  await page.getByRole("button", { name: "Change sizes" }).click();
+  await expect(page.getByTestId("save-status")).toHaveText("Saved as version 2.");
   return id;
 };
 
@@ -46,7 +50,10 @@ async function prepare(email: string, projectId: string, name: string): Promise<
   const project = await db.from("projects").select("brand_id").eq("id", projectId).single();
   if (project.error) throw new Error(project.error.message);
   const brandId = project.data.brand_id as string;
-  const release = await db.rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: userId, p_label: "Round 1", p_snapshot: SNAPSHOT, p_file_specs: [], p_order_id: null });
+  const project2 = await db.from("projects").select("current_version").eq("id", projectId).single();
+  if (project2.error) throw new Error(project2.error.message);
+  // The release freezes the version the design is at now, so the golden sample is cut from the version being made.
+  const release = await db.rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: userId, p_label: "Round 1", p_snapshot: snapshotOf(project2.data.current_version as number), p_file_specs: [], p_order_id: null });
   if (release.error) throw new Error(release.error.message);
   const product = await db.rpc("create_brand_product", { p_brand_id: brandId, p_user_id: userId, p_project_id: projectId, p_name: name });
   if (product.error) throw new Error(product.error.message);
