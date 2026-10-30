@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
@@ -7,6 +8,29 @@ import { adminClient, anonClient, brandOf, must, person, type Person } from "./s
  * open invite and nothing else; a link set to "Only invited people" opens nothing at all; one brand
  * never sees another's invites; and a browser can neither make, change nor withdraw one.
  */
+
+const CONTAINER = process.env.SUPABASE_DB_CONTAINER ?? "supabase_db_knitwright-platform";
+
+/**
+ * Runs SQL as the owner of the tables, which no API role is: the table takes no update from anyone
+ * (there is no update policy and no update grant, on purpose), so only its owner can age an invite.
+ * The same shape as `job-packets.test.ts`, which ages a factory link for the same reason.
+ */
+const asOwner = (sql: string): string =>
+  execFileSync("docker", ["exec", CONTAINER, "psql", "-U", "postgres", "-v", "ON_ERROR_STOP=1", "-tA", "-c", sql], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 15_000,
+  });
+
+const dockerReachable = (() => {
+  try {
+    asOwner("select 1");
+    return true;
+  } catch {
+    return false;
+  }
+})();
 
 const token = (): string => randomBytes(32).toString("base64url");
 const address = (): string => `chair-${randomUUID().slice(0, 8)}@northside.test`;
@@ -127,16 +151,19 @@ describe("open_share_invite", () => {
     expect(row.accepted_at).not.toBeNull();
   });
 
-  it("opens nothing for an unknown token, a withdrawn invite or one that has run out, and says the same about each", async () => {
-    const designId = await project(aliceBrand, alice);
-    expect(await openInvite(token())).toEqual([]);
-    const withdrawn = await invite(designId, alice);
-    must(await adminClient().rpc("revoke_share_invite", { p_invite_id: withdrawn.id, p_user_id: alice.userId }));
-    expect(await openInvite(withdrawn.token)).toEqual([]);
-    const over = await invite(designId, alice);
-    must(await adminClient().from("share_invites").update({ expires_at: "2020-01-01T00:00:00Z" }).eq("id", over.id));
-    expect(await openInvite(over.token)).toEqual([]);
-  });
+  it.skipIf(!dockerReachable)(
+    "opens nothing for an unknown token, a withdrawn invite or one that has run out, and says the same about each",
+    async () => {
+      const designId = await project(aliceBrand, alice);
+      expect(await openInvite(token())).toEqual([]);
+      const withdrawn = await invite(designId, alice);
+      must(await adminClient().rpc("revoke_share_invite", { p_invite_id: withdrawn.id, p_user_id: alice.userId }));
+      expect(await openInvite(withdrawn.token)).toEqual([]);
+      const over = await invite(designId, alice);
+      asOwner(`update public.share_invites set expires_at = now() - interval '1 second' where id = '${over.id}'`);
+      expect(await openInvite(over.token)).toEqual([]);
+    },
+  );
 
   it("is open to the server's own key alone", async () => {
     const designId = await project(aliceBrand, alice);
@@ -209,6 +236,6 @@ describe("who may read an invite", () => {
     const read = must(await alice.client.from("share_invites").select("id, email").eq("project_id", mine));
     expect(read.map((row: { id: string }) => row.id)).toContain(made.id);
     expect(must(await alice.client.from("share_invites").select("id").eq("project_id", theirs))).toEqual([]);
-    expect(must(await anonClient().from("share_invites").select("id"))).toEqual([]);
+    expect((await anonClient().from("share_invites").select("id")).error).not.toBeNull();
   });
 });

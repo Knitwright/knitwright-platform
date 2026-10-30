@@ -54,7 +54,10 @@ describe("the share service", () => {
     await respondToShare(adminClient(), { token: link.token, visitorKey: newVisitorKey(), name: "Max", vote: "not_yet", comment: null });
 
     const listed = await listShareLinks(alice.client, aliceBrand, id);
-    expect(listed.links).toEqual([{ id: link.id, version: 1, createdAt: expect.any(String), expiresAt: link.expiresAt, revokedAt: null }]);
+    expect(listed.links).toEqual([
+      // A new link is open to anyone with it until a member narrows it (decision 0081).
+      { id: link.id, version: 1, audience: "anyone", createdAt: expect.any(String), expiresAt: link.expiresAt, revokedAt: null },
+    ]);
     expect(listed.answers).toHaveLength(2);
     expect(listed.answers).toContainEqual(expect.objectContaining({ linkId: link.id, name: "Jo", vote: "yes", comment: "Love it" }));
   });
