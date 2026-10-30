@@ -162,6 +162,9 @@ came from, so no number can enter a tech pack through this path.
   rows in `PARTS` when rules exist for them.
 - The gap list now holds two shapes of code: rule ids (from a "Why?") and `ask:<question>` (from a question nothing
   covers). Both are the server's own write; neither can be filled from a browser with made-up rule ids.
+- The 50-question set's own numbers, as the grader reports them: 45 of 45 answerable questions reach their rule, 78
+  sentences across those 45 answers each carry a citation, 0 cite an id that was not retrieved, 0 state a measurement
+  outside the cited rule, and all 180 tampered answers (45 × the grader's four readings) are turned down.
 
 ## Owner questions
 
