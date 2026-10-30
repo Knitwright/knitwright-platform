@@ -850,6 +850,10 @@ link can view", People with access list.
 
 Decision records 0082 to 0090.
 
+**The owner questions of waves 1 to 3 are collected** in "Owner questions collected, as decisions 21 onward" above —
+every one of them, with the labelled default it runs on and the workstream it came from. Read them there rather than
+hunting through pull request comments, and add a wave-3 workstream's own questions to that section when its PR merges.
+
 ## Z1. Inspiration board (F-S1)
 **Owns** `lib/inspiration/**`, `components/inspiration/**`, migration `20261120010000_inspiration.sql`. Context query from the design
 object (sport, article, colour names, option style tags, brand mood words) with pin/remove tags; sources in the spec's order:
