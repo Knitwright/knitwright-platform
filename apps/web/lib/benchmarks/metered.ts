@@ -1,5 +1,4 @@
-import type { ModelEntry } from "@/lib/providers/catalog";
-import { callCost } from "@/lib/usage/cost";
+import { callCost, type ModelEntry } from "@/lib/providers/catalog";
 import type { UsageMeter } from "@/lib/usage/meter";
 import { EXTRACT_MAX_OUTPUT_TOKENS, type BenchmarkExtractor } from "./extract";
 

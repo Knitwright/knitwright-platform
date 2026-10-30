@@ -39,7 +39,7 @@ const provenance = z.enum(PROVENANCES);
 /** A measurement is stated or not known. It is never read off a picture (plan rule: no invented measurement). */
 const statedOnly = z.enum(["observed", "unknown"]);
 
-const provenanced = <T extends z.ZodTypeAny>(value: T, how: z.ZodTypeAny = provenance) =>
+const provenanced = <T>(value: z.ZodType<T>, how: z.ZodType<Provenance> = provenance) =>
   z
     .strictObject({
       value: value.nullable(),
