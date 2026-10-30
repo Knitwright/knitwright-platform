@@ -22,6 +22,11 @@ export type Suggestion = Readonly<{
   line: string;
   /** What a check raised without holding the patch back. Shown under the line. */
   warnings: readonly string[];
+  /**
+   * The design as this patch would make it, drawn by **Knitwright's own renderer** (F-S1: each card is "rendered by
+   * Knitwright's own renderer"), as a picture address. Null when the caller gave no renderer.
+   */
+  preview: string | null;
   /** The rule this suggestion answers to. The rulebook has no inspiration entry yet, so it is the gap id. */
   ruleId: string;
 }>;
@@ -42,6 +47,11 @@ export type SuggestDeps = Readonly<{
   check: DesignChecker;
   /** The editor's guardrails, when the caller has panel geometry. Default: none. */
   guardrails?: GuardrailRun;
+  /**
+   * Draws the design a patch would make, with Knitwright's own flat renderer. The inspiration picture is never an
+   * input to it: it draws the design object, which is why a suggestion can be shown at all.
+   */
+  draw?: (spec: GarmentSpec) => string | null;
 }>;
 
 const upperFirst = (text: string): string => (text === "" ? text : `${text.charAt(0).toUpperCase()}${text.slice(1)}`);
@@ -75,6 +85,7 @@ async function offerable(
       cardId: card.id,
       diff: candidate.diff,
       line: lineFor(candidate, deps.profile),
+      preview: deps.draw?.(preview.after) ?? null,
       warnings: [...preview.warnings, ...result.findings.filter((finding) => finding.severity !== "blocker").map((finding) => finding.message)],
       ruleId: RULE_GAP,
     },

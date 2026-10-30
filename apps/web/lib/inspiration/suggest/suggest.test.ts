@@ -216,6 +216,27 @@ describe("every patch goes through validation before it is shown", () => {
     expect(made.suggestions).toHaveLength(MAX_SUGGESTIONS);
   });
 
+  it("draws the design the patch would make, with Knitwright's own renderer", async () => {
+    const drawn: string[] = [];
+    const made = await suggestFromCard(withPattern(), card, {
+      reader: stubElementReader([elements({ patternFamily: "fade" })]),
+      profile,
+      check: realCheck,
+      draw: (design) => {
+        drawn.push(design.kitPattern?.style ?? "none");
+        return "data:image/svg+xml;base64,AAAA";
+      },
+    });
+    // The renderer is given the design, never the inspiration picture: that is why a suggestion can be shown at all.
+    expect(drawn).toEqual(["fade"]);
+    expect(made.suggestions[0]?.preview).toBe("data:image/svg+xml;base64,AAAA");
+  });
+
+  it("shows a suggestion with no picture rather than none at all when no renderer was given", async () => {
+    const made = await suggestFromCard(withPattern(), card, { reader: stubElementReader([elements({ patternFamily: "fade" })]), profile, check: realCheck });
+    expect(made.suggestions[0]?.preview).toBeNull();
+  });
+
   it("gives the same id for the same card and the same patch, so Apply applies what was shown", async () => {
     const twice = await Promise.all(
       [0, 1].map(() => suggestFromCard(withPattern(), card, { reader: stubElementReader([elements({ patternFamily: "fade" })]), profile, check: realCheck })),

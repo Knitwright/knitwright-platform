@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getEnv } from "@/lib/config/env";
+import { brandChartSet } from "@/lib/charts/service";
 import { previewDiff } from "@/lib/design-diff/preview";
 import { CONFLICT_MESSAGE, failureFromDatabase } from "@/lib/projects/database-errors";
+import { flatPreview } from "@/lib/projects/flat-preview";
 import { getProject } from "@/lib/projects/project-reads";
 import { chooseModels } from "@/lib/providers/select";
 import { AppError } from "@/lib/server/core/errors";
@@ -103,12 +105,14 @@ export const suggestFromCardAction = defineAction({
     const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false });
     const card = cardById(board, input.cardId);
     if (card === null) throw new AppError("not_found", NO_CARD);
+    const charts = await brandChartSet(client, who.brandId);
     const primary = chooseModels(getEnv()).primary;
     const metered = primary === null || primary === undefined ? reader : meteredReader(reader, productionDeps.usage, who, suggestCostMicrodollars(primary.entry), "inspiration/suggest");
     const made = await suggestFromCard(project.spec, card, {
       reader: metered,
       profile: await loadFactoryProfile(client),
       check: designChecker(client, who.brandId),
+      draw: (design) => flatPreview(design, new Map(), charts)?.views[0]?.src ?? null,
     });
     return { ...suggestionsView(made), version: project.currentVersion };
   },

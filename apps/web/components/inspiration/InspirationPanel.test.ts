@@ -108,6 +108,7 @@ describe("the suggestions", () => {
     line: "The pattern as fade. No blocker was raised against Knitwright default.",
     warnings: ["Six colours cost more."],
     ruleId: "R-GAP-000",
+    preview: "data:image/svg+xml;base64,AAAA",
   };
 
   it("shows one line per suggestion, its warnings and an Apply button", () => {
@@ -116,6 +117,17 @@ describe("the suggestions", () => {
     expect(html).toContain("Six colours cost more.");
     expect(html).toContain('aria-label="Apply: The pattern as fade.');
     expect(html).toContain("Why? Rulebook R-GAP-000");
+  });
+
+  it("shows the design the patch would make, drawn by Knitwright's own renderer", () => {
+    const html = render(createElement(SuggestionList, { made: suggestionsView({ suggestions: [suggestion], notPossible: [] }) }));
+    expect(html).toContain('src="data:image/svg+xml;base64,AAAA"');
+    expect(html).toContain('alt="The design with this change: The pattern as fade.');
+  });
+
+  it("leaves the picture out when there is none, rather than showing a broken one", () => {
+    const html = render(createElement(SuggestionList, { made: suggestionsView({ suggestions: [{ ...suggestion, preview: null }], notPossible: [] }) }));
+    expect(html).not.toContain("<img");
   });
 
   it("says what the base article cannot do rather than leaving it out silently", () => {

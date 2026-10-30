@@ -20,6 +20,10 @@ export function SuggestionList({ made, onApply, busy = false }: Props) {
         <ul {...listProps("Suggestions from this card")} className="flex flex-col gap-2">
           {made.suggestions.map((suggestion) => (
             <li key={suggestion.id} role="listitem" className="glass flex flex-col gap-1 rounded-2xl p-2" data-testid="inspiration-suggestion">
+              {suggestion.preview === null ? null : (
+                // eslint-disable-next-line @next/next/no-img-element -- drawn by Knitwright's own renderer, on the server.
+                <img src={suggestion.preview} alt={`The design with this change: ${suggestion.line}`} className="h-24 w-auto self-start rounded-lg" />
+              )}
               <p className="text-xs text-ink">{suggestion.line}</p>
               {suggestion.warnings.map((warning) => (
                 <p key={warning} className="text-[0.7rem] text-muted">

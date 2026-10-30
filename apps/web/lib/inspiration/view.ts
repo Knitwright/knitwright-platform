@@ -94,7 +94,15 @@ export function boardView(board: Board): BoardView {
 }
 
 /** One suggestion as the panel draws it. */
-export type SuggestionView = Readonly<{ id: string; line: string; warnings: readonly string[]; applyLabel: string; ruleId: string }>;
+export type SuggestionView = Readonly<{
+  id: string;
+  line: string;
+  warnings: readonly string[];
+  applyLabel: string;
+  ruleId: string;
+  /** The design as the patch would make it, drawn by Knitwright's own renderer, or null. */
+  preview: string | null;
+}>;
 
 export const suggestionView = (suggestion: Suggestion): SuggestionView => ({
   id: suggestion.id,
@@ -102,6 +110,7 @@ export const suggestionView = (suggestion: Suggestion): SuggestionView => ({
   warnings: suggestion.warnings,
   applyLabel: `Apply: ${suggestion.line}`,
   ruleId: suggestion.ruleId,
+  preview: suggestion.preview,
 });
 
 export type SuggestionsView = Readonly<{
