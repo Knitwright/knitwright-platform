@@ -7,7 +7,7 @@ import { gradeAnswer, NO_MODEL, NOT_COVERED, OVER_ALLOWANCE, UNGROUNDED } from "
 import { SYSTEM, userInput } from "./prompt";
 import { readReply } from "./reply";
 import { retrieveRules, type Retrieval } from "./retrieve";
-import type { AskResult, AskScope, RetrievedRule } from "./types";
+import type { AskGrade, AskResult, AskScope, RetrievedRule } from "./types";
 
 /**
  * The Ask box, from question to answer (spec F-S5 v2, decision 0083): retrieve the rules that cover the
@@ -86,6 +86,18 @@ async function askModel(
 
 const FREE: Hold = { refund: async () => undefined };
 
+/**
+ * An answer the grader turned down. Its words are dropped and the rules the search found are offered in their
+ * place; only the kinds of defect travel, never the sentence that held one.
+ */
+const ungrounded = (question: string, rules: readonly RetrievedRule[], grade: AskGrade): AskResult => ({
+  kind: "ungrounded",
+  question,
+  message: UNGROUNDED,
+  rules,
+  defects: [...new Set(grade.defects.map((defect) => defect.kind))],
+});
+
 /** One question, answered out of the rulebook or not answered at all. */
 export async function askRulebook(deps: AskDeps, input: AskInput): Promise<AskResult> {
   const scope = input.scope ?? {};
@@ -98,10 +110,10 @@ export async function askRulebook(deps: AskDeps, input: AskInput): Promise<AskRe
   if (!held) return { kind: "unavailable", question, message: OVER_ALLOWANCE, rules };
 
   const reply = await askModel(deps, deps.model, held, input, scope, rules);
-  if (!reply) return { kind: "ungrounded", question, message: UNGROUNDED, rules, grade: gradeAnswer([], rules) };
+  if (!reply) return ungrounded(question, rules, gradeAnswer([], rules));
   if (!reply.covered) return notCovered(deps, input, scope);
 
   const grade = gradeAnswer(reply.sentences, rules);
-  if (!grade.ok) return { kind: "ungrounded", question, message: UNGROUNDED, rules, grade };
+  if (!grade.ok) return ungrounded(question, rules, grade);
   return { kind: "answer", question, sentences: reply.sentences, rules, grade };
 }

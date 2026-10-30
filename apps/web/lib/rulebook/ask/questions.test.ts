@@ -141,7 +141,7 @@ describe("the grader over the same 50 questions, with the answer tampered with",
     const found = new Map<string, string>();
     for (const flaw of flaws) {
       const result = await ask(COVERED[28].question, stubModel({ flaw }));
-      if (result.kind === "ungrounded") found.set(flaw, result.grade.defects[0]?.kind ?? "none");
+      if (result.kind === "ungrounded") found.set(flaw, result.defects[0] ?? "none");
     }
     expect([...found.entries()]).toEqual([
       ["uncited", "uncited_sentence"],

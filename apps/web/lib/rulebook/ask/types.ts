@@ -71,7 +71,9 @@ export type AskGrade = Readonly<{
 export type AskResult =
   | Readonly<{ kind: "answer"; question: string; sentences: readonly AskSentence[]; rules: readonly RetrievedRule[]; grade: AskGrade }>
   | Readonly<{ kind: "not_covered"; question: string; ruleId: string; message: string }>
-  | Readonly<{ kind: "ungrounded"; question: string; message: string; rules: readonly RetrievedRule[]; grade: AskGrade }>
+  // The model's own words never reach the browser here: only WHICH of the grader's readings turned them down,
+  // because showing an ungrounded sentence to explain that it is ungrounded would still be showing it.
+  | Readonly<{ kind: "ungrounded"; question: string; message: string; rules: readonly RetrievedRule[]; defects: readonly AskDefect["kind"][] }>
   | Readonly<{ kind: "unavailable"; question: string; message: string; rules: readonly RetrievedRule[] }>;
 
 /** One line of the best-practice card: the rulebook's own best-practice words, with the rule they belong to. */
