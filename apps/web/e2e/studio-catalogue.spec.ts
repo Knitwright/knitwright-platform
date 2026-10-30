@@ -23,9 +23,11 @@ const accessible = async (page: Page): Promise<void> => {
   );
   const { violations } = await new AxeBuilder({ page }).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
-  expect(
-    serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map((node) => node.target.join(" ")).join("; ")})`),
-  ).toEqual([]);
+  // The node and the figures it failed on, so a fault names the element and its colours rather than
+  // only its rule (e2e/mobile.spec.ts reports the node; the colours are in the check's own data).
+  const where = (node: (typeof serious)[number]["nodes"][number]): string =>
+    `${node.target.join(" ")} ${JSON.stringify(node.any.map((check) => check.data))}`;
+  expect(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map(where).join("; ")})`)).toEqual([]);
 };
 
 test.describe("the studio home", () => {
