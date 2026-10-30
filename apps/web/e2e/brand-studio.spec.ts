@@ -35,7 +35,7 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page.getByTestId("brand-completion")).toHaveText("0% complete");
     await expect(page.getByTestId("brand-completion-pill")).toHaveText("0%");
 
-    const details = page.getByRole("region", { name: "Details" });
+    const details = page.getByRole("region", { name: "Details", exact: true });
     await details.getByLabel("Category").selectOption({ label: "Club" });
     await details.getByLabel("Website").fill("https://example.test");
     await details.getByLabel("About").fill("A club in the north, founded by the people who still run it.");
@@ -47,7 +47,7 @@ test.describe("Brand Studio (Y6)", () => {
     await page.reload();
     await expect(page.getByTestId("brand-completion")).not.toHaveText("0% complete");
     await expect(page.getByTestId("brand-completion-pill")).not.toHaveText("0%");
-    await expect(page.getByRole("region", { name: "Overview" }).getByText("Community")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Overview", exact: true }).getByText("Community")).toBeVisible();
   });
 
   test("a palette is saved, and a colour the estimate refuses says so and names its rule", async ({ page }) => {
@@ -55,7 +55,7 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=colours");
 
-    const editor = page.getByRole("region", { name: "New palette" });
+    const editor = page.getByRole("region", { name: "New palette", exact: true });
     await editor.getByPlaceholder("Palette name, such as Primary or Kit colours").fill(`Primary ${runId()}`);
     await editor.getByLabel("Colour").fill("#0000ff");
     await editor.getByPlaceholder("Name, such as Club red").fill("Electric blue");
@@ -80,7 +80,7 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=colours");
 
-    const editor = page.getByRole("region", { name: "New palette" });
+    const editor = page.getByRole("region", { name: "New palette", exact: true });
     await editor.getByLabel("Colour").fill("#0b1f4b");
     await expect(editor.getByTestId("gamut-warning")).toBeHidden();
   });
@@ -90,16 +90,16 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=fonts");
 
-    const fonts = page.getByRole("region", { name: "Fonts" });
+    const fonts = page.getByRole("region", { name: "Fonts", exact: true });
     for (const role of ["Headline", "Subheadline", "Body", "Accent", "Name & number"]) {
-      await fonts.getByLabel(role).selectOption({ label: "Geist Sans" });
+      await fonts.getByRole("combobox", { name: `${role} font`, exact: true }).selectOption({ label: "Geist Sans" });
     }
     await fonts.getByRole("button", { name: "Save fonts" }).click();
     await expect(fonts.getByText("Your fonts are saved.")).toBeVisible();
 
     const placeholders = fonts.getByRole("region", { name: "Fonts we cannot offer yet" });
     await expect(placeholders).toContainText("No licence for a font of this kind is on file");
-    const blocked = fonts.getByLabel("Headline").getByRole("option", { name: /no licence on file/ }).first();
+    const blocked = fonts.getByRole("combobox", { name: "Headline font", exact: true }).getByRole("option", { name: /no licence on file/ }).first();
     await expect(blocked).toBeDisabled();
   });
 
@@ -117,7 +117,7 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=colours");
 
-    const readThrough = page.getByRole("region", { name: "Club kit" });
+    const readThrough = page.getByRole("region", { name: "Club kit", exact: true });
     await expect(readThrough).toContainText("From your club kit. Change it on the Club page.");
     await expect(readThrough).toContainText("#0b3d91");
     await expect(readThrough.getByRole("button", { name: "Save palette" })).toBeHidden();
@@ -131,6 +131,6 @@ test.describe("Brand Studio (Y6)", () => {
     await signIn(page, await createAccount("bs-logos"));
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=logos");
-    await expect(page.getByRole("region", { name: "Logos" })).toContainText("Upload your logo in a design's artwork first");
+    await expect(page.getByRole("region", { name: "Logos", exact: true })).toContainText("Upload your logo in a design's artwork first");
   });
 });
