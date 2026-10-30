@@ -1,14 +1,10 @@
-import { View } from "@react-pdf/renderer";
-import { createElement as h, type ReactElement } from "react";
 import type { ClassCell } from "../../types";
 import { table, text, textColumn, type ExportSection, type ExportTable } from "../table-types";
 import { markLabel, type SourceMarks } from "./marks";
-import { heading, paragraph, type Safe } from "./parts";
-import { tableGroup } from "./sections";
 
-/** The title of the appendix at the end of the specification. */
+/** The title of the page that says where every value came from. It is the title of a page of its own. */
 export const SOURCES_AND_NOTES = "Sources and notes";
-const KEY_INTRO = "The number in square brackets after a value says where that value came from.";
+export const KEY_INTRO = "The number in square brackets after a value says where that value came from.";
 const KEY_TITLE = "Where each value came from";
 const CLASSES_TITLE = "Seam and stitch classes";
 
@@ -35,18 +31,12 @@ function classesTable(sections: readonly ExportSection[]): ExportTable | null {
 }
 
 /**
- * The appendix at the end of the specification: the key of the marks printed after the values,
- * the seam and stitch classes explained once, then the notes that explain single values, such as
- * why a measurement is missing for a size. The tables before it carry the values and a short mark
- * each, and so read clean for a factory.
+ * The tables of the sources page: the key of the marks printed after the values, the seam and
+ * stitch classes explained once, then the notes that explain single values, such as why a
+ * measurement is missing for a size. The tables of the sixteen pages carry the values and a short
+ * mark each, and so read clean for a factory.
  */
-export function appendixElement(sections: readonly ExportSection[], marks: SourceMarks, safe: Safe): ReactElement {
+export function appendixTables(sections: readonly ExportSection[], marks: SourceMarks): readonly ExportTable[] {
   const classes = classesTable(sections);
-  const tables = [keyTable(marks), ...(classes ? [classes] : []), ...sections.flatMap((section) => section.notes ?? [])];
-  return h(
-    View,
-    { key: "appendix" },
-    h(View, { key: "lead", wrap: false }, heading(2, SOURCES_AND_NOTES, safe), paragraph(KEY_INTRO, safe, "intro")),
-    ...tables.map((entry, index) => tableGroup(entry, index, safe, marks)),
-  );
+  return [keyTable(marks), ...(classes ? [classes] : []), ...sections.flatMap((section) => section.notes ?? [])];
 }

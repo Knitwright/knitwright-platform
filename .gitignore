@@ -44,3 +44,6 @@ npm-debug.log*
 /*.pdf
 
 knitwright-reference/
+
+# Editor settings are each developer's own.
+.vscode/

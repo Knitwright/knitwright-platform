@@ -1,7 +1,0 @@
-"files.watcherExclude": {
-  "**/node_modules/**": true,
-  "**/dist/**": true,
-  "**/.git/objects/**": true,
-  "**/.turbo/**": true,
-  "**/.next/**": true
-}
