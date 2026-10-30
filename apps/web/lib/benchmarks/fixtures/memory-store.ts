@@ -57,6 +57,13 @@ export function createMemoryStore(): MemoryStore {
       if (found === undefined) throw new AppError("not_found", "That benchmark could not be found.");
       cards.set(input.cardId, { ...found, card: storable(input.card), confirmedAt: new Date().toISOString() });
     },
+    async removeCard(who: Who, cardId) {
+      const found = cards.get(cardId);
+      if (found === undefined || benchmarks.get(found.benchmarkId)?.brandId !== who.brandId) {
+        throw new AppError("not_found", "That card could not be found.");
+      }
+      cards.delete(cardId);
+    },
     async list(who: Who): Promise<readonly BenchmarkSummary[]> {
       return [...benchmarks.values()]
         .filter((held) => held.brandId === who.brandId)

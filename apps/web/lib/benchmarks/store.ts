@@ -41,6 +41,8 @@ export interface BenchmarkStore {
   settleFetch(who: Who, input: Readonly<{ urlKey: string; outcome: "fetched" | "robots_refused" | "failed" }>): Promise<void>;
   addCard(who: Who, card: NewCard): Promise<string>;
   confirmCard(who: Who, input: Readonly<{ cardId: string; card: BenchmarkCard }>): Promise<void>;
+  /** Takes a card out of its comparison. The comparison itself goes with its design or its brand. */
+  removeCard(who: Who, cardId: string): Promise<void>;
   list(who: Who): Promise<readonly BenchmarkSummary[]>;
   read(who: Who, benchmarkId: string): Promise<BenchmarkDetail | null>;
 }
@@ -136,6 +138,14 @@ export function createSupabaseStore(admin: Db, reader: Db = admin): BenchmarkSto
         p_user_id: who.userId,
         p_card_id: input.cardId,
         p_card: storable(input.card),
+      });
+      failIf(error);
+    },
+    async removeCard(who, cardId) {
+      const { error } = await admin.rpc("benchmark_card_remove", {
+        p_brand_id: who.brandId,
+        p_user_id: who.userId,
+        p_card_id: cardId,
       });
       failIf(error);
     },
