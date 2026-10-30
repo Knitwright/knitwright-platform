@@ -6,6 +6,7 @@ import type { RosterRow } from "@/lib/production/contract";
 import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { readinessFor } from "@/lib/validation/design-input";
+import { livePorts } from "@/lib/validation/live-ports";
 import { reportFor } from "@/lib/validation/use-cases";
 import { getRoster, type Who } from "../service";
 import { planFingerprint, planReorder, type ReorderPlan } from "./plan";
@@ -15,6 +16,13 @@ import type { ConfirmBody, PreviewBody } from "./schemas";
 import { findRelease } from "./service";
 
 type Brand = Readonly<{ id: string; name: string }>;
+
+/**
+ * Both clients. The preview needs the server's own key as well as the session's, because the base
+ * article catalogue and the kept moderation results are read through it (`lib/validation/live-ports.ts`):
+ * without them the preview would count fewer blockers than the save that made them.
+ */
+type Clients = Readonly<{ client: SupabaseClient; admin: SupabaseClient }>;
 
 const ORDER_GONE = "The team list of that order has been erased. Choose a season to reorder from.";
 const NAME_MAX = 120;
@@ -56,8 +64,9 @@ async function earlierRows(client: SupabaseClient, brandId: string, projectId: s
   }
 }
 
-async function validationOf(client: SupabaseClient, brand: Brand, projectId: string): Promise<ValidationSummary> {
-  const { design, version } = await readinessFor(client, brand, projectId);
+async function validationOf(clients: Clients, brand: Brand, projectId: string): Promise<ValidationSummary> {
+  const { client } = clients;
+  const { design, version } = await readinessFor(client, brand, projectId, livePorts(clients.admin));
   const report = await reportFor(client, brand.id, projectId, version, design);
   const blockerMessages = report.findings.filter((f) => f.severity === "blocker").slice(0, 5).map((f) => f.message);
   return { profileName: report.profileName, profileLabel: report.profileLabel, blockers: report.blockers, warnings: report.warnings, blockerMessages };
@@ -74,8 +83,8 @@ async function load(client: SupabaseClient, brand: Brand, body: PreviewBody) {
 }
 
 /** What a reorder would do, with nothing saved. The person looks, fixes what needs fixing, and confirms. */
-export async function previewReorder(client: SupabaseClient, brand: Brand, body: PreviewBody): Promise<ReorderPreview> {
-  const { release, project, previous, plan } = await load(client, brand, body);
+export async function previewReorder(clients: Clients, brand: Brand, body: PreviewBody): Promise<ReorderPreview> {
+  const { release, project, previous, plan } = await load(clients.client, brand, body);
   const rows = plan.lines.map((l) => l.row);
   const nothingChanged = plan.counts.fix === 0 && plan.counts.sizeChanged === 0 && plan.counts.newPlayers === 0;
   return {
@@ -88,7 +97,7 @@ export async function previewReorder(client: SupabaseClient, brand: Brand, body:
     fingerprint: planFingerprint(plan),
     nothingChanged,
     report: reorderReport(release.snapshot, project.currentVersion, rows),
-    validation: await validationOf(client, brand, release.projectId),
+    validation: await validationOf(clients, brand, release.projectId),
     issues: plan.counts.fix === 0 ? checkRoster(rows, rosterContextOf(project.spec)) : [],
     notes: body.seasonId && previous === null ? ["The earlier order has no team list, so players who left cannot be listed."] : [],
   };

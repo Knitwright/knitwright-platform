@@ -80,6 +80,10 @@ export default defineConfig({
         // end-to-end tests cover them (plan v5 Y1, decision 0074).
         "lib/home/load.ts",
         "lib/home/reads.ts",
+        // Join the inspiration board to the environment, the session, the providers and the database; the database
+        // tests and the panel cover them (plan v5 Z1, decision 0082).
+        "lib/inspiration/server.ts",
+        "lib/inspiration/store.ts",
         // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
         // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
         "lib/make/server.ts",
@@ -105,7 +109,7 @@ export default defineConfig({
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "brand-studio", "colour", "make", "home"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration", "brand-studio", "colour"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
