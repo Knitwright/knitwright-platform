@@ -55,6 +55,13 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
         {loaded ? (
           <>
             <SharedDesign page={loaded.page} picturesNote={loaded.picturesNote} />
+            {loaded.inviteNote ? (
+              <p className={`flex ${PAGE_WIDTH.form} text-sm text-muted`} data-testid="share-invite-note">
+                {loaded.inviteNote}
+              </p>
+            ) : null}
+            {/* An invite is one person's own and is not answered through (plan v5 Y8, decision 0081). */}
+            {loaded.canAnswer ? (
             <section aria-labelledby="share-answer" className={`flex ${PAGE_WIDTH.form} flex-col gap-4`}>
               <div className="flex flex-col gap-1">
                 <h2 id="share-answer" className="text-lg font-semibold text-ink">
@@ -71,6 +78,7 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
               </div>
               <ResponseForm token={token} siteKey={getEnv().NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
             </section>
+            ) : null}
           </>
         ) : (
           <p role="alert" className="text-[15px] text-ink-2">

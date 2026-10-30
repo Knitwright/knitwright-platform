@@ -29,3 +29,19 @@ Nothing here blocks sharing. Each answer may change a rule in `lib/share`.
 8. **The secret.** Share pages check the bot check themselves, so the deploy needs
    `TURNSTILE_SECRET_KEY` set to the same secret Supabase Auth uses. Until it is set, share pages
    show the design but refuse answers.
+
+## Added by plan v5 Y8 (invites and link access, decision 0081)
+
+9. **Commenting through an invite.** A Can comment invite opens the design read-only today: the
+   answers table hangs off a link, not an invite, so an invited person is shown the design and no
+   answer box rather than a box that would refuse them. Should an invite be able to vote and comment
+   in its own right, counted in the same tally?
+10. **Can edit.** An edit invite is recorded and the email says the reader needs a Knitwright
+    account. What happens when they sign in: do they join the brand workspace, or does the design
+    get a guest editor who sees that design alone?
+11. **The email provider and the sending address.** Nothing is emailed until
+    `SHARE_EMAIL_PROVIDER`, `SHARE_EMAIL_KEY` and `SHARE_EMAIL_FROM` are all set; the adapter
+    written is Resend's HTTP API. Which provider, which address, and what should the subject line
+    say?
+12. **How long an invite lasts.** 7, 30 or 90 days, 30 unless chosen, and a design may have 50 open
+    invites. The same numbers as a share link. Are they right for a committee and a factory?

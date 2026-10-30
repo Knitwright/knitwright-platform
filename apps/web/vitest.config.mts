@@ -87,6 +87,9 @@ export default defineConfig({
         // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
         // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
         "lib/make/server.ts",
+        // Joins the invite functions to the server's own client; the database tests and the end-to-end test of the
+        // share popover cover it (plan v5 Y8, decision 0081).
+        "lib/share/invite-service.ts",
       ],
       thresholds: {
         lines: 80,
@@ -107,6 +110,8 @@ export default defineConfig({
         // The editor shell decides what the Form toolbar may offer, so it is held to the same mark (plan v5 Y2, decision 0075).
         "lib/editor/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The repeat maker lays out what goes on a print file, so it is held to the same mark (plan v5 Y8, decision 0081).
+        "lib/repeat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
           ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration"].map((dir) => [

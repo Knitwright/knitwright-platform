@@ -93,6 +93,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0076 | [The 2D pattern view and the Library toolbar](0076-view-2d-and-library-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
+| 0081 | [Names & numbers, the repeat maker, and Share](0081-names-numbers-repeat-maker-share.md) | Proposed; the font list is a labelled placeholder, owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
 | 0083 | [Ask and best practice over the rulebook](0083-ask-and-best-practice.md) | Proposed; owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
