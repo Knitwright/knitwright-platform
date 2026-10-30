@@ -1,11 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { createAssetReader } from "@/lib/artwork-intake/reader";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
+import { AppError } from "@/lib/server/core/errors";
 import type { MemberSession } from "@/lib/server/core/guard";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { crestPalette } from "./crest";
 import { assetsSchema, deletePaletteSchema, fontsSchema, paletteSchema, profileSchema } from "./schemas";
 import { deletePalette, saveAssets, saveFonts, savePalette, saveProfile } from "./service";
 
@@ -83,3 +87,20 @@ export const saveBrandAssetsAction = defineAction({
   },
 });
 
+
+/**
+ * The palette of one of the brand's own uploads, for "Start from your crest" (F-S9). It saves
+ * nothing: the brand edits the suggestion and then saves it as a palette, so every colour in a
+ * brand's palette is one a person chose.
+ */
+export const crestPaletteAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.brandStudioWrite,
+  schema: z.object({ artworkId: z.uuid() }),
+  handler: async ({ input, session }) => {
+    const { brandId } = who(session);
+    const asset = await createAssetReader(adminClient(), brandId).getAsset(input.artworkId);
+    if (asset === null) throw new AppError("not_found", "That upload does not exist.");
+    return { swatches: await crestPalette(asset) };
+  },
+});

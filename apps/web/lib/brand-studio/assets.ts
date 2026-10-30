@@ -9,12 +9,19 @@
  */
 
 import { effectiveDpi, largestWidthMm } from "@/lib/artwork-intake/dpi";
-import { DEFAULT_SETTINGS, sourceNote } from "@/lib/guardrails/settings";
+import { DEFAULT_MIN_DPI } from "@/lib/artwork-intake/settings";
 import type { ArtworkFacts, BrandAsset } from "./types";
 import { ASSET_KIND_LABELS, RULES, type BrandFinding } from "./words";
 
-/** The minimum the checks run against, and where the number came from. Knitwright's default until a print house states its own. */
-export const MIN_DPI = DEFAULT_SETTINGS.minDpi;
+/**
+ * The minimum the checks run against, and where the number came from. The same value and the same
+ * words as `lib/guardrails/settings.ts`, taken from the module without the schema library behind it
+ * so the Sportswear panel can run this check in the browser (tests/architecture/client-weight).
+ */
+export const MIN_DPI = { value: DEFAULT_MIN_DPI, source: "knitwright-default" } as const;
+
+const sourceNote = (source: "print-house" | "knitwright-default"): string =>
+  source === "print-house" ? "from your print house" : "Knitwright default, not from your print house";
 
 /** The kinds F-S9 puts the DPI check on: what a factory prints at a stated size. */
 export const CHECKED_KINDS = ["crest", "sponsor", "label"] as const;

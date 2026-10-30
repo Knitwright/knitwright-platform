@@ -18,6 +18,7 @@ const STUDIO_SECTIONS: readonly NavItem[] = [
   { href: "/designer", label: "Designer", matches: (path) => path.startsWith("/designer") },
   { href: "/club", label: "Club", matches: (path) => path === "/club" || path.startsWith("/club/") },
   { href: "/brand", label: "Brand", matches: (path) => path === "/brand" || path.startsWith("/brand/") },
+  { href: "/brand-studio", label: "Brand Studio", matches: (path) => path.startsWith("/brand-studio") },
 ];
 
 const PILL = "nav-pill flex min-h-10 items-center rounded-full px-4 text-[15px] no-underline";

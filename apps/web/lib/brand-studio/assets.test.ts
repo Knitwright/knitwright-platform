@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_SETTINGS, sourceNote } from "@/lib/guardrails/settings";
 import { allAssetFindings, assetFindings, MIN_DPI } from "./assets";
 import { artwork, asset } from "./fixtures/brand";
 import { RULES } from "./words";
 
 /** The DPI check of F-S9's Sportswear tab. No print width is ever assumed (R-SUB-003 gives none). */
+
+describe("the minimum it checks against", () => {
+  it("is the same number and the same words as the print guardrails use", () => {
+    expect(MIN_DPI).toEqual(DEFAULT_SETTINGS.minDpi);
+    expect(sourceNote(MIN_DPI.source)).toBe("Knitwright default, not from your print house");
+  });
+});
 
 describe("assetFindings", () => {
   it("says nothing about a logo or a graphic: F-S9 puts the check on the Sportswear pictures", () => {

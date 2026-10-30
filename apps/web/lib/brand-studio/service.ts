@@ -189,9 +189,27 @@ export async function loadBrand(
   };
 }
 
-/** The completion % needs no font list and no uploads, so the top bar asks for less. */
+/**
+ * What the completion % needs, and no more: the top bar shows the pill on every studio page, so it
+ * does not ask for the font list or the uploads.
+ */
 export async function loadRecord(client: SupabaseClient, brand: Readonly<{ id: string; name: string }>): Promise<BrandRecord> {
-  return (await loadBrand(client, brand)).record;
+  const [profile, palettes, fonts, assets, clubKit] = await Promise.all([
+    getProfile(client, brand.id),
+    listPalettes(client, brand.id),
+    listFonts(client, brand.id),
+    listAssets(client, brand.id),
+    getClubKit(client, brand.id),
+  ]);
+  const readThrough = clubKitPalette(clubKit);
+  return {
+    brandId: brand.id,
+    brandName: brand.name,
+    profile,
+    palettes: [...palettes, ...(readThrough === null ? [] : [readThrough])],
+    fonts,
+    assets: [...assets, ...clubKitAssets(clubKit)],
+  };
 }
 
 export async function saveProfile(admin: SupabaseClient, who: Who, body: ProfileBody): Promise<void> {
