@@ -3,6 +3,7 @@ import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { readinessFor } from "@/lib/validation/design-input";
+import { livePorts } from "@/lib/validation/live-ports";
 import { moveStatus, reportFor } from "@/lib/validation/use-cases";
 
 const params = z.object({ projectId: z.uuid() });
@@ -15,7 +16,7 @@ export const GET = defineRoute({
   schema: { params },
   handler: async ({ input, session }) => {
     const client = await sessionClient();
-    const { design, version } = await readinessFor(client, session.brand, input.params.projectId);
+    const { design, version } = await readinessFor(client, session.brand, input.params.projectId, livePorts(adminClient()));
     return reportFor(client, session.brand.id, input.params.projectId, version, design);
   },
 });
@@ -30,7 +31,8 @@ export const POST = defineRoute({
   schema: { params, body },
   handler: async ({ input, session }) => {
     const client = await sessionClient();
-    const { design, version } = await readinessFor(client, session.brand, input.params.projectId);
-    return moveStatus({ client, admin: adminClient() }, { brandId: session.brand.id, userId: session.userId }, input.params.projectId, version, input.body.to, design, new Date());
+    const admin = adminClient();
+    const { design, version } = await readinessFor(client, session.brand, input.params.projectId, livePorts(admin));
+    return moveStatus({ client, admin }, { brandId: session.brand.id, userId: session.userId }, input.params.projectId, version, input.body.to, design, new Date());
   },
 });
