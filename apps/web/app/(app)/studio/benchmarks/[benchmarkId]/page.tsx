@@ -52,7 +52,7 @@ export default async function BenchmarkPage({ params, searchParams }: PageProps<
           {screen.benchmark.cards.map((card) => (
             <div key={card.id} className="flex flex-col gap-5">
               <CardReview benchmarkId={benchmarkId} card={card} />
-              <ApplyPanel plan={planOf(card.id)} articles={screen.articles} chosen={asked} report={reportOf(card.id)} />
+              <ApplyPanel cardId={card.id} plan={planOf(card.id)} articles={screen.articles} chosen={asked} report={reportOf(card.id)} />
             </div>
           ))}
         </section>

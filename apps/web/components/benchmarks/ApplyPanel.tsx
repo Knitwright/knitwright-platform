@@ -12,14 +12,14 @@ import type { ApplyPlan, DesignAroundReport } from "@/lib/benchmarks";
 
 const RULE = "font-mono text-xs text-muted";
 
-const ArticlePicker = ({ articles, chosen }: Readonly<{ articles: readonly BaseArticleSummary[]; chosen: string | null }>) => (
+const ArticlePicker = ({ id, articles, chosen }: Readonly<{ id: string; articles: readonly BaseArticleSummary[]; chosen: string | null }>) => (
   <form method="get" className="flex flex-wrap items-end gap-3">
     <div className="flex flex-col gap-1.5">
-      <label htmlFor="apply-article" className="text-sm font-medium text-ink">
+      <label htmlFor={`apply-article-${id}`} className="text-sm font-medium text-ink">
         Map these features onto
       </label>
       <select
-        id="apply-article"
+        id={`apply-article-${id}`}
         name="article"
         defaultValue={chosen ?? ""}
         className="min-h-11 rounded-xl border border-hairline bg-surface px-3 text-[15px] text-ink"
@@ -56,17 +56,24 @@ const Mapped = ({ plan }: Readonly<{ plan: ApplyPlan }>) => (
 );
 
 export function ApplyPanel({
+  cardId,
   plan,
   articles,
   chosen,
   report,
-}: Readonly<{ plan: ApplyPlan | null; articles: readonly BaseArticleSummary[]; chosen: string | null; report: DesignAroundReport | null }>) {
+}: Readonly<{
+  cardId: string;
+  plan: ApplyPlan | null;
+  articles: readonly BaseArticleSummary[];
+  chosen: string | null;
+  report: DesignAroundReport | null;
+}>) {
   return (
-    <section className="mt-8 flex flex-col gap-5 rounded-2xl border border-hairline bg-surface p-5" aria-labelledby="apply-heading">
-      <h3 id="apply-heading" className="text-base font-medium text-ink">
+    <section className="mt-8 flex flex-col gap-5 rounded-2xl border border-hairline bg-surface p-5" aria-labelledby={`apply-heading-${cardId}`}>
+      <h3 id={`apply-heading-${cardId}`} className="text-base font-medium text-ink">
         Apply features to a base product
       </h3>
-      <ArticlePicker articles={articles} chosen={chosen} />
+      <ArticlePicker id={cardId} articles={articles} chosen={chosen} />
 
       {plan === null ? (
         <p className="text-[15px] text-muted">Choose a base product to see which of these features it can make.</p>
