@@ -32,7 +32,8 @@ const putUpACanvas = (page: Page): Promise<void> =>
     canvas.width = 320;
     canvas.height = 240;
     wrapper.appendChild(canvas);
-    document.body.appendChild(wrapper);
+    // First in the document, so the screen finds this canvas and not the editor's own 3D one.
+    document.body.prepend(wrapper);
     const context = canvas.getContext("2d");
     let angle = 0;
     const draw = () => {
