@@ -22,7 +22,7 @@ export const SEGMENTS: Readonly<Record<RailSegment, SegmentInfo>> = {
     id: "form",
     label: "Form",
     title: "Form",
-    lead: "The options and lengths this base article is made in. Only what the factory has approved is offered.",
+    lead: "The options and lengths the base article lists. Nothing outside its own ranges can be chosen.",
   },
   library: {
     id: "library",

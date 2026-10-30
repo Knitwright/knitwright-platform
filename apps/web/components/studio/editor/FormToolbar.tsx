@@ -23,7 +23,7 @@ export function FormToolbar({ article, form, busy, onOption, onParameter }: Prop
   if (!article) {
     return (
       <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="form-toolbar-none">
-        This design is not on a base article yet, so there is no factory-approved form to change.
+        This design is not on a base article yet, so it has no form of its own to change.
       </p>
     );
   }
@@ -32,7 +32,7 @@ export function FormToolbar({ article, form, busy, onOption, onParameter }: Prop
   if (groups.length === 0 && sliders.length === 0) {
     return (
       <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="form-toolbar-empty">
-        {article.code} has no approved options or ranges on file yet. {article.dataLabel}.
+        {article.code} has no options or ranges on file yet. {article.dataLabel}.
       </p>
     );
   }
@@ -48,7 +48,7 @@ export function FormToolbar({ article, form, busy, onOption, onParameter }: Prop
   );
 }
 
-const NOT_SAMPLED_NOTE = "No golden sample has signed this off yet, so it is not approved for production.";
+const NOT_SAMPLED_NOTE = "No golden sample has been made at this setting yet, so nobody has measured one.";
 
 function OptionTiles({ group, busy, onOption }: Readonly<{ group: OptionGroupView; busy: boolean; onOption: (group: string, code: string) => void }>) {
   const id = useId();

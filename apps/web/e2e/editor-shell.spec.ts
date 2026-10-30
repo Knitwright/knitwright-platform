@@ -195,7 +195,7 @@ test.describe("the editor shell", () => {
     await signedIn(page, "shell-bare");
     await startDesign(page, "Crew neck tee", "Bare tee");
 
-    await expect(page.getByTestId("form-toolbar-empty")).toContainText("TEE-TR-01 has no approved options or ranges on file yet");
+    await expect(page.getByTestId("form-toolbar-empty")).toContainText("TEE-TR-01 has no options or ranges on file yet");
     // With nothing drafted there is no model, so the canvas opens on the drawing.
     await expect(page.getByRole("region", { name: "2D pattern view" })).toBeVisible();
     await expect(page.getByTestId("flat-front")).toBeVisible();

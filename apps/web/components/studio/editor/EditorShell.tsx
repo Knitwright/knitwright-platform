@@ -175,36 +175,51 @@ type PanelProps = Readonly<{
   tool: ToolId;
 }>;
 
-/** The open toolbar's panel. Form holds the article's own controls above the workspace's tool panels. */
+/**
+ * The three toolbars' panels. All three are drawn and only the open one shows, so every segment's
+ * `aria-controls` names a panel that really exists and a hidden panel keeps what was typed in it.
+ */
 function RailPanel({ segment, shell, article, busy, context, tool }: PanelProps) {
-  if (segment !== "form") {
-    return (
-      <div
-        id={segmentPanelId(segment)}
-        role="tabpanel"
-        aria-labelledby={segmentTabId(segment)}
-        tabIndex={0}
-        className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4"
-      >
-        <header className="flex flex-col gap-1">
-          <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{SEGMENTS[segment].title}</h2>
-          <p className="text-[13px] leading-relaxed text-chalk-muted">{SEGMENTS[segment].lead}</p>
-        </header>
-        <SlotPlaceholder id={segment === "library" ? "library" : "specs"} />
-      </div>
-    );
-  }
   return (
-    <div id={segmentPanelId("form")} className="grid min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1fr)]">
+    <div className="grid gap-3 lg:min-h-0 lg:grid-rows-[minmax(0,1fr)]">
+      <FormPanel hidden={segment !== "form"} shell={shell} article={article} busy={busy} context={context} tool={tool} />
+      <SlotPanel segment="library" hidden={segment !== "library"} />
+      <SlotPanel segment="specs" hidden={segment !== "specs"} />
+    </div>
+  );
+}
+
+/** Library and Specs: the heading and lead of the toolbar, and the slot its workstream fills. */
+function SlotPanel({ segment, hidden }: Readonly<{ segment: Exclude<RailSegment, "form">; hidden: boolean }>) {
+  return (
+    <div
+      id={segmentPanelId(segment)}
+      role="tabpanel"
+      aria-labelledby={segmentTabId(segment)}
+      hidden={hidden}
+      className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4"
+    >
+      <header className="flex flex-col gap-1">
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{SEGMENTS[segment].title}</h2>
+        <p className="text-[13px] leading-relaxed text-chalk-muted">{SEGMENTS[segment].lead}</p>
+      </header>
+      <SlotPlaceholder id={segment} />
+    </div>
+  );
+}
+
+type FormPanelProps = Omit<PanelProps, "segment"> & Readonly<{ hidden: boolean }>;
+
+/** Form: the article's own option tiles and sliders, above the open tool's panel. */
+function FormPanel({ hidden, shell, article, busy, context, tool }: FormPanelProps) {
+  return (
+    <div id={segmentPanelId("form")} role="tabpanel" aria-labelledby={segmentTabId("form")} hidden={hidden} className="grid min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1fr)]">
       {/* The tool panels come first in the markup, so Tab from the tool rail reaches the open
           panel as it always has; the article's own form is drawn above them. */}
       <div className="grid min-h-0 lg:row-start-2">
         <ToolPanels tool={tool} context={context} />
       </div>
-      <section
-        aria-labelledby={segmentTabId("form")}
-        className="glass flex flex-col gap-3 overflow-y-auto rounded-3xl p-4 lg:row-start-1 lg:max-h-[38vh]"
-      >
+      <section aria-label="Form toolbar" className="glass flex flex-col gap-3 overflow-y-auto rounded-3xl p-4 lg:row-start-1 lg:max-h-[38vh]">
         <p className="text-[13px] leading-relaxed text-chalk-muted">{SEGMENTS.form.lead}</p>
         <FormToolbar article={article} form={shell.state.form} busy={busy} onOption={shell.setOption} onParameter={shell.setParameter} />
       </section>
