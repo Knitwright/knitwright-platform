@@ -8,6 +8,7 @@ import { toDesignObjectV2 } from "@/lib/design-object";
 import { factoryStore } from "@/lib/factory/server";
 import { capabilityFor } from "@/lib/factory/service";
 import { loadPrintContext, type Clients, type PrintContext } from "@/lib/print/inputs/context";
+import { optionCodeMap } from "@/lib/option-codes";
 import { getProjectAt, type OpenProject } from "@/lib/projects/project-reads";
 import { buildPackFor } from "@/lib/projects/tech-pack-data";
 import { loadTechPackSource } from "@/lib/projects/tech-pack-load";
@@ -71,7 +72,13 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
     moderationFrom(clients.admin).statusesFor(who.brandId, targets),
   ]);
   if (ref === null) throw new AppError("conflict", NOT_ON_ARTICLE);
-  const article = await getBaseArticle(clients.client, ref.baseArticleCode);
+  // The article and the map of its approved option codes (decision 0099) are read together: the tech pack's
+  // option fields name a code only where a published source joins the design's own answer to one, and say so
+  // plainly where nothing does, so a factory never reads a code the catalogue did not approve.
+  const [article, codes] = await Promise.all([
+    getBaseArticle(clients.client, ref.baseArticleCode),
+    optionCodeMap(clients.client, ref.baseArticleCode),
+  ]);
   if (article === null) throw new AppError("conflict", NOT_ON_ARTICLE);
   // The fabric's catalogue code is not passed: nothing maps a design's own fabric to a programme code, so the
   // design object carries its own and `chosenFabric` finds a programme row only when the two already agree.
@@ -93,6 +100,7 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
       fabricColours: factory.colours,
       markets: factory.markets,
       print: printSettingsOf(context.profile),
+      optionCodeMap: codes,
       moderation: moderationOf(targets, statuses),
       // No promised date can be worked out yet: QC days and freight days are unset everywhere (plan v5 X6).
       dueDate: null,
