@@ -50,5 +50,4 @@ export type MakeFinding = Readonly<{
 export const blocker = (code: string, message: string, ruleId: string = GAP_RULE_ID): MakeFinding => ({ code, severity: "blocker", message, ruleId });
 export const warning = (code: string, message: string, ruleId: string = GAP_RULE_ID): MakeFinding => ({ code, severity: "warning", message, ruleId });
 
-export const blockers = (found: readonly MakeFinding[]): readonly MakeFinding[] => found.filter((f) => f.severity === "blocker");
 export const pieces = (count: number): string => `${count} ${count === 1 ? "piece" : "pieces"}`;

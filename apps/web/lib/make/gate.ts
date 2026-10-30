@@ -55,24 +55,25 @@ export function runGate(designVersion: number, samples: readonly SignedOffSample
   const exact = available.find((sample) => sample.designVersion === designVersion);
   if (exact) return { status: "ready", goldenSampleId: exact.id, fromVersion: exact.designVersion, carriedOver: false, changed: [], notes: [] };
 
-  const parent = available.find((sample) => sample.changedSince !== null && sample.changedSince.length > 0 && sample.changedSince.every((one) => one.group === "surface"));
+  const compared = available.map((sample) => ({ sample, changed: sample.changedSince ?? [] })).filter(({ sample }) => sample.changedSince !== null);
+  const parent = compared.find(({ changed }) => changed.length > 0 && changed.every((one) => one.group === "surface"));
   if (parent) {
     return {
       status: "ready",
-      goldenSampleId: parent.id,
-      fromVersion: parent.designVersion,
+      goldenSampleId: parent.sample.id,
+      fromVersion: parent.sample.designVersion,
       carriedOver: true,
-      changed: parent.changedSince ?? [],
-      notes: [carriedOverNote(parent.designVersion, parent.changedSince ?? [])],
+      changed: parent.changed,
+      notes: [carriedOverNote(parent.sample.designVersion, parent.changed)],
     };
   }
 
-  const structural = available.find((sample) => sample.changedSince !== null && sample.changedSince.some((one) => one.group === "structural"));
+  const structural = compared.find(({ changed }) => changed.some((one) => one.group === "structural"));
   const because =
     available.length === 0
       ? "No golden sample has been signed off for this product yet."
       : structural
-        ? `The golden sample signed off for version ${structural.designVersion} does not cover version ${designVersion}: ${describeChanged(structural.changedSince?.filter((one) => one.group === "structural") ?? [])} changed, which is more than the surface.`
+        ? `The golden sample signed off for version ${structural.sample.designVersion} does not cover version ${designVersion}: ${describeChanged(structural.changed.filter((one) => one.group === "structural"))} changed, which is more than the surface.`
         : `No golden sample covers version ${designVersion}.`;
   return {
     status: "blocked",

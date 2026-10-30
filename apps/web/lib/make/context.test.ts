@@ -77,6 +77,22 @@ describe("the summary of the product-created page", () => {
   });
 });
 
+describe("a design with nothing chosen yet", () => {
+  it("says the fabric and the colourway are not chosen rather than showing an empty line", () => {
+    const bare = { ...BASE, fabrics: [], colourways: [] } as unknown as GarmentSpec;
+    const lines = summaryOf(input({ spec: bare }));
+    expect(lines.find((line) => line.label === "Fabric")?.value).toBe("Not chosen yet");
+    expect(lines.find((line) => line.label === "Colourway")?.value).toBe("Not named yet");
+  });
+
+  it("has no fabric to order in when neither the factory nor the design names one", () => {
+    const bare = { ...BASE, fabrics: [] } as unknown as GarmentSpec;
+    expect(buildMakeContext(input({ spec: bare, factory: { ...factory, fabricKeys: [] } })).fabricKey).toBe("");
+    expect(buildMakeContext(input()).fabricKey).toBe("F-STK-TEE");
+    expect(buildMakeContext(input({ factory: { ...factory, fabricKeys: [] } })).fabricKey).toBe(BASE.fabrics[0].name);
+  });
+});
+
 describe("the sizes offered for a sample", () => {
   it("puts the base article's sample size first", () => {
     expect(sampleSizesOf(["S", "M", "L"], "M")).toEqual(["M", "S", "L"]);

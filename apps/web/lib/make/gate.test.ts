@@ -55,6 +55,14 @@ describe("a run of a version that differs only on the surface", () => {
     expect(gate.status === "ready" && gate.changed).toEqual(surface);
   });
 
+  it("takes the one signed off most recently when two cover the same version", () => {
+    const gate = runGate(4, [
+      sample({ id: "older", designVersion: 3, approvedAt: "2026-11-01T10:00:00.000Z", changedSince: surface }),
+      sample({ id: "newest", designVersion: 3, approvedAt: "2026-11-05T10:00:00.000Z", changedSince: surface }),
+    ]);
+    expect(gate.status === "ready" && gate.goldenSampleId).toBe("newest");
+  });
+
   it("takes the newest parent that differs only on the surface", () => {
     const gate = runGate(9, [
       sample({ id: "older", designVersion: 2, changedSince: surface }),
