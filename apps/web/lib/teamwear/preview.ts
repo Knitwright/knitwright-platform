@@ -24,7 +24,7 @@ import { STAGE_NOT_DRAWN } from "./stage";
 const TRIM_PANELS = ["neckband", "collar", "cuffs", "side-panels", "waistband", "placket"];
 
 /** The colourway for one part: the body in one colour, the trims in another, and nothing else touched. */
-function colourwayFor(spec: GarmentSpec, body: string, trim: string): SpecAction {
+export function kitColourway(spec: GarmentSpec, body: string, trim: string): SpecAction {
   const colours = panelsFor(spec).map((panel) => ({
     panelId: panel.id,
     colour: "",
@@ -48,7 +48,7 @@ export function partSpec(kit: TeamwearKit, part: KitPart, _choice: PartChoice, w
   if (!started.ok) return started;
   const body = part.id === "socks" ? kit.socksColour : kit.colours.main;
   const trim = part.id === "socks" ? kit.colours.main : kit.colours.second;
-  const coloured = applyAction(started.spec, colourwayFor(started.spec, body, trim));
+  const coloured = applyAction(started.spec, kitColourway(started.spec, body, trim));
   return coloured.ok ? { ok: true, spec: coloured.spec } : { ok: false, reason: coloured.reason };
 }
 
