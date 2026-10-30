@@ -1,3 +1,4 @@
+import { scopeLabel } from "./scope";
 import { latestOf, versionsOf } from "./select";
 import { TOPICS, type RuleTopic, type RulebookEntry } from "./types";
 import { statusLabel } from "./view";
@@ -6,6 +7,8 @@ import { statusLabel } from "./view";
 
 export type AdminRule = Readonly<{
   entry: RulebookEntry;
+  /** How far the rule reaches, in plain words, with the note that says how far that was checked (decision 12). */
+  scope: string;
   status: string;
   confirmedByName: string | null;
   earlier: readonly Readonly<{ version: number; status: string; rule: string; body: string }>[];
@@ -34,6 +37,7 @@ export function adminGroups(entries: readonly RulebookEntry[], names: Readonly<R
   const rules = latestOf(entries).map(
     (entry): AdminRule => ({
       entry,
+      scope: scopeLabel(entry),
       status: statusLabel(entry),
       confirmedByName: entry.confirmedBy ? (names[entry.confirmedBy] ?? null) : null,
       earlier: versionsOf(entries, entry.ruleId)
