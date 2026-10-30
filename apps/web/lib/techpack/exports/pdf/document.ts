@@ -6,6 +6,7 @@ import { TO_BE_CONFIRMED } from "../../cell";
 import type { TechPack } from "../../types";
 import { assertEverySetCellHasSource } from "../guard";
 import { drawable, hasUndrawable } from "../pdf-text";
+import { leaves } from "../../walk";
 import type { ExportIllustrations } from "../illustrations";
 import { pagePlan } from "../pages";
 import { exportSections } from "../tables";
@@ -24,17 +25,14 @@ export interface PdfOptions {
   readonly illustrations?: ExportIllustrations | null;
 }
 
-/** Text made drawable, and a record of whether any character had to be replaced. */
-function safety(): { safe: (text: string) => string; replaced: () => boolean } {
-  let replaced = false;
-  return {
-    safe: (text) => {
-      if (hasUndrawable(text)) replaced = true;
-      return drawable(text);
-    },
-    replaced: () => replaced,
-  };
-}
+/**
+ * Whether anything in the document holds a character the font cannot draw, read from the document
+ * itself rather than from the drawing of it: the first page says so, and the first page is built
+ * before the rest. Everything a person typed is in the document, and the words the platform adds
+ * are all plain, so this finds every case the renderer would replace.
+ */
+const noticeFor = (pack: TechPack): string | null =>
+  leaves(pack).some(({ leaf }) => hasUndrawable(String(leaf))) ? CHARACTERS_REPLACED : null;
 
 const designLabel = (pack: TechPack, safe: (text: string) => string): string => {
   const { styleNumber, designName } = pack.cover;
@@ -73,19 +71,12 @@ function switchHyphenationOff(): void {
   hyphenationOff = true;
 }
 
-interface Built {
-  readonly pages: readonly ReactElement[];
-  /** True when a character the font lacks was shown as a question mark somewhere in the document. */
-  readonly replaced: boolean;
-}
-
 /**
  * The pages of the document: the sixteen of F-S6 in the specification's order, then the sources
- * page and the sign-off page. `notice` is said on the first page, and is known only once every
- * page has been built, so the pages are built twice: once to learn it, once to say it.
+ * page and the sign-off page.
  */
-function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, notice: string | null): Built {
-  const { safe, replaced } = safety();
+function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, notice: string | null): readonly ReactElement[] {
+  const safe = drawable;
   const exported = exportSections(pack);
   const marks = sourceMarks(exported);
   const context = { pack, images, safe, pictureLeftOut: options.pictureLeftOut === true, marks };
@@ -95,18 +86,16 @@ function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, notic
     notice,
   };
   const sheet = footer(pack, safe);
-  const pages = pagePlan(exported).map((page) => pageElement(page, context, pageOptions, sheet));
-  return { pages, replaced: replaced() };
+  return pagePlan(exported).map((page) => pageElement(page, context, pageOptions, sheet));
 }
 
 /** The document as a React element for the PDF library (decision 0078). */
 function techPackDocument(pack: TechPack, images: ImageMap, options: PdfOptions = {}): ReactElement<DocumentProps> {
   registerPdfFont();
   switchHyphenationOff();
-  const first = buildPages(pack, images, options, null);
-  const built = first.replaced ? buildPages(pack, images, options, CHARACTERS_REPLACED) : first;
+  const pages = buildPages(pack, images, options, noticeFor(pack));
   const title = designLabel(pack, drawable);
-  return h(Document, { title, creator: "Knitwright", producer: "Knitwright" }, ...built.pages);
+  return h(Document, { title, creator: "Knitwright", producer: "Knitwright" }, ...pages);
 }
 
 /** The PDF of a tech pack, in memory. Nothing is written to disk. */
