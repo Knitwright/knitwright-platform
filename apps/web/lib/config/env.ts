@@ -84,6 +84,12 @@ const envSchema = z.object({
   // Never set where tests run: no test calls WhatsApp for real.
   WHATSAPP_TOKEN: z.string().regex(/^\S{1,400}$/).optional(),
   WHATSAPP_PHONE_ID: z.string().regex(/^\d{1,30}$/).optional(),
+  // Who sends a share invite (plan v5 Y8, decision 0081). All three optional and server only:
+  // without all three, lib/share/email-server.ts sends nothing at all and the member is shown the
+  // invite's link to send themselves. Never set where tests run: no test emails anyone.
+  SHARE_EMAIL_PROVIDER: z.enum(["resend"]).optional(),
+  SHARE_EMAIL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  SHARE_EMAIL_FROM: z.string().regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/).optional(),
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
   // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from

@@ -6,6 +6,12 @@ import { getEnv, turnstileSecret } from "@/lib/config/env";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, productionDeps } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { loadRow } from "@/lib/projects/project-reads";
+import { sessionClient } from "@/lib/server/deps";
+import { inviteMessage } from "./email";
+import { inviteSender } from "./email-server";
+import { createShareInvite, markShareInviteEmailed, revokeShareInvite, setShareLinkAudience } from "./invite-service";
+import { createShareInviteSchema, inviteAddress, linkAudienceSchema, revokeShareInviteSchema } from "./invites";
 import { keepAnswer } from "./respond";
 import { createShareLinkSchema, shareLinkSchema, shareResponseSchema } from "./schemas";
 import { createShareLink, moveShareLink, respondToShare, revokeShareLink } from "./service";
@@ -51,6 +57,72 @@ export const moveShareLinkAction = defineAction({
     const version = await moveShareLink(adminClient(), { linkId: input.linkId, userId: session.userId });
     refreshDesign(input.projectId);
     return { version };
+  },
+});
+
+/**
+ * Invites one address to the design (spec F-S4 Share, plan v5 Y8). The invite is made first, then
+ * an email is attempted: without a provider key nothing is sent, the invite still stands, and the
+ * answer carries its one-time link for the member to send themselves. `emailed` says what really
+ * happened, so the People-with-access list never claims an email nobody sent.
+ */
+export const inviteToShareAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.createShareLink,
+  schema: createShareInviteSchema,
+  handler: async ({ input, session }) => {
+    const admin = adminClient();
+    const design = await loadRow(await sessionClient(), session.brand.id, input.projectId);
+    const invite = await createShareInvite(admin, {
+      projectId: input.projectId,
+      userId: session.userId,
+      email: input.email,
+      access: input.access,
+      message: input.message,
+      days: input.days,
+    });
+    const address = invite.token === null ? null : inviteAddress(getEnv().NEXT_PUBLIC_SITE_URL, invite.token);
+    const sender = inviteSender();
+    const outcome = address
+      ? await sender.send(
+          inviteMessage({
+            to: input.email,
+            fromName: session.email ?? session.brand.name,
+            replyTo: session.email,
+            brandName: session.brand.name,
+            designName: design.name,
+            access: input.access,
+            message: input.message,
+            address,
+          }),
+        )
+      : ({ sent: false, reason: "This address already had an invite, so its own link still works." } as const);
+    if (outcome.sent) await markShareInviteEmailed(admin, { inviteId: invite.id, userId: session.userId });
+    refreshDesign(input.projectId);
+    return { address, access: input.access, replaced: invite.replaced, emailed: outcome.sent, emailNote: outcome.sent ? null : outcome.reason };
+  },
+});
+
+export const revokeShareInviteAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.changeShareLink,
+  schema: revokeShareInviteSchema,
+  handler: async ({ input, session }) => {
+    await revokeShareInvite(adminClient(), { inviteId: input.inviteId, userId: session.userId });
+    refreshDesign(input.projectId);
+    return { revoked: true };
+  },
+});
+
+/** Sets the link to "Only invited people" or "Anyone with the link can view". */
+export const setShareLinkAudienceAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.changeShareLink,
+  schema: linkAudienceSchema,
+  handler: async ({ input, session }) => {
+    const audience = await setShareLinkAudience(adminClient(), { linkId: input.linkId, userId: session.userId, audience: input.audience });
+    refreshDesign(input.projectId);
+    return { audience };
   },
 });
 
