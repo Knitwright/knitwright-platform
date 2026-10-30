@@ -1,8 +1,9 @@
 import { TO_BE_CONFIRMED } from "../../cell";
 import { ExportRefused } from "../errors";
 import { sourceWords } from "../contents";
-import type { Column, Datum, ExportSection, ExportTable } from "../tables";
-import { LENGTH_FORMAT, headerCell, noteCell, numberCell, textCell, titleCell, type SheetCell } from "./cells";
+import type { Column, Datum, ExportTable } from "../tables";
+import type { PlannedTab } from "../tabs";
+import { LENGTH_FORMAT, headerCell, linkCell, noteCell, numberCell, textCell, titleCell, type SheetCell } from "./cells";
 
 /** One row of cells, and the plain values in it, which decide the column widths. */
 export type Row = readonly SheetCell[];
@@ -84,12 +85,40 @@ function tableBlock(table: ExportTable): Block {
   return { rows: [...heading, ...body], measured: body.map((row) => row.map(plain)), frozen: heading.length + 1 };
 }
 
-/** One sheet: the tables of a section one after another with a blank row between, then its notes by code, then its sentences. */
-export function sheetOf(section: ExportSection): SheetLayout {
-  const blocks = [...section.tables, ...(section.notes ?? [])].map(tableBlock);
-  const tableRows = blocks.flatMap((block, index) => (index === 0 ? block.rows : [[], ...block.rows]));
-  const sentences: Row[] = section.paragraphs.map((paragraph) => [noteCell(paragraph)]);
-  const spacer: Row[] = tableRows.length > 0 && sentences.length > 0 ? [[]] : [];
-  const rows = [...tableRows, ...spacer, ...sentences];
-  return { rows, measured: blocks.flatMap((block) => block.measured), frozenRows: blocks[0]?.frozen ?? 0 };
+/** The address of this design in the editor, put at the top of every sheet (spec F-S6). */
+export interface OpenInKnitwright {
+  /** The words of the link cell, such as "Open in Knitwright". */
+  readonly label: string;
+  /** The whole address, written as text: the writer makes no hyperlink and no formula. */
+  readonly address: string;
+}
+
+export const OPEN_IN_KNITWRIGHT = "Open in Knitwright";
+
+/** One section's share of a sheet: its title, its sentences, then its tables, each separated by a blank row. */
+function sectionRows(block: PlannedTab["blocks"][number]): Block {
+  const blocks = block.tables.map(tableBlock);
+  const rows: Row[] = [
+    [titleCell(block.title)],
+    ...block.paragraphs.map((paragraph): Row => [noteCell(paragraph)]),
+    ...blocks.flatMap((entry, index) => (index === 0 ? entry.rows : [[], ...entry.rows])),
+  ];
+  return { rows, measured: blocks.flatMap((entry) => entry.measured), frozen: 0 };
+}
+
+/**
+ * One sheet of the Excel file: the tab's own name and sentence, the link back to the design, then
+ * each section of the document that belongs to this tab. A tab the platform cannot fill yet is
+ * still written, with its sentence saying so, so a factory counting the tabs finds them all.
+ */
+export function sheetOfTab(tab: PlannedTab, openIn: OpenInKnitwright | null): SheetLayout {
+  const head: Row[] = [
+    [titleCell(tab.sheet)],
+    [noteCell(tab.lead)],
+    ...(openIn === null ? [] : [[textCell(openIn.label), linkCell(openIn.address)] as Row]),
+    [],
+  ];
+  const sections = tab.blocks.map(sectionRows);
+  const rows = [...head, ...sections.flatMap((entry, index) => (index === 0 ? entry.rows : [[], ...entry.rows]))];
+  return { rows, measured: sections.flatMap((entry) => entry.measured), frozenRows: head.length };
 }

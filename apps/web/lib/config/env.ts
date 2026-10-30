@@ -84,6 +84,13 @@ const envSchema = z.object({
   // Never set where tests run: no test calls WhatsApp for real.
   WHATSAPP_TOKEN: z.string().regex(/^\S{1,400}$/).optional(),
   WHATSAPP_PHONE_ID: z.string().regex(/^\d{1,30}$/).optional(),
+  // The future Knitwright files service, which becomes the Sportswear model once that model is final (plan v5
+  // owner decision 2, decision 0070). Both optional and server only. With either one unset — which is the case
+  // everywhere today, including CI — `filesServiceFrom` gives the stub, which answers "not available" for every
+  // operation, and nothing calls the service. An address with no secret is a misconfiguration, not a reason to
+  // call an unauthenticated service, so it gives the stub too. Never set where tests run.
+  FILES_SERVICE_URL: z.url().optional(),
+  FILES_SERVICE_TOKEN: z.string().min(32).optional(),
   // Who sends a share invite (plan v5 Y8, decision 0081). All three optional and server only:
   // without all three, lib/share/email-server.ts sends nothing at all and the member is shown the
   // invite's link to send themselves. Never set where tests run: no test emails anyone.

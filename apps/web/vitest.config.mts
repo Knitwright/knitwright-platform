@@ -17,6 +17,12 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
+  // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
+  // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
+  // runner, against a 600 s budget. That headroom is spent by contention, not by the work: the
+  // files passed for months in the "unit" project and began timing out once wave 2 grew the suite
+  // past 18,000 tests. They belong here, where the slow files run one at a time after the rest.
+  "lib/print/acceptance/**/*.test.ts",
 ];
 
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
@@ -59,6 +65,9 @@ export default defineConfig({
         // Two lines joining the package to the tech pack generator and to the environment; nothing
         // calls either yet (decision 0070), and the generator has its own tests.
         "lib/kpp/sources/techpack.ts",
+        // One line each joining the files-service seam to the environment; `filesServiceFrom` has its own tests
+        // and there is no service to call (decision 0070, plan v5 X5b).
+        "lib/files-service/server.ts",
         // Joins the screens to the database, the configured model and the meter; the database and end-to-end tests cover it.
         "lib/moderation/server.ts",
         // Joins the factory tables to the server's own client and holds the one service of the process; the
@@ -66,6 +75,11 @@ export default defineConfig({
         "lib/factory/server.ts",
         // Joins the factory's job packet to the database, storage and the ops file builders; the database and end-to-end tests cover it.
         "lib/job-packet/server.ts",
+        // Join the studio home and the catalogue to the database: one gathers the home's reads, the other hands the
+        // catalogue's price book the server's own client. Both hold no logic of their own; the database and
+        // end-to-end tests cover them (plan v5 Y1, decision 0074).
+        "lib/home/load.ts",
+        "lib/home/reads.ts",
         // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
         // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
         "lib/make/server.ts",
@@ -96,7 +110,7 @@ export default defineConfig({
         "lib/repeat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
