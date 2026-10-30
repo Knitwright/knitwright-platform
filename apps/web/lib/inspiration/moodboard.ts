@@ -21,7 +21,6 @@ export const FULL_SENTENCE = `A moodboard holds ${MOODBOARD_LIMIT} items. Remove
  */
 export const referenceUrlSchema = z
   .string()
-  .min(1)
   .max(2048)
   .refine((value) => value.startsWith("https://"), NOT_A_REFERENCE);
 
