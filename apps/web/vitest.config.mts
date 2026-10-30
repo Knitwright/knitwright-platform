@@ -66,6 +66,10 @@ export default defineConfig({
         "lib/factory/server.ts",
         // Joins the factory's job packet to the database, storage and the ops file builders; the database and end-to-end tests cover it.
         "lib/job-packet/server.ts",
+        // Join the inspiration board to the environment, the session, the providers and the database; the database
+        // tests and the panel cover them (plan v5 Z1, decision 0082).
+        "lib/inspiration/server.ts",
+        "lib/inspiration/store.ts",
       ],
       thresholds: {
         lines: 80,
@@ -86,7 +90,7 @@ export default defineConfig({
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "inspiration"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
