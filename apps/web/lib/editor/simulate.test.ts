@@ -40,13 +40,13 @@ describe("the File menu", () => {
   it("lists only places that already exist, each with a real address", () => {
     const items = fileMenu("abc 1");
 
-    expect(items.map((item) => item.label)).toEqual(["Design details", "Version history", "Share…", "Factory file", "Move to trash…"]);
+    expect(items.map((item) => item.label)).toEqual(["Design details", "Version history", "Share…", "Factory file", "Make and order", "Move to trash…"]);
     for (const item of items) expect(item.href).toContain("abc%201");
     expect(items.filter((item) => item.kind === "tool").map((item) => item.href)).toEqual([
       "/studio/abc%201?tool=garment",
       "/studio/abc%201?tool=history",
       "/studio/abc%201?tool=share",
     ]);
-    expect(items.filter((item) => item.kind === "page").map((item) => item.href)).toEqual(["/studio/abc%201/tech-pack", "/studio/abc%201/delete"]);
+    expect(items.filter((item) => item.kind === "page").map((item) => item.href)).toEqual(["/studio/abc%201/tech-pack", "/studio/abc%201/make", "/studio/abc%201/delete"]);
   });
 });

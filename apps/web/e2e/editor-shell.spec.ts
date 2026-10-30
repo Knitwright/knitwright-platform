@@ -234,7 +234,7 @@ test.describe("the editor shell", () => {
 
     await page.getByTestId("file-menu-button").click();
     const menu = page.getByRole("list", { name: "File" });
-    await expect(menu.getByRole("link")).toHaveText(["Design details", "Version history", "Share…", "Factory file", "Move to trash…"]);
+    await expect(menu.getByRole("link")).toHaveText(["Design details", "Version history", "Share…", "Factory file", "Make and order", "Move to trash…"]);
 
     await menu.getByRole("link", { name: "Version history" }).click();
 
