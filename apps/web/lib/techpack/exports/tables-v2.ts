@@ -1,5 +1,4 @@
 import type { TechPack } from "../types";
-import { EXCEL_SHEETS } from "./contents";
 import {
   length,
   lengthColumn,
@@ -24,7 +23,6 @@ export function readinessSection(pack: TechPack): ExportSection {
   return {
     id: "readiness",
     title: readiness.title,
-    sheet: EXCEL_SHEETS.readiness,
     paragraphs: sentences(readiness.note, readiness.summary),
     tables: [
       table(
@@ -67,7 +65,7 @@ export function patternAndCuttingSection(pack: TechPack): ExportSection {
             s.fabricUseNote,
           ),
         ];
-  return { id: "pattern-and-cutting", title: s.title, sheet: EXCEL_SHEETS["pattern-and-cutting"], paragraphs: sentences(s.note, s.blockName === null ? null : `Pattern block: ${s.blockName}.`), tables };
+  return { id: "pattern-and-cutting", title: s.title, paragraphs: sentences(s.note, s.blockName === null ? null : `Pattern block: ${s.blockName}.`), tables };
 }
 
 export function fabricSection(pack: TechPack): ExportSection {
@@ -80,7 +78,6 @@ export function fabricSection(pack: TechPack): ExportSection {
   return {
     id: "fabric",
     title: s.title,
-    sheet: EXCEL_SHEETS.fabric,
     paragraphs: sentences(s.note, s.reductionNote, s.printScaleNote),
     tables: [
       table(
@@ -107,7 +104,6 @@ export function operationsSection(pack: TechPack): ExportSection {
   return {
     id: "operations",
     title: s.title,
-    sheet: EXCEL_SHEETS.operations,
     paragraphs: sentences(s.note),
     tables: [
       table(null, [textColumn("Field"), valueColumn("Value")], [[text("Decoration method"), value(s.technique)]]),
