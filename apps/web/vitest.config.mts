@@ -70,6 +70,9 @@ export default defineConfig({
         // tests and the panel cover them (plan v5 Z1, decision 0082).
         "lib/inspiration/server.ts",
         "lib/inspiration/store.ts",
+        // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
+        // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
+        "lib/make/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -87,10 +90,12 @@ export default defineConfig({
         "lib/clubs/reorder/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production package is what a factory makes the garment from (plan v5 X5, decision 0070).
         "lib/kpp/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The editor shell decides what the Form toolbar may offer, so it is held to the same mark (plan v5 Y2, decision 0075).
+        "lib/editor/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "inspiration"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "inspiration"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

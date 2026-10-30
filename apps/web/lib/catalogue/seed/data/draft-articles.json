@@ -1,0 +1,875 @@
+{
+  "note": "Copied from docs/spec/articles/<CODE>/article.json by lib/catalogue/seed/print-draft-articles.mts. Do not edit by hand: edit the brief and print this file again.",
+  "articles": [
+    {
+      "code": "SHO-TR-01",
+      "name": "Football/training shorts",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "A",
+      "uses": [
+        "teamwear",
+        "studio"
+      ],
+      "sports": [
+        "football",
+        "training"
+      ],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-POLY-INT"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Football/training shorts has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-101",
+        "needs": [
+          "waist relaxed",
+          "waist stretched",
+          "front rise",
+          "back rise",
+          "inseam",
+          "thigh width",
+          "leg opening",
+          "waistband finished depth"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "SHO-TR-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Football/training shorts",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "A",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2"
+        },
+        {
+          "field": "uses",
+          "value": "teamwear + studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "sports",
+          "value": "football, training",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2 (the sports named in the article's own row)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-POLY-INT",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "pom",
+          "field": "pom[A] waist relaxed",
+          "value": "linear, grade 40 mm, tolerance 10 mm, base M: XS 300, S 340, M 380, L 420, XL 460, 2XL 500, 3XL 540 mm",
+          "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+          "caveat": "The build pack says \"The measurement values above are illustrative only; real values come from the factory's pattern master in Phase 0\". The same file's JSY-SS-01 rows disagree with that article's own article.json, so these figures describe the file format, not the garment."
+        },
+        {
+          "kind": "pom",
+          "field": "pom[B] inseam",
+          "value": "fixed, grade 0 mm, tolerance 5 mm, 127 mm in every size",
+          "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+          "caveat": "Illustrative only, as above. 127 mm is 5 in, which is the inseam the design-object example uses."
+        },
+        {
+          "kind": "size_range",
+          "field": "sizes",
+          "value": "XS, S, M, L, XL, 2XL, 3XL, base size M",
+          "source": "docs/spec/04-production-package.md, \"pom.csv\"",
+          "caveat": "The columns of the illustrative CSV, not a size run any factory has graded."
+        },
+        {
+          "kind": "parameter",
+          "field": "parameters[inseam_in]",
+          "value": "3 to 9 in, rule R-SHO-002, example value 5 in",
+          "source": "docs/spec/02-features.md, F-S5, \"Examples\"; docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+          "caveat": "The build pack gives the range as an example of what a shorts base carries and names the rule id; no factory has approved the range, and no step is published."
+        },
+        {
+          "kind": "parameter",
+          "field": "parameters[waistband]",
+          "value": "elastic, drawcord or both; example value \"elastic_drawcord\"",
+          "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+          "caveat": "An example of the option group, not a factory-approved option list with codes."
+        },
+        {
+          "kind": "parameter",
+          "field": "parameters[side_split]",
+          "value": "on or off; example value true",
+          "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+          "caveat": "An example of the parameter, with no geometry: the split's length and position are not published."
+        },
+        {
+          "kind": "option",
+          "field": "options[pocket]",
+          "value": "\"pockets from a list\"; example value \"zip_back\"",
+          "source": "docs/spec/02-features.md, F-S3, \"parameters with factory-approved ranges\"; docs/spec/03-data-model.md, \"The design object\" example",
+          "caveat": "The list itself is not published, so there are no option codes to offer."
+        },
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly micro-mesh or interlock (F-POLY-INT)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 2",
+          "caveat": "\"All fabric codes, weights and blends are placeholders until confirmed in the Phase 0 factory test\". Only the programme code is kept in the article; the mesh-or-interlock choice and the weight are not."
+        }
+      ],
+      "open_questions": [
+        "The inseam range 3 to 9 in is the build pack's own example (R-SHO-002). Is it the factory's range, and what step and default does it take?",
+        "The waistband (elastic, drawcord or both), the side split and the pocket list need option codes before they can be offered.",
+        "pom.csv's waist and inseam figures are illustrative. Do the factory's own numbers agree with 380 mm waist and 127 mm inseam at M?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "JSY-LS-01",
+      "name": "Long-sleeve jersey / goalkeeper",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "A",
+      "uses": [
+        "teamwear",
+        "studio"
+      ],
+      "sports": [],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-POLY-INT"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Long-sleeve jersey / goalkeeper has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-201",
+        "needs": [
+          "chest width",
+          "body length",
+          "across shoulder",
+          "sleeve length",
+          "bicep width",
+          "forearm width",
+          "cuff opening",
+          "armhole depth",
+          "neck width",
+          "front neck drop",
+          "back neck drop",
+          "hem width"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "JSY-LS-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Long-sleeve jersey / goalkeeper",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "A",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 3"
+        },
+        {
+          "field": "uses",
+          "value": "teamwear + studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-POLY-INT",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 3 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "F-POLY-INT",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 3",
+          "caveat": "The launch catalogue names the programme code only, and says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+        },
+        {
+          "kind": "sport",
+          "field": "sports",
+          "value": "football",
+          "source": "docs/spec/07-template-library.md, \"Design templates\" sport table",
+          "caveat": "The template library lists this article under Football, which is a template grouping rather than the launch catalogue's own sport column; the catalogue seed therefore still carries no sport tag (decision 0066, owner question 2)."
+        }
+      ],
+      "open_questions": [
+        "Is the goalkeeper shirt this article with a different colourway, or does padding and a different cuff make it a base of its own?",
+        "The launch catalogue names no sport for this article, so it appears under no sport filter. Should it carry football, as the template library implies?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "CRK-SS-01",
+      "name": "Cricket coloured shirt (pique)",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "A",
+      "uses": [
+        "teamwear"
+      ],
+      "sports": [
+        "cricket"
+      ],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-POLY-PQ"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Cricket coloured shirt (pique) has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-301",
+        "needs": [
+          "chest width",
+          "body length",
+          "across shoulder",
+          "sleeve length",
+          "bicep width",
+          "sleeve opening",
+          "armhole depth",
+          "neck width",
+          "front neck drop",
+          "back neck drop",
+          "hem width",
+          "placket length"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "CRK-SS-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Cricket coloured shirt (pique)",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "A",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4"
+        },
+        {
+          "field": "uses",
+          "value": "teamwear",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "sports",
+          "value": "cricket",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4 (the sports named in the article's own row)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-POLY-PQ",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly pique 160 gsm (F-POLY-PQ)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4",
+          "caveat": "The weight is the build pack's placeholder (\"All fabric codes, weights and blends are placeholders until confirmed in the Phase 0 factory test\"), so only the programme code is kept in the article."
+        }
+      ],
+      "open_questions": [
+        "A cricket shirt usually has a placket and a collar. Which does the factory's block have, and does the article need a collar option group of its own?",
+        "Pique is a different fabric family from the jersey's interlock. Does the factory sublimate it on the same programme, and does it shrink differently in the press?",
+        "Playing-condition rules on coloured clothing (sleeve length, logo size) differ by competition. Which competition's rules should the platform hold, if any?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "TEE-TR-01",
+      "name": "Training tee, stock-colour fabric",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "B",
+      "uses": [
+        "teamwear",
+        "studio"
+      ],
+      "sports": [
+        "training"
+      ],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-STK-TEE"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Training tee, stock-colour fabric has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-401",
+        "needs": [
+          "chest width",
+          "body length",
+          "across shoulder",
+          "sleeve length",
+          "bicep width",
+          "sleeve opening",
+          "armhole depth",
+          "neck width",
+          "front neck drop",
+          "back neck drop",
+          "hem width"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "TEE-TR-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Training tee, stock-colour fabric",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "B",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 7"
+        },
+        {
+          "field": "uses",
+          "value": "teamwear + studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "sports",
+          "value": "training",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 7 (the sports named in the article's own row)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-STK-TEE",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 7 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly or cotton-poly in the stock palette (F-STK-TEE)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 7",
+          "caveat": "The blend is published as a choice and a placeholder, and Class B buys 3 to 5 base fabrics in a fixed palette, so the fabric is a programme decision rather than an article value."
+        }
+      ],
+      "open_questions": [
+        "Which decoration method does the stock-colour programme use, and what are its print rules (minimum line, placement, wash)?",
+        "Class B runs 50 to 300 pieces per style. Is there a minimum order quantity on this article that the platform must show?",
+        "Which colours are in the fixed stock palette, and is the tee poly or cotton-poly?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "HOD-ST-01",
+      "name": "Hoodie, stock-colour fleece",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "B",
+      "uses": [
+        "teamwear",
+        "studio"
+      ],
+      "sports": [],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-STK-FLC"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Hoodie, stock-colour fleece has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-501",
+        "needs": [
+          "chest width",
+          "body length",
+          "across shoulder",
+          "sleeve length",
+          "bicep width",
+          "cuff opening",
+          "armhole depth",
+          "neck width",
+          "hood height",
+          "hood width",
+          "pocket width",
+          "hem rib depth"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "HOD-ST-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Hoodie, stock-colour fleece",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "B",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8"
+        },
+        {
+          "field": "uses",
+          "value": "teamwear + studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-STK-FLC",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly fleece in the stock palette (F-STK-FLC)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8",
+          "caveat": "A placeholder like every fabric in the launch catalogue; no weight is published."
+        },
+        {
+          "kind": "sport",
+          "field": "sports",
+          "value": "training",
+          "source": "docs/spec/07-template-library.md, \"Design templates\" sport table",
+          "caveat": "The template library lists this article under Training, which is a template grouping rather than the launch catalogue's own sport column, so the catalogue seed carries no sport tag."
+        }
+      ],
+      "open_questions": [
+        "Pullover or zip, and which does the launch article carry? The garment registry maps both `pullover-hoodie` and `zip-hoodie` to this code.",
+        "A hood, a pouch pocket, cuff and hem ribs and a drawcord are all pieces this article needs; none is published. Which does the factory's block have?",
+        "Which decoration method does the stock-colour programme use on fleece?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "CMP-LS-01",
+      "name": "Compression top / rash guard",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "A",
+      "uses": [
+        "studio"
+      ],
+      "sports": [],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-POLY-EL"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Compression top / rash guard has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-601",
+        "needs": [
+          "chest width",
+          "body length",
+          "across shoulder",
+          "sleeve length",
+          "bicep width",
+          "cuff opening",
+          "armhole depth",
+          "neck width",
+          "collar height",
+          "hem width"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "CMP-LS-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Compression top / rash guard",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "A",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5"
+        },
+        {
+          "field": "uses",
+          "value": "studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-POLY-EL",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly/elastane 85/15, 200-220 gsm (F-POLY-EL)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 5",
+          "caveat": "Published as a placeholder; F-S5 repeats the blend as an example of a rulebook topic (\"why 85/15 poly/elastane for compression\"), which is a reason rather than a confirmed fabric."
+        },
+        {
+          "kind": "tolerance",
+          "field": "pom[*].tol",
+          "value": "3 mm on compression articles",
+          "source": "docs/spec/04-production-package.md, \"Default tolerances\"",
+          "caveat": "The build pack's own placeholder, which owner decision 18 does not let the platform apply."
+        },
+        {
+          "kind": "construction",
+          "field": "construction[side seams]",
+          "value": "4-needle flatlock, ISO 607, flat finish against skin",
+          "source": "docs/spec/02-features.md, F-S5, \"Examples\"; docs/spec/04-production-package.md, page 1, \"Key construction features\" example",
+          "caveat": "Published as the worked example of a \"Why?\" answer, with the rule id R-CON-011. The stitch class is named; the seam allowance, stitch density and thread are not."
+        },
+        {
+          "kind": "construction",
+          "field": "options[collar] mock neck",
+          "value": "2-layer self-fabric collar with a flatlock join",
+          "source": "docs/spec/02-features.md, F-S5, \"Best practice\" card example",
+          "caveat": "Published as the worked example of a best-practice card. A collar is a shape, not a number, so this cannot be drafted from the sentence."
+        }
+      ],
+      "open_questions": [
+        "Compression means negative ease, and no body size chart or ease figure is published. Which block and ease does the factory use?",
+        "Long sleeve, short sleeve or both, and is the rash guard the same article as the compression top?",
+        "R-CON-011 is the build pack's own rule id for the compression side seam. R-CON-010 is unassigned: is that number spoken for?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    },
+    {
+      "code": "FSH-MM-01",
+      "name": "Fight shorts (MMA/BJJ)",
+      "status": "draft_no_factory_block",
+      "version": "0.1",
+      "date": "2026-10-30",
+      "label": "Knitwright draft, not reviewed by a factory",
+      "class": "A",
+      "uses": [
+        "studio"
+      ],
+      "sports": [
+        "mma",
+        "bjj"
+      ],
+      "hs_code": null,
+      "origin": null,
+      "base_size": null,
+      "sizes": [],
+      "units": "mm",
+      "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+      "fabrics": {
+        "body": {
+          "code": "F-POLY-4W"
+        }
+      },
+      "pom": [],
+      "draft_constants": {},
+      "parameters": [],
+      "options": {},
+      "pieces": [],
+      "seam_allowance": {},
+      "construction": [],
+      "thread": null,
+      "bom": [],
+      "print": {},
+      "personalisation": {},
+      "placements": [],
+      "labels": {},
+      "qc": {},
+      "parametric_script": {
+        "status": "not drafted yet",
+        "reason": "Fight shorts (MMA/BJJ) has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+        "rule": "R-PAT-701",
+        "needs": [
+          "waist relaxed",
+          "waist stretched",
+          "front rise",
+          "back rise",
+          "inseam",
+          "thigh width",
+          "leg opening",
+          "side split length",
+          "waistband finished depth"
+        ]
+      },
+      "rulebook": "rulebook.md",
+      "sources": [
+        {
+          "field": "code",
+          "value": "FSH-MM-01",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "name",
+          "value": "Fight shorts (MMA/BJJ)",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+        },
+        {
+          "field": "class",
+          "value": "A",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 6"
+        },
+        {
+          "field": "uses",
+          "value": "studio",
+          "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+        },
+        {
+          "field": "sports",
+          "value": "mma, bjj",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 6 (the sports named in the article's own row)"
+        },
+        {
+          "field": "units",
+          "value": "mm",
+          "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+        },
+        {
+          "field": "fabrics.body.code",
+          "value": "F-POLY-4W",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 6 (\"Fabric (programme code)\" column)"
+        }
+      ],
+      "candidates": [
+        {
+          "kind": "fabric",
+          "field": "fabrics.body",
+          "value": "Poly 4-way stretch woven (F-POLY-4W)",
+          "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 6",
+          "caveat": "Published as a placeholder. It is the only woven fabric in the launch catalogue, so none of the knit construction in JSY-SS-01's rulebook can be carried over to it."
+        }
+      ],
+      "open_questions": [
+        "Fight shorts are woven, not knit, so every seam, hem and stitch class in JSY-SS-01's rulebook is the wrong one. What does the factory sew them with?",
+        "Which closure does the block have (hook-and-loop fly, drawcord, elastic waist), and does it need a gusset and a split?",
+        "The garment registry has no type for fight shorts (decision 0066, owner question 4). Should one be added, or do they share `shorts`?",
+        "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+        "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+        "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+        "The construction table, seam allowances and thread the factory really uses.",
+        "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+      ]
+    }
+  ]
+}
