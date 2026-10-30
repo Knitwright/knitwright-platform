@@ -1,6 +1,8 @@
 "use server";
 
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { sessionClient } from "@/lib/server/deps";
@@ -44,7 +46,7 @@ export const createBenchmarkAction = defineAction({
       { title: input.title, projectId: input.projectId === "" ? null : (input.projectId ?? null) },
     );
     revalidatePath(PATH);
-    return { benchmarkId: id };
+    redirect(`${PATH}/${id}` as Route);
   },
 });
 
