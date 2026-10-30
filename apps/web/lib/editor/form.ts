@@ -50,6 +50,8 @@ export interface OptionTile {
 export interface OptionGroupView {
   readonly group: string;
   readonly label: string;
+  /** The article the options belong to, so the heading names it. */
+  readonly articleCode: string;
   readonly chosen: string | null;
   readonly tiles: readonly OptionTile[];
 }
@@ -97,7 +99,7 @@ export function optionGroups(article: BaseArticle, form: FormValues): readonly O
   return groups.map((group) => {
     const options = article.options.filter((option) => option.group === group);
     const chosen = chosenOption(options, form.options[group]);
-    return { group, label: humanise(group), chosen, tiles: options.map((option) => tileOf(option, chosen)) };
+    return { group, label: humanise(group), articleCode: article.code, chosen, tiles: options.map((option) => tileOf(option, chosen)) };
   });
 }
 

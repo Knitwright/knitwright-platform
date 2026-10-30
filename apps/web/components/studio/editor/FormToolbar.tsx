@@ -52,15 +52,19 @@ const NOT_SAMPLED_NOTE = "No golden sample has signed this off yet, so it is not
 
 function OptionTiles({ group, busy, onOption }: Readonly<{ group: OptionGroupView; busy: boolean; onOption: (group: string, code: string) => void }>) {
   const id = useId();
+  // A radio group, not a fieldset: the garment registry already has option groups of its own in
+  // the Garment panel, and two groups of the same name would be one control to a screen reader.
   return (
-    <fieldset className="rounded-2xl border border-white/10 p-3" data-testid={`option-group-${group.group}`}>
-      <legend className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">{group.label}</legend>
+    <div role="radiogroup" aria-labelledby={`${id}-legend`} className="rounded-2xl border border-white/10 p-3" data-testid={`option-group-${group.group}`}>
+      <p id={`${id}-legend`} className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+        {group.label} options of {group.articleCode}
+      </p>
       <div className="mt-1 flex flex-col gap-1">
         {group.tiles.map((tile) => (
           <Tile key={tile.code} tile={tile} group={group.group} groupId={id} busy={busy} onOption={onOption} />
         ))}
       </div>
-    </fieldset>
+    </div>
   );
 }
 

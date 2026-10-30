@@ -35,7 +35,7 @@ export function BottomBar(props: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2 border-t border-white/10 px-3 py-2" data-testid="canvas-bottom-bar">
       <label htmlFor={colourwayId} className="sr-only">
-        Colourway
+        Kit colourway
       </label>
       <select id={colourwayId} value={props.colourwayId} onChange={(event) => props.onColourway(event.target.value)} className={SELECT}>
         {props.colourways.map((choice) => (
@@ -47,16 +47,20 @@ export function BottomBar(props: Props) {
       <button type="button" onClick={props.onNewColourway} disabled={props.busy} className={SMALL} data-testid="new-colourway">
         + New
       </button>
-      <label htmlFor={sizeId} className="sr-only">
-        Size shown
-      </label>
-      <select id={sizeId} value={props.size} onChange={(event) => props.onSize(event.target.value)} className={SELECT} data-testid="size-shown">
-        {props.sizes.map((size) => (
-          <option key={size} value={size}>
-            Size {size}
-          </option>
-        ))}
-      </select>
+      {props.sizes.length > 0 ? (
+        <>
+          <label htmlFor={sizeId} className="sr-only">
+            Size shown
+          </label>
+          <select id={sizeId} value={props.size} onChange={(event) => props.onSize(event.target.value)} className={SELECT} data-testid="size-shown">
+            {props.sizes.map((size) => (
+              <option key={size} value={size}>
+                Size {size}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : null}
       <ViewToggle view={props.view} beside={props.beside} onView={props.onView} />
       <div className="ml-auto flex items-center gap-2">
         <button type="button" onClick={props.onSimulate} disabled={!props.simulate.canSimulate} className={SMALL} data-testid="simulate">

@@ -31,10 +31,12 @@ export function CanvasFrame({ data, view, beside, show3d, draft, model, notices,
   const shown = viewsShown(view, beside);
   return (
     <section aria-label="Canvas" className="order-first flex min-h-0 flex-col overflow-hidden lg:order-none" data-testid="canvas">
+      {/* Messages about the whole design, above whichever views are on the canvas. */}
+      <div className="flex flex-col gap-2 pb-2 empty:hidden">{notices}</div>
       <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
         {shown.map((id) => (
           <div key={id} role="region" aria-label={VIEWS[id].region} className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-            <ViewBody id={id} data={data} show3d={show3d} draft={draft} model={model} notices={shown[0] === id ? notices : null} />
+            <ViewBody id={id} data={data} show3d={show3d} draft={draft} model={model} />
           </div>
         ))}
       </div>
@@ -43,13 +45,13 @@ export function CanvasFrame({ data, view, beside, show3d, draft, model, notices,
   );
 }
 
-type BodyProps = Readonly<{ id: CanvasView; data: EditorData; show3d: boolean; draft: EditorDraft | null; model: EditorModel | null; notices: ReactNode }>;
+type BodyProps = Readonly<{ id: CanvasView; data: EditorData; show3d: boolean; draft: EditorDraft | null; model: EditorModel | null }>;
 
-function ViewBody({ id, data, show3d, draft, model, notices }: BodyProps) {
+function ViewBody({ id, data, show3d, draft, model }: BodyProps) {
   if (id === "2d") {
     return (
       <>
-        <DesignCanvas flat={data.flat} table={data.table} show3d={show3d} notices={notices} />
+        <DesignCanvas flat={data.flat} table={data.table} show3d={show3d} notices={null} />
         <SlotPlaceholder id="view-2d" />
       </>
     );
