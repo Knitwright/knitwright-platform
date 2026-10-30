@@ -27,7 +27,10 @@ type Props = Readonly<{
   findings: readonly FindingLine[];
   tool: ToolId;
   canUndo: boolean;
+  /** True once this session has undone something, which is the only thing a redo can put back. */
+  canRedo: boolean;
   onUndo: () => void;
+  onRedo: () => void;
   onTool: (tool: ToolId) => void;
   onExport: () => void;
   exportOpen: boolean;
@@ -42,7 +45,7 @@ type Props = Readonly<{
  * row above the editor; it is not repeated (decision 0075).
  */
 export function TopBar(props: Props) {
-  const { data, version, busy, status, autoName, chip, findings, tool, canUndo, onUndo, onTool, onExport, exportOpen } = props;
+  const { data, version, busy, status, autoName, chip, findings, tool, canUndo, canRedo, onUndo, onRedo, onTool, onExport, exportOpen } = props;
   return (
     <header className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] px-4 py-2.5 lg:pl-5">
       <div className="min-w-0 flex-1 lg:flex-none lg:basis-60">
@@ -57,6 +60,9 @@ export function TopBar(props: Props) {
       <FileMenu projectId={data.projectId} onTool={onTool} />
       <button type="button" className={CHIP} disabled={!canUndo || busy} onClick={onUndo}>
         Undo
+      </button>
+      <button type="button" className={CHIP} disabled={!canRedo || busy} onClick={onRedo}>
+        Redo
       </button>
       <Journey projectId={data.projectId} tool={tool} />
       <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-nowrap">

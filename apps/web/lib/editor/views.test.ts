@@ -49,21 +49,25 @@ describe("viewsShown", () => {
 });
 
 describe("toggled", () => {
+  it("names its fields as the shell's state does, so a spread cannot drop the change", () => {
+    expect(Object.keys(toggled("2d", null, "3d", false))).toEqual(["view", "beside"]);
+  });
+
   it("shows the view asked for on its own", () => {
-    expect(toggled("2d", "3d", "tech-pack", false)).toEqual({ main: "tech-pack", beside: null });
+    expect(toggled("2d", "3d", "tech-pack", false)).toEqual({ view: "tech-pack", beside: null });
   });
 
   it("adds a view beside the one already there", () => {
-    expect(toggled("2d", null, "3d", true)).toEqual({ main: "2d", beside: "3d" });
+    expect(toggled("2d", null, "3d", true)).toEqual({ view: "2d", beside: "3d" });
   });
 
   it("takes a view away again, leaving the other one", () => {
-    expect(toggled("2d", "3d", "3d", true)).toEqual({ main: "2d", beside: null });
-    expect(toggled("2d", "3d", "2d", true)).toEqual({ main: "3d", beside: null });
+    expect(toggled("2d", "3d", "3d", true)).toEqual({ view: "2d", beside: null });
+    expect(toggled("2d", "3d", "2d", true)).toEqual({ view: "3d", beside: null });
   });
 
   it("leaves the only view showing when it is the one taken away", () => {
-    expect(toggled("2d", null, "2d", true)).toEqual({ main: "2d", beside: null });
+    expect(toggled("2d", null, "2d", true)).toEqual({ view: "2d", beside: null });
   });
 });
 
