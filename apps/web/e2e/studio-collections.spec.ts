@@ -137,7 +137,8 @@ test.describe("the collection board", () => {
     await expect(card.getByText("Class A")).toBeVisible();
 
     const totals = page.getByRole("complementary", { name: "Totals for this range" });
-    await expect(totals.getByText("1 style · 2 style-colourways · 3 SKUs")).toBeVisible();
+    // Exactly, because the Groups list below holds the same counters after the group's name.
+    await expect(totals.getByText("1 style · 2 style-colourways · 3 SKUs", { exact: true })).toBeVisible();
     await expect(totals.getByText(/Navy · 2 SKUs · 30 pieces/)).toBeVisible();
     // The spec asks for colours; the plan holds colourway names, and the panel says so rather than inventing a count.
     await expect(totals.getByText(/A colour list comes from each design's own colours/)).toBeVisible();
