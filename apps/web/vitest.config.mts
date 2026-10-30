@@ -66,6 +66,9 @@ export default defineConfig({
         "lib/factory/server.ts",
         // Joins the factory's job packet to the database, storage and the ops file builders; the database and end-to-end tests cover it.
         "lib/job-packet/server.ts",
+        // Joins the invite functions to the server's own client; the database tests and the end-to-end test of the
+        // share popover cover it (plan v5 Y8, decision 0081).
+        "lib/share/invite-service.ts",
       ],
       thresholds: {
         lines: 80,
