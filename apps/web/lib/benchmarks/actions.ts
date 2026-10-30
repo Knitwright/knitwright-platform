@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
+import { sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { createFileReader } from "@/lib/storage/read";
 import { applyCorrection } from "./corrections";
 import { addPhotoSchema, addReviewTextSchema, addUrlSchema, confirmCardSchema, newBenchmarkSchema, removeCardSchema } from "./inputs";
 import { imageForCard } from "./photo";
@@ -66,7 +68,7 @@ export const addBenchmarkPhotoAction = defineAction({
   handler: async ({ input, session }) => {
     const who = { brandId: session.brand.id, userId: session.userId };
     const deps = await benchmarkDeps(who, "benchmark-photo");
-    const image = await imageForCard(who, input.fileId);
+    const image = await imageForCard(createFileReader(await sessionClient(), who.brandId), input.fileId);
     return settle(await addCardFromPhoto(deps, who, { ...input, image }), input.benchmarkId);
   },
 });
