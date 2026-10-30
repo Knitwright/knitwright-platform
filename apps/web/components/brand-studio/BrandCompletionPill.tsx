@@ -19,7 +19,9 @@ async function Pill() {
   return (
     <Link
       href="/brand-studio"
-      className="nav-pill hidden shrink-0 items-center rounded-full border border-white/12 px-3 py-2.5 text-sm text-ink-2 sm:inline-flex"
+      // Three characters wide and never shrinks, so the header's own truncating items absorb the
+      // width it takes and no label can be pushed over another (a seventh section pill once did).
+      className="nav-pill hidden shrink-0 items-center rounded-full border border-white/12 px-3 py-2.5 text-sm text-ink sm:inline-flex"
     >
       <span className="sr-only">Brand Studio. Your brand is {percent} per cent complete.</span>
       <span aria-hidden="true" data-testid="brand-completion-pill">

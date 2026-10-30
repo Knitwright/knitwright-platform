@@ -20,10 +20,20 @@ const UPLOADS_SHOWN = 200;
 
 export type Who = Readonly<{ brandId: string; userId: string }>;
 
+/**
+ * Turns what the database said into an answer a person can read. The `brand_studio_*` functions
+ * raise their own plain sentences (`22023` and `P0001`), so those are passed through; a constraint
+ * the database enforces on its own is not, because its words name tables and columns.
+ */
 const fail = (error: { message: string; code?: string } | null): void => {
   if (!error) return;
   if (error.code === "42501") throw new AppError("forbidden", "You may not change this brand.");
   if (error.code === "P0002") throw new AppError("not_found", NOT_FOUND);
+  if (error.code === "23505") throw new AppError("invalid_input", "You already have one of those with that name.");
+  if (error.code === "23514" || error.code === "22P02" || error.code === "23502") {
+    throw new AppError("invalid_input", "Some of that is not something we can store. Check each field and try again.");
+  }
+  if (error.code === "22023" || error.code === "P0001") throw new AppError("invalid_input", error.message);
   throw new AppError("internal", "Your brand could not be saved.", undefined, { cause: error });
 };
 

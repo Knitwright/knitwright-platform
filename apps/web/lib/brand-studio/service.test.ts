@@ -271,6 +271,30 @@ describe("writes", () => {
     expect(calls[0]!.args).toMatchObject({ p_kind: "sponsor" });
   });
 
+  it("passes the database functions' own plain sentences through", async () => {
+    for (const code of ["22023", "P0001"]) {
+      const { client } = fake({ brand_studio_save_palette: { error: { message: "A palette holds up to 24 colours.", code } } });
+      await expect(savePalette(client, WHO, { paletteId: null, name: "x", colours: [] })).rejects.toMatchObject({
+        code: "invalid_input",
+        message: "A palette holds up to 24 colours.",
+      });
+    }
+  });
+
+  it("says a name is taken, and never repeats a constraint's own words at a person", async () => {
+    const taken = fake({ brand_studio_save_palette: { error: { message: 'duplicate key value violates unique constraint "brand_palettes_brand_id_name_key"', code: "23505" } } });
+    await expect(savePalette(taken.client, WHO, { paletteId: null, name: "Primary", colours: [] })).rejects.toMatchObject({
+      code: "invalid_input",
+      message: "You already have one of those with that name.",
+    });
+    for (const code of ["23514", "22P02", "23502"]) {
+      const { client } = fake({ brand_studio_save_palette: { error: { message: 'violates check constraint "brand_colours_hex_check"', code } } });
+      const refused = savePalette(client, WHO, { paletteId: null, name: "x", colours: [] });
+      await expect(refused).rejects.toMatchObject({ code: "invalid_input" });
+      await expect(refused).rejects.not.toMatchObject({ message: expect.stringContaining("brand_colours_hex_check") });
+    }
+  });
+
   it("turns any other failure into one answer, and never leaks the database's words", async () => {
     const { client } = fake({ brand_studio_save_profile: { error: { message: "relation does not exist" } } });
     await expect(

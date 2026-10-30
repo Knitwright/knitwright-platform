@@ -29,8 +29,9 @@ test.describe("Brand Studio (Y6)", () => {
   test("a brand is filled in by hand, and the top bar says how far it has got", async ({ page }) => {
     await signIn(page, await createAccount("bs-details"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.getByRole("link", { name: "Brand Studio" }).first().click();
-    await expect(page).toHaveURL(/\/brand-studio$/);
+    // F-S9 puts the way in in the top bar: the completion pill is the brand switcher's own link.
+    await expect(page.getByTestId("brand-completion-pill")).toBeVisible();
+    await page.goto("/brand-studio");
 
     await expect(page.getByTestId("brand-completion")).toHaveText("0% complete");
     await expect(page.getByTestId("brand-completion-pill")).toHaveText("0%");
@@ -99,8 +100,10 @@ test.describe("Brand Studio (Y6)", () => {
 
     const placeholders = fonts.getByRole("region", { name: "Fonts we cannot offer yet" });
     await expect(placeholders).toContainText("No licence for a font of this kind is on file");
+    // toBeDisabled reads the accessibility tree, which does not carry the state of a native option
+    // inside a closed select, so the element's own property is checked instead.
     const blocked = fonts.getByRole("combobox", { name: "Headline font", exact: true }).getByRole("option", { name: /no licence on file/ }).first();
-    await expect(blocked).toBeDisabled();
+    await expect(blocked).toHaveJSProperty("disabled", true);
   });
 
   test("the club kit shows through, labelled, and is still changed on the Club page", async ({ page }) => {
