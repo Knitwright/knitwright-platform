@@ -110,6 +110,21 @@ export function shownRule(
   };
 }
 
+/**
+ * The two reads retrieval needs. The database holds both (`databaseRetrieval`); a test supplies its own, so no
+ * test of the answering path or of the grader needs a database, and no test can reach a paid model through one.
+ */
+export type Retrieval = Readonly<{
+  search: (question: string, scope: AskScope, limit: number) => Promise<SearchHit[]>;
+  versions: (ruleIds: readonly string[]) => Promise<RulebookEntry[]>;
+}>;
+
+/** Retrieval against the real rulebook, with the server's key. */
+export const databaseRetrieval = (admin: SupabaseClient): Retrieval => ({
+  search: (question, scope, limit) => searchRulebook(admin, question, scope, limit),
+  versions: (ruleIds) => versionsOfRules(admin, ruleIds),
+});
+
 /** The versions of every rule, grouped by rule id. */
 export function byRule(entries: readonly RulebookEntry[]): Map<string, RulebookEntry[]> {
   const grouped = new Map<string, RulebookEntry[]>();
@@ -123,17 +138,17 @@ export function byRule(entries: readonly RulebookEntry[]): Map<string, RulebookE
  * out, which is how a rulebook of drafts answers "not covered" to a member rather than reading a draft out.
  */
 export async function retrieveRules(
-  admin: SupabaseClient,
+  retrieval: Retrieval,
   question: string,
   scope: AskScope,
   reader: RuleReader,
   limit = MAX_RULES,
 ): Promise<RetrievedRule[]> {
-  const hits = shortlist(await searchRulebook(admin, question, scope, limit), limit);
+  const hits = shortlist(await retrieval.search(question, scope, limit), limit);
   const named = namedRuleIds(question).filter((id) => !hits.some((hit) => hit.ruleId === id));
   const asked = hits[0]?.asked ?? 0;
   const all: SearchHit[] = [...hits, ...named.map((ruleId) => ({ ruleId, rank: 0, matched: asked, asked }))];
-  const versions = byRule(await versionsOfRules(admin, all.map((hit) => hit.ruleId)));
+  const versions = byRule(await retrieval.versions(all.map((hit) => hit.ruleId)));
   return all.flatMap((hit) => {
     const rule = shownRule(versions.get(hit.ruleId) ?? [], hit, reader, scope);
     return rule ? [rule] : [];

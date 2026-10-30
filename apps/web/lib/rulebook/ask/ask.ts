@@ -1,13 +1,12 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { MAX_OUTPUT_TOKENS } from "@/lib/providers/catalog";
 import type { TextModelProvider } from "@/lib/providers/text-model";
 import { GAP_RULE_ID } from "../constants";
 import type { RuleReader } from "../select";
-import { logGap } from "../store";
+import type { GapNote } from "../store";
 import { gradeAnswer, NO_MODEL, NOT_COVERED, OVER_ALLOWANCE, UNGROUNDED } from "./grader";
 import { SYSTEM, userInput } from "./prompt";
 import { readReply } from "./reply";
-import { retrieveRules } from "./retrieve";
+import { retrieveRules, type Retrieval } from "./retrieve";
 import type { AskResult, AskScope, RetrievedRule } from "./types";
 
 /**
@@ -28,8 +27,10 @@ import type { AskResult, AskScope, RetrievedRule } from "./types";
  */
 
 export type AskDeps = Readonly<{
-  /** The server's key. Reads the rules and writes the gap list. */
-  admin: SupabaseClient;
+  /** The two reads retrieval needs: the ranked search and the versions of the rules it found. */
+  retrieval: Retrieval;
+  /** Counts one more question nothing covers, for the team's gap list. */
+  logGap: (gap: GapNote) => Promise<void>;
   /** The configured model, or null when no key is set and the feature degrades to the rules themselves. */
   model: TextModelProvider | null;
   /** Owner decision 11: "ops" is the Knitwright team, "member" is everybody else. */
@@ -53,7 +54,7 @@ const scopeNote = (scope: AskScope): string =>
 
 /** A question nothing covers: the fixed words, R-GAP-000, and a line in the gap list for the team. */
 async function notCovered(deps: AskDeps, input: AskInput, scope: AskScope): Promise<AskResult> {
-  await logGap(deps.admin, { code: gapCodeFor(input.question), context: `${input.question} (${scopeNote(scope)})` });
+  await deps.logGap({ code: gapCodeFor(input.question), context: `${input.question} (${scopeNote(scope)})` });
   return { kind: "not_covered", question: input.question, ruleId: GAP_RULE_ID, message: NOT_COVERED };
 }
 
@@ -89,7 +90,7 @@ const FREE: Hold = { refund: async () => undefined };
 export async function askRulebook(deps: AskDeps, input: AskInput): Promise<AskResult> {
   const scope = input.scope ?? {};
   const question = input.question;
-  const rules = await retrieveRules(deps.admin, question, scope, deps.reader);
+  const rules = await retrieveRules(deps.retrieval, question, scope, deps.reader);
   if (rules.length === 0) return notCovered(deps, input, scope);
   if (!deps.model) return { kind: "unavailable", question, message: NO_MODEL, rules };
 

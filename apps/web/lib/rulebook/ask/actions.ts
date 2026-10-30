@@ -7,9 +7,10 @@ import { defineAction } from "@/lib/server/define-action";
 import { adminClient, productionDeps, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import type { RuleReader } from "../select";
-import { loadEntries } from "../store";
+import { loadEntries, logGap } from "../store";
 import { askRulebook } from "./ask";
 import { bestPracticeCard, partFor } from "./best-practice";
+import { databaseRetrieval } from "./retrieve";
 import { askCost } from "./cost";
 import { askSchema, bestPracticeSchema } from "./input";
 import type { AskResult, BestPracticeCard, RetrievedRule } from "./types";
@@ -49,7 +50,8 @@ export const askRulebookAction = defineAction({
     const payer = { userId: session.userId, brandId: session.brand.id };
     return askRulebook(
       {
-        admin: adminClient(),
+        retrieval: databaseRetrieval(adminClient()),
+        logGap: (gap) => logGap(adminClient(), gap),
         model: primary?.provider ?? null,
         reader: await readerFor(),
         reserve: primary ? reserver(payer, primary.entry) : undefined,
