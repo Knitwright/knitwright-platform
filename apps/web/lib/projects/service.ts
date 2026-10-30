@@ -19,6 +19,7 @@ import { historyRows, loadRow, loadVersion, readSpec, throwIfFailed, type ReadSp
 import { sameDesign } from "./same-design";
 import { undoTarget } from "./undo";
 import { startingSpec } from "./starting-spec";
+import { livePorts } from "@/lib/validation/live-ports";
 import { validateOnSave } from "@/lib/validation/on-save";
 
 export * from "./project-reads";
@@ -67,7 +68,7 @@ export const createProject = async (admin: SupabaseClient, input: NewProject): P
   });
   throwIfFailed(error);
   const projectId = z.uuid().parse(data);
-  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId, version: 1, spec: started.spec });
+  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId, version: 1, spec: started.spec }, livePorts(admin));
   return projectId;
 };
 
@@ -94,7 +95,7 @@ const appendVersion = async (admin: SupabaseClient, input: Append): Promise<numb
   });
   throwIfFailed(error);
   const version = z.number().int().min(1).parse(data);
-  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId: input.projectId, version, spec: input.spec });
+  await validateOnSave(admin, { brandId: input.brandId, userId: input.userId, projectId: input.projectId, version, spec: input.spec }, livePorts(admin));
   return version;
 };
 
