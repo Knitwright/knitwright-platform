@@ -28,7 +28,7 @@ function Card({ card }: Readonly<{ card: HomeCard }>) {
 
   if (href === null) {
     return (
-      <div className={CARD} aria-disabled="true">
+      <div className={CARD}>
         <h3 className="text-[16.5px] font-medium tracking-[-0.01em] text-ink-2">{card.title}</h3>
         <p className="text-[13.5px] leading-relaxed text-muted">{card.text}</p>
         <p className="mt-auto pt-3 font-mono text-[11px] uppercase tracking-[0.08em] text-faint">{COMING_LATER}</p>

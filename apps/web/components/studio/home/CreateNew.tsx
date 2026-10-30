@@ -97,7 +97,7 @@ function WayTile({ way }: Readonly<{ way: ReturnType<typeof waysOf>[number] }>) 
   const href = hrefOf(way.target);
   if (href === null) {
     return (
-      <div className={TILE} aria-disabled="true">
+      <div className={TILE}>
         <span className="text-[15px] font-medium text-ink-2">{way.title}</span>
         <span className="text-[13px] text-muted">{way.text}</span>
         <span className="mt-auto pt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-faint">{COMING_LATER}</span>

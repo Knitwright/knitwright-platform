@@ -1,5 +1,6 @@
 import "server-only";
 import { factoryStore } from "@/lib/factory/server";
+import type { FactoryStore } from "@/lib/factory/store";
 import type { Capability, FabricColour, FactorySnapshot, ProgrammeFabric } from "@/lib/factory/schemas";
 import { capabilityFor } from "@/lib/factory/service";
 import { log } from "@/lib/server/log";
@@ -51,11 +52,11 @@ const bookOf = (snapshot: FactorySnapshot, colours: readonly FabricColour[]): Pr
 
 /**
  * The prices, fabrics and colours of the first factory on file. Choosing a factory per article is a
- * later wave's job; until then the catalogue shows the one partner's placeholder ladder.
+ * later wave's job; until then the catalogue shows the one partner's placeholder ladder. The store
+ * is a parameter so the database test reads the same way the page does.
  */
-export async function priceBook(): Promise<PriceBook> {
+export async function priceBook(store: FactoryStore = factoryStore()): Promise<PriceBook> {
   try {
-    const store = factoryStore();
     const factory = (await store.listFactories())[0];
     if (!factory) return EMPTY;
     const [snapshot, colours] = await Promise.all([store.snapshot(factory), store.listColours()]);

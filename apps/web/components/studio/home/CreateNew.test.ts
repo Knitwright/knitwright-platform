@@ -52,10 +52,15 @@ describe("the home's links", () => {
     }
   });
 
-  it("names the sidebar and marks an unbuilt entry as not available", () => {
+  it("names the sidebar and spells out the entries that are not built", () => {
     const markup = renderToStaticMarkup(createElement(StudioSidebar));
     expect(markup).toContain('aria-label="Studio sections"');
-    expect(markup).toContain('aria-disabled="true"');
     expect(markup).toContain('href="/catalogue"');
+    // An unbuilt entry is plain text with the sentence beside it: aria-disabled is not allowed on a
+    // span or a div, and axe reports it as a serious fault.
+    expect(markup).not.toContain("aria-disabled");
+    for (const label of ["Collections", "Moodboards", "Pattern fills", "Mockups", "Flows", "Trash"]) {
+      expect(markup, label).toContain(label);
+    }
   });
 });

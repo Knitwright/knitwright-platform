@@ -27,10 +27,7 @@ export function StudioTopBar({ credits, defaultSearch = "" }: Readonly<{ credits
         </button>
       </form>
       {credits}
-      <span
-        className="inline-flex min-h-10 items-center rounded-full border border-white/12 px-3.5 text-[13px] text-muted"
-        aria-disabled="true"
-      >
+      <span className="inline-flex min-h-10 items-center rounded-full border border-white/12 px-3.5 text-[13px] text-muted">
         Notifications: {COMING_LATER.toLowerCase()}
       </span>
     </div>
