@@ -40,7 +40,7 @@ export default function LibraryToolbar({ design, commands }: EditorSlotProps) {
           ))}
         </section>
       ))}
-      <p role="status" className="text-[13px] text-ink empty:hidden">
+      <p role="status" data-testid="library-said" className="text-[13px] text-ink empty:hidden">
         {said}
       </p>
 

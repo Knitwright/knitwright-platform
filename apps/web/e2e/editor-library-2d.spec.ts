@@ -35,6 +35,11 @@ const startJersey = async (page: Page, label: string): Promise<string> => {
   return new URL(page.url()).pathname;
 };
 
+/** Opens the Library toolbar, by the one tablist the shell gives the three toolbars. */
+const openLibrary = async (page: Page): Promise<void> => {
+  await page.getByRole("tablist", { name: "Toolbars" }).getByRole("tab", { name: "Library" }).click();
+};
+
 /** True while the shell still draws the labelled placeholder in place of this workstream's panel. */
 const notWired = async (page: Page, slot: "library" | "view-2d"): Promise<boolean> => (await page.getByTestId(`editor-slot-${slot}`).count()) > 0;
 
@@ -44,7 +49,7 @@ test.describe("the Library toolbar", () => {
   test("shows the Knitwright library, Your library and Inspiration, and applies a fabric to every panel", async ({ page }) => {
     await signedIn(page, "library-apply");
     await startJersey(page, "Library kit");
-    await page.getByRole("tab", { name: "Library" }).click();
+    await openLibrary(page);
     test.skip(await notWired(page, "library"), WIRING);
 
     const toolbar = page.getByTestId("library-toolbar");
@@ -58,14 +63,14 @@ test.describe("the Library toolbar", () => {
     const fabric = toolbar.getByTestId("library-item-fabric-F-POLY-INT");
     await expect(fabric).toContainText("100% polyester interlock");
     await fabric.getByRole("button", { name: /F-POLY-INT/ }).click();
-    await expect(page.getByRole("status")).toContainText("on every panel");
+    await expect(page.getByTestId("library-said")).toContainText("on every panel");
     await expect(page.getByTestId("design-summary")).toContainText("F-POLY-INT");
   });
 
   test("says why Your library and the Pantone search are not available, rather than showing an invented list", async ({ page }) => {
     await signedIn(page, "library-ports");
     await startJersey(page, "Ports kit");
-    await page.getByRole("tab", { name: "Library" }).click();
+    await openLibrary(page);
     test.skip(await notWired(page, "library"), WIRING);
 
     await expect(page.getByTestId("library-empty-yours-brand-kit")).toContainText("not on the editor's slot contract yet");
@@ -77,13 +82,13 @@ test.describe("the Library toolbar", () => {
   test("puts a pattern fill on the body and offers only the settings the design can store", async ({ page }) => {
     await signedIn(page, "library-fill");
     await startJersey(page, "Fill kit");
-    await page.getByRole("tab", { name: "Library" }).click();
+    await openLibrary(page);
     test.skip(await notWired(page, "library"), WIRING);
 
     const toolbar = page.getByTestId("library-toolbar");
     await toolbar.getByTestId("library-section-kw-colours").getByText("Colours").click();
     await toolbar.getByTestId("library-item-colour-classic-navy").getByRole("button", { name: /Navy/ }).click();
-    await expect(page.getByRole("status")).toContainText("every panel");
+    await expect(page.getByTestId("library-said")).toContainText("every panel");
 
     await toolbar.getByTestId("library-section-kw-pattern-fills").getByText("Pattern fills").click();
     await toolbar.getByTestId("library-item-fill-kit-hoops-classic").getByRole("button", { name: /Hoops/ }).click();

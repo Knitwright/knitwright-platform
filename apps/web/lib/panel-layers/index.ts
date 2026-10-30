@@ -1,6 +1,7 @@
 export * from "./apply";
 export * from "./asset-facts";
 export * from "./background";
+export * from "./drag";
 export * from "./edit";
 export * from "./fabric-types";
 export * from "./flag";
@@ -16,6 +17,7 @@ export * from "./pattern-fill";
 export * from "./save";
 export * from "./sheet";
 export * from "./sheet-rules";
+export * from "./sheet-view";
 export * from "./techniques";
 export * from "./to-fabric";
 export * from "./view-2d";
