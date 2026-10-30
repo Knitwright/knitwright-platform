@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { OUTPUT_KINDS } from "@/lib/credits/kinds";
 import { CREDIT_SETTINGS } from "@/lib/credits/settings";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
@@ -228,7 +229,8 @@ describe("the tables", () => {
   });
 
   it("lets signed-in users read the price list, and visitors not", async () => {
-    expect(must(await alice.client.from("credit_prices").select("output_kind")).length).toBe(3);
+    // One row per output kind, wherever it was seeded: plan v5 X5b added `production_package` in its own migration.
+    expect(must(await alice.client.from("credit_prices").select("output_kind")).length).toBe(OUTPUT_KINDS.length);
     expect((await anonClient().from("credit_prices").select("output_kind")).error).not.toBeNull();
   });
 
