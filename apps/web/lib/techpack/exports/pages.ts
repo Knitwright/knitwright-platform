@@ -103,7 +103,7 @@ export const TECH_PACK_PAGES: readonly TechPackPage[] = [
     id: "measurement-annotation",
     number: 8,
     title: "Measurement annotation",
-    lead: "How each lettered point of measure is taken. The letters are the marks on page 7.",
+    lead: "How each lettered point of measure is taken. The letters are the marks on the construction annotations page.",
     drawing: null,
   },
   { id: "size-grading", number: 9, title: "Size grading", lead: "Every point of measure across the sizes, with its tolerance.", drawing: null },
@@ -144,11 +144,12 @@ export const CLOSING_PAGES: readonly Readonly<{ id: ClosingPageId; title: string
 /**
  * A page of the sixteen that the platform cannot fill from a design yet, with the words it says
  * instead and the rule that would explain it. No rulebook entry covers either gap, so both carry
- * `R-GAP-000` and are listed on the pull request.
+ * `R-GAP-000` and are listed on the pull request. The page prints the words and not the rule id:
+ * `R-GAP-000` means "no rule written yet", which tells a factory nothing it can act on.
  */
 export const PAGE_GAPS: Readonly<Partial<Record<PageId, Readonly<{ note: string; ruleId: string }>>>> = {
   "construction-annotations": {
-    note: "The marks on this drawing are the points of measure. Construction callouts numbered on the flat are not drawn yet; page 6 carries the construction itself.",
+    note: "The marks on this drawing are the points of measure. Construction callouts numbered on the flat are not drawn yet; the construction details page carries the construction itself.",
     ruleId: "R-GAP-000",
   },
   "reference-images": {

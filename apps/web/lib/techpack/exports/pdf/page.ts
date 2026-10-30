@@ -42,8 +42,12 @@ const field = (entry: Readonly<{ label: string; cell: Cell | null; text: string 
     h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: COLOURS.ink } }, safe(words(entry))),
   );
 
-/** The page number as the footer and the header both say it: "Page 4 of 16" for one of the sixteen. */
-export const pageMark = (page: PlannedPage): string => (page.number === null ? page.title : `Page ${page.number} of 16 · ${page.title}`);
+/**
+ * What the header block says this page is. It carries the title and not the page number: the
+ * footer counts the pages, and a number in the header would be a number a factory cannot check
+ * against the document.
+ */
+export const pageMark = (page: PlannedPage): string => page.title;
 
 /** The header block, repeated at the top of every sheet of paper this page runs onto. */
 function header(pack: TechPack, page: PlannedPage, safe: Safe): ReactElement {
@@ -108,7 +112,7 @@ export function pageElement(page: PlannedPage, context: Context, options: PageOp
     header(pack, page, safe),
     h(View, { key: "lead", wrap: false }, heading(2, page.title, safe), paragraph(page.lead, safe, "lead")),
     ...(page.number === 1 && options.notice !== null ? [noticeLine(options.notice, safe)] : []),
-    ...(page.gap === null ? [] : [paragraph(`${page.gap.note} (${page.gap.ruleId})`, safe, "gap")]),
+    ...(page.gap === null ? [] : [paragraph(page.gap.note, safe, "gap")]),
     ...(views.length === 0 ? [] : [drawingRow(`${page.id}-drawings`, views, context)]),
     ...illustrations(page, options, safe),
     ...(page.id === "sources-and-notes" ? options.appendix.map((table, index) => tableGroup(table, index, safe, context.marks)) : []),
