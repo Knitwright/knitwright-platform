@@ -150,6 +150,8 @@ describe("steering the context query", () => {
 
 describe("what a member may read and write directly", () => {
   it("reads only its own brand's moodboard, items and steered tags", async () => {
+    must(await save(annBrand, ann, annDesign));
+    must(await steer(annBrand, ann, annDesign, `rugby-${randomUUID().slice(0, 8)}`, "pinned"));
     must(await save(benBrand, ben, benDesign));
     must(await steer(benBrand, ben, benDesign, `gold-${randomUUID().slice(0, 8)}`, "pinned"));
     for (const table of ["design_moodboards", "moodboard_items", "inspiration_tag_steers"]) {
