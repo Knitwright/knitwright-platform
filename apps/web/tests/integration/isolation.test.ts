@@ -1416,6 +1416,20 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
     change: { selling_enabled: false },
   },
+  // Plan v5 Z8 (decision 0089): the ISO 3758 care symbols and the AQL plan. A member reads both, because the
+  // tech pack's Labels and QC tabs show them; nobody writes either from a browser.
+  care_symbols: {
+    privileges: ["SELECT"],
+    row: { code: "ISO3758-WASHING" },
+    attempt: { code: "MADE-DIRECTLY", kind: "washing", label: "Made directly" },
+    change: { words: "Made directly" },
+  },
+  aql_plans: {
+    privileges: ["SELECT"],
+    row: { scope: "class_a_sample" },
+    attempt: { scope: "run", inspect_every_piece: true, label: "Made directly" },
+    change: { inspect_every_piece: false },
+  },
   // Plan v5 X1 (decision 0066): the base article catalogue, seeded by its migration.
   base_articles: {
     privileges: ["SELECT"],
