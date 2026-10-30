@@ -160,7 +160,11 @@ describe("open_share_invite", () => {
       must(await adminClient().rpc("revoke_share_invite", { p_invite_id: withdrawn.id, p_user_id: alice.userId }));
       expect(await openInvite(withdrawn.token)).toEqual([]);
       const over = await invite(designId, alice);
-      asOwner(`update public.share_invites set expires_at = now() - interval '1 second' where id = '${over.id}'`);
+      // Both dates move: the table holds `expires_at > created_at`, so an invite that has run out
+      // is one that was made before it expired, not one with an expiry in the past alone.
+      asOwner(
+        `update public.share_invites set created_at = now() - interval '31 days', expires_at = now() - interval '1 second' where id = '${over.id}'`,
+      );
       expect(await openInvite(over.token)).toEqual([]);
     },
   );
