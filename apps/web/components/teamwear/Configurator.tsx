@@ -144,7 +144,8 @@ export function Configurator(props: ConfiguratorProps) {
         <input type="hidden" name="sportId" value={kit.sportId} />
         <input type="hidden" name="part" value={state.part.id} />
         <input type="hidden" name="wearer" value={kit.wearer} />
-        <input type="hidden" name="name" value={`${props.brandName} ${state.part.label.toLowerCase()}`} />
+        {/* A design name is at most eighty characters, and a brand's name can be long. */}
+        <input type="hidden" name="name" value={`${props.brandName} ${state.part.label.toLowerCase()}`.slice(0, 80)} />
         <input type="hidden" name="main" value={kit.colours.main} />
         <input type="hidden" name="second" value={kit.colours.second} />
         <input type="hidden" name="third" value={kit.colours.third ?? ""} />
