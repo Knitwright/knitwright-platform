@@ -92,6 +92,10 @@ export default defineConfig({
         // Joins the make pages to the design, the article, the golden samples and the factory rows; the rules it
         // calls are tested on their own, and the database and end-to-end tests cover the joining (plan v5 Y7).
         "lib/make/server.ts",
+        // Joins the collection screens to the plan, the brand's products, the factory tiers and the destination's
+        // rows; the counters, the landed cost and the line plan are tested on their own, and the database and
+        // end-to-end tests cover the joining (plan v5 Z4, decision 0085).
+        "lib/collections/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -114,7 +118,7 @@ export default defineConfig({
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration", "collections"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
