@@ -2,6 +2,7 @@ import type { BaseArticle } from "@/lib/catalogue";
 import type { DesignObjectV2 } from "@/lib/design-object";
 import type { Capability, CountryRule, FabricColour, Factory, ProgrammeFabric } from "@/lib/factory/schemas";
 import type { GuardrailSettings } from "@/lib/guardrails";
+import type { OptionCodeMapping } from "@/lib/option-codes";
 import type { KppInput, KppNameNumber, KppOrder } from "../model";
 
 /**
@@ -94,6 +95,12 @@ export interface KppRows {
   readonly object: DesignObjectV2;
   /** The base article with its POMs, parameters, options, construction and fabrics (X1). */
   readonly article: BaseArticle;
+  /**
+   * The map from the registry's option keys to the catalogue's option codes for this article (decision 0099).
+   * Empty means nothing joins the design's own words to a code, and every option field then says so rather than
+   * writing the design's word where a code belongs.
+   */
+  readonly optionCodeMap: readonly OptionCodeMapping[];
   readonly factory: Factory;
   /** What this factory makes of this article in this fabric (X6). Null when it does not make it. */
   readonly capability: Capability | null;

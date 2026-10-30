@@ -6,6 +6,7 @@ import { allRows } from "@/lib/factory/fixtures/rows";
 import { toCapability, toColour, toCountryRule, toFabric, toFactory } from "@/lib/factory/rows";
 import type { FabricColour } from "@/lib/factory/schemas";
 import { DEFAULT_SETTINGS } from "@/lib/guardrails";
+import { OPTION_CODE_MAP_SEED } from "@/lib/option-codes/seed/rows";
 import { BOM_ITEM_IDS } from "../input/materials";
 import type { ConsumptionRow, KppRows, KppUnsourced, LabelWordingRow } from "../input/model";
 
@@ -126,6 +127,9 @@ export function fixtureRows(patch: Partial<KppRows> = {}): KppRows {
     },
     object,
     article,
+    // The map's own seeded rows, so the fixture package reads the codes a published source joins to this design's
+    // choices and nothing else (decision 0099).
+    optionCodeMap: OPTION_CODE_MAP_SEED.filter((row) => row.articleCode === article.code),
     factory,
     capability: capabilities[0] ?? null,
     fabrics: allRows.programme_fabrics.map(toFabric),
