@@ -88,8 +88,9 @@ export function Configurator(props: ConfiguratorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-3 lg:grid lg:h-[calc(100dvh-9rem)] lg:grid-cols-[minmax(0,2fr)_22rem] lg:gap-4" data-testid="teamwear-configurator">
-      <div className="flex min-h-0 flex-col gap-3">
+    <div className="flex flex-col gap-3" data-testid="teamwear-configurator">
+      <div className="flex flex-col gap-3 lg:grid lg:h-[calc(100dvh-14rem)] lg:grid-cols-[minmax(0,2fr)_22rem] lg:gap-4">
+        <div className="flex min-h-0 flex-col gap-3">
         <nav aria-label="Sport" className="flex flex-wrap gap-2" data-testid="teamwear-sports">
           {SPORTS.map((sport) => (
             <Link
@@ -132,16 +133,12 @@ export function Configurator(props: ConfiguratorProps) {
             </p>
           )}
         </StageFrame>
+        </div>
+
+        <PanelSheet title={`${state.part.label} · ${props.brandName}`} state={state} part={state.part.id} onPart={state.showPart} />
       </div>
 
-      <PanelSheet
-        title={`${state.part.label} · ${props.brandName}`}
-        state={state}
-        part={state.part.id}
-        onPart={state.showPart}
-      />
-
-      <form ref={form} action={submit} className="contents">
+      <form ref={form} action={submit} className="flex flex-col gap-2">
         <FormSummary message={summary} />
         <input type="hidden" name="sportId" value={kit.sportId} />
         <input type="hidden" name="part" value={state.part.id} />
