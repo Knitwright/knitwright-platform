@@ -61,7 +61,7 @@ export const QUESTIONS: readonly AskQuestion[] = [
   { question: "How much bleed do the print files need beyond the cut line?", expect: "R-SUB-002" },
   { question: "What DPI should the print files be at 1:1, and should they be mirrored?", expect: "R-SUB-003" },
   { question: "How far from a seam should a crest sit?", expect: "R-SUB-004" },
-  { question: "How are colours checked against a strike-off?", expect: "R-SUB-005" },
+  { question: "How are colours matched against a printed strike-off?", expect: "R-SUB-005" },
   { question: "How much do panels shrink in the heat press?", expect: "R-SUB-006" },
   { question: "What is the thinnest line and the smallest text that will print?", expect: "R-SUB-007" },
   { question: "Why does my black print look brown?", expect: "R-SUB-008" },

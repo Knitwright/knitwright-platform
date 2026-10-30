@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GAP_RULE_ID } from "../constants";
 import { entry } from "../fixtures/entries";
-import { SUBLIMATION } from "../scope";
+import { SUBLIMATION, type ScopeAsk } from "../scope";
 import { NEWER_DRAFT_LINE } from "../view";
 import { aboutPart, bestPracticeCard, MAX_LINES, PARTS, partFor } from "./best-practice";
 import { DRAFT_RULES, REVIEWED_RULES, ruleOf } from "./fixtures/rules";
@@ -12,9 +12,9 @@ import { DRAFT_RULES, REVIEWED_RULES, ruleOf } from "./fixtures/rules";
  * says nothing about: the card says so and carries R-GAP-000.
  */
 
-const DESIGN = { articleCode: "JSY-SS-01", method: SUBLIMATION };
+const DESIGN: ScopeAsk = { articleCode: "JSY-SS-01", method: SUBLIMATION };
 
-const card = (key: string, ask = DESIGN, entries = REVIEWED_RULES, reader: "member" | "ops" = "member") => {
+const card = (key: string, ask: ScopeAsk = DESIGN, entries = REVIEWED_RULES, reader: "member" | "ops" = "member") => {
   const part = partFor(key);
   if (!part) throw new Error(`no part ${key}`);
   return bestPracticeCard(entries, part, ask, reader);
