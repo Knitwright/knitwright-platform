@@ -45,6 +45,16 @@ export default function KitStage({ flat, sportId, view, turning, snapshotAt, onS
   const front = flat.views.find((entry) => entry.view === "front")?.src;
   const back = flat.views.find((entry) => entry.view === "back")?.src;
 
+  /**
+   * The scene is drawn again whenever the kit changes, because the pictures painted onto it have.
+   * The view chip and the turntable are read from here when it is, so the stage comes back showing
+   * the side the chip says and turning if it was turning, rather than facing the front again.
+   */
+  const showing = useRef({ view, turning });
+  useEffect(() => {
+    showing.current = { view, turning };
+  }, [view, turning]);
+
   useEffect(() => {
     const target = canvas.current;
     if (!target || front === undefined || back === undefined) return;
@@ -53,10 +63,13 @@ export default function KitStage({ flat, sportId, view, turning, snapshotAt, onS
     Promise.all([paintFlat(front, flat.shape.front.bounds), paintFlat(back, flat.shape.back.bounds)])
       .then(([frontPicture, backPicture]) => {
         if (cancelled) return;
-        scene.current = mountKit(target, mesh, { front: frontPicture, back: backPicture }, motionFor(reduced), (ms) => {
+        const mounted = mountKit(target, mesh, { front: frontPicture, back: backPicture }, motionFor(reduced), (ms) => {
           setReadyMs((already) => already ?? ms);
           onReady(ms);
         });
+        scene.current = mounted;
+        mounted.showView(showing.current.view);
+        mounted.turn(showing.current.turning ? turntableSecondsFor(reduced) : null);
       })
       .catch(() => {
         if (!cancelled) setFailed(true);
