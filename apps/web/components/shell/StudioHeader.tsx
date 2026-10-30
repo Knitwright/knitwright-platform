@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { BrandCompletionPill } from "@/components/brand-studio/BrandCompletionPill";
 import { BrandMark } from "@/components/brand/Logo";
 import { PRODUCT } from "@/lib/config/product";
 import { PAGE_WIDTH } from "./page-width";
@@ -35,6 +36,7 @@ export function StudioHeader({ email, brandName, credits }: StudioHeaderProps) {
               {brandName}
             </span>
           </Link>
+          <BrandCompletionPill />
           {credits}
           <span className="hidden max-w-56 truncate px-1 text-sm text-muted md:inline" data-testid="account-email">
             {email}

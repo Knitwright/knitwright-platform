@@ -93,5 +93,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0076 | [The 2D pattern view and the Library toolbar](0076-view-2d-and-library-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
+| 0079 | [Brand Studio, typed by hand](0079-brand-studio-manual.md) | Proposed; club_kits read through not migrated, only the bundled Geist faces are licensed, owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
