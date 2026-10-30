@@ -141,6 +141,26 @@ export function kitFromAddress(address: KitAddress, articles: ArticleBook): Team
   }));
 }
 
+/**
+ * A stable string for one address. The page gives it to the configurator as React's `key`, because
+ * moving from one address of the same route to another re-renders the screen without remounting it,
+ * and the kit is read from the address once, when the screen starts. Without this a Save would come
+ * back to an address holding the saved kit and show the one the screen started with.
+ */
+export const kitAddressKey = (address: KitAddress, saved: Readonly<{ projectId: string; version: number }> | null): string =>
+  JSON.stringify([
+    address.sportId,
+    address.part,
+    address.wearer,
+    address.colours,
+    address.socksColour,
+    address.quantity,
+    Object.entries(address.options).sort(([a], [b]) => a.localeCompare(b)),
+    Object.entries(address.parameters).sort(([a], [b]) => a.localeCompare(b)),
+    saved?.projectId ?? null,
+    saved?.version ?? null,
+  ]);
+
 /** What the address carries about the kit itself: what both the screen and the Save action can hand over. */
 export interface KitState {
   readonly wearer: Wearer;

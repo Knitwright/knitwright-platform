@@ -6,7 +6,7 @@ import { marketFromQuery } from "@/lib/home/market";
 import { priceBook } from "@/lib/home/reads";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { parseSaved, parseView, partsForSport, readKitAddress, sportById } from "@/lib/teamwear";
+import { kitAddressKey, parseSaved, parseView, partsForSport, readKitAddress, sportById } from "@/lib/teamwear";
 
 export const metadata: Metadata = { title: "Teamwear configurator" };
 
@@ -38,13 +38,18 @@ export default async function TeamwearPage({ searchParams }: PageProps<"/teamwea
   const articles = read.filter((article): article is NonNullable<typeof article> => article !== null);
   const sources: Record<string, PriceSource> = Object.fromEntries(codes.map((code) => [code, book.source(code)]));
 
+  const saved = parseSaved(query);
+
   return (
     <Configurator
+      // The kit is read from the address when the screen starts, and moving from one address of this
+      // route to another re-renders without remounting, so the key starts the screen again.
+      key={kitAddressKey(address, saved)}
       sportId={sportId}
       part={address.part}
       address={address}
       view={parseView(query.view)}
-      saved={parseSaved(query)}
+      saved={saved}
       articles={articles}
       sources={sources}
       currency={market.currency}

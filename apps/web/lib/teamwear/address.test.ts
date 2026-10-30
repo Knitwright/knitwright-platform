@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readAddress } from "@/lib/editor";
 import { articleBook } from "./fixtures/kit";
-import { configuratorHref, kitFromAddress, kitStateOf, parsePart, parseSaved, parseSport, readKitAddress, studioHref } from "./address";
+import { configuratorHref, kitAddressKey, kitFromAddress, kitStateOf, parsePart, parseSaved, parseSport, readKitAddress, studioHref } from "./address";
 import { chooseOption, chooseParameter, startingKit, withPart } from "./kit";
 import { jersey } from "./fixtures/kit";
 
@@ -95,6 +95,16 @@ describe("the kit the address carries", () => {
   it("leaves a part with no article on its empty form, whatever the address says", () => {
     const kit = kitFromAddress(readKitAddress({ part: "socks", opt: ["collar:C02"] }), articleBook());
     expect(kit.parts.socks?.form).toEqual({ options: {}, parameters: {} });
+  });
+
+  it("gives the same key for the same address and a different one for a different kit", () => {
+    const one = readKitAddress({ c1: "#1b2a49", c2: "#d4af37", opt: ["collar:C02", "sleeve_finish:K01"] });
+    const same = readKitAddress({ c2: "#d4af37", c1: "#1b2a49", opt: ["sleeve_finish:K01", "collar:C02"] });
+    const other = readKitAddress({ c1: "#1b2a49", c2: "#d4af37", opt: ["collar:C01"] });
+    expect(kitAddressKey(one, null)).toBe(kitAddressKey(same, null));
+    expect(kitAddressKey(one, null)).not.toBe(kitAddressKey(other, null));
+    expect(kitAddressKey(one, null)).not.toBe(kitAddressKey(one, { projectId: PROJECT, version: 1 }));
+    expect(kitAddressKey(one, { projectId: PROJECT, version: 1 })).not.toBe(kitAddressKey(one, { projectId: PROJECT, version: 2 }));
   });
 
   it("has no kit state for a part the sport does not offer", () => {
