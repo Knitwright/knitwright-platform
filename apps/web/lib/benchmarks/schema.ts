@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { hasMarkup, plain } from "./scrub";
-import { FEATURE_KEYS, LAYOUT_KINDS, LAYOUT_ZONES, PROVENANCES, type Provenance } from "./vocabulary";
+import { FEATURE_KEYS, LAYOUT_KINDS, LAYOUT_ZONES, MAX_CARDS, MIN_COMPARE, PROVENANCES, type Provenance } from "./vocabulary";
 
 /**
  * The fixed schema a benchmark card is extracted into (spec F-S2 step 3) and the provenance rules that go with it:
@@ -20,9 +20,8 @@ export const MAX_FEATURES = 24;
 export const MAX_CLAIMS = 6;
 export const MAX_THEMES = 8;
 export const MAX_LAYOUT = 12;
-/** 2 to 5 cards side by side (spec F-S2 step 5). */
-export const MIN_COMPARE = 2;
-export const MAX_CARDS = 5;
+/** 2 to 5 cards side by side (spec F-S2 step 5). Kept in the vocabulary, and passed on here for the callers it had. */
+export { MAX_CARDS, MIN_COMPARE };
 
 /** One line of plain words: trimmed, no markup, no control characters. */
 const line = (max: number) =>

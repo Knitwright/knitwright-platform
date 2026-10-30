@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import { addBenchmarkReviewTextAction, addBenchmarkUrlAction } from "@/lib/benchmarks/actions";
-import { BENCHMARK_USER_AGENT, MAX_CARDS } from "@/lib/benchmarks";
+// From the vocabulary, not the barrel: a client component must not pull zod into the browser
+// (tests/architecture/client-weight.test.ts).
+import { BENCHMARK_USER_AGENT, MAX_CARDS } from "@/lib/benchmarks/vocabulary";
 
 /**
  * Adding a card (spec F-S2 step 1): a product link, or review text a person pasted. Each is its own form, because

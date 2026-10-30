@@ -17,6 +17,13 @@ export type Provenance = (typeof PROVENANCES)[number];
 /** The rule id a finding carries while the rulebook has no entry for it (plan v5, "Every rule explains itself"). */
 export const RULE_GAP = "R-GAP-000";
 
+/**
+ * 2 to 5 cards side by side (spec F-S2 step 5). They live here rather than beside the schema so a form can show the
+ * limit without pulling zod into the browser (tests/architecture/client-weight.test.ts).
+ */
+export const MIN_COMPARE = 2;
+export const MAX_CARDS = 5;
+
 /** The gaps this workstream opens. They are listed in the PR comment, as the plan asks. */
 export const BENCHMARK_RULE_GAPS = [
   "R-GAP-000 benchmark feature mapping: which of a competitor's features a base article may be asked for",

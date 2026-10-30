@@ -5,7 +5,11 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { confirmBenchmarkCardAction, removeBenchmarkCardAction } from "@/lib/benchmarks/actions";
-import { cardFeatures, cardFields, FEATURES, type StoredCard } from "@/lib/benchmarks";
+// Each from its own module, not the barrel: a client component must not pull zod into the browser
+// (tests/architecture/client-weight.test.ts).
+import { cardFeatures, cardFields } from "@/lib/benchmarks/card";
+import type { StoredCard } from "@/lib/benchmarks/compare";
+import { FEATURES } from "@/lib/benchmarks/vocabulary";
 
 /**
  * Confirm or correct a card (spec F-S2 step 4). Every box starts at what was read, with how it is known beside it, so

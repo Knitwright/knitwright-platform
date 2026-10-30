@@ -1081,7 +1081,80 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, email: "made-directly@test.knitwright.local", role: "viewer" }),
     change: { role: "admin" },
   },
+  // Benchmarks (plan v5 Z3, decision 0084): a comparison, its cards and the one-fetch-per-brand record.
+  benchmarks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedBenchmark(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, title: "Made directly", created_by: userId }),
+    change: { title: "Changed by a stranger" },
+  },
+  benchmark_cards: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedBenchmarkCard(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      benchmark_id: randomUUID(),
+      source_kind: "photo",
+      card: BENCHMARK_CARD,
+      extractor: "made directly",
+      created_by: userId,
+    }),
+    change: { extractor: "changed by a stranger" },
+  },
+  benchmark_fetches: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const key = randomUUID().replace(/-/g, "").padEnd(64, "0").slice(0, 64);
+      must(await adminClient().rpc("benchmark_fetch_claim", { p_brand_id: brandId, p_user_id: ownerId, p_url_sha256: key, p_host: "shop.example.test" }));
+      return { url_sha256: key, brand_id: brandId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, url_sha256: "a".repeat(64), host: "made-directly.test", created_by: userId }),
+    change: { host: "changed-by-a-stranger.test" },
+  },
 };
+
+/**
+ * A benchmark card with every field unknown: the shape `benchmark_card_add` asks for, written out here rather than
+ * imported, so the isolation suite stays a reading of the database alone.
+ */
+const BENCHMARK_CARD = {
+  productName: { value: null, provenance: "unknown", corrected: false },
+  brandName: { value: null, provenance: "unknown", corrected: false },
+  price: { value: null, provenance: "unknown", corrected: false },
+  fabricComposition: { value: null, provenance: "unknown", corrected: false },
+  gsm: { value: null, provenance: "unknown", corrected: false },
+  fit: { value: null, provenance: "unknown", corrected: false },
+  sizeRange: { value: null, provenance: "unknown", corrected: false },
+  features: [],
+  claims: [],
+  complaintThemes: [],
+  surfaceLayout: [],
+} as const;
+
+/** A comparison of the brand, made the way the server makes one. */
+const seedBenchmark = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("benchmark_create", { p_brand_id: brandId, p_user_id: ownerId, p_project_id: null, p_title: `Seeded ${randomUUID().slice(0, 8)}` }),
+  ) as string;
+
+/** A card on a new comparison of the brand. Its source URL is its own, so two runs never claim one page. */
+const seedBenchmarkCard = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("benchmark_card_add", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_benchmark_id: await seedBenchmark(brandId, ownerId),
+      p_source_kind: "url",
+      p_source_url: `https://shop.example.test/${randomUUID()}`,
+      p_source_host: "shop.example.test",
+      p_source_file_id: null,
+      p_card: BENCHMARK_CARD,
+      p_extractor: "stub",
+    }),
+  ) as string;
 
 /** A season of a brand, made the way the server makes one. */
 const seedSeason = async (brandId: string, ownerId: string): Promise<string> =>
