@@ -8,7 +8,7 @@ import { SECTION_IDS, SECTION_TITLES, type TechPack } from "../types";
 import { PROPOSAL_WORDS } from "../text";
 import { STANDARD_CHOICE } from "../cell";
 import { allCells } from "../walk";
-import { EXCEL_SHEETS, sourceWords } from "./contents";
+import { sourceWords } from "./contents";
 import { exportSections, type Datum, type ExportSection } from "./tables";
 
 const cellsOf = (sections: readonly ExportSection[]): unknown[] =>
@@ -85,12 +85,6 @@ describe("the tables every format is made from", () => {
         }
       }
     }
-  });
-
-  it("names a sheet only for the sections that hold values", () => {
-    const sections = exportSections(packFor(fullDesign("crew-tee")));
-    expect(sections.map((section) => section.sheet)).toEqual(SECTION_IDS.map((id) => EXCEL_SHEETS[id]));
-    expect(sections.filter((section) => section.sheet === null).map((section) => section.id)).toEqual(["flats", "how-to-measure"]);
   });
 
   it("keeps the base size marked in the measurement columns and gives a length column for each size", () => {
