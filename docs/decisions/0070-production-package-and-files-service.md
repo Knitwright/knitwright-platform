@@ -517,3 +517,154 @@ matrix of `docs/spec/04` has still not been run by anyone.
 2. **Is the placeholder price right, and should a sample package for a partner factory be charged at all?** Owner
    decision 20 says it stays charged and that the owner may overturn it. **This is money**: nothing in the platform
    presents the number as a price, and `CREDITS_ENFORCED` is off, so no brand has been charged anything.
+
+---
+
+# 0070 revision 3: the print source, and the export route is mounted
+
+Status: Proposed. Date: 2026-10-30. Plan step: `plans/platform-v5.md`, wave 1, workstream **X5** item 6, and
+`plans/v5-handover-2026-10-30.md` section 6 item 1. No migration.
+
+Revision 2 left one thing owed and said why: "`PrintSource` is the one seam left, and wiring it is an orchestrator
+task as `PatternSource` was." This revision closes it and mounts the route.
+
+## 1. The print files are drawn on the drafted pattern, not the library pattern
+
+This is the judgement revision 2 stopped at. `lib/print` draws on the pattern in the brand's **pattern library**
+(`lib/print/inputs/pattern.ts`, `loadDesignPattern`), while `03_patterns/**` comes from X3's **graded parametric
+drafter** (`lib/kpp/sources/pattern.ts`, revision 1). A package whose print files and patterns disagree is worse
+than no package, and `docs/spec/04`'s own Phase 0 test measures exactly that agreement.
+
+**One pattern, one package.** `apps/web/lib/kpp/sources/print.ts` draws the print files on the very
+`GradedPattern` that `03_patterns/**` is written from — the drafted one. `DesignPattern`, which is print's own
+input, already carries a `GradedPattern`, which is what `draftedPattern` returns, so the shapes already lined up:
+what was missing was the adapter and the per-panel call. The library pattern is not read by the package at all.
+
+- `draftedDesignPattern(facts)` is the adapter. `reviewed` is **false**, and the note printed in every file's
+  margin names the article, the article's own version ("0.1"), the platform's block version and the drafter, and
+  ends with the pattern library's own `DRAFT_NOTICE`. The pattern is a Knitwright draft that no factory has
+  reviewed (owner decision 10), and nothing in a file may read as a sign-off nobody gave.
+- `printSource(input).source.files(size, orderNo)` plans and builds that size's files through `lib/print`'s public
+  API only — `planPrintFiles`, `createPrintFileBuilder`, `makeFiles` and `fileStem`, driven together exactly as
+  `lib/print/service.ts` already drives them. **No line of `lib/print` was changed.**
+- The factory's `printFileType` picks the format: `pdf`, or `tif` through the print contract's `tiff`.
+- **`panel` is `lib/print`'s own file stem**, which for a piece with nobody's name on it is the `PieceInstance.id`
+  — the view the piece is printed for: `front`, `back`, `sleeve-left`, `sleeve-right`. That is what `printPath`
+  composes into `SAMPLE_<article>_<panel>_<size>.<ext>` and what the package's own tests already expected. Taking
+  the stem rather than the piece id keeps the two names one name the day a team list reaches this seam: the stem
+  then carries the player's number and the transfer marks, so two files of one panel cannot land on one path.
+- **Bleed and resolution are the package's own** (`KppInput.print`), so a file is made at the numbers
+  `00_README.pdf` states and `lib/kpp/gate.ts` checked. The print house's colour profile, its largest width and
+  whether those numbers are the print house's own still come from the brand's stored profile, which is where the
+  margin note about defaults is taken from.
+- A size the drafted pattern does not hold is a sentence naming the article and the size, not a crash inside the
+  layout.
+
+**Personalisation.** `files` takes the order number, because a batch groups `04_print` by order, but it makes the
+same panels whatever the order: **no team list reaches this seam.**
+`08_personalisation/names_numbers.csv` is a list of names and numbers, not a team order — `RosterRow` also wants
+the cut and the quantity — and inventing either would make an unpersonalised file look personalised. So the
+package says so in `00_README.pdf` instead, and the factory applies the names from the CSV. When a real team
+order does reach the route, the roster goes to `planPrintFiles` and the panel name already carries the player.
+
+**Known gap, not worked around.** The drafted sleeve carries `cap-top`, `hem-a` and `hem-b` but not
+`underarm-a` / `underarm-b`, so `lib/print`'s `sleeveFrame` falls back to `boundsFrame`: artwork on a sleeve is
+centred on the piece's bounds rather than aligned to its underarm. Body pieces have their landmarks and use them.
+`lib/parametric` is not this PR's to change; it is an owner question below.
+
+## 2. The export route
+
+`apps/web/app/api/projects/[projectId]/production-package/route.ts`, `GET`, member auth,
+`LIMITS.printFiles` (a package draws every panel and every pattern piece, so it is held like a set of print
+files), `maxDuration = 60`.
+
+`apps/web/lib/kpp/sources/server.ts` joins it to the database, in the idiom of `lib/make/server.ts`: the design
+version and its tech pack, X1's base article and its points of measure, X4's design object with X8's moderation
+results, X6's factory, capability, fabric, colour and country rows, the brand's print settings and artwork
+reader, X3's drafter and `lib/print`. The assembler itself still reads no database, no environment and no clock.
+The decisions that file would otherwise have to make are in `sources/rows.ts` and `sources/answer.ts`, which are
+tested; `server.ts` is reads and a plain object, and it joins the coverage exclusion list beside
+`lib/make/server.ts` for that reason.
+
+- **The order is revision 2's**: check (F-G2), charge, build, record, send. So the route charges through
+  `ChargeForPackage` / `creditCharge` and **not** through `withCredits`, which charges before the handler runs: a
+  brand should never pay to be told what the factory still has to answer. The gate is built in `server.ts` with
+  the same four lines as `lib/credits-gate/server.ts`, whose own gate is not exported. The credit headers
+  `withCredits` would have added are added by `packageResponse`.
+- `recordPackageExport` writes the `package_exports` row before the ZIP is sent, and throws if it cannot: a
+  package a factory holds that the platform has no record of is a package nobody can check.
+- A refusal is **409 with every gap named**, each with the field's dotted path and its rule id. Nothing about the
+  request is wrong — the rows are simply not finished — and nothing is softened.
+- The route exports a **sample** package. A batch is Knitwright's own production run, it needs orders, and ops
+  owns that path.
+- `next.config.ts` gains one `outputFileTracingIncludes` entry for the route. The package carries the tech pack
+  PDF (@react-pdf/renderer, `registerPdfFont`) and the print files (`OUTLINE_FONT_FILE`), and both read
+  `assets/fonts/Geist-Regular.ttf` from disk at run time, so without that line a deployed export fails on a
+  missing file. It is the same entry the export route and the print-file route already have.
+
+## 3. What the route refuses today, and why that is right
+
+**A real design is refused**, by name, and the gate is not weakened to let it through. Three things no table
+holds (revision 2, "Still owed"): the article's bill of materials with its consumption, the care-label wording in
+`country_rules.label_rules` (seeded `{}`), and the AQL plan per factory. `KppUnsourced` is `NOTHING_UNSOURCED`
+here, because the route has nowhere truthful to read them from, so those lines come out `needs_input` and the
+refusal names each one. Two more follow from the same rule: no promised date can be worked out (QC days and
+freight days are unset), and a colour difference no factory agreed makes the gate refuse rather than the package
+stating a number (owner decision 15).
+
+Who places the order is also not on file. `MADE_BY_KNITWRIGHT` is therefore `false` — the package is treated as a
+brand's own export and charged at the labelled placeholder price, which is what owner decision 20 settled for a
+factory Knitwright does not own — and `MADE_BY_NOTE` says exactly that in the package rather than letting the
+answer pass unnoticed. `CREDITS_ENFORCED` is off, so nothing has been charged.
+
+Moderation is reported, not assumed: `clear` is said only when every target of the design has a kept screening,
+and a design with nothing screened is `not_built`, which the README states.
+
+## Evidence
+
+| Claim | Test |
+|---|---|
+| The print files are drawn on the same pattern object `03_patterns/**` is written from | `lib/kpp/sources/print.test.ts` |
+| The pattern is a draft no factory reviewed, and the margin names the article, its version and the drafter | `lib/kpp/sources/print.test.ts` |
+| The draft note reaches the file itself: two patterns cannot give one file | `lib/kpp/sources/print.test.ts` |
+| One file per printed piece, named as `printPath` and the package's own tests name it | `lib/kpp/sources/print.test.ts` |
+| The same design gives the same bytes twice | `lib/kpp/sources/print.test.ts` |
+| A file is made in the factory's own format, and the print house's profile is carried when there is one | `lib/kpp/sources/print.test.ts` |
+| A file is made at the bleed and resolution the package states, not the brand's own | `lib/kpp/sources/print.test.ts` |
+| Pieces no print view is defined for are named in the package's notes, not dropped in silence | `lib/kpp/sources/print.test.ts` |
+| A size the drafted pattern does not hold is a reason in words | `lib/kpp/sources/print.test.ts` |
+| The design version is hashed as the credits gate hashes it, and pinned to when it was saved | `lib/kpp/sources/rows.test.ts` |
+| `clear` is said only when every moderation target was screened; nothing screened is `not_built` | `lib/kpp/sources/rows.test.ts` |
+| The print thresholds are the brand's own profile, with where they came from | `lib/kpp/sources/rows.test.ts` |
+| A package the gate refuses is a 409 naming every gap with its field and its rule | `lib/kpp/sources/answer.test.ts` |
+| The ZIP is sent once, never stored, with the credit headers when something was charged | `lib/kpp/sources/answer.test.ts` |
+| The route is member-only, rate limited, takes one design id, and gives its answer back unchanged | `app/api/projects/[projectId]/production-package/route.test.ts` |
+
+Not verified here: no local database was started for this PR (one shared instance on this machine, several agents
+on it), so the route has not been called against real rows and no end-to-end spec was run; CI is their first run.
+No factory has opened any of these files, and the Phase 0 test matrix of `docs/spec/04` has still not been run by
+anyone.
+
+## Still owed after this revision
+
+- **The three tables with no owner** (BOM consumption, care-label wording, AQL plan), **the registry-option to
+  catalogue-code map**, **the `_nest.dxf` as a real marker**, **renders**, **ICC colour**, **the Urdu tech pack**
+  and **the Phase 0 factory test**, all unchanged.
+- **A batch package has no route.** It needs orders and a job sheet, which is ops's path, not a brand's.
+- **A screen that offers the download.** The route is mounted; no page links to it yet.
+- **The sleeve's underarm landmarks** in `lib/parametric`, so artwork on a sleeve is placed by landmark rather
+  than by the piece's bounds.
+
+## Owner questions
+
+1. **Should `lib/parametric`'s sleeve carry `underarm-a` and `underarm-b`?** Without them `lib/print` places
+   artwork on a sleeve by the piece's bounds. Nothing is wrong in the file, and the margin says what it says, but
+   a sleeve band will not line up with the body's chest line as exactly as it could. Adding two landmarks is a
+   drafter change, not a print change.
+2. **Who places the order?** Nothing on `factories` or on a capability says whether Knitwright or the brand
+   places it, and that is what decides whether the package is free (spec decision 9, owner decision 20). The
+   route charges, which is decision 20's answer for a factory Knitwright does not own, and says so in the
+   package. **This is money.**
+3. **Should the export route offer a batch package too**, or does a batch stay ops's own path? A batch adds the
+   job sheet and groups print files by order, and its orders are ops rows.
+4. **Which white point does the colour house work to** — still open, from revision 2.
