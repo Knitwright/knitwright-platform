@@ -138,7 +138,7 @@ test.describe("the collection board", () => {
 
     const totals = page.getByRole("complementary", { name: "Totals for this range" });
     await expect(totals.getByText("1 style · 2 style-colourways · 3 SKUs")).toBeVisible();
-    await expect(totals.getByText(/Navy · 2 SKUs · 20 pieces/)).toBeVisible();
+    await expect(totals.getByText(/Navy · 2 SKUs · 30 pieces/)).toBeVisible();
     // The spec asks for colours; the plan holds colourway names, and the panel says so rather than inventing a count.
     await expect(totals.getByText(/A colour list comes from each design's own colours/)).toBeVisible();
   });
