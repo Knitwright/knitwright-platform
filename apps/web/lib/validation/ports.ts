@@ -3,9 +3,12 @@ import type { ArticleRef } from "@/lib/garment/spec-schema";
 /**
  * The two things validation reads from workstreams that are built beside it (plan v5 Lessons 9). Each is the smallest
  * interface validation needs. The real implementations over the base article catalogue (X1) and moderation (X8) are in
- * `live-ports.ts` and are what `lib/projects/service.ts` passes on a save. The unwired versions below stay: they say
- * "nothing known", which raises no finding about parameters or moderation, and they are what the unit tests of both
- * sides and the plan's test doubles use.
+ * `live-ports.ts`, and **every path that runs the checks for a person passes those**: the save
+ * (`lib/projects/service.ts`), the readiness list and the status move (`app/api/projects/[projectId]/validation`), and
+ * the reorder preview (`lib/clubs/reorder`). The unwired versions below stay: they say "nothing known", which raises no
+ * finding about parameters or moderation, and they are what the unit tests of both sides and the plan's test doubles
+ * use. They are not a production default — a path that validates on them under-reports against the same design's own
+ * save, which is what the status move and the reorder preview did until the orchestrator wired them.
  */
 
 /** One structural parameter of a base article, as the catalogue approves it. */

@@ -4,6 +4,7 @@ import { completeProduction, targetedJersey } from "../../fixtures/production";
 import { SECTION_IDS, SECTION_TITLES } from "../../types";
 import { allText, type ReadPage } from "../fixtures/pdf-pages";
 import { noSpace, readPdfOf } from "../fixtures/pdf-helpers";
+import { TECH_PACK_PAGES } from "../pages";
 
 /** The PDF of a jersey with every production record carries the v2 sections, and the same bytes twice. */
 describe("the PDF with the production records", () => {
@@ -23,14 +24,15 @@ describe("the PDF with the production records", () => {
     expect(Buffer.from(first).equals(Buffer.from(second))).toBe(true);
   });
 
-  it("puts every title in order, the v2 sections among them", () => {
+  it("puts the sixteen pages in order, with every section of the document named among them", () => {
     const text = noSpace(allText(pages));
     let from = 0;
-    for (const id of SECTION_IDS) {
-      const at = text.indexOf(noSpace(SECTION_TITLES[id]), from);
-      expect(at, id).toBeGreaterThanOrEqual(from);
+    for (const page of TECH_PACK_PAGES) {
+      const at = text.indexOf(noSpace(page.title), from);
+      expect(at, page.id).toBeGreaterThanOrEqual(from);
       from = at;
     }
+    for (const id of SECTION_IDS) expect(text, id).toContain(noSpace(SECTION_TITLES[id]));
   });
 
   it("prints the sentences a factory reads: the list of what is missing, the review, the cut list and the strike-off", () => {
