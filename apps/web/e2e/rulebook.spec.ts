@@ -3,9 +3,13 @@ import { expect } from "@playwright/test";
 import { createAccount, makePlatformAdmin, signIn, test } from "./support";
 
 /**
- * Decision 0067, the rulebook and "Why?" v1: the admin page does not exist for anyone but a platform admin; a Why?
- * popover shows a seeded rule's words and that it is a draft, is keyboard-usable and passes axe; an unknown id shows
- * the gap text and lands in the gap list; an edit saves a new version, which can then be confirmed.
+ * Decision 0067, the rulebook and "Why?" v1, with the revision of owner decisions 11 to 14: the admin page does not
+ * exist for anyone but a platform admin; a Why? popover shows a seeded rule's words, how far the rule reaches and
+ * that it is a draft (the Knitwright team is the one reader who sees a draft, owner decision 11), is keyboard-usable
+ * and passes axe; an unknown id shows the gap text and lands in the gap list; an edit saves a new version, which is
+ * then confirmed in the name of the factory person who reviewed it and reads back as "Reviewed by NAME, ROLE, on
+ * DATE". What a member sees instead of a draft is covered by tests/integration/rulebook.test.ts, because no page
+ * outside this one carries a Why? link yet.
  */
 
 const three = () => String(Math.floor(Math.random() * 1000)).padStart(3, "0");
@@ -35,6 +39,9 @@ test.describe("the rulebook", () => {
     await expect(popover).toContainText("Artwork that crosses a seam can be offset by up to 3 mm after sewing");
     await expect(popover).toContainText("Draft, not yet confirmed by the factory");
     await expect(popover).toContainText("Sublimation practice");
+    // Owner decision 12: a shared rule reaches as far as the sublimation method, never "every article".
+    await expect(popover).toContainText("Covers: the sublimation method (scope not reviewed by a factory)");
+    await expect(popover).not.toContainText("every article");
     await expect(why).toHaveAttribute("aria-expanded", "true");
     expect((await new AxeBuilder({ page }).include('[role="dialog"]').analyze()).violations).toEqual([]);
     await page.keyboard.press("Escape");
@@ -54,6 +61,9 @@ test.describe("the rulebook", () => {
     const add = page.getByTestId("rule-editor-new");
     await add.getByLabel("Rule id").fill(ruleId);
     await add.getByLabel("Topic").selectOption("print");
+    await add.getByLabel("Article codes").fill("JSY-SS-01");
+    await add.getByLabel("Methods").fill("sublimation");
+    await add.getByLabel("Scope note").fill("scope not reviewed by a factory");
     await add.getByLabel("Applies to").fill("A test of the editor");
     await add.getByLabel("Rule", { exact: true }).fill("First words");
     await add.getByLabel("Why", { exact: true }).fill("Because");
@@ -75,8 +85,19 @@ test.describe("the rulebook", () => {
     await expect(item).toContainText("Second words");
     await item.getByText("Earlier versions (1)").click();
     await expect(item).toContainText("First words");
-    await item.getByRole("button", { name: "The factory confirmed version 2" }).click();
-    await expect(page.getByTestId(`status-${ruleId}`)).toContainText(`Confirmed by the factory on`);
+
+    // Owner decision 14: the confirmation names the factory person who reviewed the version, and their role.
+    const confirm = page.getByTestId(`confirm-${ruleId}`);
+    await confirm.getByRole("button", { name: "The factory confirmed version 2" }).click();
+    await expect(confirm.getByText("Write the name of the factory person who reviewed the rule.")).toBeVisible();
+    await confirm.getByLabel("Reviewed by").fill("Ana Lima");
+    await confirm.getByLabel("Their role").fill("pattern master");
+    await confirm.getByRole("button", { name: "The factory confirmed version 2" }).click();
+    await expect(page.getByTestId(`status-${ruleId}`)).toContainText("Reviewed by Ana Lima, pattern master, on");
     await expect(page.getByTestId(`status-${ruleId}`)).toContainText(`recorded by ${email}`);
+
+    await page.reload();
+    await item.getByRole("button", { name: `Why? Rulebook ${ruleId}` }).click();
+    await expect(page.getByRole("dialog")).toContainText("Reviewed by Ana Lima, pattern master, on");
   });
 });

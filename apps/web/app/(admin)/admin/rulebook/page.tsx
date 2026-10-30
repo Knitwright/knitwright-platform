@@ -17,7 +17,7 @@ function RuleItem({ rule }: Readonly<{ rule: AdminRule }>) {
   return (
     <li className="glass rounded-[1.75rem] p-6" data-testid={`rule-${entry.ruleId}`}>
       <p className="font-mono text-xs uppercase tracking-wider text-muted">
-        {entry.ruleId} · version {entry.version} · {entry.articleCodes.length > 0 ? entry.articleCodes.join(", ") : "every article"}
+        {entry.ruleId} · version {entry.version} · {rule.scope}
       </p>
       <h3 className="mt-2 font-semibold text-ink">{entry.title}</h3>
       <p className="mt-2 text-[15px] text-ink">{entry.rule}</p>
