@@ -28,6 +28,7 @@ const registryDesign = (patch: Record<string, string> = {}) => ({
 describe("the code for a catalogue option group", () => {
   it("reads the group from the registry key the map binds to it, not the key of the same name", () => {
     expect(boundRegistryKeys(MAP, "collar")).toEqual(["neckline"]);
+    expect(boundRegistryKeys(MAP, "pattern_fill")).toEqual([]);
     expect(codeForGroup(MAP, "collar", registryDesign())).toMatchObject({ outcome: "code", code: "C01", registryKey: "neckline" });
     expect(codeForGroup(MAP, "collar", registryDesign({ neckline: "v-neck" }))).toMatchObject({ outcome: "code", code: "C02" });
   });
@@ -49,7 +50,8 @@ describe("the code for a catalogue option group", () => {
   });
 
   it("says nothing was chosen when the design is silent about the group's own key", () => {
-    const { neckline: _neckline, ...rest } = registryDesign();
+    const { neckline, ...rest } = registryDesign();
+    expect(neckline).toBe("crew");
     expect(codeForGroup(MAP, "collar", rest)).toEqual({ outcome: "not_chosen", note: null });
   });
 

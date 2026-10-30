@@ -16,12 +16,12 @@ export type GroupOutcome =
   /** A published source joins the design's choice to this catalogue code. */
   | Readonly<{ outcome: "code"; code: string; registryKey: string; registryChoice: string; ruleId: string }>
   /** The design chose something under a registry key this group is fed by, and no code covers it. */
-  | Readonly<{ outcome: "no_code_yet"; registryKey: string; registryChoice: string; sentence: string; note: string }>
+  | Readonly<{ outcome: "no_code_yet"; registryKey: string; registryChoice: string; sentence: string; note: string | null }>
   /** Nothing in the design speaks to this group, so the article's own default stands. */
   | Readonly<{ outcome: "not_chosen"; note: string | null }>;
 
 /** One of the design's own choices that the catalogue has no code for, for a field that says so plainly. */
-export type UncodedChoice = Readonly<{ registryKey: string; registryChoice: string; sentence: string; note: string }>;
+export type UncodedChoice = Readonly<{ registryKey: string; registryChoice: string; sentence: string; note: string | null }>;
 
 export const GAP_RULE = "R-GAP-000";
 
@@ -35,13 +35,15 @@ export const noCodeSentence = (registryKey: string, registryChoice: string): str
 const forGroup = (map: readonly OptionCodeMapping[], group: string): readonly OptionCodeMapping[] =>
   map.filter((row) => row.optionGroup === group);
 
-/** True when the row is about the choice the design made under the row's own registry key. */
-const matchesChoice = (row: OptionCodeMapping, chosen: ChosenOptions): boolean => {
-  if (row.registryKey === null) return false;
-  const choice = chosen[row.registryKey];
-  if (choice === undefined) return false;
-  return row.registryChoice === null || row.registryChoice === choice;
-};
+/** The key and the choice this row is about, when the design really made that choice, or undefined. */
+function askedOf(row: OptionCodeMapping, chosen: ChosenOptions): { readonly key: string; readonly choice: string } | undefined {
+  const key = row.registryKey;
+  if (key === null) return undefined;
+  const choice = chosen[key];
+  if (choice === undefined) return undefined;
+  if (row.registryChoice !== null && row.registryChoice !== choice) return undefined;
+  return { key, choice };
+}
 
 /**
  * The catalogue code for one option group of one design, or the gap in its place.
@@ -54,19 +56,22 @@ const matchesChoice = (row: OptionCodeMapping, chosen: ChosenOptions): boolean =
 export function codeForGroup(map: readonly OptionCodeMapping[], group: string, chosen: ChosenOptions): GroupOutcome {
   const rows = forGroup(map, group);
   for (const row of rows) {
-    if (row.optionCode === null || row.registryKey === null || !matchesChoice(row, chosen)) continue;
-    const choice = chosen[row.registryKey] ?? "";
-    return { outcome: "code", code: row.optionCode, registryKey: row.registryKey, registryChoice: choice, ruleId: row.ruleId };
+    const code = row.optionCode;
+    if (code === null) continue;
+    const asked = askedOf(row, chosen);
+    if (asked === undefined) continue;
+    return { outcome: "code", code, registryKey: asked.key, registryChoice: asked.choice, ruleId: row.ruleId };
   }
   for (const row of rows) {
-    if (row.kind !== "no_code_yet" || row.registryKey === null || !matchesChoice(row, chosen)) continue;
-    const choice = chosen[row.registryKey] ?? "";
+    if (row.kind !== "no_code_yet") continue;
+    const asked = askedOf(row, chosen);
+    if (asked === undefined) continue;
     return {
       outcome: "no_code_yet",
-      registryKey: row.registryKey,
-      registryChoice: choice,
-      sentence: noCodeSentence(row.registryKey, choice),
-      note: row.note ?? "",
+      registryKey: asked.key,
+      registryChoice: asked.choice,
+      sentence: noCodeSentence(asked.key, asked.choice),
+      note: row.note,
     };
   }
   return { outcome: "not_chosen", note: rows.find((row) => row.registryKey === null)?.note ?? null };
@@ -79,10 +84,10 @@ export function codeForGroup(map: readonly OptionCodeMapping[], group: string, c
  */
 export function uncodedChoices(map: readonly OptionCodeMapping[], chosen: ChosenOptions): readonly UncodedChoice[] {
   return map.flatMap((row) => {
-    if (row.kind !== "no_code_yet" || row.optionGroup !== null || row.registryKey === null) return [];
-    if (!matchesChoice(row, chosen)) return [];
-    const choice = chosen[row.registryKey] ?? "";
-    return [{ registryKey: row.registryKey, registryChoice: choice, sentence: noCodeSentence(row.registryKey, choice), note: row.note ?? "" }];
+    if (row.kind !== "no_code_yet" || row.optionGroup !== null) return [];
+    const asked = askedOf(row, chosen);
+    if (asked === undefined) return [];
+    return [{ registryKey: asked.key, registryChoice: asked.choice, sentence: noCodeSentence(asked.key, asked.choice), note: row.note }];
   });
 }
 

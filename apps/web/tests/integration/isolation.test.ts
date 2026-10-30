@@ -1453,6 +1453,13 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { fabric_code: "F-MINE" },
     change: { gsm: "999" },
   },
+  // Plan v5 section 6 item 3 (decision 0099): the map from the registry's option keys to the catalogue's codes.
+  option_code_map: {
+    privileges: ["SELECT"],
+    row: { registry_key: "neckline", registry_choice: "v-neck" },
+    attempt: { registry_key: "made-up", kind: "mapped" },
+    change: { option_code: "C99" },
+  },
 };
 
 /**
