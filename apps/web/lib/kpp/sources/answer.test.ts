@@ -25,7 +25,7 @@ const built = (rows: KppRows = fixtureRows()) => exportPackage(buildKppInput(row
 /** The same rows with the first point of measure's tolerance taken away, which owner decision 18 refuses. */
 const noTolerance = (): KppRows => {
   const rows = fixtureRows();
-  const poms = rows.article.poms.map((pom, index) => (index === 0 ? ({ ...pom, tolMinusMm: null, tolPlusMm: null } as typeof pom) : pom));
+  const poms = rows.article.poms.map((pom, index) => (index === 0 ? ({ ...pom, tolMinusMm: null, tolPlusMm: null } as unknown as typeof pom) : pom));
   return { ...rows, article: { ...rows.article, poms } };
 };
 
@@ -44,7 +44,7 @@ describe("a package the gate refuses", () => {
 
   it("gives the member one line per gap, each with the field it is about and its rule", async () => {
     const result = await built(noTolerance());
-    if (result.ok) throw new Error("The gate should have refused this package.");
+    if (result.ok || result.reason !== "blocked") throw new Error("The gate should have refused this package.");
 
     const lines = gapLines(result.issues);
 
