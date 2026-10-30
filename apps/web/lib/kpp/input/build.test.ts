@@ -60,19 +60,66 @@ describe("the design, the article and the factory", () => {
     expect(offset?.ruleId).toMatch(/^R-/);
   });
 
-  it("writes a catalogue code where the design's choice is one, and the design's own word where it is not", () => {
+  it("writes a catalogue code where the design's choice is one", () => {
     const rows = fixtureRows();
     const object = { ...rows.object, article: { ...rows.object.article, options: { ...rows.object.article.options, collar: "C02" } } };
     const mapped = buildKppInput({ ...rows, object }).fields.find((field) => field.id === "option_collar");
 
     expect(mapped?.value).toMatch(/^C02 /);
     expect(mapped?.provenance).toBe("from_design");
-    // The registry's own option keys are not catalogue codes, and nothing maps them yet, so the design's word stands.
-    expect(built().fields.find((field) => field.id === "option_collar")).toMatchObject({
-      value: "none (not yet mapped to a catalogue code)",
+    expect(mapped?.ruleId).toBe("R-CON-005");
+  });
+
+  /**
+   * The option code map (decision 0099). The fixture design is a registry design, so its options are the
+   * registry's own words; the map turns the ones a published source joins to a code into that code, and says
+   * plainly where it has none.
+   */
+  it("turns the design's own word into a catalogue code where a published source joins the two", () => {
+    const fields = built().fields;
+    expect(fields.find((field) => field.id === "option_collar")).toMatchObject({
+      // The design's `neckline: "crew"`, which the map joins to C01. Its own `collar: "none"` is another question.
+      value: "C01 Crew neck, 1x1 rib, 20 mm finished",
       provenance: "from_design",
-      ruleId: "R-GAP-000",
+      ruleId: "R-CON-004",
     });
+    expect(fields.find((field) => field.id === "option_sleeve_finish")).toMatchObject({
+      value: "K01 Coverstitch hem, 20 mm",
+      provenance: "from_design",
+      ruleId: "R-CON-007",
+    });
+  });
+
+  it("says there is no code, rather than writing the design's own word as one, when the map has none", () => {
+    const rows = fixtureRows({ optionCodeMap: [] });
+    const collar = buildKppInput(rows).fields.find((field) => field.id === "option_collar");
+    expect(collar).toMatchObject({ provenance: "from_design", ruleId: "R-GAP-000" });
+    expect(collar?.value).toContain("No catalogue code yet");
+    // The design's word appears only inside that sentence, never where a code belongs.
+    expect(collar?.value).not.toMatch(/^[A-Z][0-9]{2}|^none/);
+  });
+
+  it("says plainly that the catalogue has no code for a choice nothing published joins to one", () => {
+    const rows = fixtureRows();
+    const options = { ...rows.object.article.options, collar: "band-collar", placket: "zip" };
+    const fields = buildKppInput({ ...rows, object: { ...rows.object, article: { ...rows.object.article, options } } }).fields;
+    const stand = fields.find((field) => field.id === "design_option_collar");
+
+    expect(stand).toMatchObject({ label: "Design option: collar", provenance: "from_design", ruleId: "R-GAP-000" });
+    expect(stand?.value).toBe(
+      'No catalogue code yet: the design asked for "band-collar" under the design option "collar", and nothing published joins it to a code.',
+    );
+    expect(fields.find((field) => field.id === "design_option_placket")?.value).toContain('asked for "zip"');
+    // The band collar does not become the neck finish: that group still reads the neckline the design chose.
+    expect(fields.find((field) => field.id === "option_collar")?.value).toMatch(/^C01 /);
+  });
+
+  it("writes no field a factory would read whose value is a code the catalogue never approved", () => {
+    const codes = new Set(fixtureRows().article.options.map((option) => option.code));
+    for (const field of built().fields) {
+      const named = /\b([A-Z][0-9]{2})\b/.exec(field.value ?? "");
+      if (named !== null) expect(codes, field.id).toContain(named[1]);
+    }
   });
 
   it("says in the README notes where every value came from and what is still a draft", () => {
