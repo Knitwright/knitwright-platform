@@ -89,3 +89,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0072 | [Factory job packet (a link, no account)](0072-factory-job-packet.md) | Proposed; owner questions listed |
 | 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |
 | 0075 | [The editor shell and the Form toolbar](0075-editor-shell-and-form-toolbar.md) | Proposed; owner questions listed |
+| 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
