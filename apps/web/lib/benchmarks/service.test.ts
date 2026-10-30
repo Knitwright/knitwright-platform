@@ -32,14 +32,13 @@ const siteOf = (robots = "User-agent: *\nAllow: /", html = "<h1>Speedshort</h1><
 };
 
 const depsOf = (over: Partial<ServiceDeps> = {}): ServiceDeps & { store: ReturnType<typeof createMemoryStore> } => {
-  const store = createMemoryStore();
+  const store = (over.store as ReturnType<typeof createMemoryStore> | undefined) ?? createMemoryStore();
   return {
-    store,
     extractor: createStubExtractor([runningShort()]),
     fetcher: siteOf().fetcher,
     limiter: async () => true,
     ...over,
-    store: (over.store as ReturnType<typeof createMemoryStore>) ?? store,
+    store,
   };
 };
 
@@ -140,9 +139,8 @@ describe("a URL becomes a card", () => {
 
   it("stops at a site's own robots.txt, says so plainly, and keeps that the page was never read", async () => {
     const site = siteOf("User-agent: knitwrightbenchmark\nDisallow: /product/");
-    const deps = depsOf({ fetcher: site.fetcher });
     const extractor = createStubExtractor([runningShort()]);
-    deps.extractor = extractor;
+    const deps = depsOf({ fetcher: site.fetcher, extractor });
 
     const outcome = await addCardFromUrl(deps, WHO, { benchmarkId: await benchmarkIn(deps), url: URL_IN });
 

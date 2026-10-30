@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { benchmarkFailure } from "./errors";
-import { BENCHMARK_LIMITS, brandFetchKey, hostFetchKey, TOO_MANY_FETCHES } from "./limits";
+import { BENCHMARK_LIMITS, brandFetchKey, hostFetchKey } from "./limits";
 import { BENCHMARK_RULE_GAPS, BENCHMARK_USER_AGENT, FEATURE_KEYS, FEATURES, featureOf, RULE_GAP } from "./vocabulary";
 
 describe("benchmarkFailure", () => {
