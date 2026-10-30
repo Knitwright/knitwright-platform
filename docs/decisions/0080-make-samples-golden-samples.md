@@ -41,36 +41,43 @@ Two things already exist and are built on rather than around:
    the observer). Nothing may be inserted against a golden sample that is already signed off, and no row of those three
    tables can ever be changed or removed: that is what makes it evidence. Asking for changes closes the golden sample
    (`changes_requested`) and the next draft of the design starts a new one.
-4. **A run needs a signed-off golden sample of the version being made.** `submit_make_order` refuses a run
+4. **A sign-off carries its evidence and moves the product on.** `sign_off_golden_sample` refuses a sign-off with
+   no photo (`needs_photo`) and with nothing measured (`needs_measurement`), because a sign-off with nothing behind
+   it is only an opinion; a Delta-E reading is not required, since a brand may have no colour report. Signing off
+   also moves the product `idea` to `sample` to `run` through `confirm_brand_product_stage` (decision 0062), which
+   is what makes a run possible at all: the founder's sign-off is the same act as the brand workspace's "happy with
+   the sample". A photo is a picture the brand already holds (`public.files`), kept as a plain id rather than a key,
+   so removing the picture later cannot force a change to an evidence row.
+5. **A run needs a signed-off golden sample of the version being made.** `submit_make_order` refuses a run
    (`golden_sample_required`) unless a signed-off golden sample exists for the release's design version, or a recorded
    carry-over brings one forward from a parent version. A carry-over is written by `carry_over_golden_sample`, which
    refuses any changed field the server did not label `surface`; the server labels fields with
    `lib/make/surface.ts`, which classifies every top-level field of the design and treats an unknown field as
    structural. The carry-over row keeps the list of changed fields, so why a run was allowed can be read back.
    A carried-over sign-off always carries the note that the colour readings were taken on the parent's own colours.
-5. **A sample is one piece per size, at most three sizes.** Checked in `lib/make/sample.ts` for the screen and again in
+6. **A sample is one piece per size, at most three sizes.** Checked in `lib/make/sample.ts` for the screen and again in
    `submit_make_order`, which refuses more than three (`sample_sizes`). `submit_brand_run` already refuses anything
    other than one piece per size.
-6. **Class B is 50 to 300 pieces per style.** The class comes from the base article (decision 0066), looked up through
+7. **Class B is 50 to 300 pieces per style.** The class comes from the base article (decision 0066), looked up through
    the design's garment type. Where the class is known, `submit_make_order` refuses a Class B run outside that range
    (`class_b_quantity`) and `lib/make/run.ts` says the same thing on the screen before the press. Class A is any
    quantity from one piece. Where no base article covers the garment type the class is "not set", no range is applied,
    and the screen says the class is not set rather than guessing it.
-7. **Every price is X6's row, labelled.** `lib/make/prices.ts` reads the price tiers for 1, 50 and 100 pieces through
+8. **Every price is X6's row, labelled.** `lib/make/prices.ts` reads the price tiers for 1, 50 and 100 pieces through
    `priceFor`, and shows each as the tier's own label — the seed's is "Placeholder club price from the build pack, not
    a factory quote". A quantity below the smallest tier is shown as "no tier covers it", never as a price. Money is
    integer minor units and a currency everywhere; the only formatting is `formatMoney` (decision 0071). The order modal
    prices a basket with the tier read across every piece in it (spec F-T5), through `priceBasket`.
-8. **No delivery date is promised.** `lib/make/delivery.ts` shows exactly what `promisedDate` (decision 0071) answers.
+9. **No delivery date is promised.** `lib/make/delivery.ts` shows exactly what `promisedDate` (decision 0071) answers.
    The seed has no QC days and no freight days, so today every date reads "not set" and names what is missing. The
    "Ready by" chip of the order modal filters only on dates the factory data can actually produce; with none, it says
    so and selects nothing.
-9. **Server only writes, through functions.** The five tables are brand-scoped with row level security; members read
+10. **Server only writes, through functions.** The five tables are brand-scoped with row level security; members read
    their own brand's rows, the browser role holds SELECT only, and so does the service role. Every write is a
    SECURITY DEFINER function only `service_role` may run, which checks the caller's role (`can_manage_kit`, the club
    rule, as decision 0062 does). Screens call server actions (`defineAction`, rate limit `clubWrite`); the brand and
    the person always come from the session.
-10. **The hand-off keeps the existing factory profile id.** Prices, lead times and dates come from X6's factory rows;
+11. **The hand-off keeps the existing factory profile id.** Prices, lead times and dates come from X6's factory rows;
     the id passed to `submit_order_for_production` stays the one the existing factory profile gives
     (`knitwright-default` until the owner adds factories), as decision 0062 passes it, so ops batching is unchanged.
     Joining the two ideas of "factory" is wiring the orchestrator owns, not this workstream's to change.
@@ -91,6 +98,11 @@ every finding this workstream raises carries `R-GAP-000` and is listed in the pu
 | Price at 1, 50 and 100 from the tiers, below the smallest tier is not a price | `lib/make/prices.test.ts` |
 | A date is shown only when every part is set, and says what is missing otherwise | `lib/make/delivery.test.ts` |
 | The order modal's search, chips, tier recalculation and total | `lib/make/order-modal.test.ts` |
+| A measurement judged against its tolerance, and a reading against the factory's limit | `lib/make/judge.test.ts` |
+| The summary, the carry-over annotation and the whole context | `lib/make/context.test.ts` |
+| Every write sends the brand and the person from the session, and each refusal becomes the right failure | `lib/make/service.test.ts` |
+| What the pages may send, and the market a price is shown in | `lib/make/schemas.test.ts`, `lib/make/market.test.ts` |
+| The journey from a sample to a signed-off golden sample to a run | `e2e/make.spec.ts` |
 | Nothing reads as settled, and no price or date is written in the source | `lib/make/wording.test.ts` |
 | The database refuses a run with no sign-off, a fourth sample size, a Class B run out of range, evidence on a signed-off sample, and every direct write | `tests/integration/golden-samples.test.ts` |
 | The tables are invisible to another brand and unwritable by a browser | `tests/integration/isolation.test.ts` |
