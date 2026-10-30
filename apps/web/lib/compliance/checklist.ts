@@ -54,7 +54,7 @@ export function checklistSentence(result: ChecklistResult): string {
   }
   const skipped = result.items.filter((item) => item.status === "skipped").length;
   const warnings = result.warnings.length;
-  const notes = warnings === 0 ? "" : ` ${warnings} ${warnings === 1 ? "note" : "notes"} go with it.`;
+  const notes = warnings === 0 ? "" : ` ${warnings} ${warnings === 1 ? "note goes" : "notes go"} with it.`;
   return skipped === 0
     ? `Every check passed.${notes}`
     : `Every check that applies passed; ${skipped} ${skipped === 1 ? "was" : "were"} not checked here.${notes}`;

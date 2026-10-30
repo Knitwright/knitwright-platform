@@ -114,8 +114,6 @@ export type ProductionClass = "A" | "B" | null;
 export const MODERATION_STATES = ["clear", "flagged", "blocked", "pending", "not_built"] as const;
 export type ModerationState = (typeof MODERATION_STATES)[number];
 
-export const pieces = (count: number): string => `${count} ${count === 1 ? "piece" : "pieces"}`;
-
 /** Joins words the way the rest of the platform does: "a, b and c". */
 export const listOf = (words: readonly string[]): string =>
   words.length <= 1 ? (words[0] ?? "") : `${words.slice(0, -1).join(", ")} and ${words[words.length - 1]}`;

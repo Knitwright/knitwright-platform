@@ -113,6 +113,8 @@ export const writtenCareSymbol = (over: Partial<CareSymbol> = {}): CareSymbol =>
 export const writtenLabelRules = (over: Readonly<Record<string, unknown>> = {}): Readonly<Record<string, unknown>> => ({
   version: 1,
   label: "Written by the owner for this test",
+  // A market whose wording is finished has a recorded position on CPSIA too, either way.
+  cpsiaRequired: false,
   lines: {
     fibre: { text: "100% Polyester", language: "en", order: "descending_percentage", confirmed: true, source: "The market's own wording" },
     care: { symbolCodes: ["ISO3758-WASHING"], confirmed: true, source: "The market's own wording" },
