@@ -96,7 +96,10 @@ upload and the moderation screen it runs (decision 0073, X8 `screenUpload` throu
     message, and the **SHA-256 of the token and nothing else** — the token is shown to the member
     once and cannot be read back, copying decision 0026 exactly. Inviting an address that already
     has an open invite changes that invite rather than making a second one, so the
-    People-with-access list has one row per person and the link already sent still works.
+    People-with-access list has one row per person; the invite takes the **new** token, so the
+    member always has a link to send, and the one sent before stops working. Keeping the old token
+    instead would leave a member who had just changed someone's access with no way to reach them,
+    because a token cannot be read back.
 14. **Nobody writes to the table directly.** Every write goes through a SECURITY DEFINER function
     only the server's own key may run, which checks the member's brand itself; members hold SELECT
     on their own brand's rows through RLS and nothing else. No grant was weakened.

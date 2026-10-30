@@ -81,22 +81,19 @@ export const inviteToShareAction = defineAction({
       message: input.message,
       days: input.days,
     });
-    const address = invite.token === null ? null : inviteAddress(getEnv().NEXT_PUBLIC_SITE_URL, invite.token);
-    const sender = inviteSender();
-    const outcome = address
-      ? await sender.send(
-          inviteMessage({
-            to: input.email,
-            fromName: session.email ?? session.brand.name,
-            replyTo: session.email,
-            brandName: session.brand.name,
-            designName: design.name,
-            access: input.access,
-            message: input.message,
-            address,
-          }),
-        )
-      : ({ sent: false, reason: "This address already had an invite, so its own link still works." } as const);
+    const address = inviteAddress(getEnv().NEXT_PUBLIC_SITE_URL, invite.token);
+    const outcome = await inviteSender().send(
+      inviteMessage({
+        to: input.email,
+        fromName: session.email ?? session.brand.name,
+        replyTo: session.email,
+        brandName: session.brand.name,
+        designName: design.name,
+        access: input.access,
+        message: input.message,
+        address,
+      }),
+    );
     if (outcome.sent) await markShareInviteEmailed(admin, { inviteId: invite.id, userId: session.userId });
     refreshDesign(input.projectId);
     return { address, access: input.access, replaced: invite.replaced, emailed: outcome.sent, emailNote: outcome.sent ? null : outcome.reason };

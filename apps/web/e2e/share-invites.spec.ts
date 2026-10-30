@@ -104,9 +104,9 @@ test.describe("inviting someone to a design", () => {
     const rows = panel.getByTestId("share-access-row").filter({ hasText: chair });
     await expect(rows).toHaveCount(1);
     await expect(rows).toContainText("Can edit");
-    // The invite kept its own token, so the link already sent still works and is not shown again.
-    await expect(panel.getByTestId("share-invite-address")).toHaveCount(0);
-    await expect(panel.getByTestId("share-invite-made")).toContainText("its own link still works");
+    // The invite took a new token, so the member has a link to send and the one before has stopped.
+    await expect(panel.getByTestId("share-invite-once")).toContainText("has stopped working");
+    expect(await panel.getByTestId("share-invite-address").inputValue()).toMatch(/\/s\/[A-Za-z0-9_-]{43}$/);
   });
 
   test("refuses an address that is not one, and says so on the field", async ({ page }) => {

@@ -22,10 +22,9 @@ const ACCESS_OPTIONS = SHARE_ACCESS.map((id) => ({ id, label: ACCESS_LABELS[id] 
 const DAY_OPTIONS = LINK_DAYS.map((days) => ({ id: days, label: `${days} days` }));
 
 /** The invite's link, shown once. Only its hash is kept, so it cannot be shown again. */
-function NewInvite({ address, note }: Readonly<{ address: string | null; note: string | null }>) {
+function NewInvite({ address, note, replaced }: Readonly<{ address: string; note: string | null; replaced: boolean }>) {
   const [copied, setCopied] = useState(false);
   const copy = async () => {
-    if (!address) return;
     try {
       await navigator.clipboard.writeText(address);
       setCopied(true);
@@ -38,22 +37,23 @@ function NewInvite({ address, note }: Readonly<{ address: string | null; note: s
       <p>
         <strong className="font-semibold">They are on the list.</strong> {note ?? "We emailed them the link."}
       </p>
-      {address ? (
-        <div className="flex flex-wrap gap-2">
-          <input
-            readOnly
-            value={address}
-            aria-label="Invite link"
-            data-testid="share-invite-address"
-            onFocus={(event) => event.currentTarget.select()}
-            className="h-11 min-w-0 flex-1 rounded-lg border border-hairline bg-surface px-3 font-mono text-[13px] text-ink"
-          />
-          <Button type="button" variant="secondary" onClick={copy}>
-            {copied ? "Copied" : "Copy invite link"}
-          </Button>
-        </div>
-      ) : null}
-      <p>The link is shown only this once.</p>
+      <div className="flex flex-wrap gap-2">
+        <input
+          readOnly
+          value={address}
+          aria-label="Invite link"
+          data-testid="share-invite-address"
+          onFocus={(event) => event.currentTarget.select()}
+          className="h-11 min-w-0 flex-1 rounded-lg border border-hairline bg-surface px-3 font-mono text-[13px] text-ink"
+        />
+        <Button type="button" variant="secondary" onClick={copy}>
+          {copied ? "Copied" : "Copy invite link"}
+        </Button>
+      </div>
+      <p data-testid="share-invite-once">
+        The link is shown only this once.
+        {replaced ? " This address was already invited, so it has a new link and the one sent before has stopped working." : ""}
+      </p>
     </div>
   );
 }
@@ -87,7 +87,9 @@ export function InviteForm({ projectId }: Readonly<{ projectId: string }>) {
         </Button>
       </form>
       <FormSummary message={summary} />
-      {state.result?.success ? <NewInvite key={state.attempt} address={state.result.data.address} note={state.result.data.emailNote} /> : null}
+      {state.result?.success ? (
+        <NewInvite key={state.attempt} address={state.result.data.address} note={state.result.data.emailNote} replaced={state.result.data.replaced} />
+      ) : null}
     </div>
   );
 }

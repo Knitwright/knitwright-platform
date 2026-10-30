@@ -27,13 +27,10 @@ const createdRow = z.object({ id: z.uuid(), expires_at: z.string(), replaced: z.
 export interface NewShareInvite {
   readonly id: string;
   readonly expiresAt: string;
-  /** True when the address already had an open invite, which kept its token and took the new access. */
+  /** True when the address already had an open invite, which took the new access and a new token. */
   readonly replaced: boolean;
-  /**
-   * Shown to the member once. Only its hash is stored. Null where the address already had an
-   * invite: that invite kept its own token, which cannot be read back.
-   */
-  readonly token: string | null;
+  /** Shown to the member once. Only its hash is stored, so it cannot be shown again. */
+  readonly token: string;
 }
 
 export async function createShareInvite(
@@ -52,7 +49,7 @@ export async function createShareInvite(
   });
   throwIf(error, DESIGN_NOT_FOUND);
   const row = createdRow.parse(Array.isArray(data) ? data[0] : data);
-  return { id: row.id, expiresAt: row.expires_at, replaced: row.replaced, token: row.replaced ? null : token };
+  return { id: row.id, expiresAt: row.expires_at, replaced: row.replaced, token };
 }
 
 export async function revokeShareInvite(admin: SupabaseClient, input: Readonly<{ inviteId: string; userId: string }>): Promise<void> {

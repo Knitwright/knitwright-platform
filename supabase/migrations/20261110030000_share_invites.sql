@@ -139,9 +139,10 @@ end;
 $$;
 
 -- Invites one address to one design. The server makes the token and passes it here once; only its
--- hash is kept. Inviting an address that already has an open invite changes that invite's access
--- and message rather than making a second one, so the People-with-access list has one row per
--- person. Returns the invite's id and expiry.
+-- hash is kept. Inviting an address that already has an open invite changes that invite rather than
+-- making a second one, so the People-with-access list has one row per person; the invite takes the
+-- new token, so the member has a link to send and the one sent before stops working. Returns the
+-- invite's id, its expiry, and whether it replaced one that was already there.
 create function public.create_share_invite(
   p_project_id uuid,
   p_user_id uuid,
@@ -192,13 +193,16 @@ begin
   limit 1;
 
   if found then
-    -- The address already has an open invite: it keeps its token, so the link already sent still
-    -- works, and takes the new access and message.
+    -- The address already has an open invite. It takes the new access, message and token, so the
+    -- member has a link to send; the link sent before stops working, because a token is shown once
+    -- and cannot be read back (decision 0026, owner question 3).
     update public.share_invites i
     set access = p_access,
         message = v_message,
+        token_hash = private.share_token_hash(p_token),
         expires_at = now() + make_interval(days => p_days),
-        email_sent_at = null
+        email_sent_at = null,
+        accepted_at = null
     where i.id = v_open.id;
     return query select v_open.id, (now() + make_interval(days => p_days))::timestamptz, true;
     return;

@@ -93,6 +93,17 @@ describe("create_share_invite", () => {
     expect(rows[0]).toMatchObject({ email: "chair@northside.test", access: "view" });
   });
 
+  it("gives a replaced invite the new token, and the one sent before stops working", async () => {
+    const designId = await project(aliceBrand, alice);
+    const first = await invite(designId, alice, { p_email: "chair@northside.test" });
+    expect(await openInvite(first.token)).toHaveLength(1);
+    const again = await invite(designId, alice, { p_email: "chair@northside.test", p_access: "edit" });
+    expect(await openInvite(first.token)).toEqual([]);
+    const opened = await openInvite(again.token);
+    expect(opened).toHaveLength(1);
+    expect(opened[0]).toMatchObject({ invite_id: first.id, access: "edit" });
+  });
+
   it("refuses another brand's design, an address that is not one, and an access level that is not offered", async () => {
     const designId = await project(aliceBrand, alice);
     expect((await adminClient().rpc("create_share_invite", { p_project_id: designId, p_user_id: bob.userId, p_email: address(), p_access: "view", p_message: "", p_token: token(), p_days: 30 })).error).not.toBeNull();
