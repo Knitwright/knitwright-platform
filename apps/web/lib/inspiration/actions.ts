@@ -104,7 +104,7 @@ export const suggestFromCardAction = defineAction({
     const card = cardById(board, input.cardId);
     if (card === null) throw new AppError("not_found", NO_CARD);
     const primary = chooseModels(getEnv()).primary;
-    const metered = primary === undefined ? reader : meteredReader(reader, productionDeps.usage, who, suggestCostMicrodollars(primary.entry), "inspiration/suggest");
+    const metered = primary === null || primary === undefined ? reader : meteredReader(reader, productionDeps.usage, who, suggestCostMicrodollars(primary.entry), "inspiration/suggest");
     const made = await suggestFromCard(project.spec, card, {
       reader: metered,
       profile: await loadFactoryProfile(client),
