@@ -223,6 +223,52 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { format: "xlsx" },
   },
+  // Plan v5 X5b (decision 0070): the record of a production package export. Members read their own brand's rows and
+  // nothing else; record_package_export is the only way one is written, and a row is never changed or removed.
+  package_exports: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("record_package_export", {
+          p_project_id: projectId,
+          p_user_id: ownerId,
+          p_spec_version: 1,
+          p_design_code: "Isolation_Kit",
+          p_root: "KPP_Isolation_Kit_v1_SKT-01",
+          p_file_name: "KPP_Isolation_Kit_v1_SKT-01.zip",
+          p_design_hash: "a".repeat(64),
+          p_factory_code: "SKT-01",
+          p_kind: "sample",
+          p_generator_version: "kpp-1.0.0",
+          p_zip_sha256: "b".repeat(64),
+          p_zip_bytes: 1024,
+          p_file_count: 12,
+          p_built_for: "2026-10-25T09:30:00Z",
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      spec_version: 1,
+      design_code: "Made_Directly",
+      root: "KPP_Made_Directly_v1_X",
+      file_name: "KPP_Made_Directly_v1_X.zip",
+      design_hash: "c".repeat(64),
+      factory_code: "X",
+      kind: "sample",
+      generator_version: "kpp-1.0.0",
+      zip_sha256: "d".repeat(64),
+      zip_bytes: 1,
+      file_count: 1,
+      built_for: "2026-10-25T09:30:00Z",
+      user_id: userId,
+    }),
+    change: { file_count: 99 },
+  },
   // Plan step 10: a member can neither change a limit nor delete a usage event.
   usage_events: {
     privileges: ["SELECT"],

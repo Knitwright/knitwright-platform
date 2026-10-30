@@ -64,18 +64,18 @@ export function colourSpecPdf(input: KppInput): Uint8Array {
   const rows = c.colours.map((k) => [k.role, k.hex ?? "", k.hex ? hexToLab(k.hex).join(", ") : "", k.pantoneTcx ?? "", k.swatchId ?? ""]);
   return flow(input, "Colour spec")
     .heading("Colour spec")
-    .paragraph(`Fabric: ${c.fabric ?? "not set"}. Tolerance: delta E CMC 2:1 <= ${c.tolerance.max} against the strike-off. Strike-off required: ${c.strikeOffRequired ? "yes" : "no"}. Rule ${c.ruleId}.`)
+    .paragraph(`Fabric: ${c.fabric ?? "not set"}. Tolerance: ${c.tolerance.max === null ? "none agreed with this factory" : `delta E CMC 2:1 <= ${c.tolerance.max}`} against the strike-off. Strike-off required: ${c.strikeOffRequired ? "yes" : "no"}. Rule ${c.ruleId}.`)
     .table(
       [
         { title: "Role", share: 0.2 },
         { title: "Hex", share: 0.14 },
-        { title: "Lab (from hex, D65)", share: 0.24 },
+        { title: "Lab (from hex, D65, 2 deg)", share: 0.24 },
         { title: "Pantone TCX", share: 0.2 },
         { title: "Swatch ID", share: 0.22 },
       ],
       rows,
     )
-    .paragraph("Lab is computed from the screen colour. The printed strike-off is the colour to match.", { muted: true })
+    .paragraph("Lab is computed from the screen colour in sRGB under D65 with the two-degree observer, not measured. The printed strike-off is the colour to match.", { muted: true })
     .build();
 }
 

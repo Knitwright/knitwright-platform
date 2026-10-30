@@ -67,6 +67,9 @@ function colourIssues(input: KppInput): GateIssue[] {
   const spec = input.colour;
   const issues: GateIssue[] = blank(spec.fabric) ? [{ path: "colour.fabric", message: "Colour spec: no fabric named.", ruleId: spec.ruleId }] : [];
   if (spec.colours.length === 0) issues.push({ path: "colour.colours", message: "Colour spec: no colour roles.", ruleId: spec.ruleId });
+  // Owner decision 15: a colour difference nobody agreed is not written into a package, exactly as a tolerance
+  // nobody agreed is not written onto a point of measure (decision 18).
+  if (spec.tolerance.max === null) issues.push({ path: "colour.tolerance", message: "Colour spec: no colour difference has been agreed with this factory.", ruleId: spec.ruleId });
   spec.colours.forEach((c, i) => {
     const gaps = [blank(c.hex) || !HEX.test(c.hex ?? "") ? "no valid hex" : null, blank(c.pantoneTcx) ? "no Pantone TCX" : null, blank(c.swatchId) ? "no swatch ID" : null].filter((g) => g !== null);
     if (gaps.length > 0) issues.push({ path: `colour.colours[${i}]`, message: `Colour ${c.role}: ${gaps.join(", ")}.`, ruleId: spec.ruleId });
