@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { createAccount, openTool, signIn, test, userIdOf } from "./support";
+import { createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Make (plan v5 Y7, F-S7): the product-created page, a sample of one piece per size, the golden sample the founder
@@ -36,10 +36,6 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   const id = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1];
   if (!id) throw new Error(`No design id in ${page.url()}`);
-  // A new design holds no size run until the sizes are saved, and the make pages offer the sizes the design has.
-  await openTool(page, "Sizes");
-  await page.getByRole("button", { name: "Change sizes" }).click();
-  await expect(page.getByTestId("save-status")).toHaveText("Saved as version 2.");
   return id;
 };
 
@@ -74,7 +70,10 @@ test.describe("make (Y7)", () => {
     const projectId = await startDesign(page, name);
     await prepare(email, projectId, name);
 
-    await page.goto(`/studio/${projectId}/make`);
+    // The door into the make pages is the File menu of the editor shell (Y2's shell, Y7's one entry).
+    await page.getByTestId("file-menu-button").click();
+    await page.getByRole("list", { name: "File" }).getByRole("link", { name: "Make and order" }).click();
+    await expect(page).toHaveURL(new RegExp(`/studio/${projectId}/make$`));
     await expect(page.getByRole("heading", { level: 1, name: "Product created" })).toBeVisible();
     // No factory capability covers this article, so there is no price and no date, and the page says so.
     await expect(page.getByText("No price is on file for this article yet.").first()).toBeVisible();
