@@ -87,7 +87,9 @@ upload and the moderation screen it runs (decision 0073, X8 `screenUpload` throu
     like any other picture in Your library. **The tile's recipe — its layers and their places — is
     not stored yet**: that needs a `pattern_fills` table, and only the share migration was assigned
     to this workstream, so it is a follow-up rather than a second migration taken quietly.
-    Owner question 4.
+    Owner question 4. Publishing does not ask the rights question again (decision 0025): every
+    picture on the tile was uploaded under a confirmation the brand already gave, and a drawn shape
+    is the person's own, so the tile carries those confirmations rather than a fresh one.
 
 ### Part 3: Share
 
