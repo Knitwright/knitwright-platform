@@ -1,6 +1,7 @@
+import type { OutputKind } from "@/lib/credits/kinds";
 import { buildPackage, KPP_GENERATOR_VERSION, type ManifestEntry } from "./assemble";
 import { sha256Hex } from "./encode";
-import type { GateIssue } from "./gate";
+import { checkPackage, type GateIssue } from "./gate";
 import type { KppInput, KppSources } from "./model";
 import { packageRoot, safePart } from "./paths";
 
@@ -9,14 +10,14 @@ import { packageRoot, safePart } from "./paths";
  * was built (decision 0070).
  *
  * The package is free when Knitwright makes the order and paid when a brand takes the files
- * elsewhere (docs/spec/02-features.md F-S6, spec decision 9). The charge itself goes through an
- * interface: the credit kinds in `lib/credits/kinds.ts` do not yet have a `production_package`
- * kind and X5 does not own that file, so `withCredits` cannot be wired here. `ChargeForPackage`
- * is the smallest seam (plan v5, Lessons 9) and `freeCharge` is the stand-in the tests use.
+ * elsewhere (docs/spec/02-features.md F-S6, spec decision 9, plan v5 owner decision 20 — which is
+ * money, so the owner may overturn it, and the price in `lib/credits/settings.ts` is a labelled
+ * placeholder, never a quoted price). The charge goes through `ChargeForPackage`, which
+ * `lib/kpp/server.ts` wires to the credits gate; `freeCharge` is the stand-in the tests use.
  */
 
-/** The credit kind this output will take once `lib/credits/kinds.ts` has it. */
-export const PACKAGE_OUTPUT_KIND = "production_package";
+/** The credit kind this output is charged under (`lib/credits/kinds.ts`). */
+export const PACKAGE_OUTPUT_KIND = "production_package" satisfies OutputKind;
 
 export type ChargeDecision = Readonly<{ charge: false; why: string }> | Readonly<{ charge: true; kind: typeof PACKAGE_OUTPUT_KIND }>;
 
@@ -64,12 +65,23 @@ export type ExportResult =
 export const packageFileName = (input: KppInput): string =>
   `${packageRoot(safePart(input.design.code, "design"), input.design.version, input.factory.code)}${input.kind === "batch" ? "_batch" : ""}.zip`;
 
+/** What a route asks the credits gate to charge for: the kind, or null when this package is free. */
+export const packageCreditKind = (input: KppInput): OutputKind | null => {
+  const decision = chargeDecision(input);
+  return decision.charge ? decision.kind : null;
+};
+
 /**
- * Builds a package for download: decides the charge, charges, then builds. The charge is made
- * before the work, as decision 0051 requires, so a short balance stops a long build; and the
- * F-G2 check runs inside `buildPackage` before anything is charged for nothing.
+ * Builds a package for download: checks it, charges, then builds.
+ *
+ * The F-G2 check comes first and costs nothing, so a package that cannot be built is never
+ * charged for — a brand should not pay to be told what the factory still has to answer. The
+ * charge then comes before the work, as decision 0051 requires, so a short balance stops a long
+ * build; `buildPackage` checks again, which is cheap and deterministic.
  */
 export async function exportPackage(input: KppInput, sources: KppSources, charge: ChargeForPackage = freeCharge): Promise<ExportResult> {
+  const blocked = checkPackage(input);
+  if (blocked.length > 0) return { ok: false, reason: "blocked", issues: blocked };
   const decision = chargeDecision(input);
   const refusal = await charge.charge(decision, input);
   if (refusal !== null) return { ok: false, reason: "refused", message: refusal };
