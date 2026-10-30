@@ -18,6 +18,7 @@ const words = (max: number) => z.string().trim().max(max);
 export const PHOTO_ANGLES = ["front", "back", "left", "right", "detail", "label"] as const;
 
 export const sampleBody = z.object({
+  projectId: z.uuid(),
   productId: z.uuid(),
   releaseId: z.uuid(),
   fabricKey: z.string().trim().min(1).max(120),
@@ -27,6 +28,7 @@ export const sampleBody = z.object({
 export type SampleBody = z.output<typeof sampleBody>;
 
 export const runBody = z.object({
+  projectId: z.uuid(),
   productId: z.uuid(),
   releaseId: z.uuid(),
   fabricKey: z.string().trim().min(1).max(120),
@@ -46,9 +48,10 @@ export const selectSizesBody = z.object({
 });
 export type SelectSizesBody = z.output<typeof selectSizesBody>;
 
-export const startGoldenSampleBody = z.object({ productId: z.uuid(), runId: z.uuid() });
+export const startGoldenSampleBody = z.object({ projectId: z.uuid(), productId: z.uuid(), runId: z.uuid() });
 
 export const goldenSamplePhotoBody = z.object({
+  projectId: z.uuid(),
   goldenSampleId: z.uuid(),
   fileId: z.uuid(),
   angle: z.enum(PHOTO_ANGLES),
@@ -56,6 +59,7 @@ export const goldenSamplePhotoBody = z.object({
 });
 
 export const goldenSamplePomBody = z.object({
+  projectId: z.uuid(),
   goldenSampleId: z.uuid(),
   sizeLabel,
   letter: z.string().trim().regex(/^[A-Za-z]{1,2}$/, "A point of measure is lettered A to Z."),
@@ -69,6 +73,7 @@ export const goldenSamplePomBody = z.object({
 });
 
 export const goldenSampleReadingBody = z.object({
+  projectId: z.uuid(),
   goldenSampleId: z.uuid(),
   colourName: z.string().trim().min(1).max(60),
   /** A Delta-E reading, as the person measuring it stated it. Not money: an exact decimal in the database. */
@@ -83,6 +88,7 @@ export const goldenSampleReadingBody = z.object({
 });
 
 export const signOffBody = z.object({
+  projectId: z.uuid(),
   goldenSampleId: z.uuid(),
   fitRating: z.number().int().min(RATING_MIN).max(RATING_MAX),
   colourRating: z.number().int().min(RATING_MIN).max(RATING_MAX),
@@ -90,6 +96,7 @@ export const signOffBody = z.object({
 });
 
 export const changesBody = z.object({
+  projectId: z.uuid(),
   goldenSampleId: z.uuid(),
   notes: z.string().trim().min(1, "Say what has to change.").max(2000),
 });

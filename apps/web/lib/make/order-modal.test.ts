@@ -19,6 +19,7 @@ const LADDER = [tier(10, 19, 2900), tier(20, 49, 2500), tier(50, null, 2200)];
 
 const product = (over: Partial<OrderProduct> = {}): OrderProduct => ({
   productId: "p1",
+  projectId: "pj1",
   name: "Fern jersey",
   articleCode: "JSY-SS-01",
   productionClass: "A",

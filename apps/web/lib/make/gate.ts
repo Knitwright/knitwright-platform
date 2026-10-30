@@ -30,6 +30,8 @@ export type RunGate =
       fromVersion: number;
       /** True when the sign-off is a parent version's, carried forward. */
       carriedOver: boolean;
+      /** The surface fields that differ from the version the sign-off was given to. Empty for an exact match. */
+      changed: readonly ChangedField[];
       notes: readonly MakeFinding[];
     }>
   | Readonly<{ status: "blocked"; finding: MakeFinding }>;
@@ -51,7 +53,7 @@ export const carriedOverNote = (fromVersion: number, changed: readonly ChangedFi
 export function runGate(designVersion: number, samples: readonly SignedOffSample[]): RunGate {
   const available = newestFirst(samples.filter(signedOff));
   const exact = available.find((sample) => sample.designVersion === designVersion);
-  if (exact) return { status: "ready", goldenSampleId: exact.id, fromVersion: exact.designVersion, carriedOver: false, notes: [] };
+  if (exact) return { status: "ready", goldenSampleId: exact.id, fromVersion: exact.designVersion, carriedOver: false, changed: [], notes: [] };
 
   const parent = available.find((sample) => sample.changedSince !== null && sample.changedSince.length > 0 && sample.changedSince.every((one) => one.group === "surface"));
   if (parent) {
@@ -60,6 +62,7 @@ export function runGate(designVersion: number, samples: readonly SignedOffSample
       goldenSampleId: parent.id,
       fromVersion: parent.designVersion,
       carriedOver: true,
+      changed: parent.changedSince ?? [],
       notes: [carriedOverNote(parent.designVersion, parent.changedSince ?? [])],
     };
   }

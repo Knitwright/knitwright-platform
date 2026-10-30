@@ -35,7 +35,7 @@ describe("a run with no golden sample", () => {
 describe("a run of the version that was judged", () => {
   it("goes, with no note and no carry-over", () => {
     const gate = runGate(3, [sample()]);
-    expect(gate).toEqual({ status: "ready", goldenSampleId: "gs-1", fromVersion: 3, carriedOver: false, notes: [] });
+    expect(gate).toEqual({ status: "ready", goldenSampleId: "gs-1", fromVersion: 3, carriedOver: false, changed: [], notes: [] });
   });
 
   it("prefers the sign-off of the version being made over a parent's", () => {
@@ -52,6 +52,7 @@ describe("a run of a version that differs only on the surface", () => {
     expect(gate.status === "ready" && gate.fromVersion).toBe(3);
     expect(gate.status === "ready" && gate.notes[0]?.message).toContain("colour readings");
     expect(gate.status === "ready" && gate.notes[0]?.code).toBe("golden_sample_carried_over");
+    expect(gate.status === "ready" && gate.changed).toEqual(surface);
   });
 
   it("takes the newest parent that differs only on the surface", () => {

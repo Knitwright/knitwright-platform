@@ -14,6 +14,7 @@ import { pieces, type MakeFinding } from "./vocabulary";
 
 export interface OrderProduct {
   readonly productId: string;
+  readonly projectId: string;
   readonly name: string;
   /** The base article, or null when no base article covers the design's garment type. */
   readonly articleCode: string | null;
