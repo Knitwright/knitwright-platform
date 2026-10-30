@@ -88,3 +88,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0071 | [The factory model as data](0071-factory-model-as-data.md) | Proposed; every seeded price, tier and lead time is a placeholder, owner questions listed |
 | 0072 | [Factory job packet (a link, no account)](0072-factory-job-packet.md) | Proposed; owner questions listed |
 | 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |
+| 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
