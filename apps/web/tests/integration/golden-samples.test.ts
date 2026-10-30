@@ -263,7 +263,7 @@ describe("a make order", () => {
 
 describe("carrying a sign-off forward", () => {
   it("covers a later version that differs only on the surface, and refuses one that does not", async () => {
-    const { projectId, productId, releaseId, runId } = await sampled(ann, annBrand);
+    const { projectId, productId, runId } = await sampled(ann, annBrand);
     const id = await judged(ann, annBrand, productId, runId);
     must(await signOff(ann, annBrand, id));
     const laterRelease = await makeRelease(ann, annBrand, projectId, 2);

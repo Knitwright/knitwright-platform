@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { getBaseArticle, baseArticleForType } from "@/lib/catalogue";
 import { promisedDate, type PromisedDate } from "@/lib/factory/dates";
 import type { Ladder } from "@/lib/factory/pricing";
@@ -11,7 +12,11 @@ import type { GarmentSpec } from "@/lib/garment/spec-schema";
 import { rosterContextOf } from "@/lib/orders/context";
 import { getProjectAt } from "@/lib/projects/project-reads";
 import { listReleases } from "@/lib/releases/service";
+import { loadIllustrations } from "@/lib/images/illustrations";
+import { latestImages } from "@/lib/images/service";
 import { adminClient } from "@/lib/server/deps";
+import { createFileReader, TOO_LARGE } from "@/lib/storage/read";
+import { shrinkPicture } from "@/lib/storage/thumbnail";
 import { listProducts, type ProductView } from "@/lib/brand-runs/service";
 import { buildMakeContext, toOrderProducts, type FactoryFacts, type MakeContext, type ProductRef } from "./context";
 import type { OrderProduct } from "./order-modal";
@@ -174,4 +179,62 @@ export async function loadOrderProducts(client: SupabaseClient, brandId: string,
     }),
   );
   return toOrderProducts(rows.filter((row): row is NonNullable<typeof row> => row !== null));
+}
+
+export interface Hero {
+  readonly src: string;
+  readonly alt: string;
+  /** What the picture is. A render is always said to be a render, never a photo of a garment. */
+  readonly label: string;
+}
+
+const HERO_EDGE = 640;
+
+/** The golden sample's own photo once there is one; otherwise the newest render, said to be a render. */
+export async function loadHero(client: SupabaseClient, brandId: string, projectId: string, photoFileId: string | null): Promise<Hero | null> {
+  if (photoFileId !== null) {
+    const stored = await createFileReader(client, brandId).read(photoFileId, 10 * 1024 * 1024).catch(() => null);
+    const small = stored && stored !== TOO_LARGE ? await shrinkPicture(stored, HERO_EDGE) : null;
+    if (small) {
+      return {
+        src: `data:${small.contentType};base64,${Buffer.from(small.bytes).toString("base64")}`,
+        alt: "The golden sample as it was photographed",
+        label: "A photo of the golden sample",
+      };
+    }
+  }
+  const latest = await latestImages(client, brandId, projectId).catch(() => null);
+  const loaded = latest ? await loadIllustrations(createFileReader(client, brandId), latest) : null;
+  const first = loaded?.illustrations[0];
+  return first ? { src: first.src, alt: first.alt, label: "A render, not a photo of a garment" } : null;
+}
+
+export interface Picture {
+  readonly id: string;
+  readonly label: string;
+}
+
+/** The brand's own pictures, so a photo of the sample can be one it already holds. */
+export async function loadPictures(client: SupabaseClient, brandId: string): Promise<readonly Picture[]> {
+  const { data, error } = await client
+    .from("files")
+    .select("id, path, kind, created_at")
+    .eq("brand_id", brandId)
+    .in("kind", ["photo", "render", "artwork"])
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) return [];
+  const rows = z.array(z.object({ id: z.uuid(), path: z.string(), kind: z.string(), created_at: z.string() })).safeParse(data ?? []);
+  if (!rows.success) return [];
+  return rows.data.map((row) => ({ id: row.id, label: `${row.path.split("/").pop() ?? row.id} · ${row.kind} · ${row.created_at.slice(0, 10)}` }));
+}
+
+/** The samples of a product already sent to production, newest first: a golden sample is judged from one. */
+export async function loadSampleRuns(client: SupabaseClient, brandId: string, projectId: string): Promise<readonly Readonly<{ id: string; label: string }>[]> {
+  const products = await listProducts(client, brandId);
+  const product = products.find((one) => one.projectId === projectId);
+  if (!product) return [];
+  return product.runs
+    .filter((run) => run.kind === "sample")
+    .map((run) => ({ id: run.id, label: `Sample of ${Object.keys(run.sizes).join(", ")} · ${run.createdAt.slice(0, 10)}` }));
 }
