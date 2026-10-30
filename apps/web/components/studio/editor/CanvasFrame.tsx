@@ -49,11 +49,12 @@ type BodyProps = Readonly<{ id: CanvasView; data: EditorData; show3d: boolean; d
 
 function ViewBody({ id, data, show3d, draft, model }: BodyProps) {
   if (id === "2d") {
+    // A grid, so the drawing fills what is left and the slot keeps its own height.
     return (
-      <>
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2">
         <DesignCanvas flat={data.flat} table={data.table} show3d={show3d} notices={null} />
         <SlotPlaceholder id="view-2d" />
-      </>
+      </div>
     );
   }
   if (id === "3d") {

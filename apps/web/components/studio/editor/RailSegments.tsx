@@ -28,7 +28,7 @@ export function RailSegments({ segment, onChoose }: Props) {
       aria-orientation="horizontal"
       onKeyDown={move}
       data-testid="rail-segments"
-      className="flex min-w-0 gap-1 rounded-2xl bg-tile-2/70 p-1"
+      className="flex min-w-0 gap-1 rounded-2xl bg-tile-2/90 p-1"
     >
       {RAIL_SEGMENTS.map((id) => {
         const selected = id === segment;
