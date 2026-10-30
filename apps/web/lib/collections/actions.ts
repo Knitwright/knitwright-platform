@@ -11,9 +11,9 @@ import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { canExportDrop, dropFindings, dropPayload } from "./drop";
 import { samplesForApproved } from "./samples";
-import { createDropBody, createCollectionBody, dropPayloadSchema, orderSamplesBody, removeStyleBody, saveFrameBody, saveStyleBody } from "./schemas";
+import { createDropBody, createCollectionBody, dropPayloadSchema, orderSamplesBody, removeCollectionBody, removeStyleBody, saveFrameBody, saveStyleBody } from "./schemas";
 import { loadPlanView } from "./server";
-import { createCollection, exportDrop, removeStyle, saveFrame, saveStyle } from "./service";
+import { createCollection, exportDrop, removeCollection, removeStyle, saveFrame, saveStyle } from "./service";
 
 /**
  * The collection plan's actions (plan v5 Z4, decision 0085). The brand and the person come from the
@@ -73,6 +73,18 @@ export const removeStyleAction = defineAction({
     await removeStyle(adminClient(), whoOf(session), input.styleId);
     refresh(input.collectionId);
     return { removed: input.styleId };
+  },
+});
+
+export const removeCollectionAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.clubWrite,
+  schema: removeCollectionBody,
+  handler: async ({ input, session }) => {
+    requireAbility(session, "manageKit");
+    await removeCollection(adminClient(), whoOf(session), input.collectionId);
+    revalidatePath("/studio/collections");
+    return { removed: input.collectionId };
   },
 });
 

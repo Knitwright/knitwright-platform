@@ -58,6 +58,9 @@ export type SaveStyleBody = z.output<typeof saveStyleBody>;
 
 export const removeStyleBody = z.object({ collectionId: z.uuid(), styleId: z.uuid() });
 
+/** Removing a whole plan. Its groups, styles, sizes and exported payloads go with it. */
+export const removeCollectionBody = z.object({ collectionId: z.uuid() });
+
 /** "Create drop": the app builds the payload itself, so the body names only the plan. */
 export const createDropBody = z.object({ collectionId: z.uuid() });
 

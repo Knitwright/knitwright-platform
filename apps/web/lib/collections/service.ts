@@ -240,6 +240,12 @@ export const saveStyle = async (admin: SupabaseClient, who: Who, input: SaveStyl
   return z.uuid().parse(data);
 };
 
+/** Removes a whole plan, with its groups, style cards, planned sizes and exported payloads. */
+export const removeCollection = async (admin: SupabaseClient, who: Who, collectionId: string): Promise<void> => {
+  const { error } = await admin.rpc("remove_collection", { p_brand_id: who.brandId, p_user_id: who.userId, p_collection_id: collectionId });
+  if (error) throw refusal(error, NOT_FOUND);
+};
+
 export const removeStyle = async (admin: SupabaseClient, who: Who, styleId: string): Promise<void> => {
   const { error } = await admin.rpc("remove_collection_style", { p_brand_id: who.brandId, p_user_id: who.userId, p_style_id: styleId });
   if (error) throw refusal(error, NOT_FOUND);

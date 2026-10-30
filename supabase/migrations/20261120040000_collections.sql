@@ -211,8 +211,10 @@ revoke all on function private.refuse_collection_drop_change() from public, anon
 
 revoke all on public.collections, public.collection_frames, public.collection_styles,
   public.collection_style_sizes, public.collection_drops from public, anon, authenticated, service_role;
+-- The server's key holds SELECT only, as it does on the golden samples: every write goes through a
+-- function below. So a direct update or delete answers "permission denied" before any trigger runs.
 grant select on public.collections, public.collection_frames, public.collection_styles,
-  public.collection_style_sizes, public.collection_drops to authenticated;
+  public.collection_style_sizes, public.collection_drops to authenticated, service_role;
 
 revoke all on public.collection_freight_rates from public, anon, authenticated, service_role;
 grant select on public.collection_freight_rates to authenticated;
@@ -390,6 +392,25 @@ begin
 end;
 $$;
 
+/*
+ * Removes a whole plan. Its groups, style cards, planned sizes and exported drop payloads go with it,
+ * as a brand product's runs go with the product (decision 0062): a payload is a record of a hand-over
+ * of a plan, and a plan nobody kept is a plan nobody handed over.
+ */
+create function public.remove_collection(p_brand_id uuid, p_user_id uuid, p_collection_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.can_manage_kit(p_user_id, p_brand_id) then
+    raise exception 'You may not remove a collection for this brand.' using errcode = '42501';
+  end if;
+  delete from public.collections where id = p_collection_id and brand_id = p_brand_id;
+end;
+$$;
+
 create function public.remove_collection_style(p_brand_id uuid, p_user_id uuid, p_style_id uuid)
 returns void
 language plpgsql
@@ -445,12 +466,14 @@ $$;
 revoke all on function public.create_collection(uuid, uuid, text, text, text) from public, anon, authenticated;
 revoke all on function public.save_collection_frame(uuid, uuid, uuid, uuid, text, integer, integer) from public, anon, authenticated;
 revoke all on function public.save_collection_style(uuid, uuid, uuid, uuid, uuid, uuid, text, text, text, text, text, text, integer, integer, integer, jsonb, integer, integer) from public, anon, authenticated;
+revoke all on function public.remove_collection(uuid, uuid, uuid) from public, anon, authenticated;
 revoke all on function public.remove_collection_style(uuid, uuid, uuid) from public, anon, authenticated;
 revoke all on function public.export_collection_drop(uuid, uuid, uuid, jsonb) from public, anon, authenticated;
 
 grant execute on function public.create_collection(uuid, uuid, text, text, text) to service_role;
 grant execute on function public.save_collection_frame(uuid, uuid, uuid, uuid, text, integer, integer) to service_role;
 grant execute on function public.save_collection_style(uuid, uuid, uuid, uuid, uuid, uuid, text, text, text, text, text, text, integer, integer, integer, jsonb, integer, integer) to service_role;
+grant execute on function public.remove_collection(uuid, uuid, uuid) to service_role;
 grant execute on function public.remove_collection_style(uuid, uuid, uuid) to service_role;
 grant execute on function public.export_collection_drop(uuid, uuid, uuid, jsonb) to service_role;
 
