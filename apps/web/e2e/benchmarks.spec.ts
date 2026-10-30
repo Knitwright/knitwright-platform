@@ -62,7 +62,7 @@ test.describe("benchmarks", () => {
 
     // And the page says, in words, what is never kept and what is never carried over.
     await expect(page.getByText("only our own short summaries of the themes", { exact: false })).toBeVisible();
-    await expect(page.getByText("Logos, brand names and prints are never carried onto your design", { exact: false })).toBeVisible();
+    await expect(page.getByText("is never a feature and is never carried onto your design", { exact: false }).first()).toBeVisible();
   });
 
   test("lets a person correct a card, and says afterwards that the words are their team's", async ({ page }) => {
