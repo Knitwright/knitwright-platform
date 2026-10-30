@@ -128,7 +128,7 @@ it("does not call anything at import", () => {
 });
 
 describe("settings set in the console (lib/settings)", () => {
-  const owned = { isPlaceholder: false, prices: { marketing_media: 5, techpack_pdf: 2, pattern_file: 3 }, monthlyAllowance: 12 };
+  const owned = { isPlaceholder: false, prices: { marketing_media: 5, techpack_pdf: 2, pattern_file: 3, production_package: 4 }, monthlyAllowance: 12 };
 
   it("gives the allowance, syncs the prices and summarises with the stored numbers", async () => {
     const d = { ...db({ credit_ensure_allowance: { applied: true, balance: 12 }, credit_set_prices: null, credit_balance: 12 }), readSettings: async () => owned };
