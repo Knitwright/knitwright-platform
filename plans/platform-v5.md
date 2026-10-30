@@ -91,6 +91,295 @@ Builds on: `plans/platform-v4.md` (all five waves merged). Where v4's shared rul
     seeded as a labelled placeholder price. **This one is money, so the owner may overturn it**; it is flagged here rather than
     settled quietly.
 
+## Owner questions collected, as decisions 21 onward (2026-10-30, waves 1 to 3)
+
+Every owner question the workstreams of waves 1 to 3 recorded is written down here, so nobody has to read a pull request
+comment again to find one. Each is a decision in the sense decision 5 gives the word: **a labelled default the platform
+already runs on, plus the question against it**. Nothing here is an answer, and nothing here is a placeholder presented as a
+decision. Where two workstreams asked the same question it is one decision naming both.
+
+They are grouped so they can be answered in sittings rather than in workstream order: **A money** (21 to 25), **B colour,
+print and licences** (26 to 32), **C sizing, measurement and article data** (33 to 45), **D factory terms, dates, markets and
+the Class B programme** (46 to 61), **E legal, labelling and moderation policy** (62 to 68), **F rules, sources and the
+wording on screens** (69 to 87). Each decision ends with the workstream and the record or PR comment it came from.
+
+**Nothing here blocks anything.** Every one of them is live on `main` (or on the open PR named) behind its labelled default,
+and the plan's rule holds: missing owner input never blocks, it only labels.
+
+**Already asked, not asked twice.** `docs/owner/questionnaire-2026-10-25.md` (plan v4) already puts the credit prices (its
+question 1), the price ladder and MOQ per article (4), the lead time (5), the cut-off (6), the factory per article (7), the
+swatch book and colour measurement (8), the print house ICC profile (17) and the acceptable defect rate (25) to the owner.
+Where a v5 question is one of those, the decision below names it rather than restating it, and
+`docs/owner/questionnaire-2026-10-30.md` is the companion sheet for these decisions in the same answer-in-place shape.
+
+**One source is lost and was reconstructed.** Y7's own summary comment on PR #102 is not there: both comments on that PR
+from its author are the Y6 Brand Studio summary (the same text is on PR #101) and a second round about CI and the Class B
+contradiction, so whatever list of questions Y7 posted was overwritten by a mis-posted comment. Y7's questions below are
+therefore taken from the labelled defaults of decision record 0080 itself — points 2, 3, 4, 5, 6, 7, 8, 9 and 11 — and the
+count may not match what Y7 originally wrote. Y6's four are taken from its comment on PR #101, which is still open, so its
+decision record 0079 is not yet on `main`.
+
+**Four questions the workstreams raised are not the owner's and are not numbered here.** The `full` validation scope's client
+(the wave-2 wiring's question 1) is settled by the orchestrator in PR #114; when the factory job packet should read a design
+version's chosen parameters rather than the article's defaults (wiring question 4) is wave sequencing; whether a 22-file
+package ZIP fits the function time limit (wiring question 5) is a measurement, not a decision; and `lib/rulebook`'s missing
+`SHO` and `FAB` topic families (Z9 question 5) are X2's file. The wiring's other two questions are decisions 32 and 66. The
+same holds for the three unowned tables and the option-code map (X5b's questions 3 and 4, and section 6 of
+`plans/v5-handover-2026-10-30.md`), and for who owns the missing `SpecAction`s that would let a Form choice, a founder's own
+POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchestrator work, not the owner's.
+
+### A. Money. Nothing in the platform may answer these.
+
+21. **The price of a sample package for a factory Knitwright does not own, and whether to charge for one at all.** Decision 20
+    keeps it charged, free when Knitwright makes it and free for a batch, at a **labelled placeholder** price seeded by
+    `supabase/migrations/20261101040000_package_exports.sql` as the `production_package` credit kind. **The owner may overturn
+    both the number and the decision to charge**: nothing in the platform presents the number as a price, and
+    `CREDITS_ENFORCED` is off, so no brand has been charged anything. (X5b, decision 0070 revision 2 question 2, PR #104.)
+22. **No tier covers one piece.** Class A is sold "from 1 piece" (spec decision 4) and the seeded capability's `moq` is 1
+    (`supabase/migrations/20261101050000_factories.sql`), but the build pack's club ladder starts at 10, so `priceFor` in
+    `apps/web/lib/make/prices.ts` answers "no tier covers it" rather than a price, and the catalogue and the order modal show
+    that sentence. Either there is a 1 to 9 price, or the real minimum is ten pieces and "from 1 piece" is wrong; today **a
+    one-piece order has no price anywhere**. (Y1 question 1 and decision 0074; Y7 decision 0080 point 8; X6 decision 0071
+    question 8.)
+23. **Whether the club ladder is the price to sell at.** £29 / £25 / £22 at 10 to 19 / 20 to 49 / 50+ is seeded against
+    `JSY-SS-01` with its own label, word for word "Placeholder club price from the build pack, not a factory quote", and
+    `R-COST-003` as its rule. It is the build pack's target, not a quote, and no cost price is seeded at all, because the
+    spec's $8.20 to $9.40 FOB and $0.80 to $1.80 for names and numbers are supplier self-claims. Answering it changes every
+    price the platform shows. (Y7 decision 0080 point 8; X6 decision 0071 questions 4 and 5; questionnaire question 4.)
+24. **No AUD price exists** although Australia is open for selling (`country_rules`, decision 0071): every tier's AUD price is
+    null, so every Australian price reads "not set yet" and carries `R-GAP-000`. Is it a conversion rule off the GBP ladder,
+    or a second ladder quoted in AUD? (Y1 question 2 and decision 0074; X6 decision 0071 question 4.)
+25. **The deposit schedule belongs to the Store, and is recorded rather than built.** The spec ends three make flows in "40%
+    deposit + 60% before shipping"; owner decision 1 removes that ending, so decision 0080 point 2 records the schedule as the
+    Store's and the make pages stop at the price, the date and the hand-off. Worth confirming the split is the Store's to
+    collect: if the platform ever has to show it, it becomes a factory term and not a Store setting. (Y7, decision 0080
+    point 2.)
+
+### B. Colour, print and licences.
+
+26. **The colour house must state its white point and observer**, and say whether `docs/spec/04-production-package.md`'s
+    `#0B1F4B` → Lab example was measured or computed. Until it does, ΔE ≤ 1.5 is defined against our own sRGB / D65 / 2°
+    figures (decision 15), which is what `lib/print/rules/colour` computes and what the package README states. **It changes
+    nothing we generate, only what a ΔE of 1.5 means.** This is the owner action decision 15 itself names, and it is still
+    open. (X5, decision 0070 question 1; X5b, decision 0070 revision 2 question 1, PR #104.)
+27. **Whether the factory can hold ΔE CMC(2:1) ≤ 1.5.** The figure is seeded as `colour_delta_max` 1.5 on the factory
+    capability (`20261101050000_factories.sql`) from rule `R-SUB-005`, which itself says "factory to confirm the tolerance
+    they can hold", and the row is labelled a placeholder. A looser tolerance loosens the print gate; it changes no file.
+    (X6, decision 0071 question 7.)
+28. **An ICC profile for the sublimation gamut.** What Brand Studio shows today is Knitwright's own chroma estimate carrying
+    `R-GAP-000`; with a profile from the print house it becomes a real soft proof and the check gains a rulebook entry. The
+    same request as decision 26 should ask for it. (Y6, PR #101; questionnaire question 17.)
+29. **Pantone.** No Pantone data ships (open item P6), so a brand types its own TCX codes into Brand Studio and nothing is
+    matched for it. Should Knitwright licence the TCX library, or keep asking brands to read their printed swatch book?
+    (Y6, PR #101.)
+30. **Kit fonts and their licences.** Only the two bundled Geist faces have a licence this repository can show, so a brand can
+    set only Geist and four placeholders say plainly that no licence is on file. Which faces should be licensed, and for which
+    use — screen, sublimation print, and the factory's own RIP? Names and numbers need a block or condensed sans that we do
+    not have. (Y6, PR #101.)
+31. **Sponsor and crest print widths.** The rulebook gives none, so the DPI check can only run once a brand types a width
+    itself. Should the factory supply a standard chest-sponsor and crest width per article? (Y6, PR #101.)
+32. **Which notch the DXF geometry carries.** Decision 17 settled one notch style with V-notch or slit named in the README and
+    the 1:1 PDF, and the package ZIP says v-notch; the pattern library's DXF writer marks a notch one way only (layer 4). What
+    is left for the factory is whether the geometry itself must differ, or whether the stated style is enough. (X5, decision
+    0070 question 4; the wave-2 wiring, PR #98 question 3.)
+
+### C. Sizing, measurement and the article data. Each of these needs the factory's pattern master.
+
+33. **The two drop-tail control fractions.** Decision 6 fixes where the back hem starts, where it ends and that it is
+    horizontal at the centre-back fold, which leaves one degree of freedom: how fast the curve leaves the side seam and how
+    long it flattens into the fold. Both are seeded at 0.5, a symmetric curve, as `drop_tail.convention.side_control_fraction`
+    and `centre_control_fraction` in `apps/web/lib/parametric/data/draft-constants.json`. Does the factory's own shirt-tail
+    block use a flatter or a fuller curve? At `back_drop_tail = 0` the answer changes nothing, because the hem is then the
+    reference script's level two-point hem point for point. (X3b, decision 0068 revision 1 question 1.)
+34. **`rib_negative_ease` for the K02 cuff.** Seeded at 20 mm (`cuff_k02.rib.negative_ease_mm` in the same file) against a 300
+    to 420 mm sleeve opening, with no source anywhere in the pack; the only comparable figure is the neck rib's 0.85 ratio
+    (`R-PAT-008`), which would be 45 to 63 mm on those openings and is a ratio rather than a subtraction. What ease does the
+    factory's 1x1 rib cuff take, and is it a millimetre figure or a ratio of the opening? (X3b, decision 0068 revision 1
+    question 2.)
+35. **Which width the cuff is cut to.** The drafter reads decision 8's "sleeve opening less a labelled `rib_negative_ease`" as
+    POM F, the finished opening; the sleeve's own edge at the cuff seam is wider — 350.95 mm against 340 mm at size M —
+    because the sleeve tapers over the cuff's depth. Cutting to POM F stretches the rib by that much more when it is joined.
+    (X3b, decision 0068 revision 1 question 3.)
+36. **The cuff's notches.** `R-PAT-006` quarters the neck rib and says nothing about a cuff, so the K02 cuff carries none.
+    Does the factory want a notch at the underarm seam? (X3b, decision 0068 revision 1 question 4.)
+37. **Size range, sample size, fit and gender for the seven draft articles.** Published for none of them, so
+    `apps/web/lib/catalogue/seed/data/draft-articles.json` carries none and the catalogue says "Gender is not set on any base
+    article yet". Nothing can grade, offer a size or price an article until they exist. `JSY-SS-01` has the same gap: the
+    onboarding guide implies a women's fit would be a separate base (`JSY-SW-01`) but says nothing about this one. (Z9
+    question 1 and decision 0090; X1, decision 0066 questions 1 and 3.)
+38. **`SHO-TR-01`'s inseam.** `R-SHO-002` is the build pack's own rule and gives 3 to 9 in with no step, no default and no
+    factory approval, so it is seeded as that rule's words and nothing offers an inseam. Is that the factory's range?
+    (Z9, decision 0090 question 2.)
+39. **Option codes for the shorts' waistband, side split and pocket.** The build pack names the groups (elastic / drawcord /
+    both, split on or off, a pocket from a list) but gives no option codes like `C01` or `K01`, so none of the three can be
+    offered on a design. (Z9, decision 0090 question 3.)
+40. **What each of the seven draft articles actually is.** Is `JSY-LS-01` also the goalkeeper shirt? Does `CRK-SS-01` need a
+    placket and a collar group of its own? Is `HOD-ST-01` a pullover or a zip (the garment registry maps both)? Is
+    `CMP-LS-01`'s rash guard the same article as the compression top, and what block and negative ease does compression use?
+    And what sews `FSH-MM-01`, the only woven garment in the catalogue, for which none of `JSY-SS-01`'s knit construction
+    applies? Today each is one draft article with an empty POM table and `not drafted yet` in
+    `apps/web/lib/parametric/articles`. (Z9, decision 0090 question 7.)
+41. **Sport tags for `JSY-LS-01` and `HOD-ST-01`.** The launch catalogue names no sport for either, so they appear under no
+    sport filter at all; the template library implies football and training. Promoting the implied tags is a reseed migration,
+    not a code change. (Z9, decision 0090 question 8; X1, decision 0066 question 2.)
+42. **What the factory still owes per article**, from `docs/spec/articles/ONBOARDING.md` step 2 onward: the pattern and the
+    size chart, the POM table with grades **and tolerances**, the construction table, seam allowances and thread, and the
+    fabric's real code, weight and blend. Decision 10 holds that no article may go `live` without a factory-checked master
+    pattern and decision 18 holds that a POM with no tolerance is refused, so this list is what unblocks the catalogue.
+    (Z9, decision 0090 question 9.)
+43. **Where the body size chart lives and who supplies it.** Spec F-S6's Body tab wants chest, waist, hip and height per size
+    and the base article catalogue has no table for it, so the tab asks for the numbers today and shows none. Is it a new
+    catalogue table per size standard, shared between articles, or a block on the base article? Either way the numbers are the
+    factory's. (Y4, decision 0077 question 2.)
+44. **Is `fixed` a fourth grade type for good?** `article.json` uses it, X1 seeded it and the Specs view shows it as "Fixed",
+    while the spec's own tab shows three grade types. If the owner wants three, `article_poms` rows change, not the view.
+    (Y4, decision 0077 question 4.)
+45. **The registry mapping.** Is a `crew-tee` design really a `TEE-TR-01`, and should fight shorts get a garment registry type
+    of their own? The map in `apps/web/lib/catalogue/registry-map.ts` is one way, and a type it does not cover keeps the
+    `article-not-set` warning rather than gaining a blocker. (X1, decision 0066 question 4.)
+
+### D. Factory terms, dates, markets and the Class B programme.
+
+46. **No delivery date can be shown anywhere**, because the days for QC and the freight days are both unset:
+    `production.qc_days` (`apps/web/lib/factory/settings.ts`) has no value and `country_rules.freight_days` is null in
+    `20261101050000_factories.sql`. `promisedDate` (`apps/web/lib/factory/dates.ts`) therefore answers `not-set` with the list
+    of what is missing, and every page — the catalogue, the make pages, the order modal's "Ready by" chip — **names what is
+    missing instead of a date**. The lead time is seeded at 8 working days, the top of the spec's "Class A in 5 to 8", also
+    labelled. How many working days from ready-for-QC to the carrier, and how many freight days to the UK and to Australia,
+    per carrier and service? (Y7 decision 0080 point 9; X6 decision 0071 questions 1 to 3; questionnaire question 5.)
+47. **The Class B 50-to-300 range is a flag, not a refusal** — the orchestrator settled that; see the open PR #113 with
+    `apps/web/lib/make/run.ts` and `supabase/migrations/20261110040000_class_b_flag.sql`, which bring Y7's two call sites into
+    line with the brand-run builder of decision 0062. A refusal would assert that a factory will not cut 400 of a style, and
+    no factory has confirmed that: the same reasoning as decisions 12 and 18. **The question that remains for the owner is
+    what the real range is, if any.** (Y7, decision 0080 point 7, PR #102; decision 0062.)
+48. **Which factory makes which article, and whether the two ideas of "factory" are one.** Prices, lead times and dates come
+    from X6's `factories` rows — one seeded, `sialkot-partner`, labelled "Placeholder, not agreed with a factory" — while the
+    id handed to `submit_order_for_production` is still the existing factory profile's (`knitwright-default`), so ops batching
+    is unchanged. Joining the two is orchestrator wiring; which factory, and with which fabric, is the owner's. (Y7 decision
+    0080 point 11; questionnaire question 7.)
+49. **Is a sample three sizes at one piece each?** `apps/web/lib/make/sample.ts` and `submit_make_order` both refuse a fourth
+    size (`sample_sizes`), from spec F-S7. If a factory will cut a five-size sample, or will not cut a single piece, the cap is
+    a number in both places rather than a rule. (Y7, decision 0080 point 6.)
+50. **What evidence a golden sample needs, and who may sign one off.** `sign_off_golden_sample` refuses a sign-off with no
+    photo (`needs_photo`) and with nothing measured (`needs_measurement`), and does **not** require a ΔE reading, because a
+    brand may have no colour report; any member who may manage the kit may sign off. Is that the right bar, and is signing off
+    the founder's alone? A sign-off moves a product from `sample` to `run`, so it is the gate in front of production. (Y7,
+    decision 0080 points 3 and 4.)
+51. **Whether a surface-only change really keeps a sign-off.** `carry_over_golden_sample` brings a sign-off forward from a
+    parent version only when every changed field was labelled `surface` by `apps/web/lib/make/surface.ts`, which treats an
+    unknown field as structural, and the carried-over row always carries the note that the colour readings were taken on the
+    parent's own colours. Is a colour or artwork change surface enough to make a run without a new sample? (Y7, decision 0080
+    point 5.)
+52. **Which decoration the Class B stock-colour programme uses, and its print rules.** `TEE-TR-01` and `HOD-ST-01` have no
+    print, label, QC or cost rule at all today, because the shared `R-SUB`, `R-LAB`, `R-QC` and `R-COST` rules are scoped to
+    sublimation by decision 12 and nothing says a stock-colour tee is sublimated. (Z9, decision 0090 question 6.)
+53. **How long a factory job-packet link should last.** 28 days is a labelled default, chosen to cover cut-off to QC. Say a
+    number and it becomes a setting rather than a constant. (X7, decision 0072 question 1.)
+54. **Whether the job-packet link is per batch or per factory.** It is per batch today, which keeps a leak to one batch; a
+    factory with ten batches then gets ten links and ten WhatsApp messages. (X7, decision 0072 question 2.)
+55. **Whether a factory's reply should name a person.** `factory_events` records no name, so F-O6's scorecard cannot tell two
+    people at one factory apart. Add a free-text "who pressed it", or leave it? (X7, decision 0072 question 3.)
+56. **Who owns the WhatsApp Business number, and whether a template message is needed.** None is seeded. The adapter sends
+    plain text, which the Cloud API allows only inside a 24-hour window the factory opened; outside it Meta requires an
+    approved template, so a first message to a factory that has not written to us may be refused and ops then copies the link
+    by hand. (X7, decision 0072 question 4; X6, decision 0071 question 12.)
+57. **Whether the factory may see prices.** It may not today: the packet page shows pieces, sizes, names and the BOM, never
+    `value_minor`. (X7, decision 0072 question 5.)
+58. **Whether photos a factory uploads are kept forever.** There is no retention rule: photos stay until the batch's orders
+    are deleted, and nothing deletes them today. (X7, decision 0072 question 6.)
+59. **Weekly Class A slot capacity, in pieces, and the fabric programme's real numbers.** Capacity is not set, so nothing
+    limits a batch; and every gsm, blend and finish is the build pack's placeholder "until confirmed in the Phase 0 factory
+    test", including whether black, white and navy are the real Class B stock colours. (X6, decision 0071 questions 6 and 13.)
+60. **VAT, thresholds, HS codes and duty.** GB 20% with a £135 low-value threshold and DCTS preference, AU 10% with a A$1,000
+    threshold, are seeded as public figures to confirm with a customs adviser. Which HS codes apply, and what duty under each?
+    (X6, decision 0071 question 10.)
+61. **Which certifications the partner factory holds** (OEKO-TEX, GRS, BSCI), with what expiry, and whether an expired
+    certificate should stop an order. None is seeded. (X6, decision 0071 question 11.)
+
+### E. Legal, labelling and moderation policy.
+
+62. **Care wording per market.** It exists nowhere in the build pack for any market: `R-LAB-002` (fibre, care and origin per
+    destination market) has no text, `country_rules.label_rules` is `{}` for every row, and the catalogue's care line and the
+    package's label sheet both carry `R-GAP-000` and say so. Until it exists the production package gate refuses every real
+    package and names this as one of the gaps. (Y1 question 6 and decision 0074; X5b, PR #104; X6, decision 0071.)
+63. **The AQL plan per factory.** Decision 19 is as built: a Knitwright-made Class A sample inspects every piece, and a partner
+    factory's sample uses the plan on the input. No plan exists on any factory row, so the package gate names it as missing.
+    The questionnaire's question 25 asks the same thing as a defect rate; one answer settles both. (X5, decision 0070
+    question 6; X5b, PR #104; questionnaire question 25.)
+64. **What happens at three upheld notices**, and who decides: a warning, a stop on new orders, or an account closed? Three is
+    the seeded default in `apps/web/lib/moderation/settings.ts` and nothing acts on it today. (X8, decision 0073 question 4.)
+65. **The report form, the takedown flow and an address for notices need a lawyer's eye.** Decision 0073 was written without
+    one and says so, and the flow is live behind that caveat. (X8, decision 0073 question 6.)
+66. **Is a picture still waiting for the content review a warning or a blocker?** At save time it is neither — the
+    `ModerationReader` contract leaves an unscreened target out of the answer, so nothing is raised — while
+    `screenBeforeOrder` flags it as `not_screened` at order time. That is two different answers about the same picture at two
+    moments, and the owner's answer picks one. Also: does a Class B run need a person's look at the design version only, or at
+    every picture in it? (The wave-2 wiring, PR #98 question 2; X4, decision 0069 question 5; X8, decision 0073 question 5.)
+67. **Should the offensive-word list be reviewed by somebody, and may a club ask for a word on it to be allowed for its own
+    name?** The list ships as seeded data and nothing can be allowed per club today. (X8, decision 0073 question 2.)
+68. **A set of real uploads, good and bad, with the marks they should and should not match**, so the moderation check's two
+    picture distances and its 12-bit detail floor can be measured instead of guessed; and which vision model it should use, on
+    every upload or only on artwork meant to print, since it is a paid call per upload. (X8, decision 0073 questions 1 and 3.)
+
+### F. Rules, sources and the wording on screens.
+
+69. **Is `knitwright` the right source kind for a rule we drafted and asked the factory to confirm?** Decision 13's assertion —
+    nothing filed as `factory` that a factory did not say — moved eight rules the decision does not name (`R-CON-004`, `005`,
+    `006`, `008` and `R-SUB-003`, `005`, `006`, `008`), whose notes only *ask* the factory ("Factory to confirm their RIP
+    settings", "Factory to measure"), from `factory` to `knitwright` in `apps/web/lib/rulebook/sources.ts`, notes unchanged
+    word for word. `R-COST-002` is the one rule left as `factory`. Is `knitwright` the right home, or should there be a kind
+    that says "drafted by us, asked of the factory"? (X2b, PR #97.)
+70. **Is `R-CON-010` spoken for?** The build pack uses `R-CON-011` for the compression flatlock while `JSY-SS-01`'s rulebook
+    ends at `R-CON-009`, so Z9 seeded the published id and left 010 unassigned. (Z9, decision 0090 question 4.)
+71. **What the rulebook entry for the pattern fills `P00` to `P02` should say.** They have no rule in `article.json`, so they
+    are stored with `R-GAP-000` — the only `R-GAP-000` in the base article catalogue. (X1, decision 0066 question 5.)
+72. **Must a version be accepted for ordering before it can be ordered?** It need not today: a validated version may be
+    ordered straight away, as decision 0039 had it. (X4, decision 0069 question 1.)
+73. **Who in a brand may accept a version for ordering** — any member, or only an owner or admin? Any member may today, as
+    with recording "validated". (X4, decision 0069 question 2.)
+74. **Should a validated or accepted version go back to draft when the factory profile it was judged against changes?** It
+    does not today. (X4, decision 0069 question 3, carried over from decision 0039.)
+75. **Which colour and character limits are right.** The spec's export format holds 8 colours and 60 characters of printed
+    text; the editor allows 48 and 80. Bring the editor down to the export's limits, or raise the export format? (X4,
+    decision 0069 question 4.)
+76. **Is "Not yet sampled" a warning or a lock?** Decision 0075 reads it as a warning, because a lock would disable every
+    option of every article until golden samples exist. A hard lock is a one-line change in `apps/web/lib/editor/form.ts`, and
+    the Form toolbar would then offer only each group's default. (Y2, decision 0075 question 2.)
+77. **The auto-name's wording.** Spec F-S4 shows "Crew neck · Coverstitch sleeve · +20 mm length"; the catalogue's labels carry
+    the whole specification, so the name uses the first clause of each and writes a length as "Body length +20 mm", giving
+    "Crew neck · Coverstitch hem · Plain · Body length +20 mm". Is that the wording, and should the name replace the typed
+    design name rather than sitting under it? (Y2, decision 0075 question 3.)
+78. **Does the editor need its own credits counter?** Decision 0075 says no, because the studio header already shows one; if
+    the owner wants one in the editor bar as the spec draws it, the header's comes out at the same time. (Y2, decision 0075
+    question 4.)
+79. **Should the Review tab's four unread items be shown at all?** The colour gamut, the resolution, the bleed and the
+    moderation status cannot be read from a tech pack view and are read elsewhere, but leaving them off would let a founder
+    read five items as F-G2's whole list. (Y4, decision 0077 question 5.)
+80. **Which page carries the body size chart, and whether the sheet ships empty.** Spec F-S6's page list has sixteen pages and
+    none of them is the body chart, while its export picker offers one, so it is carried on page 1 with the Overview and the
+    workbook writes that sheet with a sentence rather than numbers. A page of its own makes the layout seventeen pages. (Y4
+    decision 0077 question 3; Y5 decision 0078 question 4.)
+81. **Does a factory want "Page 4 of 16" in the header as well as the footer?** The header carries the page's title only today,
+    because a number a factory cannot check against the document is a number the document should not state. (Y5, decision 0078
+    question 1.)
+82. **Should pages 2 and 3 be the same two drawings twice?** Page 2 is the technical flat with no colour and page 3 the same
+    two views in the colourway; for a garment whose only colour is in the fabric they differ very little. (Y5, decision 0078
+    question 2.)
+83. **Who numbers the construction callouts on the flat?** Page 7 is the spec's "numbered callouts on the flat" and the
+    platform has only the lettered points of measure; a factory's own numbering convention would settle it. (Y5, decision 0078
+    question 3.)
+84. **Which image sizes a factory or a marketplace actually wants.** 600, 1200 and 2048 pixels on the longest side are
+    labelled defaults with 1200 marked recommended, as the spec's example does. No factory has asked for any of them. (Y5,
+    decision 0078 question 5.)
+85. **Should the catalogue gain a created date and a use count?** Nothing is created-dated or use-counted, so Newest and Most
+    used cannot be offered and the "NEW" tag cannot be shown; the sort is the seeded order. (Y1 question 4 and decision 0074.)
+86. **Where "From your crest or logo" should go until F-T2 exists.** Crest-to-kit is not built — nothing in `app/`, `lib/` or
+    `components/` answers to it — so the tile opens `/club`, whose Club kit section is the one screen that puts a crest,
+    colours and sponsors on a design. Right destination meanwhile? (Y1 question 5 and decision 0074.)
+87. **Should the fabric programme gain a rib row?** `F-POLY-RIB` is in `JSY-SS-01`'s `article.json` but is not one of X6's six
+    programme fabrics, so its spec card has only the article's own sentence and no programme row behind it. (Y1 question 3 and
+    decision 0074.)
+
 ## How to use this plan
 
 Each workstream is one cloud agent, one branch `feat/v5-<id>-<slug>` cut from `main`, one PR into `main`. Read, before code:
