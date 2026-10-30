@@ -62,6 +62,7 @@ const PRICE_KEYS = [
   ["marketing_media", "credits.price_marketing_media"],
   ["techpack_pdf", "credits.price_techpack_pdf"],
   ["pattern_file", "credits.price_pattern_file"],
+  ["production_package", "credits.price_production_package"],
 ] as const;
 
 export function creditSettingsWith(base: CreditSettingsShape, stored: StoredSettings): CreditSettingsShape {
@@ -69,7 +70,7 @@ export function creditSettingsWith(base: CreditSettingsShape, stored: StoredSett
   for (const [kind, key] of PRICE_KEYS) prices[kind] = (storedValue(stored, key) as number | undefined) ?? prices[kind];
   const allStored = PRICE_KEYS.every(([, key]) => storedValue(stored, key) !== undefined);
   return {
-    // The prices stop being placeholders only once an admin has set all three.
+    // The prices stop being placeholders only once an admin has set every one of them.
     isPlaceholder: base.isPlaceholder && !allStored,
     prices,
     monthlyAllowance: (storedValue(stored, "credits.monthly_allowance") as number | undefined) ?? base.monthlyAllowance,

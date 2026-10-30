@@ -65,6 +65,9 @@ export default defineConfig({
         // Two lines joining the package to the tech pack generator and to the environment; nothing
         // calls either yet (decision 0070), and the generator has its own tests.
         "lib/kpp/sources/techpack.ts",
+        // One line each joining the files-service seam to the environment; `filesServiceFrom` has its own tests
+        // and there is no service to call (decision 0070, plan v5 X5b).
+        "lib/files-service/server.ts",
         // Joins the screens to the database, the configured model and the meter; the database and end-to-end tests cover it.
         "lib/moderation/server.ts",
         // Joins the factory tables to the server's own client and holds the one service of the process; the
