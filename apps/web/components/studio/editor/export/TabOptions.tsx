@@ -56,6 +56,24 @@ function Sections() {
   );
 }
 
+/** The longest side of a picture, in pixels. The middle step is the one the specification recommends. */
+function SizeSlider({ size, onSize }: Readonly<{ size: number; onSize: (size: number) => void }>) {
+  return (
+    <label className="flex flex-col gap-1 text-[13px] text-ink">
+      Longest side: {size} pixels
+      <input
+        type="range"
+        min={0}
+        max={IMAGE_SIZES.length - 1}
+        step={1}
+        value={Math.max(0, IMAGE_SIZES.indexOf(size as (typeof IMAGE_SIZES)[number]))}
+        onChange={(event) => onSize(IMAGE_SIZES[Number(event.target.value)] ?? RECOMMENDED_IMAGE_SIZE)}
+      />
+      <span className={NOTE}>{size === RECOMMENDED_IMAGE_SIZE ? RECOMMENDED_NOTE : `Sizes: ${IMAGE_SIZES.join(", ")} pixels.`}</span>
+    </label>
+  );
+}
+
 function Images({ options, onChange }: Props) {
   const { images } = options;
   const set = (patch: Partial<ImageOptions>) => onChange({ ...options, images: { ...images, ...patch } });
@@ -82,18 +100,7 @@ function Images({ options, onChange }: Props) {
           </button>
         ))}
       </div>
-      <label className="flex flex-col gap-1 text-[13px] text-ink">
-        Longest side: {images.size} pixels
-        <input
-          type="range"
-          min={0}
-          max={IMAGE_SIZES.length - 1}
-          step={1}
-          value={Math.max(0, IMAGE_SIZES.indexOf(images.size as (typeof IMAGE_SIZES)[number]))}
-          onChange={(event) => set({ size: IMAGE_SIZES[Number(event.target.value)] ?? RECOMMENDED_IMAGE_SIZE })}
-        />
-        <span className={NOTE}>{images.size === RECOMMENDED_IMAGE_SIZE ? RECOMMENDED_NOTE : `Sizes: ${IMAGE_SIZES.join(", ")} pixels.`}</span>
-      </label>
+      <SizeSlider size={images.size} onSize={(size) => set({ size })} />
       <label className={ROW}>
         <input type="checkbox" checked={images.withMannequin} onChange={(event) => set({ withMannequin: event.target.checked })} />
         Include mannequin
