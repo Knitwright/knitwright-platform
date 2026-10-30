@@ -57,7 +57,7 @@ beforeEach(() => {
 describe("previewReorder", () => {
   it("from the earlier order alone needs no questions when nothing changed", async () => {
     const { client } = await world();
-    const preview = await previewReorder(client, brand, { releaseId: REL });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL });
     expect(preview).toMatchObject({ source: "order", nothingChanged: true, projectId: PROJECT, designName: "Home shirt", releaseLabel: "Round 1" });
     expect(preview.plan.counts).toEqual({ ready: 2, fix: 0, sizeChanged: 0, newPlayers: 0 });
     expect(preview.report.identical).toBe(true);
@@ -68,7 +68,7 @@ describe("previewReorder", () => {
   it("from a season uses the saved sizes and lists what changed, what left and what no longer fits", async () => {
     const season = [playerRow(1, "Ana", "10", "L"), playerRow(2, "Di", "13", "XL")];
     const { client } = await world({ season });
-    const preview = await previewReorder(client, brand, { releaseId: REL, seasonId: SEASON });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL, seasonId: SEASON });
     expect(preview.source).toBe("season");
     expect(preview.nothingChanged).toBe(false);
     expect(preview.plan.lines.map((l) => [l.row.name, l.row.sizeLabel, l.reasons, l.change])).toEqual([
@@ -83,16 +83,16 @@ describe("previewReorder", () => {
   it("reports a design that moved on since the release", async () => {
     getProject.mockResolvedValue({ name: "Home shirt", currentVersion: 6, spec });
     const { client } = await world();
-    const preview = await previewReorder(client, brand, { releaseId: REL });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL });
     expect(preview.report.differences.map((d) => d.code)).toEqual(["design-version"]);
   });
 
   it("shows problems the made list will have, such as a repeated number", async () => {
     const { client } = await world({ season: [playerRow(1, "Ana", "10", "M"), playerRow(2, "Bo", "10", "L")] });
-    const preview = await previewReorder(client, brand, { releaseId: REL, seasonId: SEASON });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL, seasonId: SEASON });
     expect(preview.plan.counts.fix).toBe(1);
     const clean = await world({ season: [playerRow(1, "Ana", "10", "M"), playerRow(2, "Cy", "10", "L")], orderId: null });
-    const second = await previewReorder(clean.client, brand, { releaseId: REL, seasonId: SEASON });
+    const second = await previewReorder({ client: clean.client, admin: clean.client }, brand, { releaseId: REL, seasonId: SEASON });
     expect(second.plan.counts.fix).toBe(0);
     expect(second.issues.map((i) => i.code)).toEqual(["duplicate-number", "duplicate-number"]);
     expect(second.notes[0]).toContain("no team list");
@@ -100,25 +100,25 @@ describe("previewReorder", () => {
 
   it("asks for a season when the earlier order's list was erased", async () => {
     const { client } = await world({ orderId: null });
-    await expect(previewReorder(client, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found", message: expect.stringContaining("Choose a season") });
+    await expect(previewReorder({ client, admin: client }, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found", message: expect.stringContaining("Choose a season") });
   });
 
   it("treats a list erased after the release as gone, and says so when a season is used", async () => {
     const { client } = await world({ erased: true, season: [playerRow(1, "Ana", "10", "M")] });
-    const preview = await previewReorder(client, brand, { releaseId: REL, seasonId: SEASON });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL, seasonId: SEASON });
     expect(preview.plan.lines).toHaveLength(1);
     expect(preview.notes[0]).toContain("no team list");
-    await expect(previewReorder(client, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found" });
+    await expect(previewReorder({ client, admin: client }, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found" });
   });
 
   it("answers not found for a release of another club", async () => {
     const { client } = fakeClient({ production_releases: { data: null } });
-    await expect(previewReorder(client, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found" });
+    await expect(previewReorder({ client, admin: client }, brand, { releaseId: REL })).rejects.toMatchObject({ code: "not_found" });
   });
 
   it("does not put any name into an error or into the report", async () => {
     const { client } = await world({ season: [playerRow(1, "Ana", "10", "L")] });
-    const preview = await previewReorder(client, brand, { releaseId: REL, seasonId: SEASON });
+    const preview = await previewReorder({ client, admin: client }, brand, { releaseId: REL, seasonId: SEASON });
     expect(JSON.stringify(preview.report)).not.toContain("Ana");
     expect(JSON.stringify(preview.validation)).not.toContain("Ana");
   });
@@ -126,7 +126,7 @@ describe("previewReorder", () => {
 
 describe("confirmReorder", () => {
   const fingerprintOf = async (w: Awaited<ReturnType<typeof world>>, seasonId?: string) =>
-    (await previewReorder(w.client, brand, { releaseId: REL, ...(seasonId ? { seasonId } : {}) })).fingerprint;
+    (await previewReorder({ client: w.client, admin: w.client }, brand, { releaseId: REL, ...(seasonId ? { seasonId } : {}) })).fingerprint;
 
   it("saves the earlier order's list as a new team order in one step when nothing changed", async () => {
     const w = await world();
