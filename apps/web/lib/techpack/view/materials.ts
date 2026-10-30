@@ -133,7 +133,9 @@ export function buildMaterials(spec: GarmentSpec, article: BaseArticle | null): 
       title: "Bill of materials",
       tables: [
         bomTable("fabrics", "Fabrics", fabricRows(article), null),
-        bomTable("threads", "Threads", threadRows(article), null),
+        // The base's needle and looper thread, then whatever the design says about thread itself,
+        // so a note typed into the editor's own panel is not dropped on the way to the factory.
+        bomTable("threads", "Threads", [...threadRows(article), ...componentRows(spec, ["thread"])], null),
         bomTable("trims", "Trims", componentRows(spec, ["trim", "rib"]), NO_FACTORY_LIST),
         bomTable("labels", "Labels", componentRows(spec, ["label"]), NO_FACTORY_LIST),
         bomTable("packaging", "Packaging", [], NO_PACKAGING),

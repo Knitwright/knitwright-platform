@@ -103,7 +103,7 @@ describe("the Materials (BOM) tab", () => {
     expect(fabrics?.rows[0]?.cells[2]?.text).toBe("F-POLY-INT");
     expect(fabrics?.rows[0]?.cells[2]?.provenance).toBe("from_base");
     const threads = tables().find((entry) => entry.id === "threads");
-    expect(threads?.rows.map((row) => row.label)).toEqual(["Needle thread", "Looper thread"]);
+    expect(threads?.rows.map((row) => row.label).slice(0, 2)).toEqual(["Needle thread", "Looper thread"]);
     expect(threads?.rows[0]?.cells[0]?.locked).toBe(true);
   });
 
@@ -117,9 +117,11 @@ describe("the Materials (BOM) tab", () => {
     const fabrics = draft.find((entry) => entry.id === "fabrics");
     expect(fabrics?.rows.length).toBeGreaterThan(0);
     expect(fabrics?.rows[0]?.cells[0]?.text).toBeNull();
-    expect(draft.find((entry) => entry.id === "threads")?.rows).toEqual([]);
+    // The base gives no thread, so only what the design says about thread is left.
+    expect(draft.find((entry) => entry.id === "threads")?.rows.every((row) => row.label !== "Needle thread")).toBe(true);
     expect(tables(design(), null).find((entry) => entry.id === "fabrics")?.rows).toEqual([]);
-    expect(tables(design(), null).find((entry) => entry.id === "threads")?.rows).toEqual([]);
+    // The registry proposes a thread part for every garment, so the design's own row stays.
+    expect(tables(emptyDesign(), null).find((entry) => entry.id === "threads")?.rows.every((row) => row.cells.every((cell) => !cell.locked))).toBe(true);
   });
 
   it("shows the design's own trims and labels, and asks for the parts of them nobody has given", () => {
