@@ -16,6 +16,10 @@ export const CREDIT_SETTINGS = {
     marketing_media: 1,
     techpack_pdf: 1,
     pattern_file: 1,
+    // Owner decision 20 of plan v5: a sample package for a factory Knitwright does not own stays
+    // charged. THIS IS A LABELLED PLACEHOLDER AND NOT A QUOTED PRICE: it is money, so the owner may
+    // overturn both the number and the decision to charge at all.
+    production_package: 1,
   } satisfies Record<OutputKind, number>,
   /** Credits every brand is given at the start of each UTC month. */
   monthlyAllowance: 10,
