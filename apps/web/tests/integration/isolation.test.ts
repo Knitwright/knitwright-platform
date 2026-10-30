@@ -983,6 +983,52 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ set_id: randomUUID(), brand_id: brandId, status: "queued" }),
     change: { note: "Changed by a stranger" },
   },
+  // Plan v5 Z1 (decision 0082): the inspiration board. A member reads their own brand's moodboard, its items and the
+  // tags they steered; only the server writes, through the three functions. An item holds an address, a preview
+  // address and attribution words, and the column checks refuse anything that carries a picture itself.
+  design_moodboards: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(await adminClient().rpc("save_moodboard_item", moodboardArgs(brandId, ownerId, projectId)));
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), created_by: userId }),
+    change: { created_at: "2000-01-01T00:00:00Z" },
+  },
+  moodboard_items: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      return { id: must(await adminClient().rpc("save_moodboard_item", moodboardArgs(brandId, ownerId, projectId))) as string };
+    },
+    attempt: (brandId) => ({
+      brand_id: brandId,
+      moodboard_id: randomUUID(),
+      source: "unsplash",
+      title: "Made directly",
+      open_url: "https://example.test/1",
+      preview_url: "https://example.test/1.jpg",
+      attribution: { provider: "Unsplash", notice: "Made directly" },
+    }),
+    change: { title: "Changed by a stranger" },
+  },
+  inspiration_tag_steers: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      const tag = `navy-${randomUUID().slice(0, 8)}`;
+      must(
+        await adminClient().rpc("set_inspiration_tag", { p_brand_id: brandId, p_user_id: ownerId, p_project_id: projectId, p_tag: tag, p_state: "pinned" }),
+      );
+      return { project_id: projectId, tag };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), tag: "direct", state: "pinned", set_by: userId }),
+    change: { state: "removed" },
+  },
   club_invitations: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1152,6 +1198,18 @@ const seedComment = async (brandId: string, ownerId: string, mentions: readonly 
   ) as string;
   return { commentId };
 };
+
+/** What one saved inspiration card is: an address, a preview address and the attribution words (decision 0082). */
+const moodboardArgs = (brandId: string, ownerId: string, projectId: string) => ({
+  p_brand_id: brandId,
+  p_user_id: ownerId,
+  p_project_id: projectId,
+  p_source: "unsplash",
+  p_title: "Seeded inspiration",
+  p_open_url: `https://unsplash.test/photos/${randomUUID()}`,
+  p_preview_url: "https://images.unsplash.test/seeded.jpg",
+  p_attribution: { creator: "Ada", creatorUrl: null, provider: "Unsplash", providerUrl: null, notice: "Photo by Ada on Unsplash" },
+});
 
 const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
   must(
