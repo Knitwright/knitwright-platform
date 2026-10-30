@@ -83,14 +83,15 @@ export function dropPayload(plan: CollectionPlan, pricing: PricingByStyle, gener
     destinationCountry: plan.destinationCountry,
     currency: plan.currency,
     generatedAt: generatedAt.toISOString(),
-    styles: plan.styles.map((style) => {
-      const row = rows.find((one) => one.styleId === style.id);
+    styles: plan.styles.map((style, index) => {
+      // `linePlan` gives one row per style, in the plan's own order, so the row is always this style's.
+      const row = rows[index]!;
       return {
         styleId: style.id,
         name: style.name,
         colourway: style.colourway,
         status: style.status,
-        group: row?.group ?? null,
+        group: row.group,
         articleCode: style.articleCode,
         fabricCode: style.fabricCode,
         productionClass: style.productionClass,
@@ -99,8 +100,8 @@ export function dropPayload(plan: CollectionPlan, pricing: PricingByStyle, gener
         targetUnits: unitsOf(style),
         wholesaleMinor: style.wholesaleMinor,
         rrpMinor: style.rrpMinor,
-        unitCostMinor: row && row.cost.status === "landed" ? row.cost.unitMinor : null,
-        marginBp: row?.marginBp ?? null,
+        unitCostMinor: row.cost.status === "landed" ? row.cost.unitMinor : null,
+        marginBp: row.marginBp,
       };
     }),
     totals: {

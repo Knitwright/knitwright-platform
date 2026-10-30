@@ -2,9 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { SELL_CURRENCIES } from "@/lib/factory/schemas";
 import { refusal } from "@/lib/make/service";
+import { orderSizes } from "@/lib/pattern-library/sizes";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import { unitsOf } from "./board";
-import type { CollectionPlan, CollectionSummary, Frame, Style } from "./types";
+import type { CollectionPlan, CollectionSummary, Frame, PlannedSize, Style } from "./types";
 import { STYLE_STATUSES } from "./vocabulary";
 import type { FreightRate } from "./pricing";
 import type { SaveStyleBody } from "./schemas";
@@ -74,6 +75,14 @@ const SUMMARY_SELECT = "id, name, destination_country, currency, updated_at, col
 
 const frameOf = (row: z.output<typeof frameRow>): Frame => ({ id: row.id, name: row.name, x: row.x, y: row.y });
 
+/** The size rows of one style, in size-run order. */
+const sizesInRunOrder = (rows: readonly z.output<typeof sizeRow>[]): readonly PlannedSize[] => {
+  const order = orderSizes(rows.map((size) => size.size_label));
+  return [...rows]
+    .sort((a, b) => order.indexOf(a.size_label) - order.indexOf(b.size_label))
+    .map((size) => ({ label: size.size_label, qty: size.qty }));
+};
+
 const styleOf = (row: z.output<typeof styleRow>, projectIds: ReadonlyMap<string, string>): Style => ({
   id: row.id,
   frameId: row.frame_id,
@@ -88,7 +97,9 @@ const styleOf = (row: z.output<typeof styleRow>, projectIds: ReadonlyMap<string,
   wholesaleMinor: row.wholesale_minor,
   rrpMinor: row.rrp_minor,
   wholesaleSplitBp: row.wholesale_split_bp,
-  sizes: [...row.collection_style_sizes].sort((a, b) => a.size_label.localeCompare(b.size_label)).map((size) => ({ label: size.size_label, qty: size.qty })),
+  // Size rows have no order of their own in the database, so they are read in size-run order
+  // (`orderSizes`: letters small to large, then numbers), never alphabetically.
+  sizes: sizesInRunOrder(row.collection_style_sizes),
   x: row.x,
   y: row.y,
 });

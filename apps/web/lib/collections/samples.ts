@@ -42,13 +42,17 @@ export const sampleSizesOf = (style: Style): readonly string[] =>
     .map((size) => size.label)
     .slice(0, SAMPLE_MAX_SIZES);
 
-/** Why this approved style cannot be sampled, or null when it can. */
-const whyNot = (style: Style): Finding | null => {
+/** Whether this approved style can be sampled, and the product to order it against when it can. */
+type Sampleable = Readonly<{ ok: true; productId: string }> | Readonly<{ ok: false; finding: Finding }>;
+
+const sampleable = (style: Style): Sampleable => {
   if (style.productId === null) {
-    return blocker("sample_no_product", `${style.name} is not listed as a product yet. A sample is ordered against a product.`);
+    return { ok: false, finding: blocker("sample_no_product", `${style.name} is not listed as a product yet. A sample is ordered against a product.`) };
   }
-  if (unitsOf(style) === 0) return blocker("sample_no_sizes", `${style.name} has no sizes planned, so there is nothing to sample.`);
-  return null;
+  if (unitsOf(style) === 0) {
+    return { ok: false, finding: blocker("sample_no_sizes", `${style.name} has no sizes planned, so there is nothing to sample.`) };
+  }
+  return { ok: true, productId: style.productId };
 };
 
 /** Every approved style of the plan, with the sizes its sample would ask for. */
@@ -57,13 +61,13 @@ export function samplesForApproved(plan: CollectionPlan): SamplePlan {
   const targets: SampleTarget[] = [];
   const skipped: SkippedStyle[] = [];
   for (const style of approved) {
-    const reason = whyNot(style);
-    if (reason !== null || style.productId === null) {
-      skipped.push({ styleId: style.id, name: style.name, finding: reason ?? blocker("sample_no_product", `${style.name} is not listed as a product yet.`) });
+    const check = sampleable(style);
+    if (!check.ok) {
+      skipped.push({ styleId: style.id, name: style.name, finding: check.finding });
       continue;
     }
     const sizes = sampleSizesOf(style);
-    targets.push({ styleId: style.id, name: style.name, productId: style.productId, sizes, pieces: sizes.length * SAMPLE_PIECES_PER_SIZE });
+    targets.push({ styleId: style.id, name: style.name, productId: check.productId, sizes, pieces: sizes.length * SAMPLE_PIECES_PER_SIZE });
   }
   return { targets, skipped, summary: summaryOf(approved.length, targets), canOrder: targets.length > 0 };
 }
