@@ -36,7 +36,9 @@ export function createMemoryStore(): MemoryStore {
     },
     async claimFetch(who: Who, input): Promise<FetchClaim> {
       const key = `${who.brandId}:${input.urlKey}`;
-      if (fetches.has(key)) return "already";
+      const held = fetches.get(key);
+      // A page the brand tried and could not reach was never read, so it may be tried again, as the database allows.
+      if (held !== undefined && held.outcome !== "failed") return "already";
       fetches.set(key, { host: input.host, outcome: "claimed" });
       return "ok";
     },

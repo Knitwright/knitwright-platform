@@ -105,7 +105,11 @@ begin
   if (to_jsonb(new) - v_mutable) is distinct from (to_jsonb(old) - v_mutable) then
     raise exception 'A benchmark fetch record can never be changed or removed.' using errcode = 'P0001', hint = 'append_only';
   end if;
-  if old.outcome <> 'claimed' and new.outcome is distinct from old.outcome then
+  -- The outcome is written once. The one exception: a page we tried and could not reach was never read, so the person
+  -- may try it again, and 'failed' goes back to 'claimed'. 'fetched' and 'robots_refused' are final — the first means
+  -- the page has been read, which is the thing that happens once, and the second means the site said no.
+  if new.outcome is distinct from old.outcome
+     and not (old.outcome = 'claimed' or (old.outcome = 'failed' and new.outcome = 'claimed')) then
     raise exception 'A benchmark fetch record can never be changed or removed.' using errcode = 'P0001', hint = 'append_only';
   end if;
   -- A deleted account's id is cleared by the foreign key, which is an update. Clearing is all it may do.
@@ -233,8 +237,9 @@ begin
 end;
 $$;
 
--- Asks to read one page for this brand. 'ok' means nobody in the brand has read it before and the row is now claimed;
--- 'already' means it has been read, and the caller shows the card it already has rather than fetching again.
+-- Asks to read one page for this brand. 'ok' means the brand may read it now; 'already' means it has been read, or the
+-- site refused it, and the caller shows the card it already has rather than fetching again. A page the brand tried and
+-- could not reach was never read, so it may be tried again — still within the brand's rate limit.
 create function public.benchmark_fetch_claim(p_brand_id uuid, p_user_id uuid, p_url_sha256 text, p_host text)
 returns text
 language plpgsql
@@ -248,10 +253,16 @@ begin
   insert into public.benchmark_fetches (brand_id, url_sha256, host, created_by)
   values (p_brand_id, lower(p_url_sha256), lower(btrim(p_host)), p_user_id)
   on conflict (brand_id, url_sha256) do nothing;
-  if not found then
-    return 'already';
+  if found then
+    return 'ok';
   end if;
-  return 'ok';
+  update public.benchmark_fetches
+  set outcome = 'claimed', settled_at = null
+  where brand_id = p_brand_id and url_sha256 = lower(p_url_sha256) and outcome = 'failed';
+  if found then
+    return 'ok';
+  end if;
+  return 'already';
 end;
 $$;
 

@@ -171,6 +171,30 @@ describe("a URL becomes a card", () => {
     expect([...deps.store.fetches.values()][0]?.outcome).toBe("failed");
   });
 
+  it("lets a page that could not be reached be tried again: nothing was read the first time", async () => {
+    let reachable = false;
+    const fetcher = async (url: string) => {
+      if (url.endsWith("/robots.txt")) return page("User-agent: *\nAllow: /", "text/plain");
+      return reachable ? page("<p>88% polyester</p>") : new Response("", { status: 503 });
+    };
+    const deps = depsOf({ fetcher });
+    const benchmarkId = await benchmarkIn(deps);
+
+    expect(await addCardFromUrl(deps, WHO, { benchmarkId, url: URL_IN })).toMatchObject({ reason: "unreachable" });
+    reachable = true;
+
+    expect(await addCardFromUrl(deps, WHO, { benchmarkId, url: URL_IN })).toMatchObject({ ok: true });
+  });
+
+  it("does not let a page the site refused be tried again: the site said no", async () => {
+    const site = siteOf("User-agent: *\nDisallow: /product/");
+    const deps = depsOf({ fetcher: site.fetcher });
+    const benchmarkId = await benchmarkIn(deps);
+
+    expect(await addCardFromUrl(deps, WHO, { benchmarkId, url: URL_IN })).toMatchObject({ reason: "robots" });
+    expect(await addCardFromUrl(deps, WHO, { benchmarkId, url: URL_IN })).toMatchObject({ reason: "already_read" });
+  });
+
   it("treats a robots.txt it cannot read as a refusal: a polite fetcher does not guess", async () => {
     const deps = depsOf({ fetcher: async () => new Response("", { status: 500 }) });
 

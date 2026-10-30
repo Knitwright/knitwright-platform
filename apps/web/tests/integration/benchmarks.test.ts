@@ -119,6 +119,29 @@ describe("one fetch per page, per brand", () => {
     expect(must(await adminClient().from("benchmark_fetches").select("outcome").eq("url_sha256", key).eq("brand_id", brand).single())).toMatchObject({ outcome: "fetched" });
   });
 
+  it("lets a page that could not be reached be claimed again: nothing was read the first time", async () => {
+    const key = hash();
+    const claim = { p_brand_id: brand, p_user_id: owner.userId, p_url_sha256: key, p_host: "a.test" };
+    must(await rpc("benchmark_fetch_claim", claim));
+    must(await rpc("benchmark_fetch_settle", { p_brand_id: brand, p_url_sha256: key, p_outcome: "failed" }));
+
+    expect(must(await rpc("benchmark_fetch_claim", claim))).toBe("ok");
+    const row = must(await adminClient().from("benchmark_fetches").select("outcome, settled_at").eq("url_sha256", key).eq("brand_id", brand).single()) as Record<string, unknown>;
+    expect(row).toMatchObject({ outcome: "claimed" });
+    expect(row.settled_at).toBeNull();
+  });
+
+  it("never lets a page that was read, or that the site refused, be claimed again", async () => {
+    for (const outcome of ["fetched", "robots_refused"]) {
+      const key = hash();
+      const claim = { p_brand_id: brand, p_user_id: owner.userId, p_url_sha256: key, p_host: "a.test" };
+      must(await rpc("benchmark_fetch_claim", claim));
+      must(await rpc("benchmark_fetch_settle", { p_brand_id: brand, p_url_sha256: key, p_outcome: outcome }));
+
+      expect(must(await rpc("benchmark_fetch_claim", claim)), outcome).toBe("already");
+    }
+  });
+
   it("refuses an outcome that is not one of the three", async () => {
     const key = hash();
     must(await rpc("benchmark_fetch_claim", { p_brand_id: brand, p_user_id: owner.userId, p_url_sha256: key, p_host: "a.test" }));

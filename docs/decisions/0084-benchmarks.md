@@ -52,7 +52,9 @@ rather than the thing a policy asks people not to do.
    (`supabase/migrations/20261120030000_benchmarks.sql`). `benchmark_fetches` is unique on (brand, URL hash): the
    unique index *is* the promise, and the second ask gets `already` and the card the brand already has. The record of a
    fetch can never be unsaid — only its outcome is filled in, once — so "we read this page" is a fact with a date
-   against it. The rate limits are per **brand** as well as per person (`limits.ts`): twenty pages an hour for a brand
+   against it. **One exception, and it is the honest one**: a page the brand tried and could not reach was never read,
+   so it may be tried again, and only that transition (`failed` back to `claimed`) is allowed. `fetched` and
+   `robots_refused` are final: the first is the thing that happens once, and the second is a site saying no. The rate limits are per **brand** as well as per person (`limits.ts`): twenty pages an hour for a brand
    and five from any one site, counted with the existing limiter so ten people in one brand cannot read a hundred of a
    competitor's pages between them.
 
