@@ -1,7 +1,6 @@
 import { PROVENANCE_LABELS } from "@/lib/garment";
 import { PROPOSAL_WORDS } from "../text";
 import type { TechPack } from "../types";
-import { EXCEL_SHEETS } from "./contents";
 import {
   classColumn,
   classed,
@@ -48,6 +47,7 @@ const fabricsTable = (components: TechPack["components"]): ExportTable =>
     ]),
   );
 
+/** Page 5 of the specification's sixteen: the second half of the bill of materials. */
 const othersTable = (components: TechPack["components"]): ExportTable =>
   table(
     "Rib, thread, labels and trims",
@@ -69,6 +69,8 @@ const othersTable = (components: TechPack["components"]): ExportTable =>
       text(sentences(line.help, line.note).join(" ")),
       value(line.proposalNote),
     ]),
+    null,
+    "bom-parts",
   );
 
 export function componentsSection(pack: TechPack): ExportSection {
@@ -76,7 +78,6 @@ export function componentsSection(pack: TechPack): ExportSection {
   return {
     id: "components",
     title: components.title,
-    sheet: EXCEL_SHEETS.components,
     paragraphs: sentences(components.note),
     tables: [fabricsTable(components), othersTable(components)],
   };
@@ -87,7 +88,6 @@ export function constructionSection(pack: TechPack): ExportSection {
   return {
     id: "construction",
     title: construction.title,
-    sheet: EXCEL_SHEETS.construction,
     paragraphs: sentences(construction.note),
     tables: [
       table(
@@ -110,7 +110,6 @@ export function colourwaysSection(pack: TechPack): ExportSection {
   return {
     id: "colourways",
     title: colourways.title,
-    sheet: EXCEL_SHEETS.colourways,
     paragraphs: sentences(colourways.note, COLOUR_HELP),
     tables: colourways.colourways.map((block) =>
       table(
@@ -151,7 +150,6 @@ export function artworkSection(pack: TechPack): ExportSection {
   return {
     id: "artwork",
     title: artwork.title,
-    sheet: EXCEL_SHEETS.artwork,
     paragraphs: sentences(artwork.note, artwork.playerMarksNote),
     tables: [...(rows.length > 0 ? [table(null, columns, rows)] : []), ...playerMarksTables(pack)],
   };
@@ -182,7 +180,7 @@ function playerMarksTables(pack: TechPack): ExportTable[] {
     value(item.screenColour),
     value(item.technique),
   ]);
-  return rows.length > 0 ? [table("Player names and numbers", PLAYER_MARK_COLUMNS, rows)] : [];
+  return rows.length > 0 ? [table("Player names and numbers", PLAYER_MARK_COLUMNS, rows, null, "personalisation")] : [];
 }
 
 export function labellingSection(pack: TechPack): ExportSection {
@@ -190,7 +188,6 @@ export function labellingSection(pack: TechPack): ExportSection {
   return {
     id: "labelling",
     title: labelling.title,
-    sheet: EXCEL_SHEETS.labelling,
     paragraphs: sentences(labelling.note),
     tables: [table(null, [textColumn("Field"), valueColumn("Entry")], labelling.rows.map((row) => [text(row.label), value(row.value)]))],
   };
@@ -219,7 +216,6 @@ export function suggestedSection(pack: TechPack): ExportSection {
   return {
     id: "suggested",
     title: suggested.title,
-    sheet: EXCEL_SHEETS.suggested,
     paragraphs: sentences(suggested.note),
     tables: [...items, proposals],
   };
@@ -230,7 +226,6 @@ export function signOffSection(pack: TechPack): ExportSection {
   return {
     id: "sign-off",
     title: section.title,
-    sheet: EXCEL_SHEETS["sign-off"],
     paragraphs: sentences(section.note, section.statement),
     tables: [
       table(
