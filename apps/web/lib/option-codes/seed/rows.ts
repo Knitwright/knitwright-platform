@@ -12,8 +12,8 @@ import type { Citation, OptionCodeMapping } from "../types";
  * names the gap, and the tech pack then says plainly that the catalogue has no code for the option yet.
  *
  * Only `JSY-SS-01` is mapped, because it is the only article with options: the other seven launch articles are
- * seeded with no option codes at all (`docs/spec/articles/*/article.json`, decision 0090), so there is nothing to
- * join them to.
+ * seeded with no option codes at all (each one's own `article.json` holds none, decision 0090), so there is nothing
+ * to join them to.
  */
 
 const JSY = "docs/spec/articles/JSY-SS-01";
@@ -157,6 +157,7 @@ const JSY_SS_01: readonly Row[] = [
   noCodeYet(
     "collar",
     "band-collar",
+    null,
     "No published source names a catalogue code for a band collar on this article. The catalogue group called 'collar' is the neck finish (C01 to C03), not a stand collar, so the registry's band collar has no code to map to.",
   ),
   noCodeYet("placket", "buttons", null, "No published source names a catalogue code for a buttoned placket on this article."),
