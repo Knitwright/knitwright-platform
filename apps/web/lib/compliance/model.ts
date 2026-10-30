@@ -75,7 +75,9 @@ export const CHECKLIST_TITLES: Readonly<Record<ChecklistItemId, string>> = {
   poms: "Points of measure complete",
   bom: "Bill of materials complete",
   labels: "Labels for every destination market",
-  colour_gamut: "Colours inside the print gamut",
+  // F-G2 calls this item "colour spec within gamut". It checks the whole spec, as `lib/kpp/gate.ts` does, so
+  // the title says so: a colour with no swatch fails here, and "inside the gamut" would not explain that.
+  colour_gamut: "Colour spec complete, and inside the print gamut",
   dpi: "Print files at the DPI the rules ask for",
   bleed: "Print files with the bleed the rules ask for",
   moderation: "Moderation clear",
