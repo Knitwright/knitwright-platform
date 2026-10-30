@@ -121,7 +121,7 @@ test.describe("make (Y7)", () => {
     await expect(page.getByText(/Sent to production: 1 order/)).toBeVisible();
   });
 
-  test("a Class B run outside 50 to 300 pieces is refused before anything is sent", async ({ page }) => {
+  test("a Class B run outside 50 to 300 pieces is noted, and goes once the note has been read", async ({ page }) => {
     const email = await createAccount("make-class", { brand: "Oak Make" });
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
@@ -133,7 +133,14 @@ test.describe("make (Y7)", () => {
     await page.goto(`/studio/${projectId}/make/order`);
     await page.getByRole("heading", { level: 3, name: new RegExp(name) }).waitFor();
     await page.getByLabel("Size M", { exact: true }).fill("20");
+    // Knitwright's own draft range, not a quantity a factory has refused, so it is a note on the
+    // order and not a closed door (orchestrator decision, plan v5 wave 2).
     await expect(page.getByText(/A Class B run is 50 to 300 pieces per style/)).toBeVisible();
-    await expect(page.getByRole("button", { name: "Hand this order to production" })).toBeDisabled();
+    await expect(page.getByText(/not a quantity a factory has refused/)).toBeVisible();
+
+    const send = page.getByRole("button", { name: "Hand this order to production" });
+    await expect(send).toBeEnabled();
+    await send.click();
+    await expect(page.getByText(/Sent to production: 1 order/)).toBeVisible();
   });
 });

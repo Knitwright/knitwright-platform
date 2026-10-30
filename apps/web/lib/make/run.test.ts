@@ -29,11 +29,21 @@ describe("the pieces of a run", () => {
 });
 
 describe("the production class", () => {
-  it("holds a Class B run to 50 to 300 pieces per style", () => {
+  it("notes a Class B run outside 50 to 300 pieces per style, and lets it go", () => {
     expect(codes({ M: String(CLASS_B_MIN_PIECES - 1) })).toContain("class_b_quantity");
     expect(codes({ M: String(CLASS_B_MAX_PIECES + 1) })).toContain("class_b_quantity");
     expect(codes({ M: String(CLASS_B_MIN_PIECES) })).not.toContain("class_b_quantity");
     expect(codes({ M: String(CLASS_B_MAX_PIECES) })).not.toContain("class_b_quantity");
+  });
+
+  it("says the range is Knitwright's own and does not refuse the run over it", () => {
+    const over = check({ M: String(CLASS_B_MAX_PIECES + 100) });
+    const found = over.findings.find((finding) => finding.code === "class_b_quantity");
+
+    expect(found?.severity).toBe("warning");
+    expect(found?.message).toContain("not a quantity a factory has refused");
+    expect(over.canSend).toBe(true);
+    expect(over.pieces).toBe(CLASS_B_MAX_PIECES + 100);
   });
 
   it("lets a Class A run be any quantity from one piece", () => {
@@ -50,8 +60,8 @@ describe("the production class", () => {
     expect(result.findings[0]?.severity).toBe("warning");
   });
 
-  it("stops a run that breaks a rule from being sent", () => {
-    const result = check({ M: "10" }, "B");
+  it("stops a run that breaks a rule from being sent, and keeps no quantity it could not read", () => {
+    const result = check({ M: "ten" }, "B");
     expect(result.canSend).toBe(false);
     expect(result.sizes).toEqual({});
     expect(result.pieces).toBe(0);
