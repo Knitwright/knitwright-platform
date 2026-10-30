@@ -55,6 +55,18 @@ both gates refuse, and over the unmutated article both pass. Whoever deletes the
 new checklist is **stricter** is labels, and the test says so: the package's gate reads already-flattened label text and is
 satisfied by it, while the checklist reads the market's rows and finds the care symbols nobody has written.
 
+Y5's Export panel (decision 0078) landed while this was being built, and `lib/techpack/exports/review-gate.ts`
+says in its own comment that it holds "the smallest shape the gate reads (Lesson 9), so the shell can hand the tab's own
+summary across the slot seam when both have landed". `lib/compliance/export-gate.ts` is that summary:
+`reviewStateFrom(ChecklistResult)` gives the panel's `ReviewState`, with `reviewed: true`, because a checklist result **is**
+the Review tab's report. So the sentence the Export panel shows, the list the Review tab prints and the refusal the hand-off
+throws are three readings of one result, not three checks that happen to agree today. Types only are imported, so nothing of
+the editor or the exports reaches `lib/compliance` at run time.
+
+The warnings are deliberately **not** carried into that shape. Y5's `ReviewState` has nowhere for a note that does not shut
+the gate, and putting the gamut estimate into `needsInput` would shut the Export panel over a number that is explicitly not a
+measurement, which decision 0070 and section 3 below both refuse to do.
+
 ### 2. A label line is printed only from a row that says where its words came from
 
 `lib/compliance/labels.ts` builds one label per destination from `country_rules.label_rules`, the fabric's
@@ -103,11 +115,15 @@ checklist item.
   is the checklist's copy over an already-read value, so the Review tab can show it before anyone presses anything.
   `assertHandOffAllowed` throws at the act, over the whole checklist and not only this item: a package that may not be built
   is a run that may not be cut.
-- **The 50 to 300 piece range is a flag, not a refusal**, as the orchestrator settled, matching the brand-run builder of
-  decision 0062. Refusing a run of 400 pieces would assert that a factory will not make 400 of a style, which no factory has
-  confirmed. **Nothing in `lib/compliance` looks at a quantity at all**, and a test asserts that the word "piece" does not
-  appear in a checklist result. Y7 shipped the range as a refusal in `lib/make/run.ts` and in `public.submit_make_order`; both
-  are the orchestrator's to change and neither is touched here.
+- **The 50 to 300 piece range is a flag on the order, not a refusal**, as the orchestrator settled, matching the brand-run
+  builder of decision 0062. Refusing a run of 400 pieces would assert that a factory will not make 400 of a style, which no
+  factory has confirmed. It is **not a compliance rule and not in this workstream**: the quantity range lives in
+  `lib/make/run.ts` and in `public.submit_make_order`, and the orchestrator is moving both from a refusal to a flag in
+  `fix/v5-class-b-flag` (migration `20261110040000_class_b_flag.sql`). Neither file is touched here.
+
+  **Nothing in `lib/compliance` looks at a quantity at all.** There is no piece count in `PreExportSubject`, so no checklist
+  item could read one even by mistake, and `items.test.ts` asserts that the word "piece" does not appear anywhere in a
+  checklist result. Whatever the quantity rule settles to, this workstream neither duplicates nor contradicts it.
 
 ### 5. The two tables decision 0070 left owed, seeded as labelled defaults
 
