@@ -94,7 +94,7 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
                   inputMode="decimal"
                   value={zone.heightCm}
                   onChange={(event) => change(setZoneHeight(form, zone.place, event.currentTarget.value))}
-                  hint="Left empty it stays to be confirmed with the factory."
+                  hint="Left empty it stays for the factory to give, and is never guessed."
                 />
               ) : null}
             </li>

@@ -1,6 +1,6 @@
 import { sessionClient } from "@/lib/server/deps";
 import { listShareInvites } from "@/lib/share/invite-service";
-import { buildAccessRows } from "@/lib/share/invites";
+import { buildAccessRows } from "@/lib/share/invite-fields";
 import { buildShareLinkViews } from "@/lib/share/responses";
 import { listShareLinks } from "@/lib/share/service";
 import { SharePanel } from "./SharePanel";

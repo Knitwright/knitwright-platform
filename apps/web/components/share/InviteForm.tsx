@@ -8,7 +8,7 @@ import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
 import { inviteToShareAction } from "@/lib/share/actions";
 import { DEFAULT_LINK_DAYS, LINK_DAYS } from "@/lib/share/fields";
-import { ACCESS_LABELS, ACCESS_NOTES, MESSAGE_MAX, SHARE_ACCESS } from "@/lib/share/invites";
+import { ACCESS_LABELS, ACCESS_NOTES, MESSAGE_MAX, SHARE_ACCESS } from "@/lib/share/invite-fields";
 
 /**
  * Invite by email, with Can view / Can comment / Can edit and a message (spec F-S4 Share).

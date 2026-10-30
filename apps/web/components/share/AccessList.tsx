@@ -4,7 +4,7 @@ import { FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { revokeShareInviteAction } from "@/lib/share/actions";
-import type { AccessRow } from "@/lib/share/invites";
+import type { AccessRow } from "@/lib/share/invite-fields";
 
 /**
  * People with access (spec F-S4 Share). One row per invited address, saying what they may do, how

@@ -6,7 +6,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import { createShareLinkAction, moveShareLinkAction, revokeShareLinkAction } from "@/lib/share/actions";
-import type { AccessRow } from "@/lib/share/invites";
+import type { AccessRow } from "@/lib/share/invite-fields";
 import type { ShareLinkView } from "@/lib/share/responses";
 import { DEFAULT_LINK_DAYS, LINK_DAYS } from "@/lib/share/fields";
 import { AccessList } from "./AccessList";

@@ -1,4 +1,4 @@
-import { ACCESS_LABELS, type ShareAccess } from "./invites";
+import { ACCESS_LABELS, type ShareAccess } from "./invite-fields";
 
 /**
  * Sending an invite (spec F-S4 Share, plan v5 Y8, decision 0081).

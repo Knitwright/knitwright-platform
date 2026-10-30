@@ -1,5 +1,5 @@
 import { formatDate, formatDateTime } from "@/lib/projects/dates";
-import { AUDIENCE_LABELS, AUDIENCE_NOTES, type LinkAudience } from "./invites";
+import { AUDIENCE_LABELS, AUDIENCE_NOTES, type LinkAudience } from "./invite-fields";
 import type { ShareVote } from "./schemas";
 
 /**

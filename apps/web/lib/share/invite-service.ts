@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { SHARE_ACCESS, type LinkAudience, type ShareAccess, type ShareInvite } from "./invites";
+import { SHARE_ACCESS, type LinkAudience, type ShareAccess, type ShareInvite } from "./invite-fields";
 import { shareFailure } from "./service";
 import { newShareToken } from "./token";
 
