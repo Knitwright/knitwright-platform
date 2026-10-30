@@ -923,6 +923,43 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, golden_sample_id: randomUUID(), from_version: 1, to_version: 2, changed_fields: [{ field: "artwork", group: "surface" }], rule_id: "R-GAP-000" }),
     change: { to_version: 9 },
   },
+  // Plan v5 Z4 (decision 0085): collection plans. A member reads their own brand's plans; only the
+  // five collection functions write, and an exported drop payload is append-only.
+  collections: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedCollection(brandId, ownerId)).collectionId }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly", destination_country: "GB", currency: "GBP" }),
+    change: { name: "Changed by a stranger" },
+  },
+  collection_frames: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedCollection(brandId, ownerId)).frameId }),
+    attempt: (brandId) => ({ brand_id: brandId, collection_id: randomUUID(), name: "Made directly" }),
+    change: { name: "Changed by a stranger" },
+  },
+  collection_styles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedCollection(brandId, ownerId)).styleId }),
+    attempt: (brandId) => ({ brand_id: brandId, collection_id: randomUUID(), name: "Made directly" }),
+    change: { rrp_minor: 1, status: "ordered" },
+  },
+  collection_style_sizes: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ style_id: (await seedCollection(brandId, ownerId)).styleId }),
+    attempt: (brandId) => ({ brand_id: brandId, style_id: randomUUID(), size_label: "M", qty: 10 }),
+    change: { qty: 999 },
+  },
+  collection_drops: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedCollection(brandId, ownerId)).dropId }),
+    attempt: (brandId) => ({ brand_id: brandId, collection_id: randomUUID(), version: 1, payload: { kind: "collection-drop" } }),
+    change: { payload: { kind: "changed by a stranger" } },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -1180,6 +1217,30 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
  * carries a design version, because a golden sample records which version it was cut from. With `signedOff` it
  * also holds the founder's sign-off, which the carry-over table needs.
  */
+/** A collection plan of the brand with a group, a style card, its sizes and one exported drop payload. */
+const seedCollection = async (
+  brandId: string,
+  ownerId: string,
+): Promise<{ collectionId: string; frameId: string; styleId: string; dropId: string }> => {
+  const collectionId = must(
+    await adminClient().rpc("create_collection", { p_brand_id: brandId, p_user_id: ownerId, p_name: `Seeded ${randomUUID().slice(0, 8)}`, p_destination: "GB", p_currency: "GBP" }),
+  ) as string;
+  const frameId = must(
+    await adminClient().rpc("save_collection_frame", { p_brand_id: brandId, p_user_id: ownerId, p_collection_id: collectionId, p_frame_id: null, p_name: "Core", p_x: 0, p_y: 0 }),
+  ) as string;
+  const styleId = must(
+    await adminClient().rpc("save_collection_style", {
+      p_brand_id: brandId, p_user_id: ownerId, p_collection_id: collectionId, p_style_id: null, p_frame_id: frameId, p_product_id: null,
+      p_name: "Seeded jersey", p_status: "approved", p_colourway: "Navy", p_article_code: "JSY-SS-01", p_fabric_code: "F-POLY-INT",
+      p_production_class: "A", p_wholesale_minor: 4200, p_rrp_minor: 8000, p_wholesale_split_bp: 6000, p_sizes: { M: 10 }, p_x: 0, p_y: 0,
+    }),
+  ) as string;
+  const drops = must(
+    await adminClient().rpc("export_collection_drop", { p_brand_id: brandId, p_user_id: ownerId, p_collection_id: collectionId, p_payload: { kind: "collection-drop", payloadVersion: 1 } }),
+  ) as { id: string }[];
+  return { collectionId, frameId, styleId, dropId: drops[0]!.id };
+};
+
 const seedGoldenSample = async (
   brandId: string,
   ownerId: string,
@@ -1357,6 +1418,13 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     row: { country: "GB" },
     attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
     change: { selling_enabled: false },
+  },
+  // Plan v5 Z4 (decision 0085): freight per piece to a destination, and the basis duty is charged on.
+  collection_freight_rates: {
+    privileges: ["SELECT"],
+    row: { country: "GB" },
+    attempt: { country: "ZZ", per_piece_minor: 1, currency: "GBP", label: "Made directly" },
+    change: { per_piece_minor: 1 },
   },
   // Plan v5 X1 (decision 0066): the base article catalogue, seeded by its migration.
   base_articles: {
