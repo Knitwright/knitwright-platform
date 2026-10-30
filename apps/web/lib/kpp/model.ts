@@ -97,7 +97,12 @@ export interface KppColour {
 
 export interface KppColourSpec {
   readonly fabric: string | null;
-  readonly tolerance: Readonly<{ metric: "dE_CMC_2_1"; max: number }>;
+  /**
+   * The colour difference the factory has agreed it can hold. Null when none is agreed: the package never states a
+   * tolerance nobody agreed to, and the gate refuses instead. Owner decision 15: until the colour house states its
+   * white point, delta E is defined against our own figures, which are sRGB under D65 with the two-degree observer.
+   */
+  readonly tolerance: Readonly<{ metric: "dE_CMC_2_1"; max: number | null }>;
   readonly colours: readonly KppColour[];
   readonly strikeOffRequired: boolean;
   readonly ruleId: string;
