@@ -17,13 +17,13 @@ const figure = (item: ExportIllustration, safe: Safe): ReactElement =>
   );
 
 /**
- * The AI pictures, on a page of their own after the specification. The label says what they
- * are before any picture is seen. Plan step 14, task 5.
+ * The AI pictures, on the reference images page, which is the last of the specification's sixteen
+ * (F-S6). The label says what they are before any picture is seen. Plan step 14, task 5.
  */
 export function illustrationsElement(illustrations: ExportIllustrations, safe: Safe): ReactElement {
   return h(
     View,
-    { key: "illustrations", break: true },
+    { key: "illustrations" },
     heading(2, "Illustrations", safe),
     h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.body, color: COLOURS.warn, marginBottom: 4 } }, safe(illustrations.label)),
     ...(illustrations.note ? [paragraph(illustrations.note, safe, "note")] : []),

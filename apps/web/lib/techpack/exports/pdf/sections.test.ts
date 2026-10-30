@@ -4,6 +4,8 @@ import { CHARTS, PROJECT, TOPS_IDS, fullDesign, packFor, revisions } from "../..
 import { SECTION_IDS, SECTION_TITLES, type TechPack } from "../../types";
 import { allText, type ReadPage } from "../fixtures/pdf-pages";
 import { noSpace, readPdfOf } from "../fixtures/pdf-helpers";
+import { CLOSING_PAGES, TECH_PACK_PAGES, pagePlan } from "../pages";
+import { exportSections } from "../tables";
 
 const A4 = { width: 595.28, height: 841.89 };
 
@@ -33,13 +35,43 @@ describe("the PDF of a full design", () => {
     expect(warnings).toEqual([]);
   });
 
-  it("puts the titles in the order of the tech pack", () => {
+  it("puts the sixteen pages of the specification in its order, then the pages after them (F-S6)", () => {
     const text = noSpace(allText(pages));
     let from = 0;
-    for (const id of SECTION_IDS) {
-      const at = text.indexOf(noSpace(SECTION_TITLES[id]), from);
-      expect(at, id).toBeGreaterThanOrEqual(from);
+    for (const page of [...TECH_PACK_PAGES, ...CLOSING_PAGES]) {
+      const at = text.indexOf(noSpace(page.title), from);
+      expect(at, page.id).toBeGreaterThanOrEqual(from);
       from = at;
+    }
+  });
+
+  it("starts each of the sixteen on a sheet of its own, so a page of the specification is a page of paper", () => {
+    const started = TECH_PACK_PAGES.map((page) => pages.findIndex((sheet) => sheet.text.includes(page.title)));
+    expect(started.filter((at) => at < 0)).toEqual([]);
+    expect([...started]).toEqual([...started].sort((a, b) => a - b));
+    expect(new Set(started).size).toBe(TECH_PACK_PAGES.length);
+  });
+
+  it("puts the header block on every sheet: brand, style, style number, season, base size and version", () => {
+    for (const page of pages) {
+      for (const label of ["Brand", "Style number", "Season", "Base size", "Version"]) {
+        expect(page.text, `${label} on sheet ${page.number}`).toContain(label);
+      }
+      expect(page.text).toContain("KW-001");
+    }
+  });
+
+  it("names every section of the document within the page the plan gives it", () => {
+    const plan = pagePlan(exportSections(pack));
+    // A page may run onto more than one sheet of paper, so each page is the sheets from where its
+    // title appears up to where the next page's title does.
+    const startOf = plan.map((entry) => pages.findIndex((sheet) => sheet.text.includes(entry.title)));
+    for (const id of SECTION_IDS) {
+      const at = plan.findIndex((entry) => entry.blocks.some((block) => block.sectionId === id));
+      const from = startOf[at] ?? 0;
+      const to = startOf[at + 1] ?? pages.length;
+      const text = pages.slice(from, to).map((sheet) => sheet.text).join(" ");
+      expect(text, id).toContain(SECTION_TITLES[id]);
     }
   });
 
