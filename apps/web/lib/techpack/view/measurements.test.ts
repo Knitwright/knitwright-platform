@@ -60,6 +60,22 @@ describe("the point-of-measure table", () => {
     expect(chest?.tolPlus).toBe("+10");
   });
 
+  it("works the step between sizes out from the article's own values, not from the nominal grade", () => {
+    const chest = table().rows[0];
+    expect(chest?.steps.map((step) => step.text)).toEqual([null, "30", "30", "30", "30", "30", "30"]);
+    expect(chest?.steps[0]?.text).toBeNull();
+  });
+
+  it("gives a point that does not change across the size run a step of nothing but zero", () => {
+    const fixed = table().rows.find((row) => row.gradeType === "fixed");
+    expect(fixed?.steps.slice(1).every((step) => step.text === "0")).toBe(true);
+  });
+
+  it("has no step at all where a size has no value", () => {
+    const sparse = table({ sizes: ["XS", "NOT-A-SIZE", "M"] }).rows[0];
+    expect(sparse?.steps.map((step) => step.text)).toEqual([null, null, null]);
+  });
+
   it("offers the Measurement and Grading toggle the spec names", () => {
     expect(MEASUREMENT_MODES).toEqual(["measurement", "grading"]);
     expect(Object.values(MODE_LABELS)).toEqual(["Measurement", "Grading"]);
@@ -81,6 +97,7 @@ describe("an extra point of measure a founder added", () => {
     expect(row?.grade).toBeNull();
     expect(row?.tolMinus).toBeNull();
     expect(row?.tolPlus).toBeNull();
+    expect(row?.steps.every((step) => step.text === null)).toBe(true);
     expect(row?.ruleId).toBe(GAP_RULE);
   });
 

@@ -70,6 +70,12 @@ export type PomRow = Readonly<{
   tolMinus: string | null;
   tolPlus: string | null;
   values: readonly SizeValue[];
+  /**
+   * What the Grading toggle shows: the step from the size before, worked out from the article's own
+   * values rather than from the nominal grade, because the two can differ for a non-linear point.
+   * The first column has no step at all, and a step with a value missing at either end has none.
+   */
+  steps: readonly SizeValue[];
   ruleId: string;
   /** True while the base article fixes the grade: the panel draws a lock and a "Why?". */
   locked: boolean;
@@ -98,6 +104,21 @@ const tolerance = (mm: number | null | undefined, unit: LengthUnit, sign: "+" | 
 const columnsFor = (sizes: readonly string[], sampleSize: string | null): readonly SizeColumn[] =>
   sizes.map((size) => ({ size, isSample: size === sampleSize }));
 
+/**
+ * The step from one size to the next, read off the article's own values. It is worked out, not
+ * taken from the nominal grade: a non-linear point grades by different amounts between sizes, and
+ * the value the factory cuts to is the one in the table.
+ */
+function stepsFor(valuesMm: Readonly<Record<string, number | undefined>>, columns: readonly SizeColumn[], unit: LengthUnit): readonly SizeValue[] {
+  return columns.map((column, index) => {
+    const before = index === 0 ? undefined : columns[index - 1]?.size;
+    const from = before === undefined ? undefined : valuesMm[before];
+    const to = valuesMm[column.size];
+    const step = from === undefined || to === undefined ? null : to - from;
+    return { size: column.size, isSample: column.isSample, text: step === null ? null : formatLength(step, unit) };
+  });
+}
+
 function rowFor(pom: ArticlePom, columns: readonly SizeColumn[], unit: LengthUnit): PomRow {
   const graded = !UNGRADED.includes(pom.gradeType);
   return {
@@ -114,6 +135,7 @@ function rowFor(pom: ArticlePom, columns: readonly SizeColumn[], unit: LengthUni
       isSample: column.isSample,
       text: formatLength(pom.valuesMm[column.size] ?? null, unit),
     })),
+    steps: stepsFor(pom.valuesMm, columns, unit),
     ruleId: pom.ruleId === "" ? GAP_RULE : pom.ruleId,
     locked: true,
     provenance: "from_base",
@@ -139,6 +161,8 @@ function extraRowFor(extra: ExtraPom, columns: readonly SizeColumn[], unit: Leng
     tolMinus: tolerance(null, unit, "-"),
     tolPlus: tolerance(null, unit, "+"),
     values: columns.map((column) => ({ size: column.size, isSample: column.isSample, text: column.isSample ? text : null })),
+    // Nothing grades an extra point, so it has no step between sizes either.
+    steps: columns.map((column) => ({ size: column.size, isSample: column.isSample, text: null })),
     ruleId: extra.ruleId === null || extra.ruleId === "" ? GAP_RULE : extra.ruleId,
     locked: false,
     provenance: text === null ? "needs_input" : "from_design",

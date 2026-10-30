@@ -58,3 +58,18 @@ export const isTechPackTab = (value: string): value is TechPackTabId => (TECHPAC
 /** The tab a name picks out, or Overview when the name is not one of them. */
 export const tabOr = (value: string | null | undefined): TechPackTabId =>
   value !== null && value !== undefined && isTechPackTab(value) ? value : "overview";
+
+/**
+ * Where a key press moves in the tab bar, or null for a key the bar does not use. The left and
+ * right arrows step one tab and stop at the ends; Home and End jump to them. The same behaviour as
+ * the left rail's own toolbars (Y2), so one keyboard habit works in both.
+ */
+export function tabKeyTarget(current: TechPackTabId, key: string): TechPackTabId | null {
+  const at = TECHPACK_TABS.indexOf(current);
+  if (key === "Home") return TECHPACK_TABS[0] ?? null;
+  if (key === "End") return TECHPACK_TABS.at(-1) ?? null;
+  const step = key === "ArrowRight" ? 1 : key === "ArrowLeft" ? -1 : 0;
+  if (step === 0) return null;
+  const next = TECHPACK_TABS[at + step];
+  return next === undefined || next === current ? null : next;
+}

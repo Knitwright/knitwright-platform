@@ -89,3 +89,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0072 | [Factory job packet (a link, no account)](0072-factory-job-packet.md) | Proposed; owner questions listed |
 | 0073 | [Moderation and IP basics](0073-moderation-and-ip.md) | Proposed; owner questions listed |
 | 0075 | [The editor shell and the Form toolbar](0075-editor-shell-and-form-toolbar.md) | Proposed; owner questions listed |
+| 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |

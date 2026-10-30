@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TAB_LABELS, TAB_LEADS, TECHPACK_TABS, isTechPackTab, tabOr, tabPanelId, tabTestId } from "./tabs";
+import { TAB_LABELS, TAB_LEADS, TECHPACK_TABS, isTechPackTab, tabKeyTarget, tabOr, tabPanelId, tabTestId } from "./tabs";
 
 /** Spec F-S6's tab table: eleven tabs in this order, with Review last. */
 describe("the tech pack tabs", () => {
@@ -40,5 +40,19 @@ describe("the tech pack tabs", () => {
     expect(tabOr("nothing")).toBe("overview");
     expect(tabOr(null)).toBe("overview");
     expect(tabOr(undefined)).toBe("overview");
+  });
+
+  it("steps one tab on an arrow key and stops at the ends", () => {
+    expect(tabKeyTarget("overview", "ArrowRight")).toBe("body");
+    expect(tabKeyTarget("body", "ArrowLeft")).toBe("overview");
+    expect(tabKeyTarget("overview", "ArrowLeft")).toBeNull();
+    expect(tabKeyTarget("review", "ArrowRight")).toBeNull();
+  });
+
+  it("jumps to the ends on Home and End, and ignores every other key", () => {
+    expect(tabKeyTarget("qc", "Home")).toBe("overview");
+    expect(tabKeyTarget("overview", "End")).toBe("review");
+    expect(tabKeyTarget("overview", "Enter")).toBeNull();
+    expect(tabKeyTarget("overview", "ArrowDown")).toBeNull();
   });
 });
