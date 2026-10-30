@@ -260,3 +260,39 @@ end-to-end spec ran here; CI is their first run. No factory has opened any of th
   the rest, one file at a time (the lesson of decision 0011).
 - Two new coverage entries at 90%: `lib/kpp/**` and `lib/files-service/**`.
 - No new dependency. `fflate` (MIT) and `zod` (MIT) were already here.
+
+---
+
+# 0070 revision 1: the pattern source is wired (wave 2 prerequisite)
+
+Status: Proposed. Date: 2026-10-30. Plan step: `plans/platform-v5.md`, the opening paragraph of "# Wave 2". No
+migration.
+
+Point 5 above fed `PatternSource` with the pattern library's synthetic run, which is not a real grade.
+`apps/web/lib/kpp/sources/pattern.ts` now draws it from the graded parametric drafter (X3, decision 0068, as
+X3b revised it):
+
+- `draftedPattern(code, input?, sources?)` calls the drafter's public API only — `draftAllSizes` and
+  `toGradedPattern` — and answers either a `GradedPattern` of every size the article grades, with the
+  article's own version string and the drafter's warnings beside it, or the drafter's reason for having none.
+  Nothing reaches into the drafter's internals, and the drafter reads its numbers through its own data source,
+  so a factory's `draft_constants` reach the package without this file changing.
+- **No invented geometry.** An article with no drafting script (every launch article but `JSY-SS-01`), no
+  article data, no drafting constants, or an option whose shape the article does not define (C02 and C03, which
+  owner decision 8 leaves "not drafted yet") comes back as `ok: false` with the drafter's sentence. The caller
+  reports it; nothing is drawn.
+- `DRAFTED_BLOCK_VERSION` is 1: `GradedPattern.blockVersion` wants a whole number and counts changes to what
+  the drafter produces, which is not the article's own `version` ("0.1"). Both numbers travel with the answer,
+  and the files name both.
+- The fixture's synthetic run stays as the test double in `lib/kpp/fixtures`, labelled as before.
+
+Still owed, unchanged by this PR: the export route, a real `KppInput` built from a design version, and the
+`_nest.dxf` being a real nested marker rather than the sizes stacked.
+
+## Evidence
+
+| Claim | Test |
+|---|---|
+| Every size of `JSY-SS-01` comes back as a `GradedPattern` the production contract accepts | `lib/kpp/sources/pattern.test.ts` |
+| The same article and input give the same pattern twice | `lib/kpp/sources/pattern.test.ts` |
+| An article with no script, and an option with no shape, answer with the reason in words | `lib/kpp/sources/pattern.test.ts` |

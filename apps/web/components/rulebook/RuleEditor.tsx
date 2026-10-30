@@ -29,8 +29,9 @@ function Area({ name, label, defaultValue, errors }: Readonly<{ name: string; la
 }
 
 /**
- * Saves a new version of a rule, or version 1 of a new rule when `entry` is left out. The earlier version stays as it
- * was; the new one starts as a draft until the factory confirms it.
+ * Saves a new version of a rule, or version 1 of a new rule when `entry` is left out. The earlier version stays as
+ * it was; the new one starts as a draft until the factory confirms it. Owner decision 12: a rule names the articles
+ * or the ways of making a garment it covers, and at least one of the two, so it can never claim every article.
  */
 export function RuleEditor({ entry }: Readonly<{ entry?: RulebookEntry }>) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(saveRuleAction);
@@ -43,7 +44,9 @@ export function RuleEditor({ entry }: Readonly<{ entry?: RulebookEntry }>) {
         <Field name="ruleId" label="Rule id" hint="For example R-SUB-009. An id is never reused." errors={fieldErrors("ruleId")} />
       )}
       <SelectField name="topic" label="Topic" options={TOPIC_OPTIONS} defaultValue={entry?.topic ?? ""} placeholder="Choose a topic" errors={fieldErrors("topic")} />
-      <Field name="articleCodes" label="Article codes" hint="Leave empty when the rule is shared by every article." defaultValue={entry?.articleCodes.join(", ") ?? ""} errors={fieldErrors("articleCodes")} />
+      <Field name="articleCodes" label="Article codes" hint="The articles this rule covers. Leave empty when it covers a way of making a garment instead." defaultValue={entry?.articleCodes.join(", ") ?? ""} errors={fieldErrors("articleCodes")} />
+      <Field name="methods" label="Methods" hint="The ways of making a garment this rule covers, for example sublimation." defaultValue={entry?.methods.join(", ") ?? ""} errors={fieldErrors("methods")} />
+      <Field name="scopeNote" label="Scope note" hint="Who has reviewed this scope, in plain words." defaultValue={entry?.scopeNote ?? ""} errors={fieldErrors("scopeNote")} />
       <Field name="title" label="Applies to" defaultValue={entry?.title ?? ""} errors={fieldErrors("title")} />
       <Area name="rule" label="Rule" defaultValue={entry?.rule ?? ""} errors={fieldErrors} />
       <Area name="body" label="Why" defaultValue={entry?.body ?? ""} errors={fieldErrors} />

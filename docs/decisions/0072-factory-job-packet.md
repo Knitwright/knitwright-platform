@@ -210,3 +210,43 @@ is bounded by the step machine, the "one step at a time" rule and the rate limit
 `ops_order_events` with the note that a factory made it. Patterns are missing from the ZIP until X5 is wired in
 (wave 2), and the README says so. Revisit when F-O3 (QC) wants the factory to submit measurements, and when F-O6
 wants per-person attribution.
+
+---
+
+# 0072 revision 1: the job packet carries patterns (wave 2 prerequisite)
+
+Status: Proposed. Date: 2026-10-30. Plan step: `plans/platform-v5.md`, the opening paragraph of "# Wave 2". No
+migration.
+
+Point 12 above left `PatternSource` as `noPatterns`. `apps/web/lib/job-packet/drafted-patterns.ts` now fills it
+from the production package's own pattern writers (`lib/kpp/files/patterns.ts`, decision 0070) over the graded
+drafter (decision 0068):
+
+- A batch names a garment registry type in `batches.article_id`. The catalogue's map (decision 0066) turns that
+  into a base article code, the drafter drafts it, and the ZIP's `patterns/` folder gets `dxf_aama/<code>_<size>.dxf`,
+  `pdf_1to1/<code>_<size>.pdf` and `svg/<code>_<size>.svg` for every size the batch's orders ask for, plus one
+  `dxf_aama/<code>_nest.dxf` of exactly those sizes.
+- **Determinism.** Every file's date is the batch's cut-off, never the clock, and the ZIP's own times were
+  already fixed, so the same batch and orders give the same bytes.
+- **A source now answers with its files and the sentence the README carries**, rather than a standing note: the
+  reason a folder is empty is specific to the batch. `PatternSource.filesFor` returns a `PatternSet`
+  (`{ files, note }`), and `packetZip` passes that note straight to the README. Five sentences are possible: the
+  folder's contents and what they were drafted with; the registry type is mapped to no base article yet; the
+  article has no drafting script (the drafter's own words); the article does not grade the sizes asked for; no
+  order in the batch asks for a size. Each ends by saying Knitwright sends the files separately.
+- **What the README claims is only what is true.** The note says the files are the base article's graded block,
+  drafted at the article's own default parameters, v-notch notches (owner decision 17: one notch style in the
+  geometry, named in the files), and "a Knitwright draft for factory review, not a factory-checked master
+  pattern" — which is the state owner decision 10 describes. A design that changed a structural parameter is
+  not reflected, because a batch names the article, not a design's parameters; no design today sets any, since
+  the Form that offers them is wave 2 work.
+- `noPatterns` and `NO_PATTERNS_NOTE` stay exported and tested, as the source that adds nothing.
+
+## Evidence
+
+| Claim | Test |
+|---|---|
+| A DXF, a 1:1 PDF and an SVG per asked-for size, in grading order, and one nest | `lib/job-packet/drafted-patterns.test.ts` |
+| The same batch and orders give the same bytes twice | `lib/job-packet/drafted-patterns.test.ts` |
+| A type with no article, an article with no script, and a size the article does not grade each say so in words | `lib/job-packet/drafted-patterns.test.ts` |
+| The DXF says it is a draft nobody has reviewed | `lib/job-packet/drafted-patterns.test.ts` |
