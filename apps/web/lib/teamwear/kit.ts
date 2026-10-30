@@ -2,13 +2,13 @@ import type { BaseArticle } from "@/lib/catalogue";
 import { baseArticleForType } from "@/lib/catalogue";
 import { defaultForm, defaultsOver, type FormValues } from "@/lib/editor";
 import type { Wearer } from "@/lib/garment";
-import { DEFAULT_CLUB_COLOURS, type ClubColours, type KitStyleId } from "@/lib/kit-styles/presets";
+import { DEFAULT_CLUB_COLOURS, type ClubColours } from "@/lib/kit-styles/presets";
 import { KIT_PARTS, KIT_PART_LABELS, sportById, type KitPartId, type SportDefinition } from "./vocabulary";
 
 /**
  * The kit a club is configuring (spec F-T1). It is one plain value: the sport, the club's colours,
  * the socks colour, and for each part the base article's form (its option codes and its parameters
- * in millimetres), the pattern and the quantity. Nothing in it is a picture and nothing in it is
+ * in millimetres) and the quantity. Nothing in it is a picture and nothing in it is
  * stored until Save, so every change makes one new value and the undo stack is a list of them.
  *
  * The form is the editor's own `FormValues` (decision 0075), resolved by `defaultsOver`, so a kit
@@ -41,7 +41,6 @@ export const ELEMENT_SLOT_LABELS: Readonly<Record<ElementSlotId, string>> = {
 export interface PartChoice {
   /** The base article's form: an option code per group and a value in millimetres per parameter. */
   readonly form: FormValues;
-  readonly pattern: KitStyleId;
   readonly quantity: number;
   /** The decision rows the person has settled on this part. The pill's tick reads this. */
   readonly settled: readonly string[];
@@ -95,7 +94,7 @@ export function startingKit(sportId: string, articles: ArticleBook, colours: Clu
   const sport = sportById(sportId);
   const parts: Record<string, PartChoice> = {};
   for (const part of partsForSport(sport)) {
-    parts[part.id] = { form: defaultForm(articleOf(part, articles)), pattern: "plain", quantity: DEFAULT_QUANTITY, settled: [] };
+    parts[part.id] = { form: defaultForm(articleOf(part, articles)), quantity: DEFAULT_QUANTITY, settled: [] };
   }
   return { sportId: sport.id, wearer: DEFAULT_WEARER, colours, socksColour: colours.second, bundleId: null, namesNumbers: false, elements: [], parts };
 }

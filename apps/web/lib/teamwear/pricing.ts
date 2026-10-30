@@ -2,7 +2,7 @@ import { formatMoney, priceBasket, type Ladder, type PriceResult } from "@/lib/f
 import type { PriceTier, SellCurrency } from "@/lib/factory/schemas";
 import type { PriceSource } from "@/lib/home/price";
 import { kitParts, totalPieces, type KitPart, type TeamwearKit } from "./kit";
-import { GAP_RULE_ID } from "./vocabulary";
+import { GAP_RULE_ID, RULES } from "./vocabulary";
 
 /**
  * The sticky footer (spec F-T1): the quantity stepper, the price for each piece with the tier's
@@ -79,8 +79,13 @@ export interface PartPrice {
 
 export interface KitPrice {
   readonly currency: SellCurrency;
-  /** The quantity the tier is read at: every piece in the kit. */
+  /**
+   * The quantity the tier was read at: every piece the factory prices. A part the factory has no
+   * price for is not being ordered, so it does not move anyone's tier.
+   */
   readonly tierQty: number;
+  /** Every piece in the kit, priced or not, which is what the footer's stepper totals add up to. */
+  readonly pieces: number;
   readonly parts: readonly PartPrice[];
   readonly totalMinor: number | null;
   /** "£740.00", or the reason the kit has no total. It totals the parts that are priced, never the kit as a whole. */
@@ -96,6 +101,14 @@ export interface KitPrice {
 
 /** Said in the footer where no price could be read at all. */
 export const NO_PRICE = "Not priced yet";
+
+/** Said beside the price, from the rulebook: the whole panel is printed either way (R-COST-001). */
+export const PATTERN_COST_NOTE = "A busy design costs the same as a plain one: the whole panel is printed either way.";
+export const PATTERN_COST_RULE = RULES.patternCost;
+
+/** Said where names and numbers are on. Their per-piece price is a placeholder until a factory confirms it (R-COST-003). */
+export const NAMES_COST_NOTE = "Names and numbers are printed in the same pass. Their per-piece price is a placeholder until the factory confirms it.";
+export const NAMES_COST_RULE = RULES.personalisationCost;
 
 const reasonOf = (price: PriceResult): string | null => (price.status === "priced" ? null : price.reason);
 
@@ -167,7 +180,8 @@ export function kitPrice(
   const missing = priced.filter((part) => !part.priced).map((part) => part.label);
   return {
     currency,
-    tierQty: totalPieces(kit),
+    tierQty: basket.tierQty,
+    pieces: totalPieces(kit),
     parts: priced,
     totalMinor,
     total: totalMinor === null ? NO_PRICE : formatMoney(totalMinor, currency),

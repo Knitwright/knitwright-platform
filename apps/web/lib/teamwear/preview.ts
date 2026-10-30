@@ -1,5 +1,4 @@
 import { applyAction, createSpec, panelsFor, type GarmentSpec, type SpecAction, type Wearer } from "@/lib/garment";
-import { kitStylesFor, withKitStyle } from "@/lib/kit-styles/presets";
 import { flatPreview, type FlatPreviewData } from "@/lib/projects/flat-preview";
 import type { KitPart, PartChoice, TeamwearKit } from "./kit";
 import { STAGE_NOT_DRAWN } from "./stage";
@@ -11,32 +10,45 @@ import { STAGE_NOT_DRAWN } from "./stage";
  * identically (spec F-S9).
  *
  * Nothing here fetches and nothing here stores. It runs on the server for the first picture and in
- * the browser for every change after it, which is why colours answer at once.
+ * the browser for every change after it, which is why a colour answers at once.
  */
 
-/** Every colour in the colourway set to one swatch, for a part the kit styles do not cover (socks). */
-const colourEverything = (spec: GarmentSpec, swatch: string): SpecAction => ({
-  type: "update-colourway",
-  colourway: {
-    ...spec.colourways[0],
-    colours: panelsFor(spec).map((panel) => ({ panelId: panel.id, colour: "", swatch, provenance: "user-edited" as const })),
-  },
-});
+/**
+ * The panels that take the club's second colour. Every other panel is the body and takes the main
+ * colour. It is the same split as `lib/kit-styles/presets.ts`, which cannot be called here: its
+ * style table lists the studio types (`team-jersey`, `crew-tee`) and not the teamwear ones
+ * (`football-shirt`, `football-shorts`), so `kitStyleActions` refuses every part of a kit.
+ * **Owner question** on the pull request: should the kit-style table list the teamwear types, so one
+ * function colours a kit everywhere?
+ */
+const TRIM_PANELS = ["neckband", "collar", "cuffs", "side-panels", "waistband", "placket"];
+
+/** The colourway for one part: the body in one colour, the trims in another, and nothing else touched. */
+function colourwayFor(spec: GarmentSpec, body: string, trim: string): SpecAction {
+  const colours = panelsFor(spec).map((panel) => ({
+    panelId: panel.id,
+    colour: "",
+    // A panel the trim table does not name is part of the body: a kit is one colour before it is two.
+    swatch: TRIM_PANELS.includes(panel.id) ? trim : body,
+    provenance: "user-edited" as const,
+  }));
+  return { type: "update-colourway", colourway: { ...spec.colourways[0], colours } };
+}
 
 export type SpecOutcome = Readonly<{ ok: true; spec: GarmentSpec }> | Readonly<{ ok: false; reason: string }>;
 
 /**
- * One part of the kit as a design: the registry type's own starting design, in the club's colours,
- * with the pattern the person chose. The base article's option codes and parameters are not written
- * into the design, because no change in the design contract writes them (decision 0075); they
- * travel to the editor in the address instead (`address.ts`).
+ * One part of the kit as a design: the registry type's own starting design in the club's colours.
+ * The base article's option codes and parameters are not written into the design, because no change
+ * in the design contract writes them (decision 0075); they travel to the editor in the address
+ * instead (`address.ts`).
  */
-export function partSpec(kit: TeamwearKit, part: KitPart, choice: PartChoice, wearer: Wearer): SpecOutcome {
+export function partSpec(kit: TeamwearKit, part: KitPart, _choice: PartChoice, wearer: Wearer): SpecOutcome {
   const started = createSpec(part.typeId, wearer);
   if (!started.ok) return started;
-  if (kitStylesFor(part.typeId).length > 0) return withKitStyle(started.spec, choice.pattern, kit.colours);
-  const swatch = part.id === "socks" ? kit.socksColour : kit.colours.main;
-  const coloured = applyAction(started.spec, colourEverything(started.spec, swatch));
+  const body = part.id === "socks" ? kit.socksColour : kit.colours.main;
+  const trim = part.id === "socks" ? kit.colours.main : kit.colours.second;
+  const coloured = applyAction(started.spec, colourwayFor(started.spec, body, trim));
   return coloured.ok ? { ok: true, spec: coloured.spec } : { ok: false, reason: coloured.reason };
 }
 

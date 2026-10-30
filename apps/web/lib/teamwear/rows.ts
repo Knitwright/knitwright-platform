@@ -1,7 +1,6 @@
 import type { BaseArticle } from "@/lib/catalogue";
 import { humanise, optionGroups, parameterSliders, signedMm, type OptionGroupView, type ParameterSlider } from "@/lib/editor";
-import { KIT_PATTERN_LABELS, WEARERS, type Wearer } from "@/lib/garment";
-import { kitStylesFor } from "@/lib/kit-styles/presets";
+import { WEARERS, type Wearer } from "@/lib/garment";
 import { wearerLabel } from "@/lib/projects/wearers";
 import { ELEMENT_SLOTS, ELEMENT_SLOT_LABELS, type KitPart, type PartChoice, type TeamwearKit } from "./kit";
 import { GAP_RULE_ID, RULES } from "./vocabulary";
@@ -18,7 +17,6 @@ import { GAP_RULE_ID, RULES } from "./vocabulary";
 
 export const MODEL_ROW = "model";
 export const COLOURS_ROW = "colours";
-export const PATTERN_ROW = "pattern";
 export const PARAMETERS_ROW = "parameters";
 export const ELEMENTS_ROW = "elements";
 export const NAMES_ROW = "names-numbers";
@@ -30,7 +28,6 @@ export type PanelRow =
   | Readonly<{ kind: "model"; id: string; label: string; value: string; note: string | null; wearers: readonly Wearer[]; wearer: Wearer; ruleId: string; settled: boolean }>
   | Readonly<{ kind: "colours"; id: string; label: string; value: string; swatches: readonly string[]; ruleId: string; settled: boolean }>
   | Readonly<{ kind: "options"; id: string; label: string; value: string; group: OptionGroupView; ruleId: string; settled: boolean }>
-  | Readonly<{ kind: "pattern"; id: string; label: string; value: string; styles: readonly Readonly<{ id: string; label: string }>[]; ruleId: string; settled: boolean }>
   | Readonly<{ kind: "parameters"; id: string; label: string; value: string; sliders: readonly ParameterSlider[]; ruleId: string; settled: boolean }>
   | Readonly<{ kind: "elements"; id: string; label: string; value: string; slots: readonly Readonly<{ id: string; label: string; filled: boolean }>[]; note: string; ruleId: string; settled: boolean }>
   | Readonly<{ kind: "names-numbers"; id: string; label: string; value: string; on: boolean; note: string; ruleId: string; settled: boolean }>;
@@ -86,20 +83,6 @@ const optionRow = (group: OptionGroupView, choice: PartChoice): PanelRow => {
   };
 };
 
-const patternRow = (part: KitPart, choice: PartChoice): PanelRow => {
-  const styles = kitStylesFor(part.typeId).map((style) => ({ id: style.id, label: style.label }));
-  const label = choice.pattern === "plain" ? "Plain" : KIT_PATTERN_LABELS[choice.pattern];
-  return {
-    kind: "pattern",
-    id: PATTERN_ROW,
-    label: "Pattern & design",
-    value: label,
-    styles,
-    ruleId: RULES.patternCost,
-    settled: choice.settled.includes(PATTERN_ROW),
-  };
-};
-
 const parametersRow = (sliders: readonly ParameterSlider[], choice: PartChoice): PanelRow => ({
   kind: "parameters",
   id: PARAMETERS_ROW,
@@ -144,9 +127,7 @@ export function panelRows(kit: TeamwearKit, part: KitPart, article: BaseArticle 
   const rows: PanelRow[] = [modelRow(kit, part, article, choice), coloursRow(kit, choice, part)];
   if (article === null) return rows;
   const sliders = parameterSliders(article, choice.form);
-  const patterns = kitStylesFor(part.typeId);
   for (const group of optionGroups(article, choice.form)) rows.push(optionRow(group, choice));
-  if (patterns.length > 0) rows.push(patternRow(part, choice));
   if (sliders.length > 0) rows.push(parametersRow(sliders, choice));
   rows.push(elementsRow(kit, choice), namesRow(kit, choice));
   return rows;

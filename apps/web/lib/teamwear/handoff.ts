@@ -23,8 +23,8 @@ export const HANDOFF_NOTE =
 /** Said where the kit has not been saved: a hand-off needs a design version the Store can read. */
 export const SAVE_FIRST = "Save the kit first. The Store is handed a saved design version, not a screen.";
 
-/** Said where the kit has no price: a hand-off never carries a price nobody set. */
-export const PRICE_FIRST = "The Store hand-off waits until every part of the kit has a price.";
+/** Said where nothing in the kit has a price: a hand-off never carries a price nobody set. */
+export const PRICE_FIRST = "The Store hand-off waits until something in the kit has a price.";
 
 export interface HandoffLine {
   readonly articleCode: string;
@@ -43,6 +43,8 @@ export interface KitHandoff {
   readonly totalMinor: number;
   /** The quantity the tier was read at, so the Store can check the price against the same tier. */
   readonly tierQty: number;
+  /** The parts the hand-off leaves out, because the factory has no price for them. Never silently dropped. */
+  readonly omitted: readonly string[];
   /** No rulebook entry covers the hand-off itself yet. Listed on the pull request. */
   readonly ruleId: string;
 }
@@ -57,13 +59,18 @@ export interface SavedKit {
 
 /**
  * The hand-off for a kit, or the reason there is none. Both refusals are states of the screen, not
- * errors: a kit that is not saved, and a kit the factory has no price for.
+ * errors: a kit nobody saved, and a kit nothing in which has a price.
+ *
+ * A part the factory has no price for is left out of the lines and named in `omitted`, rather than
+ * holding up the whole kit: a club that wants a shirt and shorts should not be stopped by a sock
+ * the catalogue does not cover yet.
  */
 export function handoffFor(kit: TeamwearKit, saved: SavedKit | null, price: KitPrice): HandoffOutcome {
   if (saved === null) return { ok: false, reason: SAVE_FIRST };
-  if (price.totalMinor === null || !price.everyPartPriced) return { ok: false, reason: PRICE_FIRST };
+  if (price.totalMinor === null) return { ok: false, reason: PRICE_FIRST };
+  const priced = new Set(price.parts.filter((part) => part.priced).map((part) => part.partId));
   const lines = kitParts(kit).flatMap((part) =>
-    part.articleCode === null ? [] : [{ articleCode: part.articleCode, quantity: part.choice.quantity, label: part.label }],
+    part.articleCode === null || !priced.has(part.id) ? [] : [{ articleCode: part.articleCode, quantity: part.choice.quantity, label: part.label }],
   );
   return {
     ok: true,
@@ -75,6 +82,7 @@ export function handoffFor(kit: TeamwearKit, saved: SavedKit | null, price: KitP
       currency: price.currency,
       totalMinor: price.totalMinor,
       tierQty: price.tierQty,
+      omitted: price.parts.filter((part) => !part.priced).map((part) => part.label),
       ruleId: GAP_RULE_ID,
     },
   };
