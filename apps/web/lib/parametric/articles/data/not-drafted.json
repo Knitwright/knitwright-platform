@@ -1,0 +1,142 @@
+{
+  "note": "Why each launch article other than JSY-SS-01 is not drafted, read from its brief's `parametric_script` block (docs/spec/articles/<CODE>/article.json). Knitwright draft, not reviewed by a factory. Do not edit by hand.",
+  "articles": [
+    {
+      "code": "SHO-TR-01",
+      "name": "Football/training shorts",
+      "status": "not drafted yet",
+      "reason": "Football/training shorts has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-101",
+      "needs": [
+        "waist relaxed",
+        "waist stretched",
+        "front rise",
+        "back rise",
+        "inseam",
+        "thigh width",
+        "leg opening",
+        "waistband finished depth"
+      ]
+    },
+    {
+      "code": "JSY-LS-01",
+      "name": "Long-sleeve jersey / goalkeeper",
+      "status": "not drafted yet",
+      "reason": "Long-sleeve jersey / goalkeeper has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-201",
+      "needs": [
+        "chest width",
+        "body length",
+        "across shoulder",
+        "sleeve length",
+        "bicep width",
+        "forearm width",
+        "cuff opening",
+        "armhole depth",
+        "neck width",
+        "front neck drop",
+        "back neck drop",
+        "hem width"
+      ]
+    },
+    {
+      "code": "CRK-SS-01",
+      "name": "Cricket coloured shirt (pique)",
+      "status": "not drafted yet",
+      "reason": "Cricket coloured shirt (pique) has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-301",
+      "needs": [
+        "chest width",
+        "body length",
+        "across shoulder",
+        "sleeve length",
+        "bicep width",
+        "sleeve opening",
+        "armhole depth",
+        "neck width",
+        "front neck drop",
+        "back neck drop",
+        "hem width",
+        "placket length"
+      ]
+    },
+    {
+      "code": "TEE-TR-01",
+      "name": "Training tee, stock-colour fabric",
+      "status": "not drafted yet",
+      "reason": "Training tee, stock-colour fabric has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-401",
+      "needs": [
+        "chest width",
+        "body length",
+        "across shoulder",
+        "sleeve length",
+        "bicep width",
+        "sleeve opening",
+        "armhole depth",
+        "neck width",
+        "front neck drop",
+        "back neck drop",
+        "hem width"
+      ]
+    },
+    {
+      "code": "HOD-ST-01",
+      "name": "Hoodie, stock-colour fleece",
+      "status": "not drafted yet",
+      "reason": "Hoodie, stock-colour fleece has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-501",
+      "needs": [
+        "chest width",
+        "body length",
+        "across shoulder",
+        "sleeve length",
+        "bicep width",
+        "cuff opening",
+        "armhole depth",
+        "neck width",
+        "hood height",
+        "hood width",
+        "pocket width",
+        "hem rib depth"
+      ]
+    },
+    {
+      "code": "CMP-LS-01",
+      "name": "Compression top / rash guard",
+      "status": "not drafted yet",
+      "reason": "Compression top / rash guard has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-601",
+      "needs": [
+        "chest width",
+        "body length",
+        "across shoulder",
+        "sleeve length",
+        "bicep width",
+        "cuff opening",
+        "armhole depth",
+        "neck width",
+        "collar height",
+        "hem width"
+      ]
+    },
+    {
+      "code": "FSH-MM-01",
+      "name": "Fight shorts (MMA/BJJ)",
+      "status": "not drafted yet",
+      "reason": "Fight shorts (MMA/BJJ) has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+      "rule": "R-PAT-701",
+      "needs": [
+        "waist relaxed",
+        "waist stretched",
+        "front rise",
+        "back rise",
+        "inseam",
+        "thigh width",
+        "leg opening",
+        "side split length",
+        "waistband finished depth"
+      ]
+    }
+  ]
+}
