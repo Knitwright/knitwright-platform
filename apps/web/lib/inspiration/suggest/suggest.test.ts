@@ -5,7 +5,7 @@ import { defaultFactoryProfile, type FactoryProfile } from "@/lib/validation";
 import { finding } from "@/lib/validation/finding";
 import { standardRegistry } from "@/lib/validation/spec-input";
 import { validateDesign, type ValidationResult } from "@/lib/validation/validate";
-import type { UsageMeter } from "@/lib/usage/meter";
+import { countingMeter } from "../fixtures/meter";
 import { jersey, withPattern } from "../fixtures/designs";
 import { stubCard } from "../sources/stubs";
 import { MAX_SUGGESTIONS, RULE_GAP } from "../vocabulary";
@@ -231,42 +231,24 @@ describe("every patch goes through validation before it is shown", () => {
 });
 
 describe("the paid call is metered", () => {
-  const meter = (ok: boolean): UsageMeter & { reserved: number; refunded: number } => {
-    const state = { reserved: 0, refunded: 0 };
-    const made = {
-      reserve: async () => {
-        state.reserved += 1;
-        return ok ? ({ ok: true, eventId: "e1" } as const) : ({ ok: false, refused: "user" } as const);
-      },
-      refund: async () => {
-        state.refunded += 1;
-        return true;
-      },
-    };
-    return Object.defineProperties(made, {
-      reserved: { get: () => state.reserved },
-      refunded: { get: () => state.refunded },
-    }) as UsageMeter & { reserved: number; refunded: number };
-  };
-
   it("reserves before the call and estimates a cost above zero", async () => {
-    const paid = meter(true);
+    const paid = countingMeter();
     const reader = meteredReader(stubElementReader([NOTHING_SEEN]), paid, { brandId: "b", userId: "u" }, 100, "inspiration/suggest");
     await reader.read(card);
-    expect(paid.reserved).toBe(1);
+    expect(paid.reserved()).toBe(1);
     expect(suggestCostMicrodollars({ inputPerMillion: 3, outputPerMillion: 15 })).toBeGreaterThan(0);
   });
 
   it("makes no call when the allowance is used up", async () => {
     const inner = stubElementReader([NOTHING_SEEN]);
-    await expect(meteredReader(inner, meter(false), { brandId: "b", userId: "u" }, 100, "r").read(card)).rejects.toThrow(ALLOWANCE_USED_UP);
+    await expect(meteredReader(inner, countingMeter(false), { brandId: "b", userId: "u" }, 100, "r").read(card)).rejects.toThrow(ALLOWANCE_USED_UP);
     expect(inner.calls).toBe(0);
   });
 
   it("gives the cost back when the model fails", async () => {
-    const paid = meter(true);
+    const paid = countingMeter();
     const failing = stubElementReader([new ModelCallError("no answer")]);
     await expect(meteredReader(failing, paid, { brandId: "b", userId: "u" }, 100, "r").read(card)).rejects.toThrow(ModelCallError);
-    expect(paid.refunded).toBe(1);
+    expect(paid.refunded()).toBe(1);
   });
 });

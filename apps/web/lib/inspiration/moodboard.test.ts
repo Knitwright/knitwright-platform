@@ -37,7 +37,10 @@ describe("what a saved item holds", () => {
 
   it("refuses an item whose attribution names no provider or gives no notice", () => {
     const blank = { creator: null, creatorUrl: null, provider: "", providerUrl: null, notice: "" };
-    expect(moodboardItemSchema.safeParse({ ...itemFor(photo).ok, source: "unsplash", title: "x", openUrl: photo.openUrl, previewUrl: photo.previewUrl, attribution: blank }).success).toBe(false);
+    const made = itemFor(photo);
+    expect(made.ok).toBe(true);
+    if (!made.ok) return;
+    expect(moodboardItemSchema.safeParse({ ...made.item, attribution: blank }).success).toBe(false);
   });
 
   it("refuses a card whose preview is not somebody's served address", () => {
@@ -56,10 +59,13 @@ describe("what a saved item holds", () => {
 
 describe("reading saved items back", () => {
   it("reads a row with its id and the time it was added", () => {
-    const row = { ...itemFor(photo), id: "11111111-1111-4111-8111-111111111111", addedAt: "2026-11-20T10:00:00Z" };
-    const items = itemsFrom([{ ...(itemFor(photo) as { item: object }).item, id: row.id, addedAt: row.addedAt }]);
+    const made = itemFor(photo);
+    expect(made.ok).toBe(true);
+    if (!made.ok) return;
+    const id = "11111111-1111-4111-8111-111111111111";
+    const items = itemsFrom([{ ...made.item, id, addedAt: "2026-11-20T10:00:00Z" }]);
     expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({ id: row.id, addedAt: row.addedAt, source: "unsplash" });
+    expect(items[0]).toMatchObject({ id, addedAt: "2026-11-20T10:00:00Z", source: "unsplash" });
   });
 
   it("leaves out a row that no longer reads, rather than showing it half-broken", () => {

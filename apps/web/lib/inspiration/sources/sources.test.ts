@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { stubImageProvider, failingImageProvider } from "@/lib/providers/image-stub";
-import type { UsageMeter } from "@/lib/usage/meter";
+import { countingMeter } from "../fixtures/meter";
 import type { ContextQuery } from "../types";
 import { AI_MOOD_LABEL } from "../vocabulary";
 import { ALLOWANCE_USED_UP, MOOD_IMAGE_COST_MICRODOLLARS, aiMoodProvider, moodPrompt } from "./ai-mood";
@@ -175,11 +175,16 @@ describe("a product link", () => {
   });
 
   it("fetches the page once, logged out, with Knitwright's own user agent", async () => {
-    const fetcher = vi.fn(async () => new Response(page, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }));
+    const seen: { url: string; init: RequestInit }[] = [];
+    const fetcher = async (url: string, init?: RequestInit): Promise<Response> => {
+      seen.push({ url, init: init ?? {} });
+      return new Response(page, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+    };
     const preview = await fetchPreview("https://shop.test/pro", fetcher);
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    expect(fetcher.mock.calls[0]?.[1]?.headers).toMatchObject({ "User-Agent": "KnitwrightInspiration/1.0 (+https://knitwright.com/bot)" });
-    expect(fetcher.mock.calls[0]?.[1]).not.toHaveProperty("credentials");
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.url).toBe("https://shop.test/pro");
+    expect(seen[0]?.init.headers).toMatchObject({ "User-Agent": "KnitwrightInspiration/1.0 (+https://knitwright.com/bot)" });
+    expect(seen[0]?.init).not.toHaveProperty("credentials");
     expect(preview?.title).toBe("Pro Compression Top & Shorts");
   });
 
@@ -242,27 +247,6 @@ describe("a person's own Pinterest boards", () => {
 });
 
 describe("an AI mood image", () => {
-  const meter = (ok = true): UsageMeter & { reserved: number; refunded: number } => {
-    const state = { reserved: 0, refunded: 0 };
-    return {
-      ...state,
-      get reserved() {
-        return state.reserved;
-      },
-      get refunded() {
-        return state.refunded;
-      },
-      reserve: async () => {
-        state.reserved += 1;
-        return ok ? { ok: true, eventId: "event-1" } : { ok: false, refused: "brand" };
-      },
-      refund: async () => {
-        state.refunded += 1;
-        return true;
-      },
-    } as UsageMeter & { reserved: number; refunded: number };
-  };
-
   it("asks for a mood photograph and never for a garment", () => {
     const prompt = moodPrompt(query("rugby navy"));
     expect(prompt).toContain("colour, light and texture only");
@@ -270,7 +254,7 @@ describe("an AI mood image", () => {
   });
 
   it("is labelled wherever it is shown, and says it is never saved", async () => {
-    const paid = meter();
+    const paid = countingMeter();
     const cards = await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }).search(query("rugby"));
     expect(cards[0]?.aiLabel).toBe(AI_MOOD_LABEL);
     expect(cards[0]?.title).toBe("AI mood image: rugby");
@@ -279,21 +263,21 @@ describe("an AI mood image", () => {
   });
 
   it("goes through the meter before the call, as a photoreal cost", async () => {
-    const paid = meter();
+    const paid = countingMeter();
     await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }).search(query("rugby"));
-    expect(paid.reserved).toBe(1);
+    expect(paid.reserved()).toBe(1);
     expect(MOOD_IMAGE_COST_MICRODOLLARS).toBeGreaterThan(0);
   });
 
   it("makes no call and says the allowance is used up when the meter refuses", async () => {
     const provider = stubImageProvider();
-    await expect(aiMoodProvider(provider, meter(false), { brandId: "b", userId: "u" }).search(query("rugby"))).rejects.toThrow(ALLOWANCE_USED_UP);
+    await expect(aiMoodProvider(provider, countingMeter(false), { brandId: "b", userId: "u" }).search(query("rugby"))).rejects.toThrow(ALLOWANCE_USED_UP);
     expect(provider.requests).toHaveLength(0);
   });
 
   it("gives the cost back when the model fails", async () => {
-    const paid = meter();
+    const paid = countingMeter();
     await expect(aiMoodProvider(failingImageProvider(), paid, { brandId: "b", userId: "u" }).search(query("rugby"))).rejects.toThrow();
-    expect(paid.refunded).toBe(1);
+    expect(paid.refunded()).toBe(1);
   });
 });
