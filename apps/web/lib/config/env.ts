@@ -84,6 +84,13 @@ const envSchema = z.object({
   // Never set where tests run: no test calls WhatsApp for real.
   WHATSAPP_TOKEN: z.string().regex(/^\S{1,400}$/).optional(),
   WHATSAPP_PHONE_ID: z.string().regex(/^\d{1,30}$/).optional(),
+  // The future Knitwright files service, which becomes the Sportswear model once that model is final (plan v5
+  // owner decision 2, decision 0070). Both optional and server only. With either one unset — which is the case
+  // everywhere today, including CI — `filesServiceFrom` gives the stub, which answers "not available" for every
+  // operation, and nothing calls the service. An address with no secret is a misconfiguration, not a reason to
+  // call an unauthenticated service, so it gives the stub too. Never set where tests run.
+  FILES_SERVICE_URL: z.url().optional(),
+  FILES_SERVICE_TOKEN: z.string().min(32).optional(),
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
   // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from

@@ -63,12 +63,18 @@ describe("guardrails", () => {
 });
 
 describe("credits", () => {
-  it("lays stored prices and allowance over the placeholders, which stay placeholders until all three prices are set", () => {
+  it("lays stored prices and allowance over the placeholders, which stay placeholders until every price is set", () => {
     const two = creditSettingsWith(CREDIT_SETTINGS, { "credits.price_marketing_media": row(5), "credits.price_techpack_pdf": row(2), "credits.monthly_allowance": row(10) });
-    expect(two.prices).toEqual({ marketing_media: 5, techpack_pdf: 2, pattern_file: 1 });
+    expect(two.prices).toEqual({ marketing_media: 5, techpack_pdf: 2, pattern_file: 1, production_package: 1 });
     expect(two.isPlaceholder).toBe(true);
-    const all = creditSettingsWith(CREDIT_SETTINGS, { "credits.price_marketing_media": row(5), "credits.price_techpack_pdf": row(2), "credits.price_pattern_file": row(3), "credits.monthly_allowance": row(12) });
-    expect(all).toEqual({ isPlaceholder: false, prices: { marketing_media: 5, techpack_pdf: 2, pattern_file: 3 }, monthlyAllowance: 12 });
+    const all = creditSettingsWith(CREDIT_SETTINGS, {
+      "credits.price_marketing_media": row(5),
+      "credits.price_techpack_pdf": row(2),
+      "credits.price_pattern_file": row(3),
+      "credits.price_production_package": row(4),
+      "credits.monthly_allowance": row(12),
+    });
+    expect(all).toEqual({ isPlaceholder: false, prices: { marketing_media: 5, techpack_pdf: 2, pattern_file: 3, production_package: 4 }, monthlyAllowance: 12 });
   });
 
   it("does not change the placeholder object", () => {

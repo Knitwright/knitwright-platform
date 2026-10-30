@@ -29,6 +29,13 @@ export const TOPIC_BY_FAMILY: Readonly<Record<string, RuleTopic>> = {
   LAB: "labels",
   QC: "qc",
   COST: "cost",
+  // The build pack names one rule of its own outside the topic families: R-SHO-002, the shorts'
+  // inseam range (`docs/spec/02-features.md` F-S5 "Examples", and SHO-TR-01's rulebook). Its topic
+  // is `pattern` because both halves of its reason are about the block, not about how the garment
+  // fits a body: "the side split and hem can't both fit" and "the block's thigh shaping no longer
+  // fits our size chart". It is article-specific, so it is NOT a shared family and keeps its
+  // article code. Added for Z9's SHO-TR-01 rulebook, which cannot be seeded without it.
+  SHO: "pattern",
 };
 
 /** The families the rulebook calls "shared by every sublimated article". Their rules carry no article code. */

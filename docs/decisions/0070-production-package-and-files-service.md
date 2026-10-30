@@ -296,3 +296,224 @@ Still owed, unchanged by this PR: the export route, a real `KppInput` built from
 | Every size of `JSY-SS-01` comes back as a `GradedPattern` the production contract accepts | `lib/kpp/sources/pattern.test.ts` |
 | The same article and input give the same pattern twice | `lib/kpp/sources/pattern.test.ts` |
 | An article with no script, and an option with no shape, answer with the reason in words | `lib/kpp/sources/pattern.test.ts` |
+
+---
+
+# 0070 revision 2: the real input, the charge, the record, and owner decisions 15 to 19
+
+Status: Proposed. Date: 2026-10-30. Plan step: `plans/platform-v5.md`, wave 1, workstream **X5b**
+("Production package follow-up, from owner decisions 15 to 20"). Migration
+`supabase/migrations/20261101040000_package_exports.sql`.
+
+X5 built the assembler and the files-service seam with nothing to feed either: "What is owed" above lists a real
+`KppInput` builder, the export route, the `production_package` credit kind and the `package_exports` table. X1's
+catalogue (0066), X4's design object and provenance (0069) and X6's factory, fabric and price rows (0071) have now
+merged, so this revision fills them in and writes down the five owner decisions X5 could only ask about.
+
+## 1. The real `KppInput` builder
+
+`apps/web/lib/kpp/input/**` turns the rows the platform stores into one `KppInput`. It is pure: no database, no
+environment, no clock, so a test builds the whole thing. `KppRows` names every row it reads:
+
+| Part of the package | Rows it comes from |
+|---|---|
+| Sizes, base size, article code, class, fit, HS code, origin | X1 `base_articles` |
+| `02_measurements/pom.csv`, the size chart, the QC tolerances | X1 `article_poms` |
+| One overview field per option group and per parameter | X1 `option_defs`, `parameter_defs` |
+| BOM specifications, thread, seam allowances | X1 `article_fabrics` and the article's thread; X6 `programme_fabrics` |
+| Colour roles, hex, Pantone | X4 `toDesignObjectV2`'s colourway |
+| Fabric, swatch reference, colour difference | X6 `programme_fabrics`, `programme_fabric_colours`, `factory_capabilities` |
+| Factory name, city, contact, accepted file formats | X6 `factories`, `factory_capabilities` |
+| Destination markets and their label rules | X6 `country_rules` |
+| Print DPI and bleed | `lib/guardrails` settings, which a print house overrides in `lib/settings` |
+| Moderation status | X8 (0073), through X4's moderation port |
+
+**Nothing is guessed.** A value no row holds becomes `needs_input`, and the F-G2 gate refuses the package and names
+it. Three things follow from that and are worth stating:
+
+- **No table holds the bill-of-materials consumption, the care-label wording or the AQL plan.** The worked
+  article's own figures live in `docs/spec/articles/JSY-SS-01/article.json`, which X1 did not seed (its section
+  lists six tables and none of them is a BOM), and X6 seeded `country_rules.label_rules` as `{}` with a note saying
+  the wording is still to be written. So `KppUnsourced` carries them as labelled data, the platform has nothing to
+  fill it from today, and every such line comes out `needs_input`. The tests supply the worked article's own
+  placeholders, quoted, and `lib/kpp/input/package.test.ts` checks each one still matches that file, so the whole
+  package builds for one article in seven sizes without anything being invented here.
+- **The registry's option keys are not catalogue codes.** The design object holds `collar: "none"`; the catalogue
+  holds `C01`, `K01`, `P00`. Nothing maps the two — X1's registry map joins articles to garment types, not options
+  to options — so a choice that is not one of the article's codes is written as the design's own word with
+  `R-GAP-000` and the sentence "not yet mapped to a catalogue code". It is never replaced by the article's default,
+  which would put a collar on a design that asked for none.
+- **One swatch reference per fabric, not per colour.** `docs/spec/04`'s example shows a per-colour swatch id
+  (`SB-POLY-INT-031`); our programme keeps `programme_fabrics.swatch_ref`. The package carries that reference for a
+  colour the fabric's programme actually holds and nothing for a colour it does not.
+
+## 2. Owner decision 15: our colour numbers are D65, two degree, and the package says so
+
+Kept exactly as the owner settled it. `05_colour/colour_spec.json` now carries a `lab_space` line —
+"sRGB, D65 white point, two-degree observer. Computed from the screen colour, not measured." — and
+`colour_spec.pdf` and the QC checklist say the same, so the colour house knows what the numbers are in.
+
+`docs/spec/04` shows `#0B1F4B` as Lab [12.9, 4.1, -27.6]. The same maths as `lib/print/rules/colour` gives
+[13, 10.7, -29.6], and a b\* differing by 6.6 is not a rounding difference. **The spec's example is recorded here as
+unverified** and our figure is kept, because ours is the one the platform can reproduce and test. Our numbers were
+not changed to match the spec.
+
+Until the colour house states its white point, delta E <= 1.5 is defined against ours. One consequence: the package
+never states a colour difference nobody agreed. `KppColourSpec.tolerance.max` is now nullable, it comes from
+`factory_capabilities.colour_delta_max`, and the gate refuses when it is null — the same rule as decision 18's
+tolerance, for the same reason.
+
+**Owner action, still open: ask the colour house which white point and observer they work to, and whether that
+example was measured or computed.** It changes nothing the platform generates; it changes what a delta E of 1.5
+means.
+
+## 3. Owner decision 16: a sample print file keeps its `SAMPLE_` prefix
+
+Confirmed as built. `lib/kpp/paths.ts` writes `04_print/<size>/SAMPLE_<article>_<panel>_<size>.<ext>` for a sample
+and `04_print/<orderNo>/<size>/<orderNo>_<article>_<panel>_<size>.<ext>` for a batch. `docs/spec/04`'s folder tree
+and its naming paragraph disagree; the naming paragraph wins, because a factory must never be able to mistake a
+sample file for a production one, and the cost of the stricter reading is only a longer filename.
+
+## 4. Owner decision 17: one notch style in the DXF for now
+
+Confirmed as built. The DXF marks every notch one way (layer 4), and the style is stated in words in
+`00_README.pdf` and on every tile of the 1:1 PDF. No factory row holds a notch preference, so the builder adds a
+README line saying so: notch style is a cutter-room setting the factory's own CAM applies. Revisit if a factory
+asks for it in the geometry.
+
+## 5. Owner decision 18: the gate keeps refusing a POM with no tolerance
+
+Unchanged, and now tested against real rows. `lib/kpp/input/measurements.ts` carries each POM's tolerance through
+exactly as `article_poms` holds it and gives none to a POM that has none; `lib/kpp/gate.ts` refuses with
+"POM A ...: no tolerance.", and `lib/kpp/input/package.test.ts` proves the whole package refuses to build.
+
+`article_poms` keeps a tolerance on every row, so a POM read from the catalogue always has both halves. Those
+figures are the build pack's draft, seeded under the article's "Knitwright draft v0.1, not reviewed by a factory"
+label, and they are carried with that label into `00_README.pdf` — never presented as agreed. **The spec's
++/-10/5/3 mm paragraph is not adopted as a default for anything the rows do not state**: a missing tolerance stays a
+question for the factory.
+
+## 6. Owner decision 19: AQL as built
+
+`samplingPlan` in `lib/kpp/input/quality.ts`:
+
+- a Class A **sample that Knitwright makes** says "Inspect every piece: this is a Class A sample and the brand's
+  approval rests on it", whoever sews it;
+- any other package uses the AQL plan on the input, which is the factory's own;
+- with no plan on the input the checklist says "No AQL plan is on file for this factory. Agree one before a run;
+  this package is not a run" — it never names a level nobody agreed, so `docs/spec/04`'s "level II, AQL 0 critical /
+  2.5 major / 4.0 minor" is not assumed on a factory's behalf.
+
+## 7. Owner decision 20: the charge, and the credit kind
+
+**This one is money, and the owner may overturn it.** It is recorded here rather than settled quietly.
+
+`production_package` is now a credit kind (`lib/credits/kinds.ts`), its price is in `lib/credits/settings.ts`, and
+the migration reseeds `credit_prices` from it. **The price is a labelled placeholder, not a quoted price**: the row
+is seeded with `is_placeholder = true`, `CREDIT_SETTINGS.isPlaceholder` is still true, and the gate's own refusal
+ends "The price is a placeholder the owner has not set yet." Nobody is shown a settled figure, and the owner may
+overturn both the number and the decision to charge at all.
+
+Who pays, per owner decision 20 and spec decision 9: a sample package for a factory Knitwright does not own is
+charged; it is free when Knitwright makes the order and free for a production batch, which is Knitwright's own run
+rather than files a brand takes away. `chargeDecision` and `packageCreditKind` in `lib/kpp/export.ts` decide it, and
+`lib/kpp/charge.ts` charges through the credits gate once per design version, so a failed download is safe to retry.
+
+One change of order from X5: **`exportPackage` runs the F-G2 check before the charge.** A brand should not pay to be
+told what the factory still has to answer. The charge still comes before any file is made, as decision 0051
+requires; `buildPackage` checks again, which is cheap and deterministic.
+
+## 8. The `package_exports` table
+
+`supabase/migrations/20261101040000_package_exports.sql`. The plan reserved this timestamp "only if needed", and X5
+did not need it because there was nothing to store. There is now: a charged export has to leave a record.
+
+The package itself is still never stored — the ZIP is sent and thrown away — so the row is the evidence of what was
+sent: the design, its version and hash, the factory code, the package root and file name, the generator version,
+the ZIP's own SHA-256, its size, its file count, and the version's creation time every file is pinned to. Because
+the same version and factory always give the same bytes, a stored hash is how a factory's copy is checked against
+ours.
+
+It follows `export_downloads` (20260929030000) exactly: no browser writes, `record_package_export` is the only way a
+row is written and only the server's own key may run it, the brand is taken from the design rather than the caller,
+members read their own brand's rows through row-level security, and an append-only trigger refuses any update,
+delete or truncate except the delete that follows from deleting the design. `lib/kpp/record.ts` calls it and throws
+when it cannot record, and then the ZIP is not sent: a package a factory holds that the platform has no record of is
+a package nobody can check.
+
+The migration also replaces the two check constraints of the credits migration (`credit_prices.output_kind` and
+`credit_ledger.output_kind`) so they admit `production_package`, which is this repository's established idiom for
+widening a check.
+
+## 9. `FILES_SERVICE_URL` and `FILES_SERVICE_TOKEN`
+
+Both are now declared in `apps/web/lib/config/env.ts` and listed, commented out, in `apps/web/.env.example`. Both
+are **optional**, and both are unset in every environment today, including CI. `filesServiceFrom` therefore still
+returns the stub, which answers `{ ok: false, failure: "not_available" }` for the health check and for every
+operation — owner decision 2: the Sportswear model is not wired in, and nothing here calls it. An address with no
+secret is a misconfiguration, not a reason to call an unauthenticated service, so that gives the stub too. The URL
+must parse as a URL and the token must be at least 32 characters, so a typo stops the server at start-up rather
+than inside a request. `lib/files-service/server.ts` is the one place that reads the environment.
+
+## Evidence
+
+| Claim | Test |
+|---|---|
+| The size run, base size, class, fit and HS code come from the catalogue row, not the design | `lib/kpp/input/build.test.ts` |
+| Every overview field carries a rule id and a provenance, and none is `confirmed` | `lib/kpp/input/build.test.ts` |
+| A design's option that is not a catalogue code is written as the design's own word, never as the article's default | `lib/kpp/input/build.test.ts` |
+| Every POM comes through with the catalogue's grade, tolerance and value per size | `lib/kpp/input/build.test.ts` |
+| A POM with no tolerance is given none, and the gate refuses (decision 18) | `lib/kpp/input/build.test.ts`, `lib/kpp/input/package.test.ts` |
+| A BOM line with no consumption on file is left empty and the gate refuses | `lib/kpp/input/build.test.ts` |
+| A colour difference no factory agreed makes the gate refuse, rather than the package stating one (decision 15) | `lib/kpp/input/build.test.ts` |
+| The swatch reference is carried only for a colour the fabric's programme holds | `lib/kpp/input/build.test.ts` |
+| A care label falls back to the fabric's blend for fibre and to nothing else | `lib/kpp/input/build.test.ts` |
+| A Knitwright-made Class A sample inspects every piece; anyone else's uses the plan; no plan says so in words (decision 19) | `lib/kpp/input/build.test.ts` |
+| `colour_spec.json` states the space and the observer of its Lab numbers (decision 15) | `lib/kpp/input/build.test.ts` |
+| One article in seven sizes builds from real catalogue rows, with every path `docs/spec/04` lists | `lib/kpp/input/package.test.ts` |
+| Building twice from the same rows gives byte-identical bytes | `lib/kpp/input/package.test.ts` |
+| The fixture's quoted consumption, label wording and AQL plan still match `article.json` | `lib/kpp/input/package.test.ts` |
+| `production_package` is a credit kind with a label and a placeholder price | `lib/kpp/charge.test.ts` |
+| A brand's own export is charged; Knitwright's order and a batch are free | `lib/kpp/charge.test.ts`, `lib/kpp/export.test.ts` |
+| A package the gate would refuse is never charged for | `lib/kpp/charge.test.ts` |
+| The gate's refusal reaches the caller in its own words and nothing is built | `lib/kpp/charge.test.ts` |
+| `record_package_export` is called with every column the migration takes | `lib/kpp/record.test.ts` |
+| The seeded `credit_prices` row matches `lib/credits/settings.ts` and is a placeholder | `lib/credits/settings-seed.test.ts`, `tests/integration/package-exports.test.ts` |
+| `package_exports` is append-only, server-written, and read only by the brand's own members | `tests/integration/package-exports.test.ts`, `tests/integration/isolation.test.ts` |
+| `production_package` can be spent on the ledger, which the old check constraint would have refused | `tests/integration/package-exports.test.ts` |
+| The app starts with neither files-service variable set, and then uses the stub | `lib/files-service/env.test.ts` |
+| A files-service address with no secret, or a short secret, is refused or gives the stub | `lib/files-service/env.test.ts` |
+
+No test reaches the network and no test makes a paid call: the files service has nothing to call, and the credit
+gate is a test double in every unit test.
+
+Not verified here: no local database was started for this PR (the machine has one shared instance pinned to fixed
+ports, and resetting it would destroy four other agents' work), so the migration, the `package_exports` tests and
+the isolation entry run for the first time in CI. No factory has opened any of these files, and the Phase 0 test
+matrix of `docs/spec/04` has still not been run by anyone.
+
+## Still owed after this revision
+
+- **The export route itself.** Everything behind it is here and tested — the input builder, `packageCreditKind` for
+  `withCredits`, `creditCharge` over the credits gate, `recordPackageExport` and the table — but the route is not
+  mounted, for two reasons. X5b owns no path under `app/`; and the package's print files would have to be drawn on
+  the same panels the package's patterns come from, while `lib/print` draws on the brand's pattern-library pattern
+  and `03_patterns/**` now comes from X3's drafter (revision 1). Serving a package whose print files and patterns
+  may disagree is worse than serving none, and `docs/spec/04`'s own Phase 0 test measures exactly that agreement.
+  So `PrintSource` is the one seam left, and wiring it is an orchestrator task as `PatternSource` was.
+- **The tables for the values no table holds**: the article's bill of materials with its consumption, the care-label
+  wording per market in `country_rules.label_rules`, and the AQL plan per factory. Until they exist the gate
+  refuses every real package, correctly, and names what is missing.
+- **A map from the garment registry's option keys to the catalogue's option codes.**
+- **The `_nest.dxf` as a real nested marker** rather than the sizes stacked: that is the files service's
+  `nest_marker`, which owner decision 2 keeps unwired.
+- **Renders**, **ICC colour**, **the Urdu tech pack** and **the Phase 0 factory test**, all unchanged from above.
+
+## Owner questions
+
+1. **Which white point and observer does the colour house work to, and was `docs/spec/04`'s `#0B1F4B` example
+   measured or computed?** Owner decision 15 keeps our figure and records theirs as unverified; this is the owner
+   action that decision names, and it is still open.
+2. **Is the placeholder price right, and should a sample package for a partner factory be charged at all?** Owner
+   decision 20 says it stays charged and that the owner may overturn it. **This is money**: nothing in the platform
+   presents the number as a price, and `CREDITS_ENFORCED` is off, so no brand has been charged anything.

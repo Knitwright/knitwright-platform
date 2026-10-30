@@ -223,6 +223,52 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { format: "xlsx" },
   },
+  // Plan v5 X5b (decision 0070): the record of a production package export. Members read their own brand's rows and
+  // nothing else; record_package_export is the only way one is written, and a row is never changed or removed.
+  package_exports: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(
+        await adminClient().rpc("record_package_export", {
+          p_project_id: projectId,
+          p_user_id: ownerId,
+          p_spec_version: 1,
+          p_design_code: "Isolation_Kit",
+          p_root: "KPP_Isolation_Kit_v1_SKT-01",
+          p_file_name: "KPP_Isolation_Kit_v1_SKT-01.zip",
+          p_design_hash: "a".repeat(64),
+          p_factory_code: "SKT-01",
+          p_kind: "sample",
+          p_generator_version: "kpp-1.0.0",
+          p_zip_sha256: "b".repeat(64),
+          p_zip_bytes: 1024,
+          p_file_count: 12,
+          p_built_for: "2026-10-25T09:30:00Z",
+        }),
+      );
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      spec_version: 1,
+      design_code: "Made_Directly",
+      root: "KPP_Made_Directly_v1_X",
+      file_name: "KPP_Made_Directly_v1_X.zip",
+      design_hash: "c".repeat(64),
+      factory_code: "X",
+      kind: "sample",
+      generator_version: "kpp-1.0.0",
+      zip_sha256: "d".repeat(64),
+      zip_bytes: 1,
+      file_count: 1,
+      built_for: "2026-10-25T09:30:00Z",
+      user_id: userId,
+    }),
+    change: { file_count: 99 },
+  },
   // Plan step 10: a member can neither change a limit nor delete a usage event.
   usage_events: {
     privileges: ["SELECT"],
@@ -836,6 +882,47 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), kind: "listed", to_stage: "idea" }),
     change: { to_stage: "run" },
   },
+  // Plan v5 Y7 (decision 0080): the golden sample of a product and its evidence. A member reads their own
+  // brand's rows; only the server writes, through functions, and the evidence is never changed.
+  golden_samples: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedGoldenSample(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), run_id: randomUUID(), design_version: 1, factory_profile_id: "f1", version: 1 }),
+    change: { state: "approved", fit_rating: 5 },
+  },
+  golden_sample_photos: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ golden_sample_id: (await seedGoldenSample(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ brand_id: brandId, golden_sample_id: randomUUID(), file_id: randomUUID(), angle: "front" }),
+    change: { caption: "Changed by a stranger" },
+  },
+  golden_sample_poms: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ golden_sample_id: (await seedGoldenSample(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ brand_id: brandId, golden_sample_id: randomUUID(), size_label: "M", letter: "A", code: "chest", measured_mm: 530, rule_id: "R-GAP-000" }),
+    change: { measured_mm: 999 },
+  },
+  golden_sample_colour_readings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ golden_sample_id: (await seedGoldenSample(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ brand_id: brandId, golden_sample_id: randomUUID(), colour_name: "Navy", delta_e: 1.2, rule_id: "R-GAP-000" }),
+    change: { delta_e: 9 },
+  },
+  golden_sample_carryovers: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const { id } = await seedGoldenSample(brandId, ownerId, { signedOff: true });
+      must(await adminClient().rpc("carry_over_golden_sample", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_to_version: 2, p_changed_fields: [{ field: "artwork", group: "surface" }], p_rule_id: "R-GAP-000" }));
+      return { golden_sample_id: id };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, golden_sample_id: randomUUID(), from_version: 1, to_version: 2, changed_fields: [{ field: "artwork", group: "surface" }], rule_id: "R-GAP-000" }),
+    change: { to_version: 9 },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -1086,6 +1173,36 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
     await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
   ) as { run_id: string }[];
   return rows[0]!.run_id;
+};
+
+/**
+ * A golden sample of a product, judged the way the server judges one (plan v5 Y7, decision 0080). The release
+ * carries a design version, because a golden sample records which version it was cut from. With `signedOff` it
+ * also holds the founder's sign-off, which the carry-over table needs.
+ */
+const seedGoldenSample = async (
+  brandId: string,
+  ownerId: string,
+  options: { signedOff?: boolean } = {},
+): Promise<{ id: string; productId: string; runId: string }> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: { specVersion: 1 }, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const runs = must(
+    await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: `golden-${randomUUID()}`, p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
+  ) as { run_id: string }[];
+  const runId = runs[0]!.run_id;
+  const id = must(await adminClient().rpc("start_golden_sample", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_run_id: runId })) as string;
+  const fileId = randomUUID();
+  must(await adminClient().from("files").insert({ id: fileId, brand_id: brandId, bucket: "uploads", path: filePath(brandId), kind: "photo", content_type: "image/png", bytes: 10, created_by: ownerId }));
+  must(await adminClient().rpc("add_golden_sample_photo", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_file_id: fileId, p_angle: "front", p_caption: "" }));
+  must(await adminClient().rpc("add_golden_sample_pom", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_size_label: "M", p_letter: "A", p_code: "chest", p_measured_mm: 530 }));
+  must(await adminClient().rpc("add_golden_sample_colour_reading", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_colour_name: "Navy", p_delta_e: 1.2 }));
+  if (options.signedOff) {
+    must(await adminClient().rpc("sign_off_golden_sample", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_fit_rating: 4, p_colour_rating: 4, p_notes: "" }));
+  }
+  return { id, productId, runId };
 };
 
 /** A job packet of a new batch, made the way ops makes one (decision 0072). */
