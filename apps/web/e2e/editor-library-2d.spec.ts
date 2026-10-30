@@ -40,6 +40,16 @@ const openLibrary = async (page: Page): Promise<void> => {
   await page.getByRole("tablist", { name: "Toolbars" }).getByRole("tab", { name: "Library" }).click();
 };
 
+/**
+ * Puts the 2D view on the canvas. A team jersey is an article the drafter can draw, so the editor
+ * opens such a design in 3D (`editorPageState`, plan v5 Y2): without this the canvas holds the 3D
+ * view and the `view-2d` slot is not on the page at all, placeholder or panel.
+ */
+const open2d = async (page: Page): Promise<void> => {
+  await page.getByTestId("view-toggle").getByRole("button", { name: "2D", exact: true }).click();
+  await expect(page.getByRole("region", { name: "2D pattern view" })).toBeVisible();
+};
+
 /** True while the shell still draws the labelled placeholder in place of this workstream's panel. */
 const notWired = async (page: Page, slot: "library" | "view-2d"): Promise<boolean> => (await page.getByTestId(`editor-slot-${slot}`).count()) > 0;
 
@@ -107,6 +117,7 @@ test.describe("the 2D pattern view", () => {
   test("draws the drafted pieces with their lines named, and a 100 mm scale bar", async ({ page }) => {
     await signedIn(page, "view2d-draw");
     await startJersey(page, "Sheet kit");
+    await open2d(page);
     test.skip(await notWired(page, "view-2d"), WIRING);
 
     const view = page.getByTestId("view-2d");
@@ -127,6 +138,7 @@ test.describe("the 2D pattern view", () => {
   test("opens the rule behind the bleed line", async ({ page }) => {
     await signedIn(page, "view2d-why");
     await startJersey(page, "Why kit");
+    await open2d(page);
     test.skip(await notWired(page, "view-2d"), WIRING);
 
     await page.getByTestId("view-2d-legend").getByRole("button", { name: "Why?" }).first().click();

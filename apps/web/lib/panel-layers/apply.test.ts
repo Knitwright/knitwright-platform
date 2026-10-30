@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { applyAction, panelsFor, type GarmentSpec, type SpecAction } from "@/lib/garment";
-import { applyItem, type ApplyStep, type Applied, type ApplyTarget } from "./apply";
-import { design } from "./fixtures/design";
+import { applyItem, runSteps, type ApplyStep, type Applied, type ApplyTarget } from "./apply";
+import { design, recorder } from "./fixtures/design";
 import { libraryGroups, type LibraryItem } from "./library";
 
 const all = (over = {}): readonly LibraryItem[] =>
@@ -140,5 +140,35 @@ describe("an item of the wrong kind", () => {
     expect(refusal(applyItem(design(), { ...fabricItem(), kind: "colour" }, target))).toMatch(/not a colour/);
     expect(refusal(applyItem(design(), { ...colourItem(), kind: "fabric" }, target))).toMatch(/not a fabric/);
     expect(refusal(applyItem(design(), { ...colourItem(), kind: "pattern-fill" }, target))).toMatch(/not a pattern fill/);
+  });
+});
+
+describe("handing the steps to the shell", () => {
+  it("asks for one step per panel of a real change, and gives back its sentence", () => {
+    const fabric = pick((item) => item.kind === "fabric");
+    const result = applyItem(design(), fabric, { kind: "all" });
+    const { commands, calls } = recorder();
+
+    expect(runSteps(result, commands)).toMatch(/every panel/);
+    expect(calls).toHaveLength(ok(result).length);
+    expect(calls.filter((call) => call.startsWith("save "))).not.toEqual([]);
+  });
+
+  it("sends a save through save and an option through setOption, in the order it was given them", () => {
+    const { commands, calls } = recorder();
+    const steps: readonly ApplyStep[] = [
+      { kind: "option", group: "collar", code: "C02" },
+      { kind: "save", key: "library-fabric-F-POLY-INT-front", action: { type: "assign-fabric", panelId: "front", fabricId: "fabric-1" } },
+    ];
+
+    expect(runSteps({ ok: true, steps, words: "Done." }, commands)).toBe("Done.");
+    expect(calls).toEqual(["setOption collar C02", "save library-fabric-F-POLY-INT-front assign-fabric"]);
+  });
+
+  it("shows a refusal and asks the shell for nothing at all", () => {
+    const { commands, calls } = recorder();
+
+    expect(runSteps({ ok: false, reason: "No." }, commands)).toBe("No.");
+    expect(calls).toEqual([]);
   });
 });
