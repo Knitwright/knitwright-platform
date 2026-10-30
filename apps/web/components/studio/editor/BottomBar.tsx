@@ -82,7 +82,7 @@ type ToggleProps = Readonly<{ view: CanvasView; beside: CanvasView | null; onVie
 
 function ViewToggle({ view, beside, onView }: ToggleProps) {
   return (
-    <div role="group" aria-label="Canvas views" className="flex gap-1 rounded-full bg-tile-2/70 p-1" data-testid="view-toggle">
+    <div role="group" aria-label="Canvas views" className="flex gap-1 rounded-full bg-tile-2/90 p-1" data-testid="view-toggle">
       {CANVAS_VIEWS.map((id) => {
         const on = showing(view, beside, id);
         return (
