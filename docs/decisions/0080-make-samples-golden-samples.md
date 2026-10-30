@@ -59,8 +59,11 @@ Two things already exist and are built on rather than around:
    `submit_make_order`, which refuses more than three (`sample_sizes`). `submit_brand_run` already refuses anything
    other than one piece per size.
 7. **Class B is 50 to 300 pieces per style.** The class comes from the base article (decision 0066), looked up through
-   the design's garment type. Where the class is known, `submit_make_order` refuses a Class B run outside that range
-   (`class_b_quantity`) and `lib/make/run.ts` says the same thing on the screen before the press. Class A is any
+   the design's garment type. Where the class is known, `submit_make_order` **notes** a Class B run outside that range
+   (`class_b_quantity`) on the order's flags and `lib/make/run.ts` says the same thing on the screen before the press.
+   It was shipped as a refusal and the orchestrator changed it to a flag in migration
+   `20261110040000_class_b_flag.sql`: a refusal would assert that a factory will not cut 400 of a style and none has
+   said so, so this matches the brand-run builder of decision 0062, rule 5. Class A is any
    quantity from one piece. Where no base article covers the garment type the class is "not set", no range is applied,
    and the screen says the class is not set rather than guessing it.
 8. **Every price is X6's row, labelled.** `lib/make/prices.ts` reads the price tiers for 1, 50 and 100 pieces through
@@ -92,7 +95,7 @@ every finding this workstream raises carries `R-GAP-000` and is listed in the pu
 | Claim | Test |
 |---|---|
 | A sample is 1 to 3 sizes, one piece each, from the design's size run | `lib/make/sample.test.ts` |
-| Class B 50 to 300, Class A from 1, class not set applies no range | `lib/make/run.test.ts` |
+| Class B 50 to 300 noted not refused, Class A from 1, class not set applies no range | `lib/make/run.test.ts` |
 | Surface and structural fields, unknown field is structural | `lib/make/surface.test.ts` |
 | A run needs a sign-off of the version, or a surface-only carry-over | `lib/make/gate.test.ts` |
 | Price at 1, 50 and 100 from the tiers, below the smallest tier is not a price | `lib/make/prices.test.ts` |
@@ -104,7 +107,7 @@ every finding this workstream raises carries `R-GAP-000` and is listed in the pu
 | What the pages may send, and the market a price is shown in | `lib/make/schemas.test.ts`, `lib/make/market.test.ts` |
 | The journey from a sample to a signed-off golden sample to a run | `e2e/make.spec.ts` |
 | Nothing reads as settled, and no price or date is written in the source | `lib/make/wording.test.ts` |
-| The database refuses a run with no sign-off, a fourth sample size, a Class B run out of range, evidence on a signed-off sample, and every direct write | `tests/integration/golden-samples.test.ts` |
+| The database refuses a run with no sign-off, a fourth sample size, evidence on a signed-off sample, and every direct write, and flags a Class B run out of range | `tests/integration/golden-samples.test.ts` |
 | The tables are invisible to another brand and unwritable by a browser | `tests/integration/isolation.test.ts` |
 
 ## Owner questions

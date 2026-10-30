@@ -66,6 +66,9 @@ const nextConfig: NextConfig = {
     "/api/projects/\\[projectId\\]/exports/\\[format\\]": ["./assets/fonts/**"],
     // The print files outline names and numbers from the same font.
     "/api/projects/\\[projectId\\]/print-files": ["./assets/fonts/**"],
+    // The production package (decision 0070) carries that same tech pack PDF and the same print files, so it
+    // reads the font twice over: once through @react-pdf/renderer and once to outline text in a margin.
+    "/api/projects/\\[projectId\\]/production-package": ["./assets/fonts/**"],
     // The ops factory sheet (decision 0043) draws text in the same font, and the batch's print files outline names and numbers from it.
     "/api/ops/batches/\\[batchId\\]/factory-sheet": ["./assets/fonts/**"],
     "/api/ops/batches/\\[batchId\\]/print-files": ["./assets/fonts/**"],

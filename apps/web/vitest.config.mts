@@ -65,6 +65,11 @@ export default defineConfig({
         // Two lines joining the package to the tech pack generator and to the environment; nothing
         // calls either yet (decision 0070), and the generator has its own tests.
         "lib/kpp/sources/techpack.ts",
+        // Joins the production package to the design, the catalogue, the factory rows, the brand's print settings,
+        // the drafter and the print builder, and holds no rules of its own: `input/**`, `sources/rows.ts` and
+        // `sources/print.ts` have those and are tested, and the route test and the end-to-end tests cover the
+        // joining (plan v5 X5/X5b, decision 0070 revision 3).
+        "lib/kpp/sources/server.ts",
         // One line each joining the files-service seam to the environment; `filesServiceFrom` has its own tests
         // and there is no service to call (decision 0070, plan v5 X5b).
         "lib/files-service/server.ts",
