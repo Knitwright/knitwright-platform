@@ -108,6 +108,16 @@ function careLine(input: DestinationLabelInput, rules: LabelRules): Readonly<{ l
       findings: [blocker("care_symbols_missing", path, `No care symbols are chosen for ${input.countryName}. ISO 3758 is not transcribed in the platform yet.`, RULE_CARE_LABEL)],
     };
   }
+  // The words come from the symbol rows, but *which* symbols a market's label carries is its own claim, and it
+  // needs its own source. Without this a market could name five perfectly sourced symbols for no stated reason.
+  if (rules.care.source === null) {
+    return {
+      line: null,
+      findings: [
+        blocker("care_choice_unsourced", path, `Nothing says why these care symbols are the ones ${input.countryName} needs.`, RULE_CARE_LABEL),
+      ],
+    };
+  }
   const by = new Map(input.careSymbols.map((symbol) => [symbol.code, symbol]));
   const unusable = codes.filter((code) => {
     const symbol = by.get(code);
@@ -128,7 +138,8 @@ function careLine(input: DestinationLabelInput, rules: LabelRules): Readonly<{ l
   }
   const chosen = codes.map((code) => by.get(code)!);
   const text = chosen.map((symbol) => `${symbol.symbolRef} ${symbol.words}`).join(" · ");
-  const source = listOf(chosen.map((symbol) => symbol.source!));
+  // Both halves: why these symbols, and where each one's words came from.
+  const source = `${rules.care.source}; ${listOf([...new Set(chosen.map((symbol) => symbol.source!))])}`;
   return { line: line("care", text, source, rules.care.confirmed && chosen.every((symbol) => symbol.confirmed), RULE_CARE_LABEL), findings: [] };
 }
 

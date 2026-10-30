@@ -103,10 +103,21 @@ describe("the fibre line", () => {
 });
 
 describe("the care line", () => {
-  it("prints the symbol reference and its words, and names every source", () => {
+  it("prints the symbol reference and its words, and names both halves of the source", () => {
     const line = destinationLabel(fixtureLabelInput()).lines.find((one) => one.kind === "care");
     expect(line?.text).toBe("Figure 1 Machine wash at 30 degrees");
-    expect(line?.source).toContain("licensed copy of ISO 3758");
+    // Why these symbols, and where each one's words came from.
+    expect(line?.source).toBe("The market's own wording; A licensed copy of ISO 3758:2012, transcribed by the owner");
+  });
+
+  it("refuses symbols nothing says the market needs, however well sourced each one is", () => {
+    const rules = writtenLabelRules({
+      lines: { ...(writtenLabelRules().lines as object), care: { symbolCodes: ["ISO3758-WASHING"], confirmed: true, source: null } },
+    });
+    const label = destinationLabel(fixtureLabelInput({ labelRules: rules }));
+    expect(codesOf(label)).toContain("care_choice_unsourced");
+    expect(label.findings.find((found) => found.code === "care_choice_unsourced")?.message).toContain("why these care symbols");
+    expect(label.lines.some((line) => line.kind === "care")).toBe(false);
   });
 
   it("refuses a symbol code that no row answers", () => {

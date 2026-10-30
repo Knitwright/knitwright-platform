@@ -79,7 +79,10 @@ come back as a ruined garment or a regulator's letter. So:
 
 - the **fibre** line takes the market's own wording where it has one, and otherwise the fabric row's blend, saying which row
   it came from — but only where the market states the language and the order it needs the fibre content in;
-- the **care** line is printed only from `care_symbols` rows that have a symbol reference, words **and** a source, all three;
+- the **care** line is printed only from `care_symbols` rows that have a symbol reference, words **and** a source, all three —
+  and only where the market's row says **why those symbols are the ones it needs**. Both halves are required and the printed
+  line carries both. Without the second, a market could name five perfectly sourced symbols for no stated reason, which is the
+  same hole one level up;
 - the **origin** line is `label_rules.origin`, which the seed sets to "Made in Pakistan" citing
   `docs/spec/04-production-package.md` section `07_labels`;
 - the **size** line needs the market's size-designation wording, which nobody has written, so it is never printed;
