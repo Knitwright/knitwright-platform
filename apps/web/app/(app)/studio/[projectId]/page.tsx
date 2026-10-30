@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
 import { QuoteRequest } from "@/components/leads/QuoteRequest";
-import { Editor } from "@/components/studio/Editor";
+import { EditorShell } from "@/components/studio/editor/EditorShell";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { ShareSection } from "@/components/share/ShareSection";
+import { baseArticleForType, getBaseArticle } from "@/lib/catalogue";
 import { brandChartSet } from "@/lib/charts/service";
 import { getEnv } from "@/lib/config/env";
+import { editorPageState } from "@/lib/editor";
 import { loadIllustrations } from "@/lib/images/illustrations";
 import { loadDesignLeads } from "@/lib/leads/service";
 import { latestImages } from "@/lib/images/service";
@@ -24,6 +26,7 @@ import { log } from "@/lib/server/log";
 import { requireMember } from "@/lib/server/page-guards";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
+import { readValidationResults } from "@/lib/validation/results";
 
 export const metadata: Metadata = { title: "Design" };
 
@@ -36,7 +39,8 @@ const orNotFound = (error: unknown): never => {
 export default async function DesignPage({ params, searchParams }: PageProps<"/studio/[projectId]">) {
   const { brand } = await requireMember();
   const { projectId } = await params;
-  const colourway = colourwayParam((await searchParams).colourway);
+  const query = await searchParams;
+  const colourway = colourwayParam(query.colourway);
   const client = await sessionClient();
 
   const [project, history, charts] = await Promise.all([
@@ -46,18 +50,34 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
   ]).catch(orNotFound);
 
   const reader = createFileReader(client, brand.id);
-  const [pictures, illustrations, leads, conversation] = await Promise.all([
+  const articleCode = project.spec.article?.baseArticleCode ?? baseArticleForType(project.spec.typeId) ?? null;
+  const [pictures, illustrations, leads, conversation, article, results] = await Promise.all([
     loadArtworkImages(reader, shrinkForDrawing, project.spec),
     latestImages(client, brand.id, projectId).then((latest) => loadIllustrations(reader, latest)),
     loadDesignLeads(client, brand.id, projectId, new Date()),
     conversationFor(client, { brandId: brand.id, projectId }, log),
+    // A catalogue the design cannot be read against must not stop the editor opening.
+    articleCode ? getBaseArticle(client, articleCode).catch(() => null) : Promise.resolve(null),
+    readValidationResults(client, brand.id, projectId, project.currentVersion).catch(() => []),
   ]);
 
+  const state = editorPageState({ query, article, sizing: project.spec.sizing });
+
   return (
-    <Editor
+    <EditorShell
       data={buildEditorData(project, history, charts, pictures, colourway)}
       assistant={{ available: assistantAvailable(), conversation }}
       show3d={getEnv().SHOW_3D}
+      article={article}
+      segment={state.segment}
+      view={state.view}
+      beside={state.beside}
+      size={state.size}
+      sizes={state.sizes}
+      form={state.form}
+      draft={state.draft}
+      model={state.model}
+      checks={results[0]?.checks ?? []}
       slots={{
         kitStyles: <KitStylesLink projectId={projectId} typeId={project.spec.typeId} from="editor" />,
         photoreal: (
