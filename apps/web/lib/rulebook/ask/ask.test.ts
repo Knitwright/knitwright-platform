@@ -5,7 +5,7 @@ import { GAP_RULE_ID } from "../constants";
 import { askRulebook, gapCodeFor, type AskDeps } from "./ask";
 import { askCost } from "./cost";
 import { NO_MODEL, NOT_COVERED, OVER_ALLOWANCE, UNGROUNDED } from "./grader";
-import { MAX_QUESTION_LENGTH, SYSTEM, userInput } from "./prompt";
+import { MAX_QUESTION_LENGTH, ruleBlock, SYSTEM, userInput } from "./prompt";
 import { readReply } from "./reply";
 import { DESIGN } from "./fixtures/questions";
 import { REVIEWED_RULES } from "./fixtures/rules";
@@ -188,6 +188,23 @@ describe("what one question costs", () => {
 });
 
 describe("what the model is given and what comes back", () => {
+  it("names only the part of the design it was given", () => {
+    expect(userInput("q", [], { articleCode: "JSY-SS-01" })).toContain("base article: JSY-SS-01");
+    expect(userInput("q", [], { articleCode: "JSY-SS-01" })).not.toContain("made by:");
+    expect(userInput("q", [], { method: "sublimation" })).toContain("made by: sublimation");
+    expect(userInput("q", [])).not.toContain("The design being asked about");
+  });
+
+  it("leaves out a rule's best practice when the rulebook has none for it", async () => {
+    const [entry] = await fixtureRetrieval(REVIEWED_RULES).versions(["R-SUB-004"]);
+    const rule = {
+      ruleId: entry.ruleId, version: 1, title: entry.title, rule: entry.rule, body: entry.body, bestPractice: "",
+      scope: "x", newerDraft: null, hit: { ruleId: entry.ruleId, rank: 1, matched: 2, asked: 3 },
+    };
+    expect(ruleBlock(rule)).not.toContain("best practice:");
+    expect(ruleBlock({ ...rule, bestPractice: "Keep stripes off crests" })).toContain("best practice: Keep stripes off crests");
+  });
+
   it("cuts a question that is too long rather than sending all of it", () => {
     expect(userInput("x".repeat(500), [])).toContain("x".repeat(MAX_QUESTION_LENGTH));
     expect(userInput("x".repeat(500), [])).not.toContain("x".repeat(MAX_QUESTION_LENGTH + 1));

@@ -130,6 +130,19 @@ describe("the four readings, each catching what it is for", () => {
     expect(gradeAnswer([{ text, ruleIds: ["R-SUB-004", "R-CON-003"] }], rules).ok).toBe(false);
   });
 
+  it("says plainly what it found when a sentence cites nothing and records nothing", () => {
+    const grade = gradeAnswer([{ text: "Seams are soft.", ruleIds: [] }], rules);
+    expect(grade.defects.map((defect) => defect.kind)).toEqual(["uncited_sentence"]);
+    expect(gradeAnswer([{ text: "Seams are soft.", ruleIds: ["R-SUB-004"] }], rules).defects[0].detail).toContain("records R-SUB-004");
+    expect(gradeAnswer([{ text: "A 42 mm gap.", ruleIds: [] }], rules).defects.map((defect) => defect.detail).join(" ")).toContain(
+      "any cited rule",
+    );
+  });
+
+  it("knows a rule with no measurement in it states none", () => {
+    expect(lookupOf([{ ...rule("R-CON-003"), rule: "One continuous seam", body: "", bestPractice: "", title: "" }]).measurements["R-CON-003"]?.size).toBe(0);
+  });
+
   it("turns down an answer with no sentence in it at all", () => {
     expect(gradeAnswer([], rules).defects.map((defect) => defect.kind)).toEqual(["no_sentences"]);
   });

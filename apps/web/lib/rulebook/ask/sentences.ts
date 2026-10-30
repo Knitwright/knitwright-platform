@@ -70,13 +70,6 @@ export function measurementsIn(text: string): string[] {
 }
 
 /**
- * The measurements a set of rules states, as the same normalised strings. A percentage written "1.5 %" and one
- * written "1.5%" are the same measurement, and a rule that states a range states both of its ends.
- */
-export const measurementsOf = (texts: readonly string[]): Set<string> =>
-  new Set(texts.flatMap((text) => measurementsIn(text)));
-
-/**
  * The measurements of a rule, including the ones a range writes once: "12–14 stitches per inch" has no unit, but
  * "85–100% polyester" states 85% and 100%, and "0 to 6 mm" states 0 mm and 6 mm. Each number before a dash, a
  * slash, "to" or "and" takes the unit of the number that ends the range.
