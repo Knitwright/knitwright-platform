@@ -92,4 +92,5 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0075 | [The editor shell and the Form toolbar](0075-editor-shell-and-form-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
+| 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
