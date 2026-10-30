@@ -69,11 +69,16 @@ export function EditorShell(props: EditorShellProps) {
   const { tool, choose, layout, dispatch, root } = useWorkspace();
   const shell = useShell({ segment: props.segment, view: props.view, beside: props.beside, size: props.size, form: props.form });
   const [exportOpen, setExportOpen] = useState(false);
+  // The version the last undo of this session moved away from, which is what a redo restores.
+  // The history itself holds no "redone" state, so a reload clears it rather than guessing.
+  const [undoneFrom, setUndoneFrom] = useState<number | null>(null);
   const assistantButton = useRef<HTMLButtonElement>(null);
 
+  // The tool is written to the address first, with `history.replaceState`, so that opening the Form
+  // toolbar after it reads an address that already names the tool and does not drop it.
   const openTool = (next: ToolId) => {
-    if (shell.state.segment !== "form") shell.openRail("form");
     choose(next);
+    if (shell.state.segment !== "form") shell.openRail("form");
   };
   const closeSheet = () => {
     dispatch({ type: "closeSheet" });
@@ -97,7 +102,16 @@ export function EditorShell(props: EditorShellProps) {
         findings={findingLines(validate)}
         tool={tool}
         canUndo={data.undoTo !== null}
-        onUndo={editor.undo}
+        canRedo={undoneFrom !== null}
+        onUndo={() => {
+          setUndoneFrom(state.version);
+          editor.undo();
+        }}
+        onRedo={() => {
+          if (undoneFrom === null) return;
+          editor.restore(undoneFrom);
+          setUndoneFrom(null);
+        }}
         onTool={openTool}
         onExport={() => setExportOpen(!exportOpen)}
         exportOpen={exportOpen}

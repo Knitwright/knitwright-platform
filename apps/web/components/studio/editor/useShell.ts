@@ -1,7 +1,7 @@
 "use client";
 
 import type { Route } from "next";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import type { CanvasView, FormValues, RailSegment } from "@/lib/editor";
 import { toggled, withEditorState } from "@/lib/editor";
@@ -15,6 +15,10 @@ import { withSearchParam } from "@/lib/workspace/tools";
  *
  * A change is shown at once and the address is rewritten in the same transition, so the sliders
  * move under the hand while the server catches up with the new draft and the new model.
+ *
+ * The address is read from the window, not from `useSearchParams`, because the open tool is written
+ * with `history.replaceState` (decision 0048) and the router never hears about it. Reading the
+ * router's copy would drop `?tool=` the moment a slider moved.
  */
 export interface ShellState {
   readonly segment: RailSegment;
@@ -27,18 +31,25 @@ export interface ShellState {
 export function useShell(initial: ShellState) {
   const router = useRouter();
   const path = usePathname();
-  const search = useSearchParams();
   const [state, setState] = useState(initial);
   const [pending, start] = useTransition();
+
+  /** Rewrites the address, keeping every other parameter and the #hash a link may carry. */
+  const replace = useCallback(
+    (query: string) => {
+      start(() => {
+        router.replace(`${path}${query}${window.location.hash}` as Route, { scroll: false });
+      });
+    },
+    [path, router],
+  );
 
   const go = useCallback(
     (next: ShellState) => {
       setState(next);
-      start(() => {
-        router.replace(`${path}${withEditorState(search.toString(), next)}` as Route, { scroll: false });
-      });
+      replace(withEditorState(window.location.search, next));
     },
-    [path, router, search],
+    [replace],
   );
 
   const openRail = useCallback((segment: RailSegment) => go({ ...state, segment }), [go, state]);
@@ -61,14 +72,7 @@ export function useShell(initial: ShellState) {
   );
 
   /** The colourway is its own search parameter, shared with the Colours panel and the drawing. */
-  const setColourway = useCallback(
-    (id: string) => {
-      start(() => {
-        router.replace(`${path}${withSearchParam(search.toString(), "colourway", id)}` as Route, { scroll: false });
-      });
-    },
-    [path, router, search],
-  );
+  const setColourway = useCallback((id: string) => replace(withSearchParam(window.location.search, "colourway", id)), [replace]);
 
   /** Asks the server for the draft and the model again, for the Simulate button. */
   const resimulate = useCallback(() => start(() => router.refresh()), [router]);
