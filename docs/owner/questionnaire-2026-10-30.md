@@ -344,7 +344,7 @@ Your answer: ______
 
 ---
 
-## G. The inspiration board (88 to 92)
+## G. What merged while this sheet was being written (88 to 96)
 
 **88. Do we apply for both Unsplash and Pexels, or run one?** Today: the code is ready for both behind their keys;
 Unsplash's free tier is 50 requests an hour and its production tier needs their approval.
@@ -361,4 +361,22 @@ Your answer: ______
 none measured.
 Your answer: ______
 
-(Question 90, the price of a mood image, is in section A with the other money questions.)
+**93. Is the safe zone 10 mm or 15 mm?** Rule R-SUB-004 says a critical element keeps 15 mm from a seam; the
+platform's own guardrail is a 10 mm Knitwright default and the 2D view draws the setting while naming that rule.
+**The two disagree today.** Reseed to 15 mm, or tell me where the 10 mm came from.
+Your answer: ______
+
+**94. Which decoration methods does each factory run?** Today: heat transfer, screen print and embroidery are
+locked, so sublimation is the only method offered.
+Your answer: ______
+
+**95. Should a pattern fill hold a tile width and height, padding and rotation?** Today: one size, plus spacing for
+dots; the rest are listed as gaps.
+Your answer: ______
+
+**96. Should a graphic's placement be gradable per design, or does the base article always decide?** Today: the
+article decides.
+Your answer: ______
+
+(Question 90, the price of a mood image, is in section A with the other money questions. The Pantone licence that
+Y3's Colours section also needs is question 29.)

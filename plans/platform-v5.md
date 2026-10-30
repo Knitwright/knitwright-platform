@@ -101,9 +101,9 @@ decision. Where two workstreams asked the same question it is one decision namin
 They are grouped so they can be answered in sittings rather than in workstream order: **A money** (21 to 25), **B colour,
 print and licences** (26 to 32), **C sizing, measurement and article data** (33 to 45), **D factory terms, dates, markets and
 the Class B programme** (46 to 61), **E legal, labelling and moderation policy** (62 to 68), **F rules, sources and the
-wording on screens** (69 to 87), and **G the inspiration board** (88 to 92), which merged while this collection was being
-written. Each decision ends with the workstream and the record or PR comment it came from. **Decision 90 is money too**, and
-belongs with group A when the owner sits down to it.
+wording on screens** (69 to 87), and **G what merged while this collection was being written** (88 to 96: Z1's inspiration
+board and Y3's 2D view). Each decision ends with the workstream and the record or PR comment it came from. Two of group G
+belong with an earlier sitting: **decision 90 is money**, like group A, and **decision 93 is a print rule**, like group B.
 
 **Nothing here blocks anything.** Every one of them is live on `main` (or on the open PR named) behind its labelled default,
 and the plan's rule holds: missing owner input never blocks, it only labels.
@@ -174,8 +174,9 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
     `R-GAP-000`; with a profile from the print house it becomes a real soft proof and the check gains a rulebook entry. The
     same request as decision 26 should ask for it. (Y6, PR #101; questionnaire question 17.)
 29. **Pantone.** No Pantone data ships (open item P6), so a brand types its own TCX codes into Brand Studio and nothing is
-    matched for it. Should Knitwright licence the TCX library, or keep asking brands to read their printed swatch book?
-    (Y6, PR #101.)
+    matched for it. Should Knitwright licence the TCX library, or keep asking brands to read their printed swatch book? Y3
+    asks the same of the Library toolbar's Colours section, where a licence would turn a port with a stand-in into a real
+    adapter. **It costs money, so it is the owner's.** (Y6, PR #101; Y3, decision 0076 question 2.)
 30. **Kit fonts and their licences.** Only the two bundled Geist faces have a licence this repository can show, so a brand can
     set only Geist and four placeholders say plainly that no licence is on file. Which faces should be licensed, and for which
     use — screen, sublimation print, and the factory's own RIP? Names and numbers need a block or condensed sans that we do
@@ -387,7 +388,7 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
     programme fabrics, so its spec card has only the article's own sentence and no programme row behind it. (Y1 question 3 and
     decision 0074.)
 
-### G. The inspiration board, which merged while this collection was being written.
+### G. What merged while this collection was being written.
 
 88. **Which stock providers do we hold keys for?** The code is ready for Unsplash and Pexels and both are behind their env
     keys. Unsplash's free tier is 50 requests an hour, which one busy designer can spend in a morning, and its production
@@ -403,6 +404,20 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
     brand. Two fetchers, and the orchestrator may want one of them to go. (Z1, decision 0082 question 4.)
 92. **Sixty items a moodboard, two seconds a source, twelve tags a query** are Knitwright defaults chosen in Z1 and none of
     them was measured. (Z1, decision 0082 question 5.)
+93. **Is the safe zone 10 mm or 15 mm?** `R-SUB-004` says a critical element keeps **15 mm** from a seam, while the platform's
+    `guardrails.safe_zone_mm` is a **10 mm** Knitwright default, and the 2D view draws the setting and names the rule beside
+    it. **These two disagree on `main` today**: a design that keeps 10 mm passes the guardrail and does not meet the rule the
+    guardrail cites. Reseed the setting to 15 mm against `R-SUB-004`, or say where the 10 mm came from. (Y3, decision 0076
+    question 1.)
+94. **Which decoration methods does each factory run?** Heat transfer, screen print and embroidery stay locked in the Library
+    toolbar until the factory model records them, so sublimation is the only method the platform offers. Should
+    `factory_capabilities` gain a methods column, or is sublimation the only method for now? (Y3, decision 0076 question 3.)
+95. **Should a pattern fill hold a tile width and height, padding and rotation?** A kit pattern stores one size today, and its
+    spacing for dots; the other three controls are listed as gaps on the screen rather than offered. (Y3, decision 0076
+    question 4.)
+96. **Should a graphic's placement be gradable per design?** The base article states `scale_by_size` per placement and a
+    design cannot override it. Is per-design grading wanted, or does the article always decide? (Y3, decision 0076
+    question 5.)
 
 ## How to use this plan
 
