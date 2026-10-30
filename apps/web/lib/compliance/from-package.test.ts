@@ -41,6 +41,7 @@ const MUTATIONS: readonly (readonly [string, (input: KppInput) => KppInput])[] =
   ["a bill-of-materials line with no quantity", (i) => ({ ...i, bom: i.bom.map((row, n) => (n === 0 ? { ...row, qtyPerPiece: null } : row)) })],
   ["no fabric on the colour spec", (i) => ({ ...i, colour: { ...i.colour, fabric: null } })],
   ["no agreed colour difference", (i) => ({ ...i, colour: { ...i.colour, tolerance: { metric: "dE_CMC_2_1", max: null } } })],
+  ["no colour roles at all", (i) => ({ ...i, colour: { ...i.colour, colours: [] } })],
   ["a colour with no swatch", (i) => ({ ...i, colour: { ...i.colour, colours: i.colour.colours.map((c) => ({ ...c, swatchId: null })) } })],
   ["print files below the DPI the rules ask for", (i) => ({ ...i, print: { ...i.print, dpi: 96 } })],
   ["print files below the bleed the rules ask for", (i) => ({ ...i, print: { ...i.print, bleedMm: 2 } })],

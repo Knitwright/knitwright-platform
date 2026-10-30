@@ -67,11 +67,10 @@ describe("labels for every destination market", () => {
 });
 
 describe("colours", () => {
-  it("has nothing to check when no colour role is set", () => {
-    expect(itemOf(preExportCheck(fixtureSubject({ colour: { fabric: null, roles: [], toleranceMax: null, ruleId: "R-SUB-005" } })), "colour_gamut")).toMatchObject({
-      status: "skipped",
-      skipped: "nothing_to_check",
-    });
+  it("refuses a design whose colours nobody named, rather than passing it over", () => {
+    const found = itemOf(preExportCheck(fixtureSubject({ colour: { fabric: "F-POLY-INT", roles: [], toleranceMax: 1.5, ruleId: "R-SUB-005" } })), "colour_gamut");
+    expect(found?.status).toBe("fail");
+    expect(found?.findings.map((one) => one.code)).toEqual(["colour_no_roles"]);
   });
 
   it("refuses a colour spec with no fabric and no agreed colour difference", () => {
@@ -80,6 +79,14 @@ describe("colours", () => {
         colour: { fabric: null, roles: [{ role: "primary", hex: "#0B1F4B", pantoneTcx: "19-4024 TCX", swatchId: "SB-1" }], toleranceMax: null, ruleId: "R-SUB-005" },
       }),
     ).toEqual(["colour_no_fabric", "colour_no_tolerance"]);
+  });
+
+  it("names the fabric, the roles and the colour difference together when all three are missing", () => {
+    expect(codes("colour_gamut", { colour: { fabric: null, roles: [], toleranceMax: null, ruleId: "R-SUB-005" } })).toEqual([
+      "colour_no_fabric",
+      "colour_no_roles",
+      "colour_no_tolerance",
+    ]);
   });
 
   it("names a colour with no hex, no Pantone and no swatch", () => {

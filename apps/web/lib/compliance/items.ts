@@ -86,10 +86,13 @@ const labels: ItemCheck = {
  */
 const colourGamut: ItemCheck = {
   id: "colour_gamut",
-  skip: (subject) => (subject.colour.roles.length === 0 ? "nothing_to_check" : null),
+  // Never skipped. A design with no colour role at all is refused, not passed over: a factory cannot cut a
+  // garment whose colours nobody named, and `lib/kpp/gate.ts` refuses the same thing.
+  skip: () => null,
   run: (subject) => {
     const spec = subject.colour;
     const found: ComplianceFinding[] = spec.fabric === null ? [blocker("colour_no_fabric", "colour.fabric", "Colour spec: no fabric named.", spec.ruleId)] : [];
+    if (spec.roles.length === 0) found.push(blocker("colour_no_roles", "colour.roles", "Colour spec: no colour roles.", spec.ruleId));
     // Owner decision 15: a colour difference nobody agreed is not written into a package.
     if (spec.toleranceMax === null) {
       found.push(blocker("colour_no_tolerance", "colour.tolerance", "Colour spec: no colour difference has been agreed with this factory.", spec.ruleId));
