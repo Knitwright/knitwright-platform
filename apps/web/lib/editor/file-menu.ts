@@ -22,6 +22,8 @@ export function fileMenu(projectId: string): readonly FileMenuItem[] {
     tool("history", "Version history", "history"),
     tool("share", "Share…", "share"),
     { kind: "page", id: "tech-pack", label: "Factory file", href: `${designPage(projectId)}/tech-pack` },
+    // Plan v5 Y7: the make pages (sample, golden sample, run). One navigation entry, added by that workstream.
+    { kind: "page", id: "make", label: "Make and order", href: `${designPage(projectId)}/make` },
     { kind: "page", id: "delete", label: "Move to trash…", href: `${designPage(projectId)}/delete` },
   ];
 }

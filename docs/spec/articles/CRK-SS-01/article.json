@@ -1,0 +1,116 @@
+{
+  "code": "CRK-SS-01",
+  "name": "Cricket coloured shirt (pique)",
+  "status": "draft_no_factory_block",
+  "version": "0.1",
+  "date": "2026-10-30",
+  "label": "Knitwright draft, not reviewed by a factory",
+  "class": "A",
+  "uses": [
+    "teamwear"
+  ],
+  "sports": [
+    "cricket"
+  ],
+  "hs_code": null,
+  "origin": null,
+  "base_size": null,
+  "sizes": [],
+  "units": "mm",
+  "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+  "fabrics": {
+    "body": {
+      "code": "F-POLY-PQ"
+    }
+  },
+  "pom": [],
+  "draft_constants": {},
+  "parameters": [],
+  "options": {},
+  "pieces": [],
+  "seam_allowance": {},
+  "construction": [],
+  "thread": null,
+  "bom": [],
+  "print": {},
+  "personalisation": {},
+  "placements": [],
+  "labels": {},
+  "qc": {},
+  "parametric_script": {
+    "status": "not drafted yet",
+    "reason": "Cricket coloured shirt (pique) has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+    "rule": "R-PAT-301",
+    "needs": [
+      "chest width",
+      "body length",
+      "across shoulder",
+      "sleeve length",
+      "bicep width",
+      "sleeve opening",
+      "armhole depth",
+      "neck width",
+      "front neck drop",
+      "back neck drop",
+      "hem width",
+      "placket length"
+    ]
+  },
+  "rulebook": "rulebook.md",
+  "sources": [
+    {
+      "field": "code",
+      "value": "CRK-SS-01",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "name",
+      "value": "Cricket coloured shirt (pique)",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "class",
+      "value": "A",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4"
+    },
+    {
+      "field": "uses",
+      "value": "teamwear",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+    },
+    {
+      "field": "sports",
+      "value": "cricket",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4 (the sports named in the article's own row)"
+    },
+    {
+      "field": "units",
+      "value": "mm",
+      "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+    },
+    {
+      "field": "fabrics.body.code",
+      "value": "F-POLY-PQ",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4 (\"Fabric (programme code)\" column)"
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "fabric",
+      "field": "fabrics.body",
+      "value": "Poly pique 160 gsm (F-POLY-PQ)",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 4",
+      "caveat": "The weight is the build pack's placeholder (\"All fabric codes, weights and blends are placeholders until confirmed in the Phase 0 factory test\"), so only the programme code is kept in the article."
+    }
+  ],
+  "open_questions": [
+    "A cricket shirt usually has a placket and a collar. Which does the factory's block have, and does the article need a collar option group of its own?",
+    "Pique is a different fabric family from the jersey's interlock. Does the factory sublimate it on the same programme, and does it shrink differently in the press?",
+    "Playing-condition rules on coloured clothing (sleeve length, logo size) differ by competition. Which competition's rules should the platform hold, if any?",
+    "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+    "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+    "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+    "The construction table, seam allowances and thread the factory really uses.",
+    "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+  ]
+}
