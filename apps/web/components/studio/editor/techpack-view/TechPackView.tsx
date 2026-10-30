@@ -15,6 +15,7 @@ import {
   type ExtraPom,
   type LengthUnit,
   type MeasurementMode,
+  type OverviewHeader,
   type TechPackTabId,
 } from "@/lib/techpack/view";
 import { marksKey, useMarks } from "../specs/marks-store";
@@ -34,6 +35,20 @@ import { TabSections } from "./Sections";
  * state, because none of it is part of the design.
  */
 
+/**
+ * What the Overview tab's header fields can be read from the slot contract. Only the form's own line
+ * can: the brand, the collection, the season, the design's typed name and the factory are not part of
+ * `EditorDesign`, so they are left empty and the tab asks for them rather than guessing at one.
+ */
+const headerOf = (design: EditorSlotProps["design"]): OverviewHeader => ({
+  styleName: null,
+  formName: autoDesignName(design.article, design.form),
+  brand: null,
+  collection: null,
+  season: null,
+  factory: null,
+});
+
 export default function TechPackView({ design, commands }: EditorSlotProps) {
   const [tab, setTab] = useState<TechPackTabId>("overview");
   const [unit, setUnit] = useState<LengthUnit>("mm");
@@ -45,14 +60,7 @@ export default function TechPackView({ design, commands }: EditorSlotProps) {
   const view = buildTechPackView({
     spec: design.spec,
     article: design.article,
-    header: {
-      styleName: null,
-      formName: autoDesignName(design.article, design.form),
-      brand: null,
-      collection: null,
-      season: null,
-      factory: null,
-    },
+    header: headerOf(design),
     size: design.size,
     sizes: design.sizes,
     colourwayId: design.colourwayId,
@@ -78,32 +86,7 @@ export default function TechPackView({ design, commands }: EditorSlotProps) {
         <ChipLegend counts={view.counts} />
         <UnitToggle unit={unit} onUnit={setUnit} />
       </div>
-      <div role="tablist" aria-label="Tech pack tabs" aria-orientation="horizontal" onKeyDown={move} className="flex flex-wrap gap-1" data-testid="techpack-tabs">
-        {TECHPACK_TABS.map((id) => {
-          const selected = id === tab;
-          return (
-            <button
-              key={id}
-              ref={(element) => {
-                if (element) tabs.current.set(id, element);
-                else tabs.current.delete(id);
-              }}
-              id={tabTestId(id)}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              aria-controls={tabPanelId(id)}
-              tabIndex={selected ? 0 : -1}
-              onClick={() => setTab(id)}
-              data-testid={tabTestId(id)}
-              className={`inline-flex min-h-10 items-center rounded-xl px-3 text-[11px] font-medium ${selected ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"}`}
-            >
-              {TAB_LABELS[id]}
-              {id === "review" && view.review.exportBlocked ? <span className="ml-1 text-warn" aria-label="something stops the export">&#9888;</span> : null}
-            </button>
-          );
-        })}
-      </div>
+      <TabBar tab={tab} blocked={view.review.exportBlocked} tabs={tabs} onMove={move} onChoose={setTab} />
       <div id={tabPanelId(tab)} role="tabpanel" aria-labelledby={tabTestId(tab)} className="flex min-h-0 flex-col gap-3 overflow-y-auto">
         {tab === "measurements" ? (
           <MeasurementsTab
@@ -128,6 +111,47 @@ export default function TechPackView({ design, commands }: EditorSlotProps) {
       >
         Show the tech pack on its own
       </button>
+    </div>
+  );
+}
+
+type BarProps = Readonly<{
+  tab: TechPackTabId;
+  /** True while something on the Review tab stops the export: the Review tab carries a mark. */
+  blocked: boolean;
+  tabs: { current: Map<TechPackTabId, HTMLButtonElement> };
+  onMove: (event: KeyboardEvent<HTMLDivElement>) => void;
+  onChoose: (tab: TechPackTabId) => void;
+}>;
+
+/** The tab bar: one tab stop for the whole bar, and the arrow keys move within it. */
+function TabBar({ tab, blocked, tabs, onMove, onChoose }: BarProps) {
+  return (
+    <div role="tablist" aria-label="Tech pack tabs" aria-orientation="horizontal" onKeyDown={onMove} className="flex flex-wrap gap-1" data-testid="techpack-tabs">
+      {TECHPACK_TABS.map((id) => {
+        const selected = id === tab;
+        return (
+          <button
+            key={id}
+            ref={(element) => {
+              if (element) tabs.current.set(id, element);
+              else tabs.current.delete(id);
+            }}
+            id={tabTestId(id)}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            aria-controls={tabPanelId(id)}
+            tabIndex={selected ? 0 : -1}
+            onClick={() => onChoose(id)}
+            data-testid={tabTestId(id)}
+            className={`inline-flex min-h-10 items-center rounded-xl px-3 text-[11px] font-medium ${selected ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"}`}
+          >
+            {TAB_LABELS[id]}
+            {id === "review" && blocked ? <span className="ml-1 text-warn" aria-label="something stops the export">&#9888;</span> : null}
+          </button>
+        );
+      })}
     </div>
   );
 }

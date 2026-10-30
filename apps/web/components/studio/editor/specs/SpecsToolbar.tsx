@@ -199,30 +199,8 @@ function Picker(props: PickerProps) {
         {props.points.length === 0 ? "Nothing picked yet." : `${props.points.length} place(s) picked.`}
         {props.length === null ? "" : ` Length so far ${props.length} mm.`}
       </p>
-      <label htmlFor={`${id}-label`} className="text-[11px] text-chalk-muted">
-        What to call it
-      </label>
-      <input
-        id={`${id}-label`}
-        type="text"
-        value={props.label}
-        maxLength={60}
-        disabled={props.busy}
-        onChange={(event) => props.onLabel(event.target.value)}
-        className="min-h-10 rounded-xl border border-white/20 bg-tile-2 px-2 text-[13px] text-ink"
-      />
-      <label htmlFor={`${id}-note`} className="text-[11px] text-chalk-muted">
-        Note for the factory
-      </label>
-      <input
-        id={`${id}-note`}
-        type="text"
-        value={props.note}
-        maxLength={200}
-        disabled={props.busy}
-        onChange={(event) => props.onNote(event.target.value)}
-        className="min-h-10 rounded-xl border border-white/20 bg-tile-2 px-2 text-[13px] text-ink"
-      />
+      <TextField label="What to call it" id={`${id}-label`} value={props.label} max={60} busy={props.busy} onChange={props.onLabel} />
+      <TextField label="Note for the factory" id={`${id}-note`} value={props.note} max={200} busy={props.busy} onChange={props.onNote} />
       <div className="flex gap-2">
         <button
           type="button"
@@ -243,6 +221,26 @@ function Picker(props: PickerProps) {
         </button>
       </div>
     </div>
+  );
+}
+
+/** A labelled line of text: what the mark is called, and the note that goes to the factory. */
+function TextField({ label, id, value, max, busy, onChange }: Readonly<{ label: string; id: string; value: string; max: number; busy: boolean; onChange: (text: string) => void }>) {
+  return (
+    <>
+      <label htmlFor={id} className="text-[11px] text-chalk-muted">
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        value={value}
+        maxLength={max}
+        disabled={busy}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-10 rounded-xl border border-white/20 bg-tile-2 px-2 text-[13px] text-ink"
+      />
+    </>
   );
 }
 
