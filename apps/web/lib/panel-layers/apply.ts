@@ -62,7 +62,20 @@ function applyFabric(design: EditorDesign, item: LibraryItem, target: ApplyTarge
           key: `library-fabric-${code}`,
           action: {
             type: "add-fabric",
-            fabric: { id, name: code, composition, construction: "", weightGsm: null, finish: "", consumption: "", stretch: "not-set", provenance: "user-edited" },
+            fabric: {
+              id,
+              name: code,
+              composition,
+              construction: "",
+              weightGsm: null,
+              finish: "",
+              consumption: "",
+              stretch: "not-set",
+              provenance: "user-edited",
+              // The design works this out again when the change is stored; it is given here so the
+              // patch is the shape the action takes.
+              sources: composition === "" ? {} : { composition: "user-edited" },
+            },
           },
         },
       ];
