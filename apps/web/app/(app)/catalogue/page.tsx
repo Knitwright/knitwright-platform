@@ -41,7 +41,8 @@ export default async function CataloguePage({ searchParams }: PageProps<"/catalo
         title="Base products and templates"
         lead="Every base article Knitwright can make, with its fabrics, sizes and prices, and the templates to remix. Each base is a Knitwright draft until a factory reviews it."
       />
-      <CatalogueNav tab={tab} sort={sort} market={market} query={{ ...keep, ...(search ? { q: search } : {}) }} />
+      {/* The tabs, the sort and the market keep the filters and the search that are already chosen. */}
+      <CatalogueNav tab={tab} sort={sort} market={market} query={{ ...keep, ...(search ? { q: search } : {}), ...filters }} />
       <div className="grid gap-5 lg:grid-cols-[16rem_minmax(0,1fr)]">
         {tab === "bases" ? (
           <CatalogueFilters groups={groups} filters={filters} search={search} keep={keep} note={emptyGroupsNote(summaries)} />

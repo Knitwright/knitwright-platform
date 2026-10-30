@@ -66,9 +66,9 @@ export default defineConfig({
         "lib/factory/server.ts",
         // Joins the factory's job packet to the database, storage and the ops file builders; the database and end-to-end tests cover it.
         "lib/job-packet/server.ts",
-        // Join the studio home and the catalogue to the database: one gathers the home's reads, the other the factory
-        // model's prices and fabrics. Both hold no logic of their own; the database and end-to-end tests cover them
-        // (plan v5 Y1, decision 0074).
+        // Join the studio home and the catalogue to the database: one gathers the home's reads, the other hands the
+        // catalogue's price book the server's own client. Both hold no logic of their own; the database and
+        // end-to-end tests cover them (plan v5 Y1, decision 0074).
         "lib/home/load.ts",
         "lib/home/reads.ts",
       ],

@@ -5,7 +5,7 @@ import { careNote, fabricCard, fitNotes, leadTime, NOT_SET, sizeChart } from "@/
 import { emptyGroupsNote, filterGroups, filtersFromQuery } from "@/lib/home/catalogue-filters";
 import { articleCard } from "@/lib/home/catalogue-view";
 import { fromPrice, ladderRows } from "@/lib/home/price";
-import { priceBook, type PriceBook } from "@/lib/home/reads";
+import { priceBookOf, type PriceBook } from "@/lib/home/book";
 import { adminClient, brandOf, person, type Person } from "./support";
 
 /**
@@ -27,7 +27,7 @@ const store = () => supabaseFactoryStore(adminClient());
 beforeAll(async () => {
   member = await person("y1-member");
   await brandOf(member, "Catalogue Home Club");
-  book = await priceBook(store());
+  book = await priceBookOf(store());
 });
 
 describe("the catalogue grid, from the rows a member can read", () => {
