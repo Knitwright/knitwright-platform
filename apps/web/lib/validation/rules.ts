@@ -28,6 +28,13 @@ const CHECK_RULES: Readonly<Record<string, string>> = {
   "parameter-out-of-range": RULE_GAP,
   "parameter-off-step": RULE_GAP,
   "parameter-not-offered": RULE_GAP,
+  // The repeat (pattern-fill) maker (plan v5 Y8, decision 0081). The resolution bar is the print
+  // rule the guardrails already hold artwork to; the tile's own rules have no entry written yet.
+  "repeat-no-name": RULE_GAP,
+  "repeat-tile-out-of-range": RULE_GAP,
+  "repeat-no-layers": RULE_GAP,
+  "repeat-layer-outside-tile": RULE_GAP,
+  "repeat-min-dpi": "R-SUB-003",
   // Moderation (F-G1, F-G2 "moderation status clear").
   "moderation-pending": RULE_GAP,
   "moderation-flagged": RULE_GAP,
