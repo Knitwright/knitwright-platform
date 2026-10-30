@@ -142,14 +142,12 @@ export function buildBody(article: BaseArticle | null): TabView {
         table({
           id: "body-chart",
           title: "Body measurements per size",
-          columns: ["Measurement", "Per size"],
+          rowHeader: "Measurement",
+          columns: ["Per size"],
           rows: BODY_POINTS.map((point) => ({
             id: `body-${point.id}`,
             label: point.label,
-            cells: [
-              fromBase({ id: `body-${point.id}-name`, label: "Measurement", text: point.label, ruleId: GRADE_RULE }),
-              needsInput({ id: `body-${point.id}`, label: `${point.label} per size`, ruleId: GRADE_RULE }),
-            ],
+            cells: [needsInput({ id: `body-${point.id}`, label: `${point.label} per size`, ruleId: GRADE_RULE })],
           })),
           note: NO_CHART,
         }),

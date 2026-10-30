@@ -1,10 +1,9 @@
 import type { BaseArticle } from "@/lib/catalogue";
 import type { GarmentSpec } from "@/lib/garment";
-import { GAP_RULE } from "@/lib/kpp/model";
 import { buildArtwork } from "../artwork";
 import { buildColourways } from "../colourways";
 import { buildLabelling } from "../labelling";
-import { fromBase, needsInput } from "./fields";
+import { needsInput } from "./fields";
 import { fromCell, section, tab, table, type TabView, type ViewRow } from "./rows";
 
 /**
@@ -74,12 +73,12 @@ export function buildColourwaysTab(spec: GarmentSpec, colourwayId: string): TabV
           table({
             id: `colourway-${way.id}-rows`,
             title: way.name,
-            columns: ["Panel", "Colour reference", "Screen colour", "Swatch ID", "Delta-E tolerance"],
+            rowHeader: "Panel",
+            columns: ["Colour reference", "Screen colour", "Swatch ID", "Delta-E tolerance"],
             rows: way.rows.map((row) => ({
               id: `colourway-${way.id}-${row.panelId}`,
               label: row.label,
               cells: [
-                fromBase({ id: `colourway-${way.id}-${row.panelId}-panel`, label: "Panel", text: row.label, ruleId: GAP_RULE }),
                 fromCell({ id: `colourway-${way.id}-${row.panelId}-code`, label: `${row.label}: colour reference`, ruleId: "R-SUB-004" }, row.code),
                 fromCell({ id: `colourway-${way.id}-${row.panelId}-screen`, label: `${row.label}: screen colour`, ruleId: "R-SUB-004" }, row.screenColour),
                 needsInput({ id: `colourway-${way.id}-${row.panelId}-swatch`, label: `${row.label}: swatch ID`, ruleId: "R-SUB-004" }),
@@ -104,12 +103,12 @@ export function buildPersonalisation(article: BaseArticle | null): TabView {
         table({
           id: "zone-rows",
           title: "Zones",
-          columns: ["Zone", "Panel", "Cap height", "Font", "Colour"],
+          rowHeader: "Zone",
+          columns: ["Panel", "Cap height", "Font", "Colour"],
           rows: zones.map((zone, index) => ({
             id: `zone-${index}`,
             label: zone,
             cells: [
-              fromBase({ id: `zone-${index}-name`, label: "Zone", text: zone, ruleId: PER_RULE }),
               needsInput({ id: `zone-${index}-panel`, label: `${zone}: panel`, ruleId: PER_RULE }),
               needsInput({ id: `zone-${index}-height`, label: `${zone}: cap height`, ruleId: PER_RULE }),
               needsInput({ id: `zone-${index}-font`, label: `${zone}: font`, ruleId: "R-PER-003" }),

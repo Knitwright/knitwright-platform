@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import type { BaseArticle } from "@/lib/catalogue";
+import type { GarmentSpec } from "@/lib/garment";
 import { GAP_RULE } from "@/lib/kpp/model";
 import { buildCallouts, buildQc, CALLOUT_MODES, CALLOUT_MODE_LABELS } from "./callouts";
 import { isNeedsInput } from "./fields";
@@ -67,8 +69,9 @@ describe("the Body tab", () => {
     const view = buildBody(article());
     expect(view.sections[0]?.note).toContain("No body size chart is on file");
     const chart = view.sections[0]?.tables[0];
+    expect(chart?.rowHeader).toBe("Measurement");
     expect(chart?.rows.map((row) => row.label)).toEqual(["Chest", "Waist", "Hip", "Height"]);
-    for (const row of chart?.rows ?? []) expect(row.cells[1]?.text).toBeNull();
+    for (const row of chart?.rows ?? []) expect(row.cells[0]?.text).toBeNull();
   });
 
   it("shows the size run and the sample size it grades from, which the base does hold", () => {
@@ -85,7 +88,7 @@ describe("the Body tab", () => {
 });
 
 describe("the Materials (BOM) tab", () => {
-  const tables = (spec = design(), base = article()) => buildMaterials(spec, base).sections[0]?.tables ?? [];
+  const tables = (spec: GarmentSpec = design(), base: BaseArticle | null = article()) => buildMaterials(spec, base).sections[0]?.tables ?? [];
 
   it("has the five sections the spec names, with the spec's six columns", () => {
     expect(tables().map((entry) => entry.title)).toEqual(["Fabrics", "Threads", "Trims", "Labels", "Packaging"]);
@@ -218,8 +221,8 @@ describe("the Colourways tab", () => {
     const rows = buildColourwaysTab(spec, spec.colourways[0].id).sections[0]?.tables[0]?.rows ?? [];
     expect(rows.length).toBeGreaterThan(0);
     for (const row of rows) {
-      expect(row.cells[3]?.text, row.label).toBeNull();
-      expect(row.cells[4]?.ruleId, row.label).toBe("R-SUB-005");
+      expect(row.cells[2]?.text, row.label).toBeNull();
+      expect(row.cells[3]?.ruleId, row.label).toBe("R-SUB-005");
     }
   });
 });
@@ -230,13 +233,13 @@ describe("the Personalisation tab", () => {
     expect(view.sections[0]?.note).toContain("not on file");
     const rows = view.sections[0]?.tables[0]?.rows ?? [];
     expect(rows.map((row) => row.label)).toEqual(["Name on the back", "Number on the back", "Number on the front"]);
-    expect(rows[0]?.cells[1]?.ruleId).toBe("R-PER-001");
-    expect(rows[0]?.cells[3]?.ruleId).toBe("R-PER-003");
+    expect(rows[0]?.cells[0]?.ruleId).toBe("R-PER-001");
+    expect(rows[0]?.cells[2]?.ruleId).toBe("R-PER-003");
   });
 
   it("asks for every part of every zone, because none of them is in the data", () => {
     const rows = buildPersonalisation(null).sections[0]?.tables[0]?.rows ?? [];
-    for (const row of rows) expect(row.cells.slice(1).every(isNeedsInput), row.label).toBe(true);
+    for (const row of rows) expect(row.cells.every(isNeedsInput), row.label).toBe(true);
   });
 });
 
