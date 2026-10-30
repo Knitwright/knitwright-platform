@@ -85,7 +85,16 @@ show what the rows hold, say what they do not, and never fill a gap in.
     changes shape. The sidebar's entries are data in `lib/home/sidebar.ts`; the sections' own pages check the session
     themselves, as every page in the app does.
 
-13. **Reads go through the other workstreams' functions.** Base articles come from `listBaseArticles` and
+13. **One credits counter, and no loading boundary on the catalogue.** The spec puts credits in the top bar; the studio
+    header above it already shows the brand's balance, and a brand has one balance, so the home's top bar does not draw
+    a second. The catalogue has no `loading.tsx`: a loading boundary flushes the shell before the page runs, and once
+    the response has started `notFound()` can no longer set the status, so an article code the catalogue does not hold
+    would answer 200. A correct 404 is worth more than a skeleton on a page that reads nine small rows.
+
+14. **No text over the dotted pattern.** "Render, not photo" sits beside the picture rather than on it: a background
+    image leaves an accessibility checker nothing to judge the contrast against.
+
+15. **Reads go through the other workstreams' functions.** Base articles come from `listBaseArticles` and
     `getBaseArticle` on the member's own client; prices, fabrics, colours and lead times come from X6's store through
     the server's own client, because the factory tables have no browser access at all. A failed factory read never stops
     the catalogue: the book comes back empty and every price reads "not set yet". The catalogue reads the full article

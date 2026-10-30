@@ -18,7 +18,8 @@ function Row({ item }: Readonly<{ item: SidebarItem }>) {
   if (item.target.kind === "later") {
     return (
       <span className={`${ROW} text-muted`}>
-        {item.label}
+        {/* The label is its own element, so it can be found by exactly the words a reader sees. */}
+        <span>{item.label}</span>
         <span className="font-mono text-[10.5px] uppercase tracking-[0.08em] text-faint">{COMING_LATER}</span>
       </span>
     );

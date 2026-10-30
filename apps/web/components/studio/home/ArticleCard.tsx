@@ -16,9 +16,9 @@ import { EDIT_FORM_LABEL, type ArticleCardView } from "@/lib/home/catalogue-view
 export function ArticleCard({ card }: Readonly<{ card: ArticleCardView }>) {
   return (
     <article className="glass lift flex h-full flex-col overflow-hidden rounded-[1.75rem]">
-      <div className="dot-grid relative grid h-36 place-items-center border-b border-white/8 p-4">
+      {/* No text sits over the dotted pattern: a background image leaves nothing to judge contrast against. */}
+      <div className="dot-grid grid h-36 place-items-center border-b border-white/8 p-4">
         <GarmentOutline />
-        <span className="absolute bottom-2 left-3 font-mono text-[10px] uppercase tracking-[0.08em] text-faint">{RENDER_NOTICE.label}</span>
       </div>
       <div className="lift-caption flex flex-1 flex-col gap-2 p-5">
         <h3 className="text-[16px] font-medium leading-snug tracking-[-0.01em] text-ink">
@@ -26,7 +26,9 @@ export function ArticleCard({ card }: Readonly<{ card: ArticleCardView }>) {
             {card.name}
           </Link>
         </h3>
-        <p className="font-mono text-[12px] text-muted">{card.code}</p>
+        <p className="font-mono text-[12px] text-muted">
+          {card.code} · {RENDER_NOTICE.label}
+        </p>
         <ul aria-label="Tags" className="flex flex-wrap gap-1.5">
           {card.tags.map((tag) => (
             <li

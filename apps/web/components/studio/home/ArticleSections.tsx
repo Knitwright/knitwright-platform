@@ -21,10 +21,11 @@ export function ArticlePhotos({ name }: Readonly<{ name: string }>) {
       <h2 id="photos" className={HEADING}>
         Pictures
       </h2>
+      {/* No text sits over the dotted pattern: a background image leaves nothing to judge contrast against. */}
       <div className="dot-grid grid h-56 place-items-center rounded-[1.25rem] border border-white/8">
         <GarmentOutline />
-        <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-faint">{RENDER_NOTICE.label}</p>
       </div>
+      <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">{RENDER_NOTICE.label}</p>
       <p className="text-[13px] text-muted">{RENDER_NOTICE.note}</p>
       <p className="sr-only">{`A placeholder outline where a photograph of ${name} will go.`}</p>
     </section>

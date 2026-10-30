@@ -23,7 +23,9 @@ const accessible = async (page: Page): Promise<void> => {
   );
   const { violations } = await new AxeBuilder({ page }).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
-  expect(serious.map((entry) => `${entry.id}: ${entry.help}`)).toEqual([]);
+  expect(
+    serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map((node) => node.target.join(" ")).join("; ")})`),
+  ).toEqual([]);
 };
 
 test.describe("the studio home", () => {
@@ -93,9 +95,10 @@ test.describe("the catalogue", () => {
     await page.goto("/catalogue");
     await expect(page.getByRole("heading", { level: 1, name: "Base products and templates" })).toBeVisible();
 
+    // Each card carries a list of tags, so the cards are the grid's own children, not every listitem.
     const grid = page.getByRole("list", { name: "Base products" });
-    await expect(grid.getByRole("listitem")).toHaveCount(8);
-    const jersey = grid.getByRole("listitem").filter({ hasText: "JSY-SS-01" });
+    await expect(grid.locator("> li")).toHaveCount(8);
+    const jersey = grid.locator("> li").filter({ hasText: "JSY-SS-01" });
     await expect(jersey).toContainText("From £22.00 · from 1 pc");
     await expect(jersey).toContainText("Placeholder club price from the build pack, not a factory quote");
     await expect(jersey).toContainText("Priced from 10 pcs; no price is set for 1 pc yet.");
@@ -105,7 +108,7 @@ test.describe("the catalogue", () => {
 
     await page.getByLabel("Production class").selectOption({ label: "Class B (2)" });
     await page.getByRole("button", { name: "Show products" }).click();
-    await expect(page.getByRole("list", { name: "Base products" }).getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByRole("list", { name: "Base products" }).locator("> li")).toHaveCount(2);
     await expect(page.getByText("2 base products")).toBeVisible();
     await accessible(page);
   });
@@ -115,7 +118,7 @@ test.describe("the catalogue", () => {
     await page.goto("/catalogue");
     await page.getByRole("navigation", { name: "Market and currency" }).getByRole("link", { name: "AU | AUD" }).click();
     await expect(page).toHaveURL(/market=au/);
-    const jersey = page.getByRole("list", { name: "Base products" }).getByRole("listitem").filter({ hasText: "JSY-SS-01" });
+    const jersey = page.getByRole("list", { name: "Base products" }).locator("> li").filter({ hasText: "JSY-SS-01" });
     await expect(jersey).toContainText("No AUD price is set yet");
     await expect(jersey).not.toContainText("£");
   });

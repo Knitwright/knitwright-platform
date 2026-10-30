@@ -1,13 +1,13 @@
-import type { ReactNode } from "react";
 import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import { COMING_LATER } from "@/lib/home/targets";
 
 /**
- * The studio home's own top bar (spec F-S4, "Top bar"): the search that opens the catalogue, the
- * credits counter and notifications. The search is a plain form, so it works without a script.
- * Notifications are not built yet, so the chip says so instead of pretending to be a bell.
+ * The studio home's own top bar (spec F-S4, "Top bar"): the search that opens the catalogue, and
+ * notifications. The credits counter the spec asks for is already in the studio header, and one
+ * brand has one balance, so it is not drawn twice. The search is a plain form, so it works without
+ * a script. Notifications are not built yet, so the chip says so instead of pretending to be a bell.
  */
-export function StudioTopBar({ credits, defaultSearch = "" }: Readonly<{ credits?: ReactNode; defaultSearch?: string }>) {
+export function StudioTopBar({ defaultSearch = "" }: Readonly<{ defaultSearch?: string }>) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <form method="get" action="/catalogue" role="search" aria-label="Search the library" className="flex min-w-0 flex-1 items-center gap-2">
@@ -26,7 +26,6 @@ export function StudioTopBar({ credits, defaultSearch = "" }: Readonly<{ credits
           Search
         </button>
       </form>
-      {credits}
       <span className="inline-flex min-h-10 items-center rounded-full border border-white/12 px-3.5 text-[13px] text-muted">
         Notifications: {COMING_LATER.toLowerCase()}
       </span>
