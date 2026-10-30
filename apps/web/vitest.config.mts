@@ -17,6 +17,12 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
+  // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
+  // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
+  // runner, against a 600 s budget. That headroom is spent by contention, not by the work: the
+  // files passed for months in the "unit" project and began timing out once wave 2 grew the suite
+  // past 18,000 tests. They belong here, where the slow files run one at a time after the rest.
+  "lib/print/acceptance/**/*.test.ts",
 ];
 
 // Local Supabase address and keys, written by `pnpm db:start`. CI sets them directly.
