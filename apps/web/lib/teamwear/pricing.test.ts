@@ -141,6 +141,16 @@ describe("the price of a kit", () => {
     expect(price.parts.map((part) => part.floor)).toEqual([25, 25, 1]);
   });
 
+  it("totals the parts that are priced, even where another part of the kit has no price in this currency", () => {
+    // The seeded factory prices the jersey in GBP and the shorts in neither currency.
+    const book = (code: string) => (code === "JSY-SS-01" ? { ladder: JERSEY_LADDER, moq: 10 } : { ladder: [], moq: null });
+    const price = kitPrice(kitOf(20, 20, 20), book, "GBP");
+    expect(price.totalMinor).toBe(50_000);
+    expect(price.total).toBe("£500.00");
+    expect(price.everyPartPriced).toBe(false);
+    expect(price.totalNote).toBe("The total leaves out Shorts and Socks, which have no price yet.");
+  });
+
   it("has no total for a sport with one part and no ladder", () => {
     const price = kitPrice(startingKit("winter-code", articleBook()), emptyBook(), "GBP");
     expect(price.parts).toHaveLength(1);

@@ -75,7 +75,19 @@ export const saveKitAction = defineAction({
     const next =
       input.then === "studio"
         ? studioHref(id, { form, quantity: input.quantity, settled: [] })
-        : configuratorHref({ sportId: sport.id, part: input.part, saved: { projectId: id, version: outcome.version } });
+        : configuratorHref({
+            sportId: sport.id,
+            part: input.part,
+            saved: { projectId: id, version: outcome.version },
+            // The kit goes back in the address, so the page this returns to opens the kit that was saved.
+            kit: {
+              wearer: input.wearer,
+              colours: { main: input.main, second: input.second, third: input.third },
+              socksColour: input.socksColour,
+              quantity: input.quantity,
+              form,
+            },
+          });
     redirect(next as Route);
   },
 });

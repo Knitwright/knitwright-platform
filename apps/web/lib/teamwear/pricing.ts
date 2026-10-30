@@ -176,7 +176,11 @@ export function kitPrice(
     const at = withArticle.indexOf(part);
     return priceOf(part, sources.get(part.id) ?? null, at === -1 ? null : basket.lines[at]?.price ?? null, currency);
   });
-  const totalMinor = basket.totalMinor;
+  // The total of the parts that are priced, and null only when none of them is. `priceBasket` gives
+  // no total at all while any line is unpriced, and the seeded factory prices one article in one
+  // currency, so a kit would read "not priced yet" whole while the shirt in it has a price.
+  const lines = priced.filter((part) => part.lineMinor !== null);
+  const totalMinor = lines.length === 0 ? null : lines.reduce((sum, part) => sum + (part.lineMinor ?? 0), 0);
   const missing = priced.filter((part) => !part.priced).map((part) => part.label);
   return {
     currency,

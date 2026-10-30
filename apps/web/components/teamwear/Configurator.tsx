@@ -10,6 +10,7 @@ import { LOADING_LABEL } from "@/lib/garment3d/viewer";
 import { saveKitAction } from "@/lib/teamwear/actions";
 import {
   configuratorHref,
+  kitStateOf,
   handoffFor,
   handoffReference,
   IDEAS_UNAVAILABLE,
@@ -95,7 +96,7 @@ export function Configurator(props: ConfiguratorProps) {
           {SPORTS.map((sport) => (
             <Link
               key={sport.id}
-              href={configuratorHref({ sportId: sport.id, part: "shirt" }) as Route}
+              href={configuratorHref({ sportId: sport.id, part: "shirt", kit: kitStateOf(kit, state.part.id) }) as Route}
               aria-current={sport.id === kit.sportId ? "page" : undefined}
               className={`flex h-11 items-center rounded-full border px-4 text-[15px] no-underline ${sport.id === kit.sportId ? "border-white/40 bg-white/15 text-ink" : "border-white/15 text-muted"}`}
             >

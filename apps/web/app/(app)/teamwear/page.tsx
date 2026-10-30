@@ -6,7 +6,7 @@ import { marketFromQuery } from "@/lib/home/market";
 import { priceBook } from "@/lib/home/reads";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { parsePart, parseSaved, parseSport, parseView, partsForSport, sportById } from "@/lib/teamwear";
+import { parseSaved, parseView, partsForSport, readKitAddress, sportById } from "@/lib/teamwear";
 
 export const metadata: Metadata = { title: "Teamwear configurator" };
 
@@ -23,7 +23,8 @@ export const metadata: Metadata = { title: "Teamwear configurator" };
 export default async function TeamwearPage({ searchParams }: PageProps<"/teamwear">) {
   const { brand } = await requireMember();
   const query = await searchParams;
-  const sportId = parseSport(query);
+  const address = readKitAddress(query);
+  const sportId = address.sportId;
   const market = marketFromQuery(query.market);
   const client = await sessionClient();
 
@@ -40,7 +41,8 @@ export default async function TeamwearPage({ searchParams }: PageProps<"/teamwea
   return (
     <Configurator
       sportId={sportId}
-      part={parsePart(query, sportId)}
+      part={address.part}
+      address={address}
       view={parseView(query.view)}
       saved={parseSaved(query)}
       articles={articles}

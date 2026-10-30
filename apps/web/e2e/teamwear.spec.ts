@@ -89,6 +89,15 @@ test.describe("the teamwear configurator", () => {
     await page.getByTestId("teamwear-save").click();
     await expect(page).toHaveURL(/\/teamwear\?.*project=[0-9a-f-]{36}/);
 
+    // The kit itself survives the save, because the address carries it: the collar is still C02.
+    await expect(page.getByTestId("teamwear-row-option:collar")).toHaveAttribute("data-value", /^C02/);
+    await expect(page.getByTestId("teamwear-row-model")).toHaveAttribute("data-value", /Women/);
+    await expect(page.getByTestId("teamwear-quantity")).toHaveValue("21");
+
+    // The hand-off now has a saved version to refer to.
+    await handoff.click();
+    await expect(page.getByTestId("teamwear-handoff-note")).toContainText(/reference: [0-9a-f-]{36}@v\d/);
+
     // "Design in Studio" then opens that design in the editor, with the configurator's own form.
     await page.getByTestId("teamwear-studio").click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}\?.*opt=collar%3AC02/);

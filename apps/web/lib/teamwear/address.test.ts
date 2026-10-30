@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { readAddress } from "@/lib/editor";
 import { articleBook } from "./fixtures/kit";
-import { configuratorHref, parsePart, parseSaved, parseSport, studioHref } from "./address";
-import { chooseOption, chooseParameter, startingKit } from "./kit";
+import { configuratorHref, kitFromAddress, kitStateOf, parsePart, parseSaved, parseSport, readKitAddress, studioHref } from "./address";
+import { chooseOption, chooseParameter, startingKit, withPart } from "./kit";
 import { jersey } from "./fixtures/kit";
 
 const PROJECT = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -41,6 +41,69 @@ describe("the configurator's own address", () => {
 
   it("leaves the market and the saved design out when there are none", () => {
     expect(configuratorHref({ sportId: "football", part: "shirt" })).toBe("/teamwear?sport=football&part=shirt");
+  });
+});
+
+describe("the kit the address carries", () => {
+  const kitOf = () => {
+    let kit = startingKit("football", articleBook());
+    kit = { ...kit, wearer: "youth", colours: { main: "#1b2a49", second: "#d4af37", third: "#00843d" }, socksColour: "#ffffff" };
+    return withPart(kit, "shirt", (choice) =>
+      chooseParameter(chooseOption(choice, jersey(), "collar", "C02", "option:collar"), jersey(), "body_length_offset", 20, "parameters"),
+    );
+  };
+
+  it("takes the whole kit there and back, so a reload opens the same kit", () => {
+    const kit = kitOf();
+    const href = configuratorHref({ sportId: "football", part: "shirt", kit: kitStateOf(kit, "shirt") });
+    const search = new URLSearchParams(href.split("?")[1]);
+    const query = { ...Object.fromEntries(search), opt: search.getAll("opt"), par: search.getAll("par") };
+    const again = kitFromAddress(readKitAddress(query), articleBook());
+    expect(again.wearer).toBe("youth");
+    expect(again.colours).toEqual(kit.colours);
+    expect(again.socksColour).toBe("#ffffff");
+    expect(again.parts.shirt?.form).toEqual(kit.parts.shirt?.form);
+    expect(again.parts.shirt?.quantity).toBe(kit.parts.shirt?.quantity);
+  });
+
+  it("starts a kit on the sport's own defaults when the address carries none", () => {
+    const plain = kitFromAddress(readKitAddress({}), articleBook());
+    expect(plain).toEqual(startingKit("football", articleBook()));
+  });
+
+  it("drops a colour that is not a colour, and keeps a palette only when it has both of the first two", () => {
+    expect(readKitAddress({ c1: "navy", c2: "#d4af37" }).colours).toBeNull();
+    expect(readKitAddress({ c1: "#1b2a49" }).colours).toBeNull();
+    expect(readKitAddress({ c1: "#1b2a49", c2: "#d4af37", c3: "nope" }).colours).toEqual({ main: "#1b2a49", second: "#d4af37", third: null });
+    expect(readKitAddress({ cs: "#fff" }).socksColour).toBeNull();
+  });
+
+  it("drops a wearer the registry does not know and a quantity that is not a whole number of pieces", () => {
+    expect(readKitAddress({ for: "dogs" }).wearer).toBeNull();
+    expect(readKitAddress({ for: "youth" }).wearer).toBe("youth");
+    expect(readKitAddress({ qty: "0" }).quantity).toBeNull();
+    expect(readKitAddress({ qty: "soon" }).quantity).toBeNull();
+    expect(readKitAddress({ qty: "40" }).quantity).toBe(40);
+  });
+
+  it("refuses an option code and a parameter the article does not offer, however the address is written by hand", () => {
+    const kit = kitFromAddress(readKitAddress({ opt: ["collar:C99"], par: ["body_length_offset:15"] }), articleBook());
+    expect(kit.parts.shirt?.form.options.collar).toBe("C01");
+    expect(kit.parts.shirt?.form.parameters.body_length_offset).toBe(0);
+  });
+
+  it("leaves a part with no article on its empty form, whatever the address says", () => {
+    const kit = kitFromAddress(readKitAddress({ part: "socks", opt: ["collar:C02"] }), articleBook());
+    expect(kit.parts.socks?.form).toEqual({ options: {}, parameters: {} });
+  });
+
+  it("has no kit state for a part the sport does not offer", () => {
+    expect(kitStateOf(startingKit("winter-code", articleBook()), "socks")).toBeUndefined();
+  });
+
+  it("keeps the kit for a part the sport does not hold, rather than failing", () => {
+    const kit = kitFromAddress({ ...readKitAddress({}), part: "socks", sportId: "winter-code" }, articleBook());
+    expect(Object.keys(kit.parts)).toEqual(["shirt"]);
   });
 });
 

@@ -28,12 +28,13 @@ import {
   settle,
   sportById,
   withPart,
-  startingKit,
+  kitFromAddress,
   COLOURS_ROW,
   MODEL_ROW,
   NAMES_ROW,
   ELEMENTS_ROW,
   type ElementSlotId,
+  type KitAddress,
   type KitBundleId,
   type KitPartId,
   type TeamwearKit,
@@ -50,6 +51,8 @@ import {
 export interface ConfiguratorInput {
   readonly sportId: string;
   readonly part: KitPartId;
+  /** The kit the address asks for, so a reload and the page after a Save open the same kit. */
+  readonly address: KitAddress;
   readonly articles: readonly BaseArticle[];
   readonly sources: Readonly<Record<string, PriceSource>>;
   readonly currency: SellCurrency;
@@ -60,7 +63,7 @@ const NO_LADDER: PriceSource = { ladder: [], moq: null };
 
 export function useConfigurator(input: ConfiguratorInput) {
   const articles = useMemo(() => new Map(input.articles.map((article) => [article.code, article] as const)), [input.articles]);
-  const [history, setHistory] = useState(() => startHistory(startingKit(input.sportId, articles)));
+  const [history, setHistory] = useState(() => startHistory(kitFromAddress(input.address, articles)));
   const [part, setPart] = useState<KitPartId>(input.part);
   const [bundleProblem, setBundleProblem] = useState<string | null>(null);
   const kit = history.present;
