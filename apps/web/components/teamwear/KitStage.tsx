@@ -98,7 +98,10 @@ export default function KitStage({ flat, sportId, view, turning, snapshotAt, onS
       {failed ? (
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center" data-testid="teamwear-stage-failed">
           <p className="max-w-sm text-sm text-white/80">{STAGE_FAILED}</p>
-          {front === undefined ? null : <img src={front} alt={flat.views[0]?.alt ?? ""} className="max-h-72 w-auto" />}
+          {front === undefined ? null : (
+            // eslint-disable-next-line @next/next/no-img-element -- A drawing made on the server, already a data address.
+            <img src={front} alt={flat.views[0]?.alt ?? ""} className="max-h-72 w-auto" />
+          )}
         </div>
       ) : (
         <canvas

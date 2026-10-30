@@ -49,7 +49,7 @@ export type ConfiguratorProps = ConfiguratorInput &
 export function Configurator(props: ConfiguratorProps) {
   const state = useConfigurator(props);
   const { form, submit, pending, summary } = useFormAction(saveKitAction);
-  const then = useRef<"stay" | "studio">("stay");
+  const then = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<StageViewId>(props.view);
   const [turning, setTurning] = useState(false);
   const [snapshotAt, setSnapshotAt] = useState(0);
@@ -58,6 +58,12 @@ export function Configurator(props: ConfiguratorProps) {
   const [handoffNote, setHandoffNote] = useState<string | null>(null);
   const [renderNote, setRenderNote] = useState<string | null>(null);
   const stage = useRef<HTMLDivElement>(null);
+
+  /** Says where the person goes after the save, then sends the form. The field is read at submit, not at render. */
+  const submitAs = (next: "stay" | "studio"): void => {
+    if (then.current) then.current.value = next;
+    form.current?.requestSubmit();
+  };
 
   const kit = state.kit;
   const handoff = handoffFor(kit, props.saved, state.price);
@@ -146,7 +152,7 @@ export function Configurator(props: ConfiguratorProps) {
         <input type="hidden" name="third" value={kit.colours.third ?? ""} />
         <input type="hidden" name="socksColour" value={kit.socksColour} />
         <input type="hidden" name="quantity" value={state.choice.quantity} />
-        <input type="hidden" name="then" value={then.current} />
+        <input ref={then} type="hidden" name="then" defaultValue="stay" />
         {Object.entries(state.choice.form.options).map(([group, code]) => (
           <input key={group} type="hidden" name="opt" value={`${group}:${code}`} />
         ))}
@@ -162,10 +168,8 @@ export function Configurator(props: ConfiguratorProps) {
           onQuantity={state.setQuantity}
           namesNumbers={kit.namesNumbers}
           studioHref={props.saved === null ? null : studioHref(props.saved.projectId, state.choice)}
-          onSave={() => {
-            then.current = "stay";
-            form.current?.requestSubmit();
-          }}
+          onSave={() => submitAs("stay")}
+          onStudio={() => submitAs("studio")}
           saving={pending}
           onQuote={() => setQuoteNote(QUOTE_UNAVAILABLE)}
           quoteNote={quoteNote}

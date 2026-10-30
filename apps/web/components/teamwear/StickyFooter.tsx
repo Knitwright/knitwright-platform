@@ -32,6 +32,8 @@ export type StickyFooterProps = Readonly<{
   /** Where "Design in Studio" goes, or null while the kit has not been saved. */
   studioHref: string | null;
   onSave: () => void;
+  /** Saves the kit and opens the Studio editor on it, for a kit nobody has saved yet. */
+  onStudio: () => void;
   saving: boolean;
   onQuote: () => void;
   /** What the quote seam said, or null while nobody has asked for one. */
@@ -98,7 +100,7 @@ export function StickyFooter(props: StickyFooterProps) {
           Quote
         </Button>
         {props.studioHref === null ? (
-          <Button type="button" variant="secondary" onClick={props.onSave} pending={props.saving} data-testid="teamwear-studio">
+          <Button type="button" variant="secondary" onClick={props.onStudio} pending={props.saving} data-testid="teamwear-studio">
             Design in Studio
           </Button>
         ) : (
