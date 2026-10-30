@@ -149,12 +149,29 @@ describe("one fetch per page, per brand", () => {
     expect((await rpc("benchmark_fetch_settle", { p_brand_id: brand, p_url_sha256: key, p_outcome: "claimed" })).error?.hint).toBe("invalid_input");
   });
 
-  it("can never be unsaid, not even by the server", async () => {
+  /**
+   * Two separate refusals, and the test asserts what the database really does (Lesson 3). The server's own key holds
+   * only SELECT on the table, so a direct write is refused by the grant before any trigger runs; the trigger is what
+   * refuses a write made with the owner's rights, which is how the functions run.
+   */
+  it("can never be unsaid: the server's key may not write the table at all", async () => {
     const key = hash();
     must(await rpc("benchmark_fetch_claim", { p_brand_id: brand, p_user_id: owner.userId, p_url_sha256: key, p_host: "a.test" }));
 
-    expect((await adminClient().from("benchmark_fetches").delete().eq("url_sha256", key)).error?.message).toMatch(/never be changed or removed/);
-    expect((await adminClient().from("benchmark_fetches").update({ host: "elsewhere.test" }).eq("url_sha256", key)).error?.message).toMatch(/never be changed or removed/);
+    expect((await adminClient().from("benchmark_fetches").delete().eq("url_sha256", key)).error?.message).toMatch(/permission denied/);
+    expect((await adminClient().from("benchmark_fetches").update({ host: "elsewhere.test" }).eq("url_sha256", key)).error?.message).toMatch(/permission denied/);
+    expect(must(await adminClient().from("benchmark_fetches").select("host").eq("url_sha256", key).eq("brand_id", brand).single())).toMatchObject({ host: "a.test" });
+  });
+
+  it("can never be unsaid: an outcome that was settled is never settled again", async () => {
+    const key = hash();
+    must(await rpc("benchmark_fetch_claim", { p_brand_id: brand, p_user_id: owner.userId, p_url_sha256: key, p_host: "a.test" }));
+    must(await rpc("benchmark_fetch_settle", { p_brand_id: brand, p_url_sha256: key, p_outcome: "robots_refused" }));
+    must(await rpc("benchmark_fetch_settle", { p_brand_id: brand, p_url_sha256: key, p_outcome: "fetched" }));
+
+    expect(must(await adminClient().from("benchmark_fetches").select("outcome").eq("url_sha256", key).eq("brand_id", brand).single())).toMatchObject({
+      outcome: "robots_refused",
+    });
   });
 
   it("refuses a key that is not a SHA-256", async () => {

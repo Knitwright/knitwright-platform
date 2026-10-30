@@ -96,6 +96,12 @@ rather than the thing a policy asks people not to do.
     `private.benchmark_card_fault`, so a card that explains itself badly cannot be stored even by the server's own key,
     and the five-card limit is counted under an advisory lock so two at once cannot both pass.
 
+11. **The one navigation entry is in the studio sidebar, not the top bar.** The top bar already carries seven
+    sections, and an eighth squeezes the account controls beside them: the browser tests caught it as a colour-contrast
+    failure on the sign-out and Settings controls of three other screens, because the translucent header then sits over
+    different page content. Benchmarks is a Library entry in `lib/home/sidebar.ts` instead, which changes no other
+    screen's layout.
+
 ## What was left, and why
 
 - **No photo uploader on the screen.** The photo intake exists as an action and is tested, but the only upload path in

@@ -44,7 +44,7 @@ export function CompareBoard({ view }: Readonly<{ view: CompareView }>) {
                   {column.heading}
                   <span className="mt-1 block text-xs font-normal text-muted">{column.source}</span>
                   <span className="mt-1 block text-xs font-normal text-muted">
-                    {column.confirmed ? "Confirmed by your team" : "Not confirmed yet"}
+                    {column.confirmed ? "Your team has been through it" : "Nobody has been through it yet"}
                   </span>
                 </th>
               ))}

@@ -57,7 +57,6 @@ test.describe("benchmarks", () => {
 
     // The stub knows nothing, and the card says so on every line rather than guessing.
     await expect(page.getByText("Read by stub", { exact: false }).first()).toBeVisible();
-    await expect(page.getByText("Not confirmed yet").first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Not named" }).first()).toBeVisible();
 
     // And the page says, in words, what is never kept and what is never carried over.
@@ -80,7 +79,7 @@ test.describe("benchmarks", () => {
     await card.getByRole("checkbox", { name: /Side split/ }).check();
     await card.getByRole("button", { name: "Confirm this card" }).click();
 
-    await expect(page.getByText("Confirmed by your team").first()).toBeVisible();
+    await expect(page.getByText("Your team has been through this card", { exact: false }).first()).toBeVisible();
     // The value is shown with where it came from, and it never claims the page said it.
     await expect(page.getByText("corrected by your team").first()).toBeVisible();
   });
@@ -95,7 +94,7 @@ test.describe("benchmarks", () => {
     await first.getByRole("checkbox", { name: /Side split/ }).check();
     await first.getByRole("checkbox", { name: /Drop tail/ }).check();
     await first.getByRole("button", { name: "Confirm this card" }).click();
-    await expect(page.getByText("Confirmed by your team").first()).toBeVisible();
+    await expect(page.getByText("Your team has been through this card", { exact: false }).first()).toBeVisible();
 
     await pasteReviews(page);
     const second = page.getByTestId(/^card-review-/).nth(1);

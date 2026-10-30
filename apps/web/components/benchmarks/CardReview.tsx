@@ -67,7 +67,7 @@ export function CardReview({ benchmarkId, card }: Readonly<{ benchmarkId: string
     <section className="rounded-2xl border border-hairline bg-surface p-5" data-testid={`card-review-${card.id}`}>
       <h3 className="text-base font-medium text-ink">{card.card.productName.value ?? "Not named"}</h3>
       <p className="mt-1 text-sm text-muted">
-        {card.confirmedAt === null ? "Read by " : "Confirmed by your team. Read by "}
+        {card.confirmedAt === null ? "Read by " : "Your team has been through this card. Read by "}
         {card.extractor}. Check each line and correct anything that is wrong.
       </p>
       <form ref={form} action={submit} className="mt-5 flex flex-col gap-4">
