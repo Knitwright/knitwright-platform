@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { whyView } from "@/lib/rulebook/view";
+import { inForce } from "@/lib/rulebook/select";
+import { NEWER_DRAFT_LINE, NOTHING_CONFIRMED_TEXT, whyView } from "@/lib/rulebook/view";
 import { entry } from "@/lib/rulebook/fixtures/entries";
 import { whyButtonProps, whyPanelProps } from "./a11y";
 import { WhyCard } from "./WhyCard";
@@ -14,6 +15,12 @@ import { WhyPopover } from "./WhyPopover";
  */
 
 const ids = { ruleId: "R-SUB-004", panelId: "p1", headingId: "h1" };
+
+const reviewed = { status: "confirmed" as const, confirmedAt: "2026-11-03T09:30:00Z", confirmedName: "Ana Lima", confirmedRole: "pattern master" };
+
+/** What the popover is given: the versions this reader may see, chosen between by `inForce`. */
+const view = (versions: ReturnType<typeof entry>[], reader: "member" | "ops" = "member") =>
+  whyView("R-SUB-004", inForce(versions, reader));
 
 describe("the Why? button and popover attributes", () => {
   it("names the rule and tells a screen reader what the button opens", () => {
@@ -34,7 +41,7 @@ describe("the Why? button and popover attributes", () => {
 
 describe("the closed popover", () => {
   it("shows only the button, with the visible text inside its accessible name", () => {
-    const html = renderToStaticMarkup(createElement(WhyPopover, { ruleId: "R-SUB-004", explain: async () => ({ success: true as const, data: whyView("R-SUB-004", null) }) }));
+    const html = renderToStaticMarkup(createElement(WhyPopover, { ruleId: "R-SUB-004", explain: async () => ({ success: true as const, data: view([]) }) }));
     expect(html).toContain('aria-label="Why? Rulebook R-SUB-004"');
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain('aria-haspopup="dialog"');
@@ -44,25 +51,46 @@ describe("the closed popover", () => {
 });
 
 describe("the card", () => {
-  const render = (view: ReturnType<typeof whyView>) => renderToStaticMarkup(createElement(WhyCard, { view, headingId: "h1" }));
+  const render = (shown: ReturnType<typeof whyView>) => renderToStaticMarkup(createElement(WhyCard, { view: shown, headingId: "h1" }));
 
   it("gives the heading the id the popover is labelled by, and shows every part of a rule", () => {
-    const html = render(whyView("R-SUB-004", entry()));
+    const html = render(view([entry({ ...reviewed })]));
     expect(html).toContain('id="h1"');
     expect(html).toContain("Rulebook R-SUB-004");
     expect(html).toContain("Seam crossings");
     expect(html).toContain("Each panel is printed and cut separately");
     expect(html).toContain("Best practice:");
     expect(html).toContain("Source: Industry standard or practice: Sublimation practice");
-    expect(html).toContain("Draft, not yet confirmed by the factory (version 1)");
+    expect(html).toContain("Covers: the sublimation method (scope not reviewed by a factory)");
+    expect(html).toContain("Reviewed by Ana Lima, pattern master, on 2026-11-03 (version 1)");
+  });
+
+  it("says a newer draft is waiting for the factory, without showing its words (owner decision 11)", () => {
+    const html = render(view([entry({ version: 1, ...reviewed }), entry({ version: 2, rule: "Version two, a draft" })]));
+    expect(html).toContain(NEWER_DRAFT_LINE);
+    expect(html).not.toContain("Version two");
+  });
+
+  it("shows the draft itself to the Knitwright team, marked draft and with no line about a newer one", () => {
+    const html = render(view([entry({ version: 1, ...reviewed }), entry({ version: 2, rule: "Version two, a draft" })], "ops"));
+    expect(html).toContain("Version two, a draft");
+    expect(html).toContain("Draft, not yet confirmed by the factory (version 2)");
+    expect(html).not.toContain(NEWER_DRAFT_LINE);
+  });
+
+  it("shows no words at all for a rule the factory has confirmed no version of", () => {
+    const html = render(view([entry()]));
+    expect(html).toContain(NOTHING_CONFIRMED_TEXT);
+    expect(html).toContain('data-testid="why-unconfirmed"');
+    expect(html).not.toContain("Each panel is printed");
   });
 
   it("leaves the best practice line out when there is none", () => {
-    expect(render(whyView("R-SUB-004", entry({ bestPractice: "" })))).not.toContain("Best practice:");
+    expect(render(view([entry({ bestPractice: "", ...reviewed })]))).not.toContain("Best practice:");
   });
 
   it("shows only the gap text for an unknown id, still labelled", () => {
-    const html = render(whyView("R-NONE-999", null));
+    const html = render(whyView("R-NONE-999", inForce([], "member")));
     expect(html).toContain('id="h1"');
     expect(html).toContain("No rule written yet; the team has been told");
     expect(html).not.toContain("Source:");

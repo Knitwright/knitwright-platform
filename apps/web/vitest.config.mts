@@ -88,6 +88,8 @@ export default defineConfig({
         "lib/clubs/reorder/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production package is what a factory makes the garment from (plan v5 X5, decision 0070).
         "lib/kpp/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The editor shell decides what the Form toolbar may offer, so it is held to the same mark (plan v5 Y2, decision 0075).
+        "lib/editor/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(

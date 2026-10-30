@@ -7,7 +7,7 @@ const orders: readonly OpsOrder[] = [];
 
 describe("noPatterns", () => {
   it("adds no file, because guessing at a pattern would be worse than sending none", async () => {
-    expect(await noPatterns.filesFor(batch, orders)).toEqual([]);
+    expect(await noPatterns.filesFor(batch, orders)).toEqual({ files: [], note: NO_PATTERNS_NOTE });
   });
 
   it("says in plain words why the ZIP has none, and that Knitwright sends them another way", () => {
@@ -19,20 +19,22 @@ describe("noPatterns", () => {
 
 describe("the PatternSource seam", () => {
   /**
-   * The production package assembler (X5) fills this in a later wave. A test double here proves the seam
-   * takes a source that does add files, and that such a source carries no note.
+   * `drafted-patterns.ts` is the real source. A test double here proves the seam takes a source that adds
+   * files, and that such a source still says what the folder holds.
    */
   const graded: PatternSource = {
-    note: null,
-    filesFor: async (b, os) => os.map((order) => ({ path: `${order.externalRef}/dxf_aama/${b.articleId}-M.dxf`, bytes: new Uint8Array([0]) })),
+    filesFor: async (b, os) => ({
+      files: os.map((order) => ({ path: `${order.externalRef}/dxf_aama/${b.articleId}-M.dxf`, bytes: new Uint8Array([0]) })),
+      note: "patterns/: the files for this batch.",
+    }),
   };
 
   it("takes a source that names a file per order, under the batch's article", async () => {
     const order = { externalRef: "STORE-1" } as OpsOrder;
 
-    const files = await graded.filesFor(batch, [order]);
+    const set = await graded.filesFor(batch, [order]);
 
-    expect(files.map((f) => f.path)).toEqual(["STORE-1/dxf_aama/crew-tee-M.dxf"]);
-    expect(graded.note).toBeNull();
+    expect(set.files.map((f) => f.path)).toEqual(["STORE-1/dxf_aama/crew-tee-M.dxf"]);
+    expect(set.note).toContain("patterns/");
   });
 });

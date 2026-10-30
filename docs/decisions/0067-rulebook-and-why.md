@@ -84,3 +84,87 @@ a "Why?" link that shows it, a record of ids that have no rule yet, and a page w
 3. Is the source sorting right, in particular "Supplier price lists, May 2026" (R-COST-003) as `factory` and "Grading practice"
    (R-FIT-003) as `standard` rather than `pattern_master`?
 4. Should a confirmation record the factory person's name (pattern master, production manager) as the rulebook's sign-off column asks?
+
+---
+
+## Revision, 2026-10-30: owner decisions 11 to 14 (plan v5, workstream X2b)
+
+The four owner questions above are answered by the plan's owner decisions 11 to 14, delegated to the orchestrator.
+This section records what changed; the decision itself is unchanged in everything it does not touch.
+
+Migration: `supabase/migrations/20261101080000_rulebook_supplier_source.sql`. The plan's assigned wave-1 slots run to
+`…070000`, so this takes the next free hour, as the plan's X2b section allows.
+
+### 1. A "Why?" shows the newest confirmed version (decision 11, answering question 1)
+
+`inForce(versions, reader)` (`lib/rulebook/select.ts`) chooses between the versions of one rule:
+
+- a **member** is shown the newest version the factory has confirmed. Where a newer version exists and is a draft,
+  the popover adds the line "a newer draft is waiting for the factory to confirm it" and never shows the draft's
+  words. Where no version has been confirmed at all — which is every seeded rule today — the popover shows one line,
+  "Draft, not yet confirmed by the factory, so its words are not shown here", and nothing else;
+- **ops and platform admins** are shown the newest version whatever its status, marked draft, because they are the
+  ones writing it. The platform has one Knitwright-team role, `platform_admins`, so "ops" and "admin" are one reader.
+
+`explainRuleAction` asks the database whether the caller is a platform admin and resolves the rule with the server's
+key, so a draft's words never leave the server for a member. A member's own SELECT on `rulebook_entries` still
+returns draft rows: the newer-draft line needs to know a draft exists, and a column grant cannot hide the words of
+one row and show another's. Nothing in the product reads a rule that way; the member path is `explainRuleAction`.
+
+`rulesFor` applies the same choice, so a feature that lists rules for an article shows a member only confirmed ones.
+
+### 2. Shared rules are scoped to what their source covers (decision 12, answering question 2)
+
+`article_codes` no longer means "every article" when it is empty. Two columns are added: `scope_methods` (the ways of
+making a garment a rule covers, e.g. `{sublimation}`) and `scope_note` (how far that scope has been reviewed). The 16
+rules of R-SUB, R-LAB, R-QC and R-COST are reseeded against `{sublimation}` with the note "scope not reviewed by a
+factory", word for word. A rule that names neither an article nor a method claims every article, which is wider than
+any source the rulebook holds: `claimsEveryArticle` finds it, the editor's schema refuses it, and both
+`lib/rulebook/reseed.test.ts` and `tests/integration/rulebook.test.ts` assert that no seeded rule does it (R-GAP-000
+excepted, which claims nothing). A factory widens a rule by confirming a version with a wider scope.
+
+`rulesFor({ articleCode })` therefore no longer returns the shared rules: a caller that wants them asks for the
+method too, `rulesFor({ articleCode: "JSY-SS-01", method: "sublimation" })`. No caller exists yet (X1 carries the
+rule ids), and the article's method comes from the base article catalogue when one does.
+
+### 3. A source says who actually said it (decision 13, answering question 3)
+
+`supplier` is added to the source kinds and "Supplier price lists, May 2026" (R-COST-003) is refiled under it.
+`pattern_master` stays unused while owner decision 10 holds that no master pattern exists, so "Grading practice"
+(R-FIT-003) stays `standard`.
+
+The assertion the plan asks for — nothing filed as `factory` that a factory did not say — forced eight more rules
+off `factory`: R-CON-004, R-CON-005, R-CON-006, R-CON-008, R-SUB-003, R-SUB-005, R-SUB-006 and R-SUB-008, whose
+source notes only *ask* the factory for something ("Factory to confirm their RIP settings", "Factory to measure").
+A request is not a statement, and filing it as the factory's word implies a sign-off nobody gave, so they are filed
+as `knitwright`, which is what the rulebook says it is (version 0.1, "draft for factory review"). Their notes are
+unchanged, word for word. R-COST-002 ("Factory price list") is the one rule left filed as `factory`.
+`lib/rulebook/sources.ts` holds this reading; `markdown.ts` keeps the first one so the first migration can still be
+checked against the rulebook. The editor refuses a `factory` filing whose note does not support it.
+
+### 4. A confirmation records the person (decision 14, answering question 4)
+
+`confirmed_name` and `confirmed_role` hold the factory person who reviewed a version; `confirmed_by` stays the
+account that recorded it and stays the server's business. A confirmed version reads "Reviewed by NAME, ROLE, on
+DATE", as the tech pack's own review line does. A confirmation by nobody in particular is refused three times over:
+by the form's schema, by `rulebook_entry_confirm`, and by a table constraint. The three-argument
+`rulebook_entry_confirm` is dropped, so nothing can confirm a rule anonymously. A version whose record names nobody
+reads as a draft whatever its status column says.
+
+### 5. When `rulesFor` needs an index (decision 11's paragraph 5)
+
+`rulesFor` still reads every version and filters in TypeScript, and that is left as it is. The threshold is not a
+matter of taste: PostgREST stops a read at `max_rows = 1000` (`supabase/config.toml`, which the plan forbids
+editing), so past 1,000 rows of `rulebook_entries` the read would silently truncate and a rule would go missing.
+**Change it before the table passes 500 versions**: add an index on `(rule_id, version desc)` and move the article,
+method, topic and status filters into SQL. Today the table holds 46 versions, and
+`tests/integration/rulebook.test.ts` fails once the real rules pass 500 so nobody has to remember.
+
+### What this revision does not do
+
+- No feature outside `/admin/rulebook` carries a `<WhyLink>` yet, so the member reader is covered by the database
+  test rather than a browser test: there is no page a member can open a "Why?" on.
+- The scope vocabulary holds one method, `sublimation`, because that is the only one the rulebook covers. Others are
+  rows, not code, when rules are written for them.
+- Confirming is still recorded by a platform admin on the factory's behalf; the name and role are typed in, not
+  signed. A factory sign-in is a later wave.

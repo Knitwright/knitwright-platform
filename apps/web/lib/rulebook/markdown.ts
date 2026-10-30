@@ -37,7 +37,9 @@ export const SHARED_FAMILIES: ReadonlySet<string> = new Set(["SUB", "LAB", "QC",
 export const familyOf = (ruleId: string): string => ruleId.split("-")[1] ?? "";
 
 /**
- * Which of the four sources a "Source" note names. The note itself is kept as written; this is only the filter.
+ * Which source a "Source" note named when the rulebook was first seeded. Owner decision 13 reads some of those
+ * notes differently; `sources.ts` holds the reading in force, and this one stays so the first migration can still
+ * be checked against the rulebook. The note itself is kept as written; this is only the filter.
  * "Knitwright draft..." is Knitwright; "Factory to confirm...", a factory or supplier price list is the factory;
  * everything else (industry, process, regulation and standards practice) is a standard.
  */

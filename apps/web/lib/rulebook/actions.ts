@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { amPlatformAdmin } from "@/lib/leads/service";
 import { assertPlatformAdmin } from "@/lib/ops/access";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { confirmSchema, explainSchema, ruleInputSchema } from "./input";
+import type { RuleReader } from "./select";
 import { confirmEntry, logGap, resolveRule, saveEntry } from "./store";
 import { RULE_ID } from "./types";
 import { whyView, type WhyView } from "./view";
@@ -20,11 +22,15 @@ export const explainRuleAction = defineAction({
   rateLimit: LIMITS.read,
   schema: explainSchema,
   handler: async ({ input }): Promise<WhyView> => {
-    const entry = await resolveRule(await sessionClient(), input.ruleId);
+    // Owner decision 11: the Knitwright team sees the draft it is writing, marked draft; everyone else sees only
+    // the words the factory has confirmed. The rule is read with the server's key so a draft's words never leave
+    // the server for a member, even though every signed-in person may read the table itself.
+    const reader: RuleReader = (await amPlatformAdmin(await sessionClient())) ? "ops" : "member";
+    const resolved = await resolveRule(adminClient(), input.ruleId, reader);
     // Only a well-formed rule id becomes a gap row. Anything else still shows the gap text, but a signed-in
     // person cannot fill the gap list with made-up codes through the one action they may call.
-    if (!entry && RULE_ID.test(input.ruleId)) await logGap(adminClient(), { code: input.ruleId, context: input.context });
-    return whyView(input.ruleId, entry);
+    if (!resolved.newest && RULE_ID.test(input.ruleId)) await logGap(adminClient(), { code: input.ruleId, context: input.context });
+    return whyView(input.ruleId, resolved);
   },
 });
 
@@ -46,7 +52,7 @@ export const confirmRuleAction = defineAction({
   schema: confirmSchema,
   handler: async ({ input, session }) => {
     await assertPlatformAdmin(await sessionClient());
-    await confirmEntry(adminClient(), session.userId, input.ruleId, input.version);
+    await confirmEntry(adminClient(), session.userId, input);
     revalidatePath("/admin/rulebook");
     return { ruleId: input.ruleId, version: input.version };
   },
