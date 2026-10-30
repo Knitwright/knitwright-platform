@@ -1,5 +1,4 @@
 import type { TechPack } from "../types";
-import { EXCEL_SHEETS } from "./contents";
 import {
   length,
   lengthColumn,
@@ -127,7 +126,6 @@ export function artworkAndColourSection(pack: TechPack): ExportSection {
   return {
     id: "artwork-and-colour",
     title: s.title,
-    sheet: EXCEL_SHEETS["artwork-and-colour"],
     paragraphs: sentences(s.note, s.description),
     tables: [...colourTables(s), ...layerTables(s), ...pictureTables(s), ...repeatTables(s), ...printTables(s)],
   };
