@@ -94,3 +94,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
+| 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
