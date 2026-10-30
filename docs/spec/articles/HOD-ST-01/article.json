@@ -1,0 +1,117 @@
+{
+  "code": "HOD-ST-01",
+  "name": "Hoodie, stock-colour fleece",
+  "status": "draft_no_factory_block",
+  "version": "0.1",
+  "date": "2026-10-30",
+  "label": "Knitwright draft, not reviewed by a factory",
+  "class": "B",
+  "uses": [
+    "teamwear",
+    "studio"
+  ],
+  "sports": [],
+  "hs_code": null,
+  "origin": null,
+  "base_size": null,
+  "sizes": [],
+  "units": "mm",
+  "note": "Knitwright's draft brief (ONBOARDING.md step 1). Nothing in this file has been measured, drafted or reviewed by a factory. Every value the file does hold is cited in `sources`; a value the build pack does not publish is left empty, never estimated. `candidates` holds what the build pack itself publishes as illustrative, an example or a placeholder: those values are cited and kept for the factory conversation, and they are deliberately not part of the article, so nothing illustrative is seeded into the catalogue or printed in a tech pack.",
+  "fabrics": {
+    "body": {
+      "code": "F-STK-FLC"
+    }
+  },
+  "pom": [],
+  "draft_constants": {},
+  "parameters": [],
+  "options": {},
+  "pieces": [],
+  "seam_allowance": {},
+  "construction": [],
+  "thread": null,
+  "bom": [],
+  "print": {},
+  "personalisation": {},
+  "placements": [],
+  "labels": {},
+  "qc": {},
+  "parametric_script": {
+    "status": "not drafted yet",
+    "reason": "Hoodie, stock-colour fleece has no point of measure from a factory and no block on file, so there is nothing to draft from; a drafted shape nobody has measured is an invented measurement.",
+    "rule": "R-PAT-501",
+    "needs": [
+      "chest width",
+      "body length",
+      "across shoulder",
+      "sleeve length",
+      "bicep width",
+      "cuff opening",
+      "armhole depth",
+      "neck width",
+      "hood height",
+      "hood width",
+      "pocket width",
+      "hem rib depth"
+    ]
+  },
+  "rulebook": "rulebook.md",
+  "sources": [
+    {
+      "field": "code",
+      "value": "HOD-ST-01",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "name",
+      "value": "Hoodie, stock-colour fleece",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026)"
+    },
+    {
+      "field": "class",
+      "value": "B",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Class\" column); docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8"
+    },
+    {
+      "field": "uses",
+      "value": "teamwear + studio",
+      "source": "docs/spec/articles/ONBOARDING.md, \"How many base articles\" table (build pack v2.2, 28 Oct 2026) (\"Serves\" column)"
+    },
+    {
+      "field": "units",
+      "value": "mm",
+      "source": "docs/spec/03-data-model.md, \"Conventions\" (\"Lengths: millimetres\")"
+    },
+    {
+      "field": "fabrics.body.code",
+      "value": "F-STK-FLC",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8 (\"Fabric (programme code)\" column)"
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "fabric",
+      "field": "fabrics.body",
+      "value": "Poly fleece in the stock palette (F-STK-FLC)",
+      "source": "docs/spec/01-product-direction.md, \"Launch catalogue (8 base articles)\", row 8",
+      "caveat": "A placeholder like every fabric in the launch catalogue; no weight is published."
+    },
+    {
+      "kind": "sport",
+      "field": "sports",
+      "value": "training",
+      "source": "docs/spec/07-template-library.md, \"Design templates\" sport table",
+      "caveat": "The template library lists this article under Training, which is a template grouping rather than the launch catalogue's own sport column, so the catalogue seed carries no sport tag."
+    }
+  ],
+  "open_questions": [
+    "Pullover or zip, and which does the launch article carry? The garment registry maps both `pullover-hoodie` and `zip-hoodie` to this code.",
+    "A hood, a pouch pocket, cuff and hem ribs and a drawcord are all pieces this article needs; none is published. Which does the factory's block have?",
+    "Which decoration method does the stock-colour programme use on fleece?",
+    "Size range and sample size: the build pack publishes neither for this article (decision 0066, owner question 1).",
+    "Men's, women's or unisex, and the fit word (regular, athletic): the build pack publishes neither.",
+    "The POM table with grades and tolerances from the factory's own size chart (ONBOARDING.md step 2).",
+    "The construction table, seam allowances and thread the factory really uses.",
+    "Fabric: the build pack says every fabric code, weight and blend is a placeholder until the Phase 0 factory test."
+  ]
+}
