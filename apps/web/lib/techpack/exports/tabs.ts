@@ -1,4 +1,4 @@
-import type { SectionId } from "../types";
+import { SECTION_IDS, type SectionId } from "../types";
 import { pagePlan, type AnyPageId, type PageBlock } from "./pages";
 import type { ExportSection } from "./table-types";
 
@@ -101,6 +101,13 @@ const withNotes = (block: PageBlock, sections: readonly ExportSection[]): PageBl
 };
 
 /**
+ * A sheet reads in the order of the document, not the order of the pages: the measurement table
+ * comes before how it is measured, because that is how the tech pack view reads.
+ */
+const inDocumentOrder = (blocks: readonly PageBlock[]): readonly PageBlock[] =>
+  [...blocks].sort((a, b) => SECTION_IDS.indexOf(a.sectionId) - SECTION_IDS.indexOf(b.sectionId));
+
+/**
  * The document laid out as the eleven sheets of the Excel file. Every sheet is written, even one
  * the platform cannot fill yet, because a factory that opens the file counts the tabs.
  */
@@ -108,6 +115,6 @@ export function tabPlan(sections: readonly ExportSection[]): readonly PlannedTab
   const pages = pagePlan(sections);
   return TECH_PACK_TABS.map((tab) => {
     const blocks = pages.filter((page) => TAB_OF_PAGE[page.id] === tab.id).flatMap((page) => page.blocks);
-    return { ...tab, blocks: mergeBlocks(blocks).map((block) => withNotes(block, sections)) };
+    return { ...tab, blocks: inDocumentOrder(mergeBlocks(blocks)).map((block) => withNotes(block, sections)) };
   });
 }

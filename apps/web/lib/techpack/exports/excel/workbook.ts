@@ -1,3 +1,4 @@
+import { unzipSync, zipSync, type Zippable } from "fflate";
 import writeExcelFile from "write-excel-file/node";
 import type { TechPack } from "../../types";
 import { ExportRefused } from "../errors";
@@ -39,6 +40,22 @@ function assertSheetNames(sheets: readonly WorkbookSheet[]): void {
   }
 }
 
+/**
+ * The one moment every entry of the file is stamped with, as `lib/job-packet/zip.ts` and
+ * `lib/kpp/assemble.ts` do. An .xlsx file is a ZIP, and the writer stamps each entry with the
+ * clock, so without this the same design gives different bytes a second later.
+ */
+const FIXED_TIME = new Date(Date.UTC(2020, 0, 1));
+
+/** The same file with every entry stamped at one moment, so the same design gives the same bytes. */
+function withPinnedTimes(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
+  const entries = unzipSync(bytes);
+  const tree: Zippable = {};
+  // The order of the entries is kept, so only the stamps change.
+  for (const name of Object.keys(entries)) tree[name] = [entries[name] as Uint8Array, { level: 6, mtime: FIXED_TIME }];
+  return zipSync(tree);
+}
+
 /** Writes the sheets to the bytes of an .xlsx file, in memory. Nothing is written to disk. */
 export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uint8Array<ArrayBuffer>> {
   assertSheetNames(sheets);
@@ -50,7 +67,7 @@ export async function writeSheets(sheets: readonly WorkbookSheet[]): Promise<Uin
       ...(sheet.frozenRows ? { stickyRowsCount: sheet.frozenRows } : {}),
     })),
   ).toBuffer();
-  return new Uint8Array(written);
+  return withPinnedTimes(new Uint8Array(written));
 }
 
 export interface WorkbookOptions {
