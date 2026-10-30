@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { OUTPUT_KINDS } from "@/lib/credits/kinds";
 import { CREDIT_SETTINGS } from "@/lib/credits/settings";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
@@ -228,7 +229,11 @@ describe("the tables", () => {
   });
 
   it("lets signed-in users read the price list, and visitors not", async () => {
-    expect(must(await alice.client.from("credit_prices").select("output_kind")).length).toBe(3);
+    // Every output kind has a price, wherever it was seeded: the credits migration seeded the first three and
+    // plan v5 X5b's package_exports migration adds `production_package`. Asserting the kinds rather than a count
+    // means the next kind someone adds does not break this test.
+    const seen = must(await alice.client.from("credit_prices").select("output_kind")) as { output_kind: string }[];
+    expect(seen.map((row) => row.output_kind).sort()).toEqual([...OUTPUT_KINDS].sort());
     expect((await anonClient().from("credit_prices").select("output_kind")).error).not.toBeNull();
   });
 

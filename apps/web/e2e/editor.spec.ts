@@ -31,8 +31,9 @@ test.describe("the design list", () => {
     await signedIn(page, "list");
     await expect(page.getByRole("heading", { name: "Start your first design" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Blank design" }).click();
-    await expect(page).toHaveURL(/\/studio\/new$/);
+    // The studio home no longer offers a blank canvas (plan v5 Y1): the editor is reached from the
+    // catalogue or straight by address.
+    await page.goto("/studio/new");
     await page.getByLabel("Garment type").selectOption({ label: "Polo shirt" });
     await page.getByLabel("Made for").selectOption({ label: "Men" });
     await page.getByLabel("Design name").fill("Club polo");

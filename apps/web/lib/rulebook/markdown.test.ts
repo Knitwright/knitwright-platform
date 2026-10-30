@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RULEBOOK_MD } from "./fixtures/files";
-import { familyOf, parseRulebookMarkdown, sourceFromNote } from "./markdown";
+import { SHARED_FAMILIES, TOPIC_BY_FAMILY, familyOf, parseRulebookMarkdown, sourceFromNote } from "./markdown";
 
 describe("reading the JSY-SS-01 rulebook", () => {
   const rules = parseRulebookMarkdown(RULEBOOK_MD, "JSY-SS-01");
@@ -40,6 +40,20 @@ describe("reading the JSY-SS-01 rulebook", () => {
     for (const r of rules) {
       for (const value of [r.title, r.rule, r.body, r.bestPractice, r.sourceNote]) expect(value.length, r.ruleId).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("the one family the build pack names outside the topics", () => {
+  it("files R-SHO-002 under pattern, and keeps it article-specific", () => {
+    // Both halves of its reason are about the block, not the body: "the side split and hem can't
+    // both fit" and "the block's thigh shaping no longer fits our size chart".
+    expect(TOPIC_BY_FAMILY[familyOf("R-SHO-002")]).toBe("pattern");
+    // Shorts rules belong to the shorts, so the rule keeps its article code.
+    expect(SHARED_FAMILIES.has("SHO")).toBe(false);
+  });
+
+  it("still refuses a family nobody has filed, so no rule is topiced by guesswork", () => {
+    expect(TOPIC_BY_FAMILY[familyOf("R-FAB-001")]).toBeUndefined();
   });
 });
 
