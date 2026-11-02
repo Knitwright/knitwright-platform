@@ -106,4 +106,9 @@ export const LIMITS = {
   jobPacketRecordLink: { name: "job-packet-record-link", limit: 60, windowSeconds: 10 * MINUTE },
   jobPacketPhoto: { name: "job-packet-photo", limit: 20, windowSeconds: 10 * MINUTE },
   jobPacketPhotoLink: { name: "job-packet-photo-link", limit: 40, windowSeconds: 10 * MINUTE },
+  // Benchmarks (plan v5 Z3, decision 0084). Making a comparison, confirming or correcting a card.
+  benchmarkWrite: { name: "benchmark-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // Taking a card in reaches a competitor's page and then a vision model. The per-brand counts, which the spec asks
+  // for, are kept beside these in lib/benchmarks/limits.ts and counted inside the action.
+  benchmarkIntake: { name: "benchmark-intake", limit: 20, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
