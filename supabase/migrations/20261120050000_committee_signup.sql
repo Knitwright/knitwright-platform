@@ -433,9 +433,15 @@ security definer
 set search_path = ''
 as $$
 begin
-  if tg_op = 'DELETE'
-     and not exists (select 1 from public.committee_links l where l.id = old.link_id) then
-    return old;
+  if tg_op = 'DELETE' then
+    if not exists (select 1 from public.committee_links l where l.id = old.link_id) then
+      return old;
+    end if;
+  -- A cascade that removes an approval also sets its lock's approval_id to null on the way out.
+  -- That is one update, inside the same cascade, on a row that is going anyway; without this the
+  -- cascade would fail and a design with both an approval and a lock could never be deleted.
+  elsif not exists (select 1 from public.committee_links l where l.id = new.link_id) then
+    return new;
   end if;
   raise exception 'A committee comment, vote record, approval or lock is a record and never changes.'
     using errcode = 'P0001', hint = 'append_only';

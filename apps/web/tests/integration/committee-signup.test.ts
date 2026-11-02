@@ -461,14 +461,20 @@ describe("an approval is a record, not a flag", () => {
   });
 
   it.skipIf(!dockerReachable)("goes only when its link goes, which is how a deleted design takes it", async () => {
-    const link = await committeeLink(await project(aliceBrand, alice), alice);
+    const id = await project(aliceBrand, alice);
+    const link = await committeeLink(id, alice);
+    must(await validate(id, aliceBrand, alice));
     must(await approve(link.token, visitor()));
     must(await pin(link.token, visitor()));
+    // A lock pointing at that approval as well, because removing the approval sets the lock's
+    // approval_id to null on the way out and that update must be let through, not refused.
+    must(await adminClient().rpc("committee_lock_version", { p_link_id: link.id, p_user_id: alice.userId, p_version: 1 }));
 
-    asOwner(`delete from public.projects where id = '${link.projectId}'`);
+    asOwner(`delete from public.projects where id = '${id}'`);
 
     expect(must(await adminClient().from("committee_approvals").select("id").eq("link_id", link.id))).toEqual([]);
     expect(must(await adminClient().from("committee_pins").select("id").eq("link_id", link.id))).toEqual([]);
+    expect(must(await adminClient().from("committee_locks").select("id").eq("link_id", link.id))).toEqual([]);
   });
 });
 
