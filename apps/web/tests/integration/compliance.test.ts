@@ -134,32 +134,20 @@ describe("what the AQL plan table refuses", () => {
     expect(error).not.toBeNull();
   });
 
-  it("lets one factory record its own plan beside the one for every factory, and that plan wins", async () => {
+  /**
+   * Nothing is inserted here on purpose. The service role holds SELECT, INSERT and UPDATE on this table and
+   * **no DELETE**, so a row a test wrote could not be taken out again and would sit in the shared database
+   * for every later run. The preference between a factory's own plan and the one for every factory is proved
+   * over rows built in TypeScript (`aql.test.ts`); what the database is asked here is only what it really
+   * holds, and what it refuses.
+   */
+  it("holds exactly one plan per scope for every factory, so a factory's own row is the only way to override one", async () => {
+    const plans = await aqlPlans();
+    expect(plans.filter((plan) => plan.factoryId === null && plan.scope === "run")).toHaveLength(1);
     const factoryId = String((must(await adminClient().from("factories").select("id").limit(1)) as { id: string }[])[0]?.id);
-    const row = {
-      factory_id: factoryId,
-      scope: "run" as const,
-      inspect_every_piece: false,
-      inspection_level: "II",
-      critical_aql: 0,
-      major_aql: 1.5,
-      minor_aql: 2.5,
-      source: "Agreed with the factory, for this test only",
-      confirmed: true,
-      rule_id: "R-QC-001",
-      label: "Test row, removed again by this test",
-    };
-    const { error } = await adminClient().from("aql_plans").insert(row);
-    try {
-      expect(error).toBeNull();
-      const plan = planFor(await aqlPlans(), { factoryId, scope: "run" });
-      expect(plan?.factoryId).toBe(factoryId);
-      expect(plan?.majorAql).toBe(1.5);
-      // A plan the factory has agreed carries no caution, and nothing warns about it.
-      expect(planFindings(await aqlPlans(), { factoryId, scope: "run" })).toEqual([]);
-    } finally {
-      await adminClient().from("aql_plans").delete().eq("factory_id", factoryId);
-    }
+    // With no row of its own, the factory reads the plan for every factory, and that plan is a placeholder.
+    expect(planFor(plans, { factoryId, scope: "run" })?.factoryId).toBeNull();
+    expect(planFindings(plans, { factoryId, scope: "run" }).map((found) => found.code)).toEqual(["aql_plan_unconfirmed"]);
   });
 });
 
