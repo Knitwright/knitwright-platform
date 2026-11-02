@@ -47,7 +47,10 @@ export function ArtboardSize({ board, unit, presets, busy, onUnit, onSize }: Pro
   const ids = { unit: useId(), width: useId(), height: useId() };
   const [typed, setTyped] = useState<{ width: string; height: string } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const dpi = presets.find((preset) => preset.unit === unit)?.dpi ?? DEFAULT_DPI;
+  // The fields are read at the screen resolution, because the canvas is in pixels. A preset that is
+  // a physical size carries its own resolution, and `presetSize` uses that one to turn it into
+  // pixels -- so A4 at 300 dots per inch is 2480 by 3508 px even while the fields say 72.
+  const dpi = DEFAULT_DPI;
   const shown = typed ?? { width: writeLength(board.size.width, unit, dpi), height: writeLength(board.size.height, unit, dpi) };
   const current = matchingPreset(board.size, presets);
 

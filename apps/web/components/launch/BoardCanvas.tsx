@@ -47,40 +47,59 @@ const STATUS_WORDS: Readonly<Record<BoardView["status"], string>> = {
 export function BoardCanvas({ graph, selectedId, zoom, busy, empty, onSelect, onAdd }: Props) {
   return (
     <section aria-label="Canvas" data-testid="launch-canvas" style={DOTS} className="flex min-h-0 flex-1 flex-col overflow-auto rounded-3xl border border-hairline p-4">
-      {empty ? (
+      {graph.boards.length === 0 ? (
         <EmptyCanvas empty={empty} busy={busy} onAdd={onAdd} />
       ) : (
-        <ul
-          className="flex min-w-max flex-wrap items-start gap-4"
-          style={{ zoom: `${zoom}%` }}
-          data-testid="launch-boards"
-        >
-          {graph.boards.map((board) => (
-            <li key={board.id}>
-              <Board board={board} graph={graph} selected={board.id === selectedId} busy={busy} onSelect={onSelect} onAdd={onAdd} />
-            </li>
-          ))}
-        </ul>
+        <>
+          {/* Boards but no Design board: the boards are still shown, with the one action that
+              gives them a garment to start from. Hiding them would hide the person's own work. */}
+          {empty ? <MissingDesign empty={empty} busy={busy} onAdd={onAdd} /> : null}
+          <ul className="flex min-w-max flex-wrap items-start gap-4" style={{ zoom: `${zoom}%` }} data-testid="launch-boards">
+            {graph.boards.map((board) => (
+              <li key={board.id}>
+                <Board board={board} graph={graph} selected={board.id === selectedId} busy={busy} onSelect={onSelect} onAdd={onAdd} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );
 }
 
-function EmptyCanvas({ empty, busy, onAdd }: Readonly<{ empty: EmptyState; busy: boolean; onAdd: (kind: BoardKind) => void }>) {
+type EmptyProps = Readonly<{ empty: EmptyState | null; busy: boolean; onAdd: (kind: BoardKind) => void }>;
+
+function EmptyCanvas({ empty, busy, onAdd }: EmptyProps) {
+  if (!empty) return null;
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 py-12 text-center" data-testid="launch-empty">
       <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{empty.title}</h2>
       <p className="max-w-md text-[15px] leading-relaxed text-muted">{empty.body}</p>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => onAdd("design")}
-        className="chip-btn inline-flex min-h-11 items-center rounded-full border border-white/20 px-5 text-sm font-medium text-ink"
-        data-testid="launch-empty-action"
-      >
-        {empty.action}
-      </button>
+      <AddDesign label={empty.action} busy={busy} onAdd={onAdd} />
     </div>
+  );
+}
+
+function MissingDesign({ empty, busy, onAdd }: Readonly<{ empty: EmptyState; busy: boolean; onAdd: (kind: BoardKind) => void }>) {
+  return (
+    <div role="status" data-testid="launch-missing-design" className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border border-warn/30 bg-warn-wash px-4 py-3">
+      <p className="min-w-56 flex-1 text-[13px] leading-relaxed text-warn">{empty.body}</p>
+      <AddDesign label={empty.action} busy={busy} onAdd={onAdd} />
+    </div>
+  );
+}
+
+function AddDesign({ label, busy, onAdd }: Readonly<{ label: string; busy: boolean; onAdd: (kind: BoardKind) => void }>) {
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => onAdd("design")}
+      className="chip-btn inline-flex min-h-11 items-center rounded-full border border-white/20 px-5 text-sm font-medium text-ink"
+      data-testid="launch-empty-action"
+    >
+      {label}
+    </button>
   );
 }
 
@@ -108,6 +127,9 @@ function Board({ board, graph, selected, busy, onSelect, onAdd }: BoardProps) {
       <button
         type="button"
         aria-pressed={selected}
+        // The two lines inside read "Mockup" over "Flat lay", which as one accessible name would
+        // be "Mockup Flat lay". The label says what pressing it does instead.
+        aria-label={`Select ${board.name || info.label}`}
         onClick={() => onSelect(selected ? null : board.id)}
         className="flex min-h-10 flex-col items-start gap-0.5 rounded-xl px-1 text-left"
       >

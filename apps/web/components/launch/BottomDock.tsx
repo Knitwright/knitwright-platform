@@ -36,6 +36,13 @@ type Props = Readonly<{
 const CHIP = "chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-3 text-[13px] text-ink disabled:cursor-not-allowed disabled:opacity-55";
 
 /**
+ * What undo reaches, said on the button itself. Adding or removing a board, and a connector, are
+ * changes to the canvas rather than to a board, and each has its own control (decision 0091).
+ */
+const UNDO_TITLE =
+  "Undo covers a board's place, size, name and settings, and the project's unit and colours. Adding or removing a board, or a connector, is undone with its own control.";
+
+/**
  * The bottom of the shell (spec Launch shell, "Bottom centre"): the prompt pill, the tool dock,
  * undo and redo, the zoom and the credit balance.
  *
@@ -106,10 +113,10 @@ export function BottomDock(props: Props) {
           })}
         </div>
 
-        <button type="button" disabled={props.busy || !props.canUndo} onClick={props.onUndo} className={CHIP} data-testid="launch-undo">
+        <button type="button" title={UNDO_TITLE} disabled={props.busy || !props.canUndo} onClick={props.onUndo} className={CHIP} data-testid="launch-undo">
           Undo
         </button>
-        <button type="button" disabled={props.busy || !props.canRedo} onClick={props.onRedo} className={CHIP} data-testid="launch-redo">
+        <button type="button" title={UNDO_TITLE} disabled={props.busy || !props.canRedo} onClick={props.onRedo} className={CHIP} data-testid="launch-redo">
           Redo
         </button>
 

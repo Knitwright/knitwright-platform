@@ -41,10 +41,14 @@ export type LaunchShellProps = Readonly<{
 const FRAME =
   "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(100vw_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(50vw_-_1.25rem,48rem))] lg:pb-0";
 
-const COLUMNS = "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_20rem_minmax(0,1fr)] xl:grid-cols-[4.75rem_21rem_minmax(0,1fr)_21rem]";
-
-const UNDO_TITLE =
-  "Undo covers a board's place, size, name and settings, and the project's unit and colours. Adding or removing a board, or a connector, is a change to the canvas itself and is undone with its own control.";
+/*
+ * Four columns from lg up: the rail, the open rail panel, the canvas with its task bar and dock,
+ * and the inspector. The two side panels are narrower on a small laptop than on a wide screen, so
+ * the inspector is never taken away -- an artboard size and a board's own panel are not optional.
+ * Below lg everything stacks, the canvas first, and the rail becomes a bar along the bottom.
+ */
+const COLUMNS =
+  "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_17rem_minmax(0,1fr)_17rem] xl:grid-cols-[4.75rem_21rem_minmax(0,1fr)_21rem]";
 
 /**
  * The launch shell of the spec's Launch section: the left icon rail with its twelve panels, the
@@ -134,7 +138,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
         <IconRail open={shell.state.rail} onOpen={shell.commands.openPanel} />
         <RailPanels open={shell.state.rail} />
 
-        <div className="flex min-h-0 flex-col gap-3">
+        <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
           {page.taskBar ? <TaskBar bar={page.taskBar} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
           <BoardCanvas
             graph={graph}
@@ -145,29 +149,27 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
             onSelect={shell.commands.selectBoard}
             onAdd={(kind, fromBoardId) => shell.commands.addBoard(kind, { x: 0, y: 0 }, fromBoardId)}
           />
-          <div title={UNDO_TITLE}>
-            <BottomDock
-              tool={shell.state.tool}
-              zoom={shell.state.zoom}
-              credits={credits}
-              estimate={estimate}
-              runLabel={estimate ? runLabel(estimate) : null}
-              canRun={canRun && !busy}
-              canUndo={canUndo(shell.stack)}
-              canRedo={canRedo(shell.stack)}
-              busy={busy}
-              prompt={shell.prompt}
-              onPrompt={shell.setPrompt}
-              onTool={shell.commands.chooseTool}
-              onZoom={shell.commands.setZoom}
-              onRun={() => selected && shell.commands.requestRun(selected.id)}
-              onUndo={shell.commands.undo}
-              onRedo={shell.commands.redo}
-            />
-          </div>
+          <BottomDock
+            tool={shell.state.tool}
+            zoom={shell.state.zoom}
+            credits={credits}
+            estimate={estimate}
+            runLabel={estimate ? runLabel(estimate) : null}
+            canRun={canRun && !busy}
+            canUndo={canUndo(shell.stack)}
+            canRedo={canRedo(shell.stack)}
+            busy={busy}
+            prompt={shell.prompt}
+            onPrompt={shell.setPrompt}
+            onTool={shell.commands.chooseTool}
+            onZoom={shell.commands.setZoom}
+            onRun={() => selected && shell.commands.requestRun(selected.id)}
+            onUndo={shell.commands.undo}
+            onRedo={shell.commands.redo}
+          />
         </div>
 
-        <div className="flex min-h-0 flex-col lg:hidden xl:flex">
+        <div className="flex min-h-0 flex-col">
           <Inspector
             projectName={project.name}
             colours={project.colours}
