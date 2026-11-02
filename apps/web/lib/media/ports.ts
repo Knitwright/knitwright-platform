@@ -1,3 +1,4 @@
+import type { FileProvenance } from "@/lib/storage/provenance";
 import type { CheckerVerdict, MediaKind, MediaView, SetStatus } from "./contract";
 
 /** What the media code needs from the database and storage. `service.ts` implements them; tests use in-memory ones. */
@@ -44,8 +45,13 @@ export interface MediaStore {
 }
 
 export interface MediaFiles {
-  /** Stores the watermarked picture as an ordinary file of the brand and returns its id. */
-  saveWatermarked(png: Uint8Array): Promise<string>;
+  /**
+   * Stores the watermarked picture as an ordinary file of the brand and returns its id. The
+   * provenance is the caller's to state because this one call serves the deterministic studio
+   * renders and the model-made lifestyle pictures alike, and both are stored as `kind: "render"`
+   * (security review v5 H1; `provenanceOfMediaKind` in `./contract.ts`).
+   */
+  saveWatermarked(png: Uint8Array, provenance: FileProvenance): Promise<string>;
   /** Keeps the clean picture where no member can read it. */
   saveClean(path: string, png: Uint8Array): Promise<void>;
   readWatermarked(fileId: string): Promise<Uint8Array | null>;

@@ -1,5 +1,6 @@
+import type { GenerationGate } from "@/lib/moderation/gate";
 import type { LogEvent } from "@/lib/server/core/guard";
-import type { GeneratedMedia, GenerateRequest, MediaGenerator } from "./contract";
+import { provenanceOfMediaKind, type GeneratedMedia, type GenerateRequest, type MediaGenerator } from "./contract";
 import { cleanPath } from "./paths";
 import type { MediaFiles, MediaStore } from "./ports";
 import { watermark } from "./watermark";
@@ -12,12 +13,22 @@ import { watermark } from "./watermark";
  */
 
 export const FAILED_MESSAGE = "The media could not be made. Nothing was charged. Try again.";
+/** Said when the content review refuses a picture a model made. Nothing was charged, as ever here. */
+export const BLOCKED_MESSAGE =
+  "A picture the model made was refused by the content review, so none of this set has been kept. Nothing was charged.";
 const TIME_LIMIT_MS = 50_000;
 
 interface GenerateDeps {
   readonly store: MediaStore;
   readonly files: MediaFiles;
   readonly generators: readonly MediaGenerator[];
+  /**
+   * X8's `screenGeneration`, bound to the brand and the person (`lib/moderation/gate.ts`). Asked of
+   * every picture a model made, which is the lifestyle scenes and nothing else in this set: a studio
+   * render is drawn from the design by our own code and is no more an AI generation than the tech
+   * pack is (spec F-G1 "on every AI generation"; security review v5 H3, decision 0116).
+   */
+  readonly screen: GenerationGate;
   readonly log: (event: LogEvent) => void;
   readonly timeoutMs?: number;
 }
@@ -28,7 +39,9 @@ const WHERE = "media set";
 
 async function keep(deps: GenerateDeps, work: SetWork, media: GeneratedMedia, kept: { fileIds: string[]; cleanPaths: string[] }): Promise<void> {
   const marked = await watermark(media.png);
-  const fileId = await deps.files.saveWatermarked(marked);
+  // The kind says what made the picture: this one call keeps the deterministic studio renders and
+  // the model-made lifestyle pictures alike, and both are stored as `kind: "render"` (H1).
+  const fileId = await deps.files.saveWatermarked(marked, provenanceOfMediaKind(media.kind));
   kept.fileIds.push(fileId);
   const path = cleanPath(work.brandId, work.setId, media.kind, media.view);
   await deps.files.saveClean(path, media.png);
@@ -51,7 +64,20 @@ async function make(deps: GenerateDeps, work: SetWork, kept: { fileIds: string[]
   for (const generator of deps.generators) {
     const result = await generator.generate(work.request, signal);
     if (!result.ok) return result.message;
-    for (const media of result.media) await keep(deps, work, media, kept);
+    for (const media of result.media) {
+      // The screen comes before the store, so nothing the review blocks is ever kept. The whole set
+      // is failed rather than the one picture dropped: a set with a hole in it is worse than none,
+      // and `fail` removes what was already stored.
+      if (provenanceOfMediaKind(media.kind) === "generated") {
+        const verdict = await deps.screen({
+          generationId: work.setId,
+          image: media.png,
+          prompt: media.prompt ?? `${media.kind} ${media.view}`,
+        });
+        if (verdict.result === "blocked") return BLOCKED_MESSAGE;
+      }
+      await keep(deps, work, media, kept);
+    }
   }
   return null;
 }

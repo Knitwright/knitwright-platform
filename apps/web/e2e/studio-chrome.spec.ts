@@ -40,9 +40,10 @@ test.describe("the top bar's sections", () => {
     await expect(more).toHaveAttribute("aria-expanded", "true");
 
     const listed = bar(page).getByRole("navigation", { name: "More studio sections" }).getByRole("link");
-    await expect(listed).toHaveText(["Size charts", "Designer", "Teamwear", "Club", "Brand", "Benchmarks"]);
+    await expect(listed).toHaveText(["Size charts", "Designer", "Teamwear", "Crest to kit", "Club", "Brand", "Benchmarks"]);
     // The addresses the workstreams were waiting for a door to.
     await expect(listed.filter({ hasText: "Teamwear" })).toHaveAttribute("href", "/teamwear");
+    await expect(listed.filter({ hasText: "Crest to kit" })).toHaveAttribute("href", "/crest-to-kit");
     await expect(listed.filter({ hasText: "Benchmarks" })).toHaveAttribute("href", "/studio/benchmarks");
 
     // The open panel is scanned too: it is drawn over the aurora like everything else in the bar.
@@ -69,6 +70,23 @@ test.describe("the top bar's sections", () => {
 
     await more.click();
     await expect(bar(page).getByRole("link", { name: "Teamwear", exact: true })).toHaveAttribute("aria-current", "page");
+  });
+
+  /**
+   * Crest to kit was reachable by typing its address only (code review of plan v5, item D-2). Its
+   * door is in the menu, as Teamwear's is, and the screen behind the new door is scanned here on a
+   * desktop: its own spec scans it on a phone.
+   */
+  test("opens crest to kit from the menu, and the screen behind that door scans clean", async ({ page }) => {
+    await signedIn(page, "chrome-crest");
+
+    await openStudioSection(page, "Crest to kit");
+
+    await expect(page).toHaveURL(/\/crest-to-kit$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Crest to kit" })).toBeVisible();
+    await expect(bar(page).getByRole("button", { name: /More.*current section: Crest to kit/ })).toBeVisible();
+    await accessible(page);
+    await headerFitsAtEveryWidth(page);
   });
 });
 
@@ -149,7 +167,7 @@ test.describe("the top bar on a phone", () => {
     await button.click();
 
     const panel = await panelOf(button);
-    await expect(panel.getByRole("navigation", { name: "Studio" }).getByRole("link")).toHaveCount(10);
+    await expect(panel.getByRole("navigation", { name: "Studio" }).getByRole("link")).toHaveCount(11);
     await expect(panel.getByTestId("account-email")).toHaveText(email);
     await expect(panel.getByRole("link", { name: "Settings" })).toBeVisible();
     await expect(panel.getByRole("button", { name: "Sign out" })).toBeVisible();

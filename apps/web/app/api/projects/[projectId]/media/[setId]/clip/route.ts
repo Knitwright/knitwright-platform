@@ -8,6 +8,7 @@ import { MAX_CLIP_BYTES } from "@/lib/media/video/limits";
 import { CLIP_COST } from "@/lib/media/video/cost";
 import { videoFiles } from "@/lib/media/video/files";
 import { chooseVideoProvider } from "@/lib/media/video/select";
+import { generationGate } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -53,6 +54,8 @@ export const POST = defineRoute({
           files: mediaFiles(admin, client, { brandId, userId: session.userId }),
           videos: videoFiles(admin, brandId),
           provider: chooseVideoProvider({ FAL_KEY: env.FAL_KEY, MEDIA_VIDEO_LIVE: env.MEDIA_VIDEO_LIVE }),
+          // Every AI generation is screened (spec F-G1; security review v5 H3, decision 0116).
+          screen: generationGate({ brandId, userId: session.userId }, "POST /api/projects/[projectId]/media/[setId]/clip"),
           log,
           schedule: (work) => after(work),
           refund: async () => usage?.refund(),

@@ -1,5 +1,7 @@
 import sharp from "sharp";
 import { beforeEach, describe, expect, it } from "vitest";
+import { blockUploads, clearUploads } from "@/lib/moderation/fixtures/gates";
+import type { UploadGate } from "@/lib/moderation/gate";
 import { createFakeAdmin, type FakeAdmin } from "./fixtures/fake-admin";
 import { logoOnWhite, seamyStripes, solidPng } from "./fixtures/pictures";
 import { buildPdf } from "./fixtures/pdf";
@@ -21,8 +23,12 @@ beforeEach(() => {
   fake = createFakeAdmin();
 });
 
-const upload = (bytes: Uint8Array, fileName: string, rightsConfirmed = true) =>
-  uploadArtwork(fake.admin, actor, { bytes, fileName, rightsConfirmed, now: NOW });
+const upload = (bytes: Uint8Array, fileName: string, rightsConfirmed = true, screen: UploadGate = clearUploads()) =>
+  uploadArtwork(fake.admin, actor, { bytes, fileName, rightsConfirmed, now: NOW }, screen);
+
+/** The screen every change goes through now (H3). A test that cares passes its own. */
+const change = (id: string, what: Parameters<typeof changeArtwork>[3], accept: boolean, screen: UploadGate = clearUploads()) =>
+  changeArtwork(fake.admin, actor, id, what, accept, screen);
 
 describe("uploadArtwork: rights and refusals leave nothing behind", () => {
   it("asks for the rights statement before reading the file", async () => {
@@ -175,12 +181,66 @@ describe("listing, detail and deletion", () => {
   });
 });
 
+/**
+ * H3 of the v5 security review (decision 0116). `screen` was an optional argument with no default,
+ * so a path that left it out skipped moderation silently -- which is exactly what the design
+ * import's derived store and this file's own change path did. It is required now, and the change
+ * path screens the new picture rather than inheriting a verdict about the old one.
+ */
+describe("the screen every stored picture goes through", () => {
+  it("screens the upload and keeps the result against the new asset", async () => {
+    const screen = clearUploads();
+    const made = await upload(await solidPng(10, 10, "#c8102e"), "crest.png", true, screen);
+
+    expect(screen.asks).toHaveLength(1);
+    expect(screen.asks[0]).toMatchObject({ label: "crest" });
+    expect(screen.asks[0]?.bytes).toBeGreaterThan(0);
+    expect(screen.kept).toEqual([made.id]);
+  });
+
+  it("stores nothing at all when the screen refuses the upload", async () => {
+    await expect(upload(await solidPng(10, 10, "#fff"), "bad.png", true, blockUploads())).rejects.toMatchObject({
+      fields: { file: ["This contains a word we do not print."] },
+    });
+    expect(fake.tables.user_artworks).toHaveLength(0);
+    expect(fake.objects.size).toBe(0);
+  });
+
+  it("screens the changed picture as a new upload, because the pixels are new", async () => {
+    const boxed = await upload(await logoOnWhite(), "crest.png");
+    const screen = clearUploads();
+    const done = await change(boxed.id, { action: "remove-white-background" }, true, screen);
+
+    expect(screen.asks).toHaveLength(1);
+    expect(screen.asks[0]?.label).toBe("crest (no white box)");
+    expect(done.accepted && screen.kept).toEqual([done.accepted ? done.artwork.id : ""]);
+  });
+
+  it("stores no changed picture the screen refuses, so a flagged upload cannot be laundered", async () => {
+    const boxed = await upload(await logoOnWhite(), "crest.png");
+    const before = fake.tables.user_artworks.length;
+
+    await expect(change(boxed.id, { action: "remove-white-background" }, true, blockUploads())).rejects.toMatchObject({
+      code: "invalid_input",
+    });
+    expect(fake.tables.user_artworks).toHaveLength(before);
+  });
+
+  it("asks nothing of the screen while it is only showing what a change would do", async () => {
+    const boxed = await upload(await logoOnWhite(), "crest.png");
+    const screen = clearUploads();
+    await change(boxed.id, { action: "remove-white-background" }, false, screen);
+
+    expect(screen.asks).toEqual([]);
+  });
+});
+
 describe("changing a picture", () => {
   it("shows a 3 x 3 preview and the mismatch before and after without storing, then stores a new artwork when accepted", async () => {
     const tile = await upload(await seamyStripes(64, 32), "tile.png");
     const before = fake.tables.files.length;
     expect((await checkArtworkTile(fake.admin, actor, tile.id)).seamless).toBe(false);
-    const shown = await changeArtwork(fake.admin, actor, tile.id, { action: "make-seamless", method: "blend" }, false);
+    const shown = await change(tile.id, { action: "make-seamless", method: "blend" }, false);
     expect(shown.accepted).toBe(false);
     if (shown.accepted) throw new Error("unreachable");
     expect(shown.summary.after!.mismatch).toBeLessThan(shown.summary.before!.mismatch);
@@ -188,7 +248,7 @@ describe("changing a picture", () => {
     expect(shown.summary.method).toBe("blend");
     expect(shown.summary.limit).toContain("cannot be fixed convincingly");
     expect(fake.tables.files).toHaveLength(before);
-    const done = await changeArtwork(fake.admin, actor, tile.id, { action: "make-seamless", method: "mirror" }, true);
+    const done = await change(tile.id, { action: "make-seamless", method: "mirror" }, true);
     expect(done.accepted && done.artwork.label).toBe("tile (seamless)");
     expect(fake.tables.user_artworks).toHaveLength(2);
     expect(fake.tables.user_artworks[1]).toMatchObject({ rights_confirmed_by: USER });
@@ -196,16 +256,16 @@ describe("changing a picture", () => {
 
   it("removes a white box into a new artwork and leaves the first as it was", async () => {
     const boxed = await upload(await logoOnWhite(), "crest.png");
-    const shown = await changeArtwork(fake.admin, actor, boxed.id, { action: "remove-white-background" }, false);
+    const shown = await change(boxed.id, { action: "remove-white-background" }, false);
     expect(shown.accepted).toBe(false);
-    const done = await changeArtwork(fake.admin, actor, boxed.id, { action: "remove-white-background" }, true);
+    const done = await change(boxed.id, { action: "remove-white-background" }, true);
     expect(done.accepted && done.artwork).toMatchObject({ hasAlpha: true, label: "crest (no white box)" });
     expect(fake.tables.user_artworks).toHaveLength(2);
   });
 
   it("only changes pictures, not vectors", async () => {
     const vector = await upload(text(CLEAN_SVG), "b.svg");
-    await expect(changeArtwork(fake.admin, actor, vector.id, { action: "remove-white-background" }, false)).rejects.toMatchObject({ message: REFUSALS.notATile });
+    await expect(change(vector.id, { action: "remove-white-background" }, false)).rejects.toMatchObject({ message: REFUSALS.notATile });
   });
 
   it("turns away a PDF's artwork of a script without storing anything", async () => {

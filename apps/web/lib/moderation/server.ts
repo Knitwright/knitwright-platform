@@ -3,7 +3,8 @@ import { getEnv } from "@/lib/config/env";
 import { chooseModels } from "@/lib/providers/select";
 import { adminClient, productionDeps } from "@/lib/server/deps";
 import { log } from "@/lib/server/log";
-import { screenUpload, type ModerationDeps, type UploadInput } from "./hooks";
+import type { GenerationGate, HumanReviewGate, OrderGate } from "./gate";
+import { assertHumanReviewed, screenBeforeOrder, screenGeneration, screenUpload, type ModerationDeps, type UploadInput } from "./hooks";
 import { meteredVision, visionCostMicrodollars } from "./metered";
 import { DEFAULT_SETTINGS } from "./settings";
 import { createSupabaseStore } from "./store";
@@ -36,3 +37,28 @@ export function moderationDeps(who: Who | null, route: string): ModerationDeps {
 /** The gate the artwork upload route hands to uploadArtwork. */
 export const uploadGate = (route: string) => (input: UploadInput) =>
   screenUpload(moderationDeps(input.userId ? { brandId: input.brandId, userId: input.userId } : null, route), input);
+
+/**
+ * The gate every path that calls a model for a picture hands to its runner (H3, decision 0116).
+ * The spec says "on every AI generation", and until this existed `screenGeneration` had no
+ * production caller at all.
+ */
+export const generationGate =
+  (who: Who, route: string): GenerationGate =>
+  (input) =>
+    screenGeneration(moderationDeps(who, route), { ...who, ...input });
+
+/** The gate every path that hands work to a factory calls before it does (H3, decision 0116). */
+export const orderGate =
+  (who: Who, route: string): OrderGate =>
+  (input) =>
+    screenBeforeOrder(moderationDeps(who, route), { ...who, ...input });
+
+/**
+ * The Class B guard, over the store alone: it reads a person's decision and needs no model and no
+ * meter, so it is cheap to call on the last line before a hand-off.
+ */
+export const humanReviewGate =
+  (): HumanReviewGate =>
+  (versionId) =>
+    assertHumanReviewed(createSupabaseStore(adminClient()), versionId);

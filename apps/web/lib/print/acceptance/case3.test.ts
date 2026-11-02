@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readPdf } from "@/lib/flat/fixtures/pdf-read";
 import { uploadArtwork } from "@/lib/artwork-intake/service";
 import { SVG_REFUSALS } from "@/lib/artwork-intake/messages";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 import type { FillItem } from "../scene";
 import { growRing, intersectRings } from "../geometry/clip";
 import { areaOf, boundsOf } from "../geometry/polygon";
@@ -66,7 +67,7 @@ describe("case 3: a user's vector logo, read through the real intake and reader"
     }
     for (const bytes of world.fake.objects.values()) expect(Buffer.from(bytes).includes(Buffer.from("<svg"))).toBe(false);
     const evil = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>alert(1)</script><rect width="10" height="10"/></svg>';
-    await expect(uploadArtwork(world.fake.admin, { brandId: BRAND, userId: USER }, { bytes: new TextEncoder().encode(evil), fileName: "x.svg", rightsConfirmed: true, now: NOW })).rejects.toMatchObject({ message: SVG_REFUSALS.script });
+    await expect(uploadArtwork(world.fake.admin, { brandId: BRAND, userId: USER }, { bytes: new TextEncoder().encode(evil), fileName: "x.svg", rightsConfirmed: true, now: NOW }, clearUploads())).rejects.toMatchObject({ message: SVG_REFUSALS.script });
   }, 60_000);
 
   it("leaves another brand's logo off with a sentence, as if it were not there", async () => {

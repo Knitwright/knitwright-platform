@@ -61,7 +61,9 @@ const pictureOf = async (brandId: string, ownerId: string): Promise<string> => {
   const id = randomUUID();
   must(await adminClient().from("files").insert({
     id, brand_id: brandId, bucket: "uploads", path: `${brandId}/golden-sample/${randomUUID()}.png`,
-    kind: "photo", content_type: "image/png", bytes: 10, created_by: ownerId,
+    // A golden sample's picture is a photograph somebody took of the sample, which is what
+    // `add_golden_sample_photo` now asks for (security review v5 H1, migration 20261215010000).
+    kind: "photo", provenance: "uploaded", content_type: "image/png", bytes: 10, created_by: ownerId,
   }));
   return id;
 };
@@ -150,6 +152,41 @@ describe("judging a sample", () => {
     const id = must(await rpc("start_golden_sample", { p_brand_id: annBrand, p_user_id: ann.userId, p_product_id: productId, p_run_id: runId })) as string;
     const theirs = await pictureOf(benBrand, ben.userId);
     expect((await rpc("add_golden_sample_photo", { p_brand_id: annBrand, p_user_id: ann.userId, p_golden_sample_id: id, p_file_id: theirs, p_angle: "front", p_caption: "" })).error?.hint).toBe("file_not_found");
+  });
+
+  /**
+   * H1 of the v5 security review (migration 20261215010000, decision 0116). This function used to
+   * accept any `p_file_id` whose only check was that it belonged to the brand, and `golden_sample`
+   * is one of the two provenances an asset may claim that may be artwork or a print file -- so a
+   * generated render could be recorded as the photograph of a signed-off sample with no AI board
+   * and no topology at all. A golden sample is a garment somebody held, so its pictures are
+   * photographs they took of it.
+   *
+   * Two files, made once for this test: `public.files` keeps every row written here for good.
+   */
+  it("refuses a generated render, and anything that is not a photograph, as a sample's picture", async () => {
+    const { productId, runId } = await sampled(ann, annBrand);
+    const id = must(await rpc("start_golden_sample", { p_brand_id: annBrand, p_user_id: ann.userId, p_product_id: productId, p_run_id: runId })) as string;
+    const fileOf = async (kind: string, provenance: string): Promise<string> => {
+      const fileId = randomUUID();
+      must(await adminClient().from("files").insert({
+        id: fileId, brand_id: annBrand, bucket: kind === "render" ? "images" : "uploads",
+        path: `${annBrand}/${kind}/${randomUUID()}.png`, kind, provenance,
+        content_type: "image/png", bytes: 10, created_by: ann.userId,
+      }));
+      return fileId;
+    };
+    const add = (fileId: string) =>
+      rpc("add_golden_sample_photo", { p_brand_id: annBrand, p_user_id: ann.userId, p_golden_sample_id: id, p_file_id: fileId, p_angle: "front", p_caption: "" });
+
+    // A render is not a photograph, whatever made it, so it is turned away on its kind first.
+    expect((await add(await fileOf("render", "generated"))).error?.hint).toBe("golden_sample_photo_not_a_photograph");
+    expect((await add(await fileOf("render", "deterministic"))).error?.hint).toBe("golden_sample_photo_not_a_photograph");
+    // A photograph that a model made is turned away on its provenance, which is the laundering
+    // route the review found: nothing stops a generated picture being stored as `kind: 'photo'`.
+    expect((await add(await fileOf("photo", "generated"))).error?.hint).toBe("golden_sample_photo_was_generated");
+    // And the honest case still works, so the lock is not a wall.
+    must(await add(await pictureOf(annBrand, ann.userId)));
   });
 });
 

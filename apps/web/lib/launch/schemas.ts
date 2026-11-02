@@ -70,9 +70,18 @@ export const saveVersionBody = z.object({ launchProjectId: z.uuid() });
 /**
  * What a panel hands the shell when a run finishes (`offerAsset` of the contract).
  *
- * The role and the provenance are both here, and the action puts them back through `acceptAsset`
- * before anything is written: a body that says "generated" and "print_file" is refused there, in
- * the service and again by the database's own constraint (spec decision 13).
+ * **There is no `provenance` here, and there must never be one again** (security review v5 H1,
+ * decision 0116). It was a `z.enum(["deterministic", "golden_sample", "generated"])` in this body,
+ * which made the one fact the garment lock turns on a string the client sends: a member with
+ * `manageKit` could offer a file a model had made as a `print_file` with
+ * `provenance: "deterministic"`, and all six enforcement points agreed, because every one tested
+ * the board or the graph and none tested the file.
+ *
+ * What made a file is now the file's own (`public.files.provenance`), read by `recordOutput` from
+ * the row. The role stays, because what a panel *wants* a picture used as is a legitimate thing for
+ * it to ask; the server refuses the ask when the file's real provenance will not carry it.
+ * `lib/launch/garment-lock-provenance.test.ts` fails if a provenance reappears in any request
+ * schema.
  */
 export const recordOutputBody = z.object({
   launchProjectId: z.uuid(),
@@ -80,7 +89,6 @@ export const recordOutputBody = z.object({
   asset: z
     .object({
       role: z.enum(["scene", "panel_layer", "print_file"]),
-      provenance: z.enum(["deterministic", "golden_sample", "generated"]),
       fileId: z.uuid(),
       showsPerson: z.boolean().default(false),
     })

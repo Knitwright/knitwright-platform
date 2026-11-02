@@ -227,6 +227,62 @@ export const makePlatformAdmin = async (email: string): Promise<void> => {
   if (added.error) throw new Error(added.error.message);
 };
 
+/**
+ * A person at Knitwright allowing this design's Class B run (spec F-G1; security review v5 H3,
+ * decision 0116).
+ *
+ * Every garment type in these tests is a crew tee, which maps to `TEE-TR-01`, which is Class B --
+ * and the product has said all along that "a Class B run needs one of us to look at this design
+ * first" (`lib/compliance/items.ts` carries it as a blocker in those words). Nothing enforced it
+ * until this review, when `assertHumanReviewed` was finally called before the hand-off.
+ *
+ * The brand's own press is what asks for the review: `screenBeforeOrder` records a check against
+ * the frozen release with `human_review_required` flagged, which is what the ops review queue
+ * shows. This does what a reviewer there does, through the same `moderation_review` function, with
+ * a platform admin of its own because the ops screens are another journey's.
+ */
+export const allowClassBRun = async (projectId: string, label = "class-b-reviewer"): Promise<void> => {
+  const db = admin();
+  const project = await db.from("projects").select("brand_id").eq("id", projectId).single();
+  if (project.error) throw new Error(project.error.message);
+  const brandId = project.data.brand_id as string;
+  const release = await db
+    .from("production_releases")
+    .select("id")
+    .eq("brand_id", brandId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  if (release.error) throw new Error(release.error.message);
+
+  // The review is asked for, then given. Asking here rather than relying on a refused press means a
+  // test that only wants to get past the gate does not have to press twice; `moderation_human_allowed`
+  // reads the newest decision, so a flagged row an earlier press left behind has a lower sequence
+  // number and does not undo this one.
+  const asked = await db.rpc("moderation_record", {
+    p_brand_id: brandId,
+    p_user_id: null,
+    p_target_kind: "version",
+    p_target_id: release.data.id as string,
+    p_hook: "order",
+    p_label: "A Class B run, for review",
+    p_subject_sha256: null,
+    p_result: "flagged",
+    p_reasons: [{ code: "human_review_required", severity: "flag", message: "A run needs our review of the design before it starts.", ruleId: "R-GAP-000" }],
+  });
+  if (asked.error) throw new Error(asked.error.message);
+
+  const reviewer = await createAccount(label, { brand: `Ops ${label}` });
+  await makePlatformAdmin(reviewer);
+  const allowed = await db.rpc("moderation_review", {
+    p_actor: await userIdOf(reviewer),
+    p_check_id: asked.data as string,
+    p_decision: "allowed",
+    p_reason: "Looked at it; it is the club's own kit.",
+  });
+  if (allowed.error) throw new Error(allowed.error.message);
+};
+
 /** The id of the account with this address, read with the server's own key. */
 export const userIdOf = async (email: string): Promise<string> => {
   const { data, error } = await admin().auth.admin.listUsers({ page: 1, perPage: 1000 });

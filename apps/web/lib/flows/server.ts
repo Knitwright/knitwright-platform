@@ -73,13 +73,28 @@ export function flowMeter(admin: SupabaseClient, who: Who, runId: string): FlowM
   };
 }
 
-/** The recorder: L1's one door to a board's output, which asks `acceptAsset` before it writes. */
+/**
+ * The recorder: L1's one door to a board's output.
+ *
+ * A capability hands back a typed `LaunchAsset`, which is the flow's own lock and stays. What it
+ * does **not** get to decide is what made the file: only the role it asks for crosses this seam,
+ * and `recordOutput` reads the provenance from the file's own row (security review v5 H1, decision
+ * 0116). A capability that claimed a generated file was deterministic is refused here, exactly as a
+ * request body now is.
+ */
 export const flowRecorder = (admin: SupabaseClient, who: Who): FlowRecorder => ({
   record: async (input) =>
     await recordOutput(admin, who, {
       boardId: input.boardId,
       kind: input.kind,
-      asset: input.asset,
+      offer:
+        input.asset === null
+          ? null
+          : {
+              role: input.asset.role,
+              file: input.asset.file,
+              showsPerson: input.asset.provenance === "generated" && input.asset.showsPerson,
+            },
       status: input.status,
       credits: input.credits,
     }),

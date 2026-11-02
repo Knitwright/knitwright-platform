@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { accessible } from "./chrome";
-import { createAccount, signIn, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Make (plan v5 Y7, F-S7): the product-created page, a sample of one piece per size, the golden sample the founder
@@ -55,7 +55,7 @@ async function prepare(email: string, projectId: string, name: string): Promise<
   const product = await db.rpc("create_brand_product", { p_brand_id: brandId, p_user_id: userId, p_project_id: projectId, p_name: name });
   if (product.error) throw new Error(product.error.message);
   const picture = await db.from("files").insert({
-    brand_id: brandId, bucket: "uploads", path: `${brandId}/make/${randomUUID()}.png`, kind: "photo", content_type: "image/png", bytes: 10, created_by: userId,
+    brand_id: brandId, bucket: "uploads", path: `${brandId}/make/${randomUUID()}.png`, kind: "photo", provenance: "uploaded", content_type: "image/png", bytes: 10, created_by: userId,
   });
   if (picture.error) throw new Error(picture.error.message);
 }
@@ -124,6 +124,23 @@ test.describe("make (Y7)", () => {
     await accessible(page);
     await page.getByLabel("Size M", { exact: true }).fill("60");
     await expect(page.getByText(/60 pieces/)).toBeVisible();
+
+    /**
+     * The Class B review (spec F-G1; security review v5 H3, decision 0116). A crew tee is Class B,
+     * and the product has said all along that "a Class B run needs one of us to look at this design
+     * first" -- `lib/compliance/items.ts` carries that as a blocker in so many words. Nothing
+     * enforced it until this review: `assertHumanReviewed` had no production caller.
+     *
+     * So the press is refused, which is what puts the design in the ops review queue, and the same
+     * press goes through once a person there has allowed it.
+     */
+    await page.getByRole("button", { name: "Hand this order to production" }).click();
+    await expect(page.getByText(/needs our review before a run can start/)).toBeVisible();
+
+    await allowClassBRun(projectId, "make-reviewer");
+
+    await page.reload();
+    await page.getByLabel("Size M", { exact: true }).fill("60");
     await page.getByRole("button", { name: "Hand this order to production" }).click();
     await expect(page.getByText(/Sent to production: 1 order/)).toBeVisible();
   });

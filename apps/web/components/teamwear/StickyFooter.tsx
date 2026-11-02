@@ -36,8 +36,10 @@ export type StickyFooterProps = Readonly<{
   onStudio: () => void;
   saving: boolean;
   onQuote: () => void;
-  /** What the quote seam said, or null while nobody has asked for one. */
+  /** What the quote said, or null while nobody has asked for one. */
   quoteNote: string | null;
+  /** Where the quote PDF comes down from, or null when there is no quote to download. */
+  quoteHref: string | null;
   onHandoff: () => void;
   /** The hand-off reference, or the reason there is none. */
   handoffNote: string | null;
@@ -128,7 +130,26 @@ export function StickyFooter(props: StickyFooterProps) {
         {price.factoryName === null ? null : <p>Prices from {price.factoryName}. {line?.tierLabel ?? ""}</p>}
         <p>{PATTERN_COST_NOTE}</p>
         {props.namesNumbers ? <p data-testid="teamwear-names-cost">{NAMES_COST_NOTE}</p> : null}
-        {props.quoteNote === null ? null : <p data-testid="teamwear-quote-note">{props.quoteNote}</p>}
+        {props.quoteNote === null ? null : (
+          <p data-testid="teamwear-quote-note">
+            {props.quoteNote}
+            {props.quoteHref === null ? null : (
+              <>
+                {" "}
+                {/* A plain anchor, as the crest-to-kit card uses: the address is an API download, and a
+                    prefetched link would build the PDF on hover. Underlined and `text-ink`, because
+                    the muted grey of this note is not AA at this size. */}
+                <a
+                  href={props.quoteHref}
+                  className="text-ink underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-soft"
+                  data-testid="teamwear-quote-download"
+                >
+                  Download the quote (PDF)
+                </a>
+              </>
+            )}
+          </p>
+        )}
         {props.handoffNote === null ? null : <p data-testid="teamwear-handoff-note">{props.handoffNote}</p>}
       </div>
     </section>

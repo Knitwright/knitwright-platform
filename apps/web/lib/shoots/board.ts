@@ -170,32 +170,6 @@ export function cropOf(aspect: ShootAspect, sceneCrops: readonly Crop[]): Crop {
 export const sceneSlugOf = (stored: Readonly<Record<string, unknown>>): string | null => text(stored["sceneSlug"], 64);
 
 /**
- * A key for the credit ledger: one per board and per set of settings, so pressing Regenerate on an
- * unchanged board does not charge twice and changing a setting does charge again. The settings are
- * written in a fixed order, so the same board in the same state always gives the same key.
- *
- * **The automatic second attempt is not in the key on purpose.** F-L1 says a result the checker
- * turns away is generated again once; the person asked for one picture and pays for one, so the
- * retry runs on the same key and cannot charge a second time. The platform's own spend is metered
- * per model call either way (`run.ts`), because that money is really spent.
+ * The key a run's credit line goes under is **not** here: it is a digest, which needs `node:crypto`,
+ * and a client component imports this file through `lib/shoots/index.ts`. See `./board-key.ts`.
  */
-export function idempotencyKeyOf(boardId: string, settings: ShootBoardSettings): string {
-  const parts = [
-    boardId,
-    settings.sceneSlug ?? "",
-    settings.style,
-    settings.aspect,
-    String(settings.count),
-    settings.poseKey ?? "",
-    settings.cameraKey ?? "",
-    settings.modelSource,
-    settings.modelPresetKey ?? "",
-    settings.modelFileId ?? "",
-    settings.backgroundSource,
-    settings.backgroundKey ?? "",
-    settings.backgroundText,
-    [...settings.extraProductIds].sort().join(","),
-    settings.prompt,
-  ];
-  return `shoot:${parts.join("|")}`.slice(0, 200);
-}

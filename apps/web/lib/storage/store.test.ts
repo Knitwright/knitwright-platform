@@ -33,6 +33,7 @@ const input = async (admin: SupabaseClient) => ({
   brandId: "11111111-1111-4111-8111-111111111111",
   userId: "22222222-2222-4222-8222-222222222222",
   kind: "artwork" as const,
+  provenance: "uploaded" as const,
   bytes: await png(),
   statedType: "image/png",
 });
@@ -174,7 +175,7 @@ describe("storeImage, for a generated picture", () => {
       }),
     } as unknown as SupabaseClient;
 
-    const stored = await storeImage({ ...(await input(admin)), kind: "render" });
+    const stored = await storeImage({ ...(await input(admin)), kind: "render", provenance: "generated" });
 
     expect([...new Set(buckets)]).toEqual(["images"]);
     expect(rows[0]).toMatchObject({ bucket: "images", kind: "render" });

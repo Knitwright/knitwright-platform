@@ -46,7 +46,12 @@ export function backdropFor(sportId: string): Readonly<{ id: BackdropId; label: 
   return { id, label: BACKDROP_LABELS[id] };
 }
 
-/** How long one turn of the turntable takes, in seconds. The 3D scene already takes this as a number. */
+/**
+ * How long one turn of the configurator's stage takes, in seconds. The 3D scene already takes this
+ * as a number. It is framing for someone looking at a kit (decision 0086), NOT the length of a
+ * recorded turntable: that is six seconds, under a constant of the same name in
+ * `lib/media/video/limits.ts` (decision 0120).
+ */
 export const TURNTABLE_SECONDS = 12;
 
 /** Nothing turns by itself for a person who has asked their device for less motion. */
