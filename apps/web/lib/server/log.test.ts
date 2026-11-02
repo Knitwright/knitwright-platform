@@ -139,8 +139,9 @@ describe("scrub", () => {
 
   it("removes the token of a roster sign-up link too (plan v5 Z7)", async () => {
     const { scrub } = await import("./log");
-    // Built rather than written out: a 43-character literal of the right shape is what the secret
-    // scan is for, and one allowance in `.gitleaksignore` is enough for this file.
+    // Assembled, for the reason the share-link test above gives at length: a 43-character literal
+    // of this shape reads as a real key to the secret scan, and an allowance keyed by line number
+    // stops matching as soon as anything moves the line. Only the shape matters.
     const token = "x".repeat(43);
     expect(scrub(`GET https://app.knitwright.com/join/${token} failed`)).toBe("GET https://app.knitwright.com/join/[removed] failed");
   });
