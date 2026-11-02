@@ -26,9 +26,11 @@ const WEB = fileURLToPath(new URL("../../", import.meta.url));
 const SKIP_ANYWHERE = new Set(["node_modules", ".next", "test-results", "playwright-report", "coverage"]);
 
 /**
- * The two test trees, skipped **only at the app root**: a test may not stand in for a caller. The
- * name alone would be too much to go on -- `app/api/fabrics/[fabricId]/tests/route.ts` is a route a
- * person can reach, in a directory called `tests`.
+ * The two test trees, skipped by their path from the app root, not by their name. **A test may not
+ * stand in for a caller**: an action called only from `e2e/support.ts`, or a route whose address is
+ * only written down in a test helper, is still a thing no person can reach, and the sweep must say
+ * so. The name alone would be too much to go on -- `app/api/fabrics/[fabricId]/tests/route.ts` is a
+ * route a person can reach, in a directory called `tests`.
  */
 const SKIP_AT_ROOT = new Set(["tests", "e2e"]);
 
@@ -44,7 +46,11 @@ export type Path = string;
 const walk = (dir: string, out: string[] = []): string[] => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      const skip = SKIP_ANYWHERE.has(entry.name) || (dir === WEB.replace(/\/$/, "") && SKIP_AT_ROOT.has(entry.name));
+      // The app-relative path, not the name: "tests" at the root is the test tree, and
+      // "app/api/fabrics/[fabricId]/tests" is a route. Comparing `dir` with the root would miss,
+      // because the walk starts at the root with its trailing slash still on it.
+      const where = relative(WEB, join(dir, entry.name)).replaceAll("\\", "/");
+      const skip = SKIP_ANYWHERE.has(entry.name) || SKIP_AT_ROOT.has(where);
       if (!skip) walk(join(dir, entry.name), out);
     } else if (IS_SOURCE.test(entry.name) && !IS_TEST.test(entry.name) && !/\.d\.ts$/.test(entry.name)) {
       out.push(join(dir, entry.name));

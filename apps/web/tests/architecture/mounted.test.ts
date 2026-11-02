@@ -202,6 +202,16 @@ describe("every component has a door", () => {
     expect(sweep.files.filter((path) => path.startsWith("components/")).length).toBeGreaterThan(300);
   });
 
+  it("leaves the test trees out, so a test can never stand in for a caller", () => {
+    // Both are skipped by their path from the app root. A helper in either of them naming an action
+    // or an address would otherwise make a thing no person can reach look reached.
+    for (const path of ["e2e/support.ts", "e2e/chrome.ts", "tests/architecture/mounted.ts", "tests/stubs/server-only.ts"]) {
+      expect(sweep.files, path).not.toContain(path);
+    }
+    // And a route in a directory called `tests` is still a route, so the skip is by path, not name.
+    expect(sweep.files).toContain("app/api/fabrics/[fabricId]/tests/route.ts");
+  });
+
   it("reaches a component a page really draws, and does not reach one nothing imports", () => {
     // The traversal works: the studio home draws these, through two and three hops.
     expect(sweep.reached.has("components/home/DesignCard.tsx")).toBe(true);
