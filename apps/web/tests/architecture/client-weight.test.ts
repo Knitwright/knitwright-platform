@@ -45,7 +45,50 @@ const resolveImport = (spec: string, from: string): string | null => {
   return found ?? null;
 };
 
+/**
+ * Modules that must never be reachable from a client component at all, however light they are:
+ * `sharp` is a native binary, a Node builtin does not exist in a browser, and `server-only` is the
+ * marker a module carries to say so. Unlike the weight rule above this one has no second pass and
+ * no exclusion list — there is nothing to stage, because a page that reaches any of these is
+ * broken rather than slow. `import "server-only"` is a side effect with no `from`, so it needs its
+ * own pattern; the weight rule's `from "…"` anchor could never have seen it.
+ */
+const FORBIDDEN_FROM = /^(?:import|export)\s+(?!type\b)[^;]*?from\s+"(sharp|node:[a-z_]+)(\/[^"]*)?"/m;
+const FORBIDDEN_BARE = /^\s*import\s+"(server-only)"/m;
+
 const isServerActions = (text: string): boolean => /^\s*["']use server["']/.test(text);
+
+/** Every module `file` names, statically or through `import("…")`. */
+const importsOf = (text: string): string[] => [
+  ...[...text.matchAll(/^(?:import|export)\s+(?!type\b)[^;]*?from\s+"([^"]+)"/gm)].map((m) => m[1]),
+  ...[...text.matchAll(/\bimport\(\s*"([^"]+)"\s*\)/g)].map((m) => m[1]),
+];
+
+/**
+ * The import chain from `file` to a module no browser may load, or null when there is none. A
+ * lazily loaded chunk is still a client chunk, so this one follows `import("…")` as well, which
+ * the weight rule deliberately does not.
+ */
+const forbiddenChain = (file: string, seen: Set<string> = new Set()): string[] | null => {
+  if (seen.has(file)) return null;
+  seen.add(file);
+  const text = readFileSync(file, "utf8");
+  if (isServerActions(text)) return null;
+  const hit = FORBIDDEN_FROM.exec(text) ?? FORBIDDEN_BARE.exec(text);
+  if (hit) return [hit[1]];
+  for (const spec of importsOf(text)) {
+    const next = resolveImport(spec, file);
+    const chain = next ? forbiddenChain(next, seen) : null;
+    if (chain) return [relative(ROOT, next!).replaceAll("\\", "/"), ...chain];
+  }
+  return null;
+};
+
+/** Every `"use client"` file in the app, wherever it lives. */
+const clientComponents = (): string[] =>
+  [...sourceFiles("components"), ...sourceFiles("app")]
+    .map((file) => relative(ROOT, file).replaceAll("\\", "/"))
+    .filter((path) => /^["']use client["']/m.test(readFileSync(join(ROOT, path), "utf8")));
 
 /** The import chain from `file` to a heavy library, or null when there is none. */
 const heavyChain = (file: string, seen: Set<string> = new Set()): string[] | null => {
@@ -73,5 +116,24 @@ describe("client weight", () => {
       .filter(({ chain }) => chain !== null)
       .map(({ path, chain }) => `${path} -> ${chain!.join(" -> ")}`);
     expect(offenders).toEqual([]);
+  });
+
+  it("keeps sharp, the Node builtins and every server-only module out of every client component", () => {
+    const offenders = clientComponents()
+      .map((path) => ({ path, chain: forbiddenChain(join(ROOT, path)) }))
+      .filter(({ chain }) => chain !== null)
+      .map(({ path, chain }) => `${path} -> ${chain!.join(" -> ")}`);
+    expect(offenders).toEqual([]);
+  });
+
+  it("reads the client components of app/ as well as components/, and skips none of them", () => {
+    // The weight rule above reads only `components/` and stages nine of its directories, so on its
+    // own it says nothing about `app/` or about the staged directories. The rule above this line has
+    // no such gaps, and this is what fails if someone gives it one (security-v5, M2).
+    const paths = clientComponents();
+
+    expect(paths.filter((path) => path.startsWith("app/")).length).toBeGreaterThan(0);
+    expect(paths.filter((path) => SECOND_PASS.some((prefix) => path.startsWith(prefix))).length).toBeGreaterThan(0);
+    expect(paths.length).toBeGreaterThan(sourceFiles("components").length / 2);
   });
 });

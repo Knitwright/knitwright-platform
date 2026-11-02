@@ -44,23 +44,41 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "design_comments", holds: "comment text that may name people, and the author's id", erasableAlone: false },
   { table: "design_comment_edits", holds: "the earlier words of a changed comment", erasableAlone: false },
   { table: "design_comment_mentions", holds: "the ids of members a comment names", erasableAlone: false },
-  // Committee link v2 and roster sign-up (plan v5 Z7, decision 0087). These are the only tables in the
-  // product a person with no account writes to, so they are the ones most likely to hold a name nobody
-  // on the brand typed. The rows already go with their design or their season through their keys, and
-  // the migration's own comments say so; what was missing until review v5 (decision 0110) was their
-  // place on this list, and so their place in the test below. Decision 0087 asked for both.
-  //
-  // None of them can be erased on its own: a pin, a vote and an approval are append-only by trigger,
-  // and a sign-up entry has no erase function of its own, unlike `roster_players`. Review v5 lists that
-  // as a finding for the owner, because a committee member who asks for their words to be removed can
-  // be answered today only by deleting the whole design.
-  { table: "committee_links", holds: "no names of people: a token hash, who made the link and when", erasableAlone: false },
-  { table: "committee_link_versions", holds: "no names: which saved version each A/B/C slot shows", erasableAlone: false },
-  { table: "committee_pins", holds: "the name a committee member gave and the words of their pin, which can name people", erasableAlone: false },
-  { table: "committee_votes", holds: "the name a committee member gave with their vote", erasableAlone: false },
-  { table: "committee_approvals", holds: "the name of whoever approved a version, and their email address when one was offered", erasableAlone: false },
-  { table: "committee_locks", holds: "no names: which version a kit manager locked, against which approval and when", erasableAlone: false },
-  { table: "roster_signup_links", holds: "no names of people: a token hash, who made the link and when", erasableAlone: false },
-  { table: "roster_signup_requests", holds: "the names, phone numbers and email addresses of the players a club is waiting on", erasableAlone: false },
-  { table: "roster_signup_entries", holds: "a player's shirt name, number, size and wearer group, as the player sent them", erasableAlone: false },
+  // Invited people (plan v5 Y8, decision 0086). An invite holds the address it was sent to, so it is
+  // personal data about someone who may never have signed in. It goes with its design through
+  // (project_id, brand_id), and so with the brand.
+  { table: "share_invites", holds: "the email address a design was shared with, and the member's words to them", erasableAlone: false },
+  // None of the nine can be erased on its own: a pin, a vote and an approval are append-only by
+  // trigger, and a sign-up entry has no erase function of its own, unlike `roster_players`. So a
+  // committee member who asks for their words to be removed can be answered today only by deleting
+  // the whole design. Recorded as a finding for the owner by both reviews (0110 and security-v5 M3).
+  // The committee link and the roster sign-up link (plan v5 Z7, decision 0087). Neither the strangers
+  // who answer nor the players named have an account, so everything they leave is personal data about
+  // someone who cannot delete it themselves. Every record hangs off its link by (link_id, brand_id);
+  // the link hangs off the design or the season, and so off the brand. The tests below check both hops.
+  { table: "committee_links", holds: "no names: a token fingerprint and who made the link", erasableAlone: false },
+  { table: "committee_link_versions", holds: "no names: which design version sits in which slot", erasableAlone: false },
+  { table: "committee_pins", holds: "the name a visitor typed and their comment on the design", erasableAlone: false },
+  { table: "committee_votes", holds: "the name a visitor typed and which option they chose", erasableAlone: false },
+  { table: "committee_approvals", holds: "the name a visitor typed and, when they offered one, their email address", erasableAlone: false },
+  { table: "committee_locks", holds: "no names of visitors: which version a manager locked, and when", erasableAlone: false },
+  { table: "roster_signup_links", holds: "no names: a token fingerprint and who made the link", erasableAlone: false },
+  { table: "roster_signup_requests", holds: "a player's name and, when the manager has them, their phone number and email address", erasableAlone: false },
+  { table: "roster_signup_entries", holds: "the name a player wants on the shirt, their number and their size", erasableAlone: false },
+];
+
+/**
+ * Tables that hold an email address or a phone number and are deliberately NOT in the register
+ * above, with the reason. The test beside this file requires every other table in every migration
+ * that has such a column to be registered, so a new one cannot hold an address unnoticed.
+ */
+export const ADDRESS_HOLDERS_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
+  {
+    table: "access_requests",
+    why: "A request to be let in, made before any brand exists. It belongs to no brand, so no brand's deletion can take it; it is erased through the platform-admin screen instead.",
+  },
+  {
+    table: "takedown_notices",
+    why: "A third party's report that a brand is using their mark. Erasing it with the brand would destroy the record of the complaint and of what was decided. Retention is an owner decision (security-v5, M3).",
+  },
 ];

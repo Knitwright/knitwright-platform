@@ -11,21 +11,34 @@ import { expect, type Locator, type Page } from "@playwright/test";
  */
 
 /**
- * No axe problem of impact serious or critical, and the node and the figures it failed on when
- * there is one, so a fault names the element and its colours rather than only its rule.
+ * Waits for the entrance animations to end, so a measurement is of the settled page.
  *
- * The scan waits for the entrance animations first: the drifting aurora never stops, so only the
- * animations that end are waited for, and text still fading in fails the contrast rule for a
- * moment.
+ * `globals.css`'s `kw-rise` runs for 900 ms and starts at `translateY(18px) scale(0.985)`, so
+ * anything measured while it plays is up to 1.5% small and up to 18 px high: a 40 px tap target
+ * measures 39.4, which rounds to 39 and fails a 40 px floor. That is how
+ * `studio-chrome.spec.ts`'s "the way home is this wide" failed on a loaded runner while passing
+ * everywhere else -- the assertion was right and the moment was wrong.
+ *
+ * The drifting aurora never ends, so only the animations that finish are waited for. Text still
+ * fading in also fails the contrast rule for a moment, which is why `accessible` waits too.
+ */
+export const settled = async (page: Page): Promise<void> => {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
+  );
+};
+
+/**
+ * No axe problem of impact serious or critical, and the node and the figures it failed on when
+ * there is one, so a fault names the element and its colours rather than only its rule. It waits
+ * for the page to settle first, because text still fading in fails the contrast rule for a moment.
  *
  * `within` narrows the scan to one part of the page, for a panel on a screen the whole suite does
  * not yet scan: a new panel is then held to the bar without its test standing or falling on
  * everything else that screen already draws.
  */
 export const accessible = async (page: Page, within?: string): Promise<void> => {
-  await page.waitForFunction(() =>
-    document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
-  );
+  await settled(page);
   const builder = new AxeBuilder({ page });
   const { violations } = await (within === undefined ? builder : builder.include(within)).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
@@ -43,6 +56,9 @@ const CONTROL_PADDING = 12;
  * The last control of the row is the first to go, whichever control that is at this width.
  */
 export const headerFits = async (page: Page, where = ""): Promise<void> => {
+  // Settled first, or the entrance's inward scale pulls the last control back inside the glass and
+  // a real spill measures as none: this guard was weaker than it read while the animation played.
+  await settled(page);
   const measured = await page.evaluate(() => {
     const bar = document.querySelector("header");
     if (bar === null) return null;

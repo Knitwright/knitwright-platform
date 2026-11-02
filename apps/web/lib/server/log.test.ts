@@ -156,6 +156,15 @@ describe("scrub", () => {
     const token = `aa-sk-${"b".repeat(20)}${"c".repeat(17)}`;
     expect(scrub(`GET https://app.knitwright.com/job/${token}/sheet failed`)).toBe("GET https://app.knitwright.com/job/[removed]/sheet failed");
   });
+
+  it("removes the token of a roster sign-up link too (plan v5 Z7)", async () => {
+    const { scrub } = await import("./log");
+    // Assembled, for the reason the share-link test above gives at length: a 43-character literal
+    // of this shape reads as a real key to the secret scan, and an allowance keyed by line number
+    // stops matching as soon as anything moves the line. Only the shape matters.
+    const token = "x".repeat(43);
+    expect(scrub(`GET https://app.knitwright.com/join/${token} failed`)).toBe("GET https://app.knitwright.com/join/[removed] failed");
+  });
 });
 
 describe("AI provider keys", () => {
