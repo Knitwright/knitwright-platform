@@ -1,7 +1,9 @@
 # Security review of plan v5 (R1)
 
-Reviewed 2026-11-02 at main `08a18ea2`, with `fix/v5-wave4-wiring` (#140) merged in before the final push. Scope: the
-platform only (not the Store, `Sportswear/`, `kitwright/`, `supabase/config.toml`). All thirty v5 workstreams are merged;
+Reviewed 2026-11-02 at main `08a18ea2`. `main` was merged again before the final push and brought nothing new, because
+`fix/v5-wave4-wiring` (#140) was still open — so the wave-4 wiring is **not** in what was reviewed; what it changes is
+recorded under H1 instead. Scope: the platform only (not the Store, `Sportswear/`, `kitwright/`,
+`supabase/config.toml`). All thirty v5 workstreams are merged;
 this reviews the finished thing. No paid model call was made and no database was started — one local Supabase is shared
 with the orchestrator, so the database findings were traced from the SQL and the new tests are left for CI to run.
 
