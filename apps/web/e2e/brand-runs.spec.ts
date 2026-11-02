@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { accessible, openStudioSection } from "./chrome";
-import { createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan W4-C (decision 0062): a small brand lists a design as a product, orders a sample of one piece per size, moves the product
@@ -54,6 +54,11 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startDesign(page, "Fern hoodie");
     await freeze(email, projectId);
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
+    // run starts (spec F-G1; security review v5 H3, decision 0116). Given up front: this test is
+    // about the stages and the ops queue, and `e2e/make.spec.ts` is where the refusal and the
+    // allowance are themselves the thing being tested.
+    await allowClassBRun(projectId, "brand-runs-reviewer");
 
     // Brand is one of the sections the top bar lists in its overflow menu (decision 0103).
     await openStudioSection(page, "Brand");

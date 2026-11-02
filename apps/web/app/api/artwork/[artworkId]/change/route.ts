@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { changeArtwork } from "@/lib/artwork-intake/service";
+import { uploadGate } from "@/lib/moderation/server";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -27,5 +28,9 @@ export const POST = defineRoute({
       input.params.artworkId,
       input.body.change,
       input.body.accept,
+      // The changed picture is a new asset, so it is screened like any other upload. This route
+      // inherited the original's rights confirmation and not its moderation verdict (security
+      // review v5 H3, decision 0116).
+      uploadGate("POST /api/artwork/[artworkId]/change"),
     ),
 });

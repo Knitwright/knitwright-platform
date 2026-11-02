@@ -59,6 +59,8 @@ const input = (over: Partial<MakeInput> = {}): MakeInput => ({
   specsByVersion: new Map(),
   factory,
   currency: "GBP",
+  // The pictures an order names to the content review (security review v5 H3, decision 0116).
+  moderationAssetIds: [],
   ...over,
 });
 

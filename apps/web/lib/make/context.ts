@@ -65,6 +65,13 @@ export interface MakeInput {
   readonly specsByVersion: ReadonlyMap<number, GarmentSpec>;
   readonly factory: FactoryFacts;
   readonly currency: SellCurrency;
+  /**
+   * Every uploaded picture the design uses, once each, so an order can name them to the content
+   * review (spec F-G1 "before every order"; security review v5 H3, decision 0116). Worked out in
+   * `server.ts` from the spec, which is read there, rather than here: this file is reachable from a
+   * client component and `lib/validation/spec-input` is not something a browser should carry.
+   */
+  readonly moderationAssetIds: readonly string[];
 }
 
 export interface MakeContext extends Omit<MakeInput, "spec" | "specsByVersion"> {

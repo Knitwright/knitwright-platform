@@ -20,8 +20,17 @@ import { isGeneratedKind, LAUNCH_GAP_RULE, type BoardKind, type OutputRole } fro
  * call it on every result. This file decides only what a picture is *allowed to be used as*.
  */
 
-/** Where a picture came from. A picture with no provenance is not an asset and cannot be made one. */
-export const PROVENANCES = ["deterministic", "golden_sample", "generated"] as const;
+/**
+ * Where a picture came from. A picture with no provenance is not an asset and cannot be made one.
+ *
+ * Three of these four are the file's own, read from `public.files.provenance`
+ * (`lib/storage/provenance.ts`) and never from a request body: the v5 security review's H1 found
+ * that `provenance` was a `z.enum` the client sent, and that `public.files` held nothing that could
+ * answer instead. `golden_sample` is the one that is not a property of the file: a photograph
+ * becomes a golden sample's when it is attached to one, which `golden_sample_photos` records and
+ * `add_golden_sample_photo` now refuses to do for anything a model made.
+ */
+export const PROVENANCES = ["deterministic", "uploaded", "golden_sample", "generated"] as const;
 export type AssetProvenance = (typeof PROVENANCES)[number];
 
 /** A file in our own storage. No bytes cross this seam, as with the files-service contract. */
@@ -43,10 +52,13 @@ export interface SceneAsset {
   readonly showsPerson: boolean;
 }
 
-/** A picture the platform drew, or the photograph of a signed-off golden sample. */
+/**
+ * A picture the platform drew, one the brand supplied, or the photograph of a signed-off golden
+ * sample. What these three have in common is the only thing the lock asks: no model made them.
+ */
 export interface DrawnAsset {
   readonly role: "scene" | "panel_layer" | "print_file";
-  readonly provenance: "deterministic" | "golden_sample";
+  readonly provenance: "deterministic" | "uploaded" | "golden_sample";
   readonly file: AssetFile;
 }
 
@@ -106,4 +118,57 @@ export function acceptAsset(kind: BoardKind, asset: LaunchAsset): AssetVerdict {
   // Every kind left is one the platform draws itself, so `canBeArtwork` holds and the asset may
   // take any of the three roles.
   return { accepted: true, role };
+}
+
+/**
+ * WHAT A PANEL OFFERS, AND WHERE ITS PROVENANCE COMES FROM (security review v5 H1, decision 0116).
+ *
+ * A panel says which file it produced and what it wants that file used as. It does **not** say what
+ * made the file: the server reads that from the file's own row, because a body is a thing a person
+ * can write. `lib/launch/schemas.ts` therefore has no `provenance` field at all, and
+ * `garment-lock-provenance.test.ts` fails if one ever comes back.
+ */
+export interface AssetOffer {
+  readonly role: LaunchAsset["role"];
+  readonly file: AssetFile;
+  /** True when a person is in the picture. Only meaningful for a picture a model made. */
+  readonly showsPerson: boolean;
+}
+
+/**
+ * The asset an offer becomes, once the file's own provenance is known.
+ *
+ * There is no cast here, and that is the point. The old `assetFrom` in `lib/launch/actions.ts`
+ * asserted `as LaunchAsset` on purpose, on the premise that `acceptAsset` would refuse an asset the
+ * type system could not describe -- and `acceptAsset` only entered its refusal branch when the body
+ * *admitted* `"generated"`. A generated file is now given the role `"scene"` outright, so the
+ * `SceneAsset` that comes out is one the compiler can check, and `acceptAsset` is still asked
+ * afterwards about the board it is going on.
+ */
+export function assetOffered(offer: AssetOffer, provenance: AssetProvenance): LaunchAsset {
+  if (provenance === "generated") {
+    return { role: "scene", provenance, file: offer.file, label: GENERATED_LABEL, showsPerson: offer.showsPerson };
+  }
+  return { role: offer.role, provenance, file: offer.file };
+}
+
+/**
+ * Whether this board may record this offer, given what really made the file.
+ *
+ * Two questions, in this order, so a person is told the useful one first: did they ask a board the
+ * platform draws to hold a picture a model made, and did they ask for a role that picture may never
+ * have? `acceptAsset` answers both, and the role it hands back is the one to write down.
+ */
+export function acceptOffer(kind: BoardKind, offer: AssetOffer, provenance: AssetProvenance): AssetVerdict {
+  if (provenance === "generated" && offer.role !== "scene" && !isGeneratedKind(kind)) {
+    return {
+      accepted: false,
+      reason: `A ${kind.replaceAll("_", " ")} board shows what the platform drew, so it cannot hold a generated picture.`,
+      ruleId: LAUNCH_GAP_RULE,
+    };
+  }
+  if (provenance === "generated" && offer.role !== "scene") {
+    return { accepted: false, reason: "A generated picture never becomes a layer on the garment or part of a print file.", ruleId: LAUNCH_GAP_RULE };
+  }
+  return acceptAsset(kind, assetOffered(offer, provenance));
 }

@@ -87,6 +87,18 @@ export interface ListingInput {
   readonly designVersion: number | null;
   /** The boards to offer, by id. Empty means every board of the canvas that has a finished output. */
   readonly boardIds?: readonly string[];
+  /**
+   * The output files of this canvas that a model made, read from `public.files.provenance`
+   * (security review v5 H1, decision 0116).
+   *
+   * The label used to be worked out from the graph alone, and the graph is a sound answer again now
+   * that `recordOutput` reads a file's provenance from its own row -- a generated file can no
+   * longer be recorded on a board the platform draws. This is the belt beside that brace, and it is
+   * the answer the review asked for: label from the file. A caller that cannot read the rows, such
+   * as the panel drawing a preview in the browser, leaves it out and gets the topology answer,
+   * which can only ever be as strict or stricter than it was.
+   */
+  readonly generatedFileIds?: readonly string[];
 }
 
 const roleOf = (format: FlowFormat): MediaRole => (format === "mp4" ? "video" : "image");
@@ -97,10 +109,13 @@ const roleOf = (format: FlowFormat): MediaRole => (format === "mp4" ? "video" : 
  */
 export function listingPayload(graph: Graph, input: ListingInput): ListingPayload {
   const wanted = input.boardIds === undefined ? null : new Set(input.boardIds);
+  const fromAModel = new Set(input.generatedFileIds ?? []);
   const media = graph.boards
     .filter((board) => board.status === "ready" && board.outputFileId !== null && (wanted === null || wanted.has(board.id)))
     .map((board, at): ListingMedia => {
-      const generated = carriesGenerated(graph, board.id);
+      // Either answer is enough to label it: what the graph says could have reached this board, and
+      // what the file's own row says made it.
+      const generated = carriesGenerated(graph, board.id) || fromAModel.has(board.outputFileId as string);
       const format = boardFormat(board);
       return {
         boardId: board.id,

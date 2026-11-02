@@ -130,6 +130,9 @@ async function passedMedia(s: Scene, generated: Uint8Array, costMicrodollars: nu
     checker: "passed",
     provider: s.provider.name,
     costMicrodollars,
+    // Fixed per scene, never anything a person typed (`./scenes.ts`), and carried so the set can
+    // screen it with the picture (security review v5 H3).
+    prompt: promptFor(s.scene),
   };
 }
 

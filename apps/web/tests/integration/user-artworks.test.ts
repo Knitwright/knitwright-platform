@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { createAssetReader, readVectorModel } from "@/lib/artwork-intake";
 import { deleteArtwork, listArtworks, uploadArtwork } from "@/lib/artwork-intake/service";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 import { adminClient, brandOf, person, type Person } from "./support";
 
 /**
@@ -25,7 +26,7 @@ beforeAll(async () => {
 });
 
 const upload = (brandId: string, who: Person, bytes: Uint8Array, fileName: string) =>
-  uploadArtwork(adminClient(), { brandId, userId: who.userId }, { bytes, fileName, rightsConfirmed: true, now: NOW });
+  uploadArtwork(adminClient(), { brandId, userId: who.userId }, { bytes, fileName, rightsConfirmed: true, now: NOW }, clearUploads());
 
 /** Every object the brand has in the three buckets. */
 const storedObjects = async (brandId: string): Promise<string[]> => {

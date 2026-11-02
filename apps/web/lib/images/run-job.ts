@@ -1,4 +1,5 @@
 import type { View } from "@/lib/flat/model";
+import type { GenerationGate } from "@/lib/moderation/gate";
 import { ProviderError, type GeneratedImage, type ImageProvider, type ImageRequest } from "@/lib/providers";
 import { AppError } from "@/lib/server/core/errors";
 import type { LogEvent } from "@/lib/server/core/guard";
@@ -18,6 +19,9 @@ const JOB_TIME_LIMIT_MS = 50_000;
 export const FAILED_MESSAGE = "The images could not be made. The cost has been given back. Try again.";
 export const UNAVAILABLE_MESSAGE =
   "Photoreal images are not available right now. The cost has been given back.";
+/** Said when the content review refuses what the model made. The cost goes back, as for any failure. */
+export const BLOCKED_MESSAGE =
+  "The pictures the model made were refused by the content review, so they have not been kept. The cost has been given back.";
 
 export interface JobStore {
   markRunning(jobId: string): Promise<void>;
@@ -25,9 +29,23 @@ export interface JobStore {
   markFailed(jobId: string, message: string): Promise<void>;
 }
 
+/** Refused by the content review. Carried as its own error so `failureMessage` can name it. */
+export class BlockedByReview extends Error {
+  constructor() {
+    super(BLOCKED_MESSAGE);
+    this.name = "BlockedByReview";
+  }
+}
+
 export interface RunJobDeps {
   readonly provider: ImageProvider;
   readonly jobs: JobStore;
+  /**
+   * X8's `screenGeneration`, bound to the brand and the person (`lib/moderation/gate.ts`). The spec
+   * asks for a screen on every AI generation, and this is one; a blocked picture is never stored
+   * (H3 of the v5 security review, decision 0116).
+   */
+  readonly screen: GenerationGate;
   /** Checks and stores one picture. Returns its file id. */
   readonly saveImage: (view: View, image: GeneratedImage) => Promise<string>;
   /** Removes stored pictures, their objects and their rows, when the job cannot keep them. */
@@ -47,6 +65,7 @@ const WHERE = "photoreal job";
 
 /** What the person is told. A full brand storage says so, since trying again will not help. */
 const failureMessage = (error: unknown): string => {
+  if (error instanceof BlockedByReview) return BLOCKED_MESSAGE;
   if (error instanceof ProviderError && error.refused) return UNAVAILABLE_MESSAGE;
   if (error instanceof AppError && error.code === "over_quota") return `${error.message} The cost has been given back.`;
   return FAILED_MESSAGE;
@@ -68,6 +87,13 @@ async function make(deps: RunJobDeps, work: JobWork): Promise<void> {
     deps.provider.generate(work.requests.front, signal),
     deps.provider.generate(work.requests.back, signal),
   ]);
+  // The screen comes between the model and the store, so nothing the review blocks is ever kept
+  // (spec F-G1 "on every AI generation"; H3). Both views are screened, because either could be the
+  // one the model got wrong, and the job's own row is what the result is kept against.
+  for (const [view, image] of [["front", front], ["back", back]] as const) {
+    const verdict = await deps.screen({ generationId: work.jobId, image: image.bytes, prompt: work.requests[view].prompt });
+    if (verdict.result === "blocked") throw new BlockedByReview();
+  }
   const saved: string[] = [];
   try {
     for (const [view, image] of [["front", front], ["back", back]] as const) saved.push(await deps.saveImage(view, image));

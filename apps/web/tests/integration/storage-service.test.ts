@@ -32,6 +32,7 @@ const store = async (owner: Person, brandId: string, bytes: Uint8Array, type = "
     brandId,
     userId: owner.userId,
     kind: "artwork",
+    provenance: "uploaded",
     bytes,
     statedType: type,
   });

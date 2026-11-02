@@ -110,6 +110,9 @@ export const imageSaver =
         brandId,
         userId,
         kind: "render",
+        // The photoreal image model drew this, so the file's own row says so and the garment lock
+        // can never be told otherwise (security review v5 H1, decision 0116).
+        provenance: "generated",
         bytes: image.bytes,
         statedType: image.contentType,
       })

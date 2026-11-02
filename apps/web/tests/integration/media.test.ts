@@ -146,7 +146,7 @@ describe("clean pictures", () => {
 
   it("leave the watermarked picture readable by the brand's own members", async () => {
     const files = mediaFiles(adminClient(), alice.client, { brandId: aliceBrand, userId: alice.userId });
-    const fileId = await files.saveWatermarked(await png());
+    const fileId = await files.saveWatermarked(await png(), "deterministic");
     expect(await files.readWatermarked(fileId)).not.toBeNull();
     const theirs = mediaFiles(adminClient(), bob.client, { brandId: bobBrand, userId: bob.userId });
     expect(await theirs.readWatermarked(fileId)).toBeNull();
@@ -156,7 +156,7 @@ describe("clean pictures", () => {
     const files = mediaFiles(adminClient(), alice.client, { brandId: aliceBrand, userId: alice.userId });
     const path = `_private/${aliceBrand}/${randomUUID()}/studio_render-front.png`;
     await files.saveClean(path, await png());
-    const fileId = await files.saveWatermarked(await png());
+    const fileId = await files.saveWatermarked(await png(), "deterministic");
     await files.remove({ fileIds: [fileId], cleanPaths: [path] });
     expect(await files.readClean(path)).toBeNull();
     expect(await files.readWatermarked(fileId)).toBeNull();

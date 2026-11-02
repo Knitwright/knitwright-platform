@@ -3,6 +3,7 @@ import { createDerivedStore } from "@/lib/design-import/derived";
 import { visionCost } from "@/lib/design-import/cost";
 import { createImportSchema } from "@/lib/design-import/schemas";
 import { listImports } from "@/lib/design-import/service";
+import { uploadGate } from "@/lib/moderation/server";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -51,7 +52,7 @@ export const POST = defineRoute({
         usage,
         pipeline: pipelineFor(vision),
         readFile: (id, maxBytes) => createFileReader(client, session.brand.id).read(id, maxBytes),
-        store: (now) => createDerivedStore(adminClient(), { brandId: session.brand.id, userId: session.userId }, now),
+        store: (now) => createDerivedStore(adminClient(), { brandId: session.brand.id, userId: session.userId }, now, uploadGate("POST /api/design-import")),
         log,
         timeoutMs: TIMEOUT_MS,
       },

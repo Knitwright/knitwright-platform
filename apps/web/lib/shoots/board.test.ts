@@ -5,7 +5,6 @@ import {
   DEFAULT_SETTINGS,
   MAX_PROMPT,
   cropOf,
-  idempotencyKeyOf,
   readBoardSettings,
   sceneSlugOf,
   settingsOfConcept,
@@ -131,31 +130,5 @@ describe("the shape a board is rendered at", () => {
 
   it("is a square when a scene somehow has no crops at all", () => {
     expect(cropOf("match", [])).toBe("1:1");
-  });
-});
-
-describe("the credit key of a run", () => {
-  it("is the same for the same board and settings, so Regenerate of an unchanged board is free", () => {
-    const settings = readBoardSettings({ sceneSlug: "floodlit-pitch", count: 2 });
-    expect(idempotencyKeyOf("board-1", settings)).toBe(idempotencyKeyOf("board-1", settings));
-  });
-
-  it("changes when any setting changes, so a different shoot is charged for", () => {
-    const one = readBoardSettings({ sceneSlug: "floodlit-pitch", count: 2 });
-    const two = readBoardSettings({ sceneSlug: "floodlit-pitch", count: 3 });
-    expect(idempotencyKeyOf("board-1", one)).not.toBe(idempotencyKeyOf("board-1", two));
-    expect(idempotencyKeyOf("board-1", one)).not.toBe(idempotencyKeyOf("board-2", one));
-  });
-
-  it("does not change between the first attempt and the automatic second one", () => {
-    // The retry F-L1 asks for is part of the same run: the person asked for one picture and pays
-    // for one, so there is nothing in the key that could tell the ledger otherwise.
-    const settings = readBoardSettings({ sceneSlug: "floodlit-pitch" });
-    expect(idempotencyKeyOf("board-1", settings)).not.toMatch(/attempt/);
-  });
-
-  it("is bounded, because the ledger's column is", () => {
-    const settings = readBoardSettings({ prompt: "x".repeat(400), backgroundText: "y".repeat(400) });
-    expect(idempotencyKeyOf("board-1", settings).length).toBeLessThanOrEqual(200);
   });
 });

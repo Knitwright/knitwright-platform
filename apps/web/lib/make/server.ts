@@ -17,6 +17,7 @@ import { latestImages } from "@/lib/images/service";
 import { adminClient } from "@/lib/server/deps";
 import { createFileReader, TOO_LARGE } from "@/lib/storage/read";
 import { shrinkPicture } from "@/lib/storage/thumbnail";
+import { moderationTargets } from "@/lib/validation/spec-input";
 import { listProducts, type ProductView } from "@/lib/brand-runs/service";
 import { buildMakeContext, toOrderProducts, type FactoryFacts, type MakeContext, type ProductRef } from "./context";
 import type { OrderProduct } from "./order-modal";
@@ -141,6 +142,7 @@ export async function loadMake(client: SupabaseClient, brandId: string, projectI
     garmentLabel: project.garmentLabel,
     currentVersion: project.currentVersion,
     spec: project.spec,
+    moderationAssetIds: moderationTargets(project.spec).map((target) => target.id),
     product,
     articleCode: article.code,
     productionClass: article.productionClass,
