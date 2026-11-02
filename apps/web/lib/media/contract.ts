@@ -77,6 +77,12 @@ export type GeneratedMedia = Readonly<{
   checker: CheckerVerdict;
   provider: string;
   costMicrodollars: number;
+  /**
+   * The prompt that produced it, for the screen every AI generation goes through (security review
+   * v5 H3, decision 0116). A generator whose pictures no model made leaves it out, and so does one
+   * with no prompt to name; `runMediaSet` then screens the picture and says what it was.
+   */
+  prompt?: string;
 }>;
 
 /** What a generator gives back. A failed generator says so in a sentence safe to show. */

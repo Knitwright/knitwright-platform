@@ -4,6 +4,7 @@ import { brandChartSet } from "@/lib/charts/service";
 import { PHOTOREAL_COST } from "@/lib/images/cost";
 import { createJob, imageRemover, imageSaver, jobStore } from "@/lib/images/service";
 import { startImageJob } from "@/lib/images/start";
+import { generationGate } from "@/lib/moderation/server";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { withCredits, versionOf } from "@/lib/credits-gate/server";
 import { getProject } from "@/lib/projects/service";
@@ -60,6 +61,8 @@ export const POST = defineRoute({
           createJob(admin, { brandId, projectId, version, userId: session.userId, eventId: usage.eventId }),
         schedule: (work) => after(work),
         jobs: jobStore(admin),
+        // Every AI generation is screened (spec F-G1; security review v5 H3, decision 0116).
+        screen: generationGate({ brandId, userId: session.userId }, "POST /api/projects/[projectId]/images"),
         saveImage: imageSaver(admin, brandId, session.userId),
         removeImages: imageRemover(admin, brandId),
         refund: productionDeps.usage.refund,

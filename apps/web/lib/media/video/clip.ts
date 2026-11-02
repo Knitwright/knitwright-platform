@@ -1,3 +1,4 @@
+import type { GenerationGate } from "@/lib/moderation/gate";
 import { AppError } from "@/lib/server/core/errors";
 import type { LogEvent } from "@/lib/server/core/guard";
 import type { MediaView } from "../contract";
@@ -13,6 +14,8 @@ import { sniffVideo } from "./sniff";
 
 export const NEEDS_STILL_MESSAGE = "A clip is made from a lifestyle picture that passed the check. Make the lifestyle pictures first.";
 export const CLIP_FAILED_MESSAGE = "The clip could not be made. Nothing was charged.";
+/** Said when the content review refuses the clip. Nothing is charged, as for any clip that is not kept. */
+export const CLIP_BLOCKED_MESSAGE = "The clip was refused by the content review, so it has not been kept. Nothing was charged.";
 const LIFESTYLE_VIEWS: readonly MediaView[] = ["on_model", "scene"];
 
 export interface ClipDeps {
@@ -20,6 +23,13 @@ export interface ClipDeps {
   readonly files: MediaFiles;
   readonly videos: VideoFiles;
   readonly provider: VideoProvider;
+  /**
+   * X8's `screenGeneration`, bound to the brand and the person (`lib/moderation/gate.ts`). A clip
+   * is an AI generation, so the spec asks for a screen on it (F-G1; security review v5 H3, decision
+   * 0116). The screen reads a still, so what it is given is the poster the clip is made from and
+   * kept against -- the one frame of the clip that is also stored as a file of the brand.
+   */
+  readonly screen: GenerationGate;
   readonly log: (event: LogEvent) => void;
 }
 
@@ -56,6 +66,9 @@ export async function makeClip(deps: ClipDeps, ask: ClipAsk, plan: Extract<ClipP
     const result = await deps.provider.generate({ still: poster, seconds: CLIP_SECONDS, prompt: CLIP_PROMPT }, signal);
     if (!result.ok) return { ok: false, message: CLIP_FAILED_MESSAGE };
     if (sniffVideo(result.video) !== result.type || result.video.byteLength > MAX_CLIP_BYTES) return { ok: false, message: CLIP_FAILED_MESSAGE };
+    // The screen comes between the model and the store, so nothing the review blocks is kept.
+    const verdict = await deps.screen({ generationId: set.id, image: poster, prompt: CLIP_PROMPT });
+    if (verdict.result === "blocked") return { ok: false, message: CLIP_BLOCKED_MESSAGE };
     // `planClip` only ever picks a still whose kind is `lifestyle`, so this poster is a picture a
     // model made and the file's own row says so.
     saved.fileId = await deps.files.saveWatermarked(await watermark(poster), "generated");

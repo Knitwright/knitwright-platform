@@ -10,6 +10,7 @@ import { startMediaSet } from "@/lib/media/start";
 import { studioGenerator } from "@/lib/media/studio-generator";
 import { MEDIA_SET_RESERVE_BYTES } from "@/lib/media/video/limits";
 import { setView } from "@/lib/media/view";
+import { generationGate } from "@/lib/moderation/server";
 import { defineRoute } from "@/lib/server/define-route";
 import { adminClient, productionDeps, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -50,7 +51,18 @@ export const POST = defineRoute({
           return design ? { version: design.version } : null;
         },
         schedule: (work) => after(work),
-        run: (work) => runMediaSet({ store, files, generators, log }, { ...work, brandId }),
+        run: (work) =>
+          runMediaSet(
+            {
+              store,
+              files,
+              generators,
+              // Every AI generation is screened (spec F-G1; security review v5 H3, decision 0116).
+              screen: generationGate({ brandId, userId: session.userId }, "POST /api/projects/[projectId]/media"),
+              log,
+            },
+            { ...work, brandId },
+          ),
       },
       { brandId, projectId, userId: session.userId },
     );

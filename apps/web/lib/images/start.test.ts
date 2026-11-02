@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { GarmentSpec } from "@/lib/garment";
 import { start } from "@/lib/garment/fixtures/specs";
 import { DEFAULT_CHART_SET } from "@/lib/sizing";
+import { clearGenerations } from "@/lib/moderation/fixtures/gates";
 import { stubImageProvider } from "@/lib/providers/image-stub";
 import { AppError } from "@/lib/server/core/errors";
 import { NO_DRAWING_MESSAGE, NOT_SET_UP_MESSAGE, startImageJob, type StartDeps } from "./start";
@@ -21,6 +22,7 @@ const makeDeps = (patch: Partial<StartDeps> = {}) => {
       markSucceeded: vi.fn(async () => {}),
       markFailed: vi.fn(async () => {}),
     },
+    screen: clearGenerations(),
     saveImage: vi.fn(async (view) => `${view}-file`),
     removeImages: vi.fn(async () => {}),
     refund: vi.fn(async () => true),
