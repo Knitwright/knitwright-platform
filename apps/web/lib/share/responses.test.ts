@@ -9,6 +9,7 @@ const link = (patch: Partial<ShareLink> = {}): ShareLink => ({
   createdAt: "2026-10-01T09:00:00Z",
   expiresAt: "2026-10-31T09:00:00Z",
   revokedAt: null,
+  audience: "anyone",
   ...patch,
 });
 

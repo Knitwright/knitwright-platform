@@ -1,4 +1,5 @@
 import { formatDate, formatDateTime } from "@/lib/projects/dates";
+import { AUDIENCE_LABELS, AUDIENCE_NOTES, type LinkAudience } from "./invite-fields";
 import type { ShareVote } from "./schemas";
 
 /**
@@ -12,6 +13,8 @@ export interface ShareLink {
   readonly createdAt: string;
   readonly expiresAt: string;
   readonly revokedAt: string | null;
+  /** Who may open the design through this link (plan v5 Y8). */
+  readonly audience: LinkAudience;
 }
 
 export interface ShareAnswer {
@@ -46,6 +49,12 @@ export interface ShareLinkView {
   /** True when the link is open and the design has a newer version. */
   readonly canMove: boolean;
   readonly moveLabel: string;
+  readonly audience: LinkAudience;
+  readonly audienceLabel: string;
+  readonly audienceNote: string;
+  /** What pressing the one button changes the link to. */
+  readonly otherAudience: LinkAudience;
+  readonly otherAudienceLabel: string;
   readonly tally: Tally;
   readonly tallySentence: string;
   readonly answerCount: number;
@@ -114,6 +123,11 @@ export function buildShareLinkViews(
       createdSentence: `Made on ${formatDate(link.createdAt)}. Shows version ${link.version}.`,
       canMove: state === "open" && link.version < currentVersion,
       moveLabel: `Show version ${currentVersion} instead`,
+      audience: link.audience,
+      audienceLabel: AUDIENCE_LABELS[link.audience],
+      audienceNote: AUDIENCE_NOTES[link.audience],
+      otherAudience: link.audience === "anyone" ? "invited" : "anyone",
+      otherAudienceLabel: AUDIENCE_LABELS[link.audience === "anyone" ? "invited" : "anyone"],
       tally,
       tallySentence: tallySentence(tally),
       answerCount: own.length,
