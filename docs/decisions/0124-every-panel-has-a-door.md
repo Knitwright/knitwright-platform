@@ -71,6 +71,26 @@ nothing at all, heading included, which is what `PanelSections` does for every s
 tests are the one place the switch is on (`playwright.config.ts`), because a panel nobody can reach
 is exactly what this record is about; no model is called there, as `AI_PROVIDER_STUB` already holds.
 
+### 3a. The design-import panel says what accepting does **not** do
+
+Mounting the panel on a design's own screen made a sentence it already carried into a promise it
+cannot keep. `acceptImport` keeps the chosen layers on the reading's own row and keeps the pictures
+cut from the picture as the brand's artwork. **It does not write them onto the design the panel is
+open on.** Decision 0038 item 6 left that to the step after it — "applying the accepted stack to a
+project's design is phase B, because it needs W7b's assets for the crops" — and nothing in the
+repository does it: `designWithStack` (`lib/panel-layers/save.ts`) is the function that would, and no
+import path calls it.
+
+So the panel says so, in plain words, in two places: a standing note above the picture chooser,
+before anyone accepts, and the sentence after an accept, which now reads "Accepted. The reading is
+kept and its pictures are in your artwork. This design is unchanged." The old sentence said "Saved.
+The layers you chose are now part of your design", which was the one thing it must not say.
+
+This is the same choice decision 0121 made for a point of measure a person types: the loss is named
+on the screen that would otherwise hide it, and the gap is written down rather than papered over.
+**Applying an accepted reading to its design is the follow-up this record leaves open** (owner
+question 6), and when it is built, that note and that sentence are what change.
+
 ### 4. The pattern gallery says what each look can and cannot do
 
 The platform can **draw** seventeen pattern styles (decision 0037) and a stored design can **hold**
@@ -190,7 +210,8 @@ every entry's reason is a sentence, and that every `in-flight` entry names a pul
 | Claim | Test |
 |---|---|
 | The design-import panel is a section of the Garment tool, with its own heading, and draws nothing while the switch is off | `components/studio/workspace/panel-sections.test.ts`, `apps/web/e2e/design-import.spec.ts` |
-| The panel's own words are on screen — a close reading, nothing saved until accepted — and the picture cannot be chosen before the rights tick | `apps/web/e2e/design-import.spec.ts` |
+| The panel's own words are on screen — a close reading, nothing kept until accepted — and the picture cannot be chosen before the rights tick | `apps/web/e2e/design-import.spec.ts` |
+| The panel says, before anyone accepts, that accepting keeps the reading and leaves this design unchanged | same, and `components/design-import/not-applied.test.ts` |
 | "Your artwork" is in the Logos tool, says what it is for, and is the screen Brand Studio sends a brand to | same |
 | Every pattern style and preset has a labelled picture, and every one says what can be done with it, with its rule id | `components/kit-styles/pattern-looks.test.ts`, `apps/web/e2e/design-import.spec.ts` |
 | The six packs are in the Templates panel, open onto the canvas in one save, and spend nothing | `components/launch/panels/flow-packs.test.ts`, `components/launch/panels/placing-packs.test.ts`, `apps/web/e2e/launch-packs.spec.ts` |
@@ -243,6 +264,11 @@ already draws. The launch canvas and both new delete pages are scanned whole.
    route is dark behind `patternLibraryOpenTo` and nothing names its screen.
 5. **Is "Use the suggestion" the right way back from a chosen pattern size?** It drops the brand's own
    row, so the suggestion stands again. Nothing records that a brand once chose 50 for M.
+6. **Who builds "apply this reading to this design"?** Item 3a: accepting a reading keeps it and keeps
+   its pictures, and the design it was read for is untouched, because the step decision 0038 deferred
+   was never built. The panel says so. It needs a design version written from an accepted stack
+   (`designWithStack` exists), which touches the editor's own save path, and it is a feature rather
+   than a wiring, so it is not taken here.
 
 ## R-GAP-000
 

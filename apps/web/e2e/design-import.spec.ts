@@ -56,7 +56,10 @@ test.describe("reading a design from a picture", () => {
     // The section's own heading, and the panel's own sentences: a close reading, nothing saved yet.
     await expect(page.getByRole("heading", { name: "Read a whole design from a picture" })).toBeVisible();
     await expect(panel).toContainText("a close reading of your picture");
-    await expect(panel).toContainText("Nothing is saved as your design until you accept it.");
+    await expect(panel).toContainText("Nothing is kept until you accept it.");
+    // What accepting really does, said before anyone accepts: the reading is kept, this design is
+    // not changed, because putting an accepted reading onto a design is not built (decision 0038).
+    await expect(panel).toContainText("It does not change this design");
     // Decision 0038 item 9: three words the screen never uses.
     await expect(panel).not.toContainText(/\b(exact|identical|matches your picture)\b/i);
 
