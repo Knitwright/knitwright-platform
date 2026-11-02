@@ -462,11 +462,17 @@ The three new journey tests in this change deliberately add **no** axe scans: a 
 page it passed would take minutes and would hide a scan failure behind a journey failure. **Owner question 2**
 proposes where the scans should go instead.
 
-### The one accessibility guard that already fails, intermittently
+### The accessibility guard that already fails, intermittently
 
-The run that proved these journeys reported **1 flaky**, and it is not one of them:
-`e2e/studio-chrome.spec.ts:130` ("the top bar on a phone"). Its assertion is that the top bar's way home is at
-least 40 px square — the tap-target size the rest of the suite holds everything to — and it measured **39**:
+The runs that proved these journeys reported **two flaky tests across two runs, and neither is one of them**:
+
+| Spec | What it is | Seen |
+|---|---|---|
+| `e2e/studio-chrome.spec.ts:130` | the top bar's way home is at least 40 px square | **both runs** |
+| `e2e/editor.spec.ts:392` | a `toHaveValue` on a field after a save that should be a no-op | one run |
+
+The first one matters, because it is an accessibility guard and the figure it fails on is fixed, not a race. It
+measured **39**:
 
 ```
 Error: the way home is this wide
@@ -475,10 +481,13 @@ Expected: >= 40
 Received:    39
 ```
 
-It passed on the retry, so CI called the job's other 416 tests green and the suite "1 flaky". But a tap target
-that measures 39 px on one run and 40 on the next is not flaky: it is 40 px wide only when the layout rounds up.
-Decision 0103 added this guard; it is one pixel from failing every time, and a retry is hiding it. **Owner
-question 8.**
+It passed on the retry, so CI called the job green and the suite "flaky". But a tap target that measures 39 px
+on one run and 40 on the next is not flaky: it is 40 px wide only when the layout rounds up. Decision 0103 added
+this guard; it is one pixel from failing every time, and a retry is hiding it. It has now done this on two
+consecutive runs. **Owner question 8.**
+
+This is the shape of the whole accessibility finding in one test. CI retries a failed browser test once, so a
+guard that is right at its limit reads as green; and 44 of 62 specs have no scan to be at the limit of.
 
 ## Tests that enumerate a list
 
