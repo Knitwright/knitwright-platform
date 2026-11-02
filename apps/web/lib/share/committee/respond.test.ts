@@ -50,9 +50,13 @@ describe("guardCommitteeWrite", () => {
   });
 
   it("names the link by a hash of its token, never by the token itself", async () => {
-    const hitLinkLimit = vi.fn(async () => true);
+    const keys: string[] = [];
+    const hitLinkLimit = async (key: string) => {
+      keys.push(key);
+      return true;
+    };
     await guardCommitteeWrite(deps({ hitLinkLimit }), INPUT, vi.fn());
-    const key = hitLinkLimit.mock.calls[0]?.[0] ?? "";
+    const key = keys[0] ?? "";
 
     expect(key).toContain(LIMITS.committeeWriteLink.name);
     expect(key).not.toContain(INPUT.token);

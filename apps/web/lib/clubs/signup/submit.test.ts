@@ -87,10 +87,18 @@ describe("takeAnswer", () => {
   });
 
   it("names the link by a hash of its token, never by the token itself", async () => {
-    const hitLinkLimit = vi.fn(async () => true);
-    await takeAnswer(deps({ hitLinkLimit }), FORM);
+    const keys: string[] = [];
+    await takeAnswer(
+      deps({
+        hitLinkLimit: async (key: string) => {
+          keys.push(key);
+          return true;
+        },
+      }),
+      FORM,
+    );
 
-    expect(hitLinkLimit.mock.calls[0]?.[0]).not.toContain(FORM.token);
+    expect(keys[0]).not.toContain(FORM.token);
   });
 
   it("refuses once one link has taken all it may, whatever the address", async () => {
