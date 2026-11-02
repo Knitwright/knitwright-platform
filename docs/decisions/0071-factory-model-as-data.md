@@ -1,6 +1,7 @@
 # 0071: The factory model as data
 
 Status: Proposed
+Index: Proposed; every seeded price, tier and lead time is a placeholder, owner questions listed
 Date: 2026-10-29
 Plan step: `plans/platform-v5.md`, wave 1, workstream X6. Spec: `docs/spec/02-features.md` F-O1, F-S7, F-S8 and F-T5,
 `docs/spec/03-data-model.md` ("Factory profile (read model)"), `docs/spec/01-product-direction.md` decisions 2, 3 and 4

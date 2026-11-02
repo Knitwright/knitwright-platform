@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # So the browser tests can be started on a branch before merging, without a label.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -78,8 +80,17 @@ jobs:
       - run: pnpm --filter web test:cov
       - run: pnpm --filter web build
 
+  # The browser tests run on `main` after a merge, and on a pull request only when it carries the
+  # `e2e` label or someone asks for the workflow by hand. They are the slowest job (about 13
+  # minutes) and the whole account shares a pool of runners: with half a dozen branches in flight
+  # they queued for an hour without starting, so a finished branch could not be confirmed green.
+  # They are not skipped, only moved off the per-pull-request gate: a failure on `main` is a
+  # failure that blocks the next merge, and it names the one merge that caused it.
   e2e:
     name: End-to-end tests
+    if: >-
+      github.event_name != 'pull_request'
+      || contains(github.event.pull_request.labels.*.name, 'e2e')
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -126,7 +137,9 @@ jobs:
           path: apps/web/test-results
           retention-days: 7
 
-  # Keeps the one name to require: it passes only when both jobs above passed.
+  # Keeps the one name to require. `checks` must pass. `e2e` must pass when it ran, and a skip is
+  # not a pass smuggled in: `skipped` is accepted only because the job is deliberately not part of
+  # the pull-request gate (see its comment), while `failure` and `cancelled` still fail the gate.
   gate:
     name: Standard gate
     runs-on: ubuntu-latest
@@ -134,7 +147,10 @@ jobs:
     needs: [checks, e2e]
     if: always()
     steps:
-      - name: Both checks and end-to-end tests passed
+      - name: Checks passed, and the browser tests passed if they ran
         run: |
           test "${{ needs.checks.result }}" = success
-          test "${{ needs.e2e.result }}" = success
+          case "${{ needs.e2e.result }}" in
+            success|skipped) ;;
+            *) echo "End-to-end tests: ${{ needs.e2e.result }}"; exit 1 ;;
+          esac

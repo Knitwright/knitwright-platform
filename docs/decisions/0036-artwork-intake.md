@@ -1,6 +1,7 @@
 # 0036: Artwork intake: the club's own files, raster and vector, never storing an SVG
 
 Status: Accepted
+Index title: Artwork intake: the club's own files, never storing an SVG
 Date: 2026-10-14
 Plan step: production outputs, W7b (`plans/production-outputs.md`)
 

@@ -1,6 +1,7 @@
 # 0013: The intent core
 
 Status: Accepted. The golden set waits for the owner (A7).
+Index: Accepted; golden set waits for the owner
 Date: 2026-09-29
 Plan step: 11
 

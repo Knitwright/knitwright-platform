@@ -1,6 +1,7 @@
 # 0031: Print files for any design
 
 Status: Proposed (phase A and phase B built)
+Index: Proposed; phases A and B built
 Date: 2026-10-15
 Plan step: production outputs, W3 (`plans/production-outputs.md`)
 

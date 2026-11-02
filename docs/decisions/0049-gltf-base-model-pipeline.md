@@ -1,6 +1,7 @@
 # 0049: glTF base models whose UV layout is the print panel layout
 
 Status: Proposed. No artist model exists; nothing was run in a browser or on a graphics card.
+Index: Proposed; no artist model exists
 Date: 2026-10-24
 Plan step: W2-C (plan v4), spec principle 2
 

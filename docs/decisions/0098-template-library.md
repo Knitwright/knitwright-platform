@@ -1,6 +1,7 @@
 # 0098: The template library to the launch counts of `07`
 
 Status: Proposed; owner questions listed
+Index: Proposed; four of the spec's football styles deliberately not seeded, three R-GAP-000 entries, owner questions listed
 Date: 2026-11-02
 Plan step: `plans/platform-v5.md`, wave 4, workstream L8 (spec `docs/spec/07-template-library.md`)
 Migration: `supabase/migrations/20261201050000_template_kinds.sql`

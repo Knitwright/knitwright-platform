@@ -1,6 +1,7 @@
 # 0067: Rulebook and "Why?" v1
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-29
 Plan step: `plans/platform-v5.md`, workstream X2. Spec: `docs/spec/02-features.md` F-S5 (v1 part), `docs/spec/01-product-direction.md`
 decision 11, `docs/spec/03-data-model.md` (`rulebook_entry`), `docs/spec/articles/JSY-SS-01/rulebook.md`.

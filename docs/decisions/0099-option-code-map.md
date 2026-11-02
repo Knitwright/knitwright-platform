@@ -1,6 +1,7 @@
 # 0099: The map from the registry's option keys to the catalogue's option codes
 
 Status: Proposed; owner questions listed
+Index: Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed
 Date: 2026-10-30
 Plan step: plans/platform-v5.md section 6 item 3 (an orchestrator wiring task, nobody's workstream).
 Migration: `supabase/migrations/20261201040000_option_code_map.sql`.
