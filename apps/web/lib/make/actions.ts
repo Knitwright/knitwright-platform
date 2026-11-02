@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
+import { guardOrder } from "@/lib/moderation/before-order";
+import { humanReviewGate, orderGate } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -35,6 +37,7 @@ export const requestSampleAction = defineAction({
     const context = await loadMake(client, session.brand.id, input.projectId, "GBP");
     const check = checkSampleRequest({ sizes: input.sizes, sizeRun: context.sizeRun });
     if (!check.canSend) throw new AppError("invalid_input", check.findings.map((found) => found.message).join(" "));
+    await screenBeforeHandOff(session, context, input.releaseId, "sample");
     const sent = await submitMakeOrder(adminClient(), whoOf(session), {
       productId: input.productId,
       kind: "sample",
@@ -61,6 +64,7 @@ export const orderRunAction = defineAction({
     const check = checkRun({ quantities: input.quantities, productionClass: context.productionClass, moq: context.factory.moq });
     if (!check.canSend) throw new AppError("invalid_input", check.findings.filter((found) => found.severity === "blocker").map((found) => found.message).join(" "));
     await allowRun(session, context);
+    await screenBeforeHandOff(session, context, input.releaseId, "run");
     const sent = await submitMakeOrder(adminClient(), whoOf(session), {
       productId: input.productId,
       kind: "run",
@@ -175,6 +179,34 @@ export const selectSizesAction = defineAction({
 type Session = Parameters<typeof whoOf>[0];
 
 /**
+ * THE SCREEN BEFORE EVERY ORDER (spec F-G1; security review v5 H3, decision 0116).
+ *
+ * All three ways out of the make flow -- a sample request, a run, and the order modal's one order
+ * per product -- go through this, immediately before `submitMakeOrder` and after every cheaper
+ * refusal, so a person is told the easy things first. A blocked design throws; a flagged one goes
+ * and waits in the ops review queue.
+ *
+ * A Class B run also needs a person to have looked at the design, which `guardOrder` asks second
+ * and for the same release, so the ops reviewer's decision and this check are about one thing. A
+ * sample is never Class B here: the class is a property of the run, and a sample is what the class
+ * is decided from.
+ */
+async function screenBeforeHandOff(session: Session, context: MakeContext, releaseId: string, kind: "sample" | "run"): Promise<void> {
+  const name = context.product?.name ?? context.designName;
+  const who = whoOf(session);
+  await guardOrder(
+    { order: orderGate({ brandId: who.brandId, userId: who.userId }, "make order"), humanReview: humanReviewGate() },
+    {
+      releaseId,
+      label: `${name} (${kind})`,
+      assetIds: context.moderationAssetIds,
+      texts: [{ text: name, context: "title" }],
+      classB: kind === "run" && context.productionClass === "B",
+    },
+  );
+}
+
+/**
  * A run goes only where a golden sample covers the version being made. Where the sign-off is a parent version's,
  * the reason is written to the database first: the carry-over row is what lets the run function through, and it
  * refuses any field the server did not label surface.
@@ -197,6 +229,7 @@ async function handOver(session: Session, product: OrderProduct, sizes: Readonly
   const release = context.releases[0];
   if (!release) throw new AppError("conflict", `${product.name} has no frozen release to make yet.`);
   await allowRun(session, context);
+  await screenBeforeHandOff(session, context, release.id, "run");
   return submitMakeOrder(adminClient(), whoOf(session), {
     productId: product.productId,
     kind: "run",

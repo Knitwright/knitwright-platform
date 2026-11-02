@@ -5,6 +5,8 @@ import { requireAbility, whoOf } from "@/lib/clubs/guards";
 import { launchProjectPath } from "@/lib/launch";
 import { loadLaunchCanvas } from "@/lib/launch/server";
 import { generatedOutputFiles, saveBoard } from "@/lib/launch/service";
+import { refuseIfBlocked, screenText } from "@/lib/moderation/hooks";
+import { moderationDeps } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -160,6 +162,21 @@ export const publishFlowListingAction = defineAction({
     );
     const verdict = listingVerdict(payload);
     if (!verdict.ready) throw new AppError("conflict", verdict.reason);
+    /**
+     * The title is free text from the body and went straight into the Store listing payload
+     * unscreened, while `lib/moderation/text.ts` already implemented the spec's one named block
+     * rule for exactly this context: "dupe", "inspired by <mark>" and another brand's name in a
+     * product title are all blocks. "Nike dupe hoodie" shipped (security review v5 H3, decision
+     * 0116). A flagged title is not refused: the hand-off is not a publication, and the flag sits
+     * in the ops review queue where a person decides.
+     */
+    const screened = await screenText(moderationDeps({ brandId: session.brand.id, userId: session.userId }, "publishFlowListing"), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      text: input.title,
+      context: "title",
+    });
+    refuseIfBlocked(screened, "title");
     const id = await publishFlowListing(adminClient(), whoOf(session), input.launchProjectId, payload);
     refresh(input.launchProjectId);
     // Nothing has been published: this is a hand-off the separate Store collects (wave 5, O2).

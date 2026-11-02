@@ -1,4 +1,4 @@
-import type { GenerationGate, HumanReviewGate, OrderGate } from "../gate";
+import type { GenerationGate, HumanReviewGate, OrderGate, UploadGate } from "../gate";
 import { AppError } from "@/lib/server/core/errors";
 import { reason, verdictOf, type Verdict } from "../types";
 
@@ -18,6 +18,33 @@ const CLEAR: Verdict = { result: "clear", reasons: [] };
 const BLOCKED: Verdict = verdictOf([reason("blocked_by_review", "block", "This contains a word we do not print.")]);
 
 const FLAGGED: Verdict = verdictOf([reason("awaiting_review", "flag", "A person will look at this before it is made.")]);
+
+export type UploadAsk = Readonly<{ label: string; sourceSha256: string; bytes: number }>;
+
+/**
+ * An upload gate that clears everything, with the asks it was given and the asset ids it was told
+ * about afterwards. `screen` is required on `uploadArtwork` now (H3), so every test of an upload
+ * path passes one of these.
+ */
+export function clearUploads(): UploadGate & { readonly asks: UploadAsk[]; readonly kept: string[] } {
+  const asks: UploadAsk[] = [];
+  const kept: string[] = [];
+  const gate = async (input: Parameters<UploadGate>[0]) => {
+    asks.push({ label: input.label, sourceSha256: input.sourceSha256, bytes: input.image.byteLength });
+    return async (assetId: string) => void kept.push(assetId);
+  };
+  return Object.assign(gate, { asks, kept });
+}
+
+/** An upload gate that refuses, the way `screenUpload` refuses a blocked upload: before anything is stored. */
+export function blockUploads(): UploadGate & { readonly asks: UploadAsk[] } {
+  const asks: UploadAsk[] = [];
+  const gate = async (input: Parameters<UploadGate>[0]) => {
+    asks.push({ label: input.label, sourceSha256: input.sourceSha256, bytes: input.image.byteLength });
+    throw new AppError("invalid_input", "This contains a word we do not print.", { file: ["This contains a word we do not print."] });
+  };
+  return Object.assign(gate, { asks });
+}
 
 export type GenerationAsk = Readonly<{ generationId: string; prompt: string; bytes: number }>;
 

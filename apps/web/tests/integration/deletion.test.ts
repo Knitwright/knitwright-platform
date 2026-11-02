@@ -5,6 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { deleteAccount, deleteDesign } from "@/lib/deletion/service";
 import type { DeletionClient } from "@/lib/deletion/client";
 import { uploadArtwork } from "@/lib/artwork-intake/service";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 import { leagueRulesInputSchema, printProfileInputSchema, saveLeagueRules, savePrintProfile } from "@/lib/print/profiles";
 import { storeImage } from "@/lib/storage/store";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
@@ -280,7 +281,7 @@ describe("deleteAccount", () => {
     const brand = await brandOf(gina, "Gina Artwork");
     const who = { brandId: brand, userId: gina.userId };
     const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><circle cx="50" cy="25" r="20" fill="#c8102e"/></svg>');
-    const given = (bytes: Uint8Array, fileName: string) => uploadArtwork(adminClient(), who, { bytes, fileName, rightsConfirmed: true, now: new Date() });
+    const given = (bytes: Uint8Array, fileName: string) => uploadArtwork(adminClient(), who, { bytes, fileName, rightsConfirmed: true, now: new Date() }, clearUploads());
     const raster = await given(new Uint8Array(await png()), "Crest.png");
     const vector = await given(svg, "Badge.svg");
     await savePrintProfile(adminClient(), who, printProfileInputSchema.parse({ bleedMm: 12, dpi: 200, minDpi: 100, iccFileId: null, maxPrintWidthMm: null }));
