@@ -145,6 +145,10 @@ test.describe("role journeys (W5-C)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startDesign(page, "Journey hoodie");
     await freeze(email, projectId, "Round 1");
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
+    // run starts (spec F-G1; security review v5 H3, decision 0116). This journey is about the
+    // durable records; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
+    await allowClassBRun(projectId, "journey-reviewer");
 
     await page.goto("/brand");
     const products = page.getByRole("region", { name: "Product list" });
@@ -187,10 +191,6 @@ test.describe("role journeys (W5-C)", () => {
     await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
     await expect(builder.getByRole("button", { name: "Order run" })).toBeEnabled();
-    // A crew tee is Class B, so a person at Knitwright has to have looked at the design first (spec
-    // F-G1; security review v5 H3, decision 0116). This journey is about the durable records, so
-    // the review is given here; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
-    await allowClassBRun(projectId, "journey-reviewer");
     await builder.getByRole("button", { name: "Order run" }).click();
     await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Journey hoodie · Brand run · 60 pieces/)).toBeVisible();

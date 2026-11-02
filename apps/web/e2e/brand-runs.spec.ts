@@ -54,6 +54,11 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startDesign(page, "Fern hoodie");
     await freeze(email, projectId);
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
+    // run starts (spec F-G1; security review v5 H3, decision 0116). Given up front: this test is
+    // about the stages and the ops queue, and `e2e/make.spec.ts` is where the refusal and the
+    // allowance are themselves the thing being tested.
+    await allowClassBRun(projectId, "brand-runs-reviewer");
 
     // Brand is one of the sections the top bar lists in its overflow menu (decision 0103).
     await openStudioSection(page, "Brand");
@@ -103,14 +108,6 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(builder.getByText("No minimum order is set for this garment yet")).toBeVisible();
     await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
-
-    /**
-     * A crew tee is Class B, so a person at Knitwright has to have looked at the design before the
-     * run starts (spec F-G1; security review v5 H3, decision 0116). This test is about the stages
-     * and the ops queue, so the review is given here rather than pressed for: `e2e/make.spec.ts`
-     * is where the refusal and the allowance are the thing being tested.
-     */
-    await allowClassBRun(projectId, "brand-runs-reviewer");
     await builder.getByRole("button", { name: "Order run" }).click();
     await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Fern hoodie · Brand run · 60 pieces/)).toBeVisible();
