@@ -44,4 +44,23 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "design_comments", holds: "comment text that may name people, and the author's id", erasableAlone: false },
   { table: "design_comment_edits", holds: "the earlier words of a changed comment", erasableAlone: false },
   { table: "design_comment_mentions", holds: "the ids of members a comment names", erasableAlone: false },
+  // Committee link v2 and roster sign-up (plan v5 Z7, decision 0087). These are the only tables in the
+  // product a person with no account writes to, so they are the ones most likely to hold a name nobody
+  // on the brand typed. The rows already go with their design or their season through their keys, and
+  // the migration's own comments say so; what was missing until review v5 (decision 0110) was their
+  // place on this list, and so their place in the test below. Decision 0087 asked for both.
+  //
+  // None of them can be erased on its own: a pin, a vote and an approval are append-only by trigger,
+  // and a sign-up entry has no erase function of its own, unlike `roster_players`. Review v5 lists that
+  // as a finding for the owner, because a committee member who asks for their words to be removed can
+  // be answered today only by deleting the whole design.
+  { table: "committee_links", holds: "no names of people: a token hash, who made the link and when", erasableAlone: false },
+  { table: "committee_link_versions", holds: "no names: which saved version each A/B/C slot shows", erasableAlone: false },
+  { table: "committee_pins", holds: "the name a committee member gave and the words of their pin, which can name people", erasableAlone: false },
+  { table: "committee_votes", holds: "the name a committee member gave with their vote", erasableAlone: false },
+  { table: "committee_approvals", holds: "the name of whoever approved a version, and their email address when one was offered", erasableAlone: false },
+  { table: "committee_locks", holds: "no names: which version a kit manager locked, against which approval and when", erasableAlone: false },
+  { table: "roster_signup_links", holds: "no names of people: a token hash, who made the link and when", erasableAlone: false },
+  { table: "roster_signup_requests", holds: "the names, phone numbers and email addresses of the players a club is waiting on", erasableAlone: false },
+  { table: "roster_signup_entries", holds: "a player's shirt name, number, size and wearer group, as the player sent them", erasableAlone: false },
 ];
