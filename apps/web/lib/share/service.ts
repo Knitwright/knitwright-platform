@@ -91,6 +91,7 @@ const linkRow = z.object({
   created_at: z.string(),
   expires_at: z.string(),
   revoked_at: z.string().nullable(),
+  audience: z.enum(["anyone", "invited"]),
 });
 
 const answerRow = z.object({
@@ -110,7 +111,7 @@ interface ShareLinksOfDesign {
 export async function listShareLinks(client: SupabaseClient, brandId: string, projectId: string): Promise<ShareLinksOfDesign> {
   const links = await client
     .from("share_links")
-    .select("id, version, created_at, expires_at, revoked_at")
+    .select("id, version, created_at, expires_at, revoked_at, audience")
     .eq("brand_id", brandId)
     .eq("project_id", projectId)
     .order("created_at", { ascending: false })
@@ -138,6 +139,7 @@ export async function listShareLinks(client: SupabaseClient, brandId: string, pr
       createdAt: row.created_at,
       expiresAt: row.expires_at,
       revokedAt: row.revoked_at,
+      audience: row.audience,
     })),
     answers: z
       .array(answerRow)
@@ -157,6 +159,12 @@ export interface OpenShare {
   readonly spec: unknown;
   readonly savedAt: string;
   readonly expiresAt: string;
+  /**
+   * How the token opened the design (plan v5 Y8). `link`: an ordinary share link, which anyone
+   * holding it may answer through, as decision 0026 built. The other three are one person's own
+   * invite, and `lib/share/public-load.ts` decides from this whether the answer form is offered.
+   */
+  readonly openedBy: "link" | "invite-view" | "invite-comment" | "invite-edit";
 }
 
 const openRow = z.object({
@@ -171,9 +179,42 @@ const openRow = z.object({
   expires_at: z.string(),
 });
 
+const openInviteRow = z.object({
+  invite_id: z.uuid(),
+  brand_id: z.uuid(),
+  brand_name: z.string(),
+  project_name: z.string(),
+  access: z.enum(["view", "comment", "edit"]),
+  version: z.number().int(),
+  spec: z.unknown(),
+  saved_at: z.string(),
+  expires_at: z.string(),
+});
+
+/** One person's own invite, which shows the design's newest version (plan v5 Y8). */
+async function openInvite(admin: SupabaseClient, token: string): Promise<OpenShare | null> {
+  const { data, error } = await admin.rpc("open_share_invite", { p_token: token });
+  throwIf(error, LINK_NOT_FOUND);
+  const row = z.array(openInviteRow).parse(data ?? [])[0];
+  if (!row) return null;
+  return {
+    linkId: row.invite_id,
+    brandId: row.brand_id,
+    brandName: row.brand_name,
+    projectName: row.project_name,
+    version: row.version,
+    isCurrent: true,
+    spec: row.spec,
+    savedAt: row.saved_at,
+    expiresAt: row.expires_at,
+    openedBy: `invite-${row.access}`,
+  };
+}
+
 /**
- * The link a token opens, or null for a token that is malformed, unknown, expired or revoked. The
- * last three take the same path through the database and give the same answer.
+ * What a token opens: a share link first, then one person's own invite. Null for a token that is
+ * malformed, unknown, expired or revoked, and for a link whose access is "Only invited people".
+ * All of those take the same path through the database and give the same answer.
  */
 export async function openShare(admin: SupabaseClient, token: string): Promise<OpenShare | null> {
   if (!isShareToken(token)) return null;
@@ -181,7 +222,7 @@ export async function openShare(admin: SupabaseClient, token: string): Promise<O
   throwIf(error, LINK_NOT_FOUND);
   const rows = z.array(openRow).parse(data ?? []);
   const row = rows[0];
-  if (!row) return null;
+  if (!row) return openInvite(admin, token);
   return {
     linkId: row.link_id,
     brandId: row.brand_id,
@@ -192,6 +233,7 @@ export async function openShare(admin: SupabaseClient, token: string): Promise<O
     spec: row.spec,
     savedAt: row.saved_at,
     expiresAt: row.expires_at,
+    openedBy: "link",
   };
 }
 
