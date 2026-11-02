@@ -122,6 +122,8 @@ Wave and workstream names are from `plans/platform-v4.md`. The decision number i
 
 ### Wave 5 (review and hardening)
 
+Plan v5's review wave writes to the same folder: [security v5](reviews/security-v5.md) (R1, decision 0109).
+
 W5-A, B and C write reports to `docs/reviews/`: [security](reviews/security-v4.md), [code](reviews/code-v4.md),
 [coverage](reviews/coverage-v4.md). W5-D is these documents.
 
