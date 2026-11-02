@@ -5,7 +5,13 @@ import { PERSONAL_DATA_TABLES } from "./team-data";
 
 const MIGRATIONS = join(__dirname, "..", "..", "..", "..", "supabase", "migrations");
 const read = (name: string): string => readFileSync(join(MIGRATIONS, name), "utf8");
-const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}\n${read("20261028040000_design_comments.sql")}\n${read("20261210010000_ops_completion.sql")}`;
+const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}\n${read("20261028040000_design_comments.sql")}\n${read("20261120050000_committee_signup.sql")}\n${read("20261210010000_ops_completion.sql")}`;
+
+/**
+ * Tables the committee migration creates that hold no brand's data at all: the platform's own rule
+ * rows, the same for every club. They are not personal data and have no brand to go with.
+ */
+const PLATFORM_RULE_TABLES = ["chase_templates", "public_link_windows", "shirt_zone_limits", "sport_number_rules"];
 
 /** The text of `create table public.<name> (...)` up to its closing line. */
 const tableBody = (name: string): string => {
@@ -17,7 +23,7 @@ const tableBody = (name: string): string => {
 describe("what holds people's names for production", () => {
   it.each(PERSONAL_DATA_TABLES.map((t) => t.table))("%s goes with its design or its order", (table) => {
     const body = tableBody(table);
-    const viaDesignOrOrder = /foreign key \((project_id|order_id|season_id), brand_id\) references public\.(projects|team_orders|production_releases|club_seasons) \(id, brand_id\)\s+on delete cascade/;
+    const viaDesignOrOrder = /foreign key \((project_id|order_id|season_id|link_id), brand_id\) references public\.(projects|team_orders|production_releases|club_seasons|committee_links|roster_signup_links) \(id, brand_id\)\s+on delete cascade/;
     const viaBrand = /brand_id uuid (not null )?(primary key )?references public\.brands \(id\) on delete cascade/;
     expect(viaDesignOrOrder.test(body) || viaBrand.test(body)).toBe(true);
   });
@@ -59,6 +65,24 @@ describe("what holds people's names for production", () => {
     const club = read("20261025040000_club_workspace.sql");
     const created = [...club.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
     expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
+  });
+
+  it("every table the committee link and roster sign-up migration creates is listed here, apart from the platform's own rule rows", () => {
+    const committee = read("20261120050000_committee_signup.sql");
+    const created = [...committee.matchAll(/create table public\.(\w+) \(/g)].map((m) => m[1]).sort();
+    expect(created).toEqual(expect.arrayContaining(PLATFORM_RULE_TABLES));
+    const unlisted = created.filter((t) => !PLATFORM_RULE_TABLES.includes(t) && !PERSONAL_DATA_TABLES.some((p) => p.table === t));
+    expect(unlisted).toEqual([]);
+    // These are the only tables a person with no account writes to, so the words they send go with
+    // the design or the season and nothing is left behind a revoked link.
+    expect(committee).toMatch(/foreign key \(link_id, brand_id\) references public\.committee_links \(id, brand_id\) on delete cascade/);
+    expect(committee).toMatch(/foreign key \(season_id, brand_id\) references public\.club_seasons \(id, brand_id\) on delete cascade/);
+  });
+
+  it("the platform's rule rows hold nobody's personal data, so they are not on the list", () => {
+    for (const table of PLATFORM_RULE_TABLES) {
+      expect(PERSONAL_DATA_TABLES.some((p) => p.table === table), `${table} is a rule table`).toBe(false);
+    }
   });
 
   it("every table the comments migration creates is listed here, and deleting a design deletes its comments", () => {
