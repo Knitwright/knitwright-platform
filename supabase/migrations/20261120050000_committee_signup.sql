@@ -433,6 +433,11 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- Emptying the table has no row to look at, so it is refused outright.
+  if tg_op = 'TRUNCATE' then
+    raise exception 'A committee comment, vote record, approval or lock is a record and never changes.'
+      using errcode = 'P0001', hint = 'append_only';
+  end if;
   if tg_op = 'DELETE' then
     if not exists (select 1 from public.committee_links l where l.id = old.link_id) then
       return old;
