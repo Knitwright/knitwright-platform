@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { TEMPLATES_PER_PAGE } from "../lib/templates/filters";
 import { allSeedTemplates } from "../lib/templates/seed/all";
 import { seedTemplates } from "../lib/templates/seed/seed";
 import { createAccount, signIn, test } from "./support";
@@ -48,10 +49,12 @@ test.describe("the template library", () => {
   test("narrows by sport and by colour family, and says when nothing matches", async ({ page }) => {
     await signedIn(page, "templates-filter");
     await page.goto("/templates");
-    await page.getByLabel("Sport").selectOption("cricket");
+    // Exactly "Sport": a template whose title holds the word, such as an esports jersey, is not the filter.
+    await page.getByLabel("Sport", { exact: true }).selectOption("cricket");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=cricket/);
-    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(allSeedTemplates().filter((seed) => seed.sport === "cricket").length);
+    const cricket = allSeedTemplates().filter((seed) => seed.sport === "cricket").length;
+    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(Math.min(cricket, TEMPLATES_PER_PAGE));
 
     await page.goto("/templates?sport=running&colour=white");
     await expect(page.getByText("No template matches those filters.")).toBeVisible();
@@ -60,7 +63,7 @@ test.describe("the template library", () => {
   test("filters by football, uses a football starter and lands on version 1", async ({ page }) => {
     await signedIn(page, "templates-football");
     await page.goto("/templates");
-    await page.getByLabel("Sport").selectOption("football");
+    await page.getByLabel("Sport", { exact: true }).selectOption("football");
     await page.getByLabel("Garment").selectOption("football-shirt");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=football/);

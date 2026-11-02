@@ -48,6 +48,13 @@ comment on column public.templates.mood_tags is 'Knitwright''s own look-and-feel
 
 create index templates_kind_idx on public.templates (kind, sport, article_id);
 
+-- `authenticated` holds SELECT on `templates` column by column, not on the whole table
+-- (20261030020000_member_visible_columns.sql: the designer's account behind an attribution is the
+-- server's business). A column added later therefore has no grant at all, and a read that names it is
+-- refused for the whole table, so the four new ones are granted here. None of them says anything about
+-- a person.
+grant select (kind, sport_tags, era_tags, mood_tags) on public.templates to authenticated;
+
 -- ---------------------------------------------------------------------------------------------
 -- 3. Kit bundles: a set of design templates that belong together.
 
