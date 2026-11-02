@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { finding } from "./finding";
-import { DRAFT, VERSION_STATUSES, canMove, statusSentence, transition, type VersionStatus } from "./status";
+import { DRAFT, VERSION_STATUSES, canMove, panelMoves, statusSentence, transition, type VersionStatus } from "./status";
 
 const at = new Date("2026-10-24T10:00:00Z");
 const blocker = finding({ code: "a-a", severity: "blocker", message: "m", action: "x", whoActs: "owner" });
@@ -61,5 +61,43 @@ describe("design status", () => {
     expect(statusSentence({ status: "validated", profileId: "p", findingsHash: "h", at: "2026-10-24T10:00:00.000Z" })).toBe("No blockers against profile p on 2026-10-24.");
     expect(statusSentence({ status: "ordered", profileId: "p", findingsHash: "h", at: null })).toContain("unknown date");
     expect(statusSentence({ status: "approved", profileId: "p", findingsHash: "h", at: "2026-10-24T10:00:00.000Z" })).toBe("Accepted for ordering by the brand. No blockers against profile p on 2026-10-24.");
+  });
+});
+
+/**
+ * Code review of plan v5, item D-6: the route accepts `approved`, the words for it exist, and the
+ * panel knew three of the four statuses and had no button that could reach it.
+ */
+describe("the moves the factory file's panel offers", () => {
+  it("offers accepting a version for ordering once it is validated, which nothing could reach before", () => {
+    expect(panelMoves("validated")).toEqual([
+      { to: "approved", label: "Accept for ordering", needsNoBlockers: true },
+      { to: "draft", label: "Back to draft", needsNoBlockers: false },
+    ]);
+  });
+
+  it("offers recording no blockers from a draft, and only once nothing blocks an order", () => {
+    expect(panelMoves("draft")).toEqual([{ to: "validated", label: "Record no blockers today", needsNoBlockers: true }]);
+  });
+
+  it("offers nothing from approved or ordered, because this panel is not where a design is ordered", () => {
+    expect(panelMoves("approved")).toEqual([]);
+    expect(panelMoves("ordered")).toEqual([]);
+  });
+
+  it("offers only moves the status rules allow, and never a move to ordered", () => {
+    for (const from of VERSION_STATUSES) {
+      for (const move of panelMoves(from)) {
+        expect(canMove(from, move.to), `${from} to ${move.to}`).toBe(true);
+        expect(move.to).not.toBe("ordered");
+        expect(move.label.length, move.label).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("asks for no blockers on every move but the one back to draft, which is how a blocker is cleared", () => {
+    for (const from of VERSION_STATUSES) {
+      for (const move of panelMoves(from)) expect(move.needsNoBlockers, move.label).toBe(move.to !== "draft");
+    }
   });
 });

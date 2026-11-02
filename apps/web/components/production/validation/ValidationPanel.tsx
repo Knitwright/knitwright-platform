@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import type { Finding } from "@/lib/production/contract";
+import { panelMoves, type PanelMove, type VersionStatus } from "@/lib/validation/status";
 import { call, projectUrl } from "../orders/call";
 import { useRemote } from "../orders/useRemote";
 import { FindingList } from "./FindingList";
@@ -16,7 +17,7 @@ type Report = Readonly<{
   orderable: boolean;
   profileName: string;
   profileLabel: string;
-  status: "draft" | "validated" | "ordered";
+  status: VersionStatus;
   statusSentence: string;
 }>;
 
@@ -25,7 +26,7 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
   const { data, problem, reload } = useRemote<Report>(url);
   const [moveProblem, setMoveProblem] = useState<string | null>(null);
 
-  const move = async (to: "validated" | "draft") => {
+  const move = async (to: PanelMove) => {
     const reply = await call<Report>(url, "POST", { to });
     setMoveProblem(reply.ok ? null : reply.message);
     reload();
@@ -43,12 +44,23 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
       </p>
       <FindingList findings={data.findings} />
       {moveProblem ? <Notice tone="warn" role="alert">{moveProblem}</Notice> : null}
-      {data.status === "draft" ? (
-        <div><Button variant="secondary" disabled={!data.orderable} onClick={() => void move("validated")}>Record no blockers today</Button></div>
-      ) : null}
-      {data.status === "validated" ? (
-        <div><Button variant="quiet" onClick={() => void move("draft")}>Back to draft</Button></div>
-      ) : null}
+      {/* The moves this panel offers come from `lib/validation/status.ts`, so the panel cannot
+          forget a status the route accepts: "Accept for ordering" was missing before. */}
+      {panelMoves(data.status).length === 0 ? null : (
+        <div className="flex flex-wrap gap-2">
+          {panelMoves(data.status).map((entry) => (
+            <Button
+              key={entry.to}
+              variant={entry.to === "draft" ? "quiet" : "secondary"}
+              disabled={entry.needsNoBlockers && !data.orderable}
+              onClick={() => void move(entry.to)}
+              data-testid={`validation-move-${entry.to}`}
+            >
+              {entry.label}
+            </Button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

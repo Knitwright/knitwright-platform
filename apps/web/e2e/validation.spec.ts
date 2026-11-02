@@ -27,6 +27,11 @@ test.describe("validation gate (V1)", () => {
     await expect(blocker).toHaveAttribute("data-severity", "blocker");
     await expect(blocker).toContainText("Your print house");
     await expect(panel.getByTestId("validation-status")).toHaveAttribute("data-status", "draft");
-    await expect(panel.getByRole("button", { name: "Record no blockers today" })).toBeDisabled();
+    await expect(panel.getByTestId("validation-move-validated")).toBeDisabled();
+
+    // A draft offers the one move a draft has. "Accept for ordering" belongs to a validated
+    // version and must not be on screen before there is one (code review of plan v5, item D-6).
+    await expect(panel.getByTestId("validation-move-approved")).toHaveCount(0);
+    await expect(panel.getByTestId("validation-move-draft")).toHaveCount(0);
   });
 });
