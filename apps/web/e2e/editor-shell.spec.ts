@@ -61,12 +61,13 @@ test.describe("the editor shell", () => {
 
     await expect(toolbars.getByRole("tab", { name: "Library" })).toBeFocused();
     await expect(toolbars.getByRole("tab", { name: "Library" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("editor-slot-library")).toContainText("workstream Y3");
+    // Y3's own toolbar, not a placeholder: `editor-panels.spec.ts` is where its content is read.
+    await expect(page.getByTestId("library-toolbar")).toBeVisible();
     await expect(page).toHaveURL(/rail=library/);
 
     await page.keyboard.press("End");
     await expect(toolbars.getByRole("tab", { name: "Specs" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("editor-slot-specs")).toContainText("workstream Y4");
+    await expect(page.getByTestId("specs-toolbar")).toBeVisible();
 
     // Back on Form, the workspace's own eleven tools are where they always were.
     await page.keyboard.press("Home");
@@ -87,11 +88,11 @@ test.describe("the editor shell", () => {
 
     await page.getByTestId("view-toggle").getByRole("button", { name: "2D" }).click();
     await expect(page.getByRole("region", { name: "2D pattern view" })).toBeVisible();
-    await expect(page.getByTestId("editor-slot-view-2d")).toContainText("workstream Y3");
+    await expect(page.getByTestId("view-2d")).toBeVisible();
     await expect(page.getByTestId("version")).toHaveText("Version 1");
 
     await page.getByTestId("view-toggle").getByRole("button", { name: "Tech pack" }).click();
-    await expect(page.getByTestId("editor-slot-tech-pack")).toContainText("workstream Y4");
+    await expect(page.getByTestId("techpack-view")).toBeVisible();
     await expect(page.getByTestId("version")).toHaveText("Version 1");
 
     // Side by side: two views of the same design version at once.
@@ -181,6 +182,23 @@ test.describe("the editor shell", () => {
 
     await expect(page).toHaveURL(/tool=fabric/);
     await expect(page.getByRole("tab", { name: "Fabric", exact: true })).toHaveAttribute("aria-selected", "true");
+  });
+
+  /**
+   * `EditorCommands.openSummary`, which nothing implemented until the panels were mounted (code
+   * review v5, A12): a row whose editor is a slot panel opens it in the right-hand panel instead
+   * of a tool in the left rail. Names & numbers is the one such row, and Y8's panel is what opens.
+   */
+  test("opens the Names & numbers panel in the right-hand panel, and comes back to the summary", async ({ page }) => {
+    await signedIn(page, "shell-side");
+    await startJersey(page, "Side kit");
+
+    await page.getByTestId("summary-empty-names-numbers").click();
+    await expect(page.getByTestId("names-numbers-panel")).toBeVisible();
+    await expect(page.getByTestId("design-summary")).toHaveCount(0);
+
+    await page.getByTestId("side-panel-back").click();
+    await expect(page.getByTestId("design-summary")).toBeVisible();
   });
 
   test("adds a colourway from the bottom bar and shows the size the canvas is drawn at", async ({ page }) => {

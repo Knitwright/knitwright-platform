@@ -29,8 +29,8 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
   if (!form) {
     return (
       <section aria-label="Names & numbers" data-testid="names-numbers-panel" className="glass flex flex-col gap-2 rounded-2xl p-5">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Names &amp; numbers</h3>
-        <p className="text-[13px] text-chalk-muted">This garment has no zone for a player name or number.</p>
+        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Names &amp; numbers</h3>
+        <p className="text-[13px] text-ink-2">This garment has no zone for a player name or number.</p>
       </section>
     );
   }
@@ -60,8 +60,8 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
   return (
     <section aria-label="Names & numbers" data-testid="names-numbers-panel" className="glass flex flex-col gap-5 rounded-2xl p-5">
       <header className="flex flex-col gap-1">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Names &amp; numbers</h3>
-        <p className="flex flex-wrap items-center gap-1 text-[13px] text-chalk-muted">
+        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Names &amp; numbers</h3>
+        <p className="flex flex-wrap items-center gap-1 text-[13px] text-ink-2">
           Printed in the same pass as the rest of the design.
           <WhyButton ruleId={METHOD_RULE} context="names and numbers method" />
         </p>
@@ -69,7 +69,7 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
 
       <div className="flex flex-col gap-2" data-testid="names-numbers-zones">
         <h4 className="text-[13px] font-medium text-ink">Zones</h4>
-        <p className="text-[13px] text-chalk-muted">{ZONES_LABEL}</p>
+        <p className="text-[13px] text-ink-2">{ZONES_LABEL}</p>
         <ul className="flex flex-col gap-3">
           {view.zones.map((zone) => (
             <li key={zone.place} className="flex flex-col gap-1 rounded-lg border border-white/10 p-3" data-testid={`names-numbers-zone-${zone.place}`}>
@@ -79,14 +79,14 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
                   {zone.label}
                 </label>
                 {zone.ruleMissing ? (
-                  <span className="text-[11px] text-chalk-muted" data-testid={`names-numbers-gap-${zone.place}`}>
+                  <span className="text-[11px] text-ink-2" data-testid={`names-numbers-gap-${zone.place}`}>
                     No rulebook entry yet
                   </span>
                 ) : (
                   <WhyButton ruleId={zone.ruleId} context={`names and numbers zone ${zone.place}`} />
                 )}
               </div>
-              <p className="text-[11px] text-chalk-muted">{zone.anchorSentence}</p>
+              <p className="text-[11px] text-ink-2">{zone.anchorSentence}</p>
               {zone.on ? (
                 <Field
                   name={`height-${zone.place}`}
@@ -104,7 +104,7 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
 
       <div className="flex flex-col gap-2" data-testid="names-numbers-fonts">
         <h4 className="text-[13px] font-medium text-ink">Font</h4>
-        <p className="text-[13px] text-chalk-muted">{FONT_LIST_LABEL}</p>
+        <p className="text-[13px] text-ink-2">{FONT_LIST_LABEL}</p>
         <ul className="grid gap-2 sm:grid-cols-2">
           {KIT_FONTS.map((font) => (
             <li key={font.id}>
@@ -119,12 +119,12 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
                 }`}
               >
                 <span className="text-[13px] text-ink">{font.name}</span>
-                <span className="text-[11px] text-chalk-muted">{LICENCE_WORDS[font.licence]}</span>
+                <span className="text-[11px] text-ink-2">{LICENCE_WORDS[font.licence]}</span>
               </button>
             </li>
           ))}
         </ul>
-        {view.font ? <p className="text-[11px] text-chalk-muted">{view.font.licenceNote}</p> : null}
+        {view.font ? <p className="text-[11px] text-ink-2">{view.font.licenceNote}</p> : null}
       </div>
 
       <div className="flex flex-col gap-3" data-testid="names-numbers-colours">
@@ -156,7 +156,7 @@ export default function NamesNumbers({ design, commands }: EditorSlotProps) {
           <Field name="sampleName" label="Sample name" value={form.sampleName} onChange={(event) => change({ ...form, sampleName: event.currentTarget.value })} />
           <Field name="sampleNumber" label="Sample number" value={form.sampleNumber} onChange={(event) => change({ ...form, sampleNumber: event.currentTarget.value })} />
         </div>
-        <p className="text-[13px] text-chalk-muted">Each player&apos;s own name and number come with the team order.</p>
+        <p className="text-[13px] text-ink-2">Each player&apos;s own name and number come with the team order.</p>
         <RosterPreview view={view.preview} />
       </div>
 

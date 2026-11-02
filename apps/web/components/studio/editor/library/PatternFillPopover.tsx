@@ -23,7 +23,7 @@ export function PatternFillPopover({ design, commands }: EditorSlotProps) {
 
   if (view === null) {
     return (
-      <p className="text-[13px] text-chalk-muted" data-testid="pattern-fill-none">
+      <p className="text-[13px] text-ink-2" data-testid="pattern-fill-none">
         This design has no pattern fill. Pick one from Pattern fills above to put a printed style over the body colour.
       </p>
     );
@@ -33,7 +33,7 @@ export function PatternFillPopover({ design, commands }: EditorSlotProps) {
       <h3 className="text-[13px] font-medium text-ink">{view.styleLabel}</h3>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="font-mono text-[11px] tracking-[0.08em] text-chalk-muted uppercase">Colours, up to {view.maxColours}</legend>
+        <legend className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Colours, up to {view.maxColours}</legend>
         {view.colours.map((colour, at) => (
           <ColourField
             key={`${at}-${colour.swatch ?? colour.colour}`}
@@ -47,7 +47,7 @@ export function PatternFillPopover({ design, commands }: EditorSlotProps) {
       </fieldset>
 
       {view.fields.length === 0 ? (
-        <p className="text-[11px] text-chalk-muted">Nobody has given this style a size yet, so there is nothing to change here.</p>
+        <p className="text-[11px] text-ink-2">Nobody has given this style a size yet, so there is nothing to change here.</p>
       ) : (
         <>
           <label htmlFor={lockId} className="flex min-h-10 items-center gap-2 text-[12px] text-ink">
@@ -62,7 +62,7 @@ export function PatternFillPopover({ design, commands }: EditorSlotProps) {
 
       <ul className="flex flex-col gap-1">
         {view.unstored.map((entry) => (
-          <li key={entry.label} className="flex flex-wrap items-center gap-1 text-[11px] text-chalk-muted">
+          <li key={entry.label} className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2">
             <span className="font-medium text-ink">{entry.label}:</span> {entry.reason}
             <WhyButton ruleId={entry.ruleId} context={`pattern fill ${entry.label}`} />
           </li>
@@ -71,7 +71,7 @@ export function PatternFillPopover({ design, commands }: EditorSlotProps) {
 
       <div className="flex flex-wrap items-center gap-2">
         {view.targets.map((target) => (
-          <span key={target.kind} className="text-[11px] text-chalk-muted">
+          <span key={target.kind} className="text-[11px] text-ink-2">
             {target.label}
             {target.reason === null ? ": the pattern is already on the whole body." : `: ${target.reason}`}
           </span>
@@ -132,7 +132,7 @@ function ColourField({ at, swatch, reference, busy, onSet }: ColourProps) {
     <div className="flex items-center gap-2">
       <label htmlFor={id} className="flex-1 text-[12px] text-ink">
         Colour {at + 1}
-        {reference === "" ? <span className="block text-[11px] text-chalk-muted">Screen colour only. Your factory matches the reference your brand gives.</span> : <span className="block text-[11px] text-chalk-muted">{reference}</span>}
+        {reference === "" ? <span className="block text-[11px] text-ink-2">Screen colour only. Your factory matches the reference your brand gives.</span> : <span className="block text-[11px] text-ink-2">{reference}</span>}
       </label>
       <input id={id} type="color" value={swatch} disabled={busy} onChange={(event) => onSet(event.target.value)} className="size-10 rounded-full border border-white/20 bg-transparent" />
     </div>

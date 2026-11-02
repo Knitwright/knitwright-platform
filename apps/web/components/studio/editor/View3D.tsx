@@ -51,7 +51,7 @@ export function View3D({ model, flat, reason }: Props) {
   }
   return (
     <div className="flex flex-col gap-2" data-testid="view-3d">
-      <p className="text-xs text-chalk-muted">
+      <p className="text-xs text-ink-2">
         Shape: {model.label}. It shows where the panels are, not how the garment hangs.
       </p>
       <ModelViewer model={model.model} layout={model.layout} panelPictures={{}} shape={flat.shape} pictures={pictures} />

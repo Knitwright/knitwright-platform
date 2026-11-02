@@ -9,11 +9,17 @@ import { WhyButton } from "../WhyButton";
  * way on another.
  */
 
+/**
+ * The chip is 10 px, so its words are small text and need 4.5:1. `text-cobalt` is **3.08:1** on the
+ * studio's canvas, which axe measured the first time this panel was ever scanned (code review v5,
+ * A10): the blue tone uses `text-cobalt-soft`, which is 6.6:1, and keeps `border-cobalt/50` so the
+ * chip still reads as the blue one. `ok` and `warn` are 11:1 and 11.6:1 and are left alone.
+ */
 const TONE_CLASS: Readonly<Record<"green" | "blue" | "amber" | "neutral", string>> = {
   green: "border-ok/40 text-ok",
-  blue: "border-cobalt/50 text-cobalt",
+  blue: "border-cobalt/50 text-cobalt-soft",
   amber: "border-warn/50 text-warn",
-  neutral: "border-white/20 text-chalk-muted",
+  neutral: "border-white/20 text-ink-2",
 };
 
 export function ProvenanceChip({ provenance }: Readonly<{ provenance: FieldProvenance }>) {
@@ -32,7 +38,7 @@ export function ChipLegend({ counts }: Readonly<{ counts: Readonly<Record<FieldP
   return (
     <ul aria-label="What the chips mean" className="flex flex-wrap items-center gap-2" data-testid="techpack-legend">
       {PROVENANCE_ORDER.map((id) => (
-        <li key={id} className="flex items-center gap-1 text-[11px] text-chalk-muted">
+        <li key={id} className="flex items-center gap-1 text-[11px] text-ink-2">
           <ProvenanceChip provenance={id} />
           <span>{counts[id]}</span>
         </li>
@@ -54,7 +60,7 @@ export function CellValue({ cell, context }: Readonly<{ cell: ViewCell; context:
       <span className={cell.text === null ? "text-[13px] text-warn" : "text-[13px] text-ink"}>{cell.text ?? NOTHING_YET}</span>
       <ProvenanceChip provenance={cell.provenance} />
       {cell.locked ? (
-        <span className="text-[11px] text-chalk-muted" title="The base article fixes this">
+        <span className="text-[11px] text-ink-2" title="The base article fixes this">
           <span aria-hidden="true">&#128274;</span>
           <span className="sr-only">Fixed by the base article.</span>
         </span>

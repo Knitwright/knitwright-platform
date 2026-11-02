@@ -63,7 +63,7 @@ export interface LibraryGroup {
 }
 
 const NO_ARTICLE_FABRICS = "This design is not on a base article yet, so there is no approved fabric list to choose from.";
-const INSPIRATION_SLOT = "The inspiration board (F-S1) is built in wave 3. This is the labelled slot it opens into.";
+const INSPIRATION_SLOT = "The inspiration board (F-S1) is under this toolbar, below Pattern fill and the repeat maker.";
 
 const line = (label: string, value: string | number | null, unit = ""): readonly CardLine[] =>
   value === null || value === "" ? [] : [{ label, value: `${value}${unit}` }];

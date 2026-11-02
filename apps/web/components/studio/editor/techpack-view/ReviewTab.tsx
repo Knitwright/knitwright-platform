@@ -31,7 +31,7 @@ const STATE_WORDS: Readonly<Record<CheckLine["state"], string>> = {
 const STATE_CLASS: Readonly<Record<CheckLine["state"], string>> = {
   clear: "text-ok",
   blocked: "text-warn",
-  "read-elsewhere": "text-chalk-muted",
+  "read-elsewhere": "text-ink-2",
 };
 
 export function ReviewTab({ review, onGoToTab }: Props) {
@@ -46,11 +46,11 @@ export function ReviewTab({ review, onGoToTab }: Props) {
         </p>
       ) : null}
       <section aria-labelledby="techpack-review-waiting" className="flex flex-col gap-2">
-        <h4 id="techpack-review-waiting" className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+        <h4 id="techpack-review-waiting" className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">
           Waiting for you
         </h4>
         {review.items.length === 0 ? (
-          <p className="text-[13px] text-chalk-muted">No field of any tab is empty.</p>
+          <p className="text-[13px] text-ink-2">No field of any tab is empty.</p>
         ) : (
           <ul className="flex flex-col gap-1" data-testid="techpack-review-items">
             {review.items.map((item) => (
@@ -59,7 +59,7 @@ export function ReviewTab({ review, onGoToTab }: Props) {
                   {item.tabLabel}
                 </button>
                 <span className="min-w-0 flex-1">{item.label}</span>
-                <span className="font-mono text-[11px] text-chalk-muted">{item.ruleId}</span>
+                <span className="font-mono text-[11px] text-ink-2">{item.ruleId}</span>
                 <WhyButton ruleId={item.ruleId} context={`techpack review ${item.cellId}`} />
               </li>
             ))}
@@ -67,7 +67,7 @@ export function ReviewTab({ review, onGoToTab }: Props) {
         )}
       </section>
       <section aria-labelledby="techpack-review-checks" className="flex flex-col gap-2">
-        <h4 id="techpack-review-checks" className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+        <h4 id="techpack-review-checks" className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">
           The pre-export check
         </h4>
         <ul className="flex flex-col gap-2" data-testid="techpack-review-checks">

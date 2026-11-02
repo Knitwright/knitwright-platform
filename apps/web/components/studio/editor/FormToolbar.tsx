@@ -22,7 +22,7 @@ type Props = Readonly<{
 export function FormToolbar({ article, form, busy, onOption, onParameter }: Props) {
   if (!article) {
     return (
-      <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="form-toolbar-none">
+      <p className="text-[13px] leading-relaxed text-ink-2" data-testid="form-toolbar-none">
         This design is not on a base article yet, so it has no form of its own to change.
       </p>
     );
@@ -31,7 +31,7 @@ export function FormToolbar({ article, form, busy, onOption, onParameter }: Prop
   const sliders = parameterSliders(article, form);
   if (groups.length === 0 && sliders.length === 0) {
     return (
-      <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="form-toolbar-empty">
+      <p className="text-[13px] leading-relaxed text-ink-2" data-testid="form-toolbar-empty">
         {article.code} has no options or ranges on file yet. {article.dataLabel}.
       </p>
     );
@@ -56,7 +56,7 @@ function OptionTiles({ group, busy, onOption }: Readonly<{ group: OptionGroupVie
   // the Garment panel, and two groups of the same name would be one control to a screen reader.
   return (
     <div role="radiogroup" aria-labelledby={`${id}-legend`} className="rounded-2xl border border-white/10 p-3" data-testid={`option-group-${group.group}`}>
-      <p id={`${id}-legend`} className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+      <p id={`${id}-legend`} className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">
         {group.label} options of {group.articleCode}
       </p>
       <div className="mt-1 flex flex-col gap-1">
@@ -86,7 +86,7 @@ function Tile({ tile, group, groupId, busy, onOption }: Readonly<{ tile: OptionT
           className="size-4 shrink-0 accent-cobalt"
         />
         <span className="min-w-0 flex-1">
-          <span className="font-mono text-[11px] text-chalk-muted">{tile.code}</span> {tile.label}
+          <span className="font-mono text-[11px] text-ink-2">{tile.code}</span> {tile.label}
           {tile.extraCost ? <span className="block text-[11px] text-ink-2">{tile.extraCost}</span> : null}
         </span>
       </label>
@@ -121,7 +121,7 @@ function Slider({ slider, busy, onParameter }: Readonly<{ slider: ParameterSlide
         onChange={(event) => onParameter(slider.key, Number(event.target.value))}
         className="mt-1 h-10 w-full accent-cobalt"
       />
-      <p className="flex flex-wrap items-center gap-1 text-[11px] text-chalk-muted">
+      <p className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2">
         {slider.pomLetters.length > 0 ? <span>Moves {slider.pomLetters.join(", ")}.</span> : null}
         {slider.lockNote ? <span className="text-warn">&#128274; {slider.lockNote}.</span> : null}
         <WhyButton ruleId={slider.ruleId} context={`form parameter ${slider.key}`} />

@@ -35,7 +35,7 @@ export function PriceNote({ kind }: Readonly<{ kind: OutputKind }>) {
   if (!summary?.enforced) return null;
   const price = summary.prices[kind];
   return (
-    <p className="text-[12px] leading-relaxed text-chalk-muted" data-testid={`price-${kind}`}>
+    <p className="text-[12px] leading-relaxed text-ink-2" data-testid={`price-${kind}`}>
       {OUTPUT_LABELS[kind]}: {price} {price === 1 ? "credit" : "credits"}, charged once for each saved version. You have {summary.balance}.
       {summary.isPlaceholder ? " The price is a placeholder." : ""}
     </p>

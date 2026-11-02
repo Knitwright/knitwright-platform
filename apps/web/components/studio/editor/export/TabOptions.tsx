@@ -37,8 +37,8 @@ type Props = Readonly<{
 
 const ROW = "flex flex-wrap items-center gap-2 text-[13px] text-ink";
 const CHIP = "rounded-full border px-3 py-1 text-[12px]";
-const chip = (on: boolean): string => `${CHIP} ${on ? "border-ink bg-tile-2 text-ink" : "border-white/20 text-chalk-muted"}`;
-const NOTE = "text-[12px] leading-relaxed text-chalk-muted";
+const chip = (on: boolean): string => `${CHIP} ${on ? "border-ink bg-tile-2 text-ink" : "border-white/20 text-ink-2"}`;
+const NOTE = "text-[12px] leading-relaxed text-ink-2";
 
 /** The sections of the tech pack, as a list of what the files hold. */
 function Sections() {
@@ -47,7 +47,7 @@ function Sections() {
       <p className={NOTE}>{EVERY_SECTION_NOTE}</p>
       <ul className="mt-2 flex flex-wrap gap-2">
         {TECH_PACK_SECTIONS.map((section) => (
-          <li key={section.id} className={`${CHIP} border-white/20 text-chalk-muted`}>
+          <li key={section.id} className={`${CHIP} border-white/20 text-ink-2`}>
             {section.label}
           </li>
         ))}

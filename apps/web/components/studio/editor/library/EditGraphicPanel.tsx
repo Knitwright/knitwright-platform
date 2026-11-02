@@ -33,7 +33,7 @@ export function EditGraphicPanel({ design, commands, artworkId }: EditorSlotProp
 
   if (view === null) {
     return (
-      <p className="text-[13px] text-chalk-muted" data-testid="edit-graphic-none">
+      <p className="text-[13px] text-ink-2" data-testid="edit-graphic-none">
         That graphic is not on this design any more.
       </p>
     );
@@ -42,13 +42,13 @@ export function EditGraphicPanel({ design, commands, artworkId }: EditorSlotProp
     <section aria-label="Edit graphic" data-testid="edit-graphic" className="flex flex-col gap-3 rounded-2xl border border-white/10 p-3">
       <header className="flex flex-col gap-1">
         <h3 className="text-[13px] font-medium text-ink">{view.name}</h3>
-        <p className="text-[11px] text-chalk-muted">
+        <p className="text-[11px] text-ink-2">
           {view.source}, on {view.panelLabel}.
         </p>
       </header>
 
       <fieldset className="flex flex-col gap-1">
-        <legend className="font-mono text-[11px] tracking-[0.08em] text-chalk-muted uppercase">Type</legend>
+        <legend className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Type</legend>
         {view.techniques.map((choice) => (
           <div key={choice.technique}>
             <label className="flex min-h-10 items-center gap-2 text-[13px] text-ink">
@@ -99,11 +99,11 @@ export function EditGraphicPanel({ design, commands, artworkId }: EditorSlotProp
           Delete
         </button>
       </div>
-      <p className="text-[11px] text-chalk-muted">{view.alignNote}</p>
+      <p className="text-[11px] text-ink-2">{view.alignNote}</p>
 
       <ul className="flex flex-col gap-1">
         {[...graphicActionsNotWired(), ...view.unstored].map((entry) => (
-          <li key={entry.label} className="flex flex-wrap items-center gap-1 text-[11px] text-chalk-muted">
+          <li key={entry.label} className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2">
             <span className="font-medium text-ink">{entry.label}:</span> {entry.reason}
             <WhyButton ruleId={entry.ruleId} context={`graphic ${entry.label}`} />
           </li>
@@ -163,7 +163,7 @@ type AnchorProps = Readonly<{ anchors: NonNullable<ReturnType<typeof graphicView
 
 function AnchorPicker({ anchors, busy, onPick }: AnchorProps) {
   const id = useId();
-  if (anchors.length === 0) return <p className="text-[11px] text-chalk-muted">This panel has no named places on file, so the graphic stays where it is.</p>;
+  if (anchors.length === 0) return <p className="text-[11px] text-ink-2">This panel has no named places on file, so the graphic stays where it is.</p>;
   return (
     <div className="flex items-center gap-2">
       <label htmlFor={id} className="flex-1 text-[12px] text-ink">
