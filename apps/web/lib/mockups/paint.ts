@@ -1,4 +1,4 @@
-import sharp, { type Sharp } from "sharp";
+import sharp from "sharp";
 import type { Backdrop } from "./types";
 
 /**
@@ -19,7 +19,7 @@ export interface Size {
   readonly height: number;
 }
 
-const png = (image: Sharp): Promise<Buffer> => image.png({ compressionLevel: 9 }).toBuffer();
+const png = (image: ReturnType<typeof sharp>): Promise<Buffer> => image.png({ compressionLevel: 9 }).toBuffer();
 
 /** `#rrggbb` as sharp's own colour. */
 export function rgbOf(hex: string): { r: number; g: number; b: number } {
@@ -156,5 +156,3 @@ export async function measured(picture: Buffer): Promise<Size> {
   return { width: meta.width ?? 1, height: meta.height ?? 1 };
 }
 
-/** The picture as a PNG on the given background, flattened, which is what a mockup is handed back as. */
-export const flattenedPng = (image: Sharp): Promise<Buffer> => png(image);
