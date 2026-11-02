@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isPrivateHost } from "@/lib/http/public-url";
 import { plain } from "./scrub";
 import { robotsAllows } from "./robots";
 import { BENCHMARK_USER_AGENT } from "./vocabulary";
@@ -23,9 +24,6 @@ export const MAX_PAGE_BYTES = 2_000_000;
 /** The most words handed to the extractor. */
 export const MAX_WORDS_CHARS = 12_000;
 export const FETCH_TIMEOUT_MS = 10_000;
-
-const PRIVATE_HOST =
-  /^(localhost|\[?::1\]?|0\.0\.0\.0|10\.\d+\.\d+\.\d+|127\.\d+\.\d+\.\d+|169\.254\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$|\.(local|internal|localhost)$/i;
 
 export const REFUSALS: Readonly<Record<FetchRefusal, string>> = {
   bad_url: "Paste the address of a product page, starting with https://.",
@@ -96,7 +94,7 @@ export function wordsOfPage(html: string): Readonly<{ title: string | null; word
 export async function fetchProductPage(fetcher: Fetcher, raw: string, now: () => Date = () => new Date()): Promise<FetchOutcome> {
   const url = normaliseUrl(raw);
   if (url === null) return refuse("bad_url");
-  if (PRIVATE_HOST.test(url.hostname)) return refuse("private_host");
+  if (isPrivateHost(url.hostname)) return refuse("private_host");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {

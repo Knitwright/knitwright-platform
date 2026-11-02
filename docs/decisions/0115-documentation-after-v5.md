@@ -12,7 +12,7 @@ architecture map, decision index, owner guide)").
 Thirty workstreams merged between 2026-10-29 and 2026-11-02 and the documentation did not follow any of them.
 
 `docs/architecture.md` described plan v4: it named `plans/platform-v4.md` as the current plan, listed 65 decisions when
-there were 106, counted 78 route handlers when there were 95, and knew nothing of the base article catalogue, the rulebook,
+there were 107, counted 78 route handlers when there were 95, and knew nothing of the base article catalogue, the rulebook,
 the drafter, the production package, the factory model, the job packet, moderation, the Studio shell, Launch, compliance,
 ops completion, the Store contract or Australia. `README.md` was the same vintage.
 
@@ -129,7 +129,7 @@ worse. Each "built" line and each "known gap" was checked against the files. Wha
 |---|---|
 | "`docs/owner/open-decisions-2026-10-15.md` ... is not in this repository at the time of writing. Its content could not be read" | **Wrong in effect.** The file never existed, and its content is in `plans/production-outputs.md` section 7 and `docs/owner/size-charts.md`. Section 3 above |
 | "No email is sent by the platform: no invitation, no lead notice, no factory sheet" | **Two of three now false.** Share and design invitations send through Resend (`SHARE_EMAIL_*`, `lib/share/email-server.ts`, 0081), and customer status emails through Resend (`OPS_EMAIL_*`, `lib/ops/notify/`, 0100). Still true: no lead notice is emailed (`lib/leads/notify.ts` writes one log line), and the factory gets a tokenised link rather than a sheet (0072) |
-| "`docs/decisions/README.md`, 65 records" (README) | **106 records**, of which 70 are still `Proposed`, 34 `Accepted`, one `Trial` and one `Open`. The checklist now gives those counts rather than the vaguer sentence it had |
+| "`docs/decisions/README.md`, 65 records" (README) | **107 records**, of which 71 are still `Proposed`, 34 `Accepted`, one `Trial` and one `Open`. The checklist now gives those counts rather than the vaguer sentence it had |
 | "the build plans (current: `plans/platform-v4.md`)" (README), "78 `route.ts` files" (map) | v5, and 95 |
 | "Media sets per brand per day is stored but no code reads it" | **True, wrongly named.** The key is `media.daily_cap_per_brand`, and nothing outside `lib/settings/registry.test.ts` mentions it |
 | "The guardrail settings saved in the console do not change the editor checks yet" | **True.** `loadGuardrailSettings` is exported from `lib/settings/read.ts` and has no caller outside `lib/settings` |
@@ -181,7 +181,7 @@ No dependency, no migration, no runtime code and no seed was touched. Nothing in
   most of 59 figures, 20 things to buy, 17 to ask a lawyer, 112 product decisions that can wait.
 - A reader who follows a path in any of these five documents lands on a file, and a future edit that breaks that fails in
   CI in a second rather than rotting for three weeks.
-- The five documents now carry counts — 106 records, 95 route handlers, 97 `lib/` areas, 76 migrations, 252 questions — and
+- The five documents now carry counts — 107 records, 95 route handlers, 97 `lib/` areas, 76 migrations, 252 questions — and
   counts go stale. They were chosen over vaguer wording because a wrong number is noticed and corrected while a vague
   sentence is not. The next documentation pass should recount them; nothing enforces them.
 - `docs/owner/open-questions-v5.md` is a derived document maintained by hand. The honest alternative is to generate it from

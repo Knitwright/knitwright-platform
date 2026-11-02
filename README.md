@@ -25,7 +25,7 @@ know what state this is actually in.
 | Running production | [`docs/runbook/ops.md`](docs/runbook/ops.md) |
 | Setting up hosting | [`docs/runbooks/supabase-hosted.md`](docs/runbooks/supabase-hosted.md) |
 | Preparing to launch | [`docs/launch-checklist.md`](docs/launch-checklist.md) |
-| Looking for why something is built a way | [`docs/decisions/README.md`](docs/decisions/README.md), 106 records |
+| Looking for why something is built a way | [`docs/decisions/README.md`](docs/decisions/README.md), 107 records |
 | About to open a pull request here | ["How this repository is worked on"](docs/architecture.md#how-this-repository-is-worked-on) — it is unusual, and the next person will otherwise get it wrong |
 
 ## Run it
@@ -82,8 +82,12 @@ Reports from the review and hardening pass. Plan v4's (workstream W5):
 - Code: [`docs/reviews/code-v4.md`](docs/reviews/code-v4.md)
 - Coverage and journeys: [`docs/reviews/coverage-v4.md`](docs/reviews/coverage-v4.md)
 
-Plan v5's are workstreams R1 to R3 and land as `security-v5.md`, `code-v5.md` and `coverage-v5.md`
-beside them. R4 is this documentation pass (decision 0115).
+Plan v5's are workstreams R1 to R3:
+
+- Code: [`docs/reviews/code-v5.md`](docs/reviews/code-v5.md) (R2, decision 0112)
+- Security and coverage land beside it as `security-v5.md` (R1) and `coverage-v5.md` (R3)
+
+R4 is this documentation pass (decision 0115).
 
 ## Rules that apply everywhere
 

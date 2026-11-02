@@ -21,7 +21,7 @@ what changed. It does not replace the detail:
 - How the repository is worked on: [`architecture.md#how-this-repository-is-worked-on`](architecture.md#how-this-repository-is-worked-on)
 
 **Where this list is weaker than the sources.** "Built" means the code and its tests exist and the
-decision record says so. **70 of the 106 records have status `Proposed`**, which means the orchestrator
+decision record says so. **71 of the 107 records have status `Proposed`**, which means the orchestrator
 or the owner has not accepted them yet; 34 are `Accepted`, one is `Trial` and one is `Open`. Several
 records say their database and browser tests first ran in CI. The coverage and journey report is
 [`reviews/coverage-v4.md`](reviews/coverage-v4.md) (W5-C); plan v5's is R3's `reviews/coverage-v5.md`.
@@ -142,13 +142,13 @@ Set out in full, with the evidence for each, at the top of [`owner/README.md`](o
 - [ ] M6 allowance amounts and a load run
 - [ ] The deployed check of the PDF renderer (decisions 0008, 0011) and of the function time limit (0002)
 - [ ] Database, end-to-end and browser runs that several decision records say first ran in CI
-- [ ] The plan-v5 review reports: `reviews/security-v5.md` (R1), `reviews/code-v5.md` (R2),
-      `reviews/coverage-v5.md` (R3)
+- [ ] The plan-v5 review reports: `reviews/security-v5.md` (R1) and `reviews/coverage-v5.md` (R3).
+      R2's [`reviews/code-v5.md`](reviews/code-v5.md) has landed (decision 0112)
 - [ ] The benchmark reader's accuracy against a real key: the 90%-of-`observed` acceptance test needs a
       measurement run outside CI (decision 0084 question 6). *Crest-to-kit's own acceptance test — 95 of
       100 crests within ΔE00 < 5 — is **not** owed: it runs in CI against generated fixtures
       (`lib/crest-to-kit/fixtures.test.ts`).*
-- [ ] Acceptance of the 70 records whose status is still `Proposed`
+- [ ] Acceptance of the 71 records whose status is still `Proposed`
 
 ### Other owner decisions still open
 

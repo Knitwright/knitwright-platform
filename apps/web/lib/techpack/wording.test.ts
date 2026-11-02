@@ -31,6 +31,26 @@ const ALLOWED: readonly string[] = [
   "things to confirm", // a count of what is missing
   "thing to confirm",
   "Confirm each one", // asks the brand to confirm a suggestion
+  "What nobody has confirmed yet", // the Review tab's and the Review sheet's own lead: says nothing is settled
+  "has not checked this version yet", // the export's note when the Review tab has not been through the version
+  "anything still to be confirmed", // the same note, naming what the files may still carry
+];
+
+/**
+ * A word allowed only in one named file, with the reason. Unlike `ALLOWED` these are not sentences
+ * that say a thing is unsettled: they are single words naming where a value came from, which the
+ * scan would otherwise read as a claim. Nothing here may be a sentence, and nothing here may be
+ * allowed in a second file: a per-file allowance is a decision somebody made once, in one place.
+ */
+const ONLY_IN: readonly { readonly path: string; readonly words: readonly string[]; readonly why: string }[] = [
+  {
+    path: "lib/techpack/view/fields.ts",
+    words: ["Confirmed", "confirmed"],
+    why:
+      "Spec F-S6's fourth provenance chip, and the `FIELD_PROVENANCE` key X5 took from " +
+      "`docs/spec/04-production-package.md` (decision 0070). One word naming a value's source, never a " +
+      "sentence claiming a measurement, a drawing or a factory sign-off.",
+  },
 ];
 
 const ROOT = join(__dirname, "..", "..");
@@ -39,13 +59,23 @@ const listed = (dir: string, pattern: RegExp): string[] =>
     .filter((name) => pattern.test(name) && !/\.test\./.test(name))
     .map((name) => join(ROOT, dir, name));
 
+/**
+ * Every source file under a directory, however deep. Review v5 found that this scan read one folder
+ * at a time, so the folders a workstream added below a scanned one were never read: the PDF and
+ * Excel exports (`lib/techpack/exports`), the tech pack view (`lib/techpack/view`) and four of the
+ * five registry families, `teamwear` among them, held prose the rule covers and nothing checked it.
+ * A folder added under one of these is now read without anyone remembering to list it.
+ */
+const under = (dir: string, pattern: RegExp): string[] =>
+  readdirSync(join(ROOT, dir), { withFileTypes: true, recursive: true })
+    .filter((entry) => entry.isFile() && pattern.test(entry.name) && !/\.test\./.test(entry.name) && !/[\\/]fixtures([\\/]|$)/.test(entry.parentPath))
+    .map((entry) => join(entry.parentPath, entry.name));
+
 const SOURCES = [
-  ...listed("components/techpack", /\.tsx?$/),
-  ...listed("lib/techpack", /\.ts$/),
-  ...listed("lib/techpack/production", /\.ts$/),
+  ...under("components/techpack", /\.tsx?$/),
+  ...under("lib/techpack", /\.ts$/),
   ...listed("lib/projects", /^tech-pack-.*\.ts$/),
-  ...listed("lib/garment/registry", /\.ts$/),
-  ...listed("lib/garment/registry/tops", /\.ts$/),
+  ...under("lib/garment/registry", /\.ts$/),
   join(ROOT, "lib/garment/provenance.ts"),
   join(ROOT, "lib/garment/tech-parts.ts"),
 ];
@@ -65,16 +95,27 @@ function sentencesIn(path: string): string[] {
 
 const withoutAllowed = (text: string): string => ALLOWED.reduce((left, phrase) => left.split(phrase).join(" "), text);
 
+/** The words `ONLY_IN` allows in this one file, on top of the sentences every file may hold. */
+const wordsAllowedIn = (path: string): readonly string[] =>
+  ONLY_IN.filter((entry) => path.endsWith(entry.path)).flatMap((entry) => entry.words);
+
+const withoutAllowedIn = (path: string, text: string): string =>
+  wordsAllowedIn(path).reduce((left, word) => left.split(word).join(" "), withoutAllowed(text));
+
 describe("the words that would make something look settled", () => {
-  it("finds the files it scans", () => {
+  it("finds the files it scans, including the folders below the ones it is given", () => {
     expect(SOURCES.length).toBeGreaterThan(30);
     expect(SOURCES.flatMap(sentencesIn).length).toBeGreaterThan(300);
+    // Each of these folders was added below a scanned one and so went unread until review v5.
+    for (const folder of ["lib/techpack/exports/", "lib/techpack/exports/pdf/", "lib/techpack/exports/excel/", "lib/techpack/view/", "lib/garment/registry/teamwear/", "lib/garment/registry/bottoms/", "lib/garment/registry/close-fitting/", "lib/garment/registry/outerwear/"]) {
+      expect(SOURCES.some((path) => path.includes(folder)), `nothing scanned in ${folder}`).toBe(true);
+    }
   });
 
   it("appear in no sentence of the page, its view models or the registry, except the sentences listed above", () => {
     for (const path of SOURCES) {
       for (const sentence of sentencesIn(path)) {
-        expect(withoutAllowed(sentence), `${path}: ${sentence}`).not.toMatch(SETTLED);
+        expect(withoutAllowedIn(path, sentence), `${path}: ${sentence}`).not.toMatch(SETTLED);
       }
     }
   });
@@ -82,6 +123,20 @@ describe("the words that would make something look settled", () => {
   it("do not need more allowed sentences than the ones that are used", () => {
     const all = SOURCES.flatMap(sentencesIn).join("\n");
     for (const phrase of ALLOWED) expect(all, `unused allowance: ${phrase}`).toContain(phrase);
+  });
+
+  it("allow a word in one named file only, and only a word, never a sentence", () => {
+    for (const entry of ONLY_IN) {
+      expect(SOURCES.filter((path) => path.endsWith(entry.path)), `no such file: ${entry.path}`).toHaveLength(1);
+      expect(entry.why.length, `${entry.path}: say why`).toBeGreaterThan(40);
+      for (const word of entry.words) {
+        expect(word, `${entry.path}: ${word} is a sentence, not a word`).not.toMatch(/\s/);
+        expect(sentencesIn(join(ROOT, entry.path)).join("\n"), `${entry.path}: ${word} is not used`).toContain(word);
+      }
+    }
+    // The allowance is for its own file and nowhere else: every other file is still scanned whole.
+    const elsewhere = SOURCES.filter((path) => !ONLY_IN.some((entry) => path.endsWith(entry.path)));
+    for (const path of elsewhere) expect(wordsAllowedIn(path)).toEqual([]);
   });
 
   it("would be caught in a sentence that says a thing is settled", () => {

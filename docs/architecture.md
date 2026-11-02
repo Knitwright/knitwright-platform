@@ -5,7 +5,7 @@ the two panel contracts other code is written against, how a design becomes a fa
 an order, which providers are stand-ins, how this repository is actually worked on, and what CI runs.
 Every path below exists in the repository.
 
-Decision records are in `docs/decisions/` (index: `docs/decisions/README.md`, 106 records). Plan v4
+Decision records are in `docs/decisions/` (index: `docs/decisions/README.md`, 107 records). Plan v4
 built waves 1 to 5 (`plans/platform-v4.md`); **plan v5** (`plans/platform-v5.md`) built the thirty
 workstreams of waves X, Y, Z, L and O that most of this map describes.
 
@@ -219,7 +219,7 @@ for the first five tables and `plans/platform-v5.md` for the rest.
 | O3 Australia and Translate: the AUD ladder, the GST trigger as data, Australia's labels, the tech pack in Urdu | `markets`, `translate` | 0104 |
 | — the studio top bar | `shell`, `components/shell` | 0103 |
 | — the option-code map, the bill of materials | `option-codes`, `kpp/sources/consumption.ts` | 0099, 0101 |
-| R1 to R3 review and hardening | reports to `docs/reviews/` (`security-v5.md`, `code-v5.md`, `coverage-v5.md`) | — |
+| R1 to R3 review and hardening | reports to `docs/reviews/`: [code](reviews/code-v5.md) (R2, landed), then `security-v5.md` (R1) and `coverage-v5.md` (R3) | 0112 |
 | R4 documentation | this map, the README, the owner guide, the checklist | 0115 |
 
 ## Data flow: from a design to a package to an order

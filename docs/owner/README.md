@@ -180,7 +180,7 @@ placeholder and becomes your decision.
 | [`../runbook/ops.md`](../runbook/ops.md) | Running production: batches, the factory sheet, QC, packing, shipping, exceptions. |
 | [`../runbooks/supabase-hosted.md`](../runbooks/supabase-hosted.md) | Setting up the hosted Supabase project, step by step. |
 | [`../store-contract-v2.md`](../store-contract-v2.md) | The payload the separate Store reads from this platform. Give this to whoever builds the Store. |
-| [`../decisions/README.md`](../decisions/README.md) | Every decision, why it was made, and its status. Generated; 106 records. |
+| [`../decisions/README.md`](../decisions/README.md) | Every decision, why it was made, and its status. Generated; 107 records. |
 | [`../architecture.md`](../architecture.md) | How the platform fits together, for whoever works on it next. |
 
 `3d/`, `flats/`, `patterns/` and `reference/` beside this file hold the pictures and reference material
