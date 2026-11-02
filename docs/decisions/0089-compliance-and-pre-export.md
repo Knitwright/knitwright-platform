@@ -1,9 +1,10 @@
 # 0089: Compliance and pre-export unification
 
-Status: Proposed. Every label line the platform can print today comes from a row that cites a source in this repository; the
-care symbols, the size wording and the importer requirement are not written, and the gate refuses because of it. The two new
-tables are seeded as labelled defaults. Owner questions below.
-Date: 2026-10-30
+Status: Proposed. Every label line the platform can print today comes from a row that cites a source in this repository. The
+care symbols are not written, and the gate refuses every label because of it. The two tables decision 0070 left owed are
+seeded as labelled defaults: the AQL plan, including the run plan rulebook `R-QC-001` states, and the label wording per
+market, including the size line. Owner questions below.
+Date: 2026-10-30, revised 2026-11-02
 Plan step: platform v5, wave 3, Z8 (`plans/platform-v5.md`). Spec: F-G2 and F-G3 (`docs/spec/02-features.md`), the Review tab
 and the Labels & packaging tab of the tech pack view, `docs/spec/04-production-package.md` section `07_labels`. Builds on
 0067 (the rulebook), 0070 (the production package and its own F-G2 gate), 0071 (the factory model as data), 0073 (moderation)
@@ -85,9 +86,16 @@ come back as a ruined garment or a regulator's letter. So:
   same hole one level up;
 - the **origin** line is `label_rules.origin`, which the seed sets to "Made in Pakistan" citing
   `docs/spec/04-production-package.md` section `07_labels`;
-- the **size** line needs the market's size-designation wording, which nobody has written, so it is never printed;
+- the **size** line takes the market's own wording where it has one, and otherwise the one convention the builder
+  understands: `convention: "size_code"`, meaning print the garment's own size code, one label per size. The convention is
+  resolved against the garment's size run at build time rather than stored as a sentence, because a stored sentence would go
+  stale the moment a size run changed. A market with neither words nor a convention is still a refusal;
 - the **importer** line distinguishes "this market does not require one" from "nobody has recorded whether it does". The
-  second is a refusal, not a pass.
+  first prints no line; the second is a **note**, not a refusal. Two reasons. F-G2's own list of what a label must carry is
+  "fibre content, care, origin, size" — the importer line is not on it, so an export stopped over it was stopped for
+  something the checklist was never asked to check. And the platform's rule is that missing owner input never blocks: it
+  leaves a labelled default and an owner question. The note names the one action that settles it. A market that *has*
+  recorded a requirement is still held to it: `required` true with no address on file is a refusal.
 
 `labels.test.ts` and `tests/integration/compliance.test.ts` both assert the invariant directly: over the seeded rows, an empty
 `label_rules` column and a fully written market, every printed line has a non-empty source and non-empty words, and the seeded
@@ -139,18 +147,39 @@ reads them, only the server's key writes them, and no insert, update or delete p
   checks refuse words with no source behind them, and refuse a `confirmed` row that is not a whole row — so the database
   cannot hold an unsourced care instruction even if someone tried to write one. Until the owner transcribes the symbols from a
   licensed copy, every care line is refused and the finding says why.
-- **`aql_plans`**, the AQL plan per factory (`factory_id` null means every factory). One row is seeded: owner decision 19's
-  Class A sample, `inspect_every_piece = true`, citing owner decision 19 and decision 0070 section 6, under `R-QC-001`.
-  **No run plan is seeded.** Decision 0070 section 6 settled that `docs/spec/04`'s "level II, AQL 0 critical / 2.5 major /
-  4.0 minor" is never assumed on a factory's behalf, and that holds: the table check refuses a level with no source behind it.
+- **`aql_plans`**, the AQL plan per factory (`factory_id` null means every factory). Two rows are seeded, both for every
+  factory:
+  - owner decision 19's **Class A sample**, `inspect_every_piece = true`, citing owner decision 19 and decision 0070
+    section 6, under `R-QC-001`;
+  - the **run plan**, quoted from rulebook entry `R-QC-001` itself — "Runs: AQL 0 critical / 2.5 major / 4.0 minor at level
+    II", whose own source note in `docs/spec/articles/JSY-SS-01/rulebook.md` reads "AQL standard (ISO 2859-1)", and which
+    `docs/spec/04-production-package.md` repeats.
+
+  Decision 0070 section 6 refused to **assume** that level on a factory's behalf, and this does not assume it. The row is
+  seeded `confirmed false` with a label that says no factory has agreed the level or the limits;
+  `lib/compliance/aql.ts` prints the source and that label as part of the one sentence a factory reads in `09_qc`; and
+  `planFindings` reports it as a **warning**, never a refusal. Refusing every run until a factory signs a level would stop
+  the one thing that gets a level agreed. The table's own check still refuses a level with no source behind it.
+
+  **No per-factory row is seeded.** The one factory on file, `sialkot-partner`, is itself a placeholder row that has agreed
+  nothing, so a row against its id would say that it had. `planFor` takes a factory's own row over the every-factory row the
+  moment one is recorded, and `tests/integration/compliance.test.ts` proves it against the real database, inserting a plan
+  for the seeded factory and removing it again.
 
 **`country_rules.label_rules` is seeded with what a source in this repository states, and nothing else.** For the United
 Kingdom and Australia: the fibre line's language and order, citing rulebook `R-LAB-002` (draft), whose own source note reads
-"UK Textile Products regulations; Australian care labelling standard. Confirm with legal consult"; and the origin sentence
-"Made in Pakistan", citing `docs/spec/04-production-package.md` section `07_labels`. The care symbols, the size wording and
-the importer requirement are left null. For the United States, `cpsiaRequired` is true, citing F-G3, and no wording at all.
-For the European Union, nothing: fibre content must be in the languages of the member state of sale, and which languages, in
-what order, is recorded nowhere here.
+"UK Textile Products regulations; Australian care labelling standard. Confirm with legal consult"; the origin sentence
+"Made in Pakistan", citing `docs/spec/04-production-package.md` section `07_labels`; and the size line as the `size_code`
+convention, citing `docs/sizing/starter-charts.md`, which is where the alpha size runs are written down. The care symbols and
+the importer requirement are left null, because no source here states either.
+
+Each market also records **its own position on CPSIA**, rather than leaving a question nobody can answer. F-G3 names "US and
+kids' sizes" and no other market, so the United States row carries `cpsiaRequired` true citing F-G3, and the other three
+carry false citing the same sentence. The children's-size half of the rule is untouched: a `youth` garment is refused
+wherever it is sold until a test certificate exists.
+
+For the United States there is no wording at all. For the European Union, nothing either: fibre content must be in the
+languages of the member state of sale, and which languages, in what order, is recorded nowhere here.
 
 The seed keeps the flat `origin` key that `lib/kpp/input/labels.ts` already reads, beside the `lines` block that
 `lib/compliance` reads, so one seed improves the package's existing label path without that file being edited.
@@ -172,13 +201,23 @@ would have been the same mistake as inventing the wording.
   the package and the hand-off each need their adapter called with the rows read from the database; that is the orchestrator's
   wiring, as `PatternSource` and `PrintSource` were for decision 0070 (Lesson 9).
 - **`lib/kpp/gate.ts` is not deleted**, for the reason in section 1. The parity test is the handover.
-- **No care symbol, no size wording, no importer requirement and no AQL run plan exists**, so every real label and every real
-  package is refused today. That is the correct state, and it is the honest one: the alternative was a seed of plausible
-  sentences.
+- **No care symbol exists**, so every real label and therefore every real package is still refused today, and the finding
+  says why. That is the correct state and the honest one: the alternative was a seed of plausible care instructions. The
+  gaps that have closed since the first draft of this record are the size line, the AQL run plan and each market's CPSIA
+  position; the one that has not is the only one a licensed standard stands behind.
+- **The bill of materials with its consumption is the third table decision 0070 left owed, and it is not Z8's.** The gate
+  names it whenever an article has no BOM rows; whoever owns it should read `from-package.ts`'s `bomLine`.
 - **No CPSIA test certificate exists**, so there is nowhere to record one yet. `cpsiaCertificate` is a field on the input,
   null everywhere, and the owner question below asks where it should live.
-- **The AQL plan is not read by anything yet.** The table and its reader exist; the production package's QC checklist
-  (decision 0070 section 6) reads its own input, and joining the two is wiring.
+- **The AQL plan is not read by the package yet.** `lib/compliance/aql.ts` holds `qualityPlanLine`, which is exactly the
+  sentence `lib/kpp/input/quality.ts` wants for `KppQc.aqlPlan`, and `planFindings`, which is the note the package README
+  should carry beside it. `lib/kpp/sources/server.ts` passes `NOTHING_UNSOURCED` today, so the wiring is one call in a file
+  Z8 does not own (Lesson 9). Owner decision 19 is honoured on both sides: `qualityPlanLine` returns "inspect every piece"
+  for a Class A sample Knitwright makes whatever any row says, so no row can quietly sample it.
+- **The size line reaches `lib/compliance` but not the package's own label path.** `lib/kpp/input/labels.ts` reads only the
+  flat keys of `label_rules`, and the size convention is deliberately **not** written as a flat `size` string: that string
+  is printed verbatim onto a label, and a convention is not a size. The package's label check is satisfied by the one
+  checklist, which section 1's parity test already makes possible.
 
 ## Rule ids
 
@@ -187,8 +226,9 @@ finishes only) explains the fabric refusals. `R-QC-001` explains the AQL row. Al
 (`20261101020000_rulebook.sql`) from `docs/spec/articles/JSY-SS-01/rulebook.md`, and `R-LAB-001` (the neck label) is named in
 `model.ts` for the tab that will need it.
 
-**`R-GAP-000` is carried by**, and the PR lists them: whether a market requires an importer address; whether a market requires
-CPSIA testing, where its row does not say; the children's-size refusal itself; the OEKO-TEX certification line; every field,
+**`R-GAP-000` is carried by**, and the PR lists them: whether a market requires an importer address (now a note, not a
+refusal); whether a market requires CPSIA testing, where its row does not say — which after this revision is no seeded
+market; the children's-size refusal itself; the OEKO-TEX certification line; every field,
 point of measure, bill-of-materials line and colour read out of a tech pack document, because a `Cell` carries a provenance
 but no rule id; `[TBC]` anywhere; the moderation items; and the Class B human review, which inherits X8's own gap (0073).
 
@@ -198,12 +238,17 @@ but no rule id; `[TBC]` anywhere; the moderation items; and the Class B human re
    repository and is not free to redistribute. Until the rows have a symbol reference, words and a source, no garment can be
    labelled for any market, which blocks every order. This is the single biggest thing in the way. The table is ready; it
    needs five to about twenty rows and a name against them.
-2. **What size-designation wording does each market require on a label, and does the United Kingdom, Australia or the European
-   Union require an importer or responsible-person address?** Both are legal positions, so neither is guessed; the second is
-   currently recorded as "not decided", which refuses the label. **This one may need the legal consult rulebook entry
-   `R-LAB-002` already asks for.**
+2. **Does the United Kingdom, Australia or the European Union require an importer or responsible-person address on the
+   label, and does any market require its own size-designation wording?** Both are legal positions, so neither is guessed.
+   The size line now carries Knitwright's own size-code convention, citing `docs/sizing/starter-charts.md`, which is enough
+   to print a label but is not a legal position; a market that requires its own wording overrides it with one row. The
+   importer requirement is recorded as "not decided" and is now a note on the label rather than a refusal, so an unanswered
+   question no longer blocks an export. **This one may need the legal consult rulebook entry `R-LAB-002` already asks for.**
 3. **What AQL plan has each factory actually agreed, and at what inspection level?** Owner decision 19 settled the Class A
-   sample, which is seeded. Nothing is seeded for a run, per decision 0070 section 6. A factory's agreed plan is a row away.
+   sample. The run plan is seeded from rulebook `R-QC-001` — level II, AQL 0 / 2.5 / 4.0 — as a **placeholder no factory has
+   agreed**, labelled as such wherever it is printed and reported as a warning. If that is not the plan a factory will hold
+   to, one row per factory replaces it, and `planFor` prefers it immediately. Specifically: has `sialkot-partner` agreed a
+   level, and should the rulebook entry move out of `draft`?
 4. **Where should a CPSIA test certificate be recorded, and is one being sought?** Until one exists, the United States stays
    closed and no youth garment may be made for any market. If youth kit is wanted at launch, this is the blocker.
 5. **Has any mill declared any programme fabric PFAS-free?** `programme_fabrics.pfas_free` is null on all six, so R-LAB-003
