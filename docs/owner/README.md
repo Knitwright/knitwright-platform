@@ -9,9 +9,13 @@ merged (decision 0115).
 ## The platform cannot place a real order today
 
 Thirty workstreams built the studio, the tech pack, the production package, the factory job packet,
-ops, the Launch surface and the Store contract, and all of it works. None of it can put a garment
-into a factory, because of six things. **Four of them are purchases or decisions only you can make,
-and no further engineering moves any of them.**
+ops, the Launch surface and the Store contract. None of it can put a garment into a factory, because
+of six things. **Four of them are purchases or decisions only you can make, and no further
+engineering moves any of them.**
+
+(Some of what was built is not yet joined up to a screen — the known gaps are listed at the end of
+[`../launch-checklist.md`](../launch-checklist.md) — but none of those gaps is why an order cannot be
+placed. The six below are.)
 
 This is deliberate, and it is the rule the whole platform is built on: nothing a factory reads is
 invented. Where a value is missing the screen names what is missing instead of filling it in. So the
@@ -40,9 +44,12 @@ factory's own licensed copy.
 
 ### 2. No AUD price exists
 
-`price_tiers.sell_aud_minor` is **null on all three tiers**, and a test asserts that no digit appears in
-an unpriced AUD row, so nothing sells in Australia at a shown price. Australia is otherwise open: its
-country rules, its GST trigger, its label rules and its starter templates all exist.
+`price_tiers.sell_aud_minor` is **null on all three tiers**.
+`tests/integration/store-contract.test.ts` asserts every row is still null, and
+`lib/factory/view.test.ts` asserts that the settings form shows an unpriced AUD row as the empty
+string rather than a figure — so no digit appears where an Australian price would, and nothing sells
+in Australia at a shown price. Australia is otherwise open: its country rules, its GST trigger, its
+label rules and its starter templates all exist.
 
 It needs one answer: a conversion rule off the GBP ladder, or a second ladder quoted in AUD.
 
