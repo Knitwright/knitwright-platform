@@ -1,6 +1,7 @@
 # 0033: Tech pack v2 and "Ready for the factory"
 
 Status: Proposed (phase A built; phase B built for the artwork stack, pictures, readings, strike-off by release and owner-input notes; the pattern, fabric and print records still wait for their services)
+Index: Proposed; phases A and B built
 Date: 2026-10-14
 Plan step: `plans/production-outputs.md`, workstream W5
 

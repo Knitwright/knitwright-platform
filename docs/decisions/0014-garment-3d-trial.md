@@ -1,6 +1,7 @@
 # 0014: A 3D form made from the flat (trial)
 
 Status: Trial, awaiting owner verdict A10
+Index: Trial; waits for the owner's verdict
 Date: 2026-09-29
 Plan step: 9A (task 1 only)
 

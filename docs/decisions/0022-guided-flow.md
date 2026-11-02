@@ -1,6 +1,7 @@
 # 0022: The guided flow
 
 Status: Accepted. The five timed runs are owed to the owner (docs/reviews/guided-flow-timed-runs.md).
+Index: Accepted; five timed runs owed to the owner
 Date: 2026-09-30
 Plan step: 15
 

@@ -1,6 +1,8 @@
 # 0061: Designer templates and the royalty ledger (W4-B)
 
 Status: Proposed. Built in plans/platform-v4.md, workstream W4-B.
+Index title: Designer templates and the royalty ledger
+Index: Proposed
 Date: 2026-10-28
 
 ## Context

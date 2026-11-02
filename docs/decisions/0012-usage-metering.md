@@ -1,6 +1,7 @@
 # 0012: Usage metering and caps
 
 Status: Accepted. Amended 2026-09-30: allowances are monthly (owner decision). The allowance amounts wait for the owner.
+Index: Accepted; monthly allowances; amounts wait for the owner
 Date: 2026-09-29
 Plan step: 10
 

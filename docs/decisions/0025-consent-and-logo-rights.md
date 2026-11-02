@@ -1,6 +1,7 @@
 # 0025: Consent to marketing email, unsubscribe links and logo rights
 
 Status: Accepted. Legal text is a draft for lawyer review (A9); Australian questions open for the owner.
+Index: Accepted; legal text is a draft
 Date: 2026-10-11
 Plan step: wave 3 (beta alignment with the Platform and Store Guide)
 

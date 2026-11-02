@@ -1,6 +1,7 @@
 # 0043: Ops console, part 1: orders in production, weekly batches, factory sheet and status
 
 Status: Accepted locally. The database tests and the end-to-end test have not run in the sandbox that wrote this (see Evidence).
+Index: Accepted locally; database and browser tests first ran in CI
 Date: 2026-10-24
 Plan step: platform v4, workstream V5
 

@@ -1,6 +1,7 @@
 # 0100. Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard
 
 Status: Proposed; the AQL figures are seeded with no source cited, owner questions listed.
+Index: Proposed; the AQL figures are seeded with no source cited, owner questions listed
 
 Plan: `plans/platform-v5.md`, wave 5, workstream **O1**. Features **F-O1**, **F-O3**, **F-O4**, **F-O6**.
 Continues decision 0043 (ops batches), 0050 (QC, packing, shipping, exceptions) and 0071 (the factory model as data).

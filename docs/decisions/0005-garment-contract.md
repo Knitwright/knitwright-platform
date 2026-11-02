@@ -1,6 +1,7 @@
 # 0005: The garment contract and the registry for tops
 
 Status: Accepted, with questions open for the owner
+Index: Accepted; questions open for the owner
 Date: 2026-09-29
 Plan step: 4
 

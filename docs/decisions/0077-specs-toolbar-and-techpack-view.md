@@ -1,6 +1,7 @@
 # 0077: The Specs toolbar and the tech pack view
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-30
 Plan step: `plans/platform-v5.md`, wave 2, workstream Y4 (spec F-S6 tabs, spec F-S4 Specs toolbar)
 
