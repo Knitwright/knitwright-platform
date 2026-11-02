@@ -1752,6 +1752,20 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
     change: { selling_enabled: false },
   },
+  // Plan v5 Z8 (decision 0089): the ISO 3758 care symbols and the AQL plan. A member reads both, because the
+  // tech pack's Labels and QC tabs show them; nobody writes either from a browser.
+  care_symbols: {
+    privileges: ["SELECT"],
+    row: { code: "ISO3758-WASHING" },
+    attempt: { code: "MADE-DIRECTLY", kind: "washing", label: "Made directly" },
+    change: { words: "Made directly" },
+  },
+  aql_plans: {
+    privileges: ["SELECT"],
+    row: { scope: "class_a_sample" },
+    attempt: { scope: "run", inspect_every_piece: true, label: "Made directly" },
+    change: { inspect_every_piece: false },
+  },
   // Plan v5 Z4 (decision 0085): freight per piece to a destination, and the basis duty is charged on.
   collection_freight_rates: {
     privileges: ["SELECT"],
@@ -2114,6 +2128,12 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
   // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
   rulebook_entries: { privileges: ["SELECT"] },
+  // Decision 0098: the kit bundles of docs/spec/07-template-library.md and what is in each one. Read by every
+  // signed-in user; seeded by the server. tests/integration/template-kinds.test.ts covers them.
+  template_kit_bundles: { privileges: ["SELECT"] },
+  template_kit_bundle_members: { privileges: ["SELECT"] },
+  // Decision 0098: the tech pack templates, one per base article, with the gaps that article has no data for.
+  template_techpacks: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;
