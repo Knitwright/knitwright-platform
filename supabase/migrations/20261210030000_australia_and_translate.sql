@@ -119,9 +119,11 @@ update public.country_rules set
     ),
     '{lines,care,gapNote}',
     to_jsonb(
-      'ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed, '
-      || 'redrawn or written down from memory. The care line is refused until somebody with a licensed copy '
-      || 'writes each symbol, its words and its source into care_symbols and names them on this market''s row.'
+      (
+        'ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed, '
+        || 'redrawn or written down from memory. The care line is refused until somebody with a licensed copy '
+        || 'writes each symbol, its words and its source into care_symbols and names them on this market''s row.'
+      )::text
     ),
     true
   ),

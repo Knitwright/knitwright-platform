@@ -101,6 +101,30 @@ describe("what the market's label rules allow", () => {
     );
     expect(chosen.find((line) => line.kind === "care")).toMatchObject({ ready: true, note: "1 symbol chosen for this market." });
   });
+
+  it("counts more than one chosen symbol, and refuses them while nothing says why they are the ones", () => {
+    const codes = ["ISO3758-WASHING", "ISO3758-DRYING"];
+    const unsourced = labelLinesFor(labelRulesOf({ lines: { care: { symbolCodes: codes, source: null } } }));
+    expect(unsourced.find((line) => line.kind === "care")).toMatchObject({ ready: false, note: "2 symbols chosen for this market." });
+    const sourced = labelLinesFor(labelRulesOf({ lines: { care: { symbolCodes: codes, source: "A licensed copy of ISO 3758" } } }));
+    expect(sourced.find((line) => line.kind === "care")!.ready).toBe(true);
+  });
+
+  it("prints a market's own size sentence where it has written one, instead of the convention", () => {
+    const written = labelLinesFor(
+      labelRulesOf({ lines: { size: { text: "Size in centimetres", source: "A legal adviser, 2027", confirmed: true } } }),
+    );
+    expect(written.find((line) => line.kind === "size")).toMatchObject({ ready: true, note: "Size in centimetres" });
+  });
+
+  it("names the importer address as needed or not needed once the market's row records it", () => {
+    const needed = labelLinesFor(labelRulesOf({ lines: { importer: { required: true, source: "A customs adviser, 2027" } } }));
+    expect(needed.find((line) => line.kind === "importer")).toMatchObject({ ready: true, ruleId: "R-LAB-002" });
+    expect(needed.find((line) => line.kind === "importer")!.note).toContain("needs an importer address");
+
+    const notNeeded = labelLinesFor(labelRulesOf({ lines: { importer: { required: false, source: "A customs adviser, 2027" } } }));
+    expect(notNeeded.find((line) => line.kind === "importer")).toMatchObject({ ready: true, note: "This market needs no importer address." });
+  });
 });
 
 describe("what is still missing for the market", () => {

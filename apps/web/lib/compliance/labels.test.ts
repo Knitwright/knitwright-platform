@@ -49,6 +49,22 @@ describe("the label the seeded rows give today", () => {
     expect(label.label).toContain("not reviewed by a factory");
   });
 
+  it("refuses the care line in the market's own words, where its row has written them (decision 0102)", () => {
+    const note = "ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed.";
+    const rules = SEEDED_LABEL_RULES_GB as { lines: Record<string, unknown> };
+    const withNote = destinationLabel(
+      fixtureLabelInput({
+        labelRules: { ...SEEDED_LABEL_RULES_GB, lines: { ...rules.lines, care: { symbolCodes: [], source: null, gapNote: note, gapRuleId: "R-LAB-002" } } },
+        careSymbols: SEEDED_CARE_SYMBOLS,
+      }),
+    );
+    const found = withNote.findings.find((entry) => entry.code === "care_symbols_missing");
+
+    expect(found?.message).toBe(note);
+    expect(found?.ruleId).toBe("R-LAB-002");
+    expect(withNote.usable).toBe(false);
+  });
+
   it("hands a factory nothing, because a label missing its care line is not a label", () => {
     expect(printableLines(label)).toEqual([]);
   });
