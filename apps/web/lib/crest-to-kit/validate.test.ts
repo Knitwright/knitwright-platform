@@ -6,7 +6,7 @@ import { standardRegistry } from "@/lib/validation/spec-input";
 import { candidateKits, type KitCandidate } from "./engine";
 import { crestPixels } from "./fixtures/crests";
 import { crestColours } from "./palette";
-import { ALL_SET_ASIDE, firstStopper, partInput, setAsideNote, validateCandidate, validatedKits } from "./validate";
+import { ALL_SET_ASIDE, partInput, validateCandidate, validatedKits } from "./validate";
 
 const shirt = { id: "shirt", label: "Shirt", typeId: "football-shirt", articleCode: "JSY-SS-01" } as const;
 const socks = { id: "socks", label: "Socks", typeId: "football-socks", articleCode: null } as const;
