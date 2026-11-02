@@ -47,10 +47,24 @@ function renderDeps(who: Who, launchProjectId: string): RenderDeps {
       return { spec: project.spec, charts, images, version: project.currentVersion };
     },
     store: async (png) => {
-      const stored = await storeImage({ admin: adminClient(), brandId: who.brandId, userId: who.userId, kind: "render", bytes: png, statedType: "image/png" });
+      // `deterministic`: this platform drew these pixels from the design it drew itself. The file's
+      // own row is what the garment lock reads (security review v5 H1, decision 0116), and it is
+      // read back below rather than trusted from here, so the two must agree -- and they do,
+      // because `lib/mockups/assets.ts` cannot produce anything but a drawn picture.
+      const stored = await storeImage({ admin: adminClient(), brandId: who.brandId, userId: who.userId, kind: "render", provenance: "deterministic", bytes: png, statedType: "image/png" });
       return { fileId: stored.id, contentType: stored.contentType };
     },
-    record: (input) => recordOutput(adminClient(), who, input),
+    // `recordOutput` takes what the board asks for, not what made the file: it reads the provenance
+    // from the file's row itself and then judges the ask. So the drawn asset `run.ts` built becomes
+    // an offer here, and `showsPerson` is false because a mockup the platform drew has nobody in it.
+    record: ({ boardId, kind, asset, status, credits }) =>
+      recordOutput(adminClient(), who, {
+        boardId,
+        kind,
+        status,
+        credits,
+        offer: asset === null ? null : { role: asset.role, file: asset.file, showsPerson: false },
+      }),
     // The board keeps the design version it was drawn from, so a later version reads as stale
     // (`staleAgainst`) instead of a board quietly showing last week's kit.
     setInputVersion: async (board, version) => {
