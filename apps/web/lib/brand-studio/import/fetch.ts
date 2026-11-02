@@ -4,7 +4,10 @@
  * The discipline is Z3's (decision 0084, `lib/benchmarks/fetch.ts`), and the pieces that can be
  * shared are imported from it rather than written again: `normaliseUrl` for the address,
  * `wordsOfPage` for the plain words, and `robotsAllows` for robots.txt, which already takes the
- * agent name as an argument. What is different here is deliberate and is listed in decision 0102:
+ * agent name as an argument. The list of addresses that are not a public web page was the one piece
+ * this file did write again, because Z3 did not export it; review v5 (decision 0110) moved it to
+ * `lib/http/public-url.ts` and both fetchers now ask that one list.
+ * What is different here is deliberate and is listed in decision 0102:
  * **https only** (Z3 allows http because a product page may be old), a user agent of our own so a
  * site owner can allow or refuse brand import on its own, and a second kind of request — a picture
  * — which Z3 never makes at all.
@@ -14,6 +17,7 @@
  */
 
 import { normaliseUrl, wordsOfPage, type Fetcher } from "@/lib/benchmarks/fetch";
+import { isPrivateHost } from "@/lib/http/public-url";
 import { robotsAllows } from "@/lib/benchmarks/robots";
 import { linksOfPage } from "./discover";
 import type { ImportRefusal, SiteSource } from "./types";
@@ -21,13 +25,6 @@ import { IMPORT_ROBOTS_NAME, IMPORT_USER_AGENT, REFUSALS, WORTH_RETRYING, type R
 import type { BrandImportSettings } from "./settings";
 
 export type { Fetcher };
-
-/**
- * Addresses that are not a public web page. The same list as `lib/benchmarks/fetch.ts`, which does
- * not export it; when either directory is next opened the two should become one exported constant.
- */
-const PRIVATE_HOST =
-  /^(localhost|\[?::1\]?|0\.0\.0\.0|10\.\d+\.\d+\.\d+|127\.\d+\.\d+\.\d+|169\.254\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$|\.(local|internal|localhost)$/i;
 
 /** The picture types `sharp` reads and a vision model takes. An SVG is a drawing, read separately. */
 export const PICTURE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/avif", "image/svg+xml"] as const;
@@ -60,7 +57,7 @@ export function ownUrl(raw: string): Readonly<{ ok: true; url: URL }> | Readonly
   const url = normaliseUrl(raw);
   if (url === null) return { ok: false, refusal: refuse("bad_url") };
   if (url.protocol !== "https:") return { ok: false, refusal: refuse("not_https") };
-  if (PRIVATE_HOST.test(url.hostname)) return { ok: false, refusal: refuse("private_host") };
+  if (isPrivateHost(url.hostname)) return { ok: false, refusal: refuse("private_host") };
   return { ok: true, url };
 }
 
