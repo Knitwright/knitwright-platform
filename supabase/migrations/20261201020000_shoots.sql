@@ -160,6 +160,8 @@ begin
 end;
 $$;
 
+revoke all on function private.refuse_unknown_shoot_preset() from public, anon, authenticated;
+
 create trigger shoot_concepts_presets_are_known
   before insert or update on public.shoot_concepts
   for each row
@@ -270,6 +272,8 @@ begin
   return new;
 end;
 $$;
+
+revoke all on function private.refuse_unlocked_shoot_job() from public, anon, authenticated;
 
 create trigger shoot_jobs_the_garment_is_locked
   before insert or update on public.shoot_jobs
@@ -416,6 +420,12 @@ begin
   return v_id;
 end;
 $$;
+
+-- A new function is executable by PUBLIC until that is taken away, and the isolation suite reads the
+-- list of what a browser may call. Neither of these may be called from a browser: a shoot is run by
+-- the server's own key, which checks `can_manage_kit` inside the function.
+revoke all on function public.start_shoot_job(uuid, uuid, uuid, uuid, uuid, text, text, text, integer, text, text, text, text, uuid, text, text, timestamptz, text, integer) from public, anon, authenticated;
+revoke all on function public.finish_shoot_job(uuid, uuid, uuid, text, integer, text, text[], text, integer, integer, uuid, uuid, text) from public, anon, authenticated;
 
 grant execute on function public.start_shoot_job(uuid, uuid, uuid, uuid, uuid, text, text, text, integer, text, text, text, text, uuid, text, text, timestamptz, text, integer) to service_role;
 grant execute on function public.finish_shoot_job(uuid, uuid, uuid, text, integer, text, text[], text, integer, integer, uuid, uuid, text) to service_role;

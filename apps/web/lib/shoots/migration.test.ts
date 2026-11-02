@@ -142,6 +142,18 @@ describe("who may reach what", () => {
     }
   });
 
+  it("takes away the execute every new function is given to the world", () => {
+    // A function is callable by PUBLIC until that is revoked, and the isolation suite reads the list
+    // of what a browser may call. All four of ours -- the two writers and the two trigger functions --
+    // are the server's alone.
+    for (const name of ["private.refuse_unknown_shoot_preset()", "private.refuse_unlocked_shoot_job()"]) {
+      expect(sql).toContain(`revoke all on function ${name} from public, anon, authenticated;`);
+    }
+    for (const name of ["start_shoot_job", "finish_shoot_job"]) {
+      expect(sql).toMatch(new RegExp(`revoke all on function public\\.${name}\\([^)]*\\) from public, anon, authenticated;`));
+    }
+  });
+
   it("lets only the service role run the two writers", () => {
     expect(sql).toMatch(/grant execute on function public\.start_shoot_job\([^)]*\) to service_role;/);
     expect(sql).toMatch(/grant execute on function public\.finish_shoot_job\([^)]*\) to service_role;/);
