@@ -1714,6 +1714,21 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { key: "made-directly", label: "Made directly", width: 10, height: 10, unit: "px", note: "Made directly" },
     change: { label: "Changed by a member" },
   },
+  // Plan v5 L4 (decision 0094): what the marketing export panel offers, and the watermark rule of
+  // each plan, as rows rather than literals in code. Every signed-in member reads them; only the
+  // server writes them. tests/integration/marketing.test.ts covers them.
+  marketing_export_targets: {
+    privileges: ["SELECT"],
+    row: { key: "png-1x" },
+    attempt: { key: "made-directly", label: "Made directly", lead: "Made directly", file_format: "png", colour_space: "rgb", dpi: 72, note: "Made directly" },
+    change: { label: "Changed by a member" },
+  },
+  marketing_watermark_rules: {
+    privileges: ["SELECT"],
+    row: { plan: "free" },
+    attempt: { plan: "paid", label: "Made directly", watermarked: false, max_dpi: 72, note: "Made directly" },
+    change: { max_dpi: 1200 },
+  },
   // Plan v5 X6 (decision 0071): market rules, so a member sees the VAT treatment of their own market.
   country_rules: {
     privileges: ["SELECT"],

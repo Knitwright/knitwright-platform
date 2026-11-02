@@ -48,6 +48,15 @@ export interface TaxTreatment {
 /** 2000 basis points as "20%", with no trailing zeros. */
 const percentOf = (basisPoints: number): string => `${Number((basisPoints / 100).toFixed(2))}%`;
 
+/** The names that read as plural or collective, and so take "the" after a preposition. */
+const TAKES_THE = /^(United|European|Netherlands|Philippines|Czech|Bahamas|Maldives|Gambia|Emirates)\b/u;
+
+/**
+ * The market's name as it reads after a preposition: "in Australia", "in the United Kingdom". This is English
+ * usage and not a fact about a market, so it is a rule here rather than a column nobody would fill in.
+ */
+export const marketPhrase = (name: string): string => (TAKES_THE.test(name) ? `the ${name}` : name);
+
 const thresholdOf = (rule: TaxFacts): string | null =>
   rule.taxRegistrationThresholdMinor === null
     ? null
@@ -56,6 +65,7 @@ const thresholdOf = (rule: TaxFacts): string | null =>
 /** What the market charges, in one line, from the row and nothing else. */
 export function taxTreatment(rule: TaxFacts): TaxTreatment {
   const name = rule.taxName;
+  const where = marketPhrase(rule.name);
   const rate = rule.vatRateBp === null ? null : percentOf(rule.vatRateBp);
   const threshold = thresholdOf(rule);
   const shared = { name, rate, threshold, source: rule.taxSource, ruleId: GAP_RULE_ID };
@@ -63,8 +73,8 @@ export function taxTreatment(rule: TaxFacts): TaxTreatment {
     return {
       ...shared,
       state: "not-recorded",
-      line: `Nobody has recorded which tax ${rule.name} charges on a sale.`,
-      missing: `Ask a tax adviser which tax ${rule.name} charges, and record it on the market's row.`,
+      line: `Nobody has recorded which tax ${where} charges on a sale.`,
+      missing: `Ask a tax adviser which tax ${where} charges, and record it on the market's row.`,
     };
   }
   if (!rule.taxRegistered) {
@@ -72,14 +82,14 @@ export function taxTreatment(rule: TaxFacts): TaxTreatment {
     return {
       ...shared,
       state: "not-registered",
-      line: `Prices carry no ${name}: Knitwright is not registered for ${name} in ${rule.name}. ${rateWords} applies once it is.`,
-      missing: threshold === null ? `No ${name} registration threshold is recorded for ${rule.name}.` : `${threshold}.`,
+      line: `Prices carry no ${name}: Knitwright is not registered for ${name} in ${where}. ${rateWords} applies once it is.`,
+      missing: threshold === null ? `No ${name} registration threshold is recorded for ${where}.` : `${threshold}.`,
     };
   }
   return {
     ...shared,
     state: "charged",
-    line: rate === null ? `${name} is charged in ${rule.name} at a rate nobody has recorded.` : `${name} of ${rate} is charged in ${rule.name}.`,
-    missing: rate === null ? `No ${name} rate is recorded for ${rule.name}.` : null,
+    line: rate === null ? `${name} is charged in ${where} at a rate nobody has recorded.` : `${name} of ${rate} is charged in ${where}.`,
+    missing: rate === null ? `No ${name} rate is recorded for ${where}.` : null,
   };
 }

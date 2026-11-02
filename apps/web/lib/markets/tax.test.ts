@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { appRule } from "./fixtures/rules";
-import { taxTreatment } from "./tax";
+import { marketPhrase, taxTreatment } from "./tax";
 
 /**
  * The GST trigger, against the only figure a source in this repository states, and against the rule that
@@ -39,7 +39,8 @@ describe("what a market charges on a sale", () => {
   it("says nothing at all about a market whose row names no tax", () => {
     const treatment = taxTreatment(appRule({ country: "US", name: "United States", taxName: null, vatRateBp: null, taxRegistrationThresholdMinor: null, taxSource: null }));
     expect(treatment.state).toBe("not-recorded");
-    expect(treatment.line).toBe("Nobody has recorded which tax United States charges on a sale.");
+    // "the United States", not "United States": the name reads after a preposition.
+    expect(treatment.line).toBe("Nobody has recorded which tax the United States charges on a sale.");
     expect(treatment.missing).toContain("Ask a tax adviser");
     expect(treatment.threshold).toBeNull();
   });
@@ -57,6 +58,12 @@ describe("what a market charges on a sale", () => {
 
   it("carries R-GAP-000, because no rulebook entry covers a tax", () => {
     expect(taxTreatment(appRule()).ruleId).toBe("R-GAP-000");
+  });
+
+  it("writes a market's name the way it reads after a preposition", () => {
+    expect(marketPhrase("Australia")).toBe("Australia");
+    expect(marketPhrase("United Kingdom")).toBe("the United Kingdom");
+    expect(marketPhrase("European Union")).toBe("the European Union");
   });
 });
 

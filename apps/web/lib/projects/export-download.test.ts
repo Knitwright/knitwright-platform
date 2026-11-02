@@ -262,13 +262,62 @@ describe("serving an export", () => {
     const left = source({ pictures: { images: new Map(), skipped: 1 } });
     await ask("pdf", {}, { load: async () => left }).response;
 
-    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: true, illustrations: null }]);
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: true, illustrations: null, language: "en", translations: [] }]);
   });
 
   it("tells the PDF to say nothing about a picture when none was left out", async () => {
     await ask("pdf").response;
 
-    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: false, illustrations: null }]);
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: false, illustrations: null, language: "en", translations: [] }]);
+  });
+
+  it("sets the PDF in the language asked for, from the words the library holds, and names the language in the file", async () => {
+    const row = {
+      id: "33333333-3333-4333-8333-333333333333",
+      key: "page.overview" as const,
+      language: "ur" as const,
+      text: "جائزہ",
+      sourceLanguage: "en",
+      translatedBy: "knitwright-draft",
+      machine: false,
+      reviewedBy: null,
+      reviewedRole: null,
+      reviewedOn: null,
+      ruleId: "R-GAP-000",
+      label: "Knitwright draft. No Urdu speaker has read this translation.",
+    };
+    const asked: string[] = [];
+    const sent = await ask("pdf", { language: "ur" }, { translations: async (language) => (asked.push(language), [row]) }).response;
+
+    expect(asked).toEqual(["ur"]);
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: false, illustrations: null, language: "ur", translations: [row] }]);
+    expect(sent.headers.get("content-disposition")).toBe('attachment; filename="KW-001-v3-tech-pack-ur.pdf"');
+  });
+
+  it("reads no translation library for the English pack, because English is not a translation", async () => {
+    const asked: string[] = [];
+    await ask("pdf", {}, { translations: async (language) => (asked.push(language), []) }).response;
+
+    expect(asked).toEqual([]);
+  });
+
+  it("still sends the pack when the translation library cannot be read, with the labelled draft in it", async () => {
+    const sent = await ask("pdf", { language: "ur" }, { translations: async () => { throw new Error("library down"); } }).response;
+
+    expect(sent.status).toBe(200);
+    expect(seen.pdfOptions).toEqual([{ pictureLeftOut: false, illustrations: null, language: "ur", translations: [] }]);
+  });
+
+  it("refuses a language on a format whose words are not translated", async () => {
+    const error = await failure(ask("xlsx", { language: "ur" }).response);
+
+    expect(error.code).toBe("invalid_input");
+  });
+
+  it("refuses a language the platform cannot set a document in", async () => {
+    const error = await failure(ask("pdf", { language: "fr" }).response);
+
+    expect(error.code).toBe("invalid_input");
   });
 
   it.each(["pdf", "xlsx", "svg"] as const)("checks the document once before a %s is made", async (format) => {

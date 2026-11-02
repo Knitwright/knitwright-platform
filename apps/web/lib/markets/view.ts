@@ -4,7 +4,7 @@ import { describeMissing } from "@/lib/factory/dates";
 import type { CountryRule, SellCurrency } from "@/lib/factory/schemas";
 import { ladderRows, type LadderRow, type PriceSource } from "@/lib/home/price";
 import type { Market } from "@/lib/home/market";
-import { taxTreatment, type TaxTreatment } from "./tax";
+import { marketPhrase, taxTreatment, type TaxTreatment } from "./tax";
 
 /**
  * What choosing a market means, in one read (plan v5 O3, decision 0102; spec F-S8's market and currency
@@ -33,6 +33,8 @@ export interface LabelLineState {
 export interface MarketSummary {
   readonly market: Market;
   readonly countryName: string;
+  /** The name as it reads after a preposition: "Australia", "the United Kingdom". */
+  readonly countryPhrase: string;
   readonly currency: SellCurrency;
   /** False where the market's row says nothing is sold there. */
   readonly sellingEnabled: boolean;
@@ -142,10 +144,10 @@ export const labelLinesFor = (rules: LabelRules): readonly LabelLineState[] => [
 ];
 
 /** What the ladder is in one line. A currency with no price in any tier says so rather than showing none. */
-const priceNoteOf = (rows: readonly LadderRow[], currency: SellCurrency, countryName: string): string => {
-  if (rows.length === 0) return `No price ladder is on file for this article, so nothing can be priced for ${countryName}.`;
+const priceNoteOf = (rows: readonly LadderRow[], currency: SellCurrency, where: string): string => {
+  if (rows.length === 0) return `No price ladder is on file for this article, so nothing can be priced for ${where}.`;
   const priced = rows.filter((row) => row.priced).length;
-  if (priced === 0) return `No ${currency} price is set in any tier. The ladder's quantity bands are on file; the prices for ${countryName} are not.`;
+  if (priced === 0) return `No ${currency} price is set in any tier. The ladder's quantity bands are on file; the prices for ${where} are not.`;
   return priced === rows.length
     ? `Every tier has a ${currency} price.`
     : `${priced} of ${rows.length} tiers have a ${currency} price; the others say so.`;
@@ -163,16 +165,17 @@ const missingForDate = (input: MarketSummaryInput): readonly string[] =>
 export function marketSummary(input: MarketSummaryInput): MarketSummary {
   const { market, rule } = input;
   const countryName = rule?.name ?? market.label;
+  const phrase = marketPhrase(countryName);
   const rules = labelRulesOf(rule?.labelRules ?? {});
   const ladder = ladderRows(input.price.ladder, market.currency);
   const labelLines = labelLinesFor(rules);
   const missing = missingForDate(input);
   const tax = rule === null ? null : taxTreatment(rule);
   const gaps = [
-    ...(rule === null ? [{ note: `The rules for ${countryName} could not be read, so nothing about this market is shown.`, ruleId: COMPLIANCE_GAP }] : []),
+    ...(rule === null ? [{ note: `The rules for ${phrase} could not be read, so nothing about this market is shown.`, ruleId: COMPLIANCE_GAP }] : []),
     ...(tax?.missing === undefined || tax.missing === null ? [] : [{ note: tax.missing, ruleId: tax.ruleId }]),
     ...(ladder.some((row) => !row.priced) || ladder.length === 0
-      ? [{ note: priceNoteOf(ladder, market.currency, countryName), ruleId: ladder[0]?.ruleId ?? COMPLIANCE_GAP }]
+      ? [{ note: priceNoteOf(ladder, market.currency, phrase), ruleId: ladder[0]?.ruleId ?? COMPLIANCE_GAP }]
       : []),
     ...labelLines.filter((line) => !line.ready).map((line) => ({ note: `${line.title}: ${line.note}`, ruleId: line.ruleId })),
     ...(missing.length === 0 ? [] : [{ note: `No delivery date can be shown. ${describeMissing(missing)}`, ruleId: COMPLIANCE_GAP }]),
@@ -180,6 +183,7 @@ export function marketSummary(input: MarketSummaryInput): MarketSummary {
   return {
     market,
     countryName,
+    countryPhrase: phrase,
     currency: market.currency,
     sellingEnabled: rule?.sellingEnabled ?? false,
     tax:
@@ -194,7 +198,7 @@ export function marketSummary(input: MarketSummaryInput): MarketSummary {
         taxSource: null,
       }),
     ladder,
-    priceNote: priceNoteOf(ladder, market.currency, countryName),
+    priceNote: priceNoteOf(ladder, market.currency, phrase),
     labelLines,
     rowLabel: rule?.label ?? null,
     deliveryNote: missing.length === 0 ? "A delivery date can be worked out for this market." : `No delivery date yet. ${describeMissing(missing)}`,

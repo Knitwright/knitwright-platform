@@ -16,16 +16,16 @@ const HEADING = "text-lg font-medium tracking-[-0.01em] text-ink";
 const TAX_TONE = { charged: "text-ink-2", "not-registered": "text-warn", "not-recorded": "text-warn" } as const;
 
 export function MarketPanel({ summary }: Readonly<{ summary: MarketSummary }>) {
-  const { market, countryName, currency, tax, labelLines, gaps } = summary;
+  const { market, countryName, countryPhrase, currency, tax, labelLines, gaps } = summary;
   return (
     <section aria-labelledby="market" className={PANEL}>
       <h2 id="market" className={HEADING}>
-        {`Selling in ${countryName}`}
+        {`Selling in ${countryPhrase}`}
       </h2>
       <p className="text-[13px] text-muted">
         {summary.sellingEnabled
           ? `Prices are shown in ${currency}. Everything below comes from this market's own row.`
-          : `This market is closed: nothing is sold in ${countryName} yet. Everything below comes from this market's own row.`}
+          : `This market is closed: nothing is sold in ${countryPhrase} yet. Everything below comes from this market's own row.`}
       </p>
 
       <dl className="grid gap-2 text-[14px] sm:grid-cols-[auto_minmax(0,1fr)]">
