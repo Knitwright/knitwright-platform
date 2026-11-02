@@ -61,8 +61,9 @@ test.describe("crest to kit", () => {
 
     await buildKits(page);
 
-    // Six to nine kits, which is the specification's own count.
-    const cards = page.getByTestId("crest-to-kit-kits").getByRole("listitem");
+    // Six to nine kits, which is the specification's own count. The cards are counted by their own
+    // test id, not by every list item in the section: each card holds a list of its own warnings.
+    const cards = page.getByTestId("crest-to-kit-card");
     const count = await cards.count();
     expect(count).toBeGreaterThanOrEqual(6);
     expect(count).toBeLessThanOrEqual(9);
@@ -118,7 +119,7 @@ test.describe("crest to kit", () => {
 
     const started = Date.now();
     const download = page.waitForEvent("download");
-    await page.getByTestId("crest-to-kit-kits").getByRole("listitem").first().getByRole("link", { name: "Quote this kit" }).click();
+    await page.getByTestId("crest-to-kit-card").first().getByRole("link", { name: "Quote this kit" }).click();
     const file = await download;
     expect(Date.now() - started).toBeLessThan(5_000);
     expect(file.suggestedFilename()).toMatch(/^KWQ-\d{8}-[A-Z2-9]{6}-quote\.pdf$/);
@@ -147,8 +148,11 @@ test.describe("crest to kit on a phone", () => {
     // The same two measures `e2e/mobile.spec.ts` holds every key screen to (decision 0064).
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `crest to kit scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
-    const { violations } = await new AxeBuilder({ page }).analyze();
+    // This screen only: the studio shell and its aurora are held to the same bar by
+    // `e2e/mobile.spec.ts`, and a failure here should name a node of this workstream's own.
+    const { violations } = await new AxeBuilder({ page }).include('[data-testid="crest-to-kit"]').analyze();
     const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
-    expect(serious.map((entry) => `${entry.id}: ${entry.help}`)).toEqual([]);
+    // The node targets go in the message, so a failure says which element and not only which rule.
+    expect(serious.map((entry) => `${entry.id}: ${entry.nodes.map((node) => node.target.join(" ")).join(", ")}`)).toEqual([]);
   });
 });

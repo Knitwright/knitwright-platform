@@ -48,7 +48,13 @@ export type IntakeFormProps = Readonly<{
 const CHIP = "relative flex h-11 cursor-pointer items-center rounded-full border px-4 text-[15px] transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cobalt-soft";
 const CHIP_INPUT = "absolute inset-0 size-full cursor-pointer appearance-none rounded-full opacity-0";
 const CHIP_ON = "border-white/40 bg-white/15 text-ink";
-const CHIP_OFF = "border-white/15 text-muted hover:border-white/25";
+/*
+ * EVERY CHIP CARRIES ITS OWN SURFACE. A chip sits straight on the page, and the aurora behind it
+ * has pale blobs (`components/shell/Aurora.tsx`), where `text-muted` measures about 3.4:1 — below
+ * AA, as `components/brand-studio/BrandTabs.tsx` found and recorded. On a surface the same text is
+ * about 6:1 wherever the chip falls.
+ */
+const CHIP_OFF = "border-white/15 bg-surface text-muted hover:border-white/25";
 
 type ChipsProps<T extends string> = Readonly<{
   legend: string;

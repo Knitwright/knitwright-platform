@@ -37,7 +37,7 @@ export function PaletteStrip({ palette, basis }: PaletteStripProps) {
       </h2>
       <ul className="flex flex-col gap-3">
         {palette.map((swatch) => (
-          <li key={swatch.hex} className="flex flex-col gap-1.5 rounded-2xl border border-hairline bg-surface p-3">
+          <li key={swatch.hex} className="flex flex-col gap-1.5 rounded-2xl border border-hairline bg-white/[0.04] p-3">
             <div className="flex flex-wrap items-center gap-2">
               <Chip hex={swatch.hex} label={swatch.hex} />
               <span className="text-[13px] text-muted">{swatch.share} of your crest</span>

@@ -118,7 +118,10 @@ export function kitCardView(one: ValidatedCandidate, clubName: string | null): K
       crest: candidate.kit.elements.includes("crest"),
       namesNumbers: candidate.kit.namesNumbers,
     }),
-    warnings: one.validation.findings.filter((finding) => finding.severity === "warning").map((finding) => finding.message),
+    // Each part of the kit is checked against the same factory profile, so the profile's own open
+    // items — no minimum order, no lead time, no price ladder — come back once per part. A club
+    // reads them once: the same sentence three times over says nothing three times over.
+    warnings: [...new Set(one.validation.findings.filter((finding) => finding.severity === "warning").map((finding) => finding.message))],
     ruleIds: [...new Set([...candidate.ruleIds, ...one.validation.ruleIds])],
   };
 }

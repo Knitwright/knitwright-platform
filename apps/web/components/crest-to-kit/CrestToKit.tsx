@@ -58,7 +58,14 @@ export function CrestToKit({ sports, swatches }: CrestToKitProps) {
 
   return (
     <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10" data-testid="crest-to-kit">
-      <div className="min-w-0">
+      {/*
+        EVERY PANEL ON THIS SCREEN IS OPAQUE, AND NO TEXT SITS STRAIGHT ON THE PAGE. The aurora
+        behind the glass has pale blobs (`components/shell/Aurora.tsx`), and text over one of them
+        measures as little as 3.4:1, which fails AA — `components/brand-studio/BrandTabs.tsx` found
+        that and recorded it. So the form and its answer each have a surface of their own, and the
+        browser test holds this region to the same axe bar `e2e/mobile.spec.ts` holds the rest to.
+      */}
+      <div className="min-w-0 rounded-3xl border border-hairline bg-surface-solid p-5 md:p-6">
         <IntakeForm
           sports={sports}
           swatches={swatches}
@@ -70,7 +77,7 @@ export function CrestToKit({ sports, swatches }: CrestToKitProps) {
         />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-5">
+      <div className="flex min-w-0 flex-col gap-5 rounded-3xl border border-hairline bg-surface-solid p-5 md:p-6">
         {busy ? <Progress /> : null}
 
         {problem === null ? null : (
@@ -80,7 +87,7 @@ export function CrestToKit({ sports, swatches }: CrestToKitProps) {
         )}
 
         {view === null && !busy && problem === null ? (
-          <div className="flex flex-col items-start gap-2 rounded-2xl border border-hairline bg-surface p-6" data-testid="crest-to-kit-empty">
+          <div className="flex flex-col items-start gap-2 rounded-2xl border border-hairline bg-white/[0.04] p-6" data-testid="crest-to-kit-empty">
             <h2 className="text-lg font-medium text-ink">{EMPTY_TITLE}</h2>
             <p className="max-w-md text-[15px] leading-relaxed text-muted">{EMPTY_BODY}</p>
             <p className="text-[13px] text-muted">Press “{EMPTY_ACTION}” when your crest is chosen.</p>

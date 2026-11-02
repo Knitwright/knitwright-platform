@@ -28,7 +28,7 @@ const Swatches = ({ colours, socks }: Readonly<{ colours: readonly string[]; soc
 
 function Card({ kit }: Readonly<{ kit: KitCardView }>) {
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-hairline bg-surface p-4" data-testid={`crest-to-kit-card-${kit.id}`}>
+    <li className="flex flex-col gap-3 rounded-2xl border border-hairline bg-white/[0.04] p-4" data-testid="crest-to-kit-card" data-kit={kit.id}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-[15px] font-medium text-ink">{kit.title}</h3>
         <Swatches colours={kit.colours} socks={kit.socksColour} />

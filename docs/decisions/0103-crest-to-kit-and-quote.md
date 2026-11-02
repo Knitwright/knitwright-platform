@@ -134,6 +134,16 @@ Six things shaped every decision below.
     are counted from a decoded copy, and both are gone when the answer is sent; a quote is built in memory when its
     address is asked for and sent once.
 
+20. **The screen's two panels are opaque, and no text on it sits straight on the page.** The aurora behind the glass
+    has pale blobs (`components/shell/Aurora.tsx`), and text over one of them measures as little as 3.4:1, which fails
+    WCAG AA — Brand Studio found that on its own tab strip and recorded it in `components/brand-studio/BrandTabs.tsx`.
+    The accessibility scan of this screen found it again, on a phone, where the form wraps and lands under a pale blob.
+    So the form and its answer each have a surface of their own (`--surface-solid`, opaque), the nested tiles are a
+    faint raise over that, and every chip carries its own surface. Measured against `--surface-solid`: ink 15.6:1,
+    ink-2 11.6:1, muted 9.4:1, warn 11.4:1, cobalt-soft 6.9:1 — and none of them depends on what the aurora is doing.
+    The browser test holds this region to the same axe bar `e2e/mobile.spec.ts` holds every key screen to, and names
+    the offending node when it fails.
+
 ## The measured acceptance figures
 
 - **ΔE00 over the hundred-crest set: 100 of 100 within 5** (worst 0.884, mean 0.009), measured in
