@@ -530,14 +530,19 @@ $$;
 
 revoke all on function private.link_visitor_hash(uuid, text) from public, anon, authenticated;
 
--- The name folded for matching one person's answer to the person a manager asked.
+-- The name folded for matching one person's answer to the person a manager asked. Hidden characters
+-- go first, so this agrees with the cleaned name that is actually stored, and with the same folding
+-- the browser does (`lib/clubs/signup/paste.ts`).
 create function private.roster_match_key(p_name text)
 returns text
 language sql
 immutable
 set search_path = ''
 as $$
-  select left(lower(regexp_replace(btrim(coalesce(p_name, '')), '\s+', ' ', 'g')), 40);
+  select left(
+    lower(regexp_replace(btrim(regexp_replace(coalesce(p_name, ''), '[[:cntrl:]]', '', 'g')), '\s+', ' ', 'g')),
+    40
+  );
 $$;
 
 revoke all on function private.roster_match_key(text) from public, anon, authenticated;
@@ -1081,12 +1086,24 @@ begin
 
   delete from public.roster_signup_requests r where r.season_id = p_season_id and r.brand_id = p_brand_id;
 
+  -- Everything is cut to what the columns take rather than trusted to arrive that way: the browser
+  -- cleans a name and a number too (lib/clubs/signup/paste.ts), but a club's own pasted list must
+  -- never be able to fail the whole call on one odd line.
   with wanted as (
     select distinct on (private.roster_match_key(person->>'name'))
-      btrim(person->>'name') as name,
+      btrim(left(regexp_replace(btrim(coalesce(person->>'name', '')), '[[:cntrl:]]', '', 'g'), 40)) as name,
       private.roster_match_key(person->>'name') as match_key,
-      coalesce(btrim(person->>'phone'), '') as phone,
-      lower(coalesce(btrim(person->>'email'), '')) as email
+      case
+        when regexp_replace(coalesce(person->>'phone', ''), '[^+0-9]', '', 'g') ~ '^\+?[0-9]{6,20}$'
+        then regexp_replace(coalesce(person->>'phone', ''), '[^+0-9]', '', 'g')
+        else ''
+      end as phone,
+      case
+        when lower(btrim(coalesce(person->>'email', ''))) ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'
+         and length(btrim(coalesce(person->>'email', ''))) between 3 and 254
+        then lower(btrim(person->>'email'))
+        else ''
+      end as email
     from jsonb_array_elements(p_people) as t(person)
     where length(private.roster_match_key(person->>'name')) > 0
     order by private.roster_match_key(person->>'name')

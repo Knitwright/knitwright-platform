@@ -165,11 +165,19 @@ const submit = (secret: string, key: string, patch: Record<string, unknown> = {}
     ...patch,
   });
 
+/** A viewer of the club, joined the way the club workspace joins one (decision 0042). */
+const joinAsViewer = async (brandId: string, ownerId: string, guest: Person): Promise<void> => {
+  must(await adminClient().rpc("invite_member", { p_brand_id: brandId, p_user_id: ownerId, p_email: guest.email, p_role: "viewer" }));
+  const invitations = must(await guest.client.rpc("my_club_invitations")) as { id: string; brand_id: string }[];
+  const mine = invitations.find((invitation) => invitation.brand_id === brandId);
+  must(await adminClient().rpc("accept_invitation", { p_user_id: guest.userId, p_invitation_id: mine?.id }));
+};
+
 beforeAll(async () => {
   [alice, bob, viewer] = await Promise.all([person("committee-alice"), person("committee-bob"), person("committee-viewer")]);
   aliceBrand = await brandOf(alice, "Alice Hockey Club");
   bobBrand = await brandOf(bob, "Bob Soccer Club");
-  must(await adminClient().from("memberships").insert({ brand_id: aliceBrand, user_id: viewer.userId, role: "viewer" }).select("user_id"));
+  await joinAsViewer(aliceBrand, alice.userId, viewer);
 });
 
 describe("the rows behind the rules", () => {
@@ -764,6 +772,24 @@ describe("set_roster_signup_requests", () => {
 
     must(await setList(aliceBrand, alice, seasonId, [{ name: "Sam Kerr", phone: "", email: "" }]));
     expect(must(await adminClient().from("roster_signup_requests").select("match_key").eq("season_id", seasonId))).toEqual([{ match_key: "sam kerr" }]);
+  });
+
+  it("cuts a line to what the columns take rather than failing the whole list on one odd one", async () => {
+    const seasonId = await season(aliceBrand, alice);
+    const kept = must(
+      await setList(aliceBrand, alice, seasonId, [
+        { name: `  ${"N".repeat(60)}  `, phone: "+44 (0)1632 960 000", email: "NOT AN ADDRESS" },
+        { name: "Tab\tName", phone: "+", email: " Sam@Example.TEST " },
+      ]),
+    );
+
+    expect(kept).toBe(2);
+    const rows = must(await adminClient().from("roster_signup_requests").select("name, phone, email").eq("season_id", seasonId).order("name")) as Record<
+      string,
+      unknown
+    >[];
+    expect(rows[0]).toEqual({ name: "N".repeat(40), phone: "+441632960000", email: "" });
+    expect(rows[1]).toEqual({ name: "TabName", phone: "", email: "sam@example.test" });
   });
 
   it("refuses another club's season, something that is not a list, and a role that may not", async () => {
