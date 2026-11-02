@@ -14,13 +14,21 @@ import type { WearerGroup } from "../wording";
  * measurement with no value in the chart is left out of the row, never filled in.
  */
 
-/** The wearer the chart is kept under, for each cut a player may choose. */
+/**
+ * The wearer the chart is kept under, for each cut a player may choose. Three of the four are the
+ * registry's own wearers. **Unisex is a labelled default**: the registry has no unisex wearer, so a
+ * unisex kit is shown the men's chart and the guide says so in `WEARER_NOTE`. Owner question in
+ * `docs/decisions/0086-committee-link-and-roster-signup.md`.
+ */
 const CHART_WEARER: Readonly<Record<WearerGroup, string>> = {
   mens: "men",
   womens: "women",
-  junior: "kids",
+  junior: "youth",
   unisex: "men",
 };
+
+/** What a unisex kit's guide says, so nobody reads a men's chart as a unisex one. */
+export const WEARER_NOTE = "A unisex kit has no size chart of its own yet, so these are the men's measurements.";
 
 export interface GuideCell {
   readonly pointId: string;
@@ -85,6 +93,7 @@ export function buildSizeGuide(charts: ChartSet, garmentType: string, wearerGrou
   });
   const shown = named.slice(0, POINTS_SHOWN);
   const supplier = chart.supplier === "brand" ? "your club's own size chart" : "a Knitwright starter chart, not your club's own";
+  const unisex = wearerGroup === "unisex" ? ` ${WEARER_NOTE}` : "";
   return {
     sizes: run.sizes,
     points: shown.map(({ point }) => ({ pointId: point.id, label: point.label, howToMeasure: point.howToMeasure })),
@@ -95,7 +104,7 @@ export function buildSizeGuide(charts: ChartSet, garmentType: string, wearerGrou
         return value ? [{ pointId: point.id, label: point.label, value: formatCm(value.value) }] : [];
       }),
     })),
-    source: `Measured from ${supplier}, by ${chart.source.person} on ${chart.source.date}. The garment, not your body.`,
+    source: `Measured from ${supplier}, by ${chart.source.person} on ${chart.source.date}. The garment, not your body.${unisex}`,
     notice: shown.length === 0 ? EMPTY.notice : null,
   };
 }
