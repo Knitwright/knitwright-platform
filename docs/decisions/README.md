@@ -100,5 +100,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
 | 0089 | [Compliance and pre-export unification](0089-compliance-and-pre-export.md) | Proposed; the label wording and the AQL plan are seeded as labelled defaults, no care symbol or CPSIA certificate exists, so every label is refused, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
+| 0091 | [The launch shell and its boards](0091-launch-shell-and-boards.md) | Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed |
 | 0098 | [The template library to the launch counts of `07`](0098-template-library.md) | Proposed; four of the spec's football styles deliberately not seeded, three R-GAP-000 entries, owner questions listed |
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
