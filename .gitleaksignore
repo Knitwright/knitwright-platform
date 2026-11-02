@@ -1,3 +1,8 @@
 # Test fixtures that look like secrets but are not. One gitleaks fingerprint per line.
 # A made-up share-link token used to test that logs remove it (decision 0026).
 67e7e1a5a0287b223a30204a6639381a37aae58d:apps/web/lib/server/log.test.ts:generic-api-key:97
+# A fingerprint is <commit>:<file>:<rule>:<line>, so an entry stops matching the moment a commit
+# moves the line — and because the scan reads every ref in the repository, that breaks the job on
+# every open branch at once. It happened. The literal is therefore no longer written in
+# `log.test.ts` at all: it is assembled there, so no future commit can produce a finding and this
+# list should never need a second entry.

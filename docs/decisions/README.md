@@ -126,5 +126,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0106 | [The Store contract v2: read endpoints, a documented payload and explicit gaps](0106-store-contract-v2.md) | Proposed; five read endpoints behind a signed service token, a 247-field document locked to the shape by a |
 | 0108 | [The launch panels no workstream owned](0108-launch-panels-unowned.md) | Proposed; Templates, Uploads and Brand built, Likes an honest placeholder because nothing records a like, L7's import screen wired, three R-GAP-000 entries, owner questions listed |
 | 0110 | [The three journeys of plan v5, and what coverage really covers](0110-journeys-and-coverage-v5.md) | Proposed; the three v5 journeys written as browser tests with their stops asserted; the production package never reaches the F-G2 gate so the care label is unreachable; four more walls found; `components` and 6,600 lines of `lib` seams outside the coverage figure; 44 of 62 specs run no axe scan; owner questions listed |
+| 0112 | [The v5 code review](0112-code-review-v5.md) | Proposed; code review of all thirty v5 workstreams, four guards closed, 21 duplicate implementations and 96 unwired seams recorded, owner questions listed |
 
 <!-- End of the generated table. -->

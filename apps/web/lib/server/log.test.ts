@@ -126,7 +126,14 @@ describe("scrub", () => {
 
   it("removes the token of a share link from its address (decision 0026)", async () => {
     const { scrub } = await import("./log");
-    const token = "ECxl0lFqlHu2x987PO-qI2j7bf92_gFdkBPlJTdLceI";
+    /*
+     * Assembled rather than written out. A 43-character base64url literal in this file reads as a
+     * real key to the secret scanner, and `.gitleaksignore` is keyed by commit *and* line number, so
+     * the entry stopped matching the moment an unrelated change moved this line -- and because the
+     * scan covers every ref in the repository, that broke the job on four other branches at once.
+     * Only the shape matters here: SHARE_TOKEN wants exactly 43 characters of [A-Za-z0-9_-].
+     */
+    const token = `${"knitwright".repeat(4)}fix`;
     expect(scrub(`GET https://app.knitwright.com/s/${token} failed`)).toBe("GET https://app.knitwright.com/s/[removed] failed");
   });
 });
