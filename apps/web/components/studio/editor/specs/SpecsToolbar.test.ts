@@ -1,22 +1,20 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it } from "vitest";
-import { slotProps } from "../techpack-view/fixtures";
-import { marksKey, readMarks, resetMarks, writeMarks } from "./marks-store";
+import { designWith, drawnCallout, drawnPom, slotProps } from "../techpack-view/fixtures";
 import { PICKING_VIEWS, listenForPicks, pickingNote, reportPick, resetPicks } from "./pick-bus";
 import SpecsToolbar from "./SpecsToolbar";
 
 /**
  * The Specs toolbar panel (spec F-S4). Its thinking is in `lib/techpack/view/marks.ts`, which has
  * its own tests; what is tested here is that the panel offers the five tools, asks for a place in a
- * way a keyboard can reach, and says plainly that a mark is not saved with the design.
+ * way a keyboard can reach, and lists the marks the design itself holds.
  */
 
 const html = (patch: Parameters<typeof slotProps>[0] = {}): string => renderToStaticMarkup(createElement(SpecsToolbar, slotProps(patch)));
 
 describe("the Specs toolbar panel", () => {
   beforeEach(() => {
-    resetMarks();
     resetPicks();
   });
 
@@ -34,22 +32,23 @@ describe("the Specs toolbar panel", () => {
     expect(markup).not.toContain('data-testid="specs-picker"');
   });
 
-  it("says plainly that a mark is not saved with the design", () => {
-    expect(html()).toContain('data-testid="specs-not-saved"');
-    expect(html()).toContain("a reload loses it");
+  it("says a mark is the person's own measurement, and never says it is lost on a reload", () => {
+    const markup = html();
+    expect(markup).toContain('data-testid="specs-not-graded"');
+    expect(markup).toContain("It is saved with the design");
+    expect(markup).not.toContain("a reload loses it");
   });
 
-  it("says nothing is drawn yet, and lists what is", () => {
+  it("says nothing is drawn yet, and lists the marks the design itself holds", () => {
     expect(html()).toContain('data-testid="specs-marks-none"');
-    const props = slotProps();
-    writeMarks(marksKey(props.design.projectId, props.design.version), [
-      { id: "m1", tool: "measure-line", label: "Pocket opening", note: null, points: [], lengthMm: 120, drawnOn: "2d" },
-    ]);
-    const markup = renderToStaticMarkup(createElement(SpecsToolbar, props));
+    const spec = designWith(slotProps().design.spec, [drawnPom(), drawnCallout()]);
+    const markup = html({ spec });
     expect(markup).toContain('data-testid="specs-marks"');
     expect(markup).toContain("Pocket opening");
     expect(markup).toContain("120 mm");
+    expect(markup).toContain("Hem finish");
     expect(markup).toContain("Take off");
+    expect(markup).not.toContain('data-testid="specs-marks-none"');
   });
 
   it("gives every control a label and a tappable height", () => {
@@ -59,25 +58,17 @@ describe("the Specs toolbar panel", () => {
   });
 });
 
-describe("the marks two panels share", () => {
-  beforeEach(resetMarks);
-
-  it("start empty for a design, and are kept per design and version", () => {
-    expect(readMarks(marksKey("p", 1))).toEqual([]);
-    writeMarks(marksKey("p", 1), [{ id: "m", tool: "callout", label: "A", note: null, points: [], lengthMm: null, drawnOn: "2d" }]);
-    expect(readMarks(marksKey("p", 1))).toHaveLength(1);
-    expect(readMarks(marksKey("p", 2))).toEqual([]);
-    expect(readMarks(marksKey("q", 1))).toEqual([]);
+describe("the marks the panel lists", () => {
+  it("gives every Take off button a name of its own, so a screen reader says which mark it takes off", () => {
+    const spec = designWith(slotProps().design.spec, [drawnPom(), drawnPom({ id: "m2", label: "Vent length" })]);
+    const markup = html({ spec });
+    expect(markup).toContain('aria-label="Take off Pocket opening"');
+    expect(markup).toContain('aria-label="Take off Vent length"');
   });
 
-  it("are emptied by writing none, and the same empty list is given every time", () => {
-    writeMarks(marksKey("p", 1), [{ id: "m", tool: "callout", label: "A", note: null, points: [], lengthMm: null, drawnOn: "2d" }]);
-    writeMarks(marksKey("p", 1), []);
-    expect(readMarks(marksKey("p", 1))).toBe(readMarks(marksKey("p", 2)));
-  });
-
-  it("name a design version in a way that tells two versions apart", () => {
-    expect(marksKey("p", 1)).not.toBe(marksKey("p", 2));
+  it("disables Take off while a save is in flight, as every other control in the panel is", () => {
+    const spec = designWith(slotProps().design.spec, [drawnPom()]);
+    expect(html({ spec, busy: true })).toContain("disabled");
   });
 });
 

@@ -1,3 +1,4 @@
+import type { GarmentSpec, SpecAction } from "@/lib/garment";
 import { GAP_RULE } from "@/lib/kpp/model";
 import type { ExtraPom } from "./measurements";
 
@@ -18,6 +19,9 @@ import type { ExtraPom } from "./measurements";
  *   (plan v5 decision 18).
  * - **Nothing a mark holds is a settled fact.** A mark carries `R-GAP-000` until a rulebook entry
  *   covers founder-drawn points, and it is listed on the pull request as a gap.
+ * - **A mark is part of the design.** It is read from the design's own `extraPoms` and `callouts`
+ *   and written back with a stored-design action (`marksOf`, `saveMarkAction`, `removeMarkAction`),
+ *   so what a person draws is still there after a reload (review of plan v5, item D-5).
  */
 
 export const SPEC_TOOLS = ["select", "measure-point", "measure-line", "measure-edge", "callout"] as const;
@@ -134,6 +138,61 @@ function lengthFor(init: MarkInit): number | null {
   if (init.tool === "measure-edge") return init.edgeLengthMm === undefined || init.edgeLengthMm === null ? null : Math.round(init.edgeLengthMm);
   return null;
 }
+
+/**
+ * Everything one design has drawn on it: the founder's own points of measure first, then the
+ * callouts, each in the order they were kept. This is the only place the panels read marks from, so
+ * the toolbar and the tech pack always show the same marks and a reload shows them again.
+ */
+export function marksOf(spec: Pick<GarmentSpec, "extraPoms" | "callouts">): readonly SpecMark[] {
+  return [
+    ...(spec.extraPoms ?? []).map((pom) => ({
+      id: pom.id,
+      tool: pom.tool,
+      label: pom.label,
+      note: pom.note,
+      points: pom.points,
+      lengthMm: pom.lengthMm,
+      drawnOn: pom.drawnOn,
+    })),
+    ...(spec.callouts ?? []).map((callout) => ({
+      id: callout.id,
+      tool: "callout" as const,
+      label: callout.label,
+      note: callout.note,
+      points: callout.points,
+      lengthMm: null,
+      drawnOn: callout.drawnOn,
+    })),
+  ];
+}
+
+/**
+ * The change that keeps one mark on the design: a measure mark becomes the founder's own point of
+ * measure, a callout becomes a callout. Null for the Select tool, which draws nothing, and for a
+ * mark with no place picked, which the design refuses anyway.
+ */
+export function saveMarkAction(mark: SpecMark): SpecAction | null {
+  if (mark.tool === "select" || mark.points.length === 0) return null;
+  const drawn = {
+    id: mark.id,
+    label: mark.label,
+    note: mark.note,
+    points: [...mark.points],
+    drawnOn: mark.drawnOn,
+    // A person drew it. The server stamps this again for anything a browser sends.
+    provenance: "user-edited" as const,
+  };
+  if (mark.tool === "callout") return { type: "set-callout", callout: drawn };
+  return { type: "set-extra-pom", pom: { ...drawn, tool: mark.tool, lengthMm: mark.lengthMm } };
+}
+
+/** The change that takes one mark off the design again. */
+export const removeMarkAction = (mark: SpecMark): SpecAction =>
+  mark.tool === "callout" ? { type: "remove-callout", id: mark.id } : { type: "remove-extra-pom", id: mark.id };
+
+/** The name a save of one mark is kept under, so two marks in flight never replace each other. */
+export const markSaveKey = (id: string): string => `specs-mark-${id}`;
 
 /** The tools whose marks become points of measure. A callout is a note, not a measurement. */
 const MEASURING: readonly SpecTool[] = ["measure-point", "measure-line", "measure-edge"];

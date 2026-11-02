@@ -1,6 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { GAP_RULE } from "@/lib/kpp/model";
-import { SPEC_TOOLS, TOOL_HELP, TOOL_LABELS, TOOL_POINTS, extraPomsFrom, isDrawingTool, isMeasureMark, makeMark, pendingPick, polylineLengthMm } from "./marks";
+import {
+  SPEC_TOOLS,
+  TOOL_HELP,
+  TOOL_LABELS,
+  TOOL_POINTS,
+  extraPomsFrom,
+  isDrawingTool,
+  isMeasureMark,
+  makeMark,
+  markSaveKey,
+  marksOf,
+  pendingPick,
+  polylineLengthMm,
+  removeMarkAction,
+  saveMarkAction,
+} from "./marks";
 import { mark } from "./fixtures/views";
 
 /** Spec F-S4's Specs toolbar: Select, Measure point, Measure line, Measure edge, Callout. */
@@ -119,5 +134,99 @@ describe("the marks that become points of measure", () => {
 
   it("ask for a measurement when the mark has no length", () => {
     expect(extraPomsFrom([mark({ tool: "measure-point", lengthMm: null })], () => "Q")[0]?.sampleMm).toBeNull();
+  });
+});
+
+/**
+ * A mark is part of the design (review of plan v5, item D-5). These are the two halves of that: the
+ * change that stores one, and the marks read back from a design that holds some.
+ */
+describe("storing a mark on the design", () => {
+  it("stores a measure mark as the founder's own point of measure, with its measured length", () => {
+    expect(saveMarkAction(mark())).toEqual({
+      type: "set-extra-pom",
+      pom: {
+        id: "m1",
+        tool: "measure-line",
+        label: "Pocket opening",
+        note: null,
+        points: [
+          { panelId: "front", xMm: 0, yMm: 0 },
+          { panelId: "front", xMm: 120, yMm: 0 },
+        ],
+        lengthMm: 120,
+        drawnOn: "2d",
+        provenance: "user-edited",
+      },
+    });
+  });
+
+  it("stores a callout as a callout, which has no length of its own", () => {
+    const action = saveMarkAction(mark({ tool: "callout", note: "Twin needle" }));
+    expect(action?.type).toBe("set-callout");
+    expect(action && "callout" in action ? action.callout.note : null).toBe("Twin needle");
+    expect(JSON.stringify(action)).not.toContain("lengthMm");
+  });
+
+  it("says a person drew it, whatever a browser might claim", () => {
+    const action = saveMarkAction(mark());
+    expect(action && "pom" in action ? action.pom.provenance : null).toBe("user-edited");
+  });
+
+  it("stores nothing for Select, which draws nothing, and nothing for a mark with no place picked", () => {
+    expect(saveMarkAction(mark({ tool: "select" }))).toBeNull();
+    expect(saveMarkAction(mark({ points: [] }))).toBeNull();
+  });
+
+  it("takes a mark off the list it was stored in, never the other one", () => {
+    expect(removeMarkAction(mark())).toEqual({ type: "remove-extra-pom", id: "m1" });
+    expect(removeMarkAction(mark({ tool: "callout" }))).toEqual({ type: "remove-callout", id: "m1" });
+  });
+
+  it("names each mark's save after the mark, so two in flight never replace each other", () => {
+    expect(markSaveKey("m1")).not.toBe(markSaveKey("m2"));
+  });
+});
+
+describe("the marks of a design", () => {
+  const pom = {
+    id: "m1",
+    tool: "measure-line" as const,
+    label: "Pocket opening",
+    note: null,
+    points: [{ panelId: "body-front", xMm: 0, yMm: 0 }],
+    lengthMm: 120,
+    drawnOn: "2d" as const,
+    provenance: "user-edited" as const,
+  };
+  const callout = {
+    id: "c1",
+    label: "Hem finish",
+    note: "Twin needle",
+    points: [{ panelId: "body-front", xMm: 1, yMm: 2 }],
+    drawnOn: "2d" as const,
+    provenance: "user-edited" as const,
+  };
+
+  it("are none at all for a design nobody has drawn on", () => {
+    expect(marksOf({})).toEqual([]);
+  });
+
+  it("are the points of measure first, then the callouts, each as the toolbar drew it", () => {
+    const marks = marksOf({ extraPoms: [pom], callouts: [callout] });
+    expect(marks.map((entry) => [entry.id, entry.tool])).toEqual([
+      ["m1", "measure-line"],
+      ["c1", "callout"],
+    ]);
+    expect(marks[0]?.lengthMm).toBe(120);
+    expect(marks[1]?.lengthMm).toBeNull();
+    expect(marks[1]?.note).toBe("Twin needle");
+  });
+
+  it("come back the same way they went in, so a reload shows what was drawn", () => {
+    const drawn = mark();
+    const action = saveMarkAction(drawn);
+    const stored = action && "pom" in action ? [action.pom] : [];
+    expect(marksOf({ extraPoms: stored })).toEqual([drawn]);
   });
 });

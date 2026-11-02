@@ -40,6 +40,11 @@ const DETAILS = [
   "set-construction",
   "remove-construction",
   "set-labelling",
+  "set-article",
+  "set-extra-pom",
+  "remove-extra-pom",
+  "set-callout",
+  "remove-callout",
   "change-wearer",
   "change-type",
 ] as const satisfies readonly SpecAction["type"][];
@@ -48,7 +53,7 @@ const DETAILS = [
 export type MeasuredAction = Extract<SpecAction, { type: (typeof MEASURED)[number] }>;
 /** Fabrics, colourways and artwork. */
 export type MaterialAction = Extract<SpecAction, { type: (typeof MATERIALS)[number] }>;
-/** Names and numbers, kit pattern, components, construction, labelling, wearer and type. */
+/** Names and numbers, kit pattern, components, construction, labelling, the article, the founder's own marks, wearer and type. */
 export type DetailAction = Extract<SpecAction, { type: (typeof DETAILS)[number] }>;
 
 const inGroup =

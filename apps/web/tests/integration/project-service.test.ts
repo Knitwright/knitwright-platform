@@ -529,6 +529,113 @@ describe("saving an action", () => {
   });
 });
 
+/**
+ * Review of plan v5, item D-5: a founder's own point of measure and callout used to live in a
+ * panel's own memory, so a reload lost them. They are part of the design now. The reload here is
+ * the real one: the change goes through `saveAction`, and the design is then READ AGAIN from the
+ * database with `getProject`, which is what the page does when a person comes back to it.
+ */
+describe("a point of measure and a callout a person drew", () => {
+  const pom = {
+    type: "set-extra-pom",
+    pom: {
+      id: "m1",
+      tool: "measure-line",
+      label: "Pocket opening",
+      note: "measured on the sample",
+      points: [
+        { panelId: "body-front", xMm: 0, yMm: 0 },
+        { panelId: "body-front", xMm: 120, yMm: 0 },
+      ],
+      lengthMm: 120,
+      drawnOn: "2d",
+      // A browser cannot name a source: the server throws this away and writes `user-edited`.
+      provenance: "ai-suggested",
+    },
+  };
+  const callout = {
+    type: "set-callout",
+    callout: {
+      id: "c1",
+      label: "Hem finish",
+      note: "Twin needle, 6 mm",
+      points: [{ panelId: "body-front", xMm: 30, yMm: 40 }],
+      drawnOn: "2d",
+      provenance: "user-edited",
+    },
+  };
+
+  it("are both still there after a reload, and the reload says the person drew them", async () => {
+    const id = await make();
+
+    saved(await change(id, 1, pom));
+    saved(await change(id, 2, callout));
+
+    const reloaded = (await open(id)).spec;
+    expect(reloaded.extraPoms).toEqual([
+      {
+        id: "m1",
+        tool: "measure-line",
+        label: "Pocket opening",
+        note: "measured on the sample",
+        points: [
+          { panelId: "body-front", xMm: 0, yMm: 0 },
+          { panelId: "body-front", xMm: 120, yMm: 0 },
+        ],
+        lengthMm: 120,
+        drawnOn: "2d",
+        provenance: "user-edited",
+      },
+    ]);
+    expect(reloaded.callouts).toEqual([callout.callout]);
+  });
+
+  it("each get a version of their own, with a note in plain words", async () => {
+    const id = await make();
+
+    saved(await change(id, 1, pom));
+    saved(await change(id, 2, callout));
+
+    expect((await listVersions(alice.client, aliceBrand, id)).versions.map((v) => [v.version, v.note])).toEqual([
+      [3, "Callout Hem finish saved."],
+      [2, "Your own point of measure Pocket opening saved."],
+      [1, "Design created."],
+    ]);
+  });
+
+  it("are gone after a reload once they are taken off, and the note says which one went", async () => {
+    const id = await make();
+    saved(await change(id, 1, pom));
+
+    const outcome = saved(await change(id, 2, { type: "remove-extra-pom", id: "m1" }));
+
+    expect(outcome.spec.extraPoms).toBeUndefined();
+    expect((await open(id)).spec.extraPoms).toBeUndefined();
+    expect((await listVersions(alice.client, aliceBrand, id)).versions[0].note).toBe("Your own point of measure Pocket opening removed.");
+  });
+
+  it("are refused when nothing was picked, and nothing is stored", async () => {
+    const id = await make();
+
+    const outcome = await change(id, 1, { ...pom, pom: { ...pom.pom, points: [] } });
+
+    expect(outcome.ok).toBe(false);
+    expect(await open(id)).toMatchObject({ currentVersion: 1 });
+  });
+});
+
+describe("the base article a design sits on", () => {
+  it("is still there after a reload, with the parameters the person chose", async () => {
+    const id = await make();
+    // The code the registry maps a crew tee to (`lib/catalogue/registry-map.ts`).
+    const article = { baseArticleCode: "TEE-TR-01", productionClass: "A", parameters: { body_length_offset: 20 } };
+
+    saved(await change(id, 1, { type: "set-article", article }));
+
+    expect((await open(id)).spec.article).toEqual(article);
+  });
+});
+
 describe("undoing", () => {
   const undo = (projectId: string, expectedVersion: number, who = alice, brandId = aliceBrand) =>
     undoDesign(adminClient(), who.client, { brandId, userId: who.userId, projectId, expectedVersion });

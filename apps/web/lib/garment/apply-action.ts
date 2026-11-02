@@ -8,6 +8,7 @@ import {
   type MeasuredAction,
 } from "./action-groups";
 import { specActionSchema, type SpecAction } from "./action-schema";
+import type { DesignCallout, DesignPom } from "./design-marks";
 import type { Dropped } from "./dropped";
 import { fabricChanges } from "./fabric-changes";
 import { changeFabric } from "./fabric-edit";
@@ -51,6 +52,10 @@ function changeList<T extends { readonly id: string }>(
   if (change.kind === "remove") return list.filter((entry) => entry.id !== id);
   return list.map((entry) => (entry.id === id ? change.item : entry));
 }
+
+/** A design without one optional key, as `withoutKitPattern` is for the kit pattern. */
+const withoutKey = (spec: GarmentSpec, key: "extraPoms" | "callouts"): GarmentSpec =>
+  Object.fromEntries(Object.entries(spec).filter(([name]) => name !== key)) as GarmentSpec;
 
 function setOption(spec: GarmentSpec, action: Extract<SpecAction, { type: "set-option" }>): ActionResult {
   const type = getType(spec.typeId);
@@ -177,7 +182,27 @@ function runMaterials(spec: GarmentSpec, action: MaterialAction): ActionResult {
   }
 }
 
-/** Names and numbers, kit pattern, components, construction, labelling, wearer and type. */
+/**
+ * The founder's own points of measure and callouts (`design-marks.ts`). A list that empties is left
+ * out of the design again, so a design nobody has drawn on reads as one that never was drawn on.
+ */
+/** Setting a mark the design already holds replaces it; setting a new one adds it. */
+const known = (marks: readonly { readonly id: string }[] | undefined, id: string): "add" | "update" =>
+  (marks ?? []).some((mark) => mark.id === id) ? "update" : "add";
+
+function extraPomList(spec: GarmentSpec, change: ListChange<DesignPom>): ActionResult {
+  const next = changeList(spec.extraPoms ?? [], "point of measure", change);
+  if (typeof next === "string") return reject(next);
+  return accept(next.length === 0 ? withoutKey(spec, "extraPoms") : { ...spec, extraPoms: next });
+}
+
+function calloutList(spec: GarmentSpec, change: ListChange<DesignCallout>): ActionResult {
+  const next = changeList(spec.callouts ?? [], "callout", change);
+  if (typeof next === "string") return reject(next);
+  return accept(next.length === 0 ? withoutKey(spec, "callouts") : { ...spec, callouts: next });
+}
+
+/** Names and numbers, kit pattern, components, construction, labelling, the article, the founder's own marks, wearer and type. */
 function runDetails(spec: GarmentSpec, action: DetailAction): ActionResult {
   switch (action.type) {
     case "set-names-numbers":
@@ -198,6 +223,16 @@ function runDetails(spec: GarmentSpec, action: DetailAction): ActionResult {
       return removeConstruction(spec, action.seamId);
     case "set-labelling":
       return setLabelling(spec, action);
+    case "set-article":
+      return accept({ ...spec, article: action.article });
+    case "set-extra-pom":
+      return extraPomList(spec, { kind: known(spec.extraPoms, action.pom.id), item: action.pom });
+    case "remove-extra-pom":
+      return extraPomList(spec, { kind: "remove", id: action.id });
+    case "set-callout":
+      return calloutList(spec, { kind: known(spec.callouts, action.callout.id), item: action.callout });
+    case "remove-callout":
+      return calloutList(spec, { kind: "remove", id: action.id });
     case "change-wearer":
       return accept({ ...spec, wearer: action.wearer });
     case "change-type":

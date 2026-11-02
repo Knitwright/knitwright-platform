@@ -11,6 +11,7 @@ import {
   toleranceSchema,
 } from "./parts";
 import { artworkStackSchema } from "../artwork-stack/schema";
+import { designCalloutSchema, designPomSchema, MAX_CALLOUTS, MAX_EXTRA_POMS } from "./design-marks";
 import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { kebabId, wearerSchema } from "./primitives";
@@ -97,6 +98,13 @@ export const garmentSpecStructureSchema = z
     artworkStack: artworkStackSchema.optional(),
     /** The base article and its parameters (version 7). Absent on older designs. */
     article: articleRefSchema.optional(),
+    /**
+     * The founder's own points of measure and callouts, as the Specs toolbar drew them
+     * (`design-marks.ts`). Optional and added after version 7 without a bump, so every design
+     * saved before still reads, and absent rather than empty on a design nobody has drawn on.
+     */
+    extraPoms: z.array(designPomSchema).max(MAX_EXTRA_POMS).readonly().optional(),
+    callouts: z.array(designCalloutSchema).max(MAX_CALLOUTS).readonly().optional(),
   })
   .readonly();
 
