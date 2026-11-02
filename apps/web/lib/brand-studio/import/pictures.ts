@@ -50,9 +50,11 @@ export async function factsOf(
 ): Promise<PictureOutcome> {
   try {
     const meta = await sharp(Buffer.from(bytes)).metadata();
-    const widthPx = meta.width ?? 0;
-    const heightPx = meta.height ?? 0;
-    if (widthPx < SMALLEST_PICTURE_PX || heightPx < SMALLEST_PICTURE_PX) {
+    // `sharp` reports both sides of anything it could decode. A side it did not report fails the
+    // size test below on its own, because `undefined >= 24` is false, so nothing is assumed here.
+    const widthPx = meta.width as number;
+    const heightPx = meta.height as number;
+    if (!(widthPx >= SMALLEST_PICTURE_PX) || !(heightPx >= SMALLEST_PICTURE_PX)) {
       return { ok: false, because: "It is too small to be a logo or a photo." };
     }
     const swatches = await swatchesOf(bytes, settings.colours);

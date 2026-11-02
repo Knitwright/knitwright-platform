@@ -11,7 +11,7 @@
  */
 
 import type { Decision, ImportItem, ImportProposal, ItemKind, PictureFacts, UploadIntent } from "./types";
-import { itemId } from "./items";
+import { itemId, pictureLabel } from "./items";
 
 /** One row's decision changed. Every other row, and the tick, are left exactly as they were. */
 export const decide = (proposal: ImportProposal, id: string, decision: Decision): ImportProposal => ({
@@ -42,11 +42,11 @@ export const acceptedPictures = (proposal: ImportProposal, kind: "logo" | "graph
   return from.filter((facts) => kept.has(itemId(kind, facts.url)));
 };
 
-/** The label an upload is offered under: what the page called the picture, cut to the stored limit. */
-const labelFor = (proposal: ImportProposal, kind: "logo" | "graphic", facts: PictureFacts): string => {
-  const row = proposal.items.find((item) => item.id === itemId(kind, facts.url));
-  return (row?.label ?? facts.url).slice(0, 80);
-};
+/**
+ * The label an upload is offered under. It is read from the facts by the same function that built
+ * the row, so the name on the screen and the name on the file are one and cannot drift apart.
+ */
+const labelFor = (facts: PictureFacts): string => pictureLabel(facts);
 
 /**
  * The pictures to fetch once more and hand to `lib/storage/store.ts` as the brand's own uploads.
@@ -62,7 +62,7 @@ export function uploadsFor(proposal: ImportProposal, userId: string, now: Date):
     acceptedPictures(proposal, kind).map((facts) => ({
       url: facts.url,
       assetKind: kind,
-      label: labelFor(proposal, kind, facts),
+      label: labelFor(facts),
       contentType: facts.contentType,
       rights,
     }));

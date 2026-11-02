@@ -131,6 +131,25 @@ describe("readOwnPage", () => {
     expect(fetcher.calls).toEqual([]);
   });
 
+  it("refuses rather than guesses when the robots.txt request itself throws", async () => {
+    const routes = await siteRoutes();
+    routes[`${SITE}/robots.txt`] = new Error("dns");
+    const read = await readOwnPage(fakeFetcher(routes), `${SITE}/`, settings, now);
+    expect(!read.ok && read.refusal.reason).toBe("robots");
+  });
+
+  it("refuses a reply that states no type at all, rather than reading it as a page", async () => {
+    const routes = await siteRoutes();
+    routes[`${SITE}/`] = { body: pageHtml() };
+    const read = await readOwnPage(fakeFetcher(routes), `${SITE}/`, settings, now);
+    expect(!read.ok && read.refusal.reason).toBe("not_a_page");
+  });
+
+  it("stamps the read with the time of day when it is not given one", async () => {
+    const read = await readOwnPage(fakeFetcher(await siteRoutes()), `${SITE}/`, settings);
+    expect(read.ok && Number.isFinite(Date.parse(read.page.fetchedAt))).toBe(true);
+  });
+
   it("cuts a page at the allowance rather than reading all of it", async () => {
     const routes = await siteRoutes();
     routes[`${SITE}/`] = { type: "text/html", body: `${pageHtml()}${"x".repeat(5000)}` };
@@ -172,7 +191,7 @@ describe("readPicture", () => {
     expect(!bytes.ok && bytes.refusal.reason).toBe("too_large");
 
     const headed = (): Promise<Response> =>
-      Promise.resolve(new Response(logo, { headers: { "content-type": "image/png", "content-length": "9000000" } }));
+      Promise.resolve(new Response(new Uint8Array(logo), { headers: { "content-type": "image/png", "content-length": "9000000" } }));
     const byHeader = await readPicture(headed, `${SITE}/big.png`, settings);
     expect(!byHeader.ok && byHeader.refusal.reason).toBe("too_large");
   });
@@ -192,5 +211,21 @@ describe("readPicture", () => {
   it("refuses a picture that is not there", async () => {
     const read = await readPicture(fakeFetcher({ [`${SITE}/x.png`]: { status: 404 } }), `${SITE}/x.png`, settings);
     expect(!read.ok && read.refusal.reason).toBe("unreachable");
+  });
+
+  it("refuses a picture whose reply states no type", async () => {
+    const logo = await navyAndGold();
+    const read = await readPicture(fakeFetcher({ [`${SITE}/x.png`]: { body: new Uint8Array(logo) } }), `${SITE}/x.png`, settings);
+    expect(!read.ok && read.refusal.reason).toBe("not_a_page");
+  });
+
+  it("says a picture is too slow when our own timeout stops it", async () => {
+    const slow = async (url: string, init: RequestInit): Promise<Response> => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      init.signal?.throwIfAborted();
+      return new Response(null, { headers: { "content-type": "image/png" } });
+    };
+    const read = await readPicture(slow, `${SITE}/x.png`, { ...settings, timeoutMs: 5 });
+    expect(!read.ok && read.refusal.reason).toBe("too_slow");
   });
 });

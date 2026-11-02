@@ -60,6 +60,13 @@ describe("fontFor", () => {
     expect(note?.severity).toBe("warning");
   });
 
+  it("says the nearest is of the same kind of face when it is", () => {
+    const font = fontFor("body", "JetBrains Mono", fonts);
+    expect(font.fontKey).toBe("geist-mono");
+    expect(font.notes[0]?.message).toContain("is the nearest font Knitwright may use");
+    expect(font.notes[0]?.message).toContain("it will not look the same");
+  });
+
   it("takes the brand's own font when the brand's own font is one Knitwright may use", () => {
     const font = fontFor("body", "geist sans", fonts);
     expect(font).toMatchObject({ isSameFont: true, fontKey: "geist", fontLabel: "Geist Sans" });

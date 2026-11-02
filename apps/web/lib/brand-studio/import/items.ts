@@ -19,7 +19,7 @@ export const itemId = (kind: ItemKind, of: string): string => `${kind}:${of}`;
 export const pictureLabel = (facts: PictureFacts): string => {
   const said = facts.alt?.trim();
   if (said !== undefined && said !== "") return said.slice(0, 80);
-  const name = decodeURIComponent(facts.url.split("/").pop() ?? "").split("?")[0] ?? "";
+  const name = decodeURIComponent(facts.url.split("/").pop()!).split("?")[0]!;
   return name === "" ? ITEM_KIND_LABELS.logo : name.slice(0, 80);
 };
 

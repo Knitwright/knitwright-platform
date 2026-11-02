@@ -16,7 +16,7 @@
 import { normaliseUrl, wordsOfPage, type Fetcher } from "@/lib/benchmarks/fetch";
 import { robotsAllows } from "@/lib/benchmarks/robots";
 import { linksOfPage } from "./discover";
-import type { ImportRefusal, PictureFacts, SiteSource } from "./types";
+import type { ImportRefusal, SiteSource } from "./types";
 import { IMPORT_ROBOTS_NAME, IMPORT_USER_AGENT, REFUSALS, WORTH_RETRYING, type RefusalReason } from "./words";
 import type { BrandImportSettings } from "./settings";
 
@@ -140,6 +140,3 @@ export async function readPicture(fetcher: Fetcher, raw: string, settings: Brand
     clearTimeout(timer);
   }
 }
-
-/** The facts an accepted picture is uploaded under, so the upload states the type the server saw. */
-export const typeOf = (facts: PictureFacts): string => facts.contentType;

@@ -51,6 +51,9 @@ export const pageHtml = (photos = 5): string =>
 
 type Reply = Readonly<{ status?: number; type?: string; body?: string | Uint8Array }>;
 
+/** One answer: a reply, or a throw, so a test can make a site fail the way a real one does. */
+export type Route = Reply | Error;
+
 const response = (reply: Reply): Response => {
   const status = reply.status ?? 200;
   const headers = new Headers(reply.type === undefined ? {} : { "content-type": reply.type });
@@ -83,10 +86,10 @@ export function fakeFetcher(routes: Readonly<Record<string, Reply | Error>>): Fa
 }
 
 /** The routes of the made-up site: robots.txt, the page, the icons and the photos. */
-export async function siteRoutes(photos = 5): Promise<Record<string, Reply>> {
+export async function siteRoutes(photos = 5): Promise<Record<string, Route>> {
   const logo = await navyAndGold();
   const shirt = await png([["#0b1f4b", 40], ["#c8102e", 24]], 80);
-  const routes: Record<string, Reply> = {
+  const routes: Record<string, Route> = {
     [`${SITE}/robots.txt`]: { status: 404 },
     [`${SITE}/`]: { type: "text/html; charset=utf-8", body: pageHtml(photos) },
     [`${SITE}/favicon.png`]: { type: "image/png", body: logo },

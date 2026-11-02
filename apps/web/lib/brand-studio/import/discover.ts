@@ -63,11 +63,14 @@ export function ownAddress(raw: string, page: URL): URL | null {
 /** The value of one attribute of a tag, as words. Entities are left alone: a URL has none we need. */
 const attribute = (tag: string, name: string): string | null => {
   const found = new RegExp(`\\s${name}\\s*=\\s*("([^"]{0,2000})"|'([^']{0,2000})'|([^\\s">]{1,2000}))`, "i").exec(tag);
-  return found === null ? null : (found[2] ?? found[3] ?? found[4] ?? "").trim() || null;
+  return found === null ? null : (found[2] ?? found[3] ?? found[4]!).trim() || null;
 };
 
 /** The first address of a `srcset`, which is the one the page offers smallest-first. */
-const firstOfSrcset = (value: string): string | null => value.split(",")[0]?.trim().split(/\s+/)[0] ?? null;
+const firstOfSrcset = (value: string | null): string | null => {
+  const first = value === null ? "" : value.split(",")[0]!.trim().split(/\s+/)[0]!;
+  return first === "" ? null : first;
+};
 
 const tagsOf = (html: string, name: string): string[] => [...html.matchAll(new RegExp(`<${name}\\b[^>]{0,3000}>`, "gi"))].map((m) => m[0]).slice(0, MOST);
 
@@ -112,7 +115,7 @@ type Pictures = Readonly<{ logos: readonly Candidate[]; pictures: readonly Candi
 /** Every `<img>` the page holds, split into marks and product photos by what the page calls them. */
 function imagesOf(html: string, page: URL): Pictures {
   const all = tagsOf(html, "img").flatMap((tag) => {
-    const raw = attribute(tag, "src") ?? attribute(tag, "data-src") ?? firstOfSrcset(attribute(tag, "srcset") ?? "");
+    const raw = attribute(tag, "src") ?? attribute(tag, "data-src") ?? firstOfSrcset(attribute(tag, "srcset"));
     if (raw === null || NOT_A_PICTURE.test(raw)) return [];
     const url = ownAddress(raw, page);
     if (url === null) return [];
@@ -125,8 +128,8 @@ function imagesOf(html: string, page: URL): Pictures {
 
 /** Everything between `<style>` tags, plus every `style=` attribute: the page's own look. */
 export function stylesOf(html: string): string {
-  const blocks = [...html.matchAll(/<style[^>]*>([\s\S]{0,200000}?)<\/style>/gi)].map((m) => m[1] ?? "");
-  const inline = [...html.matchAll(/\sstyle\s*=\s*"([^"]{0,2000})"/gi)].map((m) => m[1] ?? "");
+  const blocks = [...html.matchAll(/<style[^>]*>([\s\S]{0,200000}?)<\/style>/gi)].map((m) => m[1]!);
+  const inline = [...html.matchAll(/\sstyle\s*=\s*"([^"]{0,2000})"/gi)].map((m) => m[1]!);
   const themes = tagsOf(html, "meta")
     .filter((tag) => /name\s*=\s*["']?theme-color/i.test(tag))
     .map((tag) => attribute(tag, "content") ?? "");
@@ -143,7 +146,7 @@ const byteHex = (value: string): string => Math.min(255, Number(value)).toString
 export function coloursOfStyles(styles: string): readonly string[] {
   const short = [...styles.matchAll(SHORT_HEX)].map((m) => `#${m[1]}${m[1]}${m[2]}${m[2]}${m[3]}${m[3]}`.toLowerCase());
   const long = [...styles.matchAll(LONG_HEX)].map((m) => `#${m[1]}`.toLowerCase());
-  const rgb = [...styles.matchAll(RGB)].map((m) => `#${byteHex(m[1] ?? "0")}${byteHex(m[2] ?? "0")}${byteHex(m[3] ?? "0")}`);
+  const rgb = [...styles.matchAll(RGB)].map((m) => `#${byteHex(m[1]!)}${byteHex(m[2]!)}${byteHex(m[3]!)}`);
   return [...new Set([...long, ...short, ...rgb])].slice(0, MOST);
 }
 
@@ -164,11 +167,11 @@ const familyName = (raw: string): string | null => {
 
 /** The families the page asked for: its own `font-family` rules and any web-font link it loaded. */
 export function fontsOfPage(html: string, styles: string): readonly string[] {
-  const declared = [...styles.matchAll(/font-family\s*:\s*([^;}"]{1,300})/gi)].flatMap((m) => (m[1] ?? "").split(",").map(familyName));
+  const declared = [...styles.matchAll(/font-family\s*:\s*([^;}"]{1,300})/gi)].flatMap((m) => m[1]!.split(",").map(familyName));
   const linked = tagsOf(html, "link").flatMap((tag) => {
     const href = attribute(tag, "href") ?? "";
     if (!/fonts\.(googleapis|bunny|gstatic)\.|typekit|fontshare|fonts\.net/i.test(href)) return [];
-    return [...href.matchAll(/family=([^&:]{1,60})/gi)].map((m) => familyName(decodeURIComponent(m[1] ?? "").replaceAll("+", " ")));
+    return [...href.matchAll(/family=([^&:]{1,60})/gi)].map((m) => familyName(decodeURIComponent(m[1]!).replaceAll("+", " ")));
   });
   return [...new Set([...linked, ...declared].filter((name): name is string => name !== null))].slice(0, MOST);
 }

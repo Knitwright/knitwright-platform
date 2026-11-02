@@ -130,3 +130,71 @@ describe("linksOfPage", () => {
     expect(linksOfPage(html, `${SITE}/`).pictures[0]?.url).toBe(`${SITE}/media/a.png`);
   });
 });
+
+describe("the shapes markup comes in", () => {
+  const page = `${SITE}/`;
+
+  it("reads an attribute written with single quotes and one written bare", () => {
+    const single = linksOfPage(`<img src='/media/a.png' alt='Kit' />`, page);
+    expect(single.pictures[0]).toMatchObject({ url: `${SITE}/media/a.png`, alt: "Kit" });
+    const bare = linksOfPage(`<img src=/media/b.png alt=Kit>`, page);
+    expect(bare.pictures[0]?.url).toBe(`${SITE}/media/b.png`);
+  });
+
+  it("reads a manifest icon as an icon of the site", () => {
+    const links = linksOfPage(`<link rel="manifest" href="/site.webmanifest" />`, page);
+    expect(links.icons[0]).toMatchObject({ why: "manifest-icon", url: `${SITE}/site.webmanifest` });
+  });
+
+  it("takes a link's title as what the page called the icon", () => {
+    expect(linksOfPage(`<link rel="icon" href="/f.png" title="Club mark" />`, page).icons[0]?.alt).toBe("Club mark");
+  });
+
+  it("leaves out an img with no address at all, and an empty srcset", () => {
+    expect(linksOfPage(`<img alt="Kit" /><img srcset="" alt="Kit" />`, page).pictures).toEqual([]);
+  });
+
+  it("falls back to the favicon when a link has a rel we do not read, or no href", () => {
+    expect(linksOfPage(`<link rel="stylesheet" href="/a.css" /><link rel="icon" />`, page).icons[0]?.url).toBe(`${SITE}/favicon.ico`);
+  });
+
+  it("reads a style block with nothing in it, and a theme colour with no content", () => {
+    expect(coloursOfStyles(stylesOf(`<style></style><meta name="theme-color" />`))).toEqual([]);
+  });
+
+  it("reads a family from a web-font address written as an escape", () => {
+    expect(fontsOfPage(`<link rel="stylesheet" href="https://use.typekit.net/css2?family=Ravensmoor%20Grotesk" />`, "")).toEqual(["Ravensmoor Grotesk"]);
+  });
+
+  it("leaves out a family name too long to be one, and a rule with nothing after the colon", () => {
+    expect(fontsOfPage("", `a{font-family:"${"x".repeat(80)}"}`)).toEqual([]);
+    expect(fontsOfPage("", "a{font-family:  }")).toEqual([]);
+  });
+
+  it("holds one picture once, however many times the page names it", () => {
+    expect(linksOfPage(`<img src="/media/a.png" alt="Kit" /><img src="/media/a.png" alt="Kit" />`, page).pictures).toHaveLength(1);
+  });
+
+  it("reads an img that says nothing about itself as a product photo", () => {
+    expect(linksOfPage(`<img src="/media/a.png">`, page).pictures[0]).toMatchObject({ why: "img-product", alt: null });
+  });
+
+  it("leaves out an img on another site, even one the page calls a logo", () => {
+    expect(linksOfPage(`<img src="https://other.test/logo.png" alt="Their logo" />`, page)).toMatchObject({ logos: [], pictures: [] });
+  });
+
+  it("leaves out a link with no rel, and an icon or a social picture on another site", () => {
+    const links = linksOfPage(
+      `<link href="/x.png" /><link rel="icon" href="https://other.test/f.png" /><meta property="og:image" content="https://other.test/hero.png" /><meta property="og:image" />`,
+      page,
+    );
+    expect(links.icons.map((one) => one.url)).toEqual([`${SITE}/favicon.ico`]);
+    expect(links.pictures).toEqual([]);
+  });
+
+  it("reads a page with no styles and no pictures as pointing at nothing but its favicon", () => {
+    const bare = linksOfPage("<html><body></body></html>", page);
+    expect(bare).toMatchObject({ logos: [], pictures: [], cssColours: [], fontFamilies: [] });
+    expect(bare.icons).toHaveLength(1);
+  });
+});

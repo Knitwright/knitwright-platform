@@ -38,6 +38,15 @@ describe("seenColours", () => {
     expect(seen[0]?.from).toContain("logo");
   });
 
+  it("says a colour came from the brand's logo or from one of its other pictures", () => {
+    const logo = seenColours([], [picture([["#0b1f4b", 0.9]])]);
+    expect(logo[0]?.from).toContain("logo");
+    const favicon = { ...picture([["#0b1f4b", 0.9]]), why: "favicon" as const };
+    expect(seenColours([], [favicon])[0]?.from).toContain("logo");
+    const photo = { ...picture([["#0b1f4b", 0.9]]), why: "img-product" as const };
+    expect(seenColours([], [photo])[0]?.from).toContain("picture");
+  });
+
   it("leaves out the paper a page is printed on, because white is not a brand colour", () => {
     expect(seenColours(["#ffffff", "#0b1f4b"], []).map((one) => one.hex)).toEqual(["#0b1f4b"]);
   });

@@ -34,6 +34,12 @@ describe("factsOf", () => {
     expect(SMALLEST_PICTURE_PX).toBeGreaterThan(4);
   });
 
+  it("leaves out a picture wide enough but not tall enough", async () => {
+    const strip = await png([["#0b1f4b", 4]], 64);
+    const read = await factsOf(new Uint8Array(strip), "image/png", from(`${SITE}/rule.png`), settings);
+    expect(read.ok).toBe(false);
+  });
+
   it("says so rather than throwing when the bytes are not a picture at all", async () => {
     const read = await factsOf(new Uint8Array([1, 2, 3]), "image/png", from(`${SITE}/x.png`), settings);
     expect(read.ok).toBe(false);
