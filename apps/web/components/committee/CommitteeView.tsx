@@ -19,9 +19,11 @@ function Option({ option, token, siteKey }: Readonly<{ option: CommitteeOption; 
       data-testid={`committee-option-${option.slot}`}
     >
       <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3 id={`option-${option.slot}`} className="text-lg font-semibold text-ink">
+        {/* h2, not h3: the options come before "Your vote" and "Your approval" in the page, so an
+            h3 here would skip a level on the way down from the design's own h1. */}
+        <h2 id={`option-${option.slot}`} className="text-lg font-semibold text-ink">
           {option.label}
-        </h3>
+        </h2>
         <p className="text-sm text-muted">
           Version {option.version}, saved on {option.savedOn}
           {option.locked ? " · locked by the club" : ""}
