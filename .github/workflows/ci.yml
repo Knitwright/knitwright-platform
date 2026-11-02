@@ -54,6 +54,15 @@ jobs:
 
       # The database tests and the end-to-end tests run against local Supabase. Its
       # address and keys are the CLI's public defaults, written to apps/web/.env.local.
+      # The ports supabase/config.toml pins (54320 to 54324) all sit inside the kernel's
+      # ephemeral range, 32768 to 60999, so any outbound connection can be given one as its
+      # source port. `pnpm install` above makes hundreds, and when one still holds 54322 or
+      # 54324 the container cannot bind it and this step fails with "address already in use".
+      # It looked like a one-off on a shared runner; it is not. Reserving the range tells the
+      # kernel never to hand those ports out, which is the whole fix. Seen three times on
+      # 2026-11-02 (#101 Checks, #120 end-to-end, one more), each costing a full re-run.
+      - name: Keep the kernel from handing out Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54324
       - name: Start local Supabase
         run: |
           cp supabase/.env.example supabase/.env
@@ -86,6 +95,15 @@ jobs:
 
       # The database tests and the end-to-end tests run against local Supabase. Its
       # address and keys are the CLI's public defaults, written to apps/web/.env.local.
+      # The ports supabase/config.toml pins (54320 to 54324) all sit inside the kernel's
+      # ephemeral range, 32768 to 60999, so any outbound connection can be given one as its
+      # source port. `pnpm install` above makes hundreds, and when one still holds 54322 or
+      # 54324 the container cannot bind it and this step fails with "address already in use".
+      # It looked like a one-off on a shared runner; it is not. Reserving the range tells the
+      # kernel never to hand those ports out, which is the whole fix. Seen three times on
+      # 2026-11-02 (#101 Checks, #120 end-to-end, one more), each costing a full re-run.
+      - name: Keep the kernel from handing out Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54324
       - name: Start local Supabase
         run: |
           cp supabase/.env.example supabase/.env
