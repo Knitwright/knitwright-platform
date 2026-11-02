@@ -116,18 +116,52 @@ Two further facts shaped how this was done:
    anywhere, and runs axe plus a sideways-scroll check on each at the browser tests' own desktop
    width and again at 390 x 844. Y3's self-skips are gone and its tests run as they were written.
 
+8. **The toolbar toggle is the rail's, not the icon column's — because it did not fit there.** This
+   is what opening the panels in a browser found, and it is the whole reason item 7 was worth
+   doing. The segmented toggle for Form, Library and Specs was inside the left rail's 4.75rem icon
+   column, where three words do not go: the strip is 8.5rem at its narrowest (three 2.5rem tabs,
+   two 0.25rem gaps and 0.25rem of padding either side), so it overflowed its column to the right,
+   across the 0.75rem gap and into the toolbar panel column beside it. The open panel comes later
+   in the document, which puts it above that overflow in the hit test, so the panel swallowed every
+   click meant for the **third** tab. Specs was on the screen, visible and enabled, and no pointer
+   could press it — Playwright's own words were "element is visible, enabled and stable … `<h2>`
+   Library `</h2>` … intercepts pointer events", and then sixty seconds of retries. The keyboard
+   path worked throughout (`e2e/editor-shell.spec.ts` drives the toggle with the arrow keys), which
+   is why three waves of unit tests and one browser test had not caught it.
+
+   So `EditorShell` now gives the whole left rail **one** column of the shell grid and `LeftRail`
+   divides it again under the toggle: the 4.75rem icon column beside the open panel. The toggle
+   spans both, which is what spec F-S4's "Left rail: a segmented toggle between three toolbars"
+   describes — the toggle belongs to the rail, and the icon rail of eleven tools belongs to the
+   Form toolbar inside it. The canvas and the Design Summary keep exactly the widths decision 0075
+   gave them: 4.75 + 0.75 + 20 = 25.5rem of rail, and 21rem of panel at xl. No `z-index` and no
+   `pointer-events` rule was involved; a tab drawn over is a tab laid out in the wrong box.
+
+   The regression guard is a measurement, not a click: `e2e/editor-panels.spec.ts` compares each
+   tab's own box with its strip's and names any tab drawn outside it, so a recurrence says which
+   tab is wrong instead of timing out after a minute and blaming the panel.
+
 ## What is deliberately left unmounted
 
 Two things, each with the reason in the code as well as here. An empty panel that looks real is
 worse than an honest absence.
 
-- **`components/rulebook/ask/BestPracticeCard.tsx` and `bestPracticeAction`.** The card is the
-  rulebook's Best practice column "for the selected part", and a part is one of six the rulebook
-  names (collar, sleeve, body, artwork, names, labels). **Nothing in the editor selects a part in
-  that sense.** The Specs toolbar's picker selects a *panel* of the pattern (front, back, sleeve),
-  the Form toolbar's option groups are not a selection, and the Design Summary's sections are not
-  the same six. Giving the card a part chooser of its own would be a new control nobody specified,
-  so it is owner question 1 rather than a guess. The card's words are covered by Z2's own tests.
+- **`components/rulebook/ask/BestPracticeCard.tsx` and `lib/rulebook/ask/actions.ts`'s
+  `bestPracticeAction`.** Both halves, screen and server, are built and neither is mounted; a sweep
+  for unreached server actions and unreachable components finds both, so this paragraph is the
+  record it should land on. The card is the rulebook's Best practice column "for the selected part"
+  (spec F-S5 v2), and a part is one of the six `PARTS` of `lib/rulebook/ask/best-practice.ts`:
+  collar, sleeve, body, artwork, names, labels. `bestPracticeAction` cannot be called without one
+  of those six keys. **Nothing in the editor selects a part in that sense.** The Specs toolbar's
+  picker selects a *panel* of the pattern (front, back, sleeve), which is not the same vocabulary
+  and covers three of the six at best; the Form toolbar's option groups are not a selection; and
+  the Design Summary's seven sections are not those six either. Mounting the card therefore means
+  either inventing a part chooser nobody specified, or guessing a mapping from pattern panel to
+  garment part and leaving collar, artwork, names and labels unreachable. Both are product
+  decisions, so this is owner question 1 rather than a guess, and the card stays off the screen
+  until it is answered. Its words and its `R-GAP-000` line are covered by Z2's own tests
+  (`components/rulebook/ask/AskAnswer.test.ts`), and decision 0083's own honest limit already says
+  "nothing calls any of this yet".
 - **A per-player 3D preview on the names & numbers panel** (decision 0081's and the review's
   D-19). `lib/garment/names-numbers.ts` says a player's own name belongs to the team order, which
   is not built, so the panel shows the spec's own SMITH 7 sample and says "Not drawn to the
@@ -158,7 +192,9 @@ worse than an honest absence.
 - A form change still lives only in the address (decision 0075 item 3 and the review's D-5): no
   `SpecAction` writes `article.parameters`, so a panel that calls `setOption` or `setParameter`
   changes the draft and the canvas and not the stored design. Mounting the panels does not change
-  that, and the Specs toolbar still says plainly that a mark it draws is not saved.
+  that. A **mark** the Specs toolbar draws is a different matter: decision 0121 (PR #151) made a
+  point of measure and a callout part of the stored design, and this branch is what puts that panel
+  on a screen, so mounting it is what makes 0121's fix reachable at all.
 - Nothing was done about the review's other fourteen unmounted components (A1 to A6 and A15 to
   A22): those are other waves' and other owners'.
 
@@ -170,6 +206,7 @@ worse than an honest absence.
 | Every slot draws its own panel, and no placeholder is left on the page | `e2e/editor-panels.spec.ts`, "draws each one's own content where a placeholder used to be" |
 | The Library toolbar carries the repeat maker and the inspiration board | same file, "gives the Library toolbar the repeat maker and the inspiration board under it" |
 | The Ask box is on the design surface and refuses an empty question | same file, "puts the Ask box under the Specs toolbar" |
+| All three toolbar tabs are inside their own strip, so a pointer can reach every one of them | same file, "keeps all three toolbar tabs inside their own strip" |
 | The Export panel offers the Excel file at the address the route serves | same file, "offers the tech pack's own files from the Export panel" |
 | A Design Summary row opens Y8's panel in the right-hand panel, and comes back | `e2e/editor-shell.spec.ts`, "opens the Names & numbers panel in the right-hand panel" |
 | No serious or critical axe violation and no sideways scroll, at desktop and at 390 x 844 | `e2e/editor-panels.spec.ts`, the two scanning tests |
@@ -182,7 +219,9 @@ worse than an honest absence.
 1. **The best-practice card.** F-S5 asks for a card "when a part is selected", and no editor surface
    selects one of the rulebook's six parts. Should the editor gain a part chooser beside the Ask box,
    should the Specs toolbar's panel selection be mapped to a part, or should the card wait for the
-   piece mapper (decision 0053) that would make a click on the canvas mean a part?
+   piece mapper (decision 0053) that would make a click on the canvas mean a part? Until this is
+   answered, `BestPracticeCard` and `bestPracticeAction` stay built and unmounted on purpose — the
+   half of Ask that spec F-S5 asks for and that no one can reach.
 2. **Two names-and-numbers editors.** Decision 0027's controls are on the `Names` tool and Y8's
    F-S4 panel opens from the Design Summary. They write the same stored fields, so they cannot
    disagree, but a person can meet either. Which one survives, and may the other be taken out with
