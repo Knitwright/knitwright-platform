@@ -74,9 +74,13 @@ comment on column public.bom_consumption.confirmed is
 create index bom_consumption_article_idx on public.bom_consumption (article_id, item_id);
 
 -- ---------------------------------------------------------------------------------------------
--- A figure never changes and no row is removed. The one update allowed is the account behind created_by being
--- erased (on delete set null). A new figure is the next version of the line, which is what keeps the figure a
--- package was built on findable after a factory replaces it.
+-- A figure never changes and no row is removed. Two exceptions, both of them something happening to another
+-- row rather than to this one: the account behind created_by being erased (on delete set null), and the base
+-- article the figure describes being removed, which cascades here. A cascade is let through because a figure for
+-- an article that no longer exists describes nothing; the parent row is already gone by the time the cascade
+-- reaches this trigger, which is how the guard tells a cascade from somebody deleting a figure. A new figure is
+-- the next version of the line, which is what keeps the figure a package was built on findable after a factory
+-- replaces it.
 
 create function private.guard_bom_consumption()
 returns trigger
@@ -85,6 +89,13 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- Nested, so OLD is read only for a row delete (it is not set for a truncate).
+  if tg_op = 'DELETE' then
+    -- The base article is already gone, so this is its cascade and not somebody deleting a figure.
+    if not exists (select 1 from public.base_articles a where a.id = old.article_id) then
+      return old;
+    end if;
+  end if;
   -- Nested, so NEW and OLD are read only for a row update (they are not set for a truncate).
   if tg_op = 'UPDATE' then
     if (new.id, new.article_id, new.item_id, new.version, new.qty_per_piece, new.unit, new.size_dependent,

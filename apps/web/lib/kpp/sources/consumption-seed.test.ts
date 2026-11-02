@@ -176,6 +176,11 @@ describe("what the migration grants and guards", () => {
     expect(sql()).toContain("A consumption figure can never be changed or removed; record a new version instead.");
   });
 
+  it("lets a figure go only with the base article it describes, which is the only delete it allows", () => {
+    expect(sql()).toContain("if not exists (select 1 from public.base_articles a where a.id = old.article_id) then");
+    expect(sql()).toContain("article_id uuid not null references public.base_articles (id) on delete cascade");
+  });
+
   it("lets only the server's key call the recording function, which refuses anyone who is not a platform admin", () => {
     expect(sql()).toMatch(/revoke all on function public\.bom_consumption_record\([^)]*\)\s*\n?\s*from public, anon, authenticated;/);
     expect(sql()).toMatch(/grant execute on function public\.bom_consumption_record\([^)]*\)\s*\n?\s*to service_role;/);

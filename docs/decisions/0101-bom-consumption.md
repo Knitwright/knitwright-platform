@@ -66,8 +66,11 @@ only place the figures existed.
    can never be stored where a quantity belongs.
 
 5. **Append-only, and a factory's own figure is the next version.** A trigger refuses every update and every
-   delete (the one exception is the account behind `created_by` being erased by `on delete set null`), and refuses
-   a truncate. `public.bom_consumption_record` is the only way in: `security definer`, `search_path` fixed, and it
+   delete, and refuses a truncate. It has two exceptions, both of them something happening to another row rather
+   than to this one: the account behind `created_by` being erased by `on delete set null`, and the base article
+   the figure describes being removed, which cascades here — a figure for an article that no longer exists
+   describes nothing, and the parent row is already gone by the time the cascade reaches the trigger, which is
+   how the guard tells a cascade from somebody deleting a figure. `public.bom_consumption_record` is the only way in: `security definer`, `search_path` fixed, and it
    answers anyone who is not in `platform_admins` with "Not found." (P0002), exactly as `rulebook_entry_save`
    does. It takes an advisory lock on the article and item, works out the next version and inserts it. The read
    (`newestPerItem`) builds the package on the newest version of each line, so the draft a package was built on
