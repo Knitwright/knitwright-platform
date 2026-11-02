@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { allSeedTemplates } from "@/lib/templates/seed/all";
 import { seedKitBundles } from "@/lib/templates/seed/bundles/seed";
 import { buildBundles } from "@/lib/templates/seed/bundles/build";
 import { seedTemplates } from "@/lib/templates/seed/seed";
@@ -25,9 +26,11 @@ beforeAll(async () => {
 
 describe("the kind column and the launch tags", () => {
   it("files every starter as a design, with the tags 07 asks for", async () => {
-    const rows = must(await alice.client.from("templates").select("slug, kind, sport_tags, era_tags, mood_tags"));
+    // The starters by name, so a row another test in this suite adds cannot change the answer.
+    const slugs = allSeedTemplates().map((seed) => seed.slug);
+    const rows = must(await alice.client.from("templates").select("slug, kind, sport_tags, era_tags, mood_tags").in("slug", slugs));
 
-    expect(rows.length).toBeGreaterThanOrEqual(60);
+    expect(rows).toHaveLength(60);
     expect(rows.every((row) => row.kind === "design")).toBe(true);
     expect(rows.every((row) => row.era_tags.length > 0 && row.mood_tags.length > 0)).toBe(true);
     expect(rows.some((row) => row.sport_tags.includes("esports"))).toBe(true);
@@ -35,13 +38,14 @@ describe("the kind column and the launch tags", () => {
   });
 
   it("refuses a kind, a sport tag, an era or a mood the vocabulary does not hold", async () => {
-    const columns = "title, sport, article_id, wearer, style_tags, colour_family, snapshot";
+    const columns = "sport, article_id, wearer, style_tags, colour_family, snapshot";
     const base = must(await adminClient().from("templates").select(columns).eq("slug", "navy-gold-hoops").single());
-    const copy = (over: Record<string, unknown>) => ({
-      ...base,
-      slug: `kind-check-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      ...over,
-    });
+    // A new slug and title every time, and the general sport, so no browser spec's locator or count can
+    // find these rows (plan v5 Lessons 11).
+    const copy = (over: Record<string, unknown>) => {
+      const once = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      return { ...base, sport: "general", slug: `kind-check-${once}`, title: `Kind check ${once}`, ...over };
+    };
 
     for (const over of [{ kind: "poster" }, { sport_tags: ["quidditch"] }, { era_tags: ["baroque"] }, { mood_tags: ["grumpy"] }]) {
       expect((await adminClient().from("templates").insert(copy(over))).error, JSON.stringify(over)).not.toBeNull();
