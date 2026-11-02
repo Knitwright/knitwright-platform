@@ -353,8 +353,12 @@ $$;
 
 revoke all on function private.refuse_laundered_artwork() from public, anon, authenticated;
 
+-- `settings` is watched as well as the output, because a board says in its own settings that a
+-- model made its picture (`generation`) and `save_launch_board` can change settings on a board that
+-- already holds artwork. The WHEN clause keeps it cheap: nothing is walked unless the board's output
+-- is artwork in the first place.
 create trigger boards_artwork_never_comes_through_a_generated_board
-  after insert or update of output_role, output_file_id on public.boards
+  after insert or update of output_role, output_file_id, settings on public.boards
   for each row when (new.output_role in ('panel_layer', 'print_file'))
   execute function private.refuse_laundered_artwork();
 
@@ -410,8 +414,42 @@ $$;
 revoke all on function private.refuse_laundering_connector() from public, anon, authenticated;
 
 create trigger board_edges_artwork_never_comes_through_a_generated_board
-  after insert on public.board_edges
+  after insert or update of from_board_id, to_board_id on public.board_edges
   for each row execute function private.refuse_laundering_connector();
+
+/*
+ * And the third order of the same trick, which neither of the other two can see.
+ *
+ * A board says in its own settings that a model made its picture, and `save_launch_board` can save
+ * settings long after an output was recorded. So: leave a clean Mockup board feeding a board whose
+ * output is a print file, then give that Mockup board `{"generation": "model"}`. The row that
+ * changed is the Mockup board, whose own output is only an asset, so the trigger on `boards` above
+ * does not fire for it; no connector was drawn, so the trigger on `board_edges` does not either.
+ *
+ * This one fires on exactly that change and asks the question forwards instead of backwards.
+ */
+create function private.refuse_laundering_settings()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if private.launch_board_artwork_downstream(new.id) then
+    raise exception 'A board that feeds a layer on the garment or a print file cannot become a scene a model makes. Make that board''s output an asset first.'
+      using errcode = 'P0001', hint = 'generated_is_never_artwork';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.refuse_laundering_settings() from public, anon, authenticated;
+
+create trigger boards_a_model_scene_never_feeds_artwork
+  after update of settings on public.boards
+  for each row
+  when (new.settings ->> 'generation' = 'model' and (old.settings ->> 'generation') is distinct from 'model')
+  execute function private.refuse_laundering_settings();
 
 -- ---------------------------------------------------------------------------------------------
 -- Rights and row level security.
@@ -568,7 +606,8 @@ begin
          spent_credits = coalesce(p_spent, spent_credits),
          refunded_credits = coalesce(p_refunded, refunded_credits),
          assets = coalesce(p_assets, assets),
-         finished_at = now()
+         -- When it ended, kept: a second call says the same thing about the same run.
+         finished_at = coalesce(finished_at, now())
    where id = p_run_id and brand_id = p_brand_id
   returning id into v_id;
   if v_id is null then
@@ -617,7 +656,9 @@ declare
   v_price integer;
   -- A digest, so a run id, a board id and a version hash together always fit a ledger key. The
   -- prefix differs from `credit_spend`'s, so the two can never land on one key.
-  v_key text := 'spend-output:' || p_kind || ':' || md5(p_version_hash || ':' || p_output_key);
+  -- The length of the hash goes into the digest as well, so a version and an output key cannot be
+  -- read two ways across the separator and two different spends can never share a key.
+  v_key text := 'spend-output:' || p_kind || ':' || md5(length(p_version_hash)::text || ':' || p_version_hash || ':' || p_output_key);
   v_existing uuid;
   v_balance bigint;
   v_id uuid;
@@ -698,6 +739,35 @@ begin
 end;
 $$;
 
+/*
+ * The Store saying it has read a hand-off. The one change an append-only hand-off allows, and the
+ * only thing that may make it: the table grants nobody UPDATE, so without this function the
+ * `collected_at` column could never be set at all and the trigger's one exception would be dead
+ * letter. Calling it twice leaves the first time on the row.
+ *
+ * It takes no person, because the Store is not one: it is the server's own key reading what it has
+ * been given, as wave 5's Store contract (O2) will. Nothing about the hand-off itself can change.
+ */
+create function public.collect_flow_listing(p_listing_id uuid)
+returns timestamptz
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_at timestamptz;
+begin
+  update public.flow_listings
+     set collected_at = now()
+   where id = p_listing_id and collected_at is null;
+  select l.collected_at into v_at from public.flow_listings l where l.id = p_listing_id;
+  if v_at is null then
+    raise exception 'That listing hand-off does not exist.' using errcode = 'P0002', hint = 'listing_not_found';
+  end if;
+  return v_at;
+end;
+$$;
+
 /* Writes a listing hand-off for the Store to collect. It publishes nothing. */
 create function public.publish_flow_listing(
   p_brand_id uuid, p_user_id uuid, p_launch_project_id uuid, p_payload jsonb
@@ -733,6 +803,7 @@ revoke all on function public.finish_flow_run(uuid, uuid, uuid, text, integer, i
 revoke all on function public.credit_spend_output(uuid, uuid, text, text, text, uuid) from public, anon, authenticated;
 revoke all on function public.credit_refund_spend(uuid, uuid, text) from public, anon, authenticated;
 revoke all on function public.publish_flow_listing(uuid, uuid, uuid, jsonb) from public, anon, authenticated;
+revoke all on function public.collect_flow_listing(uuid) from public, anon, authenticated;
 
 grant execute on function public.start_flow_run(uuid, uuid, uuid, text, uuid, integer, text) to service_role;
 grant execute on function public.set_flow_run_board(uuid, uuid, uuid, uuid, integer, text, integer, integer, uuid, integer, text, uuid, text) to service_role;
@@ -740,6 +811,7 @@ grant execute on function public.finish_flow_run(uuid, uuid, uuid, text, integer
 grant execute on function public.credit_spend_output(uuid, uuid, text, text, text, uuid) to service_role;
 grant execute on function public.credit_refund_spend(uuid, uuid, text) to service_role;
 grant execute on function public.publish_flow_listing(uuid, uuid, uuid, jsonb) to service_role;
+grant execute on function public.collect_flow_listing(uuid) to service_role;
 
 -- ---------------------------------------------------------------------------------------------
 -- Seeds: the six packs of `07`, from apps/web/lib/flows/templates/**.

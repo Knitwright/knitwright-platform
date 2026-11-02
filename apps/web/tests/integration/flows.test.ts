@@ -144,6 +144,24 @@ describe("a four-hop flow trying to make a generated picture into artwork", () =
     expect(refused.error?.hint).toBe("generated_is_never_artwork");
   });
 
+  it("refuses a board becoming a model scene behind a board already used as artwork", async () => {
+    const canvasId = await makeCanvas(ann, annBrand, "Settings");
+    const design = await makeBoard(ann, annBrand, canvasId, "design");
+    const mockup = await makeBoard(ann, annBrand, canvasId, "mockup");
+    const post = await makeBoard(ann, annBrand, canvasId, "marketing");
+    must(await connect(ann, annBrand, design, mockup));
+    must(await connect(ann, annBrand, mockup, post));
+    must(await setOutput(ann, annBrand, post, { p_output_role: "print_file" }));
+    // A board says in its own settings that a model made its picture, and settings can be saved
+    // after an output has been recorded, so the trigger watches them too.
+    const refused = await rpc("save_launch_board", {
+      p_brand_id: annBrand, p_user_id: ann.userId, p_launch_project_id: canvasId, p_board_id: mockup, p_kind: "mockup",
+      p_name: "mockup", p_x: 0, p_y: 0, p_width: 1080, p_height: 1080, p_settings: { generation: "model" }, p_input_version: 1,
+    });
+
+    expect(refused.error?.hint).toBe("generated_is_never_artwork");
+  });
+
   it("counts a board a flow template marked as a model scene as generated too", async () => {
     const canvasId = await makeCanvas(ann, annBrand, "Marked");
     const design = await makeBoard(ann, annBrand, canvasId, "design");
@@ -251,13 +269,26 @@ describe("a listing hand-off", () => {
     expect((await rpc("publish_flow_listing", { p_brand_id: benBrand, p_user_id: ben.userId, p_launch_project_id: canvasId, p_payload: payload() })).error?.hint).toBe("launch_project_not_found");
   });
 
-  it("can be marked collected and changed in no other way", async () => {
+  it("can be marked collected, by the one function that may, and changed in no other way", async () => {
     const canvasId = await makeCanvas(ann, annBrand, "Collected");
     const id = must(await rpc("publish_flow_listing", { p_brand_id: annBrand, p_user_id: ann.userId, p_launch_project_id: canvasId, p_payload: payload() })) as string;
 
+    // Nobody holds UPDATE or DELETE on the table, so both of these are refused before any trigger.
     expect((await adminClient().from("flow_listings").update({ payload: payload({ changed: true }) }).eq("id", id)).error).not.toBeNull();
     expect((await adminClient().from("flow_listings").delete().eq("id", id)).error).not.toBeNull();
-    expect((await adminClient().from("flow_listings").update({ collected_at: new Date().toISOString() }).eq("id", id)).error).toBeNull();
+    expect((await adminClient().from("flow_listings").update({ collected_at: new Date().toISOString() }).eq("id", id)).error).not.toBeNull();
+
+    // The Store collecting it. The second call says the same thing about the same hand-off.
+    const first = must(await rpc("collect_flow_listing", { p_listing_id: id })) as string;
+    const again = must(await rpc("collect_flow_listing", { p_listing_id: id })) as string;
+
+    expect(first).not.toBeNull();
+    expect(again).toBe(first);
+    expect((await rpc("collect_flow_listing", { p_listing_id: randomUUID() })).error?.hint).toBe("listing_not_found");
+  });
+
+  it("is collected by nobody in a browser, however it asks", async () => {
+    expect((await ann.client.rpc("collect_flow_listing", { p_listing_id: randomUUID() })).error).not.toBeNull();
   });
 });
 
