@@ -1,5 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { getBaseArticle, listBaseArticles, type BaseArticle, type BaseArticleSummary } from "@/lib/catalogue";
 import { toDesignObjectV2 } from "@/lib/design-object";
 import { getProject } from "@/lib/projects/project-reads";
@@ -18,10 +19,15 @@ import type { BenchmarkDetail, BenchmarkStore, Who } from "./store";
  * rather than the screen guessing at either.
  */
 
+/** One of the brand's own uploaded pictures, offered as the photo a card is read from. */
+export type BenchmarkPicture = Readonly<{ id: string; label: string }>;
+
 export type BenchmarkScreen = Readonly<{
   benchmark: BenchmarkDetail;
   compare: CompareView;
   articles: readonly BaseArticleSummary[];
+  /** The brand's own pictures. A photo card is read from one of these and from nothing else. */
+  pictures: readonly BenchmarkPicture[];
   /** The article the person chose to map features onto, and the plan for each card against it. */
   article: BaseArticle | null;
   plans: readonly Readonly<{ cardId: string; plan: ApplyPlan }>[];
@@ -40,6 +46,26 @@ async function shapeOfDesign(client: SupabaseClient, who: Who, projectId: string
   return designShapeFrom(object.object, article);
 }
 
+const pictureRows = z.array(z.object({ id: z.uuid(), path: z.string(), kind: z.string(), created_at: z.string() }));
+
+/**
+ * The brand's own pictures, newest first, read with the person's own client so row security answers as well as this
+ * code. A photo intake takes one of these ids and nothing else: no picture is ever fetched from another site
+ * (spec F-S2 "Stored", lib/benchmarks/photo.ts).
+ */
+async function brandPictures(client: SupabaseClient, brandId: string): Promise<readonly BenchmarkPicture[]> {
+  const { data, error } = await client
+    .from("files")
+    .select("id, path, kind, created_at")
+    .eq("brand_id", brandId)
+    .in("kind", ["photo", "render", "artwork"])
+    .order("created_at", { ascending: false })
+    .limit(50);
+  const rows = pictureRows.safeParse(data ?? []);
+  if (error || !rows.success) return [];
+  return rows.data.map((row) => ({ id: row.id, label: `${row.path.split("/").pop() ?? row.id} · ${row.created_at.slice(0, 10)}` }));
+}
+
 const plansFor = (cards: readonly StoredCard[], article: BaseArticle | null) =>
   article === null ? [] : cards.map((card) => ({ cardId: card.id, plan: applyPlan(card.card, article) }));
 
@@ -51,15 +77,17 @@ export async function loadBenchmark(
 ): Promise<BenchmarkScreen | null> {
   const benchmark = await store.read(who, input.benchmarkId);
   if (benchmark === null) return null;
-  const [articles, article, shape] = await Promise.all([
+  const [articles, article, shape, pictures] = await Promise.all([
     listBaseArticles(client),
     input.articleCode === null ? Promise.resolve(null) : getBaseArticle(client, input.articleCode),
     shapeOfDesign(client, who, benchmark.projectId).catch(() => null),
+    brandPictures(client, who.brandId).catch(() => []),
   ]);
   return {
     benchmark,
     compare: compareView(benchmark.cards),
     articles,
+    pictures,
     article,
     plans: plansFor(benchmark.cards, article),
     designAround:

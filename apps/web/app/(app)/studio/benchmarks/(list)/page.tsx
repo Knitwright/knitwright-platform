@@ -28,7 +28,9 @@ export default async function BenchmarksPage() {
       </header>
 
       {benchmarks.length === 0 ? (
-        <p className="mt-8 text-[15px] text-muted">{brand.name} has no benchmarks yet.</p>
+        <p className="mt-8 text-[15px] text-muted">
+          {brand.name} has no benchmarks yet. Name what you are comparing below to make the first one.
+        </p>
       ) : (
         <ul className="mt-8 flex flex-col gap-3">
           {benchmarks.map((benchmark) => (

@@ -42,7 +42,7 @@ export default async function BenchmarkPage({ params, searchParams }: PageProps<
       </header>
 
       <CompareBoard view={screen.compare} />
-      <AddCard benchmarkId={benchmarkId} cards={screen.benchmark.cards.length} />
+      <AddCard benchmarkId={benchmarkId} cards={screen.benchmark.cards.length} pictures={screen.pictures} />
 
       {screen.benchmark.cards.length > 0 ? (
         <section className="mt-8 flex flex-col gap-5" aria-labelledby="cards-heading">

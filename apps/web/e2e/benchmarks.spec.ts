@@ -48,7 +48,16 @@ test.describe("benchmarks", () => {
 
   test("makes a comparison, takes review text in, and shows a card that says what it does not know", async ({ page }) => {
     await signedIn(page, "benchmark-reviews");
+
+    // A brand with nothing yet is told the one thing that fills the screen, not just that it is empty.
+    await page.goto("/studio/benchmarks");
+    await expect(page.getByText("Name what you are comparing below to make the first one")).toBeVisible();
+
     await newBenchmark(page, "Running shorts, 5 inch");
+
+    // A photo card is read from the brand's own pictures, and a brand with none is told where to put one.
+    await page.getByRole("tab", { name: "Your own photo" }).click();
+    await expect(page.getByText("Your brand has no pictures yet", { exact: false })).toBeVisible();
 
     // One card is not a comparison: the screen says so rather than showing a lonely column.
     await expect(page.getByTestId("compare-refused")).toContainText("Add at least 2 cards");

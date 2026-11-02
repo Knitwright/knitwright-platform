@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/Button";
+import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import type { BaseArticleSummary } from "@/lib/catalogue";
 import type { ApplyPlan, DesignAroundReport } from "@/lib/benchmarks";
 
@@ -18,12 +20,7 @@ const ArticlePicker = ({ id, articles, chosen }: Readonly<{ id: string; articles
       <label htmlFor={`apply-article-${id}`} className="text-sm font-medium text-ink">
         Map these features onto
       </label>
-      <select
-        id={`apply-article-${id}`}
-        name="article"
-        defaultValue={chosen ?? ""}
-        className="min-h-11 rounded-xl border border-hairline bg-surface px-3 text-[15px] text-ink"
-      >
+      <select id={`apply-article-${id}`} name="article" defaultValue={chosen ?? ""} className={FIELD_CONTROL}>
         <option value="">Choose a base product</option>
         {articles.map((article) => (
           <option key={article.code} value={article.code}>
@@ -32,9 +29,9 @@ const ArticlePicker = ({ id, articles, chosen }: Readonly<{ id: string; articles
         ))}
       </select>
     </div>
-    <button type="submit" className="min-h-11 rounded-full border border-white/20 bg-white/[0.04] px-5 text-[15px] text-ink">
+    <Button type="submit" variant="secondary">
       Show the mapping
-    </button>
+    </Button>
   </form>
 );
 
