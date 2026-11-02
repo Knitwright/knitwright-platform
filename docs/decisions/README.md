@@ -127,5 +127,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0108 | [The launch panels no workstream owned](0108-launch-panels-unowned.md) | Proposed; Templates, Uploads and Brand built, Likes an honest placeholder because nothing records a like, L7's import screen wired, three R-GAP-000 entries, owner questions listed |
 | 0112 | [The v5 code review](0112-code-review-v5.md) | Proposed; code review of all thirty v5 workstreams, four guards closed, 21 duplicate implementations and 96 unwired seams recorded, owner questions listed |
 | 0115 | [The documentation after plan v5](0115-documentation-after-v5.md) | Proposed; the owner guide leads with what blocks a real order, and the 252 owner questions are collected into one grouped list |
+| 0117 | [Wave 2's editor panels, mounted](0117-wave-2-editor-wiring.md) | Accepted; all seven editor slots mounted, two panels left out with reasons |
 
 <!-- End of the generated table. -->
