@@ -56,18 +56,19 @@ const priceBlocker = (currency: SellCurrency): SaleBlocker => ({
   ruleId: GAP_RULE_ID,
 });
 
-/** Every reason this product cannot be sold, in the order a reader would act on them. */
+/**
+ * Every reason this product cannot be sold, in the order a reader would act on them. Each reason is
+ * read off the payload's own fields, so the verdict can never disagree with what the payload shows:
+ * a blocker over a date is raised from the same gap the `delivery` field carries.
+ */
 export function sellability(input: SellabilityInput): Sellability {
   const currencies = input.currencies ?? SELL_CURRENCIES;
+  const promised = input.delivery.promised;
   const blockers = [
     CARE_LABEL_BLOCKER,
     ...currencies.filter((currency) => !pricedIn(input.prices, currency)).map(priceBlocker),
-    hasNoDate(input.delivery)
-      ? {
-          code: "no_delivery_date",
-          message: `${input.delivery.promised.status === "gap" ? input.delivery.promised.because : ""}`.trim(),
-          ruleId: input.delivery.promised.status === "gap" ? input.delivery.promised.ruleId : GAP_RULE_ID,
-        }
+    hasNoDate(input.delivery) && isGap(promised)
+      ? { code: "no_delivery_date", message: promised.because, ruleId: promised.ruleId }
       : null,
     isGap(input.sizeChart)
       ? { code: "no_size_chart", message: input.sizeChart.because, ruleId: input.sizeChart.ruleId }

@@ -31,6 +31,12 @@ describe("drops from collection plans", () => {
     expect(drops.map((drop) => drop.dropId)).toEqual(["b", "a"]);
   });
 
+  it("puts the later export first where two were written in the same moment", () => {
+    const { drops } = storeDrops([dropRow({ dropId: "a", version: 1 }), dropRow({ dropId: "b", version: 2 })]);
+
+    expect(drops.map((drop) => drop.dropId)).toEqual(["b", "a"]);
+  });
+
   it("refuses a row it cannot read, by id, and leaves it out of the list", () => {
     const { drops, refused } = storeDrops([dropRow(), dropRow({ dropId: "bad", payload: { kind: "nonsense" } })]);
 
