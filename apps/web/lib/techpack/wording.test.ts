@@ -209,6 +209,10 @@ describe("the words in the other parts of the product", () => {
     "Draft, not yet confirmed by the factory", // says the factory has not signed the rule off
     "Confirmed by the factory on", // one rule's sign-off, from the record that holds who and when
     "The factory confirmed version", // the button that records that sign-off
+    // Plan v5 Z4 (decision 0085): spec F-S10's own wording for the collection plan's action. "Approved" here is
+    // one of that plan's four statuses (Draft · Sampling · Approved · Ordered), set by the founder on their own
+    // style card. It says nothing about a design, a measurement or a factory sign-off.
+    "approved styles",
   ];
   const withoutWide = (text: string): string => WIDE_ALLOWED.reduce((left, phrase) => left.split(phrase).join(" "), text);
 

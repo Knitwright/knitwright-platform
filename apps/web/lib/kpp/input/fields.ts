@@ -1,4 +1,5 @@
 import type { BaseArticle, OptionDef, ParameterDef } from "@/lib/catalogue";
+import { boundRegistryKeys, codeForGroup, noCodeSentence, uncodedChoices, type ChosenOptions, type OptionCodeMapping } from "@/lib/option-codes";
 import { GAP_RULE, type KppField } from "../model";
 import { chosenFabric, type KppRows } from "./model";
 
@@ -26,13 +27,19 @@ const fabricLine = (rows: KppRows): string | null => {
 /**
  * One field per option group the article has.
  *
- * The design object holds the garment registry's own option keys (`collar: "none"`), and the catalogue holds
- * catalogue codes (`C01`, `K01`, `P00`). Nothing maps the two yet — X1's registry map joins articles to garment
- * types, not options to options — so a choice that is not one of the article's codes is written as the design's own
- * word with `R-GAP-000` and the sentence that no catalogue code is mapped. It is never silently replaced by the
- * article's default, which would put a collar on a design that asked for none.
+ * The design object holds the garment registry's own option keys (`neckline: "crew"`), and the catalogue holds
+ * catalogue codes (`C01`, `K01`, `P00`). `lib/option-codes` joins the two, and only where a published source says
+ * a registry choice and a code are the same thing (decision 0099). So a field carries a code when the design chose
+ * one, or when the map resolves one from the design's own word; where nothing joins them it says plainly that the
+ * catalogue has no code yet and keeps `R-GAP-000`. The design's own word is never written where a code belongs, and
+ * a choice is never silently replaced by the article's default, which would put a collar on a design that asked for
+ * none.
+ *
+ * The group's own name is not the registry key that feeds it: the catalogue's `collar` group is the neck finish and
+ * the registry key behind it is `neckline`, while the registry's own `collar` key asks about a stand collar the
+ * catalogue has no code for. Only the map decides which key answers which group.
  */
-function optionFields(article: BaseArticle, chosen: Readonly<Record<string, string>>): KppField[] {
+function optionFields(article: BaseArticle, chosen: ChosenOptions, map: readonly OptionCodeMapping[]): KppField[] {
   const byGroup = new Map<string, OptionDef[]>();
   for (const option of article.options) byGroup.set(option.group, [...(byGroup.get(option.group) ?? []), option]);
   return [...byGroup.keys()].sort().flatMap((group) => {
@@ -41,11 +48,28 @@ function optionFields(article: BaseArticle, chosen: Readonly<Record<string, stri
     const chose = chosen[group];
     const coded = options.find((option) => option.code === chose);
     if (coded !== undefined) return [field(`option_${group}`, label, `${coded.code} ${coded.label}`, "from_design", coded.ruleId)];
-    if (chose !== undefined) return [field(`option_${group}`, label, `${chose} (not yet mapped to a catalogue code)`, "from_design")];
+    const outcome = codeForGroup(map, group, chosen);
+    const mapped = outcome.outcome === "code" ? options.find((option) => option.code === outcome.code) : undefined;
+    if (mapped !== undefined) return [field(`option_${group}`, label, `${mapped.code} ${mapped.label}`, "from_design", mapped.ruleId)];
+    if (outcome.outcome === "no_code_yet") return [field(`option_${group}`, label, outcome.sentence, "from_design")];
+    // A word under the group's own name that is not a code, and no registry key the map binds to the group.
+    if (chose !== undefined && boundRegistryKeys(map, group).length === 0) {
+      return [field(`option_${group}`, label, noCodeSentence(group, chose), "from_design")];
+    }
     const fallback = options.find((option) => option.isDefault) ?? options[0];
     return fallback === undefined ? [] : [field(`option_${group}`, label, `${fallback.code} ${fallback.label}`, "from_base", fallback.ruleId)];
   });
 }
+
+/**
+ * One field per choice the design made that the catalogue has no code and no group for: the stand collar, the
+ * placket, the side panels and the vented hem a registry jersey can ask for. Without these the choice would leave
+ * no trace in the factory's file at all, which is worse than saying there is no code for it yet.
+ */
+const uncodedFields = (map: readonly OptionCodeMapping[], chosen: ChosenOptions): KppField[] =>
+  uncodedChoices(map, chosen).map((choice) =>
+    field(`design_option_${choice.registryKey.replaceAll("-", "_")}`, `Design option: ${choice.registryKey.replaceAll("-", " ")}`, choice.sentence, "from_design"),
+  );
 
 const parameterValue = (def: ParameterDef, value: number | string | boolean | undefined): string => {
   const chosen = value ?? def.defaultValue;
@@ -84,7 +108,8 @@ export function overviewFields(rows: KppRows): readonly KppField[] {
     field("factory", "Factory", `${factory.name}, ${factory.city}`, "from_base"),
     ...when("hs_code", "HS code", article.hsCode, "from_base"),
     ...when("origin", "Country of origin", article.origin, "from_base"),
-    ...optionFields(article, rows.object.article.options),
+    ...optionFields(article, rows.object.article.options, rows.optionCodeMap),
+    ...uncodedFields(rows.optionCodeMap, rows.object.article.options),
     ...parameterFields(article, rows.object.article.parameters),
   ];
 }
