@@ -3,7 +3,7 @@
  *
  * Every figure comes from a row of `ops_aql_sample_plans` and `ops_aql_acceptance`. Nothing here holds a lot
  * band, a sample size or an accept number of its own: with no rows, the answer is "not on file" and the screen
- * names what is missing. The seeded rows are all `verified: false` (no copy of ISO 2859-1 could be reached),
+ * names what is missing. The seeded rows are all `sourced: false` (no copy of ISO 2859-1 could be reached),
  * so a plan built from them says so and never decides whether an order ships.
  */
 
@@ -18,7 +18,7 @@ export interface SamplePlanRow {
   readonly sampleSize: number;
   /** The published document the row was read out of. Null: nobody has cited one. */
   readonly source: string | null;
-  readonly verified: boolean;
+  readonly sourced: boolean;
   readonly ruleId: string;
   readonly label: string;
 }
@@ -34,7 +34,7 @@ export interface AcceptanceRow {
   readonly rejectAt: number | null;
   readonly useCodeLetter: string | null;
   readonly source: string | null;
-  readonly verified: boolean;
+  readonly sourced: boolean;
   readonly ruleId: string;
   readonly label: string;
 }
@@ -55,7 +55,7 @@ export interface AqlLevel {
   /** The letter the numbers were read at: the lot's own letter, or the one its arrow points to. */
   readonly codeLetter: string;
   readonly sampleSize: number;
-  readonly verified: boolean;
+  readonly sourced: boolean;
   readonly ruleId: string;
   readonly label: string;
 }
@@ -68,7 +68,7 @@ export type ResolvedPlan =
       inspectionLevel: string;
       levels: readonly AqlLevel[];
       /** True only when every row the plan was built from has been checked against its source. */
-      verified: boolean;
+      sourced: boolean;
       ruleId: string;
       label: string;
     }>
@@ -119,7 +119,7 @@ function resolveLevel(table: AqlTable, letter: string, aql: number): AqlLevel | 
         rejectAt: row.rejectAt,
         codeLetter: at,
         sampleSize: plan.sampleSize,
-        verified: row.verified && plan.verified,
+        sourced: row.sourced && plan.sourced,
         ruleId: row.ruleId,
         label: row.label,
       };
@@ -154,15 +154,15 @@ export function planFor(table: AqlTable, lotSize: number, level: string = DEFAUL
     sampleSize: plan.sampleSize,
     inspectionLevel: plan.inspectionLevel,
     levels,
-    verified: plan.verified && levels.every((l) => l.verified),
+    sourced: plan.sourced && levels.every((l) => l.sourced),
     ruleId: plan.ruleId,
     label: plan.label,
   };
 }
 
-/** What a reader is told about an unverified plan. Never softened: an unchecked figure decides nothing. */
-export const UNVERIFIED_PLAN_NOTE =
-  "This sampling plan has not been checked against a copy of ISO 2859-1, so it is shown as guidance and decides nothing. The inspector's own verdict and the measurements decide a pass or a fail.";
+/** What a reader is told about a plan no source backs. Never softened: a figure like that decides nothing. */
+export const UNSOURCED_PLAN_NOTE =
+  "This sampling plan was typed from a republished copy of the table, and nobody has read it against ISO 2859-1 itself. It is shown as guidance and decides nothing: the inspector's own verdict and the measurements decide an inspection.";
 
 /** "Code letter H, 50 pieces inspected out of 300." */
 export function describePlan(plan: ResolvedPlan, lotSize: number): string {

@@ -10,9 +10,9 @@ const planRow = {
   lot_max: 500,
   sample_size: 50,
   source: null,
-  verified: false,
+  sourced: false,
   rule_id: "R-QC-001",
-  label: "Unverified",
+  label: "No source cited",
 };
 
 const acceptanceRow = {
@@ -23,9 +23,9 @@ const acceptanceRow = {
   reject_at: 4,
   use_code_letter: null,
   source: null,
-  verified: false,
+  sourced: false,
   rule_id: "R-QC-001",
-  label: "Unverified",
+  label: "No source cited",
 };
 
 describe("reading the rows", () => {
@@ -37,9 +37,9 @@ describe("reading the rows", () => {
       lotMax: 500,
       sampleSize: 50,
       source: null,
-      verified: false,
+      sourced: false,
       ruleId: "R-QC-001",
-      label: "Unverified",
+      label: "No source cited",
     });
   });
 

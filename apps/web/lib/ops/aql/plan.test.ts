@@ -19,9 +19,9 @@ const plan = (over: Partial<SamplePlanRow> = {}): SamplePlanRow => ({
   lotMax: 25,
   sampleSize: 5,
   source: null,
-  verified: false,
+  sourced: false,
   ruleId: "R-QC-001",
-  label: "Unverified",
+  label: "No source cited",
   ...over,
 });
 
@@ -33,9 +33,9 @@ const accept = (over: Partial<AcceptanceRow> = {}): AcceptanceRow => ({
   rejectAt: 1,
   useCodeLetter: null,
   source: null,
-  verified: false,
+  sourced: false,
   ruleId: "R-QC-001",
-  label: "Unverified",
+  label: "No source cited",
   ...over,
 });
 
@@ -94,15 +94,15 @@ describe("planFor", () => {
     expect([major?.codeLetter, major?.sampleSize, major?.acceptAt]).toEqual(["C", 5, 0]);
   });
 
-  it("is not verified while any row it was built from is unverified", () => {
+  it("is not sourced while any row it was built from cites no source", () => {
     const answer = planFor(table, 300);
-    expect(answer.status === "on-file" && answer.verified).toBe(false);
+    expect(answer.status === "on-file" && answer.sourced).toBe(false);
     const checked: AqlTable = {
-      plans: table.plans.map((p) => ({ ...p, verified: true, source: "ISO 2859-1" })),
-      acceptance: table.acceptance.map((a) => ({ ...a, verified: true, source: "ISO 2859-1" })),
+      plans: table.plans.map((p) => ({ ...p, sourced: true, source: "ISO 2859-1" })),
+      acceptance: table.acceptance.map((a) => ({ ...a, sourced: true, source: "ISO 2859-1" })),
     };
     const after = planFor(checked, 300);
-    expect(after.status === "on-file" && after.verified).toBe(true);
+    expect(after.status === "on-file" && after.sourced).toBe(true);
   });
 
   it("says the numbers are missing when the band exists but no column resolves", () => {
@@ -147,7 +147,7 @@ describe("the words", () => {
 
   it("describes an accept and reject number", () => {
     expect(
-      describeLevel({ aql: 2.5, defectClass: "major", acceptAt: 3, rejectAt: 4, codeLetter: "H", sampleSize: 50, verified: false, ruleId: "R-QC-001", label: "Unverified" }),
+      describeLevel({ aql: 2.5, defectClass: "major", acceptAt: 3, rejectAt: 4, codeLetter: "H", sampleSize: 50, sourced: false, ruleId: "R-QC-001", label: "No source cited" }),
     ).toBe("Accept at 3, reject at 4.");
   });
 });

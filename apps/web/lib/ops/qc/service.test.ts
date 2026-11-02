@@ -5,6 +5,8 @@ const input: InspectionToRecord = {
   orderId: "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11",
   checklist: [{ key: "colour", result: "pass", note: "" }],
   measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }],
+  colourReadings: [],
+  aqlCodeLetter: null,
   sampleSize: 5,
   defectCount: 0,
   photoFileIds: [],

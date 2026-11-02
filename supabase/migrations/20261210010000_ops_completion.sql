@@ -11,7 +11,7 @@
 --     week cuts one set of batches and no more. The cut-off itself stays a setting in `ops_settings`; the
 --     schedule only asks "has a cut-off passed".
 --   * the AQL sampling table (F-O3): `ops_aql_sample_plans` and `ops_aql_acceptance`, as rows, never
---     literals in code. EVERY SEEDED ROW IS MARKED `verified = false` AND ITS SOURCE IS NULL. See the seed.
+--     literals in code. EVERY SEEDED ROW IS MARKED `sourced = false` AND ITS SOURCE IS NULL. See the seed.
 --   * typed Delta-E readings on an inspection (F-O3): `ops_qc_colour_readings`.
 --   * third-party inspection for a run over the seeded piece threshold (F-O3): `ops_inspection_bookings`.
 --   * the commercial invoice as a record (F-O4): `ops_commercial_invoices`, with the HS code and the origin
@@ -65,12 +65,12 @@ create table public.ops_aql_sample_plans (
   source text check (length(btrim(source)) between 1 and 300),
   -- False until someone has checked the row against a copy of the standard. A row that is not verified may
   -- be shown, with its label, and may never decide whether an order ships.
-  verified boolean not null default false,
+  sourced boolean not null default false,
   rule_id text not null default 'R-GAP-000' check (rule_id ~ '^R-[A-Z]{2,8}-[0-9]{3}$'),
   label text not null check (length(btrim(label)) between 1 and 400),
   created_at timestamptz not null default now(),
   check (lot_max is null or lot_max >= lot_min),
-  check (source is not null or not verified)
+  check (source is not null or not sourced)
 );
 
 comment on table public.ops_aql_sample_plans is
@@ -89,7 +89,7 @@ create table public.ops_aql_acceptance (
   -- The table's arrow: "use the first sampling plan at this code letter instead".
   use_code_letter text check (use_code_letter ~ '^[A-R]$'),
   source text check (length(btrim(source)) between 1 and 300),
-  verified boolean not null default false,
+  sourced boolean not null default false,
   rule_id text not null default 'R-GAP-000' check (rule_id ~ '^R-[A-Z]{2,8}-[0-9]{3}$'),
   label text not null check (length(btrim(label)) between 1 and 400),
   created_at timestamptz not null default now(),
@@ -97,7 +97,7 @@ create table public.ops_aql_acceptance (
   constraint ops_aql_acceptance_pair check ((accept_at is null) = (reject_at is null)),
   constraint ops_aql_acceptance_single_sampling check (reject_at is null or reject_at = accept_at + 1),
   constraint ops_aql_acceptance_is_plan_or_arrow check ((accept_at is null) <> (use_code_letter is null)),
-  constraint ops_aql_acceptance_source_or_unverified check (source is not null or not verified)
+  constraint ops_aql_acceptance_source_or_unsourced check (source is not null or not sourced)
 );
 
 comment on table public.ops_aql_acceptance is
@@ -939,7 +939,7 @@ grant execute on function public.ops_record_customer_email(uuid, uuid, text, tex
 -- the figures below were typed from the widely republished general-level-II single-sampling table and
 -- NOBODY HAS CHECKED THEM AGAINST THE STANDARD. Every row therefore has:
 --   * source = null, because no document is cited; and
---   * verified = false, which the check constraint ties to a null source.
+--   * sourced = false, which the check constraint ties to a null source.
 -- The screens show the plan with its label, and the code never lets an unverified row decide anything: a
 -- pass or a fail is still the inspector's typed verdict and the measurements, exactly as before. Owner
 -- question O1-1 on the PR asks for a copy of ISO 2859-1 (or the factory's own agreed plan) so these rows can

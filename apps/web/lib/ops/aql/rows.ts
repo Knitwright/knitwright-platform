@@ -3,8 +3,8 @@ import type { AcceptanceRow, SamplePlanRow } from "./plan";
 
 /** The two AQL tables as the database holds them. A row that fails its schema is left out, never guessed at. */
 
-export const SAMPLE_PLAN_COLUMNS = "code_letter, inspection_level, lot_min, lot_max, sample_size, source, verified, rule_id, label";
-export const ACCEPTANCE_COLUMNS = "code_letter, aql, defect_class, accept_at, reject_at, use_code_letter, source, verified, rule_id, label";
+export const SAMPLE_PLAN_COLUMNS = "code_letter, inspection_level, lot_min, lot_max, sample_size, source, sourced, rule_id, label";
+export const ACCEPTANCE_COLUMNS = "code_letter, aql, defect_class, accept_at, reject_at, use_code_letter, source, sourced, rule_id, label";
 
 const samplePlanRow = z.object({
   code_letter: z.string(),
@@ -13,7 +13,7 @@ const samplePlanRow = z.object({
   lot_max: z.number().int().nullable(),
   sample_size: z.number().int(),
   source: z.string().nullable(),
-  verified: z.boolean(),
+  sourced: z.boolean(),
   rule_id: z.string(),
   label: z.string(),
 });
@@ -26,7 +26,7 @@ const acceptanceRow = z.object({
   reject_at: z.number().int().nullable(),
   use_code_letter: z.string().nullable(),
   source: z.string().nullable(),
-  verified: z.boolean(),
+  sourced: z.boolean(),
   rule_id: z.string(),
   label: z.string(),
 });
@@ -40,7 +40,7 @@ export const toSamplePlan = (data: unknown): SamplePlanRow => {
     lotMax: r.lot_max,
     sampleSize: r.sample_size,
     source: r.source,
-    verified: r.verified,
+    sourced: r.sourced,
     ruleId: r.rule_id,
     label: r.label,
   };
@@ -56,7 +56,7 @@ export const toAcceptance = (data: unknown): AcceptanceRow => {
     rejectAt: r.reject_at,
     useCodeLetter: r.use_code_letter,
     source: r.source,
-    verified: r.verified,
+    sourced: r.sourced,
     ruleId: r.rule_id,
     label: r.label,
   };
