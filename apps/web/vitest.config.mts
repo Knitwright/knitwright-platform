@@ -208,6 +208,7 @@ export default defineConfig({
             "rulebook",
             "settings",
             "shell",
+            "shoots",
             "teamwear",
             "templates",
             "translate",
