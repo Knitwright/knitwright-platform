@@ -63,7 +63,7 @@ export function NextSteps({ projectId, gate, hasProduct }: Props) {
         </div>
       </div>
       <p className="text-sm text-muted">
-        <Link href="/studio/new" className="soft-link text-cobalt-soft">
+        <Link href="/studio/new" className="text-cobalt-soft underline-offset-4 hover:underline">
           Create more products in this collection
         </Link>
       </p>

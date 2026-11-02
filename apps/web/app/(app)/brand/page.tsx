@@ -45,7 +45,7 @@ export default async function BrandPage({ searchParams }: PageProps<"/brand">) {
         {product && context ? (
           <RunBuilder key={product.id + product.stage} product={product} context={context} canEdit={canEdit} />
         ) : (
-          <p className="text-[15px] text-muted">Choose a product above to plan a sample or a run. <Link href="/club" className="soft-link text-cobalt-soft">Club kit and rosters</Link> work the same way.</p>
+          <p className="text-[15px] text-muted">Choose a product above to plan a sample or a run. <Link href="/club" className="soft-link text-ink underline underline-offset-4">Club kit and rosters</Link> work the same way.</p>
         )}
       </PageSection>
 

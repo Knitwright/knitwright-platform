@@ -38,7 +38,7 @@ export default async function GoldenSamplePage({ params, searchParams }: PagePro
         <>
           The one garment every piece of a run is copied from. Rate the fit and the colour, record what the tape and the colour reading say, and
           sign it off -- a run needs a golden sample of the version being made.{" "}
-          <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-cobalt-soft">Back to the product</Link>.
+          <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-ink underline underline-offset-4">Back to the product</Link>.
         </>
       }
     >

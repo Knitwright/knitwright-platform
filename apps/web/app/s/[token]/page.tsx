@@ -70,7 +70,7 @@ export default async function SharePage({ params }: PageProps<"/s/[token]">) {
                 <p className="text-sm text-muted">
                   Your name, vote and comment are seen by {loaded.page.brandName}. We do not ask for your email
                   and we will not contact you. See the{" "}
-                  <Link href="/legal/privacy" className="text-cobalt-soft underline-offset-4 hover:underline">
+                  <Link href="/legal/privacy" className="soft-link text-ink underline underline-offset-4">
                     privacy notice
                   </Link>
                   .

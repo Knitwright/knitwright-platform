@@ -65,7 +65,7 @@ export default async function ClubPage() {
 
       <PageSection id="designs" title="Designs" description={designs.total > DESIGNS_SHOWN ? `Your newest ${DESIGNS_SHOWN} of ${designs.total}.` : undefined}>
         {designs.projects.length === 0 ? (
-          <p className="text-[15px] text-muted">No designs yet. <Link href="/studio/new" className="soft-link text-cobalt-soft">Start one</Link>.</p>
+          <p className="text-[15px] text-muted">No designs yet. <Link href="/studio/new" className="soft-link text-ink underline underline-offset-4">Start one</Link>.</p>
         ) : (
           <ul className="flex flex-col divide-y divide-hairline">
             {designs.projects.map((design) => (
