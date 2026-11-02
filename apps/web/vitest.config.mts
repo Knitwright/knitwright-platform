@@ -13,6 +13,8 @@ const alias = {
 /** The tests that make PDF files. They are the slowest in the suite and run alone, after the others. */
 const PDF_TESTS = [
   "lib/techpack/exports/pdf/**/*.test.ts",
+  // The marketing export's PDF (plan v5 L4, decision 0094): one page per artboard.
+  "lib/marketing/export/pdf.test.ts",
   "lib/techpack/exports/formats.test.ts",
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
@@ -177,6 +179,7 @@ export default defineConfig({
             "job-packet",
             "launch",
             "make",
+            "marketing",
             "media",
             "media-check",
             "moderation",

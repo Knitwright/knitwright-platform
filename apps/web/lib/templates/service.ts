@@ -32,9 +32,17 @@ const summaryRow = z.object({
 const NOT_FOUND = "That template does not exist.";
 const unreadable = (cause: unknown): AppError => new AppError("internal", MESSAGES.internal, undefined, { cause });
 
-/** Every template, in a fixed order, without its design. */
+/**
+ * Every DESIGN template, in a fixed order, without its design.
+ *
+ * `templates.kind` holds the seven kinds of `docs/spec/07-template-library.md` (L8, decision 0098),
+ * and this read parses every row against the design shape, so it asks for the design rows and no
+ * others. Without that, the first `marketing`, `mockup_scene`, `video` or `flow` row seeded breaks
+ * the design library page -- which is why the narrowing lands in the same change as the first such
+ * seed (plan v5 wave 4; the marketing rows of L4, decision 0094).
+ */
 export async function loadLibrary(client: SupabaseClient): Promise<readonly TemplateSummary[]> {
-  const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).order("slug").limit(LIBRARY_READ_LIMIT);
+  const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).eq("kind", "design").order("slug").limit(LIBRARY_READ_LIMIT);
   if (error) throw unreadable(error);
   const parsed = z.array(summaryRow).safeParse(data);
   if (!parsed.success) throw unreadable(parsed.error);
@@ -69,7 +77,8 @@ type NewFromTemplate = Readonly<{ brandId: string; userId: string; templateId: s
  * the template's snapshot; nothing links the two afterwards. The brand and user come from the session.
  */
 export async function createFromTemplate(admin: SupabaseClient, client: SupabaseClient, input: NewFromTemplate): Promise<string> {
-  const { data, error } = await client.from("templates").select("title, snapshot, source").eq("id", input.templateId).maybeSingle();
+  // A design is made from a design template. A row of another kind is not a design and is not found here.
+  const { data, error } = await client.from("templates").select("title, snapshot, source").eq("id", input.templateId).eq("kind", "design").maybeSingle();
   if (error) throw unreadable(error);
   const row = z.object({ title: z.string(), snapshot: z.unknown(), source: z.string().optional() }).nullish().parse(data);
   if (!row) throw new AppError("not_found", NOT_FOUND);

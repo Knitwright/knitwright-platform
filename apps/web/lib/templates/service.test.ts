@@ -21,6 +21,20 @@ function readClient(rows: unknown[], error: { message: string } | null = null) {
   return { from: () => query } as unknown as SupabaseClient;
 }
 
+/** The same read, but it keeps what it was filtered on, so a test can see which kind was asked for. */
+function filterRecordingClient(rows: unknown[]) {
+  const filters: { column: string; value: unknown }[] = [];
+  const query = {
+    select: () => query,
+    order: () => query,
+    limit: async () => ({ data: rows, error: null }),
+    in: async () => ({ data: rows, error: null }),
+    eq: (column: string, value: unknown) => (filters.push({ column, value }), query),
+    maybeSingle: async () => ({ data: rows[0] ?? null, error: null }),
+  };
+  return { client: { from: () => query } as unknown as SupabaseClient, filters };
+}
+
 function adminClient(result: { data: unknown; error: { message: string; code?: string } | null }) {
   const calls: { fn: string; args: Record<string, unknown> }[] = [];
   const client = { rpc: async (fn: string, args: Record<string, unknown>) => (calls.push({ fn, args }), result) } as unknown as SupabaseClient;
@@ -42,6 +56,14 @@ describe("reading the library", () => {
       reviewState: "not_reviewed",
     });
     expect(summary).not.toHaveProperty("snapshot");
+  });
+
+  it("asks for the design rows only, so another kind of template cannot break this page", async () => {
+    // `templates` holds the seven kinds of 07 (L8, decision 0098) and this read parses every row
+    // against the design shape. The marketing rows of L4 (decision 0094) are the first others.
+    const { client, filters } = filterRecordingClient([stored]);
+    await loadLibrary(client);
+    expect(filters).toEqual([{ column: "kind", value: "design" }]);
   });
 
   it("reports a failed read, and a row it cannot read", async () => {
