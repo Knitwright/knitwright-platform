@@ -50,7 +50,7 @@ export function TopBar(props: Props) {
     <header className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] px-4 py-2.5 lg:pl-5">
       <div className="min-w-0 flex-1 lg:flex-none lg:basis-60">
         <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink">{data.name}</h1>
-        <p className="truncate font-mono text-xs text-chalk-muted">
+        <p className="truncate font-mono text-xs text-ink-2">
           {autoName ? <span data-testid="auto-name">{autoName}</span> : <span>{data.typeLabel}</span>}
           {" · "}
           <span data-testid="version">Version {version}</span>

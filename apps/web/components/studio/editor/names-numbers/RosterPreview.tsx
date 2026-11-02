@@ -42,7 +42,7 @@ export function RosterPreview({ view }: Readonly<{ view: MarkPreview }>) {
           {view.sampleNumber}
         </text>
       </svg>
-      <figcaption className="flex flex-col gap-1 text-[13px] text-chalk-muted">
+      <figcaption className="flex flex-col gap-1 text-[13px] text-ink-2">
         <span>{view.note}</span>
         {view.outlineWords ? <span data-testid="names-numbers-outline-words">Outline: {view.outlineWords}. The factory matches it.</span> : null}
         {view.zones.length === 0 ? (

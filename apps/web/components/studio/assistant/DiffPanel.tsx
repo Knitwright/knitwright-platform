@@ -164,7 +164,7 @@ function Tile({ label, src }: Readonly<{ label: string; src: string | null }>) {
           <p className="p-4 text-xs text-muted">No drawing</p>
         )}
       </div>
-      <figcaption className="font-mono text-xs text-chalk-muted">{label}</figcaption>
+      <figcaption className="font-mono text-xs text-ink-2">{label}</figcaption>
     </figure>
   );
 }

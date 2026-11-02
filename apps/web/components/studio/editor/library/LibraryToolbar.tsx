@@ -31,10 +31,10 @@ export default function LibraryToolbar({ design, commands }: EditorSlotProps) {
 
   return (
     <div data-testid="library-toolbar" className="flex flex-col gap-4">
-      <p className="text-[13px] text-chalk-muted">{CANVAS_HINT}.</p>
+      <p className="text-[13px] text-ink-2">{CANVAS_HINT}.</p>
       {groups.map((group) => (
         <section key={group.id} aria-label={group.title} data-testid={`library-group-${group.id}`} className="flex flex-col gap-2">
-          <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">{group.title}</h3>
+          <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">{group.title}</h3>
           {group.sections.map((section) => (
             <Section key={section.id} section={section} panels={panels} busy={design.busy} onAll={onAll} onPanel={onPanel} />
           ))}
@@ -45,14 +45,14 @@ export default function LibraryToolbar({ design, commands }: EditorSlotProps) {
       </p>
 
       <section aria-label="Pattern fill settings" className="flex flex-col gap-2">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Pattern fill</h3>
+        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Pattern fill</h3>
         <PatternFillPopover design={design} commands={commands} />
       </section>
 
       <section aria-label="Graphics on this design" className="flex flex-col gap-2">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Graphics on this design</h3>
+        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Graphics on this design</h3>
         {graphics.length === 0 ? (
-          <p className="text-[13px] text-chalk-muted" data-testid="library-no-graphics">
+          <p className="text-[13px] text-ink-2" data-testid="library-no-graphics">
             This design has no graphics on it yet. Add one from the Artwork panel of the Form toolbar.
           </p>
         ) : (
@@ -64,7 +64,7 @@ export default function LibraryToolbar({ design, commands }: EditorSlotProps) {
                     type="button"
                     aria-pressed={art.id === graphicId}
                     onClick={() => setChosen(art.id)}
-                    className={`chip-btn min-h-10 rounded-full border px-3 text-[13px] font-medium ${art.id === graphicId ? "border-cobalt text-ink" : "border-white/20 text-chalk-muted"}`}
+                    className={`chip-btn min-h-10 rounded-full border px-3 text-[13px] font-medium ${art.id === graphicId ? "border-cobalt text-ink" : "border-white/20 text-ink-2"}`}
                   >
                     {art.name}
                   </button>
@@ -91,11 +91,11 @@ function Section({ section, panels, busy, onAll, onPanel }: SectionProps) {
   return (
     <details data-testid={`library-section-${section.id}`} className="rounded-2xl border border-white/10 p-2">
       <summary className="min-h-10 cursor-pointer text-[13px] font-medium text-ink">
-        {section.title} {section.items.length > 0 ? <span className="text-chalk-muted">({section.items.length})</span> : null}
+        {section.title} {section.items.length > 0 ? <span className="text-ink-2">({section.items.length})</span> : null}
       </summary>
-      {section.note === null ? null : <p className="px-1 py-1 text-[11px] text-chalk-muted">{section.note}</p>}
+      {section.note === null ? null : <p className="px-1 py-1 text-[11px] text-ink-2">{section.note}</p>}
       {section.empty === null ? null : (
-        <p className="px-1 py-1 text-[12px] text-chalk-muted" data-testid={`library-empty-${section.id}`}>
+        <p className="px-1 py-1 text-[12px] text-ink-2" data-testid={`library-empty-${section.id}`}>
           {section.empty}
         </p>
       )}

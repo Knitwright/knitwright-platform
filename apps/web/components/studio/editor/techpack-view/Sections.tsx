@@ -12,7 +12,7 @@ import { CellValue } from "./Chips";
 export function TabSections({ view }: Readonly<{ view: TabView }>) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[13px] leading-relaxed text-chalk-muted">{view.lead}</p>
+      <p className="text-[13px] leading-relaxed text-ink-2">{view.lead}</p>
       {view.sections.map((part) => (
         <Section key={part.id} tabId={view.id} part={part} />
       ))}
@@ -23,7 +23,7 @@ export function TabSections({ view }: Readonly<{ view: TabView }>) {
 function Section({ tabId, part }: Readonly<{ tabId: string; part: TabSection }>) {
   return (
     <section aria-labelledby={`techpack-${tabId}-${part.id}`} className="flex flex-col gap-2" data-testid={`techpack-section-${part.id}`}>
-      <h4 id={`techpack-${tabId}-${part.id}`} className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+      <h4 id={`techpack-${tabId}-${part.id}`} className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">
         {part.title}
       </h4>
       {part.note ? <p className="text-[13px] leading-relaxed text-warn">{part.note}</p> : null}
@@ -31,7 +31,7 @@ function Section({ tabId, part }: Readonly<{ tabId: string; part: TabSection }>)
         <dl className="flex flex-col gap-2">
           {part.fields.map((cell) => (
             <div key={cell.id} className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:gap-3">
-              <dt className="min-w-44 text-[11px] text-chalk-muted">{cell.label}</dt>
+              <dt className="min-w-44 text-[11px] text-ink-2">{cell.label}</dt>
               <dd className="min-w-0 flex-1">
                 <CellValue cell={cell} context={`techpack ${tabId}`} />
               </dd>
@@ -56,9 +56,9 @@ function Table({ tabId, entry }: Readonly<{ tabId: string; entry: ViewTable }>) 
             <caption className="sr-only">{entry.title}</caption>
             <thead>
               <tr>
-                {entry.rowHeader === null ? null : <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">{entry.rowHeader}</th>}
+                {entry.rowHeader === null ? null : <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">{entry.rowHeader}</th>}
                 {entry.columns.map((column, index) => (
-                  <th key={`${column}-${index}`} scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+                  <th key={`${column}-${index}`} scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
                     {column}
                   </th>
                 ))}
@@ -84,7 +84,7 @@ function Table({ tabId, entry }: Readonly<{ tabId: string; entry: ViewTable }>) 
         </div>
       )}
       {entry.addLabel ? (
-        <p className="text-[11px] text-chalk-muted" data-testid={`techpack-add-${entry.id}`}>
+        <p className="text-[11px] text-ink-2" data-testid={`techpack-add-${entry.id}`}>
           {entry.addLabel}
         </p>
       ) : null}

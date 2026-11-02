@@ -43,12 +43,12 @@ function MeasurementChips({ table }: Readonly<{ table: MeasurementTable }>) {
   return (
     <ul aria-label="Some measurements" className="relative flex flex-wrap gap-2 px-4 pb-4">
       {rows.map((row) => (
-        <li key={row.pointId} className="rounded-xl bg-tile-2/90 px-3 py-2 text-xs text-chalk-muted">
+        <li key={row.pointId} className="rounded-xl bg-tile-2/90 px-3 py-2 text-xs text-ink-2">
           {row.label} <b className="font-mono font-medium text-ink">{row.value}</b>
         </li>
       ))}
       {table.size ? (
-        <li className="rounded-xl bg-tile-2/90 px-3 py-2 text-xs text-chalk-muted">
+        <li className="rounded-xl bg-tile-2/90 px-3 py-2 text-xs text-ink-2">
           Size <b className="font-mono font-medium text-ink">{table.size}</b>
         </li>
       ) : null}

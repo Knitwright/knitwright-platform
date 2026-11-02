@@ -57,10 +57,13 @@ export default function PatternView({ design, commands }: EditorSlotProps) {
     [commands, design],
   );
 
+  // Neither `<section>` below is a landmark: the canvas already has a region named "2D pattern
+  // view" around this panel, and a second one of the same name would be two places called one
+  // thing to a screen reader.
   if (view.kind !== "sheet") {
     return (
-      <section aria-label="2D pattern view" data-testid="view-2d" className="flex flex-col gap-2 rounded-2xl border border-white/10 p-4">
-        <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="view-2d-none">
+      <section data-testid="view-2d" className="flex flex-col gap-2 rounded-2xl border border-white/10 p-4">
+        <p className="text-[13px] leading-relaxed text-ink-2" data-testid="view-2d-none">
           {view.kind === "nothing" ? view.reason : "The form asks for a value this article does not offer, so nothing was drafted:"}
         </p>
         {view.kind === "invalid" ? (
@@ -78,8 +81,8 @@ export default function PatternView({ design, commands }: EditorSlotProps) {
   const { sheet } = view;
   const step = gridStep(sheet, widthPx);
   return (
-    <section aria-label="2D pattern view" data-testid="view-2d" className="flex min-h-0 flex-col gap-2 overflow-y-auto">
-      <p className="text-[13px] text-chalk-muted" data-testid="view-2d-hint">
+    <section data-testid="view-2d" className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+      <p className="text-[13px] text-ink-2" data-testid="view-2d-hint">
         {CANVAS_HINT}
       </p>
       <Rulers sheet={sheet} widthPx={widthPx} />
@@ -103,7 +106,7 @@ export default function PatternView({ design, commands }: EditorSlotProps) {
         {said}
       </p>
       {sheet.notes.map((note) => (
-        <p key={note} className="text-[11px] text-chalk-muted">
+        <p key={note} className="text-[11px] text-ink-2">
           {note}
         </p>
       ))}

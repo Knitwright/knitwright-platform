@@ -94,7 +94,7 @@ export default function SpecsToolbar({ design, commands }: EditorSlotProps) {
           onKeep={keep}
         />
       ) : (
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{TOOL_HELP.select}</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">{TOOL_HELP.select}</p>
       )}
       <Marks marks={marks} onRemove={remove} onClear={clear} />
       <p className="flex flex-wrap items-center gap-1 text-[11px] text-warn" data-testid="specs-not-saved">
@@ -112,7 +112,7 @@ type ToolsProps = Readonly<{ tool: SpecTool; groupId: string; busy: boolean; onC
 function Tools({ tool, groupId, busy, onChoose }: ToolsProps) {
   return (
     <div role="radiogroup" aria-labelledby={`${groupId}-legend`} className="rounded-2xl border border-white/10 p-3" data-testid="specs-tools">
-      <p id={`${groupId}-legend`} className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">
+      <p id={`${groupId}-legend`} className="px-1 font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">
         Specs tools
       </p>
       <div className="mt-1 flex flex-col gap-1">
@@ -131,7 +131,7 @@ function Tools({ tool, groupId, busy, onChoose }: ToolsProps) {
             />
             <span className="min-w-0 flex-1">
               {TOOL_LABELS[id]}
-              <span id={`${groupId}-${id}-help`} className="block text-[11px] text-chalk-muted">
+              <span id={`${groupId}-${id}-help`} className="block text-[11px] text-ink-2">
                 {TOOL_HELP[id]}
               </span>
             </span>
@@ -171,8 +171,8 @@ function Picker(props: PickerProps) {
       <p className="text-[13px] leading-relaxed text-ink" role="status" data-testid="specs-prompt">
         {props.prompt}
       </p>
-      <p className="text-[11px] leading-relaxed text-chalk-muted">{pickingNote()}</p>
-      <label htmlFor={`${id}-panel`} className="text-[11px] text-chalk-muted">
+      <p className="text-[11px] leading-relaxed text-ink-2">{pickingNote()}</p>
+      <label htmlFor={`${id}-panel`} className="text-[11px] text-ink-2">
         Panel
       </label>
       <select
@@ -195,7 +195,7 @@ function Picker(props: PickerProps) {
       <button type="button" onClick={pick} disabled={props.busy || !numbersGiven} className="chip-btn min-h-10 rounded-full border border-white/20 px-4 text-sm font-medium text-ink">
         Pick this place
       </button>
-      <p className="text-[11px] text-chalk-muted" data-testid="specs-picked">
+      <p className="text-[11px] text-ink-2" data-testid="specs-picked">
         {props.points.length === 0 ? "Nothing picked yet." : `${props.points.length} place(s) picked.`}
         {props.length === null ? "" : ` Length so far ${props.length} mm.`}
       </p>
@@ -228,7 +228,7 @@ function Picker(props: PickerProps) {
 function TextField({ label, id, value, max, busy, onChange }: Readonly<{ label: string; id: string; value: string; max: number; busy: boolean; onChange: (text: string) => void }>) {
   return (
     <>
-      <label htmlFor={id} className="text-[11px] text-chalk-muted">
+      <label htmlFor={id} className="text-[11px] text-ink-2">
         {label}
       </label>
       <input
@@ -247,7 +247,7 @@ function TextField({ label, id, value, max, busy, onChange }: Readonly<{ label: 
 function NumberField({ label, id, value, busy, onChange }: Readonly<{ label: string; id: string; value: string; busy: boolean; onChange: (text: string) => void }>) {
   return (
     <span className="flex min-w-0 flex-1 flex-col gap-1">
-      <label htmlFor={id} className="text-[11px] text-chalk-muted">
+      <label htmlFor={id} className="text-[11px] text-ink-2">
         {label}
       </label>
       <input
@@ -269,19 +269,19 @@ type MarksProps = Readonly<{ marks: readonly SpecMark[]; onRemove: (id: string) 
 function Marks({ marks, onRemove, onClear }: MarksProps) {
   if (marks.length === 0) {
     return (
-      <p className="text-[11px] text-chalk-muted" data-testid="specs-marks-none">
+      <p className="text-[11px] text-ink-2" data-testid="specs-marks-none">
         Nothing is drawn on this design yet.
       </p>
     );
   }
   return (
     <div className="flex flex-col gap-1" data-testid="specs-marks">
-      <p className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Drawn on this design</p>
+      <p className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Drawn on this design</p>
       <ul className="flex flex-col gap-1">
         {marks.map((mark) => (
           <li key={mark.id} className="flex min-h-10 items-center gap-2 text-[13px] text-ink">
             <span className="min-w-0 flex-1">
-              <span className="font-mono text-[11px] text-chalk-muted">{TOOL_LABELS[mark.tool]}</span> {mark.label}
+              <span className="font-mono text-[11px] text-ink-2">{TOOL_LABELS[mark.tool]}</span> {mark.label}
               {mark.lengthMm === null ? null : <span className="block text-[11px] text-ink-2">{mark.lengthMm} mm</span>}
             </span>
             <button type="button" onClick={() => onRemove(mark.id)} className="min-h-10 px-2 text-[13px] font-medium text-ink underline">

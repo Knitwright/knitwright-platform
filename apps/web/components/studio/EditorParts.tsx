@@ -13,7 +13,7 @@ export function Section({ id, title, children }: SectionProps) {
   if (!title) return <div className="flex flex-col gap-4">{children}</div>;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-4 border-t border-white/10 pt-5 first:border-t-0 first:pt-0">
-      <h3 id={id} className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-chalk-muted">
+      <h3 id={id} className="font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink-2">
         {title}
       </h3>
       {children}

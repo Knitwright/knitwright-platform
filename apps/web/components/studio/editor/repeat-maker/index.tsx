@@ -75,12 +75,12 @@ export default function RepeatMaker({ design }: EditorSlotProps) {
   return (
     <section aria-label="Repeat maker" data-testid="repeat-maker-panel" className="glass flex flex-col gap-5 rounded-2xl p-5">
       <header className="flex flex-col gap-1">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">Repeat maker</h3>
-        <p className="text-[13px] text-chalk-muted">Build one tile. The repeat lays it out, and the whole thing prints in one pass.</p>
+        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Repeat maker</h3>
+        <p className="text-[13px] text-ink-2">Build one tile. The repeat lays it out, and the whole thing prints in one pass.</p>
       </header>
 
       <TilePreview view={view.preview} crossing={view.crossing} />
-      <p className="text-[13px] text-chalk-muted" data-testid="repeat-period">
+      <p className="text-[13px] text-ink-2" data-testid="repeat-period">
         {view.periodSentence}
       </p>
 
@@ -99,7 +99,7 @@ export default function RepeatMaker({ design }: EditorSlotProps) {
                 }`}
               >
                 <span className="text-[13px] text-ink">{REPEAT_STYLE_LABELS[style]}</span>
-                <span className="text-[11px] text-chalk-muted">{REPEAT_STYLE_NOTES[style]}</span>
+                <span className="text-[11px] text-ink-2">{REPEAT_STYLE_NOTES[style]}</span>
               </button>
             </li>
           ))}
@@ -116,7 +116,7 @@ export default function RepeatMaker({ design }: EditorSlotProps) {
               aria-pressed={draft.unit === unit}
               onClick={() => change(withUnit(draft, unit))}
               data-testid={`repeat-unit-${unit}`}
-              className={`inline-flex min-h-10 items-center rounded-full border px-4 text-[13px] ${draft.unit === unit ? "border-white/40 bg-tile-2 text-ink" : "border-white/10 text-chalk-muted"}`}
+              className={`inline-flex min-h-10 items-center rounded-full border px-4 text-[13px] ${draft.unit === unit ? "border-white/40 bg-tile-2 text-ink" : "border-white/10 text-ink-2"}`}
             >
               {TILE_UNIT_LABELS[unit]}
             </button>
@@ -126,7 +126,7 @@ export default function RepeatMaker({ design }: EditorSlotProps) {
           <Field name="tileWidth" label={`Width (${draft.unit})`} inputMode="decimal" value={view.widthText} onChange={(event) => side("width", event.currentTarget.value)} />
           <Field name="tileHeight" label={`Height (${draft.unit})`} inputMode="decimal" value={view.heightText} onChange={(event) => side("height", event.currentTarget.value)} />
         </div>
-        <p className="text-[11px] text-chalk-muted">{view.rangeSentence}</p>
+        <p className="text-[11px] text-ink-2">{view.rangeSentence}</p>
         <label className="flex min-h-10 items-center gap-2 text-[13px] text-ink">
           <input type="checkbox" checked={draft.wrap} onChange={(event) => change({ ...draft, wrap: event.currentTarget.checked })} className="size-4" />
           Join at the edges, so the repeat has no seam
@@ -153,7 +153,7 @@ export default function RepeatMaker({ design }: EditorSlotProps) {
       <div className="flex flex-col gap-2" data-testid="repeat-layers">
         <h4 className="text-[13px] font-medium text-ink">Layers</h4>
         {draft.layers.length === 0 ? (
-          <p className="text-[13px] text-chalk-muted">Nothing on the tile yet.</p>
+          <p className="text-[13px] text-ink-2">Nothing on the tile yet.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {[...draft.layers].reverse().map((layer) => (

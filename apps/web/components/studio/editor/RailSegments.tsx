@@ -47,7 +47,7 @@ export function RailSegments({ segment, onChoose }: Props) {
             tabIndex={selected ? 0 : -1}
             onClick={() => onChoose(id)}
             className={`inline-flex min-h-10 min-w-10 flex-1 items-center justify-center rounded-xl px-1 text-[11px] font-medium ${
-              selected ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"
+              selected ? "bg-cobalt text-white" : "text-ink-2 hover:text-ink"
             }`}
           >
             {SEGMENTS[id].label}

@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import type { BaseArticle } from "@/lib/catalogue";
-import type { CanvasView, EditorDraft, EditorModel, FormValues, RailSegment } from "@/lib/editor";
-import { SEGMENTS, addColourwayAction, autoDesignName, designSummary, findingLines, segmentPanelId, segmentTabId, simulateChip, simulationState, validateChip } from "@/lib/editor";
+import type { CanvasView, EditorDraft, EditorModel, EditorSlotProps, FormValues, RailSegment, SummarySectionId } from "@/lib/editor";
+import { SEGMENTS, addColourwayAction, autoDesignName, designSummary, findingLines, segmentPanelId, segmentTabId, simulateChip, simulationState, summaryTarget, validateChip } from "@/lib/editor";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { ValidationCheck } from "@/lib/validation/check";
 import type { ToolId } from "@/lib/workspace/tools";
@@ -18,10 +18,11 @@ import { ToolRail } from "../workspace/ToolRail";
 import { useWorkspace } from "../workspace/useWorkspace";
 import { BottomBar } from "./BottomBar";
 import { CanvasFrame } from "./CanvasFrame";
-import { DesignSummary } from "./DesignSummary";
 import { FormToolbar } from "./FormToolbar";
 import { RailSegments } from "./RailSegments";
-import { SlotPlaceholder } from "./slots";
+import { RailSlotPanel } from "./RailSlots";
+import { SIDE_OF_SECTION, SidePanel, type SideId } from "./SidePanel";
+import { slotPropsFor } from "./slot-props";
 import { TopBar } from "./TopBar";
 import { useShell } from "./useShell";
 
@@ -55,8 +56,10 @@ const COLUMNS =
 /**
  * The editor shell of spec F-S4: the top bar, the left rail with its Form, Library and Specs
  * toolbars, the canvas with its 2D, 3D and Tech pack views, the bottom bar and the Design
- * Summary. The Library, Specs, 2D, Tech pack and Export panels are slots other workstreams fill
- * (`lib/editor/slots.ts`); until they land the shell draws a labelled placeholder for each.
+ * Summary. The Library, Specs, 2D, Tech pack, Export, Names & numbers and Repeat maker panels are
+ * slots other workstreams fill (`lib/editor/slots.ts`). All seven are built, and this shell is
+ * where they are mounted and given their props (`slot-props.ts`, `RailSlots.tsx`, `SidePanel.tsx`
+ * and `CanvasFrame.tsx`); code review v5 A7–A12 is the record of their having been drawn nowhere.
  *
  * The existing workspace is moved in, not replaced: its rail of eleven tools, its panels, its
  * saving, undo and conflict handling and its assistant are the same code, inside the Form
@@ -68,7 +71,12 @@ export function EditorShell(props: EditorShellProps) {
   const { state } = editor;
   const { tool, choose, layout, dispatch, root } = useWorkspace();
   const shell = useShell({ segment: props.segment, view: props.view, beside: props.beside, size: props.size, form: props.form });
-  const [exportOpen, setExportOpen] = useState(false);
+  const [side, setSide] = useState<SideId>("summary");
+  // The inspiration board reads its own board as soon as it is mounted, so it is mounted the first
+  // time the Library toolbar is opened rather than on every editor load, and kept once it is up.
+  const [boardShown, setBoardShown] = useState(props.segment === "library");
+  // Set by a slot panel saying the 3D model no longer matches the design. Simulate clears it.
+  const [modelStale, setModelStale] = useState(false);
   // The version the last undo of this session moved away from, which is what a redo restores.
   // The history itself holds no "redone" state, so a reload clears it rather than guessing.
   const [undoneFrom, setUndoneFrom] = useState<number | null>(null);
@@ -80,6 +88,25 @@ export function EditorShell(props: EditorShellProps) {
     choose(next);
     if (shell.state.segment !== "form") shell.openRail("form");
   };
+  const openRail = (segment: RailSegment) => {
+    if (segment === "library") setBoardShown(true);
+    shell.openRail(segment);
+  };
+  /**
+   * `EditorCommands.openSummary`, and what a Design Summary row does: the two sections whose editor
+   * is a slot panel open it in the right-hand panel; the rest open their tool in the left rail, as
+   * they always have.
+   */
+  const openSummary = (section: SummarySectionId) => {
+    const here = SIDE_OF_SECTION[section];
+    if (here) return setSide(here);
+    const target = summaryTarget(section);
+    if (target) openTool(target.tool);
+  };
+  const resimulate = () => {
+    setModelStale(false);
+    shell.resimulate();
+  };
   const closeSheet = () => {
     dispatch({ type: "closeSheet" });
     assistantButton.current?.focus();
@@ -87,8 +114,22 @@ export function EditorShell(props: EditorShellProps) {
 
   const autoName = autoDesignName(article, shell.state.form);
   const validate = { checks: props.checks, draft: props.draft, article, form: shell.state.form };
-  const simulate = simulateChip(simulationState(shell.state.form, shell.pending ? null : shell.state.form, props.model !== null));
+  const simulate = simulateChip(simulationState(shell.state.form, shell.pending || modelStale ? null : shell.state.form, props.model !== null));
   const summary = designSummary({ spec: editor.working, article, form: shell.state.form, colours: data.colours, artwork: data.artwork, namesNumbers: data.namesNumbers });
+  const slot = slotPropsFor({
+    shell,
+    projectId: data.projectId,
+    version: state.version,
+    spec: editor.working,
+    article,
+    sizes: props.sizes,
+    colourwayId: data.colourwayId,
+    draft: props.draft,
+    busy: editor.busy,
+    save: editor.saveAction,
+    openSummary,
+    needsSimulation: () => setModelStale(true),
+  });
 
   return (
     <div ref={root} className={FRAME}>
@@ -113,12 +154,12 @@ export function EditorShell(props: EditorShellProps) {
           setUndoneFrom(null);
         }}
         onTool={openTool}
-        onExport={() => setExportOpen(!exportOpen)}
-        exportOpen={exportOpen}
+        onExport={() => setSide(side === "export" ? "summary" : "export")}
+        exportOpen={side === "export"}
       />
       <div className={COLUMNS}>
         <div className="grid gap-2 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
-          <RailSegments segment={shell.state.segment} onChoose={shell.openRail} />
+          <RailSegments segment={shell.state.segment} onChoose={openRail} />
           {shell.state.segment === "form" ? (
             <ToolRail
               tool={tool}
@@ -129,7 +170,16 @@ export function EditorShell(props: EditorShellProps) {
             />
           ) : null}
         </div>
-        <RailPanel segment={shell.state.segment} shell={shell} article={article} busy={editor.busy} context={{ data, editor, assistantAvailable: assistant.available, slots }} tool={tool} />
+        <RailPanel
+          segment={shell.state.segment}
+          shell={shell}
+          article={article}
+          busy={editor.busy}
+          context={{ data, editor, assistantAvailable: assistant.available, slots }}
+          tool={tool}
+          slot={slot}
+          boardShown={boardShown}
+        />
         <CanvasFrame
           data={data}
           view={shell.state.view}
@@ -137,6 +187,7 @@ export function EditorShell(props: EditorShellProps) {
           show3d={props.show3d}
           draft={props.draft}
           model={props.model}
+          slot={slot}
           notices={
             <>
               <DesignProblem message={state.conflict ?? editor.errorFor(HISTORY_KEY)} conflict={state.conflict !== null} />
@@ -157,13 +208,13 @@ export function EditorShell(props: EditorShellProps) {
               beside={shell.state.beside}
               onView={shell.showView}
               simulate={simulate}
-              onSimulate={shell.resimulate}
+              onSimulate={resimulate}
               busy={editor.busy}
             />
           }
         />
         <div className="flex min-h-0 flex-col gap-3 lg:hidden xl:grid xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
-          {exportOpen ? <SlotPlaceholder id="export" /> : <DesignSummary sections={summary} onOpen={openTool} />}
+          <SidePanel side={side} sections={summary} slot={slot} onOpenSection={openSummary} onBack={() => setSide("summary")} />
           <AssistantDock
             projectId={data.projectId}
             version={data.version}
@@ -187,42 +238,25 @@ type PanelProps = Readonly<{
   busy: boolean;
   context: Parameters<typeof ToolPanels>[0]["context"];
   tool: ToolId;
+  slot: EditorSlotProps;
+  boardShown: boolean;
 }>;
 
 /**
  * The three toolbars' panels. All three are drawn and only the open one shows, so every segment's
  * `aria-controls` names a panel that really exists and a hidden panel keeps what was typed in it.
  */
-function RailPanel({ segment, shell, article, busy, context, tool }: PanelProps) {
+function RailPanel({ segment, shell, article, busy, context, tool, slot, boardShown }: PanelProps) {
   return (
     <div className="grid gap-3 lg:min-h-0 lg:grid-rows-[minmax(0,1fr)]">
       <FormPanel hidden={segment !== "form"} shell={shell} article={article} busy={busy} context={context} tool={tool} />
-      <SlotPanel segment="library" hidden={segment !== "library"} />
-      <SlotPanel segment="specs" hidden={segment !== "specs"} />
+      <RailSlotPanel segment="library" hidden={segment !== "library"} slot={slot} boardShown={boardShown} />
+      <RailSlotPanel segment="specs" hidden={segment !== "specs"} slot={slot} boardShown={boardShown} />
     </div>
   );
 }
 
-/** Library and Specs: the heading and lead of the toolbar, and the slot its workstream fills. */
-function SlotPanel({ segment, hidden }: Readonly<{ segment: Exclude<RailSegment, "form">; hidden: boolean }>) {
-  return (
-    <div
-      id={segmentPanelId(segment)}
-      role="tabpanel"
-      aria-labelledby={segmentTabId(segment)}
-      hidden={hidden}
-      className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4"
-    >
-      <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{SEGMENTS[segment].title}</h2>
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{SEGMENTS[segment].lead}</p>
-      </header>
-      <SlotPlaceholder id={segment} />
-    </div>
-  );
-}
-
-type FormPanelProps = Omit<PanelProps, "segment"> & Readonly<{ hidden: boolean }>;
+type FormPanelProps = Omit<PanelProps, "segment" | "slot" | "boardShown"> & Readonly<{ hidden: boolean }>;
 
 /** Form: the article's own option tiles and sliders, above the open tool's panel. */
 function FormPanel({ hidden, shell, article, busy, context, tool }: FormPanelProps) {
@@ -234,7 +268,7 @@ function FormPanel({ hidden, shell, article, busy, context, tool }: FormPanelPro
         <ToolPanels tool={tool} context={context} />
       </div>
       <section aria-label="Form toolbar" className="glass flex flex-col gap-3 overflow-y-auto rounded-3xl p-4 lg:row-start-1 lg:max-h-[38vh]">
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{SEGMENTS.form.lead}</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">{SEGMENTS.form.lead}</p>
         <FormToolbar article={article} form={shell.state.form} busy={busy} onOption={shell.setOption} onParameter={shell.setParameter} />
       </section>
     </div>

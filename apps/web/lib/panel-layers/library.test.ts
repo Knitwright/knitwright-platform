@@ -27,8 +27,10 @@ describe("the Library toolbar", () => {
     expect(yours?.sections.every((entry) => entry.empty === NO_OWN_LIBRARY)).toBe(true);
   });
 
-  it("leaves Inspiration a labelled slot for wave 3", () => {
-    expect(groups()[2]?.sections[0]?.empty).toMatch(/wave 3/);
+  // Z1's board is mounted under this toolbar now (code review v5 A13), so the labelled slot says
+  // where it is rather than that it is coming in wave 3.
+  it("points Inspiration at the board under the toolbar", () => {
+    expect(groups()[2]?.sections[0]?.empty).toMatch(/inspiration board/i);
   });
 
   it("gives every item a rule id of the rulebook's own form", () => {

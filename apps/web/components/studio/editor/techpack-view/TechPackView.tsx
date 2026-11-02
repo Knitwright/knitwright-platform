@@ -145,7 +145,7 @@ function TabBar({ tab, blocked, tabs, onMove, onChoose }: BarProps) {
             tabIndex={selected ? 0 : -1}
             onClick={() => onChoose(id)}
             data-testid={tabTestId(id)}
-            className={`inline-flex min-h-10 items-center rounded-xl px-3 text-[11px] font-medium ${selected ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"}`}
+            className={`inline-flex min-h-10 items-center rounded-xl px-3 text-[11px] font-medium ${selected ? "bg-cobalt text-white" : "text-ink-2 hover:text-ink"}`}
           >
             {TAB_LABELS[id]}
             {id === "review" && blocked ? <span className="ml-1 text-warn" aria-label="something stops the export">&#9888;</span> : null}
