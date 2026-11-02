@@ -67,14 +67,17 @@ export default async function ClubPage() {
         id="seasons"
         title="Seasons and rosters"
         description={
-          <>
+          // A paragraph, not a bare fragment: `PageSection` puts its description in a div, and
+          // `mobile.spec.ts` exempts a link in running text only when that text is a p, li, dd, td
+          // or span.prose. Without the p this link is a 50 by 19 tap target on a phone and fails.
+          <p>
             One roster for each season, with a size for each player. Import a CSV, or start from last season. Ask the
             players themselves on{" "}
             <Link href="/collect" className="soft-link text-ink underline underline-offset-4">
               Collect
             </Link>
             .
-          </>
+          </p>
         }
       >
         <SeasonsPanel seasons={seasons} canEdit={canEdit} />
