@@ -224,9 +224,9 @@ every entry's reason is a sentence, and that every `in-flight` entry names a pul
   bar, and `BoardActions` is the panel. This branch does not reach into another workstream's shell to
   land it; the allow-list carries it as `reported` with this recipe named.
 - **Resurrect `StartWays` rather than delete it.** Rejected: item 2.
-- **A directory-level allow-list.** Rejected: it would have been four lines instead of seventy, and a
-  new unmounted component inside one of those directories would never have been noticed. The list
-  names files.
+- **A directory-level allow-list.** Rejected: it would have been a handful of lines instead of one
+  per file, and a new unmounted component inside one of those directories would never have been
+  noticed. The list names files.
 - **Fail the test on a stale `in-flight` entry.** Rejected: item 7.
 
 ## Evidence
