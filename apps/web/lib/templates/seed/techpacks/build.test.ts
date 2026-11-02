@@ -44,7 +44,7 @@ describe("the tech pack templates at launch", () => {
 
     expect(jersey.sections).toEqual([...SECTION_IDS]);
     expect(jersey.gaps.map((entry) => entry.ruleId)).toEqual([GAP_RULE_ID]);
-    expect(jersey.gaps[0]!.missing).toContain("no factory-checked master pattern on file");
+    expect(jersey.gaps[0]!.missing).toContain("no master pattern from the factory on file");
   });
 
   it("refuses the measurement, pattern and construction pages of the seven articles with no data, naming the gap", () => {

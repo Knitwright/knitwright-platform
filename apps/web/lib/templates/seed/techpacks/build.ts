@@ -87,13 +87,13 @@ const gap = (section: SectionId, kind: GapKind, code: string): TechpackGap => ({
 
 /**
  * The one open item on a page that is otherwise filled: owner decision 10 of plan v5 says an article
- * cannot be sold without a factory-checked master pattern, and none is on file for any article. No
+ * cannot be sold until the factory's own signed master pattern is on file, and none is for any article. No
  * entry of any rulebook says it, so it carries the gap rule id and is listed in the pull request.
  */
 const NO_MASTER_PATTERN: TechpackGap = {
   section: "pattern-and-cutting",
   sectionTitle: SECTION_TITLES["pattern-and-cutting"],
-  missing: "no factory-checked master pattern on file, so the pattern on the page is a Knitwright draft",
+  missing: "no master pattern from the factory on file, so the pattern on the page is a Knitwright draft",
   ruleId: GAP_RULE_ID,
 };
 
