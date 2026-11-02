@@ -33,7 +33,6 @@ export interface ExportBoard {
 }
 
 export interface ExportRequest {
-  readonly target: ExportTarget;
   /** The boards chosen: one is "this board", more is the spec's "Selected artboards (n)". */
   readonly boards: readonly ExportBoard[];
   /** The width and height typed into the fields, in `unit`. */
@@ -164,7 +163,6 @@ export function quickVerdict(target: ExportTarget, board: ExportBoard, rule: Wat
   }
   if (size.width < MIN_ARTBOARD_PX || size.height < MIN_ARTBOARD_PX) return refuse(`The smallest file is ${MIN_ARTBOARD_PX} px.`);
   return exportVerdict({
-    target,
     boards: [board],
     width: size.width,
     height: size.height,

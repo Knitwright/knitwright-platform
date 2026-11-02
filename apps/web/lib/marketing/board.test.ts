@@ -99,7 +99,9 @@ describe("changing a board's settings", () => {
   });
 
   it("takes everything out of one slot and leaves the others", () => {
-    const filled = withFill(withPicture(EMPTY_SETTINGS, mockup(), picture).ok ? withPicture(EMPTY_SETTINGS, mockup(), picture).settings : EMPTY_SETTINGS, "backdrop", "repeat-1");
+    const written = withPicture(EMPTY_SETTINGS, mockup(), picture);
+    expect(written.ok).toBe(true);
+    const filled = withFill(written.ok ? written.settings : EMPTY_SETTINGS, "backdrop", "repeat-1");
     const after = cleared(filled, "mockup");
 
     expect(after.pictures).toEqual({});

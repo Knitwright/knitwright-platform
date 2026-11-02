@@ -23,7 +23,6 @@ const PAID: WatermarkRule = { plan: "paid", label: "Paid plan", watermarked: fal
 const board = (name = "New kit 4:5", size = { width: 1080, height: 1350 }): ExportBoard => ({ id: "b1", name, size });
 
 const request = (over: Partial<ExportRequest> = {}): ExportRequest => ({
-  target: target(),
   boards: [board()],
   width: 1080,
   height: 1350,
