@@ -146,10 +146,10 @@ test.describe("the board panels L3, L4, L5 and L6 filled", () => {
 
     await expect(page.getByTestId("video-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-board-ai-video")).toHaveCount(0);
-    // A clip starts from a picture the platform drew, so a board with nothing feeding it shows the
-    // one action that fixes that rather than a model picker it cannot honour (decision 0095).
-    await expect(page.getByTestId("video-empty")).toBeVisible();
-    await expect(page.getByTestId("video-add-mockup")).toBeVisible();
+    // A clip starts from the garment the platform drew, so a board with no design behind it says
+    // that in L5's own words rather than showing a model picker it cannot honour (decision 0095).
+    await expect(page.getByTestId("video-empty")).toContainText("No design behind this board");
+    await expect(page.getByTestId("video-models")).toHaveCount(0);
   });
 
   test("opens the info card's own panel, which says how much of the garment's data is missing", async ({ page }) => {

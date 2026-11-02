@@ -1,4 +1,4 @@
-# 0107: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
+# 0116: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
 
 Status: Proposed; the panels are on a screen and scanned by axe for the first time, L2's run loop is closed end to
 end, the carousel is still disabled for want of a second colourway in the viewer, owner questions listed
@@ -98,6 +98,12 @@ properties of a panel on a page rather than of a component in a unit test.
    **No test had ever scanned a board card.** L1's axe scan runs on an empty canvas and L2's is scoped to the
    inspector, so this is the first scan of the canvas with boards on it, and it found a fault that was in L1's own
    card before L6's.
+
+   `aria-hidden` on the kind eyebrow was the first attempt and it did not work, which is the useful part: axe
+   compares the **visually** visible text, not what a screen reader is given, because WCAG 2.5.3 is about a sighted
+   person using voice control -- they read "MOCKUP Front render" on the button whatever `aria-hidden` says. So the
+   eyebrow is outside the button now. It keeps its place and its spacing; the button's words are the board's name,
+   and its name is "Select <that name>".
 
 4. **The inspector's Tools list is L6's `CANVAS_TOOLS`.** It was three kinds (`ai_image`, `ai_video`, `mockup`) and
    is now the five L6's canvas offers, in the spec's order. Two lists of what a person may add could disagree; one

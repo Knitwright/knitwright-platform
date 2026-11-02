@@ -58,22 +58,31 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
       data-testid={`flow-board-${board.id}`}
       className={`relative flex h-full flex-col gap-1.5 rounded-2xl border bg-tile-2/95 p-3 ${selected ? "border-cobalt" : "border-white/15"}`}
     >
-      <button
-        type="button"
-        aria-pressed={selected}
-        aria-label={`Select ${name}`}
-        disabled={busy}
-        onClick={props.onSelect}
-        className="flex min-h-9 flex-col items-start gap-0.5 rounded-xl px-1 text-left"
-      >
-        {/* The kind is an eyebrow over the name, and the card's own `aria-label` already says it,
-            so it is hidden here: left in, the button's visible text would be "Mockup Front render"
-            while its name is "Select Front render", which is the WCAG 2.5.3 mismatch axe reports. */}
-        <span aria-hidden="true" className="font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
+      {/*
+        The kind is an eyebrow over the name, and it sits **outside** the button on purpose. Inside
+        it, the words a person reads on the button would be "MOCKUP Front render" while its name is
+        "Select Front render", and a name that does not contain the visible words is WCAG 2.5.3's
+        "Label in Name" failure -- somebody driving the page by voice reads the button and cannot
+        say its name. `aria-hidden` does not fix that, because the words are still on the screen:
+        axe compares the *visible* text, which is the whole point of the rule. The card's own
+        `aria-label` says the kind to a screen reader, so nothing is lost by hiding it here.
+      */}
+      {/* The two lines keep the spacing they had when both were inside the button. */}
+      <div className="flex flex-col gap-0.5">
+        <span aria-hidden="true" className="px-1 font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
           {info.label}
         </span>
-        <span className="truncate text-[14px] font-medium text-ink">{name}</span>
-      </button>
+        <button
+          type="button"
+          aria-pressed={selected}
+          aria-label={`Select ${name}`}
+          disabled={busy}
+          onClick={props.onSelect}
+          className="flex min-h-9 items-start rounded-xl px-1 text-left"
+        >
+          <span className="truncate text-[14px] font-medium text-ink">{name}</span>
+        </button>
+      </div>
 
       <p className="px-1 text-[11px] leading-snug text-ink-2" data-testid={`flow-board-state-${board.id}`}>
         {progress ?? STATUS_WORDS[board.status]} · {inputState(graph, board)}
