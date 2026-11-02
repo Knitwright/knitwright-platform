@@ -91,6 +91,17 @@ describe("drawing a mockup board", () => {
     expect(acceptAsset("mockup", asset)).toEqual({ accepted: true, role: "asset" });
   });
 
+  it("hands back what the picture cannot show yet, so the panel can say it rather than look finished", async () => {
+    const { deps } = doubles();
+
+    const outcome = await renderMockupBoard(deps, canvas("product-three-quarter"), "mockup-1");
+
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.gaps.join(" ")).toMatch(/turned/i);
+    expect(outcome.notes.length).toBeGreaterThan(0);
+  });
+
   it("refuses a board with no Design board behind it, and draws nothing", async () => {
     const { deps, stored, written } = doubles();
     const alone = canvas();
