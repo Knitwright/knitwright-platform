@@ -148,8 +148,15 @@ function kitScene(it: Mounted): KitStageScene {
       it.controls.update();
     },
     turn(revolutionSeconds) {
-      it.controls.autoRotateSpeed = revolutionSeconds ? 60 / revolutionSeconds : DEFAULT_TURN_SPEED;
-      it.controls.autoRotate = revolutionSeconds !== null;
+      // A turn is given as the seconds one revolution takes, and the control wants revolutions a
+      // minute. `null` means stop, and then the speed is left as it is: a stopped turntable has no
+      // speed to set, and the next turn sets its own.
+      if (revolutionSeconds === null) {
+        it.controls.autoRotate = false;
+        return;
+      }
+      it.controls.autoRotateSpeed = 60 / revolutionSeconds;
+      it.controls.autoRotate = true;
     },
     snapshot() {
       it.renderer.render(it.scene, it.camera);

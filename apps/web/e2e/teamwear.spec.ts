@@ -11,7 +11,18 @@ import { createAccount, signIn, test } from "./support";
  * two runs of this file can find each other's rows (Lesson 11).
  */
 
-const openConfigurator = async (page: Page): Promise<void> => {
+/**
+ * Signs the account in and opens the configurator on its starting address.
+ *
+ * The sign-in button is only pressed by `signIn`; the session cookie arrives with the redirect that
+ * answers it. So the redirect has to land before anything navigates away, which is what waiting for
+ * `/studio` proves. A `goto` sent while it is still in flight runs as a visitor with no session, and
+ * `/teamwear` guards itself with `requireMember`, which sends a visitor to sign in instead — so the
+ * configurator never renders and every assertion below it fails as though the page were broken.
+ */
+const openConfigurator = async (page: Page, email: string): Promise<void> => {
+  await signIn(page, email);
+  await expect(page).toHaveURL(/\/studio$/);
   await page.goto("/teamwear");
   await expect(page.getByTestId("teamwear-configurator")).toBeVisible();
 };
@@ -25,8 +36,7 @@ const firstRenderMs = async (page: Page): Promise<number> => {
 
 test.describe("the teamwear configurator", () => {
   test("a club picks a bundle, a collar code and a quantity, sees the price and saves the kit", async ({ page }) => {
-    await signIn(page, await createAccount("teamwear", { brand: "Dockside Rovers" }));
-    await openConfigurator(page);
+    await openConfigurator(page, await createAccount("teamwear", { brand: "Dockside Rovers" }));
 
     // The sport chips, the backdrop and the three kit parts, each with its own pill.
     await expect(page.getByRole("navigation", { name: "Sport" }).getByRole("link", { name: "Football" })).toHaveAttribute("aria-current", "page");
@@ -106,8 +116,7 @@ test.describe("the teamwear configurator", () => {
   });
 
   test("the first 3D picture of the kit is inside its three-second budget", async ({ page }) => {
-    await signIn(page, await createAccount("teamwear-budget", { brand: "Budget Belles" }));
-    await openConfigurator(page);
+    await openConfigurator(page, await createAccount("teamwear-budget", { brand: "Budget Belles" }));
     await expect(page.getByTestId("teamwear-canvas")).toBeVisible();
     const measured = await firstRenderMs(page);
     expect(measured).toBeGreaterThan(0);
@@ -116,8 +125,7 @@ test.describe("the teamwear configurator", () => {
   });
 
   test("the view chip shows all five views and the tool rail holds the seven tools", async ({ page }) => {
-    await signIn(page, await createAccount("teamwear-stage", { brand: "Stage Saints" }));
-    await openConfigurator(page);
+    await openConfigurator(page, await createAccount("teamwear-stage", { brand: "Stage Saints" }));
     const chip = page.getByTestId("teamwear-view-chip");
     await expect(chip.getByRole("button")).toHaveText(["Front", "Back", "Left", "Right", "Collar"]);
     await expect(chip).toHaveAttribute("data-showing", "front");
@@ -144,8 +152,7 @@ test.describe("the configurator on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
   test("the right panel is a bottom sheet over the stage", async ({ page }) => {
-    await signIn(page, await createAccount("teamwear-phone", { brand: "Phone Phoenix" }));
-    await openConfigurator(page);
+    await openConfigurator(page, await createAccount("teamwear-phone", { brand: "Phone Phoenix" }));
 
     const panel = page.getByTestId("teamwear-panel");
     await expect(panel).toBeVisible();
