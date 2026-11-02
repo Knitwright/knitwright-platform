@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -72,10 +73,16 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
 
   const setRow = (at: number, patch: Partial<Row>) => setRows(rows.map((row, index) => (index === at ? { ...row, ...patch } : row)));
 
+  // The empty state names the one thing that fills it. A brand's pictures are its designs' own
+  // uploads (decision 0036), so there is nothing to choose here until a design has artwork on it.
   if (uploads.length === 0) {
     return (
       <Notice>
-        Upload your {ASSET_KIND_LABELS[kind].toLowerCase()} in a design&apos;s artwork first, then choose it here.
+        Upload your {ASSET_KIND_LABELS[kind].toLowerCase()} in a design&apos;s artwork first, then choose it here.{" "}
+        <Link href="/studio" className="soft-link text-cobalt-soft">
+          Open a design
+        </Link>
+        .
       </Notice>
     );
   }

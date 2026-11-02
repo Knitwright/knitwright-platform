@@ -189,6 +189,9 @@ test.describe("Brand Studio (Y6)", () => {
     await signIn(page, await createAccount("bs-logos"));
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=logos");
-    await expect(page.getByRole("region", { name: "Logos", exact: true })).toContainText("Upload your logo in a design's artwork first");
+    const logos = page.getByRole("region", { name: "Logos", exact: true });
+    await expect(logos).toContainText("Upload your logo in a design's artwork first");
+    // An empty state offers the one thing that fills it, and the offer is not a dead link.
+    await expect(logos.getByRole("link", { name: "Open a design" })).toHaveAttribute("href", "/studio");
   });
 });
