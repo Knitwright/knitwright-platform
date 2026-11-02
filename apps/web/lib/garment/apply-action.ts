@@ -182,14 +182,14 @@ function runMaterials(spec: GarmentSpec, action: MaterialAction): ActionResult {
   }
 }
 
-/**
- * The founder's own points of measure and callouts (`design-marks.ts`). A list that empties is left
- * out of the design again, so a design nobody has drawn on reads as one that never was drawn on.
- */
 /** Setting a mark the design already holds replaces it; setting a new one adds it. */
 const known = (marks: readonly { readonly id: string }[] | undefined, id: string): "add" | "update" =>
   (marks ?? []).some((mark) => mark.id === id) ? "update" : "add";
 
+/*
+ * The founder's own points of measure and callouts (`design-marks.ts`). A list that empties is left
+ * out of the design again, so a design nobody has drawn on reads as one that never was drawn on.
+ */
 function extraPomList(spec: GarmentSpec, change: ListChange<DesignPom>): ActionResult {
   const next = changeList(spec.extraPoms ?? [], "point of measure", change);
   if (typeof next === "string") return reject(next);
