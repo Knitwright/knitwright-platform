@@ -88,6 +88,7 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
 
     await page.reload();
     const after = page.getByRole("listitem").filter({ hasText: seasonName }).first();
+    await expect(after.getByTestId("collect-row")).toHaveCount(3);
     await expect(after.getByTestId("collect-summary")).toContainText("2 of 3 in, 1 still waiting.");
     const missing = after.getByTestId("collect-row").filter({ hasText: "Jordan Nobbs" });
     await expect(missing).toHaveAttribute("data-state", "missing");

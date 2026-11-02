@@ -107,7 +107,8 @@ test.describe("sharing a design with a committee", () => {
     await guest.getByTestId("committee-3d-toggle").click();
     await expect(guest.getByTestId("garment-3d")).toBeVisible();
 
-    // A pin on a point of a panel: pressing the drawing moves the mark.
+    // A pin on a point of a panel. The form is behind a disclosure, so it is opened first.
+    await guest.locator("details").filter({ hasText: "Pin a comment on Option A" }).locator("summary").click();
     await guest.getByRole("group", { name: "Where on it?" }).getByLabel("Top left").check();
     await guest.getByLabel("Which part").selectOption({ index: 1 });
     await guest.getByLabel("Your name").fill("Sam the chair");
@@ -140,6 +141,7 @@ test.describe("sharing a design with a committee", () => {
 
     // The club locks the version the committee approved, which moves it to status approved.
     await page.getByRole("button", { name: "Lock version 1" }).first().click();
+    await page.reload();
     await expect(page.getByTestId("committee-lock")).toContainText("Version 1 is locked");
     expect(await statusOf(projectId)).toBe("approved");
 
@@ -170,7 +172,10 @@ test.describe("sharing a design with a committee", () => {
     await guest.goto(address);
     await expect(guest.getByTestId("committee-design-name")).toHaveText(designName);
 
-    await design.getByRole("button", { name: "Withdraw" }).click();
+    await page.reload();
+    const made = page.getByRole("listitem").filter({ hasText: designName }).first();
+    await made.getByRole("button", { name: "Withdraw" }).click();
+    await page.reload();
     await expect(page.getByTestId("committee-link").first()).toHaveAttribute("data-state", "closed");
 
     const gone = await guest.goto(address);
