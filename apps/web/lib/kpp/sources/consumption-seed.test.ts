@@ -149,6 +149,46 @@ describe("the seeded consumption figures against the articles that publish them"
   });
 });
 
+describe("what the migration grants and guards", () => {
+  /**
+   * The database tests read the real database and never write to it (the service role holds no DELETE on a
+   * seeded table, so a row a test inserted would sit in the shared database for ever). So what the migration
+   * asks of the database is read here, out of the file itself, and `tests/integration/bom-consumption.test.ts`
+   * then proves the database really behaves that way.
+   */
+  const sql = (): string => readFileSync(MIGRATION, "utf8");
+
+  it("gives a member and the server's key SELECT, and nobody INSERT, UPDATE or DELETE", () => {
+    expect(sql()).toContain("revoke all on public.bom_consumption from public, anon, authenticated, service_role;");
+    expect(sql()).toContain("grant select on public.bom_consumption to authenticated, service_role;");
+    expect(sql()).not.toMatch(/grant [^;]*\b(insert|update|delete)\b[^;]*on public\.bom_consumption/i);
+  });
+
+  it("turns row level security on, lets a member read, and writes no policy that would let one write", () => {
+    expect(sql()).toContain("alter table public.bom_consumption enable row level security;");
+    expect(sql()).toContain('create policy "members read bom consumption"');
+    expect(sql()).not.toMatch(/for (insert|update|delete)\s+to authenticated/i);
+  });
+
+  it("guards the table against every change and removal, and against a truncate", () => {
+    expect(sql()).toContain("create trigger bom_consumption_is_versioned");
+    expect(sql()).toContain("create trigger bom_consumption_is_not_truncated");
+    expect(sql()).toContain("A consumption figure can never be changed or removed; record a new version instead.");
+  });
+
+  it("lets only the server's key call the recording function, which refuses anyone who is not a platform admin", () => {
+    expect(sql()).toMatch(/revoke all on function public\.bom_consumption_record\([^)]*\)\s*\n?\s*from public, anon, authenticated;/);
+    expect(sql()).toMatch(/grant execute on function public\.bom_consumption_record\([^)]*\)\s*\n?\s*to service_role;/);
+    expect(sql()).toContain("not exists (select 1 from public.platform_admins a where a.user_id = p_actor)");
+  });
+
+  it("refuses a figure that is not a positive number, a unit it does not know, and an item the package cannot carry", () => {
+    expect(sql()).toContain("qty_per_piece ~ '^[0-9]{1,6}(\\.[0-9]{1,3})?$' and qty_per_piece !~ '^0+(\\.0+)?$'");
+    expect(sql()).toContain("unit text not null check (unit in ('m', 'm2', 'pc', 'g'))");
+    expect(sql()).toContain("item_id text not null check (item_id ~ '^(fabric:[A-Z0-9][A-Z0-9-]{0,30}|thread:needle|thread:looper|label:care)$')");
+  });
+});
+
 describe("the seeded figures against the fixture that stood in for them", () => {
   /**
    * `lib/kpp/fixtures/rows.ts` quoted the worked article's figures so a test could build a whole package while no

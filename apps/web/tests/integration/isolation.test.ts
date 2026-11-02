@@ -1573,6 +1573,15 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { fabric_code: "F-MINE" },
     change: { gsm: "999" },
   },
+  // Plan v5 section 6 item 2 (decision 0101): what one garment consumes, per bill-of-materials line. A member
+  // reads it, because the tech pack's BOM tab shows the quantity; nobody writes it from a browser, and nothing
+  // writes it at all but bom_consumption_record.
+  bom_consumption: {
+    privileges: ["SELECT"],
+    row: { item_id: "thread:needle" },
+    attempt: { item_id: "label:care", version: 9, qty_per_piece: "1", unit: "pc", source_file: "made directly", source_label: "Made directly", source_quote: "Made directly" },
+    change: { qty_per_piece: "9" },
+  },
   // Plan v5 section 6 item 3 (decision 0099): the map from the registry's option keys to the catalogue's codes.
   option_code_map: {
     privileges: ["SELECT"],
