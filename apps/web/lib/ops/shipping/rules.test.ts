@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fulfilmentOf, overShipped, remainingSizes, shipBlocker, shippedSizes, sumSizes } from "./rules";
-import { manualProvider } from "./provider";
+import { manualCourier } from "./courier";
 
 const parcel = (sizes: Record<string, number>) => ({ sizes, pieces: sumSizes(sizes) });
 
@@ -42,8 +42,14 @@ describe("overShipped", () => {
   });
 });
 
-describe("the manual provider", () => {
+describe("the manual courier option", () => {
   it("hands back what was typed, trimmed, with no link it did not get", async () => {
-    expect(await manualProvider.prepare({ courier: " DHL ", trackingNumber: " 123 " })).toEqual({ provider: "manual", courier: "DHL", trackingNumber: "123", trackingUrl: null });
+    expect(await manualCourier.book({ courier: null, courierName: " DHL ", trackingNumber: " 123 " })).toMatchObject({
+      provider: "manual",
+      courier: "DHL",
+      trackingNumber: "123",
+      trackingUrl: null,
+      courierCode: null,
+    });
   });
 });

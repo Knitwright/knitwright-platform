@@ -839,6 +839,63 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     change: { signer_name: "Changed by a stranger" },
   },
   // Plan V4 (decision 0042): a club's kit, seasons, rosters and invitations; only the server writes.
+  // Brand Studio (decision 0079). Every write goes through a brand_studio_* function; club_kits is
+  // untouched and read through, so nothing here holds a copy of a club's colours or crest.
+  brand_profiles: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("brand_studio_save_profile", { p_brand_id: brandId, p_user_id: ownerId, p_profile: { category: "club", about: "Seeded" } }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, category: "gym" }),
+    change: { about: "Changed by a stranger" },
+  },
+  brand_palettes: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedPalette(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly", position: 1 }),
+    change: { name: "Changed by a stranger" },
+  },
+  brand_colours: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedPalette(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ palette_id: randomUUID(), brand_id: brandId, position: 1, name: "Made directly", hex: "#000000" }),
+    change: { hex: "#ff0000" },
+  },
+  brand_fonts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("brand_studio_save_fonts", { p_brand_id: brandId, p_user_id: ownerId, p_fonts: [{ role: "headline", fontKey: "geist" }] }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, role: "body", font_key: "geist" }),
+    change: { font_key: "geist-mono" },
+  },
+  brand_assets: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const artwork = (await TABLES.user_artworks.seed(brandId, ownerId)) as { id: string };
+      must(
+        await adminClient().rpc("brand_studio_save_assets", {
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_kind: "crest",
+          p_assets: [{ artworkId: artwork.id, label: "Seeded crest", printWidthMm: null }],
+        }),
+      );
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, kind: "logo", artwork_id: randomUUID(), label: "Made directly", position: 1 }),
+    change: { label: "Changed by a stranger" },
+  },
   club_kits: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1239,7 +1296,92 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, email: "made-directly@test.knitwright.local", role: "viewer" }),
     change: { role: "admin" },
   },
+  // Benchmarks (plan v5 Z3, decision 0084): a comparison, its cards and the one-fetch-per-brand record.
+  benchmarks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedBenchmark(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, title: "Made directly", created_by: userId }),
+    change: { title: "Changed by a stranger" },
+  },
+  benchmark_cards: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedBenchmarkCard(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      benchmark_id: randomUUID(),
+      source_kind: "photo",
+      card: BENCHMARK_CARD,
+      extractor: "made directly",
+      created_by: userId,
+    }),
+    change: { extractor: "changed by a stranger" },
+  },
+  benchmark_fetches: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const key = randomUUID().replace(/-/g, "").padEnd(64, "0").slice(0, 64);
+      must(await adminClient().rpc("benchmark_fetch_claim", { p_brand_id: brandId, p_user_id: ownerId, p_url_sha256: key, p_host: "shop.example.test" }));
+      return { url_sha256: key, brand_id: brandId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, url_sha256: "a".repeat(64), host: "made-directly.test", created_by: userId }),
+    change: { host: "changed-by-a-stranger.test" },
+  },
 };
+
+/** A Brand Studio palette with one colour, made the way the server makes one (decision 0079). */
+const seedPalette = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("brand_studio_save_palette", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_palette_id: null,
+      p_name: `Palette ${randomUUID().slice(0, 8)}`,
+      p_colours: [{ name: "Seeded", hex: "#0b3d91", pantoneTcx: null }],
+    }),
+  ) as string;
+
+/**
+ * A benchmark card with every field unknown: the shape `benchmark_card_add` asks for, written out here rather than
+ * imported, so the isolation suite stays a reading of the database alone.
+ */
+const BENCHMARK_CARD = {
+  productName: { value: null, provenance: "unknown", corrected: false },
+  brandName: { value: null, provenance: "unknown", corrected: false },
+  price: { value: null, provenance: "unknown", corrected: false },
+  fabricComposition: { value: null, provenance: "unknown", corrected: false },
+  gsm: { value: null, provenance: "unknown", corrected: false },
+  fit: { value: null, provenance: "unknown", corrected: false },
+  sizeRange: { value: null, provenance: "unknown", corrected: false },
+  features: [],
+  claims: [],
+  complaintThemes: [],
+  surfaceLayout: [],
+} as const;
+
+/** A comparison of the brand, made the way the server makes one. */
+const seedBenchmark = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("benchmark_create", { p_brand_id: brandId, p_user_id: ownerId, p_project_id: null, p_title: `Seeded ${randomUUID().slice(0, 8)}` }),
+  ) as string;
+
+/** A card on a new comparison of the brand. Its source URL is its own, so two runs never claim one page. */
+const seedBenchmarkCard = async (brandId: string, ownerId: string): Promise<string> =>
+  must(
+    await adminClient().rpc("benchmark_card_add", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_benchmark_id: await seedBenchmark(brandId, ownerId),
+      p_source_kind: "url",
+      p_source_url: `https://shop.example.test/${randomUUID()}`,
+      p_source_host: "shop.example.test",
+      p_source_file_id: null,
+      p_card: BENCHMARK_CARD,
+      p_extractor: "stub",
+    }),
+  ) as string;
 
 /** A season of a brand, made the way the server makes one. */
 const seedSeason = async (brandId: string, ownerId: string): Promise<string> =>
@@ -1311,8 +1453,8 @@ const seedReadyOrder = async (brandId: string): Promise<{ orderId: string; actor
 };
 
 const PASSING_CHECKLIST = ["measurements", "colour", "artwork", "names_numbers"].map((key) => ({ key, result: "pass", note: "" }));
-const inspect = async (actor: string, orderId: string) =>
-  must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0 })) as { inspection_id: string }[];
+const inspect = async (actor: string, orderId: string, colourReadings: readonly Record<string, unknown>[] = []) =>
+  must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0, p_colour_readings: colourReadings })) as { inspection_id: string }[];
 
 /** A product listed the way the server lists one, for a new design. */
 const seedBrandProduct = async (brandId: string, ownerId: string): Promise<{ productId: string; projectId: string }> => {
@@ -1693,6 +1835,15 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { fabric_code: "F-MINE" },
     change: { gsm: "999" },
   },
+  // Plan v5 section 6 item 2 (decision 0101): what one garment consumes, per bill-of-materials line. A member
+  // reads it, because the tech pack's BOM tab shows the quantity; nobody writes it from a browser, and nothing
+  // writes it at all but bom_consumption_record.
+  bom_consumption: {
+    privileges: ["SELECT"],
+    row: { item_id: "thread:needle" },
+    attempt: { item_id: "label:care", version: 9, qty_per_piece: "1", unit: "pc", source_file: "made directly", source_label: "Made directly", source_quote: "Made directly" },
+    change: { qty_per_piece: "9" },
+  },
   // Plan v5 section 6 item 3 (decision 0099): the map from the registry's option keys to the catalogue's codes.
   option_code_map: {
     privileges: ["SELECT"],
@@ -1836,6 +1987,63 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
     change: { tracking_number: "changed" },
   },
+  // Ops completion (decision 0100): read by platform admins only, written by the ops functions only, and
+  // append-only. A colour reading carries what it was judged against, so the judgement can be read back.
+  ops_qc_colour_readings: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      const inspection = (await inspect(actor, orderId, [{ colourName: "Kit navy", deltaE: 1.2, limitDeltaE: 1.5 }]))[0]!.inspection_id;
+      return { inspection_id: inspection };
+    },
+    attempt: (brandId) => ({ inspection_id: randomUUID(), order_id: randomUUID(), brand_id: brandId, colour_name: "Direct", delta_e: 1 }),
+    change: { colour_name: "Changed by a stranger" },
+  },
+  ops_inspection_bookings: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      const id = must(
+        await adminClient().rpc("ops_book_inspection", {
+          p_actor: actor, p_order_id: orderId, p_provider: "stub", p_reference: `isolation-${randomUUID().slice(0, 8)}`,
+          p_state: "not_available", p_requested_on: "2026-12-07",
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, provider: "x", reference: "r", pieces: 1, requested_on: "2026-12-07", state: "requested" }),
+    change: { state: "booked" },
+  },
+  ops_commercial_invoices: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(
+        await adminClient().rpc("ops_issue_commercial_invoice", {
+          p_actor: actor, p_order_id: orderId, p_issued_on: "2026-12-07", p_origin_country: "PK", p_destination_country: "GB",
+          p_lines: [{ description: "Jersey", hsCode: "6110.30", originCountry: "PK", pieces: 1, unitValueMinor: null, lineValueMinor: null }],
+        }),
+      );
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, invoice_no: 1, issued_on: "2026-12-07", origin_country: "PK", destination_country: "GB", lines: [], total_pieces: 1 }),
+    change: { incoterms: "EXW" },
+  },
+  ops_customer_emails: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(
+        await adminClient().rpc("ops_record_customer_email", {
+          p_actor: actor, p_order_id: orderId, p_kind: "ready", p_to_email: "club@example.com", p_subject: "Ready",
+          p_body: "Your order is made.", p_provider: "none", p_sent: false, p_reason: "No email provider is set up.",
+        }),
+      );
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, kind: "ready", to_email: "a@b.co", subject: "s", body: "b", provider: "none", sent: false, reason: "r" }),
+    change: { sent: true },
+  },
   // Factory job packets (decision 0072): the factory has no account, so the link is the only key. Platform admins read
   // both tables; no member and no visitor reads or writes either, and factory_events is append-only.
   job_packets: {
@@ -1920,6 +2128,39 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: () => ({ capability_id: randomUUID(), qty_min: 1, label: "Made directly" }),
     change: { sell_gbp_minor: 1 },
   },
+  // Plan v5 O1 (decision 0100): the AQL sampling table and the couriers. Platform data, like the factory rows:
+  // no browser role reaches either, and every seeded AQL row cites no source. The migration seeds them.
+  ops_aql_sample_plans: {
+    privileges: [],
+    seed: async () => ({ code_letter: "H" }),
+    attempt: () => ({ code_letter: "Z", lot_min: 1, sample_size: 1, label: "Made directly" }),
+    change: { sample_size: 999 },
+  },
+  ops_aql_acceptance: {
+    privileges: [],
+    seed: async () => ({ code_letter: "H", aql: 2.5 }),
+    attempt: () => ({ code_letter: "H", aql: 9.9, defect_class: "major", accept_at: 0, reject_at: 1, label: "Made directly" }),
+    change: { accept_at: 99 },
+  },
+  ops_couriers: {
+    privileges: [],
+    seed: async () => ({ code: "by-hand" }),
+    attempt: () => ({ code: "made-directly", name: "Made directly", label: "Made directly" }),
+    change: { terms: "Changed by a member" },
+  },
+  // The runs of the scheduled cut. Platform admins read them; nothing in a browser writes one, and the
+  // scheduled cut has no actor at all: the cron route's shared secret is its door.
+  ops_cut_runs: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      // A cut-off many weeks back: no order's cut-off is in the past, so this cuts nothing.
+      const past = new Date(Date.now() - (500 + Math.floor(Math.random() * 200)) * 7 * 86_400_000);
+      const rows = must(await adminClient().rpc("ops_cut_scheduled", { p_now: past.toISOString() })) as { cut_for: string }[];
+      return { cut_for: rows[0]!.cut_for };
+    },
+    attempt: () => ({ cut_for: new Date().toISOString() }),
+    change: { orders_batched: 99 },
+  },
   // Plan v5 X8 (decision 0073): moderation. Read by platform admins only; written by the moderation functions only.
   moderation_checks: {
     privileges: ["SELECT"],
@@ -1983,6 +2224,9 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
   // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
   rulebook_entries: { privileges: ["SELECT"] },
+  // Decision 0079: the licensed kit-font list of Brand Studio. Every signed-in person reads it; nothing
+  // writes it but this migration's own seed. tests/integration/brand-studio.test.ts covers it.
+  brand_studio_fonts: { privileges: ["SELECT"] },
   // Decision 0098: the kit bundles of docs/spec/07-template-library.md and what is in each one. Read by every
   // signed-in user; seeded by the server. tests/integration/template-kinds.test.ts covers them.
   template_kit_bundles: { privileges: ["SELECT"] },
