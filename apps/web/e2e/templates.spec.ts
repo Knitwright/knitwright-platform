@@ -65,7 +65,8 @@ test.describe("the template library", () => {
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=football/);
     const items = page.getByRole("list", { name: "Templates" }).getByRole("listitem");
-    await expect(items).toHaveCount(3);
+    // The three football shirts of plan v4, plus the white and maroon one of the launch starters (plan v5 L8).
+    await expect(items).toHaveCount(4);
     await expect(items.first().getByText("Knitwright starter, not reviewed by a factory")).toBeVisible();
     await page.getByRole("button", { name: "Use this template: Red football shirt, white trim" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
@@ -84,6 +85,19 @@ test.describe("the template library", () => {
     await expect(page.getByText("Navy and gold hoops").first()).toBeVisible();
     await page.goto("/templates");
     await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(12);
+  });
+
+  test("lists the launch starters on the garments plan v5 added, each marked as not reviewed", async ({ page }) => {
+    // Plan v5 L8: the hoodies, the compression top and the training shorts had no starter before.
+    await signedIn(page, "templates-launch");
+    await page.goto("/templates?sport=training&article=pullover-hoodie");
+    const items = page.getByRole("list", { name: "Templates" }).getByRole("listitem");
+    await expect(items.first().getByText("Knitwright starter, not reviewed by a factory")).toBeVisible();
+    await expect(page.getByText("Club training hoodie, navy with white trim")).toBeVisible();
+    await expect(page.getByText("Coaches' hoodie, black with grey trim")).toBeVisible();
+
+    await page.goto("/templates?article=compression-top");
+    await expect(page.getByText("Rash guard, black with maroon binding")).toBeVisible();
   });
 
   test("offers templates first on the start page, and the blank canvas second", async ({ page }) => {
