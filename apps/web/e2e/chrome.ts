@@ -17,12 +17,17 @@ import { expect, type Locator, type Page } from "@playwright/test";
  * The scan waits for the entrance animations first: the drifting aurora never stops, so only the
  * animations that end are waited for, and text still fading in fails the contrast rule for a
  * moment.
+ *
+ * `within` narrows the scan to one part of the page, for a panel on a screen the whole suite does
+ * not yet scan: a new panel is then held to the bar without its test standing or falling on
+ * everything else that screen already draws.
  */
-export const accessible = async (page: Page): Promise<void> => {
+export const accessible = async (page: Page, within?: string): Promise<void> => {
   await page.waitForFunction(() =>
     document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
   );
-  const { violations } = await new AxeBuilder({ page }).analyze();
+  const builder = new AxeBuilder({ page });
+  const { violations } = await (within === undefined ? builder : builder.include(within)).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
   const where = (node: (typeof serious)[number]["nodes"][number]): string =>
     `${node.target.join(" ")} ${JSON.stringify(node.any.map((check) => check.data))}`;

@@ -1,0 +1,148 @@
+import { expect, type Page } from "@playwright/test";
+import { accessible } from "./chrome";
+import { createAccount, openTool, signIn, test } from "./support";
+
+/**
+ * THE THREE PANELS OF THE DESIGN WORKSPACE THAT HAD NO DOOR (decision 0124).
+ *
+ * Each one was built, tested and merged, and no screen imported it:
+ *
+ *   * **design import** (W7d, decision 0038) -- five routes, a whole pipeline and no screen. Its
+ *     own record said what it needed: "a line in `lib/workspace/tools.ts` to mount
+ *     `DesignImportPanel`". It is a section of the Garment tool now, and it is drawn only while
+ *     `DESIGN_IMPORT` is on, which the browser tests switch on (`playwright.config.ts`);
+ *   * **your artwork** (W7b, decision 0036) -- the upload Brand Studio's own empty state points at
+ *     ("Upload your crest in a design's artwork first, then choose it here"), which did not exist;
+ *   * **every pattern we can draw** (W7c, decision 0037) -- "a gallery component for the editor",
+ *     reached from the kit style link the Colours tool already carries.
+ *
+ * Each test reaches its panel the way a person does, from the rail or from a link, and asks for the
+ * panel's own words rather than a heading. axe runs over each at a desktop width and at 390 x 844,
+ * and nothing is allowed to scroll sideways.
+ */
+
+const signedIn = async (page: Page, label: string): Promise<void> => {
+  await signIn(page, await createAccount(label));
+  await expect(page).toHaveURL(/\/studio$/);
+};
+
+const startDesign = async (page: Page, name: string, type = "Team jersey"): Promise<void> => {
+  await page.goto("/studio/new");
+  await page.getByLabel("Garment type").selectOption({ label: type });
+  await page.getByLabel("Made for").selectOption({ label: "Women" });
+  await page.getByLabel("Design name").fill(name);
+  await page.getByRole("button", { name: "Create design" }).click();
+  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
+};
+
+const PHONE = { width: 390, height: 844 };
+
+/** Nothing scrolls sideways, at whatever width the test is running. */
+const noSidewaysScroll = async (page: Page): Promise<void> => {
+  const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(sideways).toBeLessThanOrEqual(1);
+};
+
+test.describe("reading a design from a picture", () => {
+  test("opens from the Garment tool, with the panel's own words and no placeholder", async ({ page }) => {
+    await signedIn(page, "import-door");
+    await startDesign(page, "Import shirt");
+
+    await openTool(page, "Garment");
+    const panel = page.getByTestId("design-import");
+    await expect(panel).toBeVisible();
+
+    // The section's own heading, and the panel's own sentences: a close reading, nothing saved yet.
+    await expect(page.getByRole("heading", { name: "Read a whole design from a picture" })).toBeVisible();
+    await expect(panel).toContainText("a close reading of your picture");
+    await expect(panel).toContainText("Nothing is saved as your design until you accept it.");
+    // Decision 0038 item 9: three words the screen never uses.
+    await expect(panel).not.toContainText(/\b(exact|identical|matches your picture)\b/i);
+
+    // A picture cannot be chosen until the person says they may use it (decision 0025's words).
+    const file = panel.getByLabel("Choose a picture");
+    await expect(file).toBeDisabled();
+    await panel.getByRole("checkbox").check();
+    await expect(file).toBeEnabled();
+
+    await accessible(page, "[data-tool='garment']");
+    await noSidewaysScroll(page);
+  });
+
+  test("works at phone width, where the tools are a bar along the bottom", async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await signedIn(page, "import-phone");
+    await startDesign(page, "Import phone shirt");
+
+    await openTool(page, "Garment");
+    await expect(page.getByTestId("design-import")).toBeVisible();
+    await noSidewaysScroll(page);
+    await accessible(page, "[data-tool='garment']");
+  });
+});
+
+test.describe("the brand's own artwork", () => {
+  test("opens from the Logos tool, beside the logos placed on this design", async ({ page }) => {
+    await signedIn(page, "artwork-door");
+    await startDesign(page, "Artwork shirt");
+
+    await openTool(page, "Logos");
+    const heading = page.getByRole("heading", { name: "Your artwork" });
+    await expect(heading).toBeVisible();
+
+    const panel = page.getByRole("region", { name: "Your artwork" });
+    // What the panel is for, and the promise Brand Studio's empty state makes about it.
+    await expect(panel).toContainText("how sharply it would print");
+    await expect(panel).toContainText("Brand Studio");
+    // The upload itself, with its own rights tick and the formats it takes.
+    await expect(panel.getByLabel("Your artwork", { exact: true })).toBeAttached();
+    await expect(panel.getByRole("button", { name: "Add artwork" })).toBeVisible();
+
+    await accessible(page, "[data-tool='logos']");
+    await noSidewaysScroll(page);
+  });
+
+  test("is the screen Brand Studio sends a brand to for its crest", async ({ page }) => {
+    await signedIn(page, "artwork-brand-studio");
+    await page.goto("/brand-studio?tab=logos");
+
+    // With no upload yet, Brand Studio names the one thing that fills it: a design's artwork.
+    await expect(page.getByText(/Upload your logo in a design's artwork first/)).toBeVisible();
+    await page.getByRole("link", { name: "Open a design" }).click();
+    await expect(page).toHaveURL(/\/studio$/);
+  });
+});
+
+test.describe("every pattern we can draw", () => {
+  test("is reached from the kit style link of the Colours tool, and says what each look can do", async ({ page }) => {
+    await signedIn(page, "looks-door");
+    await startDesign(page, "Looks shirt");
+
+    await openTool(page, "Colours");
+    await page.getByRole("link", { name: "Choose a kit style" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Choose a kit style" })).toBeVisible();
+
+    const looks = page.getByTestId("pattern-looks");
+    await expect(looks.getByRole("heading", { name: "Every pattern we can draw" })).toBeVisible();
+    await expect(looks).toContainText("swatches for choosing a look");
+
+    // A real picture for every style and preset, each with a plain label.
+    const gallery = page.getByTestId("generator-gallery");
+    await expect(gallery.getByRole("img").first()).toBeVisible();
+    expect(await gallery.getByRole("img").count()).toBeGreaterThan(30);
+
+    // And under them, what can be done with each: picked above, or not storable yet.
+    await expect(looks).toContainText("Pick this one above");
+    await expect(looks).toContainText("A design can only store the eight kit styles today");
+    await expect(looks).toContainText("R-GAP-000");
+
+    await accessible(page);
+    await noSidewaysScroll(page);
+
+    await page.setViewportSize(PHONE);
+    await expect(looks.getByRole("heading", { name: "Every pattern we can draw" })).toBeVisible();
+    await noSidewaysScroll(page);
+    await accessible(page);
+  });
+});

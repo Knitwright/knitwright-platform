@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { panelsFor } from "@/lib/garment";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { SectionId } from "@/lib/workspace/tools";
+import { ArtworkPanel } from "@/components/artwork/ArtworkPanel";
 import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { MediaScreen } from "@/components/media/screen/MediaScreen";
 import { VariantsPanel } from "@/components/variants/VariantsPanel";
@@ -33,6 +34,12 @@ export type WorkspaceSlots = Readonly<{
   quote: ReactNode;
   /** A question for the person beside the assistant, such as who the design is for. */
   organisation: ReactNode;
+  /**
+   * The design-import panel (decision 0038), or null while `DESIGN_IMPORT` is off. The switch is
+   * read on the server, so the section is simply not there when the feature is off -- which is what
+   * the decision asks for: "off or unset, every route answers 404 and no screen is shown".
+   */
+  designImport: ReactNode;
 }>;
 
 export type SectionContext = Readonly<{
@@ -51,6 +58,8 @@ const sectionTitle = (section: SectionId, data: EditorData): string | null => {
       return "Options";
     case "picture":
       return "Start from a sketch or photo";
+    case "design-import":
+      return "Read a whole design from a picture";
     case "details":
       return "Design details";
     case "colours":
@@ -94,6 +103,8 @@ function sectionBody(section: SectionId, context: SectionContext): ReactNode {
       );
     case "picture":
       return <ImageReview projectId={data.projectId} version={data.version} available={context.assistantAvailable} busy={editor.busy} />;
+    case "design-import":
+      return slots.designImport ?? null;
     case "details":
       return <DetailsSection data={data} />;
     case "kit-styles":
@@ -108,6 +119,8 @@ function sectionBody(section: SectionId, context: SectionContext): ReactNode {
       return <FabricSummary projectId={data.projectId} spec={data.spec} />;
     case "trims":
       return <TrimSummary projectId={data.projectId} spec={data.spec} />;
+    case "own-artwork":
+      return <ArtworkPanel />;
     case "artwork":
       return (
         <ArtworkControls

@@ -20,6 +20,7 @@ import {
 } from "@/lib/launch-panels";
 import type { LaunchPanelProps } from "@/lib/launch";
 import { showAllTemplatesProps, templateFilterSuffix } from "./a11y";
+import { FlowPacks } from "./FlowPacks";
 import { CHIP, FIELD, PanelEmpty, PanelLoading, PanelProblem, PanelShell, SMALL_CHIP } from "./frame";
 import { TemplateCardRow } from "./TemplateCardRow";
 import { useJson } from "./useJson";
@@ -35,7 +36,9 @@ import { useJson } from "./useJson";
  * (`tests/architecture/client-weight.test.ts`).
  *
  * It takes `LaunchPanelProps` and nothing else, so the shell can mount it wherever the rail's
- * `templates` panel goes. The one thing it does is already a command the platform offers: a design
+ * `templates` panel goes, and hands the same props to `FlowPacks`, the six launch packs of F-L4 --
+ * which L1's own contract puts in this panel ("Marketing, kit-bundle and flow templates") and which
+ * had no screen at all until they were mounted here (decisions 0096 and 0108). The one thing it does is already a command the platform offers: a design
  * template becomes a new design in the brand, which opens in the editor. It is **not** laid onto
  * this canvas, because a launch canvas launches a design that already exists, and the panel says so
  * rather than leaving a person to find out.
@@ -124,6 +127,8 @@ export default function TemplatesPanel({ context, commands }: LaunchPanelProps) 
           onToggle={() => toggle(collection.key)}
         />
       ))}
+
+      <FlowPacks context={context} commands={commands} />
 
       <footer className="flex flex-col items-start gap-1.5 border-t border-white/10 pt-2">
         <p className="text-[12px] leading-relaxed text-ink-2">{OPENS_THE_EDITOR}</p>

@@ -56,6 +56,9 @@ export default async function LaunchPage() {
                 <th scope="col" className="px-4 py-3 font-medium">Launch</th>
                 <th scope="col" className="px-4 py-3 font-medium">Boards</th>
                 <th scope="col" className="px-4 py-3 font-medium">Units</th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  <span className="sr-only">Delete</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
@@ -68,6 +71,13 @@ export default async function LaunchPage() {
                   </th>
                   <td className="px-4 py-3 text-muted">{one.boards === 1 ? "1 board" : `${one.boards} boards`}</td>
                   <td className="px-4 py-3 text-muted">{UNIT_LABELS[one.units]}</td>
+                  <td className="px-4 py-3 text-right">
+                    {canEdit ? (
+                      <Link href={`${launchProjectPath(one.id)}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
+                        Delete<span className="sr-only"> {one.name}</span>
+                      </Link>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

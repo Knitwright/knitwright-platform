@@ -1,5 +1,7 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
@@ -89,7 +91,17 @@ export function PlanActions({ plan, canEdit }: Props) {
           ) : null}
         </div>
       </div>
-      {canEdit ? null : <p className="text-sm text-muted">Only owners, admins and kit managers can order samples or create a drop.</p>}
+      {canEdit ? (
+        <p className="text-sm text-muted">
+          Finished with this range?{" "}
+          <Link href={`/studio/collections/${plan.id}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
+            Delete this plan
+          </Link>
+          . The designs behind its style cards are not touched.
+        </p>
+      ) : (
+        <p className="text-sm text-muted">Only owners, admins and kit managers can order samples, create a drop or delete this plan.</p>
+      )}
       {note ? (
         <Notice tone={note.tone} role={note.tone === "warn" ? "alert" : "status"}>
           {note.text}

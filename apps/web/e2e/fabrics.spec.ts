@@ -46,4 +46,37 @@ test.describe("fabrics", () => {
     await expect(page.getByText("size labels have a suggested pattern size only")).toBeVisible();
     await expect(page.getByRole("row", { name: /Junior cut 16/ })).toContainText("Suggested by Knitwright");
   });
+
+  /**
+   * Decision 0124: `DELETE /api/fabrics/size-map` is the one way back from a brand's own choice, and
+   * nothing called it, so a pattern size typed by mistake could never be taken off again. A row
+   * nobody chose must not read as one somebody did, which is what "Suggested by Knitwright" says.
+   */
+  test("a brand can choose a pattern size for a label and then put the suggestion back", async ({ page }) => {
+    const email = await createAccount("size-map-undo");
+    await signIn(page, email);
+    await expect(page).toHaveURL(/\/studio$/);
+    await page.goto("/brands/fabrics");
+
+    const row = page.getByRole("row", { name: /Men's cut M/ });
+    await expect(row).toContainText("Suggested by Knitwright");
+    // Nothing to put back while the row is only a suggestion.
+    await expect(row.getByRole("button", { name: /Use the suggested pattern size/ })).toHaveCount(0);
+
+    await row.getByLabel("Pattern size").fill("50");
+    await row.getByRole("button", { name: "Save" }).click();
+    await expect(row.getByText("Saved.")).toBeVisible();
+
+    await page.reload();
+    const chosen = page.getByRole("row", { name: /Men's cut M/ });
+    await expect(chosen).toContainText("Typed in by you");
+    await expect(chosen.getByLabel("Pattern size")).toHaveValue("50");
+
+    await chosen.getByRole("button", { name: "Use the suggested pattern size for M" }).click();
+    await expect(page.getByRole("row", { name: /Men's cut M/ })).toContainText("Suggested by Knitwright");
+    await page.reload();
+    const back = page.getByRole("row", { name: /Men's cut M/ });
+    await expect(back).toContainText("Suggested by Knitwright");
+    await expect(back.getByLabel("Pattern size")).toHaveValue("48");
+  });
 });

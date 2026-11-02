@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
@@ -77,6 +78,11 @@ export const saveLaunchProjectAction = defineAction({
   },
 });
 
+/**
+ * Deleting a launch project, from `/launch/[launchProjectId]/delete`. The typed word is part of the
+ * body, so the box on that screen is the thing that lets this run, and it ends on the list of launch
+ * projects: the canvas it was pressed from is gone.
+ */
 export const removeLaunchProjectAction = defineAction({
   auth: "member",
   rateLimit: LIMITS.clubWrite,
@@ -85,7 +91,7 @@ export const removeLaunchProjectAction = defineAction({
     requireAbility(session, "manageKit");
     await removeLaunchProject(adminClient(), whoOf(session), input.launchProjectId);
     revalidatePath(LAUNCH_HOME);
-    return { removed: input.launchProjectId };
+    redirect(LAUNCH_HOME);
   },
 });
 

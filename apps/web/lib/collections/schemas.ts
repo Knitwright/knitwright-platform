@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { confirmField } from "@/lib/deletion/schemas";
 import { SELL_CURRENCIES } from "@/lib/factory/schemas";
 import { STYLE_STATUSES } from "./vocabulary";
 
@@ -58,8 +59,11 @@ export type SaveStyleBody = z.output<typeof saveStyleBody>;
 
 export const removeStyleBody = z.object({ collectionId: z.uuid(), styleId: z.uuid() });
 
-/** Removing a whole plan. Its groups, styles, sizes and exported payloads go with it. */
-export const removeCollectionBody = z.object({ collectionId: z.uuid() });
+/**
+ * Removing a whole plan. Its groups, styles, sizes and exported payloads go with it, so the word is
+ * typed first, exactly as deleting a design asks for it (`lib/deletion/schemas.ts`).
+ */
+export const removeCollectionBody = z.object({ collectionId: z.uuid(), confirm: confirmField });
 
 /** "Create drop": the app builds the payload itself, so the body names only the plan. */
 export const createDropBody = z.object({ collectionId: z.uuid() });
