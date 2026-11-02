@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { accessible, openStudioSection } from "./chrome";
-import { createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan W4-C (decision 0062): a small brand lists a design as a product, orders a sample of one piece per size, moves the product
@@ -103,6 +103,16 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(builder.getByText("No minimum order is set for this garment yet")).toBeVisible();
     await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
+
+    /**
+     * A crew tee is Class B, so the first press asks for our review of the design rather than
+     * sending it, and the design is in the ops review queue from that moment (spec F-G1; security
+     * review v5 H3, decision 0116). The same press goes through once a person there has allowed it.
+     */
+    await builder.getByRole("button", { name: "Order run" }).click();
+    await expect(builder.getByRole("alert")).toContainText(/needs our review before a run can start/);
+    await allowClassBRun(projectId, "brand-runs-reviewer");
+
     await builder.getByRole("button", { name: "Order run" }).click();
     await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Fern hoodie · Brand run · 60 pieces/)).toBeVisible();

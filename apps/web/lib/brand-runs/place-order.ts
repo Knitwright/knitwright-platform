@@ -40,7 +40,9 @@ export async function placeOrder(clients: Clients, who: Who, role: ClubRole, bod
     label: context.designName,
     assetIds: moderationTargets(context.spec).map((target) => target.id),
     texts: [{ text: context.designName, context: "title" }],
-    classB: context.productionClass === "B",
+    // A sample is never Class B here: the class is a property of a run, and a sample is part of
+    // what the class is decided from. The make flow draws the same line.
+    classB: body.kind === "run" && context.productionClass === "B",
   });
 
   return submitRun(clients.admin, who, {
