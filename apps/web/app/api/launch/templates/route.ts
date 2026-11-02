@@ -6,7 +6,7 @@ import { LIMITS } from "@/lib/server/limits";
 
 /**
  * The template library of the launch rail, searched and filtered with L8's own functions
- * (decision 0106). Platform data: the same rows for every brand, read through the member's own
+ * (decision 0108). Platform data: the same rows for every brand, read through the member's own
  * client so the database's rules decide as well as this code.
  *
  * The search and the five filters run here rather than in the browser because `matchesTags`,

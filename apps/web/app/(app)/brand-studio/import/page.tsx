@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: PAGE_TITLE };
 
 /**
  * Phase 3 of Brand Studio: import your brand from your own site (spec F-S9; engine and view model
- * by L7, decision 0102; this screen by decision 0106).
+ * by L7, decision 0102; this screen by decision 0108).
  *
  * The server works out only what does not depend on a run: the completion % and what is still
  * missing, both from Y6's own weighting, and whether this person's role may change the brand

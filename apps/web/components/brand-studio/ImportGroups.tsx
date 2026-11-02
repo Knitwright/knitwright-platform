@@ -3,7 +3,7 @@ import type { ItemGroup } from "@/lib/brand-studio/import/view";
 
 /**
  * One group of what an import found, and a row per item with its own two buttons (decision 0102
- * item 10, built by decision 0106).
+ * item 10, built by decision 0108).
  *
  * **Per item, never all or nothing.** Every row starts `pending` and carries Keep and Leave out,
  * and a group that found nothing shows the real empty state the view model holds -- which always

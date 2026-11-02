@@ -1,4 +1,4 @@
-# 0106: The launch panels no workstream owned, and L7's import screen
+# 0108: The launch panels no workstream owned, and L7's import screen
 
 Status: Proposed. Three of the four unowned rail panels are built, Likes is deliberately a labelled placeholder
 because nothing records a like, the import screen saves everything except a picture, and the owner questions below
@@ -38,7 +38,7 @@ route". Both were right to stop. This record is the work nobody owned.
 `LAUNCH_PANEL_COMPONENTS` is this work's own registry, in its own file, spread into the `BUILT` map of
 `components/launch/RailPanels.tsx` — the same arrangement as `components/marketing/panels.ts`, for the same two
 reasons: one map made once, so nothing is looked up by calling a function while the shell renders
-(`react-hooks/static-components`, the rule the wiring of decision 0105 ran into), and two workstreams adding panels do
+(`react-hooks/static-components`, the rule the wave-4 wiring change ran into), and two workstreams adding panels do
 not conflict on one registry. Each panel is a default export taking exactly `LaunchPanelProps`, so the shell can load
 it with `next/dynamic`, and each one is tested against `panelDouble()` with no shell and no browser.
 

@@ -5,7 +5,7 @@ import { LIMITS } from "@/lib/server/limits";
 
 /**
  * The brand's own uploads for the launch rail's Uploads panel, newest first, each with the rights
- * recorded on it (decision 0106). The brand comes from the session, never from the request, and the
+ * recorded on it (decision 0108). The brand comes from the session, never from the request, and the
  * read goes through the person's own client so the database's rules decide as well as this code.
  */
 export const GET = defineRoute({

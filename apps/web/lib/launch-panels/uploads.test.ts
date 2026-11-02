@@ -5,7 +5,7 @@ import { AppError } from "@/lib/server/core/errors";
 import { loadUploads, rightsOf, uploadRowOf, wordingTextOf } from "./uploads";
 
 /**
- * The uploads panel's own read (plan v5, decision 0106).
+ * The uploads panel's own read (plan v5, decision 0108).
  *
  * What is proved here is that the panel shows **the record and nothing more**: the day a person
  * said they own the file, the version of the words they saw, and those words when this repository

@@ -27,7 +27,7 @@ import { CARD, CHIP, INLINE_LINK, PanelEmpty, PanelGap, PanelLoading, PanelProbl
 import { useJson } from "./useJson";
 
 /**
- * THE BRAND PANEL OF THE RAIL (spec Launch shell, "Brand", and F-S9; plan v5, decision 0106).
+ * THE BRAND PANEL OF THE RAIL (spec Launch shell, "Brand", and F-S9; plan v5, decision 0108).
  *
  * L1's contract named workstream L7, which owned `lib/brand-studio/import/**` and no component
  * path, so this panel never existed either. It reads Y6's Brand Studio rows and applies a palette

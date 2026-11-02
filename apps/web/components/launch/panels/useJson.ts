@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 /**
  * One read of one route handler, with the three states a panel must be able to draw: reading it,
- * holding it, and unable to read it (plan v5, decision 0106).
+ * holding it, and unable to read it (plan v5, decision 0108).
  *
  * The panel contract hands a panel the project and the commands and says plainly that "a panel
  * never fetches" -- meaning the shell never hands it something unsaved. The panels of this

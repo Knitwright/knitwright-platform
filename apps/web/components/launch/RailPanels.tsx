@@ -13,10 +13,10 @@ import { PanelPlaceholder } from "./PanelPlaceholder";
  * A panel another workstream has built is mounted here and given exactly `LaunchPanelProps`
  * (`lib/launch/panels.ts`); the rest still draw a labelled placeholder. **Mockups and Photos are
  * L2's** (decision 0092). **Templates, Uploads and Brand** are the panels whose workstreams were
- * given a library and no component path, built in `components/launch/panels/**` (decision 0106).
+ * given a library and no component path, built in `components/launch/panels/**` (decision 0108).
  *
  * `likes` and `ai-image` still hold their placeholders: nothing in the platform records a like
- * (decision 0106's owner question), and the AI image panel is L3's.
+ * (decision 0108's owner question), and the AI image panel is L3's.
  */
 
 /**

@@ -1,5 +1,5 @@
 /**
- * The brand's own uploads, with the rights recorded on each one (plan v5, decision 0106; spec
+ * The brand's own uploads, with the rights recorded on each one (plan v5, decision 0108; spec
  * Launch shell, "Uploads").
  *
  * `user_artworks` is where a brand's own pictures live, and every row of it carries three rights

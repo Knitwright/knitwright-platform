@@ -6,7 +6,7 @@ import { rowOf } from "@/lib/templates/seed/seed";
 import { PANEL_KINDS, loadPanelTemplates, tagsOf, templatesView } from "./templates";
 
 /**
- * The templates panel's own read and filter (plan v5, decision 0106).
+ * The templates panel's own read and filter (plan v5, decision 0108).
  *
  * Two things matter most here, and both are proved rather than asserted in a comment: the read
  * names the kinds it can draw a card for, so a row of another kind can never reach a card that

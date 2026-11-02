@@ -15,7 +15,7 @@ import { CARD, PanelEmpty, PanelGap, PanelLoading, PanelProblem, PanelShell } fr
 import { useJson } from "./useJson";
 
 /**
- * THE UPLOADS PANEL OF THE RAIL (spec Launch shell, "Uploads"; plan v5, decision 0106).
+ * THE UPLOADS PANEL OF THE RAIL (spec Launch shell, "Uploads"; plan v5, decision 0108).
  *
  * L1's contract named workstream L7 for this panel, and L7 was given `lib/brand-studio/import/**`
  * and no component path, so it never existed. It shows the brand's own files, newest first, and

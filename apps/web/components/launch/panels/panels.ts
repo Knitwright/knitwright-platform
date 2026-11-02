@@ -7,11 +7,11 @@ import UploadsPanel from "./UploadsPanel";
 
 /**
  * THE THREE PANELS THIS DIRECTORY FILLS, as `components/launch/RailPanels.tsx` mounts them (L1's
- * contract, `lib/launch/panels.ts`; plan v5, decision 0106).
+ * contract, `lib/launch/panels.ts`; plan v5, decision 0108).
  *
  * The same arrangement as `components/marketing/panels.ts`: one map in the workstream's own file,
  * spread into the rail's `BUILT` map, so nothing is looked up by calling a function while the shell
- * renders (`react-hooks/static-components`, the rule the wiring step of decision 0105 ran into) and
+ * renders (`react-hooks/static-components`, the rule the wave-4 wiring change ran into) and
  * so two workstreams adding panels in the same wave do not conflict on one registry.
  *
  * **`likes` is deliberately not here.** Nothing in the platform records a like -- the spec's own

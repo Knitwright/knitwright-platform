@@ -1,5 +1,5 @@
 /**
- * The public face of the four rail panels no workstream owned (plan v5, decision 0106).
+ * The public face of the four rail panels no workstream owned (plan v5, decision 0108).
  *
  * **Only the zod-free half is here on purpose.** A client panel imports this barrel for its words
  * and its view shapes; the three reads (`templates.ts`, `uploads.ts`, `brand.ts`) are imported by

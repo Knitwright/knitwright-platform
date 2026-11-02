@@ -1,6 +1,6 @@
 /**
  * What the four rail panels show, worked out on the server so the component decides nothing
- * (plan v5, decision 0106). The same arrangement as L7's `lib/brand-studio/import/view.ts`, and for
+ * (plan v5, decision 0108). The same arrangement as L7's `lib/brand-studio/import/view.ts`, and for
  * the same reason: a panel that computes nothing cannot compute something different from the page.
  *
  * **No zod and nothing that reaches it.** `tests/architecture/client-weight.test.ts` refuses a

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState, useTransition } from "react";
 // Each module by name rather than the directory's barrel: the barrel reaches `runImport`, and from
 // there zod and `sharp`, neither of which belongs in a browser bundle
-// (`tests/architecture/client-weight.test.ts`, and decision 0106's note on `pictureDetail`).
+// (`tests/architecture/client-weight.test.ts`, and decision 0108's note on `pictureDetail`).
 import { decide, decideKind, itemsOfKind, tickRights } from "@/lib/brand-studio/import/decisions";
 import type { ImportProposal, ImportRefusal } from "@/lib/brand-studio/import/types";
 import { errorView, importView, type CompletionView } from "@/lib/brand-studio/import/view";
@@ -32,7 +32,7 @@ import { ImportStages } from "./ImportStages";
 
 /**
  * THE BRAND IMPORT SCREEN (spec F-S9 phase 3; the renderer's contract is decision 0102 item 10;
- * built by decision 0106).
+ * built by decision 0108).
  *
  * L7 built the engine, the proposal and this screen's whole view model and owned no component
  * path, so nothing in the app ever called `runImport`. This is the renderer that contract asked

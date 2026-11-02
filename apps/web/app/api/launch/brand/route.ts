@@ -5,7 +5,7 @@ import { sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 
 /**
- * The brand's palettes, type styles and voice for the launch rail's Brand panel (decision 0106).
+ * The brand's palettes, type styles and voice for the launch rail's Brand panel (decision 0108).
  *
  * It reads Y6's own Brand Studio rows through Y6's own `loadBrand`, and the rows it hands over are
  * built by Y6's `brandTabColours` and `brandTabFonts`, so the sublimation estimate and every

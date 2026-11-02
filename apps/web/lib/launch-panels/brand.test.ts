@@ -5,7 +5,7 @@ import { brandView } from "./brand";
 import { brandIsEmpty } from "./view";
 
 /**
- * The brand panel's own rows (plan v5, decision 0106).
+ * The brand panel's own rows (plan v5, decision 0108).
  *
  * Two things are proved: the rows are Y6's own (`brandTabColours` and `brandTabFonts`), so the
  * sublimation estimate and every licence note are worked out in one place; and a font the brand

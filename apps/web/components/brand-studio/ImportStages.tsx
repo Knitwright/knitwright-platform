@@ -2,7 +2,7 @@ import type { Progress, StageLine } from "@/lib/brand-studio/import/view";
 
 /**
  * The six stage lines of a brand import, and the progress line above them (decision 0102 item 10,
- * built by decision 0106).
+ * built by decision 0108).
  *
  * All six are drawn from the start, so a person watching a minute of work can see what is coming
  * and what is left, and no stage ever sits without a word beside it. **The state is said in words,

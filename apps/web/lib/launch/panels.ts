@@ -167,7 +167,7 @@ const PLACEHOLDERS: Readonly<Record<LaunchPanelId, Readonly<{ title: string; not
   "pattern-fills": { title: "Pattern fills", note: "Repeat prints from your library, as fills for shapes and backgrounds. Built by workstream L4." },
   likes: {
     title: "Likes",
-    note: "The templates, scenes and graphics you have liked. Nothing in the platform records a like yet -- workstream L8 built the library without one, and the spec's own data model has a count on a template row rather than a record of who liked what -- so there is nothing here to list. Owner question of decision 0106.",
+    note: "The templates, scenes and graphics you have liked. Nothing in the platform records a like yet -- workstream L8 built the library without one, and the spec's own data model has a count on a template row rather than a record of who liked what -- so there is nothing here to list. Owner question of decision 0108.",
   },
   uploads: { title: "Uploads", note: "Files you have uploaded to this brand, with the rights you hold on each. Built by workstream L7." },
   brand: { title: "Brand", note: "Your logos, palettes, type styles and voice, applied in one click. Built by workstream L7." },

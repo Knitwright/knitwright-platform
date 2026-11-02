@@ -14,7 +14,7 @@ import { ImportStages } from "./ImportStages";
 
 /**
  * THE BRAND IMPORT SCREEN, rendered without a browser (the renderer's contract is decision 0102
- * item 10; built by decision 0106).
+ * item 10; built by decision 0108).
  *
  * L7's engine and view model were finished and tested; what had never existed was a component, so
  * what is checked here is the renderer's own promises: all six stages said in words from the start,

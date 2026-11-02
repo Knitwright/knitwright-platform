@@ -1,6 +1,6 @@
 /**
  * The brand's palettes, type styles and voice, as the launch rail's Brand panel shows them (plan
- * v5, decision 0106; spec Launch shell, "Brand", and F-S9).
+ * v5, decision 0108; spec Launch shell, "Brand", and F-S9).
  *
  * Every row here is built by Y6's own functions -- `brandTabColours` and `brandTabFonts`, the pair
  * that already turn a `BrandRecord` into the shapes the shared Brand tab takes. So the sublimation

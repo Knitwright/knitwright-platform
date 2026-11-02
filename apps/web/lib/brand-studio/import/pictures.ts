@@ -89,6 +89,6 @@ export async function readPictures(
  * How a picture is described on its row. It is defined in `items.ts` and re-exported here: this
  * file imports `sharp`, and the import screen is a client component that reaches `items.ts`
  * through the view model, so the words had to sit on the side of the seam a browser may load
- * (decision 0106).
+ * (decision 0108).
  */
 export { pictureDetail } from "./items";

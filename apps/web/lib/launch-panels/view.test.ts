@@ -19,7 +19,7 @@ import {
 } from "./index";
 
 /**
- * The shapes and the words the four panels of this directory share (plan v5, decision 0106).
+ * The shapes and the words the four panels of this directory share (plan v5, decision 0108).
  *
  * The grouping is here rather than on the server because which collections are open is the panel's
  * own state and changes without a read. Everything it needs has already been narrowed.

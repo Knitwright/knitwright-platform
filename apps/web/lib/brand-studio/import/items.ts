@@ -21,7 +21,7 @@ export const itemId = (kind: ItemKind, of: string): string => `${kind}:${of}`;
  * `view.ts` says the screen may import it, and the screen is a client component: through
  * `view.ts -> decisions.ts -> items.ts` that import would have put `sharp` in the browser bundle.
  * `pictures.ts` re-exports it, so nothing that already asked for it there has changed
- * (decision 0106).
+ * (decision 0108).
  */
 export const pictureDetail = (facts: PictureFacts): string =>
   [`${facts.widthPx} × ${facts.heightPx} px`, facts.contentType.replace("image/", "").toUpperCase(), facts.alt ?? ""]

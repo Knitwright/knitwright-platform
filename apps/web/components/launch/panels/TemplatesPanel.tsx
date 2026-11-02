@@ -25,7 +25,7 @@ import { TemplateCardRow } from "./TemplateCardRow";
 import { useJson } from "./useJson";
 
 /**
- * THE TEMPLATE LIBRARY IN THE LAUNCH RAIL (spec Launch shell, "Templates"; plan v5, decision 0106).
+ * THE TEMPLATE LIBRARY IN THE LAUNCH RAIL (spec Launch shell, "Templates"; plan v5, decision 0108).
  *
  * L1's contract named workstream L8 for this panel, and L8 was given `lib/templates/**` and no
  * component path at all: its own record says `components/templates/**` "belong to no wave-4

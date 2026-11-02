@@ -1,6 +1,6 @@
 /**
  * The words the brand import SCREEN adds to L7's engine (decision 0102 item 10, built by decision
- * 0106). Everything the proposal itself says -- the stage lines, the empty states, the refusals,
+ * 0108). Everything the proposal itself says -- the stage lines, the empty states, the refusals,
  * the rights ask -- is already in `lib/brand-studio/import/words.ts` and is not written again here.
  *
  * No zod, so the screen can import these without shipping the schema library.

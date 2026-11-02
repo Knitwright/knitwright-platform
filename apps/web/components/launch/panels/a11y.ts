@@ -1,5 +1,5 @@
 /**
- * The accessible names of the rail panels this directory builds (plan v5, decision 0106), kept
+ * The accessible names of the rail panels this directory builds (plan v5, decision 0108), kept
  * apart from the components so they are tested on their own -- the pattern
  * `components/mockups/a11y.ts` and `components/inspiration/a11y.ts` set.
  *

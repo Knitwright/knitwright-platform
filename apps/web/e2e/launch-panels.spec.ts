@@ -4,7 +4,7 @@ import { accessible } from "./chrome";
 import { createAccount, signIn, test } from "./support";
 
 /**
- * THE PANELS NO WORKSTREAM OWNED, ON A SCREEN (plan v5, decision 0106).
+ * THE PANELS NO WORKSTREAM OWNED, ON A SCREEN (plan v5, decision 0108).
  *
  * L1's contract named a workstream for every panel of the rail, and four of them named a workstream
  * the plan gave no component path: Templates and Likes to L8, Uploads and Brand to L7. Three of

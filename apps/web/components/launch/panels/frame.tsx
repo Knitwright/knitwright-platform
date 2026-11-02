@@ -4,7 +4,7 @@ import { alertProps, busyProps, panelProps } from "@/components/mockups/a11y";
 import { EMPTY_ACTIONS, EMPTY_BODIES, EMPTY_TITLES, FAILED, LOADING, PANEL_LEADS, PANEL_TITLES, RETRY, type BuiltHere } from "@/lib/launch-panels";
 
 /**
- * The frame the three built rail panels sit in (plan v5, decision 0106).
+ * The frame the three built rail panels sit in (plan v5, decision 0108).
  *
  * One heading, one line about what the panel is for, and the three states the owner's bar asks
  * for: reading it, unable to read it with what to do about it, and a real empty state naming the

@@ -38,7 +38,7 @@ import { showAllTemplatesProps, templateFilterSuffix, templateSuffix } from "./a
 
 /**
  * THE THREE PANELS NO WORKSTREAM OWNED, rendered against `panelDouble()` -- **no shell and no
- * browser** (the panel contract, `lib/launch/panels.ts`; plan v5, decision 0106).
+ * browser** (the panel contract, `lib/launch/panels.ts`; plan v5, decision 0108).
  *
  * Each one is a default export taking exactly `LaunchPanelProps`, which is what lets the shell
  * mount it, and each one reads its rows through a route handler, so what a static render shows is

@@ -8,7 +8,7 @@ import { templateSuffix } from "./a11y";
 import { CARD, CHIP } from "./frame";
 
 /**
- * One template's card in the launch rail (plan v5, decision 0106).
+ * One template's card in the launch rail (plan v5, decision 0108).
  *
  * **A template whose article has no data says so.** `gapForType` (L8, decision 0098) answers with
  * the register of decision 0090: seven of the eight launch articles publish no point of measure and
