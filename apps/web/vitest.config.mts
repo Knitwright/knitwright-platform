@@ -19,6 +19,8 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
+  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0106).
+  "lib/quotes/document.test.ts",
   // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
   // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
   // runner, against a 600 s budget. That headroom is spent by contention, not by the work: the
@@ -121,6 +123,17 @@ export default defineConfig({
         // tests cover the joining (plan v5 O3, decision 0104).
         "lib/markets/server.ts",
         "lib/translate/server.ts",
+        // Joins crest-to-kit to the catalogue and the picture decoder; the pipeline it hands over is tested on
+        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0106).
+        "lib/crest-to-kit/server.ts",
+        // Joins a quote to the factory rows: the tiers, the cut-off and the market rules. Every rule it hands
+        // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
+        // decision 0106).
+        "lib/quotes/server.ts",
+        // Joins the Store contract to the brand's products, the two hand-off tables, the factory's tiers and
+        // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
+        // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0106).
+        "lib/store-contract/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -163,6 +176,7 @@ export default defineConfig({
             "comments",
             "compliance",
             "credits-gate",
+            "crest-to-kit",
             "cutting",
             "design-diff",
             "design-import",
@@ -194,10 +208,13 @@ export default defineConfig({
             "print",
             "production",
             "proofs",
+            "quotes",
             "releases",
             "rulebook",
             "settings",
             "shell",
+            "shoots",
+            "store-contract",
             "teamwear",
             "templates",
             "translate",
