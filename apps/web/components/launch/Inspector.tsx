@@ -142,7 +142,17 @@ function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, 
         </p>
       ) : null}
       <ArtboardSize board={selection.board} unit={unit} presets={presets} busy={busy} onUnit={onUnit} onSize={onSize} />
-      {Built ? <Built {...panel} /> : panelId ? <PanelPlaceholder id={panelId} /> : null}
+      {/* `shrink-0` for the same reason the run summary has it: the inspector is a scrolling flex
+          column, several of these panels carry their own `min-h-0`, and without this the one at the
+          bottom is squeezed to no height at all. It is here rather than in each panel so a panel
+          landing later cannot be caught by it. */}
+      {Built ? (
+        <div className="shrink-0">
+          <Built {...panel} />
+        </div>
+      ) : panelId ? (
+        <PanelPlaceholder id={panelId} />
+      ) : null}
     </>
   );
 }

@@ -137,15 +137,17 @@ test.describe("the board panels L3, L4, L5 and L6 filled", () => {
     await expect(page.getByTestId("marketing-templates")).toBeVisible();
   });
 
-  test("opens the AI video board's own panel, with the model list and the duration", async ({ page }) => {
+  test("opens the AI video board's own panel, which asks for a first frame before anything else", async ({ page }) => {
     await signedIn(page, "panels-video-board");
     await startLaunch(page, "Video board kit");
     await addAndSelect(page, "ai_video", "AI video");
 
     await expect(page.getByTestId("video-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-board-ai-video")).toHaveCount(0);
-    await expect(page.getByTestId("video-models")).toBeVisible();
-    await expect(page.getByTestId("video-seconds")).toBeVisible();
+    // A clip starts from a picture the platform drew, so a board with nothing feeding it shows the
+    // one action that fixes that rather than a model picker it cannot honour (decision 0095).
+    await expect(page.getByTestId("video-empty")).toBeVisible();
+    await expect(page.getByTestId("video-add-mockup")).toBeVisible();
   });
 
   test("opens the info card's own panel, which says how much of the garment's data is missing", async ({ page }) => {

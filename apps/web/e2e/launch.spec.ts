@@ -146,8 +146,9 @@ test.describe("the canvas and the garment lock", () => {
     await page.getByTestId("launch-empty-action").click();
     await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
 
-    // The right-edge dot of the spec, as a labelled button: a dot alone is not operable.
-    await page.getByRole("button", { name: /^Add a board after/ }).click();
+    // The right-edge dot of the spec, as a labelled button: a dot alone is not operable. Its name
+    // starts with the word on it, which is what WCAG 2.5.3 asks of every control on the card.
+    await page.getByRole("button", { name: /^Add…/ }).click();
     const menu = page.getByRole("list", { name: /^Add a board after/ });
 
     await expect(menu.getByRole("button")).toHaveText([/^Mockup/, /^AI image/, /^Marketing/, /^Info card/]);

@@ -85,6 +85,18 @@ properties of a panel on a page rather than of a component in a unit test.
    This is the clearest evidence for why this change exists: `components/flows/**` has no component tests, the panels
    had never been opened in a browser, and a canvas nobody can click looked exactly like a canvas that works.
 
+   **The second browser run found a third thing on the same card: WCAG 2.5.3, "Label in Name."** Every control on it
+   carried an `aria-label` that did not contain the words printed on it -- "Run all downstream" was named "Run
+   everything X feeds", "Connect from here" was "Connect X into another board", "Add…" was "Add a board after X" --
+   so somebody driving the page by voice could read a button and not be able to say its name. axe reports it as
+   `label-content-name-mismatch` at impact serious. Each name now starts with the words on the control. The Select
+   button was the same fault from the other end: its two lines read "Mockup" over "Front render" while its name was
+   "Select Front render", so the kind is now `aria-hidden` -- the card's own label already says it.
+
+   **No test had ever scanned a board card.** L1's axe scan runs on an empty canvas and L2's is scoped to the
+   inspector, so this is the first scan of the canvas with boards on it, and it found a fault that was in L1's own
+   card before L6's.
+
 4. **The inspector's Tools list is L6's `CANVAS_TOOLS`.** It was three kinds (`ai_image`, `ai_video`, `mockup`) and
    is now the five L6's canvas offers, in the spec's order. Two lists of what a person may add could disagree; one
    cannot.
@@ -211,6 +223,12 @@ properties of a panel on a page rather than of a component in a unit test.
   per-board progress yet: the shell's own busy state covers the whole canvas.
 * "Select the picture" is gone from the canvas (item 3).
 * The `e2e` label exists on this repository from now on, which is what #129's policy needs to be usable at all.
+* `lib/techpack/wording.test.ts`'s whole-tree word scan carries a 30-second budget now, the same one and for the
+  same reason as `tests/architecture/garment3d.test.ts`'s scans: it reads every file of `components` and `app`, and
+  it timed out at the default five seconds once this wave's panels, the crest-to-kit screens and the shoot library
+  landed in one afternoon. Nothing about what it checks changed.
+* Three controls on a board card were renamed (item 3), so a test that asked for the Add… button by its old name
+  asks by the word on it instead.
 
 ## Owner questions
 

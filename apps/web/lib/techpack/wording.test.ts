@@ -226,13 +226,26 @@ describe("the words in the other parts of the product", () => {
     expect(WIDE.length).toBeGreaterThan(300);
   });
 
-  it("appear in no sentence of those folders, except the sentences listed above and the ones listed here", () => {
-    const found: string[] = [];
-    for (const path of WIDE) {
-      for (const sentence of sentencesIn(path).filter(isProse)) {
-        if (SETTLED.test(withoutAllowed(withoutWide(sentence)))) found.push(`${path.slice(ROOT.length + 1)}: ${sentence}`);
+  /**
+   * This check reads every file of `components` and `app` and runs the word list over every
+   * sentence in them, which takes several seconds on a loaded runner with coverage on -- and longer
+   * every time the product grows a folder. It timed out at the default five seconds once wave 4's
+   * panels, the crest-to-kit screens and the shoot library landed in one afternoon. The same budget
+   * and the same reason as `tests/architecture/garment3d.test.ts`'s own scans.
+   */
+  const SCAN_MS = 30_000;
+
+  it(
+    "appear in no sentence of those folders, except the sentences listed above and the ones listed here",
+    () => {
+      const found: string[] = [];
+      for (const path of WIDE) {
+        for (const sentence of sentencesIn(path).filter(isProse)) {
+          if (SETTLED.test(withoutAllowed(withoutWide(sentence)))) found.push(`${path.slice(ROOT.length + 1)}: ${sentence}`);
+        }
       }
-    }
-    expect(found).toEqual([]);
-  });
+      expect(found).toEqual([]);
+    },
+    SCAN_MS,
+  );
 });

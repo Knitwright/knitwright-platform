@@ -66,7 +66,12 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         onClick={props.onSelect}
         className="flex min-h-9 flex-col items-start gap-0.5 rounded-xl px-1 text-left"
       >
-        <span className="font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">{info.label}</span>
+        {/* The kind is an eyebrow over the name, and the card's own `aria-label` already says it,
+            so it is hidden here: left in, the button's visible text would be "Mockup Front render"
+            while its name is "Select Front render", which is the WCAG 2.5.3 mismatch axe reports. */}
+        <span aria-hidden="true" className="font-mono text-[10px] tracking-[0.08em] text-ink-2 uppercase">
+          {info.label}
+        </span>
         <span className="truncate text-[14px] font-medium text-ink">{name}</span>
       </button>
 
@@ -91,7 +96,10 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         <button
           type="button"
           disabled={busy}
-          aria-label={`Run everything ${name} feeds`}
+          // Each of these names starts with the words on the control, because a name that does not
+          // contain the visible text is WCAG 2.5.3's "Label in Name" failure: somebody who says
+          // "run all downstream" to a voice control must be heard.
+          aria-label={`Run all downstream from ${name}`}
           onClick={props.onRunDownstream}
           className={CHIP}
           data-testid={`flow-run-downstream-${board.id}`}
@@ -108,7 +116,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
             disabled={busy}
             aria-expanded={props.menuOpen}
             aria-controls={`flow-add-${board.id}`}
-            aria-label={`Add a board after ${name}`}
+            aria-label={`Add… a board after ${name}`}
             onClick={props.onMenu}
             className={CHIP}
             data-testid={`flow-add-open-${board.id}`}
@@ -121,7 +129,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
           disabled={busy}
           aria-expanded={props.connectingOpen}
           aria-controls={`flow-connect-${board.id}`}
-          aria-label={`Connect ${name} into another board`}
+          aria-label={`Connect from here, ${name} into another board`}
           onClick={props.onConnecting}
           className={CHIP}
           data-testid={`flow-connect-open-${board.id}`}
