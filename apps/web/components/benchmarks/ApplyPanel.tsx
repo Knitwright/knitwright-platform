@@ -1,3 +1,4 @@
+import { WhyLink } from "@/components/rulebook/WhyLink";
 import { Button } from "@/components/ui/Button";
 import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import type { BaseArticleSummary } from "@/lib/catalogue";
@@ -8,8 +9,9 @@ import type { ApplyPlan, DesignAroundReport } from "@/lib/benchmarks";
  *
  * The panel shows what a feature would become on the chosen base article — an option with its catalogue code, or a
  * parameter with the range the factory approved — and what the base simply cannot do, said plainly. Every line carries
- * the rule id of the catalogue row behind it, which is what a "Why?" resolves (F-S5). Nothing here is applied by
- * itself: the person chooses, in the editor, from the base's own options.
+ * the rule id of the catalogue row behind it and the same "Why?" link as the rest of the product (F-S5, decision
+ * 0067), which reads the rule's own words and, for an id with no entry yet, says so and tells the team. Nothing here
+ * is applied by itself: the person chooses, in the editor, from the base's own options.
  */
 
 const RULE = "font-mono text-xs text-muted";
@@ -46,7 +48,10 @@ const Mapped = ({ plan }: Readonly<{ plan: ApplyPlan }>) => (
             : `${feature.target.key}, ${feature.target.min ?? "?"} to ${feature.target.max ?? "?"}${feature.target.unit ? ` ${feature.target.unit}` : ""}`}
         </span>
         <span className="text-xs text-muted">{feature.purpose}</span>
-        <span className={RULE}>Why? {feature.ruleId}</span>
+        <span className="flex items-center gap-2">
+          <span className={RULE}>{feature.ruleId}</span>
+          <WhyLink ruleId={feature.ruleId} context="benchmark feature mapping" />
+        </span>
       </li>
     ))}
   </ul>
@@ -88,7 +93,8 @@ export function ApplyPanel({
               <ul className="mt-2 flex flex-col gap-1">
                 {plan.unsupported.map((feature) => (
                   <li key={feature.featureKey} className="text-[15px] text-muted">
-                    {feature.featureLabel} — {feature.message} <span className={RULE}>{feature.ruleId}</span>
+                    {feature.featureLabel} — {feature.message} <span className={RULE}>{feature.ruleId}</span>{" "}
+                    <WhyLink ruleId={feature.ruleId} context="benchmark feature not available" />
                   </li>
                 ))}
               </ul>
@@ -116,7 +122,10 @@ export function ApplyPanel({
               <li key={finding.code} className="text-[15px] text-warn">
                 {finding.message}
                 <span className="mt-0.5 block text-xs">In common: {finding.shared.join(", ")}</span>
-                <span className={`mt-0.5 block ${RULE}`}>{finding.ruleId}</span>
+                <span className="mt-0.5 flex items-center gap-2">
+                  <span className={RULE}>{finding.ruleId}</span>
+                  <WhyLink ruleId={finding.ruleId} context="benchmark design-around" />
+                </span>
               </li>
             ))}
           </ul>

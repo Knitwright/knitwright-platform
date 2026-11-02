@@ -123,6 +123,8 @@ test.describe("benchmarks", () => {
     await expect(page.getByTestId("mapped-drop_tail").first()).toContainText("back_drop_tail");
     await expect(page.getByTestId("mapped-drop_tail").first()).toContainText("R-PAT-005");
     await expect(page.getByTestId("unsupported").first()).toContainText("Not available on this base");
+    // Every mapped line carries the product's own "Why?" link, which reads the rule rather than quoting it here.
+    await expect(page.getByRole("button", { name: "Why? Rulebook R-PAT-005" }).first()).toBeVisible();
     await expect(page.getByText("A competitor's mark is never put on your design.").first()).toBeVisible();
   });
 
