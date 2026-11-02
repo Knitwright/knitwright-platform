@@ -91,6 +91,12 @@ const envSchema = z.object({
   // call an unauthenticated service, so it gives the stub too. Never set where tests run.
   FILES_SERVICE_URL: z.url().optional(),
   FILES_SERVICE_TOKEN: z.string().min(32).optional(),
+  // Who sends a share invite (plan v5 Y8, decision 0081). All three optional and server only:
+  // without all three, lib/share/email-server.ts sends nothing at all and the member is shown the
+  // invite's link to send themselves. Never set where tests run: no test emails anyone.
+  SHARE_EMAIL_PROVIDER: z.enum(["resend"]).optional(),
+  SHARE_EMAIL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  SHARE_EMAIL_FROM: z.string().regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/).optional(),
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
   // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from

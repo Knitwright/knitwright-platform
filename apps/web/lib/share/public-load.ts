@@ -26,6 +26,14 @@ export interface ShareLoadDeps {
 interface LoadedSharePage {
   readonly page: SharePageData;
   readonly picturesNote: string | null;
+  /**
+   * Whether the answer form is offered (plan v5 Y8). A share link is answered through, as decision
+   * 0026 built. An invite is one person's own, and `share_respond` takes a link's token only, so an
+   * invited person is shown the design and no form rather than a form that would refuse them.
+   */
+  readonly canAnswer: boolean;
+  /** One line saying how the reader got here, where that is not an ordinary share link. */
+  readonly inviteNote: string | null;
 }
 
 /** The page for a token, or null when the token opens nothing. */
@@ -48,5 +56,14 @@ export async function loadSharePage(deps: ShareLoadDeps, token: string): Promise
     charts,
     images: pictures.images,
   });
-  return { page, picturesNote: picturesNote(pictures.skipped) };
+  return {
+    page,
+    picturesNote: picturesNote(pictures.skipped),
+    canAnswer: opened.openedBy === "link",
+    inviteNote: opened.openedBy === "link" ? null : inviteNote(opened.brandName),
+  };
 }
+
+/** What an invited reader is told: who shared it, and that this invite is theirs alone. */
+export const inviteNote = (brandName: string): string =>
+  `${brandName} invited you to this design. The link works for you alone.`;
