@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import { GENERATED_LABEL, GENERATED_PERSON_LABEL, acceptAsset, type LaunchAsset } from "@/lib/launch/assets";
 import { marksFor, panelsFor, referencePng, generatedPng } from "@/lib/media-check/fixtures/synthetic";
 import type { Verdict } from "@/lib/moderation/types";
-import { DRIFT_MESSAGE, type ShootCheckReport } from "./check";
+import { DRIFT_MESSAGE, REFUNDED_LINE, type ShootCheckReport } from "./check";
 import type { ShootProvider, ShootRequest } from "./provider";
 import {
   BLOCKED_MESSAGE,
   CAPPED_MESSAGE,
+  CAPPED_RETRY_MESSAGE,
   MODEL_FAILED_MESSAGE,
   SHORT_MESSAGE,
   labelFor,
@@ -253,6 +254,9 @@ describe("the one automatic second attempt", () => {
     if (outcome.ok) return;
     expect(outcome.attempts).toBe(2);
     expect(outcome.message).toMatch(DRIFT_MESSAGE);
+    // The spec's own sentence does not mention money, so the refund line is added to it: whatever
+    // went wrong, the sentence the person reads says what happened to what they were charged.
+    expect(outcome.message).toContain(REFUNDED_LINE);
     expect(outcome.spent).toBe(0);
     expect(outcome.refunded).toBe(2);
     expect(money.calls.refunds[0]!.credits).toBe(2);
@@ -271,6 +275,23 @@ describe("the one automatic second attempt", () => {
 });
 
 describe("every other door out, and the money behind it", () => {
+  it("says the refund only once for a message that already mentions it", async () => {
+    const money = ledger();
+    const outcome = await runShoot(deps({ ledger: money.ledger, provider: failingShootProvider("no") }), await ask(), signal());
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) return;
+    expect(outcome.message).toBe(MODEL_FAILED_MESSAGE);
+    expect(outcome.message.split("given back").length - 1).toBe(1);
+  });
+
+  it("does not promise a refund when nothing was charged", async () => {
+    const outcome = await runShoot(deps({ check: async () => turnedAway }), await ask(), signal());
+    expect(outcome.ok).toBe(false);
+    if (outcome.ok) return;
+    expect(outcome.refunded).toBe(0);
+    expect(outcome.message).not.toContain(REFUNDED_LINE);
+  });
+
   it("refunds a picture our review blocked", async () => {
     const money = ledger();
     const outcome = await runShoot(deps({ ledger: money.ledger, screen: async () => BLOCKED }), await ask(), signal());
@@ -294,7 +315,8 @@ describe("every other door out, and the money behind it", () => {
     const outcome = await runShoot(deps({ ledger: money.ledger, meter: spend.meter, check: async () => turnedAway }), await ask(), signal());
     expect(outcome.ok).toBe(false);
     if (outcome.ok) return;
-    expect(outcome.message).toBe(CAPPED_MESSAGE);
+    expect(outcome.message).toContain(CAPPED_RETRY_MESSAGE);
+    expect(outcome.message).toContain(REFUNDED_LINE);
     expect(outcome.refunded).toBe(2);
     expect(spend.calls.released).toEqual(["event-1"]);
   });

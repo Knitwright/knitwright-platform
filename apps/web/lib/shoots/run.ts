@@ -2,7 +2,7 @@ import { GENERATED_LABEL, GENERATED_PERSON_LABEL, type SceneAsset } from "@/lib/
 import type { RunLedger, RunMeter } from "@/lib/media/video/run";
 import type { LogEvent } from "@/lib/server/core/guard";
 import type { Verdict } from "@/lib/moderation/types";
-import { ATTEMPTS_ALLOWED, checkShootResult, driftMessage, shouldRetry, type ShootCheckInput, type ShootCheckReport } from "./check";
+import { ATTEMPTS_ALLOWED, REFUNDED_LINE, checkShootResult, driftMessage, shouldRetry, type ShootCheckInput, type ShootCheckReport } from "./check";
 import { refundReason } from "./cost";
 import type { ShootProvider, ShootRequest } from "./provider";
 import { SHOOT_GAP_RULE } from "./types";
@@ -78,11 +78,19 @@ export type ShootRunOutcome =
   | Readonly<{ ok: false; message: string; attempts: number; spent: 0; refunded: number; ruleId: string }>;
 
 export const CAPPED_MESSAGE = "The platform has reached its own limit on paid pictures for now. Nothing was charged. Try again later.";
+/**
+ * The same cap, reached between the two attempts. It cannot say "nothing was charged", because by
+ * then something was: `settle` adds what happened to it.
+ */
+export const CAPPED_RETRY_MESSAGE = "The platform has reached its own limit on paid pictures for now, so this shoot was not finished. Try again later.";
 export const SHORT_MESSAGE = "You do not have enough credits for this shoot, so nothing was run or charged.";
 export const MODEL_FAILED_MESSAGE = "The model could not make this picture. The credits for it have been given back.";
 export const BLOCKED_MESSAGE = "This picture cannot be kept: our review refused it. The credits for it have been given back.";
 
 type Spent = { readonly eventIds: readonly string[]; readonly credits: number };
+
+/** The words every message that mentions the refund already uses, so none of them says it twice. */
+const GIVEN_BACK = "given back";
 
 /** The label the spec puts on a result: a person in it is labelled more strictly again (F-L1). */
 export const labelFor = (showsPerson: boolean): typeof GENERATED_LABEL | typeof GENERATED_PERSON_LABEL =>
@@ -103,7 +111,11 @@ async function settle(deps: ShootRunDeps, spent: Spent, message: string, attempt
     });
     refunded = given.refunded;
   }
-  return { ok: false, message, attempts, spent: 0, refunded, ruleId: SHOOT_GAP_RULE };
+  // Whatever went wrong, the sentence the person reads says what happened to the money. Several of
+  // the messages above say it themselves; the checker's own sentence is F-L1's words and does not,
+  // so the refund line is added to any message that has not said it already.
+  const said = refunded > 0 && !message.includes(GIVEN_BACK) ? `${message} ${REFUNDED_LINE}` : message;
+  return { ok: false, message: said, attempts, spent: 0, refunded, ruleId: SHOOT_GAP_RULE };
 }
 
 /** Reserves the platform's own spend for one model call. Refused when a cap is reached. */
@@ -157,7 +169,7 @@ export async function runShoot(deps: ShootRunDeps, ask: ShootRunAsk, signal: Abo
   for (let attempt = 1; attempt <= ATTEMPTS_ALLOWED; attempt += 1) {
     if (attempt > 1) {
       const again = await reserve(deps);
-      if (!again.ok) return await settle(deps, spent, CAPPED_MESSAGE, attempt - 1);
+      if (!again.ok) return await settle(deps, spent, CAPPED_RETRY_MESSAGE, attempt - 1);
       spent = { eventIds: [...spent.eventIds, again.eventId], credits: spent.credits };
     }
     let outcome: Attempt;
