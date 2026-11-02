@@ -118,7 +118,7 @@ describe("the twenty AI scenes of 07", () => {
     const { composeMockup, AI_SCENE_REFUSED } = await import("@/lib/mockups/compose");
     const scene = sceneBySlug("floodlit-pitch")!;
     await expect(
-      composeMockup({ scene, drawings: { front: new Uint8Array(), back: new Uint8Array() } }),
+      composeMockup({ scene, drawings: { front: new Uint8Array(), back: new Uint8Array(), edge: 8 } }),
     ).rejects.toThrow(AI_SCENE_REFUSED);
   });
 });
