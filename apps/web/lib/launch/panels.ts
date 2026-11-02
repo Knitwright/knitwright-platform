@@ -33,6 +33,14 @@ import type { ArtboardPreset, BoardView, LaunchProjectView, Point, ProjectColour
  *
  * L2 to L6 code against this file. It does not change without a loud note on the pull request,
  * because five workstreams depend on it.
+ *
+ * THREE THINGS FROM THE TEMPLATE LIBRARY (L8, decision 0098) that reach panels through here:
+ *   * `templates.kind` already exists, with the seven values of `07`. Do not add it again.
+ *   * `lib/templates/service.ts` parses every row of `templates` against the design shape, so a
+ *     workstream seeding `mockup_scene`, `marketing`, `video` or `flow` rows must first narrow
+ *     `loadLibrary` to `kind = 'design'` in the same change, or the design library page breaks.
+ *   * `authenticated` holds SELECT on `templates` column by column, so a migration that adds a
+ *     column grants it in that same migration, or every read of the table is refused.
  */
 
 /** Every panel the shell leaves for another workstream to fill. */

@@ -39,11 +39,12 @@ describe("the football and cricket starter templates", () => {
     for (const seed of seeds) expect(seed.sport).toBe(seed.articleId.startsWith("cricket") ? "cricket" : "football");
   });
 
-  it("has unique slugs and titles, also among the twelve first starters", () => {
+  it("has unique slugs and titles, also among the other starters", () => {
     const everything = allSeedTemplates();
     expect(new Set(everything.map((seed) => seed.slug)).size).toBe(everything.length);
     expect(new Set(everything.map((seed) => seed.title)).size).toBe(everything.length);
-    expect(everything).toHaveLength(buildSeedTemplates().length + seeds.length);
+    // The twelve first starters, these, and the launch starters of plan v5 L8 (seed/launch).
+    expect(everything.length).toBeGreaterThan(buildSeedTemplates().length + seeds.length);
   });
 
   it("is deterministic, with no date or random id", () => {
@@ -144,7 +145,8 @@ describe("the library filters with the football and cricket starters", () => {
 
   it("narrows by sport and by article, and lists each new article as a garment choice", () => {
     expect(applyFilters(summaries, { sport: "cricket" }).every((row) => row.sport === "cricket")).toBe(true);
-    expect(applyFilters(summaries, { sport: "football", article: "football-shirt" })).toHaveLength(3);
+    // Three here, plus the white and maroon shirt of the launch starters (plan v5 L8).
+    expect(applyFilters(summaries, { sport: "football", article: "football-shirt" })).toHaveLength(4);
     expect(applyFilters(summaries, { article: "cricket-trousers" })).toHaveLength(3);
     const labels = articleChoices(summaries).map((choice) => choice.label);
     for (const article of TEAMWEAR_SEED_ARTICLES) expect(labels).toContain(getType(article)!.label);

@@ -147,6 +147,23 @@ Three things already existed and are built on rather than around:
 * We would revisit this if a factory or the owner asks for a generated picture to be usable as artwork. That is not a
   UI change; it is spec decision 13, and it would need all three doors opened at once -- which is the point.
 
+## What L2 to L6 must know about the template library (L8, decision 0098)
+
+L8 merged while this branch was in flight, and three of its facts reach panels through this contract
+rather than through anything in this directory. They are written here so a panel author reads them
+once:
+
+1. **`templates.kind` already exists**, added by `supabase/migrations/20261201050000_template_kinds.sql`
+   with the seven values of `07` (design, kit_bundle, mockup_scene, marketing, video, flow, techpack).
+   Nobody adds it again.
+2. **`lib/templates/service.ts` reads the whole table and parses every row against the design shape.**
+   A workstream that seeds `mockup_scene`, `marketing`, `video` or `flow` rows must first narrow
+   `loadLibrary` to `kind = 'design'`, or the design library page breaks on its row. The seeding and
+   the narrowing go in the same change.
+3. **`authenticated` holds SELECT on `templates` column by column.** A column added later carries no
+   grant, and a read that names it is then refused for the whole table, not just that column. A
+   migration that adds a column to `templates` grants it in the same migration.
+
 ## Dependencies
 
 No new dependency. The shell uses what the app already carries: React, Next.js, zod, Tailwind, `@axe-core/playwright`

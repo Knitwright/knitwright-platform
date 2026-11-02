@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { TEMPLATES_PER_PAGE } from "../lib/templates/filters";
 import { allSeedTemplates } from "../lib/templates/seed/all";
 import { seedTemplates } from "../lib/templates/seed/seed";
 import { createAccount, signIn, test } from "./support";
@@ -48,10 +49,12 @@ test.describe("the template library", () => {
   test("narrows by sport and by colour family, and says when nothing matches", async ({ page }) => {
     await signedIn(page, "templates-filter");
     await page.goto("/templates");
-    await page.getByLabel("Sport").selectOption("cricket");
+    // Exactly "Sport": a template whose title holds the word, such as an esports jersey, is not the filter.
+    await page.getByLabel("Sport", { exact: true }).selectOption("cricket");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=cricket/);
-    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(allSeedTemplates().filter((seed) => seed.sport === "cricket").length);
+    const cricket = allSeedTemplates().filter((seed) => seed.sport === "cricket").length;
+    await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(Math.min(cricket, TEMPLATES_PER_PAGE));
 
     await page.goto("/templates?sport=running&colour=white");
     await expect(page.getByText("No template matches those filters.")).toBeVisible();
@@ -60,12 +63,13 @@ test.describe("the template library", () => {
   test("filters by football, uses a football starter and lands on version 1", async ({ page }) => {
     await signedIn(page, "templates-football");
     await page.goto("/templates");
-    await page.getByLabel("Sport").selectOption("football");
+    await page.getByLabel("Sport", { exact: true }).selectOption("football");
     await page.getByLabel("Garment").selectOption("football-shirt");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=football/);
     const items = page.getByRole("list", { name: "Templates" }).getByRole("listitem");
-    await expect(items).toHaveCount(3);
+    // The three football shirts of plan v4, plus the white and maroon one of the launch starters (plan v5 L8).
+    await expect(items).toHaveCount(4);
     await expect(items.first().getByText("Knitwright starter, not reviewed by a factory")).toBeVisible();
     await page.getByRole("button", { name: "Use this template: Red football shirt, white trim" }).click();
     await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
@@ -84,6 +88,19 @@ test.describe("the template library", () => {
     await expect(page.getByText("Navy and gold hoops").first()).toBeVisible();
     await page.goto("/templates");
     await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(12);
+  });
+
+  test("lists the launch starters on the garments plan v5 added, each marked as not reviewed", async ({ page }) => {
+    // Plan v5 L8: the hoodies, the compression top and the training shorts had no starter before.
+    await signedIn(page, "templates-launch");
+    await page.goto("/templates?sport=training&article=pullover-hoodie");
+    const items = page.getByRole("list", { name: "Templates" }).getByRole("listitem");
+    await expect(items.first().getByText("Knitwright starter, not reviewed by a factory")).toBeVisible();
+    await expect(page.getByText("Club training hoodie, navy with white trim")).toBeVisible();
+    await expect(page.getByText("Coaches' hoodie, black with grey trim")).toBeVisible();
+
+    await page.goto("/templates?article=compression-top");
+    await expect(page.getByText("Rash guard, black with maroon binding")).toBeVisible();
   });
 
   test("offers templates first on the start page, and the blank canvas second", async ({ page }) => {
