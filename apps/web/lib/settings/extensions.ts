@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { FACTORY_SETTINGS } from "@/lib/factory/settings";
 import { VIDEO_SETTINGS } from "@/lib/media/video/model-settings";
+import { OPS_INSPECTION_SETTINGS } from "@/lib/ops/inspection/settings";
 import { PATTERN_SERVICE_SETTINGS } from "@/lib/pattern-service/settings";
 import type { SettingDef } from "./types";
 
@@ -26,4 +27,6 @@ export const EXTENSION_SETTINGS: readonly SettingDef[] = [
   // Plan v5 L5 (decision 0095): the AI video board's model list, its credits a second, which models
   // hold a commercial licence, and how many frames of a clip the checker samples. No key or secret.
   ...VIDEO_SETTINGS,
+  // Plan v5 O1 (decision 0100): the run size above which a third-party inspection is offered (F-O3).
+  ...OPS_INSPECTION_SETTINGS,
 ];

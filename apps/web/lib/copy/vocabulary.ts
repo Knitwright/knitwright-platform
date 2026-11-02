@@ -27,6 +27,9 @@ export const PLAIN_WORDS: Readonly<Record<string, string>> = {
   "bill of materials": "parts list",
   "care label": "washing label",
   svg: "drawing file",
+  // Brand Studio (decision 0079). A brand reads these words on the Colours and Sportswear tabs.
+  gamut: "the colours a print can reach",
+  sublimation: "printing with heat",
 };
 
 const capitalised = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
