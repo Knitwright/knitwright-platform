@@ -68,7 +68,7 @@ export function OverviewPanel({ record, checked }: Props) {
       <FindingList title="What we noticed" findings={[...colourFindings(record.palettes), ...allAssetFindings(checked)]} />
 
       <p className="text-[13px] text-muted">
-        Your club kit and rosters are on the <Link href="/club" className="soft-link text-cobalt-soft">Club page</Link>.
+        Your club kit and rosters are on the <Link href="/club" className="soft-link text-ink underline underline-offset-4">Club page</Link>.
       </p>
     </div>
   );

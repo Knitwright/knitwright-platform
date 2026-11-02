@@ -79,7 +79,7 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
     return (
       <Notice>
         Upload your {ASSET_KIND_LABELS[kind].toLowerCase()} in a design&apos;s artwork first, then choose it here.{" "}
-        <Link href="/studio" className="soft-link text-cobalt-soft">
+        <Link href="/studio" className="soft-link text-ink underline underline-offset-4">
           Open a design
         </Link>
         .
