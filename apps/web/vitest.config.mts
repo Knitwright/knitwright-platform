@@ -111,10 +111,14 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Joins the flow screens to the launch canvas, the credit ledger and the flow tables; the
+        // order, the estimate, the refunds, the artwork check and the summary are tested on their
+        // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
+        "lib/flows/server.ts",
         // Join the market panel and the translated tech pack to the outside world: one gathers the market's
         // own row and the production settings, the other reads the translation library. The tax treatment,
         // the market summary and the dictionary are tested on their own, and the database and end-to-end
-        // tests cover the joining (plan v5 O3, decision 0102).
+        // tests cover the joining (plan v5 O3, decision 0103).
         "lib/markets/server.ts",
         "lib/translate/server.ts",
       ],
@@ -142,15 +146,10 @@ export default defineConfig({
         // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        /*
-         * The production outputs (plans/production-outputs.md), each held to the higher mark. One
-         * name per line and in alphabetical order, deliberately: this was a single line of about a
-         * thousand characters, and because every workstream added its directory to that one line,
-         * every pair of branches conflicted on it. Five of those conflicts were resolved by hand in
-         * one day on pull requests whose own work was already finished and green, each costing a
-         * further full run. One name per line means two workstreams touch two lines and git merges
-         * them by itself. Keep it sorted, and add only your own name.
-         */
+        // The committee link and the roster sign-up are public pages a club's own people use without an
+        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
+        "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
           [
             "artwork-intake",
@@ -171,6 +170,7 @@ export default defineConfig({
             "designers",
             "fabrics",
             "factory",
+            "flows",
             "gltf",
             "guardrails",
             "home",
@@ -200,6 +200,7 @@ export default defineConfig({
             "translate",
             "validation",
             "variants",
+          
           ].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },

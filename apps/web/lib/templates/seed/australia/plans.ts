@@ -5,7 +5,7 @@ import type { ClubColours } from "@/lib/kit-styles/presets";
 
 /**
  * The starters for the Australian market: Australian football, netball and cricket
- * (`docs/spec/06-build-plan.md` phase 3 item 13; plan v5 O3, decision 0102).
+ * (`docs/spec/06-build-plan.md` phase 3 item 13; plan v5 O3, decision 0103).
  *
  * These are **beside** the 60 design templates of `docs/spec/07-template-library.md`, not part of them:
  * `07`'s table and its launch count are a UK-first library and L8 filled them exactly (decision 0098).

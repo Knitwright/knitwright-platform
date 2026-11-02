@@ -125,7 +125,7 @@ export const countryRuleSchema = z.object({
   labelRules: z.record(z.string(), z.unknown()),
   freightDays: z.number().int().min(0).max(120).nullable(),
   sellingEnabled: z.boolean(),
-  /** 'VAT' or 'GST': which tax the market charges on a sale. Null: not recorded (decision 0102). */
+  /** 'VAT' or 'GST': which tax the market charges on a sale. Null: not recorded (decision 0103). */
   taxName: z.enum(["VAT", "GST"]).nullable(),
   /** The sales figure above which the seller must register for that tax, in the market's minor units. */
   taxRegistrationThresholdMinor: z.number().int().min(0).nullable(),

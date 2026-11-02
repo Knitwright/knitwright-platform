@@ -3,7 +3,7 @@ import type { Language } from "./languages";
 
 /**
  * The English words each key stands for, and the labelled default of each translation (plan v5 O3,
- * decision 0102).
+ * decision 0103).
  *
  * The rows of `translation_strings` are what the platform runs on, exactly as the rows of
  * `platform_settings` are (`lib/settings/registry.ts`). This file holds the same words in code, for

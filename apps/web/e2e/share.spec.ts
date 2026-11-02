@@ -73,9 +73,12 @@ test.describe("sharing a design with a committee", () => {
     await panel.getByRole("button", { name: "Revoke" }).click();
     await expect(panel.getByTestId("share-link")).toHaveAttribute("data-state", "revoked");
 
+    // Still a 404, and still nothing to tell a revoked link from an unknown one. Plan v5 Z7
+    // (decision 0086) gave the page under /s its own words, because a committee member on a phone
+    // can act on "ask the person who sent it" and cannot act on "there is nothing at this address".
     const gone = await guest.goto(address);
     expect(gone?.status()).toBe(404);
-    await expect(guest.getByRole("heading", { name: "Page not found" })).toBeVisible();
+    await expect(guest.getByRole("heading", { name: "This link does not work" })).toBeVisible();
     await visitor.close();
   });
 
@@ -83,6 +86,6 @@ test.describe("sharing a design with a committee", () => {
     const response = await page.goto(`/s/${"A".repeat(43)}`);
 
     expect(response?.status()).toBe(404);
-    await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "This link does not work" })).toBeVisible();
   });
 });

@@ -25,7 +25,7 @@ interface FileNameInput {
   /**
    * Which language the PDF's fixed words are set in. Left out, or English, names nothing: the English
    * document keeps the name it always had. Another language is named in the file, so a factory holding
-   * two copies of one pack can tell them apart before opening either (decision 0102).
+   * two copies of one pack can tell them apart before opening either (decision 0103).
    */
   readonly language?: Language;
 }

@@ -33,7 +33,7 @@ export const PICTURE_SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>(["fla
  * The drawing with the text in it made safe for the font. The drawing it is given is not changed.
  * The drawing keeps the Latin font whatever language the pages are set in — `lib/flat/render-pdf.ts`
  * draws its own labels in that one — so its text is made safe against that font and not against the
- * document's (decision 0102).
+ * document's (decision 0103).
  */
 function withSafeText(model: FlatModel): FlatModel {
   return {

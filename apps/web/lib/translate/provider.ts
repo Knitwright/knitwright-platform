@@ -30,7 +30,7 @@ export interface TranslationProposal {
   readonly translatedBy: string;
   /** Always true: these words came from a machine. */
   readonly machine: true;
-  /** Always null: a service never reviews its own work (decision 0102). */
+  /** Always null: a service never reviews its own work (decision 0103). */
   readonly reviewedBy: null;
   readonly label: string;
 }

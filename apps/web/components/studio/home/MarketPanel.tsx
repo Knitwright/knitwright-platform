@@ -3,7 +3,7 @@ import type { MarketSummary } from "@/lib/markets/view";
 
 /**
  * What choosing a market means, beside the selector that chose it (spec F-S8; plan v5 O3, decision
- * 0102): the currency, the tax treatment, the label lines a garment sold there may carry, what is
+ * 0103): the currency, the tax treatment, the label lines a garment sold there may carry, what is
  * still missing before a date can be promised, and the market row's own label.
  *
  * Nothing here is a figure of its own. Every line is read from `lib/markets`, which reads the market's

@@ -5,7 +5,7 @@ import { SOURCE_LANGUAGE, type Language } from "./languages";
 import { TRANSLATION_COLUMNS, toTranslationRows, type TranslationRow } from "./rows";
 
 /**
- * The words one language holds in the library (decision 0102). Joins `translation_strings` to the
+ * The words one language holds in the library (decision 0103). Joins `translation_strings` to the
  * caller's own client and holds no rules of its own: `rows.ts` reads a row and `dictionary.ts` decides
  * what a document says.
  *

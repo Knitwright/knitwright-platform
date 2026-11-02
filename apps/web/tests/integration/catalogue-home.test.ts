@@ -73,7 +73,7 @@ describe("the catalogue grid, from the rows a member can read", () => {
 });
 
 /**
- * The label every seeded club tier carries. O3 (decision 0102) added the second sentence: the AUD half of
+ * The label every seeded club tier carries. O3 (decision 0103) added the second sentence: the AUD half of
  * the ladder has no price, because the build pack gives a GBP target ladder and no Australian one.
  */
 const CLUB_LADDER_LABEL = "Placeholder club price from the build pack, not a factory quote. No AUD price: the build pack gives GBP only.";

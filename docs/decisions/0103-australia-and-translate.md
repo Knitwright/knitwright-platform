@@ -1,4 +1,4 @@
-# 0102. Australia and Translate: the AUD ladder, the GST trigger as data, Australia's label rules, the Australian starters, and the tech pack in Urdu
+# 0103. Australia and Translate: the AUD ladder, the GST trigger as data, Australia's label rules, the Australian starters, and the tech pack in Urdu
 
 Status: Proposed; no AUD price, no care symbol and no reviewed translation exists, so each is a named gap with an owner question.
 Index: Proposed; the AUD prices, the care line and the Urdu review are named gaps, not figures

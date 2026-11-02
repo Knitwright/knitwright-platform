@@ -24,7 +24,7 @@ export interface PdfOptions {
   readonly pictureLeftOut?: boolean;
   /** AI pictures of the design, added to the reference-images page and labelled as illustrations. */
   readonly illustrations?: ExportIllustrations | null;
-  /** Which language the fixed words of the pages are set in. English by default (decision 0102). */
+  /** Which language the fixed words of the pages are set in. English by default (decision 0103). */
   readonly language?: Language;
   /** The words the library holds for that language. Empty: the labelled draft in the code is used. */
   readonly translations?: readonly TranslationRow[];

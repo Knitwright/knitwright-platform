@@ -10,7 +10,7 @@ export const PDF_FONT_FAMILY = "Geist";
 export const PDF_FONT_FILE = join(process.cwd(), "assets", "fonts", "Geist-Regular.ttf");
 
 /**
- * The font the Urdu pages of a tech pack are set in (plan v5 O3, decision 0102).
+ * The font the Urdu pages of a tech pack are set in (plan v5 O3, decision 0103).
  *
  * Noto Naskh Arabic, licensed under the SIL Open Font License 1.1, which allows embedding it in a PDF.
  * It is a Naskh face: it shapes Urdu correctly and is legible, but it is not the Nastaliq style an Urdu

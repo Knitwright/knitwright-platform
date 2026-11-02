@@ -1,6 +1,6 @@
 /**
  * The languages the platform can set a document in (spec F-S6 "Translate", `docs/spec/06-build-plan.md`
- * phase 3 item 12; plan v5 O3, decision 0102).
+ * phase 3 item 12; plan v5 O3, decision 0103).
  *
  * English is the language every value is written in and the one a factory works to. Urdu is for the
  * floor staff in Sialkot, who read the pack rather than the brief. Nothing here is a translation: the

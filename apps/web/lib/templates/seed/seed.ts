@@ -31,7 +31,7 @@ export const rowOf = (seed: SeedTemplate) => {
  */
 /**
  * Every starter the library holds: the 60 of `07` (L8, decision 0098) and the Australian starters beside
- * them (O3, decision 0102). `allSeedTemplates()` stays the 60 exactly, because that is what `07`'s launch
+ * them (O3, decision 0103). `allSeedTemplates()` stays the 60 exactly, because that is what `07`'s launch
  * count counts, and the Australian rows have their own count in `australia/build.ts`.
  */
 export const everySeedTemplate = (): readonly SeedTemplate[] => [...allSeedTemplates(), ...australiaSeedTemplates()];

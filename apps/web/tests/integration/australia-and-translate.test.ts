@@ -12,7 +12,7 @@ import { adminClient, anonClient, brandOf, must, person, type Person } from "./s
 
 /**
  * Migration 20261210030000_australia_and_translate.sql against the real database (plan v5 O3, decision
- * 0102): Australia's tax treatment, the AUD half of the price ladder, why the care line is refused, and
+ * 0103): Australia's tax treatment, the AUD half of the price ladder, why the care line is refused, and
  * the translation library with nobody's name against any of it.
  *
  * Every test reads. Nothing here inserts a row into a seeded table, because the database is shared.

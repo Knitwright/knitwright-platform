@@ -213,6 +213,11 @@ describe("the words in the other parts of the product", () => {
     // one of that plan's four statuses (Draft · Sampling · Approved · Ordered), set by the founder on their own
     // style card. It says nothing about a design, a measurement or a factory sign-off.
     "approved styles",
+    // Plan v5 Z7 (decision 0086): spec F-T3's own wording. This is one committee member's record of
+    // their own act — "NAME approved version N on DATE" — shown only from the row that holds who,
+    // under what name, when and against which version, exactly as the factory sign-off above is. It
+    // says nothing about a measurement, a drawing or anything Knitwright or a factory checked.
+    "approved version",
   ];
   const withoutWide = (text: string): string => WIDE_ALLOWED.reduce((left, phrase) => left.split(phrase).join(" "), text);
 

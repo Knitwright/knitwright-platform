@@ -20,7 +20,7 @@ import { COLOURS, MARGIN, SIZES } from "./styles";
  *
  * A page set in another language reads the other way: the header fields, the tables and the text all
  * run right to left, the words of the furniture come from the typeset, and the page carries the
- * notice that nobody has read the translation (decision 0102). Everything a person typed stays
+ * notice that nobody has read the translation (decision 0103). Everything a person typed stays
  * exactly as they typed it, in the language they typed it in.
  */
 

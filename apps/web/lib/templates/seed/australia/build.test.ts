@@ -9,7 +9,7 @@ import { AUSTRALIA_SEED_COUNT, australiaSeedTemplates } from "./build";
 import { AUSTRALIA_BLOCK_PLANS, AUSTRALIA_GAPS, AUSTRALIA_KIT_STYLE_PLANS } from "./plans";
 
 /**
- * The Australian starters (plan v5 O3, decision 0102): Australian football, netball and cricket, beside
+ * The Australian starters (plan v5 O3, decision 0103): Australian football, netball and cricket, beside
  * the 60 of `docs/spec/07-template-library.md` and not inside them.
  */
 

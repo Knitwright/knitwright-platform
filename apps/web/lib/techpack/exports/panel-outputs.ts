@@ -45,7 +45,7 @@ const notYet = (id: string, label: string, reason: string): ExportOutput => ({ i
  * The PDF of the sixteen pages, the same PDF in each other language the platform can set it in, and
  * the Excel file of the eleven sheets.
  *
- * A translated copy says in its own label that nobody has read the translation (decision 0102), so a
+ * A translated copy says in its own label that nobody has read the translation (decision 0103), so a
  * person choosing it on this panel knows before they download it, and not only once they open it.
  */
 export const techPackOutputs = (input: PanelInput): readonly ExportOutput[] => [

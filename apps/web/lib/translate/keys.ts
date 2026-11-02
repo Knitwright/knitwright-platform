@@ -1,5 +1,5 @@
 /**
- * Every fixed word of a document that can be set in another language (plan v5 O3, decision 0102).
+ * Every fixed word of a document that can be set in another language (plan v5 O3, decision 0103).
  *
  * The list is closed on purpose. A key that is not here cannot be translated, and a key that is here
  * has an English word in `strings.ts` and a row per language in `translation_strings`. What is in the
