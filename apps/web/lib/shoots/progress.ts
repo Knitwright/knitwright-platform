@@ -1,6 +1,6 @@
 import type { BoardStatus } from "@/lib/launch";
 import { clock } from "@/lib/media/video/formats";
-import { ATTEMPTS_ALLOWED } from "./check";
+import { ATTEMPTS_ALLOWED } from "./types";
 
 /**
  * HONEST PROGRESS WHILE A SHOOT RUNS (spec F-L1: "Each result appears as an AI Image board with a

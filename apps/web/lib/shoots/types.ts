@@ -17,6 +17,13 @@
  * a run is refused rather than guessed at when one is missing.
  */
 
+/**
+ * How many attempts one shoot gets: the first, and the one automatic retry F-L1 asks for ("Failures
+ * auto-regenerate once"). It lives here, with the other values a browser may carry, so the panel can
+ * say the retry is running without importing the checker and all of its machinery.
+ */
+export const ATTEMPTS_ALLOWED = 2;
+
 /** No rulebook entry covers the shoot studio yet, so every row, finding and refusal carries this. */
 export const SHOOT_GAP_RULE = "R-GAP-000";
 

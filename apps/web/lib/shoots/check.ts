@@ -1,7 +1,7 @@
 import { checkGeneration } from "@/lib/media-check";
 import { THRESHOLDS_NOTE } from "@/lib/media-check/settings";
 import type { CheckInput, CheckName, CheckReport, Finding, ProtectedRegion } from "@/lib/media-check/types";
-import { SHOOT_GAP_RULE } from "./types";
+import { ATTEMPTS_ALLOWED, SHOOT_GAP_RULE } from "./types";
 
 /**
  * THE GARMENT CHECKER ON EVERY RESULT (spec F-L1's rules: "The garment checker compares the garment
@@ -28,8 +28,8 @@ export const DRIFT_MESSAGE = "Couldn't keep your garment accurate, try another p
 /** What is added after it, so the person knows the money came back. */
 export const REFUNDED_LINE = "The credits for this shoot have been given back.";
 
-/** How many attempts one shoot gets: the first, and the one automatic retry F-L1 asks for. */
-export const ATTEMPTS_ALLOWED = 2;
+/** How many attempts one shoot gets. The number lives in `types.ts`, which carries no checker. */
+export { ATTEMPTS_ALLOWED } from "./types";
 
 export const UNREADABLE_MESSAGE = "The picture could not be read back as a picture, so it was not kept.";
 

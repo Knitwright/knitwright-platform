@@ -111,6 +111,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
 | 0091 | [The launch shell and its boards](0091-launch-shell-and-boards.md) | Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed |
 | 0092 | [The mockup studio, deterministic and live-linked (L2)](0092-mockup-studio.md) | Proposed; every scene, backdrop, crop size and turned view is a labelled placeholder, owner questions listed |
+| 0093 | [AI scenes and shoots](0093-ai-scenes-and-shoots.md) | Proposed; no model preset has a licence on file so none can be used, every credit figure is a labelled placeholder, owner questions listed |
 | 0094 | [The marketing studio (L4)](0094-marketing-studio.md) | Proposed; CMYK is refused because no colour profile may be committed, every slot figure and character limit is a labelled placeholder, owner questions listed |
 | 0095 | [The video studio](0095-video-studio.md) | Proposed; the encoder is the browser recorder until a deploy target with ffmpeg exists, every credit figure and every model row is a labelled placeholder, owner questions listed |
 | 0096 | [Flows, the launch pack on one canvas (L6)](0096-flows.md) | Proposed; every credit figure is a labelled placeholder, every flow pack is a labelled default nobody has reviewed, owner questions listed |
