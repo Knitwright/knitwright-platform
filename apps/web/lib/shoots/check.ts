@@ -90,11 +90,14 @@ export async function checkShootResult(input: ShootCheckInput, check: Check = ch
     };
   }
   const kept = report.verdict === "passed";
+  // A picture the checker could not read is a different thing from a garment that drifted, and the
+  // person is told which: "try another pose" is useless advice for bytes that were not a picture.
+  const unreadable = report.findings.some((finding) => finding.check === "input");
   return {
     verdict: kept ? "kept" : "turned_away",
     findings: report.findings,
     failedChecks: report.failedChecks,
-    message: kept ? null : driftMessage(false),
+    message: kept ? null : unreadable ? UNREADABLE_MESSAGE : driftMessage(false),
     thresholdsNote: report.thresholdsNote,
     ruleId: SHOOT_GAP_RULE,
   };
