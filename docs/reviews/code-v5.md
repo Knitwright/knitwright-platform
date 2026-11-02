@@ -31,7 +31,7 @@ The review was written while `fix/v5-wave4-wiring` (#140) was still open. Every 
 | Rule ids that resolve to nothing | **none in production source.** Every `R-<TOPIC>-<NNN>` outside tests is either in a published rulebook or is `R-GAP-000`. Two exceptions, both deliberate: `R-SUB-009` as a format example in the admin rule editor's hint, and `R-TOPIC-001` in a doc comment |
 | `R-GAP-000` | 588 textual occurrences, **102 distinct subjects in 14 groups**, 29 of them opened by two or more workstreams |
 | Invented values | no currency conversion anywhere; three modules actively refuse to convert. One schema that cannot say "no tolerance agreed" (H3) and three unsourced tolerances that decide something (M6) |
-| Duplicate implementations of one rule | **21 groups.** Two carry a behavioural divergence that is a defect, not a style difference (H1, H2) |
+| Duplicate implementations of one rule | **25 groups** (26 rows in §1; D7 is listed to say it is *not* one). Two carry a behavioural divergence that is a defect, not a style difference (H1 = D8, H2 = D14) |
 | Outstanding unwired seams | **96**, in five kinds. Twenty-two are a built component that nothing mounts |
 | Wording guard | satisfied by accident in two ways; both fixed (see "Wording") |
 
@@ -53,8 +53,9 @@ fixed. Everything fixed in this PR is listed under "Fixed here".
 
 ## 1. The same thing built twice
 
-Twenty-one groups. Eight of them are *self-declared*: the second author left a comment saying they were copying and that the
-two should become one. Those comments are the strongest evidence in this review, and they are listed first.
+Twenty-five groups, in 26 rows: D7 is listed to say it is *not* a duplicate, because reusing by name was the right answer
+there. **Eight rows carry a comment from the second author** saying they were copying and that the two should become one — the
+strongest evidence in this review, so they are listed first; seven of those eight are duplicates and the eighth is D7.
 
 ### Self-declared duplicates
 
@@ -428,7 +429,7 @@ Four, each with a test that fails without it. Nothing else was changed: no migra
 ## Deferred, with the owner question each needs
 
 H1 (may a viewer spend a brand's credits? — also R1's), H2 (should a vector crest be read at 150 DPI everywhere?), H3
-(nullable tolerances with provenance, and a provenance column on `pom.csv`?), the nineteen other duplicate groups of §1 (each
+(nullable tolerances with provenance, and a provenance column on `pom.csv`?), the twenty-three other duplicate groups of §1 (each
 names its winner; D15, D18 and D21's `£` literal are the cheapest), the three unsourced tolerances of §4 (should
 `SEAM_TOLERANCE_MM`, `REDUCTION_TOLERANCE_PCT` and `DEFAULT_GAP_MM` become labelled settings, and should the marker gap join
 the assumptions list?), the erasure gap behind D-22 (should `erase_committee_pin` and `erase_signup_entry` exist?), the four

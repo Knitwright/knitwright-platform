@@ -1,7 +1,7 @@
 # 0112: The v5 code review, and the four guards it closed
 
 Status: Proposed. `docs/reviews/code-v5.md` is written; four small fixes are made, each with a test that fails
-without it; twenty-one duplicate implementations, ninety-six unwired seams, 102 distinct rule gaps and ten
+without it; twenty-five duplicate implementations, ninety-six unwired seams, 102 distinct rule gaps and ten
 invented-value findings are recorded there for their own workstreams and for the owner.
 Index: Proposed; code review of all thirty v5 workstreams, four guards closed, 21 duplicate implementations and 96 unwired seams recorded, owner questions listed
 Index title: The v5 code review
@@ -25,7 +25,7 @@ is where this review's findings come from, and it is worth saying which way roun
 sloppy code. It produced **the same careful thing built twice**, by two authors who each reasoned correctly from the
 same rules and did not know the other existed.
 
-Eight of the twenty-one duplicate groups are self-declared: the second author left a comment saying they were copying
+Eight rows of the twenty-five duplicate groups carry a comment from the second author saying they were copying
 and that the two should become one. L7's is the clearest — *"The same list as `lib/benchmarks/fetch.ts`, which does
 not export it; when either directory is next opened the two should become one exported constant"* — and it names the
 cause as well as the fact. Z3 did not export its private-host regex. There was no barrier of any other kind: the two
@@ -144,7 +144,7 @@ directories import freely from one another.
    a pin, a vote and an approval are append-only by trigger and a sign-up entry has no erase function, unlike
    `roster_players` and `club_invitations`. A committee member who asks for their words to be removed can be answered
    today only by deleting the whole design.
-6. **Which of the twenty-one duplicate groups should be merged, and by whom?** Each names its winner in the review.
+6. **Which of the twenty-five duplicate groups should be merged, and by whom?** Each names its winner in the review.
    The cheapest three are `lib/design-import/marks.ts:90` (delete one line, import the identical exported function one
    directory away), the four copies of the react-pdf document shell (two of which carry real defects — a missing page
    footer and a title that skips the font-coverage guard), and the literal `£` at
