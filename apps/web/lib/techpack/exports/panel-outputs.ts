@@ -1,4 +1,5 @@
 import type { View } from "@/lib/flat/model";
+import { LANGUAGES, LANGUAGE_FACTS, SOURCE_LANGUAGE } from "@/lib/translate/languages";
 import { TECH_PACK_PAGES } from "./pages";
 import { TECH_PACK_TABS } from "./tabs";
 import type { ExportOutput, ExportPanelTabId, ImageOptions, PanelInput, PatternOptions } from "./panel";
@@ -40,9 +41,22 @@ export const EVERY_SECTION_NOTE = "Both files carry every section. Leaving one o
 const ready = (id: string, label: string, address: string): ExportOutput => ({ id, label, address, notYet: null });
 const notYet = (id: string, label: string, reason: string): ExportOutput => ({ id, label, address: null, notYet: reason });
 
-/** The PDF of the sixteen pages, and the Excel file of the eleven sheets. */
+/**
+ * The PDF of the sixteen pages, the same PDF in each other language the platform can set it in, and
+ * the Excel file of the eleven sheets.
+ *
+ * A translated copy says in its own label that nobody has read the translation (decision 0102), so a
+ * person choosing it on this panel knows before they download it, and not only once they open it.
+ */
 export const techPackOutputs = (input: PanelInput): readonly ExportOutput[] => [
   ready("pdf", `PDF, ${TECH_PACK_PAGES.length} pages`, exportAddress(input, "pdf")),
+  ...LANGUAGES.filter((language) => language !== SOURCE_LANGUAGE).map((language) =>
+    ready(
+      `pdf-${language}`,
+      `PDF in ${LANGUAGE_FACTS[language].label} (${LANGUAGE_FACTS[language].endonym}), ${TECH_PACK_PAGES.length} pages. Nobody has read the translation.`,
+      exportAddress(input, "pdf", [`language=${language}`]),
+    ),
+  ),
   ready("xlsx", `Excel, ${TECH_PACK_TABS.length} sheets`, exportAddress(input, "xlsx")),
 ];
 
