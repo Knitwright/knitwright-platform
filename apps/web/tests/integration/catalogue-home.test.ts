@@ -72,6 +72,12 @@ describe("the catalogue grid, from the rows a member can read", () => {
   });
 });
 
+/**
+ * The label every seeded club tier carries. O3 (decision 0102) added the second sentence: the AUD half of
+ * the ladder has no price, because the build pack gives a GBP target ladder and no Australian one.
+ */
+const CLUB_LADDER_LABEL = "Placeholder club price from the build pack, not a factory quote. No AUD price: the build pack gives GBP only.";
+
 describe("the prices the server reads", () => {
   it("show a member nothing, so the card's price can only come from the server", async () => {
     for (const table of ["factories", "factory_capabilities", "price_tiers"]) {
@@ -84,9 +90,9 @@ describe("the prices the server reads", () => {
     expect(book.factoryName).toBe("Sialkot partner (placeholder)");
     expect(book.source("JSY-SS-01").moq).toBe(1);
     expect(ladderRows(book.source("JSY-SS-01").ladder, "GBP")).toEqual([
-      { quantity: "10-19", unit: "£29.00", priced: true, label: "Placeholder club price from the build pack, not a factory quote", ruleId: "R-COST-003" },
-      { quantity: "20-49", unit: "£25.00", priced: true, label: "Placeholder club price from the build pack, not a factory quote", ruleId: "R-COST-003" },
-      { quantity: "50+", unit: "£22.00", priced: true, label: "Placeholder club price from the build pack, not a factory quote", ruleId: "R-COST-003" },
+      { quantity: "10-19", unit: "£29.00", priced: true, label: CLUB_LADDER_LABEL, ruleId: "R-COST-003" },
+      { quantity: "20-49", unit: "£25.00", priced: true, label: CLUB_LADDER_LABEL, ruleId: "R-COST-003" },
+      { quantity: "50+", unit: "£22.00", priced: true, label: CLUB_LADDER_LABEL, ruleId: "R-COST-003" },
     ]);
   });
 
