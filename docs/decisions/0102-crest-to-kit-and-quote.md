@@ -157,6 +157,10 @@ Six things shaped every decision below.
   is needed for the feature to work and a live paid call may not be made from a test or an agent's own run.
 - **No placement table**, so the crest is recorded in the configurator's fixed slot and placed in the Studio editor
   (Z5's question 7).
+- **No delivery postcode.** F-T5's flow names one, but nothing in the factory data is finer than a country: freight days
+  live on a `country_rules` row, and the market the club is reading in already says which country that is. A postcode
+  would be a field with nothing behind it. It becomes useful the day a carrier gives rates by area, and is owner
+  question 10.
 - **The create-new modal's "From your crest or logo" card still opens `/club`.** `lib/home/cards.ts` is workstream Y1's
   file, not this one's; the card's target should become `/crest-to-kit`, and that is owner question 7.
 - **No entry in the studio top bar.** The bar is structurally over capacity at every desktop width (Z5's question 8,
@@ -199,3 +203,5 @@ and the quote number's own format. Each one carries `R-GAP-000` in code and is l
    quote (`quoteSource`); wiring them is a one-line change in a file Z5 owns.
 9. **What should a crest-to-kit run cost, if a model is ever wired to rank the kits?** `meteredRanker` takes a figure
    and reserves it before the call; no figure is set, because no model is wired.
+10. **Should a quote take a delivery postcode?** F-T5's flow names one, and nothing in the factory data is finer than a
+    country, so it would be a field with nothing behind it until a carrier gives rates by area.
