@@ -71,7 +71,12 @@ describe("the seeded factory model", () => {
     const [fabrics, rules] = await Promise.all([store().listFabrics(), store().listCountryRules()]);
     for (const row of [...fabrics, ...rules]) expect(row.ruleId, row.label).toMatch(/^R-[A-Z]+-\d{3}$/);
     expect(fabrics.filter((f) => f.ruleId === "R-SUB-001").map((f) => f.code)).toEqual(["F-POLY-4W", "F-POLY-EL", "F-POLY-INT", "F-POLY-PQ"]);
-    expect(rules.every((r) => r.ruleId === "R-GAP-000")).toBe(true);
+    // This migration seeded VAT, duty and the low-value threshold under R-GAP-000, because no rulebook entry
+    // covers any of them, and said R-LAB-002 "will explain label_rules once those are written". Z8 wrote the
+    // part of that wording a source states (decision 0089), so the two open markets now carry R-LAB-002 and
+    // the two closed ones, which have no wording at all, still carry the gap.
+    expect(rules.filter((r) => r.ruleId === "R-LAB-002").map((r) => r.country)).toEqual(["AU", "GB"]);
+    expect(rules.filter((r) => r.ruleId === "R-GAP-000").map((r) => r.country)).toEqual(["EU", "US"]);
   });
 });
 
