@@ -67,6 +67,11 @@ export function StickyFooter(props: StickyFooterProps) {
               step={1}
               value={quantity}
               onChange={(event) => props.onQuantity(Number(event.target.value))}
+              // The stepper sits inside the Save form, and Enter in a field sends a form. Typing a
+              // quantity must not save a design.
+              onKeyDown={(event) => {
+                if (event.key === "Enter") event.preventDefault();
+              }}
               className="h-11 w-20 rounded-xl border border-white/20 bg-black/20 text-center text-[15px] text-ink"
               data-testid="teamwear-quantity"
             />

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getType } from "@/lib/garment";
 import { articleBook, jersey } from "./fixtures/kit";
 import { chooseOption, partOf, settle, settleEverywhere, startingKit, withPart} from "./kit";
 import {
@@ -60,6 +61,8 @@ describe("the accordion rows of a part", () => {
     const row = rowsOf("shirt").find((entry) => entry.id === MODEL_ROW)!;
     expect(row.value).toBe("JSY-SS-01 · regular · Men");
     expect(row.kind === "model" && row.note).toMatch(/not reviewed by a factory/);
+    // The wearers come from the registry type, not from every wearer the platform knows.
+    expect(row.kind === "model" && row.wearers).toEqual(getType("football-shirt")?.wearers);
     expect(row.kind === "model" && row.wearers).toEqual(["men", "women", "youth"]);
   });
 

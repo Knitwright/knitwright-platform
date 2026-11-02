@@ -1,6 +1,6 @@
 import type { BaseArticle } from "@/lib/catalogue";
 import { humanise, optionGroups, parameterSliders, signedMm, type OptionGroupView, type ParameterSlider } from "@/lib/editor";
-import { WEARERS, type Wearer } from "@/lib/garment";
+import { getType, WEARERS, type Wearer } from "@/lib/garment";
 import { wearerLabel } from "@/lib/projects/wearers";
 import { ELEMENT_SLOTS, ELEMENT_SLOT_LABELS, type KitPart, type PartChoice, type TeamwearKit } from "./kit";
 import { GAP_RULE_ID, RULES } from "./vocabulary";
@@ -51,7 +51,9 @@ const modelRow = (kit: TeamwearKit, part: KitPart, article: BaseArticle | null, 
   label: "Model & fit",
   value: article === null ? part.typeId : `${article.code} · ${article.fit ?? "fit not stated"} · ${wearerLabel(kit.wearer)}`,
   note: article === null ? NO_ARTICLE_NOTE : article.dataLabel,
-  wearers: WEARERS,
+  // The wearers this garment is made for, from the registry, not every wearer there is: a design
+  // saved for a wearer its type does not list is refused by the garment rules.
+  wearers: getType(part.typeId)?.wearers ?? WEARERS,
   wearer: kit.wearer,
   ruleId: GAP_RULE_ID,
   settled: choice.settled.includes(MODEL_ROW),

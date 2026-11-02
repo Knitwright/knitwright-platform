@@ -40,6 +40,8 @@ export default function KitStage({ flat, sportId, view, turning, snapshotAt, onS
   const scene = useRef<KitStageScene | null>(null);
   const [failed, setFailed] = useState(false);
   const [readyMs, setReadyMs] = useState<number | null>(null);
+  /** Whether the first drawn frame has been reported. It is reported once per session, never again. */
+  const reported = useRef(false);
   const mesh = useMemo(() => buildGarmentMesh(flat.shape), [flat.shape]);
   const backdrop = backdropFor(sportId);
   const front = flat.views.find((entry) => entry.view === "front")?.src;
@@ -64,7 +66,12 @@ export default function KitStage({ flat, sportId, view, turning, snapshotAt, onS
       .then(([frontPicture, backPicture]) => {
         if (cancelled) return;
         const mounted = mountKit(target, mesh, { front: frontPicture, back: backPicture }, motionFor(reduced), (ms) => {
-          setReadyMs((already) => already ?? ms);
+          // The budget is on the FIRST render. The scene is drawn again on every change of the kit,
+          // and those frames land seconds into the session; reporting them would say the first
+          // picture was late when it was not.
+          if (reported.current) return;
+          reported.current = true;
+          setReadyMs(ms);
           onReady(ms);
         });
         scene.current = mounted;

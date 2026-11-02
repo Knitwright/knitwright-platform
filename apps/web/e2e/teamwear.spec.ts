@@ -31,7 +31,7 @@ test.describe("the teamwear configurator", () => {
     // The sport chips, the backdrop and the three kit parts, each with its own pill.
     await expect(page.getByRole("navigation", { name: "Sport" }).getByRole("link", { name: "Football" })).toHaveAttribute("aria-current", "page");
     await expect(page.getByTestId("teamwear-stage")).toHaveAttribute("data-backdrop", "pitch");
-    await expect(page.getByTestId("teamwear-pills").getByRole("tab")).toHaveText(["Shirt", "Shorts", "Socks"]);
+    await expect(page.getByTestId("teamwear-pills").getByRole("button")).toHaveText([/^Shirt/, /^Shorts/, /^Socks/]);
 
     // A goalkeeper bundle needs a third colour, and says so rather than inventing one.
     await page.getByTestId("teamwear-bundle-gk").click();

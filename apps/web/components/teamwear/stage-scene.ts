@@ -67,6 +67,109 @@ function positionFor(view: StageViewId, size: GarmentMesh["size"], aspect: numbe
   return new Spherical(frame * angle.distanceFactor, radians(angle.polarDegrees), radians(angle.azimuthDegrees));
 }
 
+/** The lights the stage is lit by: one from above, a key from the front and a rim from behind. */
+function litScene(parts: readonly Mesh[]): Scene {
+  const scene = new Scene();
+  scene.add(new HemisphereLight(0xffffff, 0x8a8f99, 2.2));
+  const key = new DirectionalLight(0xffffff, 1.6);
+  key.position.set(0.6, 0.9, 1.4);
+  const rim = new DirectionalLight(0xffffff, 0.9);
+  rim.position.set(-0.8, 0.4, -1.2);
+  scene.add(key, rim);
+  scene.add(...parts);
+  return scene;
+}
+
+/** How close and how far a person may come, and whether the turn eases. Panning is off: the kit stays centred. */
+function kitControls(camera: PerspectiveCamera, canvas: HTMLCanvasElement, size: GarmentMesh["size"], motion: ViewerMotion): OrbitControls {
+  const controls = new OrbitControls(camera, canvas);
+  const limits = zoomLimits(size);
+  controls.minDistance = limits.min;
+  controls.maxDistance = limits.max;
+  controls.enablePan = false;
+  controls.enableDamping = motion.easeSeconds > 0;
+  controls.autoRotate = false;
+  controls.addEventListener("start", () => {
+    controls.autoRotate = false;
+  });
+  return controls;
+}
+
+/** The canvas is sized by its box, not by a pixel count, so the stage fills whatever it is given. */
+function watchSize(canvas: HTMLCanvasElement, renderer: WebGLRenderer, camera: PerspectiveCamera): ResizeObserver {
+  const resize = () => {
+    const width = canvas.clientWidth || 1;
+    const height = canvas.clientHeight || 1;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  };
+  resize();
+  const observer = new ResizeObserver(resize);
+  observer.observe(canvas);
+  return observer;
+}
+
+/** Draws a frame for as long as the stage is on the screen, and reports the first one. */
+function startLoop(renderer: WebGLRenderer, scene: Scene, camera: PerspectiveCamera, controls: OrbitControls, onFirstFrame: (ms: number) => void): () => void {
+  let first = true;
+  let frame = 0;
+  const tick = () => {
+    controls.update();
+    renderer.render(scene, camera);
+    if (first) {
+      first = false;
+      onFirstFrame(performance.now());
+    }
+    frame = requestAnimationFrame(tick);
+  };
+  frame = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(frame);
+}
+
+interface Mounted {
+  readonly renderer: WebGLRenderer;
+  readonly scene: Scene;
+  readonly camera: PerspectiveCamera;
+  readonly controls: OrbitControls;
+  readonly parts: readonly Mesh[];
+  readonly canvas: HTMLCanvasElement;
+  readonly size: GarmentMesh["size"];
+  readonly observer: ResizeObserver;
+  readonly stop: () => void;
+}
+
+/** What the stage offers its screen: the five views, the turntable, a picture of itself, and letting go. */
+function kitScene(it: Mounted): KitStageScene {
+  return {
+    showView(view) {
+      it.controls.autoRotate = false;
+      it.camera.position.setFromSpherical(positionFor(view, it.size, it.camera.aspect));
+      it.controls.update();
+    },
+    turn(revolutionSeconds) {
+      it.controls.autoRotateSpeed = revolutionSeconds ? 60 / revolutionSeconds : DEFAULT_TURN_SPEED;
+      it.controls.autoRotate = revolutionSeconds !== null;
+    },
+    snapshot() {
+      it.renderer.render(it.scene, it.camera);
+      return it.canvas.toDataURL("image/png");
+    },
+    dispose() {
+      it.stop();
+      it.observer.disconnect();
+      it.controls.dispose();
+      for (const part of it.parts) {
+        part.geometry.dispose();
+        const material = part.material as MeshStandardMaterial;
+        material.map?.dispose();
+        material.dispose();
+      }
+      it.renderer.dispose();
+    },
+  };
+}
+
 /**
  * Draws the kit into the canvas and lets a person turn it and come closer. `onFirstFrame` is called
  * once, with the milliseconds since the page was asked for, which is the measurement the first
@@ -83,81 +186,14 @@ export function mountKit(
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = SRGBColorSpace;
 
-  const scene = new Scene();
-  scene.add(new HemisphereLight(0xffffff, 0x8a8f99, 2.2));
-  const key = new DirectionalLight(0xffffff, 1.6);
-  key.position.set(0.6, 0.9, 1.4);
-  const rim = new DirectionalLight(0xffffff, 0.9);
-  rim.position.set(-0.8, 0.4, -1.2);
-  scene.add(key, rim);
   // The inside of the back shows through the neck opening, so the back is drawn on both faces.
   const parts = [sheetMesh(mesh.front, pictures.front, FrontSide), sheetMesh(mesh.back, pictures.back, DoubleSide)];
-  scene.add(...parts);
-
+  const scene = litScene(parts);
   const camera = new PerspectiveCamera(FOV, 1, 0.01, 50);
-  const controls = new OrbitControls(camera, canvas);
-  const limits = zoomLimits(mesh.size);
-  controls.minDistance = limits.min;
-  controls.maxDistance = limits.max;
-  controls.enablePan = false;
-  controls.enableDamping = motion.easeSeconds > 0;
-  controls.autoRotate = false;
-  controls.addEventListener("start", () => {
-    controls.autoRotate = false;
-  });
-
-  const resize = () => {
-    const width = canvas.clientWidth || 1;
-    const height = canvas.clientHeight || 1;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-  };
-  resize();
+  const controls = kitControls(camera, canvas, mesh.size, motion);
+  const observer = watchSize(canvas, renderer, camera);
   camera.position.setFromSpherical(positionFor("front", mesh.size, camera.aspect));
   controls.update();
-  const observer = new ResizeObserver(resize);
-  observer.observe(canvas);
-
-  let first = true;
-  let frame = 0;
-  const tick = () => {
-    controls.update();
-    renderer.render(scene, camera);
-    if (first) {
-      first = false;
-      onFirstFrame(performance.now());
-    }
-    frame = requestAnimationFrame(tick);
-  };
-  frame = requestAnimationFrame(tick);
-
-  return {
-    showView(view) {
-      controls.autoRotate = false;
-      const to = positionFor(view, mesh.size, camera.aspect);
-      camera.position.setFromSpherical(to);
-      controls.update();
-    },
-    turn(revolutionSeconds) {
-      controls.autoRotateSpeed = revolutionSeconds ? 60 / revolutionSeconds : 1.2;
-      controls.autoRotate = revolutionSeconds !== null;
-    },
-    snapshot() {
-      renderer.render(scene, camera);
-      return canvas.toDataURL("image/png");
-    },
-    dispose() {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      controls.dispose();
-      for (const part of parts) {
-        part.geometry.dispose();
-        const material = part.material as MeshStandardMaterial;
-        material.map?.dispose();
-        material.dispose();
-      }
-      renderer.dispose();
-    },
-  };
+  const stop = startLoop(renderer, scene, camera, controls, onFirstFrame);
+  return kitScene({ renderer, scene, camera, controls, parts, canvas, size: mesh.size, observer, stop });
 }

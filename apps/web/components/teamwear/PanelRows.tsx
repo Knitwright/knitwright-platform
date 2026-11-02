@@ -24,12 +24,17 @@ export interface RowHandlers {
 
 const FIELD = "h-11 w-full rounded-xl border border-white/20 bg-black/20 px-3 text-[15px] text-ink";
 
-function ColourPicker({ label, value, onPick }: Readonly<{ label: string; value: string | null; onPick: (swatch: string | null) => void }>) {
+/**
+ * One of the club's colours, from the shared palette. "None" is offered only for a colour a kit can
+ * do without: a kit always has a main colour, a second and a socks colour, so offering to unset one
+ * would be a control that does nothing.
+ */
+function ColourPicker({ label, value, optional = false, onPick }: Readonly<{ label: string; value: string | null; optional?: boolean; onPick: (swatch: string | null) => void }>) {
   return (
     <label className="flex flex-col gap-1 text-sm">
       <span className="text-muted">{label}</span>
       <select className={FIELD} value={value ?? ""} onChange={(event) => onPick(event.target.value === "" ? null : event.target.value)}>
-        <option value="">Not chosen</option>
+        {optional ? <option value="">None</option> : null}
         {CLUB_PALETTE.map((colour) => (
           <option key={colour.swatch} value={colour.swatch}>
             {colour.name}
@@ -40,102 +45,111 @@ function ColourPicker({ label, value, onPick }: Readonly<{ label: string; value:
   );
 }
 
-type RowProps = Readonly<{ row: PanelRow; colours: ClubColours; socksColour: string; isSocks: boolean; handlers: RowHandlers }>;
+type Row<K extends PanelRow["kind"]> = Extract<PanelRow, { kind: K }>;
 
-/** The control a row opens. Each one writes through a handler, which checks it against the article. */
-export function RowControl({ row, colours, socksColour, isSocks, handlers }: RowProps) {
-  if (row.kind === "model") {
-    return (
-      <div className="flex flex-col gap-2">
-        <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Made for</span>
-          <select className={FIELD} value={row.wearer} onChange={(event) => handlers.setWearer(event.target.value as Wearer)} data-testid="teamwear-wearer">
-            {row.wearers.map((wearer) => (
-              <option key={wearer} value={wearer}>
-                {wearerLabel(wearer)}
-              </option>
-            ))}
-          </select>
+/** Who the kit is made for, from the wearers the registry lists for this garment. */
+function ModelControl({ row, handlers }: Readonly<{ row: Row<"model">; handlers: RowHandlers }>) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="flex flex-col gap-1 text-sm">
+        <span className="text-muted">Made for</span>
+        <select className={FIELD} value={row.wearer} onChange={(event) => handlers.setWearer(event.target.value as Wearer)} data-testid="teamwear-wearer">
+          {row.wearers.map((wearer) => (
+            <option key={wearer} value={wearer}>
+              {wearerLabel(wearer)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {row.note === null ? null : <p className="text-xs text-muted">{row.note}</p>}
+    </div>
+  );
+}
+
+/** The club's colours, or the socks colour on the socks row. */
+function ColoursControl({ colours, socksColour, isSocks, handlers }: Readonly<{ colours: ClubColours; socksColour: string; isSocks: boolean; handlers: RowHandlers }>) {
+  if (isSocks) return <ColourPicker label="Socks" value={socksColour} onPick={(swatch) => handlers.setColour("socks", swatch)} />;
+  return (
+    <div className="flex flex-col gap-2">
+      <ColourPicker label="Main colour" value={colours.main} onPick={(swatch) => handlers.setColour("main", swatch)} />
+      <ColourPicker label="Second colour" value={colours.second} onPick={(swatch) => handlers.setColour("second", swatch)} />
+      <ColourPicker label="Third colour" value={colours.third} optional onPick={(swatch) => handlers.setColour("third", swatch)} />
+    </div>
+  );
+}
+
+/** The article's approved options for one group, as radios over their catalogue codes. */
+function OptionsControl({ row, handlers }: Readonly<{ row: Row<"options">; handlers: RowHandlers }>) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="sr-only">{row.label}</legend>
+      {row.group.tiles.map((tile) => (
+        <label key={tile.code} className="flex items-start gap-2 text-sm">
+          <input
+            type="radio"
+            name={`${row.id}-choice`}
+            value={tile.code}
+            checked={tile.chosen}
+            onChange={() => handlers.setOption(row.group.group, tile.code)}
+            className="mt-1 size-5"
+          />
+          <span>
+            <span className="font-medium text-ink">{tile.code}</span> <span className="text-muted">{tile.label}</span>
+            {tile.extraCost === null ? null : <span className="text-muted"> · {tile.extraCost}</span>}
+            {tile.lockNote === null ? null : <span className="block text-xs text-muted">{tile.lockNote}</span>}
+          </span>
         </label>
-        {row.note === null ? null : <p className="text-xs text-muted">{row.note}</p>}
-      </div>
-    );
-  }
-  if (row.kind === "colours") {
-    return isSocks ? (
-      <ColourPicker label="Socks" value={socksColour} onPick={(swatch) => handlers.setColour("socks", swatch)} />
-    ) : (
-      <div className="flex flex-col gap-2">
-        <ColourPicker label="Main colour" value={colours.main} onPick={(swatch) => handlers.setColour("main", swatch)} />
-        <ColourPicker label="Second colour" value={colours.second} onPick={(swatch) => handlers.setColour("second", swatch)} />
-        <ColourPicker label="Third colour" value={colours.third} onPick={(swatch) => handlers.setColour("third", swatch)} />
-      </div>
-    );
-  }
-  if (row.kind === "options") {
-    return (
-      <fieldset className="flex flex-col gap-2">
-        <legend className="sr-only">{row.label}</legend>
-        {row.group.tiles.map((tile) => (
-          <label key={tile.code} className="flex items-start gap-2 text-sm">
-            <input
-              type="radio"
-              name={`${row.id}-choice`}
-              value={tile.code}
-              checked={tile.chosen}
-              onChange={() => handlers.setOption(row.group.group, tile.code)}
-              className="mt-1 size-5"
-            />
-            <span>
-              <span className="font-medium text-ink">{tile.code}</span> <span className="text-muted">{tile.label}</span>
-              {tile.extraCost === null ? null : <span className="text-muted"> · {tile.extraCost}</span>}
-              {tile.lockNote === null ? null : <span className="block text-xs text-muted">{tile.lockNote}</span>}
-            </span>
-          </label>
-        ))}
-      </fieldset>
-    );
-  }
-  if (row.kind === "parameters") {
-    return (
-      <div className="flex flex-col gap-3">
-        {row.sliders.map((slider) => (
-          <label key={slider.key} className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">{slider.rangeLabel}</span>
-            <input
-              type="range"
-              min={slider.min}
-              max={slider.max}
-              step={slider.step}
-              value={slider.value}
-              onChange={(event) => handlers.setParameter(slider.key, Number(event.target.value))}
-              className="h-11 w-full"
-              data-testid={`teamwear-parameter-${slider.key}`}
-            />
-            {slider.lockNote === null ? null : <span className="text-xs text-muted">{slider.lockNote}</span>}
-          </label>
-        ))}
-      </div>
-    );
-  }
-  if (row.kind === "elements") {
-    return (
-      <div className="flex flex-col gap-2">
-        {row.slots.map((slot) => (
-          <label key={slot.id} className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={slot.filled}
-              onChange={(event) => handlers.setElement(slot.id as ElementSlotId, event.target.checked)}
-              className="size-5"
-            />
-            <span className="text-ink">{ELEMENT_SLOT_LABELS[slot.id as ElementSlotId]}</span>
-          </label>
-        ))}
-        <p className="text-xs text-muted">{row.note}</p>
-      </div>
-    );
-  }
+      ))}
+    </fieldset>
+  );
+}
+
+/** The article's approved ranges, as sliders whose ends and step are the article's own. */
+function ParametersControl({ row, handlers }: Readonly<{ row: Row<"parameters">; handlers: RowHandlers }>) {
+  return (
+    <div className="flex flex-col gap-3">
+      {row.sliders.map((slider) => (
+        <label key={slider.key} className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{slider.rangeLabel}</span>
+          <input
+            type="range"
+            min={slider.min}
+            max={slider.max}
+            step={slider.step}
+            value={slider.value}
+            onChange={(event) => handlers.setParameter(slider.key, Number(event.target.value))}
+            className="h-11 w-full"
+            data-testid={`teamwear-parameter-${slider.key}`}
+          />
+          {slider.lockNote === null ? null : <span className="text-xs text-muted">{slider.lockNote}</span>}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** Which of the fixed element slots the kit uses. The artwork itself is added in the Studio editor. */
+function ElementsControl({ row, handlers }: Readonly<{ row: Row<"elements">; handlers: RowHandlers }>) {
+  return (
+    <div className="flex flex-col gap-2">
+      {row.slots.map((slot) => (
+        <label key={slot.id} className="flex min-h-10 items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={slot.filled}
+            onChange={(event) => handlers.setElement(slot.id as ElementSlotId, event.target.checked)}
+            className="size-5"
+          />
+          <span className="text-ink">{ELEMENT_SLOT_LABELS[slot.id as ElementSlotId]}</span>
+        </label>
+      ))}
+      <p className="text-xs text-muted">{row.note}</p>
+    </div>
+  );
+}
+
+/** Whether the kit carries player names and numbers, and how they are made. */
+function NamesControl({ row, handlers }: Readonly<{ row: Row<"names-numbers">; handlers: RowHandlers }>) {
   return (
     <div className="flex flex-col gap-2">
       <label className="flex items-center gap-2 text-sm">
@@ -145,4 +159,24 @@ export function RowControl({ row, colours, socksColour, isSocks, handlers }: Row
       <p className="text-xs text-muted">{row.note}</p>
     </div>
   );
+}
+
+type RowProps = Readonly<{ row: PanelRow; colours: ClubColours; socksColour: string; isSocks: boolean; handlers: RowHandlers }>;
+
+/** The control a row opens. Each one writes through a handler, which checks it against the article. */
+export function RowControl({ row, colours, socksColour, isSocks, handlers }: RowProps) {
+  switch (row.kind) {
+    case "model":
+      return <ModelControl row={row} handlers={handlers} />;
+    case "colours":
+      return <ColoursControl colours={colours} socksColour={socksColour} isSocks={isSocks} handlers={handlers} />;
+    case "options":
+      return <OptionsControl row={row} handlers={handlers} />;
+    case "parameters":
+      return <ParametersControl row={row} handlers={handlers} />;
+    case "elements":
+      return <ElementsControl row={row} handlers={handlers} />;
+    default:
+      return <NamesControl row={row} handlers={handlers} />;
+  }
 }

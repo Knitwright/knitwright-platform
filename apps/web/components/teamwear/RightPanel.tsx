@@ -41,13 +41,16 @@ export function RightPanel(props: RightPanelProps) {
     <section className={SHEET} aria-label="Your kit" data-testid="teamwear-panel">
       <h2 className="text-[17px] font-medium text-ink">{props.title}</h2>
 
-      <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="Parts of the kit" data-testid="teamwear-pills">
+      {/*
+        A group of buttons that press in, not a tab list: the accordion below is not a tab panel, and
+        `aria-selected` belongs only to a tab. `aria-pressed` says the same thing and is valid here.
+      */}
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Parts of the kit" data-testid="teamwear-pills">
         {parts.map((pill) => (
           <button
             key={pill.id}
             type="button"
-            role="tab"
-            aria-selected={pill.id === part}
+            aria-pressed={pill.id === part}
             onClick={() => props.onPart(pill.id)}
             className={`flex h-11 items-center gap-2 rounded-full border px-4 text-[15px] ${pill.id === part ? "border-white/40 bg-white/15 text-ink" : "border-white/15 text-muted"}`}
             data-testid={`teamwear-pill-${pill.id}`}
