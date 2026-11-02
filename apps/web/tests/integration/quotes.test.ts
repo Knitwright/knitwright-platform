@@ -13,7 +13,7 @@ import { ruleForCountry, vatTreatment } from "@/lib/quotes/vat";
 import { adminClient } from "./support";
 
 /**
- * The quote and crest-to-kit against the rows that are really there (plan v5 Z6, decision 0104).
+ * The quote and crest-to-kit against the rows that are really there (plan v5 Z6, decision 0105).
  *
  * Every test READS. Nothing is inserted, updated or deleted: the service role holds SELECT only on
  * these seeded tables, and a row a test added would stay in the shared database for good. What is

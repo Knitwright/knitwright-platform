@@ -103,9 +103,13 @@ function careLine(input: DestinationLabelInput, rules: LabelRules): Readonly<{ l
   const path = at(input.country, "care");
   const codes = rules.care.symbolCodes;
   if (codes.length === 0) {
+    // The market's own row says why, where it has been written down (decision 0104). Where it has not,
+    // the words below are the platform's, and they say no more than that nothing has been transcribed.
+    const because =
+      rules.care.gapNote ?? `No care symbols are chosen for ${input.countryName}. ISO 3758 is not transcribed in the platform yet.`;
     return {
       line: null,
-      findings: [blocker("care_symbols_missing", path, `No care symbols are chosen for ${input.countryName}. ISO 3758 is not transcribed in the platform yet.`, RULE_CARE_LABEL)],
+      findings: [blocker("care_symbols_missing", path, because, rules.care.gapRuleId ?? RULE_CARE_LABEL)],
     };
   }
   // The words come from the symbol rows, but *which* symbols a market's label carries is its own claim, and it

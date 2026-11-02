@@ -28,6 +28,11 @@ export const countryRule = (overrides: Partial<CountryRule> = {}): CountryRule =
   labelRules: {},
   freightDays: 4,
   sellingEnabled: true,
+  taxName: "VAT",
+  taxRegistrationThresholdMinor: null,
+  // Nobody has registered Knitwright for a tax anywhere, so no price carries one (decision 0104).
+  taxRegistered: false,
+  taxSource: null,
   ruleId: "R-GAP-000",
   label: "Placeholder, to confirm with a customs adviser",
   ...overrides,

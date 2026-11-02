@@ -1,5 +1,5 @@
 /**
- * The settings and words of the instant quote (spec F-T5, plan v5 Z6, decision 0104).
+ * The settings and words of the instant quote (spec F-T5, plan v5 Z6, decision 0105).
  *
  * Every figure is a row here rather than a literal in the document: the validity window, the number
  * format and what a quote says is included. Nothing in this file is a price, a date or a tax rate —

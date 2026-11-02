@@ -1,16 +1,20 @@
 import type { CountryRule } from "@/lib/factory/schemas";
+import { taxTreatment, type TaxTreatment } from "@/lib/markets/tax";
 import { GAP_RULE_ID, NOT_KNOWN } from "./settings";
 
 /**
- * The VAT treatment of a quote (spec F-T5, "VAT treatment"), read from `country_rules` — X6's own
- * rows (decision 0071) — and from nowhere else.
+ * The VAT treatment of a quote (spec F-T5, "VAT treatment").
+ *
+ * THE TREATMENT ITSELF IS O3's. `lib/markets/tax.ts` (decision 0104) reads `country_rules` and says
+ * what a market charges, and whether Knitwright is registered for it — which matters, because
+ * Australia's GST is charged "once registered" and nobody has registered. This file only puts that
+ * answer into the shape the document prints, so the quote and the market panel can never disagree
+ * about a tax.
  *
  * NO TAX IS ADDED TO A TOTAL HERE, and none is taken off one. The factory's price tiers do not say
  * whether a stored price is before or after tax, so adding a rate to them would make up a number.
- * What a quote carries instead is the treatment: which market, what rate the row holds, the label
- * the row carries about itself, and the plain statement that the prices above are the tiers as
- * stored. **Owner question** on the pull request: are the stored sell prices before or after VAT?
- * Until that is answered a quote cannot show a tax-inclusive total, and says so.
+ * **Owner question** on the pull request: are the stored sell prices before or after VAT? Until that
+ * is answered a quote cannot show a tax-inclusive total, and says so.
  */
 
 export interface VatTreatment {
@@ -34,16 +38,12 @@ export const NO_COUNTRY_RULE =
 export const MARKET_CLOSED = (name: string): string =>
   `Knitwright does not sell into ${name} yet, so no VAT treatment is stated on this quote.`;
 
-/** Said where the row carries no rate. */
-export const NO_RATE = (name: string): string =>
-  `No VAT or GST rate is set for ${name} in Knitwright's market rules, so none is stated on this quote. The prices above are the factory's price tiers as stored.`;
-
 /** The one sentence that keeps a tax-inclusive reading off the document. */
 export const PRICES_AS_STORED =
   "The prices above are the factory's price tiers as stored. Knitwright's factory data does not say whether a tier is before or after tax, so no tax is added to or taken off any figure on this quote.";
 
-/** A rate in basis points as a percentage a person reads: 2000 is "20%", 1050 is "10.5%". */
-export const ratePercent = (basisPoints: number): string => `${Number((basisPoints / 100).toFixed(2))}%`;
+/** What the market's own row says, in the words `lib/markets/tax.ts` writes them. */
+export const marketTax = (rule: CountryRule): TaxTreatment => taxTreatment(rule);
 
 /**
  * The VAT treatment for one market. Every case says what it knows and what it does not; none of
@@ -56,17 +56,17 @@ export function vatTreatment(rule: CountryRule | null): VatTreatment {
   if (!rule.sellingEnabled) {
     return { country: rule.country, countryName: rule.name, rate: NOT_KNOWN, text: MARKET_CLOSED(rule.name), label: rule.label, ruleId: rule.ruleId || GAP_RULE_ID };
   }
-  if (rule.vatRateBp === null) {
-    return { country: rule.country, countryName: rule.name, rate: NOT_KNOWN, text: NO_RATE(rule.name), label: rule.label, ruleId: rule.ruleId || GAP_RULE_ID };
-  }
-  const rate = ratePercent(rule.vatRateBp);
+  const tax = marketTax(rule);
+  // The market's own line, then what has to happen for it to change, then the sentence that stops
+  // any figure above being read as tax-inclusive.
+  const text = [tax.line, tax.missing, PRICES_AS_STORED].filter((part): part is string => part !== null).join(" ");
   return {
     country: rule.country,
     countryName: rule.name,
-    rate,
-    text: `VAT or GST in ${rule.name} is ${rate} in Knitwright's market rules. ${PRICES_AS_STORED}`,
+    rate: tax.rate ?? NOT_KNOWN,
+    text,
     label: rule.label,
-    ruleId: rule.ruleId || GAP_RULE_ID,
+    ruleId: tax.ruleId || rule.ruleId || GAP_RULE_ID,
   };
 }
 

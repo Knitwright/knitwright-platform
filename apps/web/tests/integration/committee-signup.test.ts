@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
 /**
- * Committee links and roster sign-up (spec F-T3 and F-T4, plan v5 Z7, decision 0086).
+ * Committee links and roster sign-up (spec F-T3 and F-T4, plan v5 Z7, decision 0087).
  *
  * Both are public, unauthenticated links, so this file is mostly about what a token may NOT reach:
  * a committee token opens its design's shared versions and nothing else, a sign-up token opens its

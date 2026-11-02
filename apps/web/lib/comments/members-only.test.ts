@@ -16,7 +16,7 @@ describe("comments are for members only (decision 0063)", () => {
   /**
    * The one thing a public page may take from the comments code is `lib/comments/text.ts`: the
    * cleaner that turns typed words into words we will keep. A committee pin IS a design comment in
-   * shape (plan v5 Z7, decision 0086), so it is cleaned by that one cleaner rather than a second
+   * shape (plan v5 Z7, decision 0087), so it is cleaned by that one cleaner rather than a second
    * one of its own. The test below proves that module holds no import at all, so it can never grow
    * a database read and sneak one onto a public page through this allowance.
    */

@@ -161,7 +161,7 @@ function ApplyAnswers({ seasonId }: Readonly<{ seasonId: string }>) {
 }
 
 /**
- * One season's sign-up (spec F-T4, plan v5 Z7, decision 0086): the link, the pasted list, who is in
+ * One season's sign-up (spec F-T4, plan v5 Z7, decision 0087): the link, the pasted list, who is in
  * and who is missing, the chase, and the fold into the roster.
  */
 export function SignupPanel({ season, rules, templates, clubName }: SignupPanelProps) {

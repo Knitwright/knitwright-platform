@@ -19,7 +19,7 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
-  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0104).
+  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0105).
   "lib/quotes/document.test.ts",
   // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
   // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
@@ -117,12 +117,18 @@ export default defineConfig({
         // order, the estimate, the refunds, the artwork check and the summary are tested on their
         // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
         "lib/flows/server.ts",
+        // Join the market panel and the translated tech pack to the outside world: one gathers the market's
+        // own row and the production settings, the other reads the translation library. The tax treatment,
+        // the market summary and the dictionary are tested on their own, and the database and end-to-end
+        // tests cover the joining (plan v5 O3, decision 0104).
+        "lib/markets/server.ts",
+        "lib/translate/server.ts",
         // Joins crest-to-kit to the catalogue and the picture decoder; the pipeline it hands over is tested on
-        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0104).
+        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0105).
         "lib/crest-to-kit/server.ts",
         // Joins a quote to the factory rows: the tiers, the cut-off and the market rules. Every rule it hands
         // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
-        // decision 0104).
+        // decision 0105).
         "lib/quotes/server.ts",
       ],
       thresholds: {
@@ -150,7 +156,7 @@ export default defineConfig({
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The committee link and the roster sign-up are public pages a club's own people use without an
-        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
+        // account, so they are held to the same mark (plan v5 Z7, decision 0087).
         "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
@@ -183,6 +189,7 @@ export default defineConfig({
             "launch",
             "make",
             "marketing",
+            "markets",
             "media",
             "media-check",
             "mockups",
@@ -203,6 +210,7 @@ export default defineConfig({
             "shell",
             "teamwear",
             "templates",
+            "translate",
             "validation",
             "variants",
           

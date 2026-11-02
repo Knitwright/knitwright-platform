@@ -39,7 +39,7 @@ import { SIGNUP_VISITOR_COOKIE, newVisitorKey, signupAddress, signupCookieOption
 import { isVisitorKey } from "@/lib/share/token";
 
 /**
- * Roster sign-up (spec F-T4, plan v5 Z7, decision 0086). A club's actions take the club and the
+ * Roster sign-up (spec F-T4, plan v5 Z7, decision 0087). A club's actions take the club and the
  * person from the session and never from the form; the database checks the person's role itself. A
  * player's action needs no session: it is limited per address and per link, guarded by the bot
  * check, and screened by moderation before anything is kept.

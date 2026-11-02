@@ -1,4 +1,4 @@
-/** Crest-to-kit (spec F-T2, plans/platform-v5.md wave 3, Z6, decision 0104). */
+/** Crest-to-kit (spec F-T2, plans/platform-v5.md wave 3, Z6, decision 0105). */
 export * from "./arrange";
 export * from "./crest";
 export * from "./engine";

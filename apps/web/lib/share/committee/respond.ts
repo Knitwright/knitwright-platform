@@ -5,7 +5,7 @@ import type { BotCheckOutcome } from "../turnstile";
 import { linkRateKey } from "../token";
 
 /**
- * Taking a committee's comment, vote or approval (spec F-T3, plan v5 Z7, decision 0086).
+ * Taking a committee's comment, vote or approval (spec F-T3, plan v5 Z7, decision 0087).
  *
  * The same shape as a share answer (`lib/share/respond.ts`, decision 0026) and for the same
  * reasons: the wrapper has already limited the visitor's address, this checks the bot check, then

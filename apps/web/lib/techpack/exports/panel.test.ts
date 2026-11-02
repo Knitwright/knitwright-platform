@@ -76,13 +76,25 @@ describe("what each tab would produce", () => {
   it("builds the tech pack from the export route, at the version and colourway the editor shows", () => {
     expect(addresses(techPackOutputs(input))).toEqual([
       `/api/projects/${PROJECT}/exports/pdf?version=3&colourway=home`,
+      // The same pack in Urdu, for the factory floor (decision 0104).
+      `/api/projects/${PROJECT}/exports/pdf?version=3&colourway=home&language=ur`,
       `/api/projects/${PROJECT}/exports/xlsx?version=3&colourway=home`,
     ]);
     expect(notYet(techPackOutputs(input))).toEqual([]);
   });
 
   it("names the sixteen pages and the eleven sheets in the labels, so nobody has to guess", () => {
-    expect(techPackOutputs(input).map((output) => output.label)).toEqual(["PDF, 16 pages", "Excel, 11 sheets"]);
+    expect(techPackOutputs(input).map((output) => output.label)).toEqual([
+      "PDF, 16 pages",
+      "PDF in Urdu (اردو), 16 pages. Nobody has read the translation.",
+      "Excel, 11 sheets",
+    ]);
+  });
+
+  it("says on the panel itself that nobody has read a translated pack, before it is downloaded", () => {
+    const translated = techPackOutputs(input).filter((output) => output.id !== "pdf" && output.id.startsWith("pdf-"));
+    expect(translated.length).toBeGreaterThan(0);
+    for (const output of translated) expect(output.label, output.id).toContain("Nobody has read the translation");
   });
 
   it("sends the front and the back as drawings, which the same design always draws the same way", () => {

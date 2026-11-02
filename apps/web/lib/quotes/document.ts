@@ -1,7 +1,7 @@
 import { Document, Page, Text, View, renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement as h, type ReactElement } from "react";
 import { PDF_FONT_FAMILY, registerPdfFont } from "@/lib/flat/pdf-font";
-import { drawable } from "@/lib/techpack/exports/pdf-text";
+import { ENGLISH_TYPESET } from "@/lib/techpack/exports/pdf/typeset";
 import { heading, paragraph } from "@/lib/techpack/exports/pdf/parts";
 import { COLOURS, MARGIN, SIZES } from "@/lib/techpack/exports/pdf/styles";
 import type { Quote } from "./quote";
@@ -24,8 +24,8 @@ const row = (key: string, label: string, value: string, tone: string = COLOURS.i
   h(
     View,
     { key, style: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: COLOURS.line, paddingVertical: 3 } },
-    h(Text, { style: { width: "34%", fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: COLOURS.muted } }, drawable(label)),
-    h(Text, { style: { width: "66%", fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: tone } }, drawable(value)),
+    h(Text, { style: { width: "34%", fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: COLOURS.muted } }, ENGLISH_TYPESET(label)),
+    h(Text, { style: { width: "66%", fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: tone } }, ENGLISH_TYPESET(value)),
   );
 
 /** A value nobody has given is in the attention colours, never blank and never a dash. */
@@ -34,7 +34,7 @@ const unknownRow = (key: string, label: string, value: string): ReactElement => 
 const COLUMNS = ["48%", "12%", "20%", "20%"] as const;
 
 const cell = (key: string, text: string, width: string, tone: string, size: number = SIZES.cell): ReactElement =>
-  h(Text, { key, style: { width, fontFamily: PDF_FONT_FAMILY, fontSize: size, color: tone } }, drawable(text));
+  h(Text, { key, style: { width, fontFamily: PDF_FONT_FAMILY, fontSize: size, color: tone } }, ENGLISH_TYPESET(text));
 
 const lineRow = (line: Quote["lines"][number], at: number): ReactElement =>
   h(
@@ -59,7 +59,7 @@ const linesTable = (quote: Quote): ReactElement =>
       cell("t", "Line", COLUMNS[3], COLOURS.ink),
     ),
     ...quote.lines.map(lineRow),
-    ...quote.lines.flatMap((line, at) => (line.reason === null ? [] : [paragraph(line.reason, drawable, `why-${at}`)])),
+    ...quote.lines.flatMap((line, at) => (line.reason === null ? [] : [paragraph(line.reason, ENGLISH_TYPESET, `why-${at}`)])),
   );
 
 /** A part the factory has no price for. It is on the page, never left off it. */
@@ -67,17 +67,17 @@ const unpricedBlock = (quote: Quote): readonly ReactElement[] =>
   quote.unpriced.length === 0
     ? []
     : [
-        heading(3, "Not priced yet", drawable),
+        heading(3, "Not priced yet", ENGLISH_TYPESET),
         ...quote.unpriced.map((part, at) => unknownRow(`un-${at}`, part.label, part.reason)),
       ];
 
 const inclusionsBlock = (quote: Quote): readonly ReactElement[] => [
-  heading(3, "What is included", drawable),
+  heading(3, "What is included", ENGLISH_TYPESET),
   ...quote.inclusions.map((one, at) => row(`inc-${at}`, `${one.label} · ${one.included ? "included" : "not on this kit"}`, `${one.note} (${one.ruleId})`)),
 ];
 
 const termsBlock = (quote: Quote): readonly ReactElement[] => [
-  heading(3, "Delivery, tax and validity", drawable),
+  heading(3, "Delivery, tax and validity", ENGLISH_TYPESET),
   quote.delivery.status === "set"
     ? row("del", "Delivery", quote.delivery.text)
     : unknownRow("del", "Delivery", quote.delivery.text),
@@ -98,19 +98,19 @@ const totalBlock = (quote: Quote): readonly ReactElement[] => [
     cell("l", `Total, ${quote.tierQty} pieces in the basket`, "68%", COLOURS.ink, SIZES.table),
     cell("v", quote.total, "32%", quote.totalMinor === null ? COLOURS.warn : COLOURS.ink, SIZES.table),
   ),
-  ...(quote.totalNote === null ? [] : [paragraph(quote.totalNote, drawable, "total-note")]),
-  paragraph(NO_PAYMENT_HERE, drawable, "money-note"),
+  ...(quote.totalNote === null ? [] : [paragraph(quote.totalNote, ENGLISH_TYPESET, "total-note")]),
+  paragraph(NO_PAYMENT_HERE, ENGLISH_TYPESET, "money-note"),
 ];
 
 const header = (quote: Quote): ReactElement =>
   h(
     View,
     { key: "header", style: { marginBottom: 8 } },
-    h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.title, color: COLOURS.ink } }, drawable(`${QUOTE_TITLE} ${quote.number}`)),
+    h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.title, color: COLOURS.ink } }, ENGLISH_TYPESET(`${QUOTE_TITLE} ${quote.number}`)),
     h(
       Text,
       { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.body, color: COLOURS.muted, marginTop: 2 } },
-      drawable(`${quote.clubName} · ${quote.sportLabel} · ${quote.issuedOn} · prepared by ${quote.brandName}`),
+      ENGLISH_TYPESET(`${quote.clubName} · ${quote.sportLabel} · ${quote.issuedOn} · prepared by ${quote.brandName}`),
     ),
   );
 
@@ -151,8 +151,8 @@ export function quoteDocument(quote: Quote): ReactElement<DocumentProps> {
       },
     },
     header(quote),
-    paragraph(QUOTE_LEAD, drawable, "lead"),
-    heading(3, "Your kit", drawable),
+    paragraph(QUOTE_LEAD, ENGLISH_TYPESET, "lead"),
+    heading(3, "Your kit", ENGLISH_TYPESET),
     linesTable(quote),
     ...totalBlock(quote),
     ...unpricedBlock(quote),

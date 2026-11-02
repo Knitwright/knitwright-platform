@@ -15,7 +15,7 @@ import {
 } from "./fields";
 
 /**
- * What a committee page's forms may send (spec F-T3, plan v5 Z7, decision 0086).
+ * What a committee page's forms may send (spec F-T3, plan v5 Z7, decision 0087).
  *
  * The pin's words go through the design-comment cleaner (`lib/comments/text.ts`, decision 0063)
  * rather than a second one of their own, and its point is the panel and the two distances in

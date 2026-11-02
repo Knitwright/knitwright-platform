@@ -3,7 +3,7 @@ import { matchKey } from "./paste";
 
 /**
  * Who has answered and who has not (spec F-T4 step 4 "a grid of collected vs missing entries",
- * plan v5 Z7, decision 0086).
+ * plan v5 Z7, decision 0087).
  *
  * The grid is over the people the club said it is waiting on, not over the roster, because a roster
  * row cannot exist without a size and the whole point of the grid is the people whose size is not

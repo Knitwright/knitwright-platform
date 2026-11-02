@@ -3,7 +3,7 @@ import { countryRule } from "./fixtures/quote";
 import { inclusionsFor, NAMES_NOTE, NO_NAMES_NOTE, sponsorNote } from "./inclusions";
 import { dayPart, quoteNumber, referenceFor, validUntil } from "./number";
 import { GAP_RULE_ID, NOT_KNOWN, QUOTE_SETTINGS } from "./settings";
-import { MARKET_CLOSED, NO_COUNTRY_RULE, NO_RATE, PRICES_AS_STORED, ratePercent, ruleForCountry, vatTreatment } from "./vat";
+import { MARKET_CLOSED, NO_COUNTRY_RULE, PRICES_AS_STORED, ruleForCountry, vatTreatment } from "./vat";
 
 describe("the VAT treatment of a quote", () => {
   it("states the market's own rate and that no tax is added to any figure", () => {
@@ -12,6 +12,15 @@ describe("the VAT treatment of a quote", () => {
     expect(treatment.text).toContain("20%");
     expect(treatment.text).toContain(PRICES_AS_STORED);
     expect(treatment.label).toContain("to confirm with a customs adviser");
+  });
+
+  it("never shows a price as carrying a tax nobody is registered for, which is O3's own rule", () => {
+    // Nobody has registered Knitwright for a tax anywhere (decision 0104), so the line says so and
+    // the rate is the one that applies once somebody does.
+    const treatment = vatTreatment(countryRule({ taxRegistered: false }));
+    expect(treatment.text).toContain("Prices carry no VAT");
+    expect(treatment.text).toContain("once it is");
+    expect(vatTreatment(countryRule({ taxRegistered: true })).text).toContain("VAT of 20% is charged");
   });
 
   it("says plainly that it knows nothing when no market rule could be read", () => {
@@ -25,22 +34,28 @@ describe("the VAT treatment of a quote", () => {
 
   it("says plainly that no rate is set, rather than taking one as nought", () => {
     const none = vatTreatment(countryRule({ vatRateBp: null }));
-    expect(none).toMatchObject({ rate: NOT_KNOWN, text: NO_RATE("United Kingdom") });
+    expect(none.rate).toBe(NOT_KNOWN);
+    expect(none.text).toContain("a rate nobody has recorded");
     expect(none.text).toContain("as stored");
   });
 
+  it("says plainly that nobody has recorded which tax a market charges", () => {
+    const none = vatTreatment(countryRule({ taxName: null }));
+    expect(none.rate).toBe("20%");
+    expect(none.text).toContain("Nobody has recorded which tax");
+  });
+
   it("reads a rate in basis points as a percentage a person reads", () => {
-    expect(ratePercent(2000)).toBe("20%");
-    expect(ratePercent(1050)).toBe("10.5%");
-    expect(ratePercent(0)).toBe("0%");
+    expect(vatTreatment(countryRule()).rate).toBe("20%");
+    expect(vatTreatment(countryRule({ vatRateBp: 1050 })).rate).toBe("10.5%");
     expect(vatTreatment(countryRule({ vatRateBp: 0 })).rate).toBe("0%");
   });
 
   it("falls back to the gap rule where the row names none", () => {
     expect(vatTreatment(countryRule({ ruleId: "" })).ruleId).toBe(GAP_RULE_ID);
-    expect(vatTreatment(countryRule({ ruleId: "R-LAB-002" })).ruleId).toBe("R-LAB-002");
     expect(vatTreatment(countryRule({ sellingEnabled: false, ruleId: "" })).ruleId).toBe(GAP_RULE_ID);
     expect(vatTreatment(countryRule({ vatRateBp: null, ruleId: "" })).ruleId).toBe(GAP_RULE_ID);
+    expect(vatTreatment(countryRule({ ruleId: "R-LAB-002" })).ruleId).toBe(GAP_RULE_ID);
   });
 
   it("finds the row for a market, and nothing for one no row covers", () => {

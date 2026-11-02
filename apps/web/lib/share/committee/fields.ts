@@ -1,5 +1,5 @@
 /**
- * The words, limits and lists a committee page shows (spec F-T3, plan v5 Z7, decision 0086).
+ * The words, limits and lists a committee page shows (spec F-T3, plan v5 Z7, decision 0087).
  *
  * No zod here, so a browser component can import them without shipping the schema library
  * (`tests/architecture/client-weight.test.ts`). The schemas in `schemas.ts` re-export this file for

@@ -10,6 +10,9 @@ import { buildPdf } from "@/lib/techpack/exports/pdf/document";
 import { illustrationsForExport } from "@/lib/techpack/exports/illustrations";
 import { exportQuerySchema, type ExportQuery } from "@/lib/techpack/exports/request";
 import { buildSvg } from "@/lib/techpack/exports/svg";
+import { SOURCE_LANGUAGE, type Language } from "@/lib/translate/languages";
+import type { TranslationRow } from "@/lib/translate/rows";
+import { log } from "@/lib/server/log";
 import type { TechPack } from "@/lib/techpack";
 import { buildPackFor } from "./tech-pack-data";
 import type { TechPackSource } from "./tech-pack-load";
@@ -29,6 +32,12 @@ export interface ExportDeps {
   readonly record: (entry: DownloadEntry) => Promise<void>;
   readonly now: () => Date;
   readonly brandName: string;
+  /**
+   * The words of the language a PDF is asked for, from `translation_strings` (decision 0104). Left
+   * out, or failing, the document falls back to the labelled draft in the code, which says on every
+   * page that nobody has read it — so a library that cannot be read never stops a download.
+   */
+  readonly translations?: (language: Language) => Promise<readonly TranslationRow[]>;
 }
 
 interface ExportInput {
@@ -44,11 +53,31 @@ const parseQuery = (format: ExportFormat, query: unknown): ExportQuery => {
   return parsed.data;
 };
 
-async function buildFile(format: ExportFormat, view: View | null, source: TechPackSource, pack: TechPack): Promise<Uint8Array<ArrayBuffer> | string> {
+/**
+ * The words of the language the PDF is asked for. English needs none, and a library that cannot be read
+ * is a warning and an unreviewed draft, never a failed download.
+ */
+async function translationsFor(deps: ExportDeps, language: Language): Promise<readonly TranslationRow[]> {
+  if (language === SOURCE_LANGUAGE || deps.translations === undefined) return [];
+  try {
+    return await deps.translations(language);
+  } catch (error) {
+    log({ level: "warn", message: "The translation library could not be read", where: "tech pack export", error });
+    return [];
+  }
+}
+
+async function buildFile(
+  format: ExportFormat,
+  view: View | null,
+  source: TechPackSource,
+  pack: TechPack,
+  options: Readonly<{ language: Language; translations: readonly TranslationRow[] }>,
+): Promise<Uint8Array<ArrayBuffer> | string> {
   const { images, skipped } = source.pictures;
   const pictureLeftOut = skipped > 0;
   const illustrations = illustrationsForExport(source.illustrations, source.project.currentVersion);
-  if (format === "pdf") return buildPdf(pack, images, { pictureLeftOut, illustrations });
+  if (format === "pdf") return buildPdf(pack, images, { pictureLeftOut, illustrations, ...options });
   if (format === "xlsx") return buildWorkbook(pack, { illustrations });
   // The query of a drawing always names a view: exportQuerySchema requires it.
   if (view === null) throw new AppError("invalid_input", MESSAGES.invalid_input);
@@ -83,9 +112,11 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
   const view = query.view ?? null;
+  const language = query.language ?? SOURCE_LANGUAGE;
+  const translations = await translationsFor(deps, language);
   let content: Uint8Array<ArrayBuffer> | string;
   try {
-    content = await buildFile(input.format, view, source, pack);
+    content = await buildFile(input.format, view, source, pack, { language, translations });
   } catch (error) {
     if (error instanceof NoDrawing) throw new AppError("not_found", error.message);
     throw error;
@@ -98,6 +129,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     format: input.format,
     view,
     colourway: drawnColourway(source, pack),
+    language,
   });
   return downloadResponse(input.format, name, content);
 }

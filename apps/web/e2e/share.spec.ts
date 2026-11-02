@@ -74,7 +74,7 @@ test.describe("sharing a design with a committee", () => {
     await expect(panel.getByTestId("share-link")).toHaveAttribute("data-state", "revoked");
 
     // Still a 404, and still nothing to tell a revoked link from an unknown one. Plan v5 Z7
-    // (decision 0086) gave the page under /s its own words, because a committee member on a phone
+    // (decision 0087) gave the page under /s its own words, because a committee member on a phone
     // can act on "ask the person who sent it" and cannot act on "there is nothing at this address".
     const gone = await guest.goto(address);
     expect(gone?.status()).toBe(404);

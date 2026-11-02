@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { allSeedTemplates } from "./all";
+import { australiaSeedTemplates } from "./australia/build";
 import type { SeedTemplate } from "./build";
 import { tagsOf } from "./tagging";
 
@@ -28,8 +29,15 @@ export const rowOf = (seed: SeedTemplate) => {
  * Puts the starter templates in the library with the service client. A row is found by its slug, so running
  * this again changes the rows it made and adds nothing. A row a platform admin reviewed is left as it is.
  */
+/**
+ * Every starter the library holds: the 60 of `07` (L8, decision 0098) and the Australian starters beside
+ * them (O3, decision 0104). `allSeedTemplates()` stays the 60 exactly, because that is what `07`'s launch
+ * count counts, and the Australian rows have their own count in `australia/build.ts`.
+ */
+export const everySeedTemplate = (): readonly SeedTemplate[] => [...allSeedTemplates(), ...australiaSeedTemplates()];
+
 export async function seedTemplates(admin: SupabaseClient): Promise<number> {
-  const rows = allSeedTemplates().map(rowOf);
+  const rows = everySeedTemplate().map(rowOf);
   const { data: reviewed, error: readError } = await admin.from("templates").select("slug").eq("review_state", "reviewed");
   if (readError) throw new Error(readError.message);
   const keep = new Set((reviewed ?? []).map((entry: { slug: string }) => entry.slug));
