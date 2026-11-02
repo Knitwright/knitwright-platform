@@ -240,21 +240,26 @@ test.describe("the founder journey (R3)", () => {
     expect(refused.error.code).toBe("conflict");
 
     /*
-     * AND IT IS NOT THE F-G2 GATE THAT STOPS IT.
+     * AND IT IS THE F-G2 GATE THAT STOPS IT, which is the point of this assertion.
      *
-     * `lib/kpp/sources/server.ts` writes the design object before it builds the gate's input, and
-     * `lib/design-object/to-v2.ts` refuses a design whose colourway has no screen colour -- which a
-     * design made from this base article has, because nothing on the way here sets one. So the
-     * checklist never runs, and **the care label of decision 0089 is named nowhere a founder can
-     * reach**: not on a screen, and not in this refusal either.
+     * R3's own review found that it was not. `lib/kpp/sources/server.ts` wrote the design object
+     * through `toDesignObjectV2` first -- an export format, which refuses a design whose colourway
+     * has no screen colour, as a design made from this base article has, because nothing on the way
+     * here sets one. And the drafter has a script for one article only, so for TEE-TR-01 its own
+     * refusal answered next. Either way the checklist never ran and **the care label of decision
+     * 0089 was named nowhere a founder could reach**. The route now reads the design's facts
+     * (`designObjectFacts`) and runs the gate before it drafts anything, so the refusal is about the
+     * garment: every gap in one answer, each sentence carrying the rule it comes from.
      *
-     * The sentence is also about the wrong thing. It names "the export format" rather than the one
-     * action that would fix it, on a route whose purpose is to tell a factory what is missing.
+     * There is still no screen for any of this. The wall is that a founder has to call a route to
+     * hear it, which is R3's finding and stands.
      */
-    expect(refused.error.message).toBe("No colour of this design has a screen colour yet, and the export format needs at least one.");
-    expect(refused.error.message).not.toContain("Care label");
-    expect(refused.error.message).not.toContain("This production package cannot be built yet.");
-    expect(refused.error.fields?.package).toBeUndefined();
+    expect(refused.error.message).toContain("This production package cannot be built yet.");
+    expect(refused.error.message).toMatch(/Care label [A-Z]{2}: missing [^.]*\./);
+    expect(refused.error.message).not.toContain("the export format");
+    // Every gap, with its dotted path and its rule id, so the founder is told what each one is.
+    const gaps = refused.error.fields?.package ?? [];
+    expect(gaps.some((line) => /^labels\[\d+\]: Care label [A-Z]{2}: missing [^(]*\(R-[A-Z]+-\d{3}\)$/.test(line))).toBe(true);
   });
 });
 

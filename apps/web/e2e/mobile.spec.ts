@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { seedTemplates } from "../lib/templates/seed/seed";
+import { settled } from "./chrome";
 import { createAccount, makePlatformAdmin, signIn, test } from "./support";
 
 /**
@@ -22,12 +23,10 @@ test.beforeAll(async () => {
 
 const MIN_TARGET = 40;
 
-/** The entrance animations finish first: text that is still fading in fails the contrast rule for a moment. */
-const settled = async (page: Page): Promise<void> => {
+/** Quiet network, then the entrance animations: this page's boxes are measured against a 40 px floor. */
+const ready = async (page: Page): Promise<void> => {
   await page.waitForLoadState("networkidle");
-  await page.waitForFunction(() =>
-    document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
-  );
+  await settled(page);
 };
 
 /** Controls a thumb has to hit that are smaller than MIN_TARGET either way. Links inside running text are exempt. */
@@ -66,7 +65,7 @@ const smallTargets = (page: Page): Promise<string[]> =>
 
 const checkPage = async (page: Page, path: string): Promise<void> => {
   await page.goto(path);
-  await settled(page);
+  await ready(page);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect.soft(overflow, `${path} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
   expect.soft(await smallTargets(page), `${path}: tap targets under ${MIN_TARGET}px`).toEqual([]);

@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { settled } from "./chrome";
 import { createAccount, createColleagueOf, openTool, signIn, standInForBotCheck, test } from "./support";
 
 /** Plan step 6: the editor. Sign in, make a design, change it, reload, find it saved. */
@@ -505,6 +506,9 @@ test.describe("the one-screen workspace", () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
 
       const bar = page.getByRole("navigation", { name: "Design tools" });
+      // The bottom edge is exactly the bottom of the phone, which is only true once the entrance
+      // has settled: `kw-rise` starts 18 px low, so this reads 826 while it plays (`chrome.ts`).
+      await settled(page);
       const box = await bar.boundingBox();
       expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(844);
       await bar.getByRole("tab", { name: "Sizes" }).click();

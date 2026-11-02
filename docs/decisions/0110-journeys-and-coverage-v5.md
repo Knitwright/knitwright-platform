@@ -83,6 +83,11 @@ The journey test asserts that message exactly and asserts that `Care label` is a
 somebody swaps the two steps the test says so. Swapping them is owner question 3b: two lines, and it makes the
 care label the message decision 0089 says it should be.
 
+**Question 3b was taken: decision 0122.** The route now reads the design's own facts rather than the export
+format, and runs the gate before it drafts anything — the drafter's single-article script was a second thing
+standing in front of the gate, which walking the journey had not yet shown. The journey test asserts the gate's
+refusal, with the care-label line and its rule id. The wall above it stands: there is still no screen.
+
 ### 3. Four more walls, which this review found by walking the screens
 
 | Wall | Where | What happens |

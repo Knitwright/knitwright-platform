@@ -49,6 +49,49 @@ const nameNumber = (stack: ArtworkStack, roles: ReadonlyMap<string, string>): De
   };
 };
 
+/** `ExportContext` once the article is known, which is what the design's own facts need. */
+type FactsContext = Omit<ExportContext, "article"> & { readonly article: NonNullable<ExportContext["article"]> };
+
+/**
+ * The design's own facts in the design object's shape: its colourway, options, parameters, assets and fabric.
+ *
+ * This is what the design *is*. The export format's limits are not applied here: `toDesignObjectV2` applies them
+ * and refuses. A caller that writes no techpack.json reads these instead — the production package
+ * (`lib/kpp/sources/server.ts`) does, because it only reads the design's facts and then runs its own F-G2 gate
+ * (`lib/kpp/gate.ts`), which names every gap in one refusal. Before this split the format's refusal ran first, so
+ * a design whose colourway had no screen colour was turned away by the export format and never heard the gate's
+ * own sentence about its care label (decision 0089, R3's review of plan v5, owner question 3b).
+ */
+export function designObjectFacts(spec: GarmentSpec, context: FactsContext): DesignObjectV2 {
+  const { article } = context;
+  const stack = currentStack(spec);
+  const roles = rolesOf(stack);
+  const colours = colourwayColours(stack, roles);
+  const panels = panelsOf(stack, roles);
+  const fabric = spec.fabrics[0];
+  const moderation: ReadonlyMap<string, DoAsset["moderation"]> = context.moderation ?? new Map();
+  return {
+    schema_version: "2.0",
+    article: {
+      base_article_code: article.baseArticleCode,
+      class: article.productionClass,
+      parameters: article.parameters,
+      options: Object.fromEntries(Object.entries(spec.options).map(([key, choice]) => [key, choice.choiceId])),
+      fabric: { code: context.fabricCode ?? fabric.id, colour: null },
+    },
+    colourway: { name: stack.colourways[0]?.name ?? spec.colourways[0].name, colours },
+    panels,
+    assets: assetsOf(stack, moderation),
+    name_number: nameNumber(stack, roles),
+    labels: {
+      care: spec.labelling.care === undefined ? "auto" : "custom",
+      size: "auto",
+      brand_label_asset_id: null,
+    },
+    provenance: { ai_assisted: aiAssisted(spec, stack) },
+  };
+}
+
 /**
  * The design as the spec's design object, version 2.0 (`docs/spec/schemas/design-object.schema.json`).
  *
@@ -61,35 +104,7 @@ const nameNumber = (stack: ArtworkStack, roles: ReadonlyMap<string, string>): De
 export function toDesignObjectV2(spec: GarmentSpec, context: ExportContext): ExportResult {
   const { article } = context;
   if (article === null) return { ok: false, reason: NO_ARTICLE };
-  const stack = currentStack(spec);
-  const roles = rolesOf(stack);
-  const colours = colourwayColours(stack, roles);
-  const panels = panelsOf(stack, roles);
-  const refused = refusal({ colours: colours.length, panels });
-  if (refused !== null) return { ok: false, reason: refused };
-  const fabric = spec.fabrics[0];
-  const moderation: ReadonlyMap<string, DoAsset["moderation"]> = context.moderation ?? new Map();
-  return {
-    ok: true,
-    object: {
-      schema_version: "2.0",
-      article: {
-        base_article_code: article.baseArticleCode,
-        class: article.productionClass,
-        parameters: article.parameters,
-        options: Object.fromEntries(Object.entries(spec.options).map(([key, choice]) => [key, choice.choiceId])),
-        fabric: { code: context.fabricCode ?? fabric.id, colour: null },
-      },
-      colourway: { name: stack.colourways[0]?.name ?? spec.colourways[0].name, colours },
-      panels,
-      assets: assetsOf(stack, moderation),
-      name_number: nameNumber(stack, roles),
-      labels: {
-        care: spec.labelling.care === undefined ? "auto" : "custom",
-        size: "auto",
-        brand_label_asset_id: null,
-      },
-      provenance: { ai_assisted: aiAssisted(spec, stack) },
-    },
-  };
+  const object = designObjectFacts(spec, { ...context, article });
+  const refused = refusal({ colours: object.colourway.colours.length, panels: object.panels });
+  return refused === null ? { ok: true, object } : { ok: false, reason: refused };
 }

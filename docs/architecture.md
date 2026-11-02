@@ -219,7 +219,7 @@ for the first five tables and `plans/platform-v5.md` for the rest.
 | O3 Australia and Translate: the AUD ladder, the GST trigger as data, Australia's labels, the tech pack in Urdu | `markets`, `translate` | 0104 |
 | — the studio top bar | `shell`, `components/shell` | 0103 |
 | — the option-code map, the bill of materials | `option-codes`, `kpp/sources/consumption.ts` | 0099, 0101 |
-| R1 to R3 review and hardening | reports to `docs/reviews/`: [code](reviews/code-v5.md) (R2, landed), then `security-v5.md` (R1) and `coverage-v5.md` (R3) | 0112 |
+| R1 to R3 review and hardening | reports to `docs/reviews/`: [security](reviews/security-v5.md) (R1, decision 0109) and [code](reviews/code-v5.md) (R2, decision 0112), then `coverage-v5.md` (R3) | 0109, 0112 |
 | R4 documentation | this map, the README, the owner guide, the checklist | 0115 |
 
 ## Data flow: from a design to a package to an order

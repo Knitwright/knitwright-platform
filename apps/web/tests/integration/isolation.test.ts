@@ -2843,6 +2843,18 @@ describe.each(Object.entries(SHARED_TABLES))("shared table %s", (table, spec) =>
   });
 });
 
+// `LIBRARY_TABLES` was a list with nothing behind it: naming a table there satisfied "has a test
+// below for every table" and the privilege check, but ran no test at all. The privilege check reads
+// anon and authenticated together, so `grant select ... to anon` on one of these would read the same
+// as `to authenticated` and nothing would notice (security-v5, M1). This asks anon directly.
+describe.each(Object.keys(LIBRARY_TABLES))("library table %s", (table) => {
+  it("shows a visitor who is not signed in nothing", async () => {
+    const { data, error } = await anonClient().from(table).select("*");
+
+    expect(error !== null || data?.length === 0).toBe(true);
+  });
+});
+
 describe("memberships", () => {
   it("does not let a member join another brand", async () => {
     await alice.client
