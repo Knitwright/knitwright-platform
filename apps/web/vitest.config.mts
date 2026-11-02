@@ -115,6 +115,10 @@ export default defineConfig({
         // order, the estimate, the refunds, the artwork check and the summary are tested on their
         // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
         "lib/flows/server.ts",
+        // Joins the Store contract to the brand's products, the two hand-off tables, the factory's tiers and
+        // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
+        // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0105).
+        "lib/store-contract/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -190,6 +194,7 @@ export default defineConfig({
             "rulebook",
             "settings",
             "shell",
+            "store-contract",
             "teamwear",
             "templates",
             "validation",

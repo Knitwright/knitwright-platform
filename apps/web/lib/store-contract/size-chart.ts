@@ -20,7 +20,7 @@ import { gap, held, type Known } from "./gap";
  * leaves the other kind absent rather than passing a garment figure off as a body figure.
  */
 
-export const CHART_SOURCE = "the base article's points of measure, as the tech pack prints them";
+export const CHART_SOURCE = "the base article's points of measure, as the tech pack prints them" as const;
 
 /** One row of the chart: one measured place, across the size run. */
 export interface SizeChartPoint {
@@ -82,7 +82,7 @@ export function storeSizeChart(input: SizeChartInput): StoreSizeChart {
       input.sampleSize === null
         ? gap([NO_SAMPLE_SIZE], `Knitwright holds no figure for ${NO_SAMPLE_SIZE}, so the chart says which sizes it covers but not which one was measured.`)
         : held({ size: input.sampleSize }),
-    unit: "mm",
+    unit: "mm" as const,
     source: CHART_SOURCE,
     points,
   });

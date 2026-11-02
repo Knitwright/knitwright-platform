@@ -17,7 +17,7 @@ import type { NumberRule, StorePersonalisation } from "./personalisation";
  */
 
 export const TEAM_STORE_HANDOVER =
-  "A configuration, not a shop. Knitwright holds no shop front and no way to take money for a team store: this record is what the club settled, and the Store builds its own around it.";
+  "A configuration, not a shop. Knitwright holds no shop front and no way to take money for a team store: this record is what the club settled, and the Store builds its own around it." as const;
 
 export const COLOUR_SLOTS = ["primary", "secondary", "accent"] as const;
 export type ColourSlot = (typeof COLOUR_SLOTS)[number];

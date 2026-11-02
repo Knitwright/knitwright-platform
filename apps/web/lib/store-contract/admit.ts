@@ -37,6 +37,22 @@ export interface AdmitInput {
   readonly nowSeconds: number;
 }
 
+/**
+ * The query as the caller sent it, which is what the caller signed. The query the handler parsed is
+ * not used: it carries this contract's own defaults, which a caller would have to know to sign.
+ */
+export const queryOfUrl = (url: string): Readonly<Record<string, string>> => Object.fromEntries(new URL(url).searchParams.entries());
+
+/** The door, for a route handler: the header off the request and the query off its address. */
+export const admitRequest = (payload: PayloadKind, request: Request, secret: string | undefined, nowMs: number): Admission =>
+  admitStoreCall({
+    header: request.headers.get(TOKEN_HEADER),
+    secret,
+    payload,
+    query: queryOfUrl(request.url),
+    nowSeconds: Math.floor(nowMs / 1000),
+  });
+
 export function admitStoreCall(input: AdmitInput): Admission {
   const secret = input.secret?.trim() ?? "";
   if (secret.length < SECRET_MIN_LENGTH) return { ok: false, status: 503, reason: SECRET_MISSING };
