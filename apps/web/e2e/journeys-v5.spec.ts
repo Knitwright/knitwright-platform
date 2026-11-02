@@ -143,9 +143,11 @@ test.describe("the founder journey (R3)", () => {
       "This article has no measurements on file yet. The build pack gives them for the worked article only.",
     );
     // Wall 2, where a founder meets it first: the market panel has a Delivery row and no date in it.
+    // This article has no factory capability either, so its lead time is named alongside the two
+    // parts that are unset for every market; the two are asserted without the joining words.
     const market = page.getByRole("region", { name: /^Selling in / });
     await expect(market).toContainText("No delivery date yet");
-    await expect(market).toContainText("Not set: the days for QC and the freight days");
+    await expect(market).toContainText("the days for QC and the freight days");
     // Wall 1, in the market's own words: no care symbol exists, so no care line can be printed.
     await expect(market).toContainText("ISO 3758 is a paid standard and is not in this repository");
     await expect(market).not.toContainText(/Delivery 20\d\d-/);
@@ -520,9 +522,10 @@ test.describe("the ops journey (R3)", () => {
     await page.getByLabel("Pieces with a defect").fill("0");
     await page.getByRole("button", { name: "Record inspection" }).click();
     await expect(page.getByText("Inspection recorded: pass")).toBeVisible();
-    // The reading is kept and shown, and nothing pretends to judge it: this factory has no tolerance.
+    // The reading is kept and shown, and nothing pretends to judge it: this factory is not on file,
+    // so it has no agreed colour difference and the line says the figure alone.
     await expect(page.getByTestId("colour-reading")).toContainText("Kit navy reads Delta-E 1.2");
-    await expect(page.getByText(/No colour tolerance is on file for this factory/).first()).toBeVisible();
+    await expect(page.getByTestId("colour-reading")).not.toContainText(/within the|over the/);
     // A run over 300 pieces may be inspected by a third party, and nothing is booked by a stub.
     await page.getByRole("button", { name: "Ask for an inspection" }).click();
     await expect(page.getByTestId("inspection-booking")).toContainText("Nothing booked");
