@@ -91,6 +91,7 @@ describe("the ops console is for platform admins only", () => {
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/factory-sheet": ["./assets/fonts/**"]');
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/print-files": ["./assets/fonts/**"]');
     expect(config).toContain('"/api/ops/orders/\\\\[orderId\\\\]/packing-list": ["./assets/fonts/**"]');
+    expect(config).toContain('"/api/ops/orders/\\\\[orderId\\\\]/commercial-invoice": ["./assets/fonts/**"]');
   });
 
   it("never reaches the public routes list or the public pages list", () => {
