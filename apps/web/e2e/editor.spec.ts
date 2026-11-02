@@ -396,11 +396,23 @@ test.describe("the editor", () => {
     await chest(page).fill("52.5");
     await chest(page).press("Enter");
     await saved(page, 2);
+    /*
+     * Wait for the save to come back before typing again. `saved` only waits for the save to be
+     * reported; the row's own value arrives separately, and when it does MeasurementRow's server
+     * effect runs. On a value that means what the field already means, lib/projects/field-text's
+     * `onServer` takes the `sameCm` branch and resets the text to the value the server holds. So a
+     * reply still in flight from this first save would land on the text typed below and replace it,
+     * which is why this test used to fail about one run in ten with "52.5" where it wanted
+     * " 52,50 ". Asserting the settled value here leaves nothing in flight to land later.
+     */
+    await expect(chest(page)).toHaveValue("52.5");
 
     await chest(page).fill(" 52,50 ");
     await chest(page).press("Enter");
     await page.waitForTimeout(500);
 
+    // The text means 52.5, which the row already holds, so `intentFromText` asks for nothing: no
+    // new version, and the text the person typed is left alone.
     await expect(page.getByTestId("version")).toHaveText("Version 2");
     await expect(chest(page)).toHaveValue(" 52,50 ");
   });
