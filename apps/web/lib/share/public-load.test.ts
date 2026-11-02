@@ -26,6 +26,7 @@ const opened = (patch: Partial<OpenShare> = {}): OpenShare => ({
   spec: withPicture(),
   savedAt: "2026-10-04T09:30:00Z",
   expiresAt: "2026-11-03T09:30:00Z",
+  openedBy: "link",
   ...patch,
 });
 

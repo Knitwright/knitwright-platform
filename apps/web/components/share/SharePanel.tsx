@@ -6,10 +6,14 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { SelectField } from "@/components/ui/SelectField";
 import { createShareLinkAction, moveShareLinkAction, revokeShareLinkAction } from "@/lib/share/actions";
+import type { AccessRow } from "@/lib/share/invite-fields";
 import type { ShareLinkView } from "@/lib/share/responses";
 import { DEFAULT_LINK_DAYS, LINK_DAYS } from "@/lib/share/fields";
+import { AccessList } from "./AccessList";
+import { InviteForm } from "./InviteForm";
+import { LinkAudience } from "./LinkAudience";
 
-type SharePanelProps = Readonly<{ projectId: string; links: readonly ShareLinkView[] }>;
+type SharePanelProps = Readonly<{ projectId: string; links: readonly ShareLinkView[]; access: readonly AccessRow[] }>;
 
 const DAY_OPTIONS = LINK_DAYS.map((days) => ({ id: days, label: `${days} days` }));
 
@@ -126,6 +130,7 @@ function LinkItem({ projectId, link }: Readonly<{ projectId: string; link: Share
       ) : link.answerCount === 0 ? (
         <p className="text-sm text-muted">No answers yet.</p>
       ) : null}
+      {link.state === "open" ? <LinkAudience projectId={projectId} link={link} /> : null}
     </li>
   );
 }
@@ -134,7 +139,7 @@ function LinkItem({ projectId, link }: Readonly<{ projectId: string; link: Share
  * Share with your committee: a link to one version of the design that people without an account
  * can open, vote on and comment on. Guide module 4. The member sends the link themselves.
  */
-export function SharePanel({ projectId, links }: SharePanelProps) {
+export function SharePanel({ projectId, links, access }: SharePanelProps) {
   return (
     <section aria-labelledby="share-heading" className="grid gap-4 rounded-xl border border-hairline bg-surface p-6">
       <div className="grid gap-1">
@@ -154,6 +159,20 @@ export function SharePanel({ projectId, links }: SharePanelProps) {
           ))}
         </ul>
       ) : null}
+      <div className="grid gap-3 border-t border-hairline pt-4">
+        <div className="grid gap-1">
+          <h3 className="text-[15px] font-semibold text-ink">Invite someone</h3>
+          <p className="text-sm text-muted">
+            An invite is for one email address. Each invited person gets a link of their own, which you can withdraw
+            without touching anyone else&apos;s.
+          </p>
+        </div>
+        <InviteForm projectId={projectId} />
+      </div>
+      <div className="grid gap-3 border-t border-hairline pt-4">
+        <h3 className="text-[15px] font-semibold text-ink">People with access</h3>
+        <AccessList projectId={projectId} rows={access} />
+      </div>
     </section>
   );
 }
