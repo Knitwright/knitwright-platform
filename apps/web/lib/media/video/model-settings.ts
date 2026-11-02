@@ -74,7 +74,7 @@ export const VIDEO_SETTINGS: readonly SettingDef[] = [
     key: CHECK_FRAMES_KEY,
     group: "media",
     label: "Frames of a clip the picture checker samples",
-    help: "A clip is checked by sampling frames across its whole length, not just the first one, so a garment that drifts half way through is caught. Knitwright default: 5.",
+    help: "The picture checker measures frames across a clip's whole length, not just the first one, so a garment that drifts half way through is caught. Knitwright default: 5.",
     question: 35,
     input: "number",
     schema: z.number({ error: "Give a number." }).int("Whole numbers only.").min(1, "Use 1 or more.").max(60, "Use 60 or less."),
