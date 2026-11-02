@@ -124,5 +124,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0104 | [Australia and Translate: the AUD ladder, the GST trigger as data, Australia's label rules, the Australian starters, and the tech pack in Urdu](0104-australia-and-translate.md) | Proposed; the AUD prices, the care line and the Urdu review are named gaps, not figures |
 | 0105 | [Crest to kit, and the quote PDF](0105-crest-to-kit-and-quote.md) | Proposed; no Pantone data ships so no Pantone match is claimed, no delivery date can be shown, every kit's socks are unpriced, three template families deliberately not offered, owner questions listed |
 | 0106 | [The Store contract v2: read endpoints, a documented payload and explicit gaps](0106-store-contract-v2.md) | Proposed; five read endpoints behind a signed service token, a 247-field document locked to the shape by a |
+| 0108 | [The launch panels no workstream owned](0108-launch-panels-unowned.md) | Proposed; Templates, Uploads and Brand built, Likes an honest placeholder because nothing records a like, L7's import screen wired, three R-GAP-000 entries, owner questions listed |
 
 <!-- End of the generated table. -->
