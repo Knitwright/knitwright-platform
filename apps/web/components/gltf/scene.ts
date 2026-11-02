@@ -17,6 +17,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { GltfModel } from "@/lib/gltf";
 import { presetCamera, type ModelBox, type PresetView } from "@/lib/gltf/viewer";
 import type { ViewerMotion } from "@/lib/garment3d/viewer";
+import { distanceFor, listenForVideoEvents, subjectHeight, type CameraAsk } from "@/lib/garment3d/video-events";
 
 /*
  * The only file in the glTF folders that uses three.js. It is reached only through a dynamic import when a person opens
@@ -94,12 +95,6 @@ export function mountModel(canvas: HTMLCanvasElement, root: Group, atlas: HTMLCa
   controls.addEventListener("start", () => {
     controls.autoRotate = false;
   });
-  // The turntable recorder (components/media/video) asks for one turn in a number of seconds, or null to stop.
-  canvas.addEventListener("knitwright:turn", (event) => {
-    const seconds = (event as CustomEvent<{ revolutionSeconds: number | null }>).detail.revolutionSeconds;
-    controls.autoRotateSpeed = seconds ? 60 / seconds : AUTO_ROTATE_SPEED;
-    controls.autoRotate = seconds !== null;
-  });
   const resize = () => {
     const width = canvas.clientWidth || 1;
     const height = canvas.clientHeight || 1;
@@ -115,17 +110,61 @@ export function mountModel(canvas: HTMLCanvasElement, root: Group, atlas: HTMLCa
   place("front");
   const observer = new ResizeObserver(resize);
   observer.observe(canvas);
+
+  /** The distance the whole model fills the frame at, which a zoom of 1 means. */
+  const whole = (): number => new Vector3(...presetCamera("front", box, FOV, camera.aspect)).sub(new Vector3(...box.centre)).length();
+  let push: { from: number; to: number; start: number; ms: number; theta: number; y: number } | null = null;
+
+  const stand = (theta: number, radius: number, y: number): void => {
+    camera.position.set(box.centre[0] + radius * Math.sin(theta), y, box.centre[2] + radius * Math.cos(theta));
+  };
+
+  /**
+   * The camera moves the video studio asks for (decision 0095, item 3): the angle round the model,
+   * the distance for a zoom and the height of the shot's subject. The colourway event is **not**
+   * answered here, because this view holds one picture of one colourway, so the carousel stays
+   * disabled with the sentence that says why rather than recording the same kit three times.
+   */
+  const point = (ask: CameraAsk): void => {
+    controls.autoRotate = false;
+    const theta = (ask.degrees * Math.PI) / 180;
+    const y = box.centre[1] + subjectHeight(ask.subject, box.size[1] ?? 0);
+    const limits = { min: controls.minDistance, max: controls.maxDistance };
+    const from = distanceFor(whole(), ask.zoom, limits);
+    controls.target.set(box.centre[0], y, box.centre[2]);
+    stand(theta, from, y);
+    controls.update();
+    const to = ask.toZoom === null ? null : distanceFor(whole(), ask.toZoom, limits);
+    push = to === null || to === from || ask.seconds <= 0 ? null : { from, to, start: performance.now(), ms: ask.seconds * 1000, theta, y };
+  };
+
+  const stopListening = listenForVideoEvents(canvas, {
+    // The turn the recorder has asked for since decision 0058: one revolution in so many seconds.
+    turn: (seconds) => {
+      controls.autoRotateSpeed = seconds ? 60 / seconds : AUTO_ROTATE_SPEED;
+      controls.autoRotate = seconds !== null;
+    },
+    camera: point,
+  });
+
   renderer.setAnimationLoop(() => {
+    if (push) {
+      const t = Math.min(1, (performance.now() - push.start) / push.ms);
+      stand(push.theta, push.from + (push.to - push.from) * t, push.y);
+      if (t === 1) push = null;
+    }
     controls.update();
     renderer.render(scene, camera);
   });
   return {
     showView: (view) => {
       controls.autoRotate = false;
+      push = null;
       place(view);
     },
     dispose() {
       renderer.setAnimationLoop(null);
+      stopListening();
       observer.disconnect();
       controls.dispose();
       texture?.dispose();

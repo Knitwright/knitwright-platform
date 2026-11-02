@@ -62,6 +62,12 @@ const DOTS: CSSProperties = {
 const CARD = CARD_SIZE;
 const PAD = 64;
 
+/** Everything on a card that a press belongs to rather than to a drag of the card. */
+const CONTROLS = "button, a, input, select, textarea, summary, [role='button']";
+
+/** True when a pointer went down on one of a card's own controls. */
+const isControl = (target: EventTarget | null): boolean => target instanceof Element && target.closest(CONTROLS) !== null;
+
 export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = {} }: FlowCanvasProps) {
   const [menu, setMenu] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<string | null>(null);
@@ -159,6 +165,11 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
                 onKeyDown={onKey(board)}
                 onPointerDown={(event) => {
                   if (busy || event.button !== 0) return;
+                  // A press on a control belongs to that control, not to a drag. Capturing the
+                  // pointer here would retarget the click that follows to this wrapper -- the
+                  // compatibility mouse events go to the capturing element -- so Select, Add…,
+                  // Connect from here and Regenerate would never see a click at all.
+                  if (isControl(event.target)) return;
                   // The pointer is captured, or a drag that ends outside the 248 px card -- which is
                   // every drag worth making, since the columns are 360 px apart -- never reports.
                   event.currentTarget.setPointerCapture(event.pointerId);
