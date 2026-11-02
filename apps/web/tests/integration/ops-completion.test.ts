@@ -63,6 +63,15 @@ async function orderAt(status: "submitted" | "ready"): Promise<{ id: string; cut
   return { id, cutoffAt: rows[0]!.cutoff_at };
 }
 
+/**
+ * True when a change to one of these tables was refused. The service role holds SELECT alone on every one of
+ * them, so the missing privilege refuses an update before the append-only trigger is even reached; the trigger
+ * is the second line of defence, for any role that is ever granted UPDATE by mistake. Either refusal counts,
+ * and a change that went through counts as neither.
+ */
+const refusedAsReadOnly = (error: { hint?: string | null; message?: string } | null, table: string): boolean =>
+  error !== null && (error.hint === "append_only" || (error.message ?? "").includes(`UPDATE ON public.${table}`));
+
 const scheduled = (now: Date) => adminClient().rpc("ops_cut_scheduled", { p_now: now.toISOString() });
 /** A moment that many weeks back. Its cut-off is in the past, so a cut as of then cuts nothing. */
 const weeksAgo = (weeks: number): Date => new Date(Date.now() - weeks * 7 * 86_400_000);
@@ -96,11 +105,11 @@ describe("the scheduled cut", () => {
     }
   });
 
-  it("is append-only: a run can never be changed or removed", async () => {
+  it("can never be changed: the service role holds no UPDATE at all, and a trigger stands behind that", async () => {
     const past = weeksAgo(300 + Math.floor(Math.random() * 200));
     must(await scheduled(past));
     const change = await adminClient().from("ops_cut_runs").update({ orders_batched: 99 }).gt("orders_batched", -1);
-    expect(change.error?.hint).toBe("append_only");
+    expect(refusedAsReadOnly(change.error, "ops_cut_runs")).toBe(true);
   });
 
   it("is not something a browser may run", async () => {
@@ -195,7 +204,7 @@ describe("typed Delta-E readings", () => {
     const order = await orderAt("ready");
     must(await inspect(order.id, { p_colour_readings: [{ colourName: "Kit navy", deltaE: 1 }] }));
     const change = await adminClient().from("ops_qc_colour_readings").update({ colour_name: "Changed" }).eq("order_id", order.id);
-    expect(change.error?.hint).toBe("append_only");
+    expect(refusedAsReadOnly(change.error, "ops_qc_colour_readings")).toBe(true);
     const direct = await adminClient().from("ops_qc_colour_readings").insert({ inspection_id: randomUUID(), order_id: order.id, brand_id: aliceBrand, colour_name: "Direct", delta_e: 1 });
     expect(direct.error).not.toBeNull();
   });
@@ -284,7 +293,7 @@ describe("the commercial invoice", () => {
     const order = await orderAt("ready");
     must(await issue(order.id));
     const change = await adminClient().from("ops_commercial_invoices").update({ incoterms: "EXW" }).eq("order_id", order.id);
-    expect(change.error?.hint).toBe("append_only");
+    expect(refusedAsReadOnly(change.error, "ops_commercial_invoices")).toBe(true);
   });
 });
 
@@ -315,7 +324,7 @@ describe("customer status emails", () => {
     const order = await orderAt("ready");
     must(await send(order.id));
     const change = await adminClient().from("ops_customer_emails").update({ sent: true }).eq("order_id", order.id);
-    expect(change.error?.hint).toBe("append_only");
+    expect(refusedAsReadOnly(change.error, "ops_customer_emails")).toBe(true);
   });
 });
 

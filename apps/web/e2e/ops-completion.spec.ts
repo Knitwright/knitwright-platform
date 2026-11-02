@@ -119,14 +119,11 @@ test.describe("ops completion", () => {
   test("the scorecard says which factory is not active, and why", async ({ page }) => {
     const email = await createAccount("o1-score-admin");
     await makePlatformAdmin(email);
-    // This spec's own factory, so the card it reads is nobody else's and is unique on a retry.
-    const name = `O1 scorecard factory ${Date.now()}`;
-    ok(
-      await service()
-        .from("factories")
-        .insert({ slug: `o1-score-${Date.now()}`, name, city: "Sialkot", country: "PK", time_zone: "Asia/Karachi", label: "Made by the O1 browser test" })
-        .select("slug"),
-    );
+    // The seeded factory, deliberately not one of this spec's own: `lib/home/book.ts` prices the whole
+    // catalogue from the **first factory by slug**, so a factory inserted here would empty the price ladder
+    // of studio-catalogue.spec.ts and studio-collections.spec.ts. Its two capabilities are seeded with no
+    // golden sample, which is exactly the state F-O6 calls "not active".
+    const name = "Sialkot partner";
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/ops/scorecard");

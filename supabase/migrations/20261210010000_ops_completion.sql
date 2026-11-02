@@ -191,9 +191,16 @@ create table public.ops_couriers (
   name text not null check (length(btrim(name)) between 1 and 80),
   -- 'manual': ops types the tracking number in. Another value is an adapter that books a label, behind a key.
   provider text not null default 'manual' check (length(btrim(provider)) between 1 and 40),
-  -- Where "{tracking}" is replaced by the number. Null: this courier has no tracking page on file, and the
-  -- platform invents no address.
-  tracking_url_template text check (tracking_url_template ~ '^https://[^ ]{1,200}\{tracking\}[^ ]{0,100}$'),
+  -- `https://…/{tracking}`: the number goes where {tracking} is. Null: this courier has no tracking page on
+  -- file, and the platform invents no address. Checked without a regular expression on purpose — a pattern
+  -- that has to match the literal braces trips Postgres's own counting of `{...}` repetitions.
+  tracking_url_template text check (
+    tracking_url_template is null
+    or (tracking_url_template like 'https://%'
+        and position('{tracking}' in tracking_url_template) > 0
+        and length(tracking_url_template) between 20 and 320
+        and tracking_url_template not like '% %')
+  ),
   -- The terms agreed with the courier, in its own words. Empty: nothing is agreed.
   terms text not null default '' check (length(terms) <= 400),
   -- Calendar days this courier takes, when a figure is agreed. Null: not agreed, so no delivery date.
