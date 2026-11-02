@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { accessible } from "./chrome";
+import { accessible, settled } from "./chrome";
 import { createAccount, signIn, test } from "./support";
 
 /**
@@ -52,8 +52,14 @@ const openView = async (page: Page, label: "2D" | "3D" | "Tech pack"): Promise<v
   await page.getByTestId("view-toggle").getByRole("button", { name: label, exact: true }).click();
 };
 
-/** Nothing scrolls sideways, at whatever width the test is running. */
+/**
+ * Nothing scrolls sideways, at whatever width the test is running. Settled first: the entrance's
+ * `scale(0.985)` pulls everything inward, so a real spill can measure as none while it plays
+ * (#156). Its callers go through `accessible`, which settles too, but a measurement should not
+ * depend on what was called before it.
+ */
 const noSidewaysScroll = async (page: Page, where: string): Promise<void> => {
+  await settled(page);
   const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sideways, `${where} scrolls the page sideways by this many pixels`).toBeLessThanOrEqual(1);
 };
@@ -118,6 +124,10 @@ test.describe("the panels the shell never mounted", () => {
     await signedIn(page, "panels-tabs");
     await startJersey(page, "Tabs kit");
 
+    // `kw-rise` starts at `scale(0.985)`, so a box measured while it plays is up to 1.5% small:
+    // the strip and its tabs would both shrink and a real spill could measure as none, which is
+    // what `headerFits` was doing until #156. Measure the settled page.
+    await settled(page);
     const outside = await page.getByTestId("rail-segments").evaluate((strip) => {
       const edge = strip.getBoundingClientRect();
       const over = (tab: Element): boolean => {
