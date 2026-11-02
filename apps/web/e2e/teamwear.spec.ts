@@ -38,6 +38,9 @@ test.describe("the teamwear configurator", () => {
   test("a club picks a bundle, a collar code and a quantity, sees the price and saves the kit", async ({ page }) => {
     await openConfigurator(page, await createAccount("teamwear", { brand: "Dockside Rovers" }));
 
+    // The screen has one heading, and it names the club and the sport being worked on.
+    await expect(page.getByRole("heading", { level: 1, name: "Dockside Rovers · Football" })).toBeVisible();
+
     // The sport chips, the backdrop and the three kit parts, each with its own pill.
     await expect(page.getByRole("navigation", { name: "Sport" }).getByRole("link", { name: "Football" })).toHaveAttribute("aria-current", "page");
     await expect(page.getByTestId("teamwear-stage")).toHaveAttribute("data-backdrop", "pitch");

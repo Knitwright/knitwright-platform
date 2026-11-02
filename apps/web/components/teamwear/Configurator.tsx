@@ -18,6 +18,7 @@ import {
   QUOTE_UNAVAILABLE,
   snapshotName,
   SPORTS,
+  sportById,
   studioHref,
   viewChips,
   withinFirstRenderBudget,
@@ -92,6 +93,15 @@ export function Configurator(props: ConfiguratorProps) {
     <div className="flex flex-col gap-3" data-testid="teamwear-configurator">
       <div className="flex flex-col gap-3 lg:grid lg:h-[calc(100dvh-14rem)] lg:grid-cols-[minmax(0,2fr)_22rem] lg:gap-4">
         <div className="flex min-h-0 flex-col gap-3">
+        {/*
+          The screen's one heading, beside the sport chips rather than above them: this is a shop
+          window and a full page introduction would take the height the stage is given. It names what
+          is being worked on, as the editor's own top bar does.
+        */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink" data-testid="teamwear-title">
+          {props.brandName} · {sportById(kit.sportId).label}
+        </h1>
         <nav aria-label="Sport" className="flex flex-wrap gap-2" data-testid="teamwear-sports">
           {SPORTS.map((sport) => (
             <Link
@@ -104,6 +114,7 @@ export function Configurator(props: ConfiguratorProps) {
             </Link>
           ))}
         </nav>
+        </div>
 
         <StageFrame
           ref={stage}
