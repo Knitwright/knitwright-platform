@@ -113,4 +113,8 @@ export const LIMITS = {
   // Taking a card in reaches a competitor's page and then a vision model. The per-brand counts, which the spec asks
   // for, are kept beside these in lib/benchmarks/limits.ts and counted inside the action.
   benchmarkIntake: { name: "benchmark-intake", limit: 20, windowSeconds: 10 * MINUTE },
+  // Brand import (plan v5 L7, decision 0102). One import reads a page of the brand's own site and then a handful of
+  // its pictures, and reaches a vision model once, so it is held tighter than a read. The per-brand counts the spec
+  // asks for are kept beside the engine in lib/brand-studio/import/settings.ts, where an admin row can change them.
+  brandImport: { name: "brand-import", limit: 10, windowSeconds: HOUR },
 } as const satisfies Record<string, RateLimitRule>;
