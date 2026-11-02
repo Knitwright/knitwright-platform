@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { accessible } from "./chrome";
+import { accessible, settled } from "./chrome";
 import { createAccount, openTool, signIn, test } from "./support";
 
 /**
@@ -38,8 +38,13 @@ const startDesign = async (page: Page, name: string, type = "Team jersey"): Prom
 
 const PHONE = { width: 390, height: 844 };
 
-/** Nothing scrolls sideways, at whatever width the test is running. */
+/**
+ * Nothing scrolls sideways, at whatever width the test is running. Settled first: the entrance
+ * animation lifts and scales what it draws, so a width measured while it plays is not the width a
+ * person sees -- the lesson `settled` was written for.
+ */
 const noSidewaysScroll = async (page: Page): Promise<void> => {
+  await settled(page);
   const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sideways).toBeLessThanOrEqual(1);
 };

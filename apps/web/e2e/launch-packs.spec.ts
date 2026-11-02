@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { accessible } from "./chrome";
+import { accessible, settled } from "./chrome";
 import { createAccount, signIn, test } from "./support";
 
 /**
@@ -39,7 +39,9 @@ const openTemplates = async (page: Page): Promise<void> => {
   await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Templates", exact: true }).click();
 };
 
+/** Settled first, so a width is the width a person sees rather than the entrance's (see `settled`). */
 const noSidewaysScroll = async (page: Page): Promise<void> => {
+  await settled(page);
   const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(sideways).toBeLessThanOrEqual(1);
 };

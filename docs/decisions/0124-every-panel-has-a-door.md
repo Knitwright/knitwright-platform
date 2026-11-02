@@ -10,8 +10,9 @@ the unwired seams the wave-4 and wave-2 wiring changes did not own.
 ## Context
 
 A sweep of `apps/web` for transitive reachability from every `app/**/{page,layout,route}` root found
-**ninety components that no page could reach**. Most belonged to two wiring pull requests already in
-flight (#140 for wave 4, #150 for wave 2). What was left over belonged to nobody:
+**ninety components that no page could reach**. Most belonged to two wiring pull requests in flight
+at the time (#140 for wave 4, which merged while this was being written, and #150 for wave 2, still
+open). What was left over belonged to nobody:
 
 | Built | Routed | Tested | Reachable |
 |---|---|---|---|
@@ -163,12 +164,18 @@ The allow-list has two kinds of entry and **every entry carries a reason**:
   `/api/pattern-library/programmes` (dark behind `patternLibraryOpenTo`), and
   `publishFlowListingAction` (see item 8).
 * `in-flight` — built by one wave and mounted by a pull request that is open **right now**, each
-  entry naming that pull request (#140 or #150) so it can be deleted when it merges.
+  entry naming that pull request so it can be deleted when it merges.
+* `reported` — a seam whose door is a file another workstream owns, written down here with the lines
+  it takes: `components/flows/BoardActions.tsx` and `flowOperationAction` (see the alternatives).
 
 A stale entry is printed as a line to delete rather than failing the build, and the file says why: the
 order those pull requests merge in is not this branch's to choose, and a red `main` that nobody broke
 teaches people to ignore the test. What the test is strict about is the thing it exists for — a
 component, an action or a route that appears with no door and no entry fails it.
+
+**That mechanism was used within the hour.** PR #140 merged while this branch was being written, the
+test printed its thirty-one component entries and `runFlowAction` as lines to delete, and they were
+deleted. What is left `in-flight` is PR #150's ten files and nothing else.
 
 The test also guards itself: it asserts that the sweep reaches components a page really draws, that
 it does not reach a test builder, that every allow-list path names a file or route that exists, that
@@ -186,19 +193,36 @@ every entry's reason is a sentence, and that every `in-flight` entry names a pul
 
 ## Alternatives
 
-- **Mount `FlowTemplates` on the launch canvas, as decision 0108's note said.** Rejected: the canvas
-  files are `components/launch/{BoardCanvas,LaunchShell,Inspector}.tsx`, which pull request #140 is
-  rewriting in exactly those places, and L1's own panel contract already names the Templates panel as
-  the home of flow templates. The panel is also where a person goes to look for a template.
+- **Mount `FlowTemplates` on the launch canvas, as decision 0108's note said.** Rejected: L1's own
+  panel contract names the Templates panel as the home of a flow template, the canvas files
+  (`components/launch/{BoardCanvas,LaunchShell,Inspector}`) were being rewritten by #140 at the time,
+  and a panel is where a person goes to look for a template. Reading those files after #140 merged
+  did not change the answer: the canvas draws boards and connectors, and none of its four flow
+  components is a place a list of packs could live.
 - **Put a "Use this look" button under all fifty-one pattern looks.** Rejected: item 4.
 - **Leave the typed word to the screen and not the body.** Rejected: item 5. A box the schema ignores
   is a lie about what it takes to delete something.
 - **Mount `components/flows/BoardActions.tsx` and wire `flowOperationAction`.** Rejected, and
-  reported instead: Flatten, Upscale and Reframe hang off a selected board, so the door is the
-  inspector's board panel in `components/launch/{Inspector,LaunchShell}.tsx`. #140 is rewriting both
-  files for the same purpose — it adds a `flow` prop carrying a `FlowCostSource` and a run callback,
-  which is three quarters of what `BoardActions` needs. Wiring it here would collide with that work
-  for no gain; after #140 lands it is a few lines in files that will then be settled.
+  reported instead, which is what the orchestrator asked for while #140 was open and again after it
+  merged. Flatten, Upscale and Reframe hang off a selected board, so the door is the inspector's
+  board panel, and all three files it takes are L1's own shell. #140 built three quarters of it: the
+  inspector already takes a `flow` prop carrying a `FlowCostSource`, and `useLaunchShell` already
+  calls one of L6's actions (`runFlowAction`) through its `send` helper. What is left is
+  **three lines in three files L1 owns**:
+
+  1. `components/launch/useLaunchShell.ts`: an `runOperation` callback beside `runCanvas`, calling
+     `flowOperationAction({ launchProjectId, boardId, operation, factor?, presetKey? })` through the
+     same `send`, so a refusal shows in the shell's own note;
+  2. `components/launch/LaunchShell.tsx`: add it to the `flow` prop it already builds
+     (`flow={{ costs: flowCostSource(costs), onRunAll: shell.runCanvas, onOperation: shell.runOperation }}`);
+  3. `components/launch/Inspector.tsx`: in `BoardPanel`, draw `<BoardActions>` with the selected
+     board, `flow.costs`, the presets it already has and that callback.
+
+  Nothing else is needed: the three operations are already offered in the contextual task bar, which
+  hands them to the board's own panel (`lib/launch/task-bar.ts`, and the comment in `LaunchShell`
+  saying "Flatten, Upscale, Reframe … are the panels' own work"). So the gap is that panel, not the
+  bar, and `BoardActions` is the panel. This branch does not reach into another workstream's shell to
+  land it; the allow-list carries it as `reported` with this recipe named.
 - **Resurrect `StartWays` rather than delete it.** Rejected: item 2.
 - **A directory-level allow-list.** Rejected: it would have been four lines instead of seventy, and a
   new unmounted component inside one of those directories would never have been noticed. The list

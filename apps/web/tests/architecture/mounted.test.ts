@@ -27,11 +27,14 @@ import { actionSweep, componentSweep, exists, routeSweep } from "./mounted";
  *     Each entry names that pull request. **Delete the group when it merges.** A stale entry is
  *     reported as a line to remove rather than failing the build, because the order those pull
  *     requests merge in is not this branch's to choose and a red `main` that nobody broke teaches
- *     people to ignore the test.
+ *     people to ignore the test. PR #140 merged while this branch was being written and its
+ *     thirty-one entries were deleted the same hour, which is the mechanism working.
+ *   * `reported` -- a seam whose door is a file another workstream owns, written down in a decision
+ *     record with the lines it takes, so the next person finds the answer rather than the hole.
  */
 
 type Group = Readonly<{
-  kind: "helper" | "in-flight";
+  kind: "helper" | "in-flight" | "reported";
   /** Why this may be unreachable. The same sentence applies to every path in the group. */
   why: string;
   /** The open pull request that mounts them, for an `in-flight` group. */
@@ -118,76 +121,18 @@ const COMPONENT_GROUPS: readonly Group[] = [
     ],
   },
   {
-    kind: "in-flight",
-    why: "L4's marketing studio. PR #140 mounts it through MARKETING_PANEL_COMPONENTS in the launch rail and inspector; this branch may not touch that directory.",
-    pr: 140,
-    paths: [
-      "components/marketing/ArtboardPreview.tsx",
-      "components/marketing/AssistantPanel.tsx",
-      "components/marketing/CampaignForm.tsx",
-      "components/marketing/ElementsPanel.tsx",
-      "components/marketing/ExportPanel.tsx",
-      "components/marketing/LayersPanel.tsx",
-      "components/marketing/MarketingBoardPanel.tsx",
-      "components/marketing/PanelFrame.tsx",
-      "components/marketing/PatternFillsPanel.tsx",
-      "components/marketing/TemplatePicker.tsx",
-      "components/marketing/TextPanel.tsx",
-      "components/marketing/panels.ts",
-      "components/marketing/services.tsx",
-    ],
-  },
-  {
-    kind: "in-flight",
-    why: "L3's AI scenes and L5's video studio. PR #140 mounts them in the launch rail and inspector; this branch may not touch those directories.",
-    pr: 140,
-    paths: [
-      "components/shoots/AiImageBoardPanel.tsx",
-      "components/shoots/BoardSections.tsx",
-      "components/shoots/ShootsPanel.tsx",
-      "components/shoots/a11y.ts",
-      "components/shoots/panel-model.ts",
-      "components/video/AiVideoPanel.tsx",
-      "components/video/VideoPlayer.tsx",
-      "components/video/VideoStudio.tsx",
-      "components/video/copy.ts",
-      "components/video/panel-model.ts",
-      "components/video/player.ts",
-      "components/video/progress.ts",
-      "components/video/record-sequence.ts",
-      "components/video/studio-model.ts",
-    ],
-  },
-  {
-    kind: "in-flight",
-    why: "L6's flow canvas, board card, run summary and info card. PR #140 mounts all four in BoardCanvas and the inspector; this branch was told to leave those four files alone.",
-    pr: 140,
-    paths: [
-      "components/flows/FlowBoardCard.tsx",
-      "components/flows/FlowCanvas.tsx",
-      "components/flows/FlowRunPanel.tsx",
-      "components/flows/InfoCardPanel.tsx",
-    ],
-  },
-  {
-    kind: "in-flight",
-    why: "Flatten, Upscale and Reframe for a selected board. Its door is the board panel of components/launch/{Inspector,LaunchShell}.tsx, which PR #140 is rewriting in exactly that place (it adds the FlowCostSource those three need); wiring it here would collide with that work. Reported in decision 0124 as the one-line follow-up for whoever lands #140.",
-    pr: 140,
+    kind: "reported",
+    why: "Flatten, Upscale and Reframe for a selected board. Its door is the inspector's board panel -- components/launch/{Inspector,LaunchShell,useLaunchShell} -- which are L1's files and which PR #140 has just rewritten in that very place, adding the `flow` prop that carries the FlowCostSource these three need. Decision 0124 names the three lines it takes and whose files they are; this branch reports the seam rather than reaching into another workstream's shell.",
+    pr: null,
     paths: ["components/flows/BoardActions.tsx"],
   },
 ];
 
 const ACTION_GROUPS: readonly Group[] = [
   {
-    kind: "in-flight",
-    why: "Run all for the whole canvas. PR #140's useLaunchShell calls it and hands the result to FlowRunPanel. It is named in a comment in FlowRunPanel.tsx today, which is why a text search thought it was already used.",
-    pr: 140,
-    paths: ["lib/flows/actions.ts: runFlowAction"],
-  },
-  {
-    kind: "in-flight",
-    why: "The three board operations behind the task bar's More. Same door, and same reason, as components/flows/BoardActions.tsx above: PR #140 owns the file it is wired from.",
-    pr: 140,
+    kind: "reported",
+    why: "The three board operations behind the task bar's More. Same door and same reason as components/flows/BoardActions.tsx: the shell that would call it is L1's, and decision 0124 names the lines it takes. The task bar already offers Flatten, Upscale and Reframe and hands them to the board's own panel, so what is missing is that panel, not the bar.",
+    pr: null,
     paths: ["lib/flows/actions.ts: flowOperationAction"],
   },
   {
