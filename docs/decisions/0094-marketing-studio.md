@@ -155,11 +155,12 @@ restyle, recolour or redraw the garment in a picture.
 
 ## Evidence
 
-* `apps/web/lib/marketing/**`: 234 tests over the 50 templates against `07`'s own table, the slot
-  geometry, every refusal the layout makes, Replace, the board's settings, the layers, the elements,
-  the brand's voice, the writer and its meter, the campaign form and its generation, the export
-  panel's verdicts, the colour decision, the drawing, the renderer, the zip and the reads. Over 97%
-  of statements, branches, functions and lines, against the 90% this directory is held to.
+* `apps/web/lib/marketing/**` and `components/marketing/**`: 246 tests over the 50 templates against
+  `07`'s own table, the slot geometry, every refusal the layout makes, Replace, the board's settings,
+  the layers, the elements, the brand's voice, the writer and its meter, the campaign form and its
+  generation, the export panel's verdicts, the colour decision, the drawing, the renderer, the zip,
+  the reads and the words a panel may not use. 99.8% of lines, 99.5% of statements, 99.6% of
+  functions and 98.2% of branches of `lib/marketing`, against the 90% it is held to.
 * `apps/web/lib/marketing/garment-lock.test.ts`: the three doors, each watched with a cast past the
   compiler, plus L1's own `acceptAsset` asked the same question.
 * `apps/web/lib/marketing/export/seeded.test.ts`: the migration's own rows against the code the
