@@ -233,8 +233,12 @@ export function useLaunchShell(input: ShellInput) {
     requestRunDownstream: (boardId: string) => askToRun(boardId, true),
 
     /**
-     * A finished picture for a board. The role comes from the asset itself, so a generated picture
-     * is recorded as scenery; the action and the database refuse anything else again.
+     * A finished picture for a board: which file, and what the panel wants it used as.
+     *
+     * **The provenance is not sent, and there is nowhere in the body to put it** (security review
+     * v5 H1, decision 0116). What made the file is read on the server from the file's own row, so a
+     * panel that believed a picture was deterministic cannot make it so by saying it. A panel that
+     * asks for a role the file's real provenance will not carry is refused, with a reason.
      */
     offerAsset: (boardId: string, asset: LaunchAsset) =>
       send(() =>
@@ -243,7 +247,6 @@ export function useLaunchShell(input: ShellInput) {
           boardId,
           asset: {
             role: asset.role,
-            provenance: asset.provenance,
             fileId: asset.file.fileId,
             showsPerson: asset.provenance === "generated" ? asset.showsPerson : false,
           },

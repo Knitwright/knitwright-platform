@@ -44,6 +44,14 @@ const fresh = async (name: string) => {
 
 const hash = () => `h-${randomUUID()}`;
 
+/** Puts a person in a brand with a role, the way the other database tests do. */
+const join = async (owner: Person, brandId: string, member: Person, role: string): Promise<void> => {
+  await rpc("invite_member", { p_brand_id: brandId, p_user_id: owner.userId, p_email: member.email, p_role: role });
+  const invitations = must(await member.client.rpc("my_club_invitations")) as { id: string; brand_id: string }[];
+  const mine = invitations.find((one) => one.brand_id === brandId);
+  await rpc("accept_invitation", { p_user_id: member.userId, p_invitation_id: mine?.id });
+};
+
 beforeAll(async () => {
   [alice, bob] = await Promise.all([person("credits-alice"), person("credits-bob")]);
   [aliceBrand, bobBrand] = await Promise.all([brandOf(alice, "Alice Credits"), brandOf(bob, "Bob Credits")]);
@@ -128,6 +136,31 @@ describe("credit_spend", () => {
       p_brand_id: aliceBrand, p_user_id: alice.userId, p_kind: "free_thing", p_version_hash: hash(),
     });
     expect(error).not.toBeNull();
+  });
+
+  /**
+   * H4 of the v5 security review (migration 20261215020000, decision 0116). Spending a brand's
+   * credits is changing its kit, so it asks `private.can_manage_kit` and not bare membership.
+   *
+   * Neither half writes a ledger line: the viewer is refused before the lock, and the kit manager
+   * is let through to a balance of nothing, which is the answer that proves the ability check
+   * passed for her. Put `private.belongs_to` back in place of `private.can_manage_kit` and the
+   * first expectation fails, because a viewer is a member.
+   */
+  it("refuses a read-only member and still lets a member who may change the kit spend", async () => {
+    const { owner, brand } = await fresh("Spend Ability Brand");
+    const [viewer, manager] = await Promise.all([person("credits-viewer"), person("credits-manager")]);
+    await join(owner, brand, viewer, "viewer");
+    await join(owner, brand, manager, "kit_manager");
+
+    const refused = await adminClient().rpc("credit_spend", {
+      p_brand_id: brand, p_user_id: viewer.userId, p_kind: "pattern_file", p_version_hash: hash(),
+    });
+    expect(refused.error?.code).toBe("42501");
+
+    expect(await spend(brand, manager, "pattern_file", hash())).toMatchObject({ ok: false, reason: "insufficient" });
+    expect(await balance(brand)).toBe(0);
+    expect(await lines(brand)).toHaveLength(0);
   });
 });
 

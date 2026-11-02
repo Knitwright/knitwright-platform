@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getEnv } from "@/lib/config/env";
 import type { GarmentSpec } from "@/lib/garment";
+import { generationGate } from "@/lib/moderation/server";
 import { chooseModels } from "@/lib/providers/select";
 import { MODEL_IMAGE_TYPES, type ModelImage } from "@/lib/providers/text-model";
 import { adminClient, imageProvider, productionDeps } from "@/lib/server/deps";
@@ -49,7 +50,8 @@ export function inspirationSources(
     pexelsKey === "" ? { source: "pexels" as const, unavailable: noKeySentence("Pexels", "PEXELS_API_KEY") } : pexelsProvider(pexelsKey, fetch),
     linkPreviewProvider(deps.productLinks, fetch),
     deps.withMoodImage && image !== null
-      ? aiMoodProvider(image, productionDeps.usage, deps.who)
+      ? // Every AI generation is screened (spec F-G1; security review v5 H3, decision 0116).
+        aiMoodProvider(image, productionDeps.usage, deps.who, generationGate(deps.who, "inspiration/mood"))
       : { source: "ai-mood" as const, unavailable: noKeySentence("AI mood images", "GEMINI_API_KEY or FAL_KEY") },
   ];
 }

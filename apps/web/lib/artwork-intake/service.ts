@@ -22,16 +22,27 @@ export const uploadArtwork = async (
   admin: SupabaseClient,
   actor: Actor,
   input: Readonly<{ bytes: Uint8Array; fileName: string; rightsConfirmed: boolean; now: Date }>,
-  // Moderation (decision 0073): refuses a blocked upload before anything is stored, and keeps the result against the new asset.
-  screen?: UploadGate,
+  /**
+   * Moderation (decision 0073): refuses a blocked upload before anything is stored, and keeps the
+   * result against the new asset.
+   *
+   * **It is not optional** (security review v5 H3, decision 0116). It was, with no default, and
+   * that was the mechanism by which two of the review's unscreened paths skipped the screen without
+   * saying so: `lib/design-import/derived.ts` called this with three arguments and stored up to
+   * eight crests and badges cut out of a person's picture, and `changeArtwork` inherited the rights
+   * confirmation but not the verdict, so a flagged upload could be laundered into a clean-looking
+   * asset. `screenBeforeOrder` then reported each of them as `not_screened`, which until this
+   * review's M9 fix was dropped from the answer rather than raised.
+   */
+  screen: UploadGate,
 ): Promise<ArtworkRecord & { whiteBackground: boolean }> => {
   // Rights are asked for before any file is read.
   const rights = rightsFor({ confirmed: input.rightsConfirmed, userId: actor.userId, now: input.now });
   return withSlot(actor.brandId, async () => {
     const intake = await intakeArtwork(input.bytes, input.fileName);
-    const afterStore = await screen?.({ ...actor, label: intake.label, image: intake.screen.bytes, sourceSha256: intake.sourceSha256 });
+    const afterStore = await screen({ ...actor, label: intake.label, image: intake.screen.bytes, sourceSha256: intake.sourceSha256 });
     const record = await storeArtwork({ admin, brandId: actor.brandId, userId: actor.userId, intake, rights });
-    await afterStore?.(record.id);
+    await afterStore(record.id);
     return { ...record, whiteBackground: intake.whiteBackground };
   });
 };
@@ -131,15 +142,28 @@ const dataUrl = (png: Buffer): string => `data:image/png;base64,${png.toString("
 
 const inherit = (row: ArtworkRow) => ({ confirmedBy: row.rights_confirmed_by, confirmedAt: row.rights_confirmed_at, wordingVersion: row.rights_wording_version });
 
+/**
+ * The changed picture, stored as a new artwork of its own.
+ *
+ * It is screened like any other upload (security review v5 H3, decision 0116). This path inherited
+ * the original's rights confirmation and not its moderation verdict, so a flagged upload could be
+ * laundered into an asset with no check against it at all -- and the change is a real change: the
+ * white box removed or the picture made seamless is new pixels, which the registry and the vision
+ * check have never seen.
+ */
 const storeChange = async (
   admin: SupabaseClient,
   actor: Actor,
   row: ArtworkRow,
   raster: Awaited<ReturnType<typeof removeWhite>>,
   suffix: string,
+  screen: UploadGate,
 ): Promise<ArtworkRecord> => {
   const intake = intakeFromRaster(raster, { sourceFormat: "png", label: `${row.label} (${suffix})`.slice(0, 80), sourceSha256: row.source_sha256 });
-  return storeArtwork({ admin, brandId: actor.brandId, userId: actor.userId, intake, rights: inherit(row) });
+  const afterStore = await screen({ ...actor, label: intake.label, image: intake.screen.bytes, sourceSha256: intake.sourceSha256 });
+  const record = await storeArtwork({ admin, brandId: actor.brandId, userId: actor.userId, intake, rights: inherit(row) });
+  await afterStore(record.id);
+  return record;
 };
 
 /**
@@ -152,17 +176,19 @@ export const changeArtwork = (
   id: string,
   change: Change,
   accept: boolean,
+  /** The same screen the upload path uses. Required, so this path cannot skip it (H3). */
+  screen: UploadGate,
 ): Promise<ChangeResult> =>
   withSlot(actor.brandId, async () => {
     const { row, print } = await printOf(admin, actor.brandId, id);
     const dpi = row.dpi_meta === null ? null : Number(row.dpi_meta);
     if (change.action === "remove-white-background") {
       const raster = await removeWhite(print, dpi);
-      if (accept) return { accepted: true, artwork: await storeChange(admin, actor, row, raster, "no white box") };
+      if (accept) return { accepted: true, artwork: await storeChange(admin, actor, row, raster, "no white box", screen) };
       return { accepted: false, summary: { action: change.action, previewPng: dataUrl(raster.screen.contentType === "image/png" ? raster.screen.bytes : await sharp(raster.screen.bytes).png().toBuffer()) } };
     }
     const preview: SeamlessPreview = await seamlessPreview(print, change.method);
-    if (accept) return { accepted: true, artwork: await storeChange(admin, actor, row, await applySeamless(preview, dpi), "seamless") };
+    if (accept) return { accepted: true, artwork: await storeChange(admin, actor, row, await applySeamless(preview, dpi), "seamless", screen) };
     return {
       accepted: false,
       summary: { action: change.action, method: change.method, previewPng: dataUrl(preview.preview), before: preview.before, after: preview.after, limit: preview.limit },

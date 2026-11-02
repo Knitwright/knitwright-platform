@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getBaseArticle } from "@/lib/catalogue";
 import { defaultsOver } from "@/lib/editor";
+import type { SpecAction } from "@/lib/garment";
 import { brandChartSet } from "@/lib/charts/service";
 import { createProject, loadCurrentDesign, saveTrustedActions } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
@@ -57,9 +58,20 @@ export const saveKitAction = defineAction({
     const spec = await loadCurrentDesign(client, who);
     const body = input.part === "socks" ? input.socksColour : input.main;
     const trim = input.part === "socks" ? input.main : input.second;
+
+    // The base article the part sits on, and the form held to its approved ranges. Both go ONTO the
+    // design, not only into the address: the form used to live in the address alone, so a reload of
+    // the editor lost it and neither validation nor the tech pack ever saw it (review item D-5, decision 0121).
+    const article = part.articleCode === null ? null : await getBaseArticle(client, part.articleCode).catch(() => null);
+    const form = article === null ? { options: {}, parameters: {} } : defaultsOver(article, { options: input.options, parameters: input.parameters });
+    const setArticle: readonly SpecAction[] =
+      article === null
+        ? []
+        : [{ type: "set-article", article: { baseArticleCode: article.code, productionClass: article.productionClass, parameters: form.parameters } }];
+
     const outcome = await saveTrustedActions(adminClient(), client, {
       ...who,
-      actions: [kitColourway(spec, body, trim)],
+      actions: [kitColourway(spec, body, trim), ...setArticle],
       // The closed list of sources has no teamwear member and `lib/projects/notes.ts` belongs to
       // nobody in this wave; "kit-style" is the nearest true one. Raised on the pull request.
       source: "kit-style",
@@ -70,8 +82,6 @@ export const saveKitAction = defineAction({
     revalidatePath("/studio");
     revalidatePath(`/studio/${id}`);
 
-    const article = part.articleCode === null ? null : await getBaseArticle(client, part.articleCode).catch(() => null);
-    const form = article === null ? { options: {}, parameters: {} } : defaultsOver(article, { options: input.options, parameters: input.parameters });
     const next =
       input.then === "studio"
         ? studioHref(id, { form, quantity: input.quantity, settled: [] })

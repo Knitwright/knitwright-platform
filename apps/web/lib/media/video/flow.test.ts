@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { blockGenerations, clearGenerations } from "@/lib/moderation/fixtures/gates";
 import type { MediaKind, MediaView } from "../contract";
 import { cleanPath } from "../paths";
 import { memoryFiles, memoryStore } from "../test-deps";
 import { attachItem, BUSY_MESSAGE } from "./attach";
-import { CLIP_FAILED_MESSAGE, makeClip, NEEDS_STILL_MESSAGE, planClip, type ClipDeps } from "./clip";
+import { CLIP_BLOCKED_MESSAGE, CLIP_FAILED_MESSAGE, makeClip, NEEDS_STILL_MESSAGE, planClip, type ClipDeps } from "./clip";
 import { MAX_CLIP_BYTES, MAX_TURNTABLE_BYTES } from "./limits";
 import { videoPath } from "./paths";
 import { NOT_A_VIDEO_MESSAGE, NO_POSTER_MESSAGE, TOO_LARGE_MESSAGE } from "./recording";
@@ -39,7 +40,7 @@ async function finishedSet(stills: StillSpec[] = []) {
   for (const spec of stills) {
     const path = cleanPath(BRAND, id, "lifestyle", spec.view);
     await files.saveClean(path, await png("#cc3333", 80, 60));
-    await store.putItem(id, { kind: "lifestyle" as MediaKind, view: spec.view, fileId: await files.saveWatermarked(await png()), cleanPath: path, width: 80, height: 60, checker: spec.checker, provider: "t", costMicrodollars: 0 });
+    await store.putItem(id, { kind: "lifestyle" as MediaKind, view: spec.view, fileId: await files.saveWatermarked(await png(), "generated"), cleanPath: path, width: 80, height: 60, checker: spec.checker, provider: "t", costMicrodollars: 0 });
   }
   await store.move(id, ["running"], "succeeded");
   return { store, files, videos, setId: id };
@@ -125,7 +126,7 @@ describe("saving a turntable", () => {
   });
 });
 
-const clipDeps = (t: Awaited<ReturnType<typeof finishedSet>>, provider: VideoProvider = stubVideoProvider()): ClipDeps => ({ store: t.store, files: t.files, videos: t.videos, provider, log: vi.fn() });
+const clipDeps = (t: Awaited<ReturnType<typeof finishedSet>>, provider: VideoProvider = stubVideoProvider(), screen = clearGenerations()): ClipDeps => ({ store: t.store, files: t.files, videos: t.videos, provider, screen, log: vi.fn() });
 const clipAsk = (t: Awaited<ReturnType<typeof finishedSet>>, view?: MediaView) => ({ brandId: BRAND, projectId: PROJECT, setId: t.setId, view });
 
 describe("planning a clip", () => {
@@ -180,6 +181,31 @@ describe("making a clip", () => {
     const generate = vi.fn(stubVideoProvider().generate);
     await makeClip(clipDeps(t, { ...stubVideoProvider(), generate }), clipAsk(t), await ready(t), signal);
     expect(generate.mock.calls[0]?.[0]).toMatchObject({ seconds: 5, prompt: expect.stringContaining("crest") });
+  });
+
+  /**
+   * H3 of the v5 security review (decision 0116). A clip is an AI generation and had no screen at
+   * all. The screen reads a still, so what it is given is the poster the clip is made from, which
+   * is also the one frame stored as a file of the brand.
+   */
+  it("screens the clip before anything is kept, naming the set and the fixed prompt", async () => {
+    const t = await finishedSet([{ view: "scene", checker: "passed" }]);
+    const screen = clearGenerations();
+    const done = await makeClip(clipDeps(t, stubVideoProvider(), screen), clipAsk(t), await ready(t), signal);
+
+    expect(done.ok).toBe(true);
+    expect(screen.asks).toHaveLength(1);
+    expect(screen.asks[0]).toMatchObject({ generationId: t.setId, prompt: expect.stringContaining("crest") });
+  });
+
+  it("keeps no clip the content review blocks, and says why", async () => {
+    const t = await finishedSet([{ view: "scene", checker: "passed" }]);
+    const videosBefore = t.videos.saved.size;
+    const done = await makeClip(clipDeps(t, stubVideoProvider(), blockGenerations()), clipAsk(t), await ready(t), signal);
+
+    expect(done).toEqual({ ok: false, message: CLIP_BLOCKED_MESSAGE });
+    expect(t.videos.saved.size).toBe(videosBefore);
+    expect(t.store.sets.get(t.setId)?.items.some((entry) => entry.kind === "clip")).toBe(false);
   });
 
   const failing: Array<[string, VideoProvider]> = [

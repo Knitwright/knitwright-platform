@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
+import { humanReviewGate, orderGate } from "@/lib/moderation/server";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
@@ -43,7 +44,12 @@ export const orderRunAction = defineAction({
   rateLimit: LIMITS.clubWrite,
   schema: runBody,
   handler: async ({ input, session }) => {
-    const sent = await placeOrder({ client: await sessionClient(), admin: adminClient() }, whoOf(session), session.brand.role, input);
+    const who = whoOf(session);
+    const sent = await placeOrder({ client: await sessionClient(), admin: adminClient() }, who, session.brand.role, input, {
+      // Before every order (spec F-G1; security review v5 H3, decision 0116).
+      order: orderGate({ brandId: who.brandId, userId: who.userId }, "brand run order"),
+      humanReview: humanReviewGate(),
+    });
     revalidatePath("/brand");
     return sent;
   },

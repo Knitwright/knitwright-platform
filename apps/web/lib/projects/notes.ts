@@ -57,6 +57,10 @@ const sizingNote = (sizing: { sizes: readonly string[]; baseSize: string } | nul
 const nameOf = (list: readonly { id: string; name: string }[], id: string): string | null =>
   list.find((entry) => entry.id === id)?.name ?? null;
 
+/** What a mark the Specs toolbar drew is called, or null when the design has no mark with that id. */
+const markName = (marks: readonly { id: string; label: string }[] | undefined, id: string): string | null =>
+  marks?.find((mark) => mark.id === id)?.label ?? null;
+
 const sentence = (noun: string, name: string | null, verb: string, fallback: string): string =>
   name === null ? fallback : `${noun} ${name} ${verb}.`;
 
@@ -133,6 +137,16 @@ function describeDetails(spec: GarmentSpec, type: Type | undefined, action: Deta
       return clipNote(`Stitch details for ${seamLabel(type, action.seamId)} removed.`);
     case "set-labelling":
       return `${LABELLING_LABELS[action.field]} ${action.text === "" ? "removed" : "saved"}.`;
+    case "set-article":
+      return clipNote(`Base article ${action.article.baseArticleCode} and your form saved.`);
+    case "set-extra-pom":
+      return clipNote(`Your own point of measure ${action.pom.label} saved.`);
+    case "remove-extra-pom":
+      return clipNote(sentence("Your own point of measure", markName(spec.extraPoms, action.id), "removed", "A point of measure you drew was removed."));
+    case "set-callout":
+      return clipNote(`Callout ${action.callout.label} saved.`);
+    case "remove-callout":
+      return clipNote(sentence("Callout", markName(spec.callouts, action.id), "removed", "A callout you drew was removed."));
     case "change-wearer":
       return `Made for ${action.wearer}.`;
     case "change-type":

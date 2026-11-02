@@ -7,6 +7,9 @@ import { useRef, useState } from "react";
 import { FormSummary } from "@/components/forms/FormSummary";
 import { useFormAction } from "@/components/forms/useFormAction";
 import { LOADING_LABEL } from "@/lib/garment3d/viewer";
+// The deep path, not the barrel: `lib/quotes/index.ts` re-exports the PDF writer, which would put
+// @react-pdf/renderer in the browser bundle. `source.ts` builds a quote number and an address only.
+import { quoteSource } from "@/lib/quotes/source";
 import { saveKitAction } from "@/lib/teamwear/actions";
 import {
   configuratorHref,
@@ -15,7 +18,6 @@ import {
   handoffReference,
   IDEAS_UNAVAILABLE,
   parseView,
-  QUOTE_UNAVAILABLE,
   snapshotName,
   SPORTS,
   sportById,
@@ -56,7 +58,7 @@ export function Configurator(props: ConfiguratorProps) {
   const [turning, setTurning] = useState(false);
   const [snapshotAt, setSnapshotAt] = useState(0);
   const [tool, setTool] = useState<"ideas" | "add-element" | null>(null);
-  const [quoteNote, setQuoteNote] = useState<string | null>(null);
+  const [quote, setQuote] = useState<Readonly<{ note: string; href: string | null }> | null>(null);
   const [handoffNote, setHandoffNote] = useState<string | null>(null);
   const [renderNote, setRenderNote] = useState<string | null>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -69,6 +71,33 @@ export function Configurator(props: ConfiguratorProps) {
 
   const kit = state.kit;
   const handoff = handoffFor(kit, props.saved, state.price);
+
+  /**
+   * The Quote button (spec F-T5). It asks Z6's `quoteSource` for a quote number and the address the
+   * PDF comes down from; nothing is fetched here, because the file is built when the person presses
+   * the link (`app/api/quotes/route.ts`), and nothing is stored either way.
+   *
+   * It needs what the Store hand-off needs — a saved design version and a price — so it refuses in
+   * the same words rather than inventing its own: a quote names a version a factory can look up.
+   */
+  const askForQuote = async (): Promise<void> => {
+    if (!handoff.ok) {
+      setQuote({ note: handoff.reason, href: null });
+      return;
+    }
+    const ask = handoff.handoff;
+    const outcome = await quoteSource({ sportId: ask.sportId, clubName: props.brandName }).quoteFor({
+      projectId: ask.projectId,
+      version: ask.version,
+      lines: ask.lines.map((line) => ({ articleCode: line.articleCode, qty: line.quantity })),
+      currency: ask.currency,
+    });
+    setQuote(
+      outcome.status === "quoted"
+        ? { note: `Quote ${outcome.quoteNumber} is ready.`, href: outcome.downloadPath }
+        : { note: outcome.reason, href: null },
+    );
+  };
 
   const press = (pressed: RailToolId): void => {
     if (pressed === "undo") return state.undo();
@@ -181,8 +210,9 @@ export function Configurator(props: ConfiguratorProps) {
           onSave={() => submitAs("stay")}
           onStudio={() => submitAs("studio")}
           saving={pending}
-          onQuote={() => setQuoteNote(QUOTE_UNAVAILABLE)}
-          quoteNote={quoteNote}
+          onQuote={() => void askForQuote()}
+          quoteNote={quote?.note ?? null}
+          quoteHref={quote?.href ?? null}
           onHandoff={() => setHandoffNote(handoff.ok ? `Give your Store contact this reference: ${handoffReference(handoff.handoff)}.` : handoff.reason)}
           handoffNote={handoffNote}
         />

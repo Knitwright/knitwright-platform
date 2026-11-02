@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sheetKind } from "@/lib/charts/container";
 import { AppError } from "@/lib/server/core/errors";
 import { checkImage } from "./image";
+import type { FileProvenance } from "./provenance";
 import { privateMediaBytes } from "./private-usage";
 import { isQuotaRefusal, STORAGE_FULL_MESSAGE, storageRoom } from "./quota";
 import type { LogoRights } from "./rights";
@@ -34,6 +35,12 @@ export type StoreImageInput = Readonly<{
   brandId: string;
   userId: string;
   kind: StoredKind;
+  /**
+   * What made these bytes (`./provenance.ts`). There is no default: the two callers that store a
+   * `"render"` are the deterministic studio and the photoreal image model, and until the v5
+   * security review's H1 nothing in the database could tell their output apart.
+   */
+  provenance: FileProvenance;
   bytes: Uint8Array;
   /** The type the browser stated. The content decides, so it is not used. */
   statedType: string;
@@ -56,6 +63,8 @@ type FileRecord = Readonly<{
   brandId: string;
   userId: string;
   kind: StoredKind | typeof CHART_KIND | typeof PATTERN_KIND | ProductionKind;
+  /** What made these bytes. Required, so no store site can write a row that does not say. */
+  provenance: FileProvenance;
   /** Where it goes when the kind alone does not say: a pattern's DXF and its picture differ. */
   bucket?: Bucket;
   extension: string;
@@ -96,6 +105,7 @@ const writeFile = async (file: FileRecord): Promise<string> => {
     bucket,
     path,
     kind: file.kind,
+    provenance: file.provenance,
     content_type: file.contentType,
     bytes: file.bytes.byteLength,
     width: file.width,
@@ -130,6 +140,7 @@ export const storeImage = async (input: StoreImageInput): Promise<StoredFile> =>
     brandId: input.brandId,
     userId: input.userId,
     kind: input.kind,
+    provenance: input.provenance,
     extension: image.extension,
     contentType: image.contentType,
     bytes: image.bytes,
@@ -180,6 +191,8 @@ export const storeChartFile = async (input: StoreChartFileInput): Promise<Stored
     brandId: input.brandId,
     userId: input.userId,
     kind: CHART_KIND,
+    // A size chart is a spreadsheet the brand sent, kept byte for byte.
+    provenance: "uploaded",
     extension: kind.kind,
     contentType,
     bytes: input.bytes,
@@ -216,7 +229,9 @@ export const storePatternFiles = async (input: StorePatternInput): Promise<{ dxf
   if (input.dxf.byteLength === 0 || input.dxf.byteLength > MAX_PATTERN_DXF_BYTES || !looksLikeDxf(input.dxf)) {
     throw new AppError("invalid_input", "The pattern file is not a DXF file.");
   }
-  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind: PATTERN_KIND, rights: null };
+  // The DXF comes out of the drafter and the preview is rendered from the same pieces: our own code
+  // either way, with no model in it.
+  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind: PATTERN_KIND, provenance: "deterministic" as const, rights: null };
   const dxf = await writeFile({
     ...common,
     bucket: "exports",
@@ -310,7 +325,9 @@ export const storeProductionFile = async (
   kind: ProductionKind,
   input: StoreProductionFileInput,
 ): Promise<StoredProductionFile> => {
-  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind, width: null, height: null };
+  // A proof is a photograph somebody took of a strike-off; the rest are files the server built.
+  const provenance: FileProvenance = kind === "proof" ? "uploaded" : "deterministic";
+  const common = { admin: input.admin, brandId: input.brandId, userId: input.userId, kind, provenance, width: null, height: null };
   if (kind === "proof") {
     const image = await checkImage(input.bytes);
     const id = await writeFile({ ...common, width: image.width, height: image.height, bucket: "uploads", extension: image.extension, contentType: image.contentType, bytes: image.bytes });

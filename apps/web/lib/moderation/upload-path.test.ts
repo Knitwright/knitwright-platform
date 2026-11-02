@@ -32,7 +32,7 @@ const gateOf = (marks: readonly Mark[] = []) => {
   return { ...memory, gate };
 };
 
-const upload = (bytes: Uint8Array, fileName: string, gate?: UploadGate) =>
+const upload = (bytes: Uint8Array, fileName: string, gate: UploadGate) =>
   uploadArtwork(fake.admin, actor, { bytes, fileName, rightsConfirmed: true, now: NOW }, gate);
 
 describe("the artwork upload path", () => {
@@ -63,8 +63,19 @@ describe("the artwork upload path", () => {
     expect(checks[0]).toMatchObject({ targetId: record.id, verdict: { result: "flagged" } });
   });
 
-  it("still uploads where no gate is passed, so the rest of the app is unchanged until it is wired", async () => {
-    const record = await upload(await logoOnWhite(), "crest.png");
-    expect(record.id).toBeTruthy();
+  /**
+   * This test used to say the opposite -- "still uploads where no gate is passed, so the rest of
+   * the app is unchanged until it is wired" -- and that optional argument was the mechanism by
+   * which two paths skipped moderation silently (security review v5 H3, decision 0116). There is no
+   * "no gate" case any more: `uploadArtwork` will not compile without one, so every path that
+   * stores a picture is screened, and the gate is asked about every one.
+   */
+  it("asks the gate about every upload, because there is no way to call it without one", async () => {
+    const { gate, checks } = gateOf();
+    const first = await upload(await logoOnWhite(), "crest.png", gate);
+    const second = await upload(await logoOnWhite(), "badge.png", gate);
+
+    expect(first.id).toBeTruthy();
+    expect(checks.map((check) => check.targetId)).toEqual([first.id, second.id]);
   });
 });

@@ -10,11 +10,13 @@ import {
   sizingSchema,
   toleranceSchema,
 } from "./parts";
+import { designCalloutSchema, designPomSchema } from "./design-marks";
 import { fabricChangesSchema } from "./fabric-edit";
 import { kitPatternSchema } from "./kit-pattern";
 import { namesAndNumbersSchema } from "./names-numbers";
 import { freeText, kebabId, localId, wearerSchema } from "./primitives";
 import { provenanceSchema } from "./provenance";
+import { articleRefSchema } from "./spec-schema";
 import { componentSchema, constructionEntrySchema, labellingFieldSchema } from "./tech-parts";
 
 /**
@@ -71,6 +73,18 @@ export const specActionSchema = z.discriminatedUnion("type", [
     text: freeText(COMPONENT_TEXT_MAX_LENGTH),
     provenance: provenanceSchema,
   }),
+  /**
+   * The base article the design sits on, and the structural parameters chosen inside its approved
+   * ranges. It carries no provenance, as the wearer and the garment type carry none: a person, or
+   * the configurator on their behalf, always chooses the article a design is made on.
+   */
+  z.strictObject({ type: z.literal("set-article"), article: articleRefSchema }),
+  /** A founder's own point of measure, drawn with the Specs toolbar. Replaces the one with its id. */
+  z.strictObject({ type: z.literal("set-extra-pom"), pom: designPomSchema }),
+  z.strictObject({ type: z.literal("remove-extra-pom"), id: localId }),
+  /** A callout drawn with the Specs toolbar: a place on a panel and a note for the factory. */
+  z.strictObject({ type: z.literal("set-callout"), callout: designCalloutSchema }),
+  z.strictObject({ type: z.literal("remove-callout"), id: localId }),
   z.strictObject({ type: z.literal("change-wearer"), wearer: wearerSchema }),
   z.strictObject({ type: z.literal("change-type"), typeId: kebabId }),
 ]);

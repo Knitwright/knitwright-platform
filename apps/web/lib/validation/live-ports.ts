@@ -58,7 +58,8 @@ export function catalogueFrom(client: SupabaseClient): ArticleCatalogue {
 /**
  * What validation makes of one kept screening. A person's decision wins over the automatic result, as
  * `screenBeforeOrder` reads it (decision 0073): an allowed target is clear, a blocked one is blocked.
- * `pending` is not reachable from the store, which keeps a result on every row.
+ * Every kept row has a result, so `pending` never comes from here -- it is what the port says about
+ * a target with no row at all (see `moderationReader`).
  */
 export const toValidationResult = (state: TargetState): ModerationResult =>
   state.decision === "allowed" ? "clear" : state.decision === "blocked" ? "blocked" : state.result;
@@ -66,7 +67,14 @@ export const toValidationResult = (state: TargetState): ModerationResult =>
 /**
  * The moderation port over a store. The brand is not part of the lookup: `moderation_checks` is read with the
  * server's own key and `latest` is keyed by the target itself, whose id is the asset's own, so the brand would
- * narrow nothing. A target with no kept screening is left out of the answer, as the interface says.
+ * narrow nothing.
+ *
+ * **A target with no kept screening comes back `pending`, not left out** (M9 and H3 of the v5
+ * security review, decision 0116). It used to be dropped from the answer, so `moderationClear`
+ * raised nothing and F-G2's "moderation status clear" held for content nobody had ever looked at: a
+ * check that never ran was being reported as a pass. `pending` was already in the vocabulary and
+ * `moderation-pending` was already a rule id; the port simply never said it, which is why the
+ * comment above this function used to claim `pending` "is not reachable from the store".
  */
 export function moderationReader(store: ModerationStore): ModerationReader {
   return {
@@ -78,9 +86,9 @@ export function moderationReader(store: ModerationStore): ModerationReader {
         if (ids.length === 0) continue;
         for (const state of await store.latest(kind, ids)) states.set(`${kind}:${state.targetId}`, state);
       }
-      return targets.flatMap((target): ModerationStatus[] => {
+      return targets.map((target): ModerationStatus => {
         const state = states.get(`${target.kind}:${target.id}`);
-        return state === undefined ? [] : [{ target, result: toValidationResult(state) }];
+        return { target, result: state === undefined ? "pending" : toValidationResult(state) };
       });
     },
   };

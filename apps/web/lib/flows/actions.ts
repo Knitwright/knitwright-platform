@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
 import { launchProjectPath } from "@/lib/launch";
 import { loadLaunchCanvas } from "@/lib/launch/server";
-import { saveBoard } from "@/lib/launch/service";
+import { generatedOutputFiles, saveBoard } from "@/lib/launch/service";
+import { refuseIfBlocked, screenText } from "@/lib/moderation/hooks";
+import { moderationDeps } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -140,6 +142,13 @@ export const publishFlowListingAction = defineAction({
     requireAbility(session, "manageKit");
     const canvas = await canvasOf(session.brand.id, input.launchProjectId);
     const design = canvas.project.boards.find((one) => one.kind === "design") ?? null;
+    // The spec's "AI-generated" label is mandatory on the hand-off, so it is taken from the files
+    // themselves as well as from the shape of the canvas (security review v5 H1, decision 0116).
+    const generatedFileIds = await generatedOutputFiles(
+      adminClient(),
+      session.brand.id,
+      canvas.project.boards.flatMap((board) => board.outputFileId ?? []),
+    );
     const payload = listingPayload(
       { boards: canvas.project.boards, edges: canvas.project.edges },
       {
@@ -147,11 +156,27 @@ export const publishFlowListingAction = defineAction({
         title: input.title,
         designProjectId: canvas.project.designProjectId,
         designVersion: design?.inputVersion ?? null,
+        generatedFileIds,
         ...(input.boardIds.length === 0 ? {} : { boardIds: input.boardIds }),
       },
     );
     const verdict = listingVerdict(payload);
     if (!verdict.ready) throw new AppError("conflict", verdict.reason);
+    /**
+     * The title is free text from the body and went straight into the Store listing payload
+     * unscreened, while `lib/moderation/text.ts` already implemented the spec's one named block
+     * rule for exactly this context: "dupe", "inspired by <mark>" and another brand's name in a
+     * product title are all blocks. "Nike dupe hoodie" shipped (security review v5 H3, decision
+     * 0116). A flagged title is not refused: the hand-off is not a publication, and the flag sits
+     * in the ops review queue where a person decides.
+     */
+    const screened = await screenText(moderationDeps({ brandId: session.brand.id, userId: session.userId }, "publishFlowListing"), {
+      brandId: session.brand.id,
+      userId: session.userId,
+      text: input.title,
+      context: "title",
+    });
+    refuseIfBlocked(screened, "title");
     const id = await publishFlowListing(adminClient(), whoOf(session), input.launchProjectId, payload);
     refresh(input.launchProjectId);
     // Nothing has been published: this is a hand-off the separate Store collects (wave 5, O2).

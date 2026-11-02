@@ -2,8 +2,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { refusal } from "@/lib/make/service";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
+import { fileProvenanceOf, UNKNOWN_PROVENANCE, type FileProvenance } from "@/lib/storage/provenance";
 import { ARTBOARD_UNITS } from "./artboard";
-import { acceptAsset, type LaunchAsset } from "./assets";
+import { acceptOffer, type AssetOffer } from "./assets";
 import { BOARD_KINDS, BOARD_STATUSES, OUTPUT_ROLES, type BoardKind, type BoardStatus } from "./boards";
 import type { ConnectBoardsBody, CreateLaunchProjectBody, LaunchSnapshot, SaveBoardBody, SaveLaunchProjectBody } from "./schemas";
 import type { ArtboardPreset, BoardView, LaunchProjectSummary, LaunchProjectView, LaunchVersion } from "./types";
@@ -14,9 +15,10 @@ import type { ArtboardPreset, BoardView, LaunchProjectSummary, LaunchProjectView
  * goes through the server's client and one of that migration's functions, each of which checks the
  * person's role itself; the brand and the person always come from the session.
  *
- * `recordOutput` is the one door to a board's output, and it asks `acceptAsset` first. A generated
- * picture therefore cannot be written down as artwork here any more than it can in the database
- * (spec decision 13).
+ * `recordOutput` is the one door to a board's output. It reads what made the file from the file's
+ * own row and then asks `acceptOffer`, so a generated picture cannot be written down as artwork
+ * here any more than it can in the database (spec decision 13; security review v5 H1, which found
+ * that the provenance used to come from the request body).
  */
 
 const NOT_FOUND = "That launch project does not exist.";
@@ -249,22 +251,60 @@ export const disconnectBoards = async (admin: SupabaseClient, who: Who, edgeId: 
 };
 
 /**
- * Records what a run produced. `acceptAsset` decides the role, so a generated picture is written
- * down as scenery and can never be written down as a layer on the garment or part of a print file.
- * The database refuses the same thing again (`boards_generated_output_is_never_artwork`).
+ * What really made the file this brand is offering, from the file's own row.
+ *
+ * The one read behind the garment lock (security review v5 H1, decision 0116). It is scoped to the
+ * brand, so a file of another brand is not found at all; a row that is there but says something
+ * this release does not recognise falls back to the restrictive value, as
+ * `lib/storage/provenance.ts` does.
+ */
+async function provenanceOfFile(admin: SupabaseClient, brandId: string, fileId: string): Promise<FileProvenance> {
+  const { data, error } = await admin.from("files").select("provenance").eq("id", fileId).eq("brand_id", brandId).maybeSingle();
+  if (error) throw new AppError("conflict", "That file could not be read.");
+  if (data === null) throw new AppError("not_found", "That file does not exist.");
+  return fileProvenanceOf((data as { provenance?: unknown }).provenance);
+}
+
+/**
+ * Which of these files a model made, from the files' own rows.
+ *
+ * For the Store hand-off, whose "AI-generated" label the spec makes mandatory and which used to be
+ * worked out from the shape of the canvas alone (security review v5 H1, decision 0116). Scoped to
+ * the brand, and a file whose row cannot be read is counted as a model's, which is the strict
+ * answer: a label is cheap and a missing one is not.
+ */
+export async function generatedOutputFiles(admin: SupabaseClient, brandId: string, fileIds: readonly string[]): Promise<readonly string[]> {
+  if (fileIds.length === 0) return [];
+  const { data, error } = await admin.from("files").select("id, provenance").eq("brand_id", brandId).in("id", [...fileIds]);
+  if (error) throw new AppError("conflict", "Those files could not be read.");
+  const rows = z.array(z.object({ id: z.uuid(), provenance: z.string() })).parse(data ?? []);
+  const known = new Map(rows.map((row) => [row.id, fileProvenanceOf(row.provenance)]));
+  return fileIds.filter((id) => (known.get(id) ?? UNKNOWN_PROVENANCE) === "generated");
+}
+
+/**
+ * Records what a run produced.
+ *
+ * **The provenance is read from the file's own row, never taken from the caller.** That is the
+ * whole of H1: the offer says which file and what the panel wants it used as, and the server
+ * decides what the file is. `acceptOffer` then decides the role, so a picture a model made is
+ * written down as scenery and can never be written down as a layer on the garment or part of a
+ * print file. The database refuses the same thing again, twice -- the file's provenance in
+ * `set_launch_board_output` and `boards_generated_output_is_never_artwork` on the row.
  */
 export async function recordOutput(
   admin: SupabaseClient,
   who: Who,
-  input: Readonly<{ boardId: string; kind: BoardKind; asset: LaunchAsset | null; status: BoardStatus; credits: number | null }>,
+  input: Readonly<{ boardId: string; kind: BoardKind; offer: AssetOffer | null; status: BoardStatus; credits: number | null }>,
 ): Promise<void> {
-  const verdict = input.asset === null ? null : acceptAsset(input.kind, input.asset);
+  const provenance = input.offer === null ? null : await provenanceOfFile(admin, who.brandId, input.offer.file.fileId);
+  const verdict = input.offer === null || provenance === null ? null : acceptOffer(input.kind, input.offer, provenance);
   if (verdict && !verdict.accepted) throw new AppError("conflict", verdict.reason);
   const { error } = await admin.rpc("set_launch_board_output", {
     p_brand_id: who.brandId,
     p_user_id: who.userId,
     p_board_id: input.boardId,
-    p_output_file_id: input.asset === null ? null : input.asset.file.fileId,
+    p_output_file_id: input.offer === null ? null : input.offer.file.fileId,
     p_output_role: verdict?.accepted ? verdict.role : "asset",
     p_status: input.status,
     p_last_cost_credits: input.credits,

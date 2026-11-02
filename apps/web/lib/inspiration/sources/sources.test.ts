@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { blockGenerations, clearGenerations } from "@/lib/moderation/fixtures/gates";
 import { stubImageProvider, failingImageProvider } from "@/lib/providers/image-stub";
 import { countingMeter } from "../fixtures/meter";
 import type { ContextQuery } from "../types";
 import { AI_MOOD_LABEL } from "../vocabulary";
-import { ALLOWANCE_USED_UP, MOOD_IMAGE_COST_MICRODOLLARS, aiMoodProvider, moodPrompt } from "./ai-mood";
+import { ALLOWANCE_USED_UP, MOOD_BLOCKED, MOOD_IMAGE_COST_MICRODOLLARS, aiMoodProvider, moodPrompt } from "./ai-mood";
 import { pinterestOn, pinterestProvider, searchLinks } from "./external";
 import { libraryProvider, scoreItem } from "./library";
 import { fetchPreview, previewCard, previewFromHtml, previewUrlSchema, linkPreviewProvider } from "./link-preview";
@@ -255,7 +256,7 @@ describe("an AI mood image", () => {
 
   it("is labelled wherever it is shown, and says it is never saved", async () => {
     const paid = countingMeter();
-    const cards = await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }).search(query("rugby"));
+    const cards = await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }, clearGenerations()).search(query("rugby"));
     expect(cards[0]?.aiLabel).toBe(AI_MOOD_LABEL);
     expect(cards[0]?.title).toBe("AI mood image: rugby");
     expect(cards[0]?.previewUrl.startsWith("data:image/png;base64,")).toBe(true);
@@ -264,20 +265,40 @@ describe("an AI mood image", () => {
 
   it("goes through the meter before the call, as a photoreal cost", async () => {
     const paid = countingMeter();
-    await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }).search(query("rugby"));
+    await aiMoodProvider(stubImageProvider(), paid, { brandId: "brand-1", userId: "user-1" }, clearGenerations()).search(query("rugby"));
     expect(paid.reserved()).toBe(1);
     expect(MOOD_IMAGE_COST_MICRODOLLARS).toBeGreaterThan(0);
   });
 
   it("makes no call and says the allowance is used up when the meter refuses", async () => {
     const provider = stubImageProvider();
-    await expect(aiMoodProvider(provider, countingMeter(false), { brandId: "b", userId: "u" }).search(query("rugby"))).rejects.toThrow(ALLOWANCE_USED_UP);
+    await expect(aiMoodProvider(provider, countingMeter(false), { brandId: "b", userId: "u" }, clearGenerations()).search(query("rugby"))).rejects.toThrow(ALLOWANCE_USED_UP);
     expect(provider.requests).toHaveLength(0);
   });
 
   it("gives the cost back when the model fails", async () => {
     const paid = countingMeter();
-    await expect(aiMoodProvider(failingImageProvider(), paid, { brandId: "b", userId: "u" }).search(query("rugby"))).rejects.toThrow();
+    await expect(aiMoodProvider(failingImageProvider(), paid, { brandId: "b", userId: "u" }, clearGenerations()).search(query("rugby"))).rejects.toThrow();
+    expect(paid.refunded()).toBe(1);
+  });
+
+  /**
+   * H3 of the v5 security review (decision 0116). The spec asks for a screen on every AI
+   * generation, and a mood image is one even though it is never stored.
+   */
+  it("screens the picture it made, with the prompt it asked for", async () => {
+    const screen = clearGenerations();
+    await aiMoodProvider(stubImageProvider(), countingMeter(), { brandId: "b", userId: "u" }, screen).search(query("rugby navy"));
+    expect(screen.asks).toHaveLength(1);
+    expect(screen.asks[0]?.prompt).toContain("colour, light and texture only");
+    expect(screen.asks[0]?.bytes).toBeGreaterThan(0);
+  });
+
+  it("shows no card and gives the cost back when the content review blocks the picture", async () => {
+    const paid = countingMeter();
+    await expect(
+      aiMoodProvider(stubImageProvider(), paid, { brandId: "b", userId: "u" }, blockGenerations()).search(query("rugby")),
+    ).rejects.toThrow(MOOD_BLOCKED);
     expect(paid.refunded()).toBe(1);
   });
 });
