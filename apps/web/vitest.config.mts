@@ -136,15 +136,10 @@ export default defineConfig({
         // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        /*
-         * The production outputs (plans/production-outputs.md), each held to the higher mark. One
-         * name per line and in alphabetical order, deliberately: this was a single line of about a
-         * thousand characters, and because every workstream added its directory to that one line,
-         * every pair of branches conflicted on it. Five of those conflicts were resolved by hand in
-         * one day on pull requests whose own work was already finished and green, each costing a
-         * further full run. One name per line means two workstreams touch two lines and git merges
-         * them by itself. Keep it sorted, and add only your own name.
-         */
+        // The committee link and the roster sign-up are public pages a club's own people use without an
+        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
+        "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
           [
             "artwork-intake",
@@ -192,6 +187,7 @@ export default defineConfig({
             "templates",
             "validation",
             "variants",
+          
           ].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
