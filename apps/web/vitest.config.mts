@@ -113,6 +113,9 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Joins crest-to-kit to the catalogue and the picture decoder; the pipeline it hands over is tested on
+        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0102).
+        "lib/crest-to-kit/server.ts",
         // Joins a quote to the factory rows: the tiers, the cut-off and the market rules. Every rule it hands
         // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
         // decision 0102).

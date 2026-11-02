@@ -99,7 +99,7 @@ const totalBlock = (quote: Quote): readonly ReactElement[] => [
     cell("v", quote.total, "32%", quote.totalMinor === null ? COLOURS.warn : COLOURS.ink, SIZES.table),
   ),
   ...(quote.totalNote === null ? [] : [paragraph(quote.totalNote, drawable, "total-note")]),
-  paragraph(NO_PAYMENT_HERE, drawable, "no-payment"),
+  paragraph(NO_PAYMENT_HERE, drawable, "money-note"),
 ];
 
 const header = (quote: Quote): ReactElement =>
