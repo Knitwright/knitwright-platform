@@ -30,6 +30,9 @@ export const STUDIO_SECTIONS: readonly StudioSection[] = [
   { href: "/designer", label: "Designer", owns: ["/designer"] },
   // Teamwear was reachable only by typing its address: decision 0086 owner question 8.
   { href: "/teamwear", label: "Teamwear", owns: ["/teamwear"] },
+  // And so was crest to kit, for the same reason and with the same answer: it is in the menu, where
+  // a section costs the bar nothing, rather than a pill (decision 0103 item 2).
+  { href: "/crest-to-kit", label: "Crest to kit", owns: ["/crest-to-kit"] },
   { href: "/club", label: "Club", owns: ["/club"] },
   { href: "/brand", label: "Brand", owns: ["/brand"] },
   // Benchmarks keeps its studio-sidebar entry too (decision 0084 item 11); this one reaches it from

@@ -60,8 +60,8 @@ describe("the ways into a new design", () => {
     expect(hrefOf(CREATE_WAYS[1]!.target)).toBe("/catalogue?tab=templates");
   });
 
-  it("sends the crest way to the club kit, which puts a crest on a design today", () => {
-    expect(hrefOf(CREATE_WAYS[2]!.target)).toBe("/club");
+  it("sends the crest way to crest to kit, the screen F-T2 asks for", () => {
+    expect(hrefOf(CREATE_WAYS[2]!.target)).toBe("/crest-to-kit");
   });
 
   it("marks shared team designs as coming later rather than opening nothing", () => {
