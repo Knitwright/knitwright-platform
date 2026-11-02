@@ -125,6 +125,8 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0105 | [Crest to kit, and the quote PDF](0105-crest-to-kit-and-quote.md) | Proposed; no Pantone data ships so no Pantone match is claimed, no delivery date can be shown, every kit's socks are unpriced, three template families deliberately not offered, owner questions listed |
 | 0106 | [The Store contract v2: read endpoints, a documented payload and explicit gaps](0106-store-contract-v2.md) | Proposed; five read endpoints behind a signed service token, a 247-field document locked to the shape by a |
 | 0108 | [The launch panels no workstream owned](0108-launch-panels-unowned.md) | Proposed; Templates, Uploads and Brand built, Likes an honest placeholder because nothing records a like, L7's import screen wired, three R-GAP-000 entries, owner questions listed |
+| 0112 | [The v5 code review](0112-code-review-v5.md) | Proposed; code review of all thirty v5 workstreams, four guards closed, 21 duplicate implementations and 96 unwired seams recorded, owner questions listed |
+| 0115 | [The documentation after plan v5](0115-documentation-after-v5.md) | Proposed; the owner guide leads with what blocks a real order, and the 252 owner questions are collected into one grouped list |
 | 0116 | [The four HIGH findings of the v5 security review](0116-security-v5-high-findings.md) | Proposed; H1 the garment lock's provenance moved to `public.files`, H2 the credit key digested, H3 moderation wired to every generation and order path with an unscreened target blocking the hand-off, H4 a viewer may not spend credits; three owner questions |
 
 <!-- End of the generated table. -->

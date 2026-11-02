@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
+    # `opened`, `synchronize` and `reopened` are the default set; `labeled` is here so that adding
+    # the `e2e` label to an open pull request starts a run that includes the browser tests. Without
+    # it the label is useless after the fact: the run that is already finished evaluated the job's
+    # `if` before the label existed, and nothing re-evaluates it, so the browser tests stay skipped
+    # however the label is added. Three branches lost a round to that before anyone noticed, and the
+    # fix for each was a `workflow_dispatch` on the same commit.
+    types: [opened, synchronize, reopened, labeled]
   # So the browser tests can be started on a branch before merging, without a label.
   workflow_dispatch:
 
