@@ -8,12 +8,25 @@
 
 import { FONT_ROLE_LABELS } from "../words";
 import { fontDetail } from "./fonts";
-import { pictureDetail } from "./pictures";
 import type { ImportItem, ImportedColour, ImportedFont, ImportedStyle, ItemKind, PictureFacts } from "./types";
 import { ITEM_KIND_LABELS } from "./words";
 
 /** The id of one row. Stable across two imports of the same site, so a decision can be remembered. */
 export const itemId = (kind: ItemKind, of: string): string => `${kind}:${of}`;
+
+/**
+ * How a picture is described on its row: the type, the size, and what the page called it.
+ *
+ * It lives here rather than in `pictures.ts`, which reads bytes and therefore imports `sharp`.
+ * `view.ts` says the screen may import it, and the screen is a client component: through
+ * `view.ts -> decisions.ts -> items.ts` that import would have put `sharp` in the browser bundle.
+ * `pictures.ts` re-exports it, so nothing that already asked for it there has changed
+ * (decision 0106).
+ */
+export const pictureDetail = (facts: PictureFacts): string =>
+  [`${facts.widthPx} × ${facts.heightPx} px`, facts.contentType.replace("image/", "").toUpperCase(), facts.alt ?? ""]
+    .filter((part) => part !== "")
+    .join(" · ");
 
 /** What the page called a picture, or the file's own name when it said nothing. */
 export const pictureLabel = (facts: PictureFacts): string => {

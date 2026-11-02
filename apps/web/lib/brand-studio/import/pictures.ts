@@ -85,8 +85,10 @@ export async function readPictures(
   return found;
 }
 
-/** How a picture is described on its row: the type, the size, and what the page called it. */
-export const pictureDetail = (facts: PictureFacts): string =>
-  [`${facts.widthPx} × ${facts.heightPx} px`, facts.contentType.replace("image/", "").toUpperCase(), facts.alt ?? ""]
-    .filter((part) => part !== "")
-    .join(" · ");
+/**
+ * How a picture is described on its row. It is defined in `items.ts` and re-exported here: this
+ * file imports `sharp`, and the import screen is a client component that reaches `items.ts`
+ * through the view model, so the words had to sit on the side of the seam a browser may load
+ * (decision 0106).
+ */
+export { pictureDetail } from "./items";
