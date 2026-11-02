@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import type { MockupScene } from "@/lib/mockups";
 
 /**
@@ -18,7 +21,9 @@ export function SceneThumb({ scene, ratio = 4 / 5 }: Readonly<{ scene: MockupSce
   const width = 100;
   const height = Math.round(width / ratio);
   const gradient = scene.backdrop.hexTwo !== undefined;
-  const id = `thumb-${scene.slug}`;
+  // One id per drawing, not one per scene: a scene can be on a card and on the board at once, and
+  // two gradients with one name is one gradient.
+  const id = useId();
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
