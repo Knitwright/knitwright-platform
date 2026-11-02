@@ -153,16 +153,21 @@ function Collected({ design, link }: Readonly<{ design: CommitteeDesign; link: C
 
       <div className="flex flex-wrap gap-2">
         {open ? <LinkAction action={revokeCommitteeLinkAction} projectId={design.projectId} linkId={link.id} label="Withdraw" busy="Withdrawing" /> : null}
-        {design.lock === null && leading !== null ? (
-          <LinkAction
-            action={lockCommitteeVersionAction}
-            projectId={design.projectId}
-            linkId={link.id}
-            version={counts.find((count) => count.slot === leading)?.version}
-            label={`Lock version ${counts.find((count) => count.slot === leading)?.version}`}
-            busy="Locking"
-          />
-        ) : null}
+        {/* One lock button per option the link shows. The committee's vote is a guide, so the club
+            chooses which version to lock; the leading one is named, never pressed for them. */}
+        {design.lock === null
+          ? counts.map((count) => (
+              <LinkAction
+                key={count.slot}
+                action={lockCommitteeVersionAction}
+                projectId={design.projectId}
+                linkId={link.id}
+                version={count.version}
+                label={`Lock version ${count.version}${count.slot === leading ? " (leading)" : ""}`}
+                busy="Locking"
+              />
+            ))
+          : null}
       </div>
     </li>
   );
