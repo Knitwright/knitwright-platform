@@ -52,6 +52,9 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
 
   return (
     <article
+      // The card is named after what it is, as L1's own board was, so a test and a screen reader
+      // can both ask for "the Mockup board" rather than for the third card on the canvas.
+      aria-label={`${info.label} board`}
       data-testid={`flow-board-${board.id}`}
       className={`relative flex h-full flex-col gap-1.5 rounded-2xl border bg-tile-2/95 p-3 ${selected ? "border-cobalt" : "border-white/15"}`}
     >

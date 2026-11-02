@@ -1,7 +1,13 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, type ComponentType } from "react";
+import FlowRunPanel from "@/components/flows/FlowRunPanel";
+import { CANVAS_TOOLS } from "@/components/flows/FlowCanvas";
+import InfoCardPanel from "@/components/flows/InfoCardPanel";
+import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupBoardPanel from "@/components/mockups/MockupBoardPanel";
+import AiVideoPanel from "@/components/video/AiVideoPanel";
+import type { FlowCostSource } from "@/lib/flows";
 import {
   BOARDS,
   PANEL_OF_KIND,
@@ -17,10 +23,24 @@ import {
 import { ArtboardSize } from "./ArtboardSize";
 import { PanelPlaceholder } from "./PanelPlaceholder";
 
-/** The board panels that are built, by their id. Everything else gets its placeholder. */
-const BUILT: Partial<Record<LaunchPanelId, (props: LaunchPanelProps) => ReactNode>> = {
+/**
+ * The board panels this file mounts itself: L2's mockup board (decision 0092), L5's AI video board
+ * (0095) and L6's info card (0096). L4's marketing board comes through `marketingPanel`, that
+ * workstream's own registry (0094, item 16). `board-ai-image` is L3's and still a placeholder.
+ */
+const BUILT: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
   "board-mockup": MockupBoardPanel,
+  "board-ai-video": AiVideoPanel,
+  "board-info-card": InfoCardPanel,
+  ...MARKETING_PANEL_COMPONENTS,
 };
+
+/** What the `flow-run` panel of the contract needs beyond `LaunchPanelProps` (decision 0096). */
+export type FlowRun = Readonly<{
+  costs: FlowCostSource;
+  /** Runs the whole canvas through L6's own action. The shell itself still makes no paid call. */
+  onRunAll: (shownCredits: number) => void;
+}>;
 
 type Props = Readonly<{
   projectName: string;
@@ -37,19 +57,25 @@ type Props = Readonly<{
   onAddBoard: (kind: BoardKind) => void;
   /** What a board's own panel is given, and all it is given (`lib/launch/panels.ts`). */
   panel: LaunchPanelProps;
+  flow: FlowRun;
 }>;
 
 const CHIP = "chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-3.5 text-[13px] text-ink";
 
-/** The tools the spec offers in the inspector with nothing selected. */
-const TOOLS: readonly BoardKind[] = ["ai_image", "ai_video", "mockup"];
+/**
+ * The tools the spec offers in the inspector with nothing selected. `CANVAS_TOOLS` is L6's own list
+ * of the kinds its canvas offers (decision 0096), so the inspector and the canvas cannot disagree
+ * about which boards a person may add.
+ */
+const TOOLS: readonly BoardKind[] = CANVAS_TOOLS;
 
 /**
  * The right inspector (spec Launch shell).
  *
- * With nothing selected it shows the project's name, its colours and the three tools. With a board
- * selected it shows the artboard size, the board's own panel (built by L2 to L6) and, where the
- * board needs a garment, whether one is behind it.
+ * With nothing selected it shows the project's name, its colours, the tools and the run summary of
+ * the whole canvas -- the contract's `flow-run` panel, which is about the canvas rather than one
+ * board and so has no board to hang off. With a board selected it shows the artboard size, the
+ * board's own panel (L2 to L6) and, where the board needs a garment, whether one is behind it.
  */
 export function Inspector(props: Props) {
   const { selection } = props;
@@ -60,12 +86,12 @@ export function Inspector(props: Props) {
   );
 }
 
-function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard }: Props) {
+function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard, panel, flow }: Props) {
   return (
     <>
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{projectName}</h2>
-        <p className="text-[13px] leading-relaxed text-ink-2">Nothing is selected, so this is the whole project: its colours and the boards you can add.</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">Nothing is selected, so this is the whole project: its colours, the boards you can add and what a run of the canvas would cost.</p>
       </header>
       <ProjectColours colours={colours} busy={busy} onColours={onColours} />
       <section aria-label="Tools" className="flex flex-col gap-2">
@@ -83,6 +109,7 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard }: Pro
           Every one of them starts from a Design board, so the garment in the picture is the one the platform drew.
         </p>
       </section>
+      {panel.context.project.boards.length === 0 ? null : <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />}
     </>
   );
 }
