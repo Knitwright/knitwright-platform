@@ -1,6 +1,7 @@
 # 0048: Chat edits as design diffs
 
 Status: Accepted (plan v4 W2-B). Owner questions below.
+Index: Accepted; owner questions listed
 Date: 2026-10-24
 
 ## Context

@@ -1,6 +1,7 @@
 # 0074: The studio home, the create-new modal and the catalogue
 
 Status: Proposed
+Index: Proposed; every catalogue price is a labelled placeholder, owner questions listed
 Date: 2026-10-30
 Plan step: `plans/platform-v5.md`, wave 2, workstream Y1. Spec: `docs/spec/02-features.md` F-S4 (studio home, the
 create-new modal and the catalogue) and F-S8 (the article page), `docs/spec/research/kittl-fabra/video-ui-notes.md`

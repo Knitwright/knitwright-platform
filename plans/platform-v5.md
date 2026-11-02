@@ -473,9 +473,26 @@ record, seeds labelled. In addition, from the spec:
    (table lists), navigation, `lib/copy/vocabulary.ts`, `lib/garment/spec-schema.ts`. Add only your own entry. Before your final
    push run `git fetch origin && git merge origin/main`; on a conflict keep the UNION of both sides. New tables go into the
    isolation test's lists in the existing shape.
+   - **Two of these were changed on 2026-11-02 so they stop conflicting.** The per-directory coverage
+     thresholds in `vitest.config.mts` were one line of about a thousand characters that every
+     workstream appended to, so every pair of branches fought over it; it is now **one name per
+     line, in alphabetical order**, and `tests/architecture/coverage-config.test.ts` keeps it that
+     way. Add your name in its sorted place and nothing else.
+   - **Never edit `docs/decisions/README.md`.** Its table is generated from the records by
+     `node scripts/write-decision-index.mjs`; run that after writing your record. Your record
+     supplies its own row, and may carry an `Index:` line (a shorter reading of its state than
+     `Status:`) and an `Index title:` line (where the index leaves out a workstream suffix).
+     `tests/architecture/decision-index.test.ts` fails if the table is stale — which is how
+     decision **0080** was found to have been written, merged and never indexed at all.
 6. **Cross-workstream tests** that enumerate the registry, catalogue, routes or tables break when someone else adds to them.
    Search for them and update them.
-7. **Do not stop early.** You are done when CI has finished on your last push. After `gh pr create` run
+7. **Do not stop early.** You are done when CI has finished on your last push. **From 2026-11-02 the
+   browser tests are not part of the pull-request gate**: they run on `main` after a merge, and on a
+   pull request only when it carries the `e2e` label or someone starts the workflow by hand. The gate
+   is `Secret scan and invariants`, `Checks` and `Standard gate`. Still **write** your browser tests
+   with the same care — they run on `main` and a failure there blocks the next merge and names the
+   merge that caused it. Add the `e2e` label to your own pull request when your change is one the
+   browser tests are the only cover for. After `gh pr create` run
    `gh pr checks <n> --watch` and fix failures from the annotations
    (`gh api repos/Knitwright/knitwright-platform/check-runs/<job-id>/annotations`). Up to four rounds. Then post the PR comment.
 8. **Local gate:** `pnpm install`, `pnpm --filter web typecheck`, `pnpm --filter web lint`,

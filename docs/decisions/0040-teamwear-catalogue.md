@@ -1,6 +1,8 @@
 # 0040: Sports catalogue: football, cricket and one Australian winter code (V2)
 
 Status: Proposed, with questions open for the owner
+Index title: Sports catalogue: football, cricket and one Australian winter code
+Index: Proposed; questions open for the owner
 Date: 2026-10-24
 Plan step: platform v4, workstream V2 (`plans/platform-v4.md`)
 

@@ -1,6 +1,7 @@
 # 0066: The base article catalogue
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-29
 Plan step: plans/platform-v5.md, workstream X1 (spec F-S3 data, F-S8 data, spec decision 5)
 

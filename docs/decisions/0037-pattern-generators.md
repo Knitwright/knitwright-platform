@@ -1,6 +1,8 @@
 # 0037. Pattern generators: many looks, one interface (W7c)
 
 Status: Accepted. Date: 2026-10-14.
+Index title: Pattern generators: many looks, one interface
+Index: Accepted
 
 ## Context
 

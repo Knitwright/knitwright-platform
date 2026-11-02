@@ -1,6 +1,7 @@
 # 0051: Credits wired into outputs
 
 Status: Proposed (charging is off by default; the numbers are still placeholders)
+Index: Proposed; charging is off by default
 Date: 2026-10-26
 Plan step: plans/platform-v4.md, workstream W2-E. Builds on 0044 (ledger) and 0039 (validation and status).
 

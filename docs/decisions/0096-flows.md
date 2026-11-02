@@ -1,7 +1,6 @@
 # 0096: Flows, the launch pack on one canvas (L6)
 
-Status: Proposed; every credit figure is a labelled placeholder, every flow pack is a labelled default nobody has
-reviewed, owner questions listed
+Status: Proposed; every credit figure is a labelled placeholder, every flow pack is a labelled default nobody has reviewed, owner questions listed
 Date: 2026-11-02
 Plan step: platform-v5 L6 (F-L4 of `docs/spec/02-features.md`, the flow templates of `docs/spec/07-template-library.md`)
 

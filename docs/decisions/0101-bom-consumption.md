@@ -1,6 +1,7 @@
 # 0101: What one garment consumes, per bill-of-materials line
 
 Status: Proposed; one article's figures seeded, all five labelled Knitwright drafts no factory has agreed; seven
+Index: Proposed; one article's five figures seeded, each quoted and labelled a Knitwright draft no factory has agreed, seven of eight articles deliberately hold nothing and are still refused, owner questions listed
 of eight base articles deliberately hold nothing and are still refused; owner questions listed
 Date: 2026-11-02
 Plan step: plans/platform-v5.md section 6 item 2 — the last of the three tables that "nobody owns, and they block

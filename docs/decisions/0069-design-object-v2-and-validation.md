@@ -1,6 +1,7 @@
 # 0069: Design object v2, validation on every save, and a rule behind every check
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-29
 Plan step: `plans/platform-v5.md`, wave 1, workstream X4 (spec F-0, F-G2)
 
