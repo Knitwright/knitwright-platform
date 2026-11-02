@@ -17,7 +17,9 @@ import {
   ruleForPlan,
   type ColourSpace,
   type ExportBoard,
+  type ExportTarget,
   type FileFormat,
+  type WatermarkRule,
 } from "@/lib/marketing";
 import { PANEL_CHIP, PANEL_FIELD } from "./PanelFrame";
 import { NOT_WIRED, useMarketingServices } from "./services";
@@ -87,76 +89,26 @@ export function ExportPanel({ board, others, busy, unit: projectUnit }: Props) {
     <section aria-label="Export" data-testid="marketing-export" className="flex min-w-0 flex-col gap-3">
       <h3 className="text-[13px] font-medium text-ink">Export</h3>
 
-      <section aria-label="Quick export" className="flex flex-col gap-2">
-        <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Quick</h4>
-        <ul className="flex flex-wrap gap-2">
-          {quickTargets(targets).map((target) => {
-            const quick = quickVerdict(target, asExportBoard(board), rule);
-            return (
-              <li key={target.key}>
-                <button
-                  type="button"
-                  disabled={busy || !quick.ok}
-                  title={quick.ok ? `${quick.plan.size.width} × ${quick.plan.size.height} px` : quick.reason}
-                  onClick={() => send(target.key)}
-                  className={PANEL_CHIP}
-                  data-testid={`marketing-quick-${target.key}`}
-                >
-                  {target.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      <QuickExport board={board} targets={targets} rule={rule} busy={busy} onSend={send} />
 
-      <section aria-label="Targets" className="flex flex-col gap-2">
-        <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Target</h4>
-        <ul className="flex flex-wrap gap-2">
-          {full.map((target) => (
-            <li key={target.key}>
-              <button
-                type="button"
-                disabled={busy}
-                aria-pressed={matching?.key === target.key}
-                title={`${target.lead} ${target.note}`}
-                onClick={() => {
-                  setSize(null);
-                  setFormat(target.format);
-                  setSpace(target.colourSpace);
-                  setDpi(target.dpi);
-                }}
-                className={PANEL_CHIP}
-                data-testid={`marketing-target-${target.key}`}
-              >
-                {target.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="text-[12px] leading-relaxed text-ink-2">{matching ? matching.note : "A size of your own. Nobody has reviewed these figures."}</p>
-      </section>
+      <TargetChoice
+        targets={full}
+        matching={matching}
+        busy={busy}
+        onPick={(target) => {
+          setSize(null);
+          setFormat(target.format);
+          setSpace(target.colourSpace);
+          setDpi(target.dpi);
+        }}
+      />
 
-      <section aria-label="Selected artboards" className="flex flex-col gap-2">
-        <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Selected artboards ({boards.length})</h4>
-        <ul className="flex flex-col gap-1.5">
-          {[board, ...others].map((one) => (
-            <li key={one.id} className="flex items-center gap-2">
-              <input
-                id={`${ids.unit}-${one.id}`}
-                type="checkbox"
-                className="size-4 accent-cobalt-soft"
-                checked={chosen.includes(one.id)}
-                disabled={busy}
-                onChange={(event) => setChosen(event.target.checked ? [...chosen, one.id] : chosen.filter((id) => id !== one.id))}
-              />
-              <label htmlFor={`${ids.unit}-${one.id}`} className="min-w-0 truncate text-[13px] text-ink">
-                {one.name || "Artboard"}
-              </label>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <ArtboardChecklist
+        boards={[board, ...others]}
+        chosen={chosen}
+        busy={busy}
+        onChange={(id, on) => setChosen(on ? [...chosen, id] : chosen.filter((one) => one !== id))}
+      />
 
       <div className="grid grid-cols-2 gap-2">
         <Choice id={ids.unit} label="Unit" value={unit} onChange={(value) => { setSize(null); setUnit(value as ArtboardUnit); }} busy={busy}>
@@ -231,6 +183,110 @@ export function ExportPanel({ board, others, busy, unit: projectUnit }: Props) {
           {note}
         </Notice>
       ) : null}
+    </section>
+  );
+}
+
+type QuickProps = Readonly<{
+  board: BoardView;
+  targets: readonly ExportTarget[];
+  rule: WatermarkRule | null;
+  busy: boolean;
+  onSend: (targetKey: string) => void;
+}>;
+
+/** "Quick export: PNG at 1x / 2x / 3x" (spec F-L2). A scale this artboard cannot take says why. */
+function QuickExport({ board, targets, rule, busy, onSend }: QuickProps) {
+  return (
+    <section aria-label="Quick export" className="flex flex-col gap-2">
+      <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Quick</h4>
+      <ul className="flex flex-wrap gap-2">
+        {quickTargets(targets).map((target) => {
+          const quick = quickVerdict(target, asExportBoard(board), rule);
+          return (
+            <li key={target.key}>
+              <button
+                type="button"
+                disabled={busy || !quick.ok}
+                title={quick.ok ? `${quick.plan.size.width} × ${quick.plan.size.height} px` : quick.reason}
+                onClick={() => onSend(target.key)}
+                className={PANEL_CHIP}
+                data-testid={`marketing-quick-${target.key}`}
+              >
+                {target.label}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+type TargetProps = Readonly<{
+  targets: readonly ExportTarget[];
+  matching: ExportTarget | undefined;
+  busy: boolean;
+  onPick: (target: ExportTarget) => void;
+}>;
+
+/** The full export's targets, each a row of `marketing_export_targets`, with that row's own note. */
+function TargetChoice({ targets, matching, busy, onPick }: TargetProps) {
+  return (
+    <section aria-label="Targets" className="flex flex-col gap-2">
+      <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Target</h4>
+      <ul className="flex flex-wrap gap-2">
+        {targets.map((target) => (
+          <li key={target.key}>
+            <button
+              type="button"
+              disabled={busy}
+              aria-pressed={matching?.key === target.key}
+              title={`${target.lead} ${target.note}`}
+              onClick={() => onPick(target)}
+              className={PANEL_CHIP}
+              data-testid={`marketing-target-${target.key}`}
+            >
+              {target.label}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[12px] leading-relaxed text-ink-2">{matching ? matching.note : "A size of your own. Nobody has reviewed these figures."}</p>
+    </section>
+  );
+}
+
+type ChecklistProps = Readonly<{
+  boards: readonly BoardView[];
+  chosen: readonly string[];
+  busy: boolean;
+  onChange: (boardId: string, on: boolean) => void;
+}>;
+
+/** The spec's "Selected artboards (n)" checklist. More than one artboard is sent as a zip. */
+function ArtboardChecklist({ boards, chosen, busy, onChange }: ChecklistProps) {
+  const prefix = useId();
+  return (
+    <section aria-label="Selected artboards" className="flex flex-col gap-2">
+      <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Selected artboards ({chosen.length})</h4>
+      <ul className="flex flex-col gap-1.5">
+        {boards.map((one) => (
+          <li key={one.id} className="flex items-center gap-2">
+            <input
+              id={`${prefix}-${one.id}`}
+              type="checkbox"
+              className="size-4 accent-cobalt-soft"
+              checked={chosen.includes(one.id)}
+              disabled={busy}
+              onChange={(event) => onChange(one.id, event.target.checked)}
+            />
+            <label htmlFor={`${prefix}-${one.id}`} className="min-w-0 truncate text-[13px] text-ink">
+              {one.name || "Artboard"}
+            </label>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
