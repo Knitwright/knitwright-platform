@@ -62,7 +62,7 @@ const placeholder = (
 
 /**
  * The candidates `docs/spec/05-architecture.md` lists for the AI video board ("Kling, Veo, Wan,
- * Seedance via commercial providers; confirm licences"). Nothing is chosen here and nothing is
+ * Seedance via commercial providers"), whose licences nobody has read. Nothing is chosen here and nothing is
  * called from here: `board-provider.ts` decides what a run actually talks to, and with no key it is
  * the stub.
  */
@@ -163,7 +163,7 @@ export function videoCost(model: VideoModel, seconds: number): VideoCost {
 
 /** The licence words on the model's card and on the button. A model with no commercial licence says so. */
 export const licenceLabel = (model: VideoModel): string =>
-  model.commercialLicence ? "Commercial licence" : "Commercial licence not confirmed";
+  model.commercialLicence ? "Commercial licence" : "No commercial licence on file";
 
 /** True when the Audio switch does anything for this model, so the panel can say why it is off. */
 export const audioAvailable = (model: VideoModel): boolean => model.audio;

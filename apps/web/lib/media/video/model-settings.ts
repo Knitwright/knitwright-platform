@@ -49,7 +49,7 @@ export const VIDEO_SETTINGS: readonly SettingDef[] = [
     key: COMMERCIAL_LICENCE_KEY,
     group: "media",
     label: "AI video models holding a commercial licence",
-    help: "The model keys whose licence allows a brand to use the clip commercially, separated by commas. Empty until someone has read the terms: every other model is labelled on its own button as not holding one.",
+    help: "The model keys whose licence allows a brand to use the clip commercially, separated by commas. Empty until someone has read the terms: every other model is labelled on its own button as having no commercial licence on file.",
     question: 1,
     input: "list",
     schema: z.array(modelKey).max(24),

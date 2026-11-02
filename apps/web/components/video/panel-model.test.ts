@@ -104,7 +104,7 @@ describe("what the panel offers", () => {
 
   it("puts the credits a second, the waiting time and the licence on every model card", () => {
     const view = panelView({ context: context(boards, edges), settings, models: models({ creditsPerSecond: 2 }), creditsEnforced: false });
-    expect(view.models[0]).toMatchObject({ price: "2 credits a second", licence: "Commercial licence not confirmed" });
+    expect(view.models[0]).toMatchObject({ price: "2 credits a second", licence: "No commercial licence on file" });
     expect(view.models[0]?.wait).toMatch(/^About \d+:\d\d of waiting$/);
   });
 

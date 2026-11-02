@@ -112,7 +112,7 @@ describe("what a run costs", () => {
 
   it("puts the licence on the button, and says plainly when nobody has confirmed one", () => {
     expect(licenceLabel(unpriced)).toBe("Commercial licence");
-    expect(licenceLabel(priced)).toBe("Commercial licence not confirmed");
+    expect(licenceLabel(priced)).toBe("No commercial licence on file");
   });
 
   it("estimates the wait from the model's own figure, and never says zero", () => {

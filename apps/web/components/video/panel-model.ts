@@ -134,7 +134,7 @@ const aspectChoices = (settings: AiVideoSettings): readonly AspectChoice[] =>
   VIDEO_ASPECTS.map((aspect) => ({ aspect, label: VIDEO_FORMATS[aspect].label, selected: settings.aspect === aspect }));
 
 /** The one thing in the way, in the order a person would fix it. */
-function emptyOf(context: LaunchContext, board: BoardView | null, locked: boolean, hasFirst: boolean): EmptyState | null {
+function emptyOf(board: BoardView | null, locked: boolean, hasFirst: boolean): EmptyState | null {
   if (!board) return copy.EMPTY_NO_BOARD;
   if (!locked) return copy.EMPTY_NO_DESIGN;
   if (!hasFirst) return copy.EMPTY_NO_FRAME;
@@ -170,7 +170,7 @@ export function panelView(input: PanelInput): PanelView {
   return {
     heading: copy.PANEL_HEADING,
     lead: copy.PANEL_LEAD,
-    empty: emptyOf(input.context, board, locked, frames.first !== null),
+    empty: emptyOf(board, locked, frames.first !== null),
     frames: {
       first: frameState(copy.FIRST_FRAME_LABEL, frames.first, null),
       end: frameState(copy.END_FRAME_LABEL, frames.end, copy.END_FRAME_OPTIONAL),

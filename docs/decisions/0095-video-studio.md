@@ -89,7 +89,7 @@ the fal adapter, the stub, the storage paths) and `lib/media-check/**` (the chec
    models hold a commercial licence, and how many frames the checker samples. The catalogue in `models.ts` is the
    labelled placeholder that stands in until the owner answers: it names the four candidates the spec's architecture page
    lists (Kling, Veo, Wan, Seedance, "confirm licences"), claims **no commercial licence for any of them**, and every row
-   says it was not reviewed by anyone. `licenceLabel` puts "Commercial licence not confirmed" on the button of every
+   says it was not reviewed by anyone. `licenceLabel` puts "No commercial licence on file" on the button of every
    model an admin has not listed, which is all of them today.
 
 7. **The garment can never be redrawn, and a clip can never be artwork.** Every prompt ends with one
@@ -171,6 +171,9 @@ the fal adapter, the stub, the storage paths) and `lib/media-check/**` (the chec
 * **Hide a model with no commercial licence.** The spec says "commercial-licence models only", but no licence has been
   read yet, so hiding would offer nothing at all. The brief's rule is followed instead: the flag is data, and a model
   without one is labelled on its own button. Owner question 3.
+* **The words "not confirmed" on that button.** Rejected by the house wording rule
+  (`lib/techpack/wording.test.ts`, which scans `lib/media` and `components`): nothing outside a listed exception may
+  carry "confirmed" at all. "No commercial licence on file" says the same thing about our own records.
 * **Seed the twelve templates into the `templates` table now.** Rejected: it breaks the design library until
   `loadLibrary` is narrowed, and that file belongs to another workstream.
 * **A per-second price in code.** Rejected by the plan's own rule, and because it is money.
@@ -199,8 +202,9 @@ licence.
    which is not a price. This is question 1 of the questionnaire, and it is money.
 2. **Which models may be offered at all?** The four candidates the spec names are seeded as placeholders and none is
    called. Someone has to read their terms.
-3. **Should a model whose commercial licence nobody has confirmed be offered and labelled, or hidden?** It is labelled
-   today, which is what the brief asked for; the spec's own words are "commercial-licence models only".
+3. **Should a model whose commercial licence nobody has read be offered and labelled, or hidden?** It is labelled today
+   ("No commercial licence on file" on its own button), which is what the brief asked for; the spec's own words are
+   "commercial-licence models only".
 4. **Is the studio turntable 8 seconds or 6?** Decision 0058 records 8 seconds for the media-set turntable; F-L3 and
    `07` both say 6 for the launch video. Both are in the code, each in its own place, and the spec is followed for the
    launch sequence. One of the two should probably change.

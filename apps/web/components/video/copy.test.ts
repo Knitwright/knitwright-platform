@@ -24,8 +24,6 @@ const SETTLED = /\b(checked|verified|approved|confirmed|final|production[- ]read
 
 /** Each sentence that may hold one of those words, and why. Every one says a thing is NOT settled. */
 const ALLOWED: readonly string[] = [
-  "Commercial licence not confirmed",
-  "not confirmed", // inside a longer sentence about a licence nobody has read
   "no licence, price or waiting time here has been reviewed by anyone",
   // The checker's own verdict, from the studio clip of decision 0058, which predates this workstream.
   "passed the check",

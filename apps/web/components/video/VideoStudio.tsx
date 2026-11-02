@@ -6,7 +6,7 @@ import { Notice } from "@/components/ui/Notice";
 import { containerNote, RECORDER_BITS_PER_SECOND, RECORDER_MIME_TYPES } from "@/lib/media/video/encoder";
 import { VIDEO_FPS, type VideoAspect } from "@/lib/media/video/formats";
 import { MAX_TURNTABLE_BYTES } from "@/lib/media/video/limits";
-import type { SequenceKey, ViewCapability } from "@/lib/media/video/sequences";
+import { isSequenceKey, type SequenceKey, type ViewCapability } from "@/lib/media/video/sequences";
 import { findTemplate } from "@/lib/media/video/social-frames";
 import * as copy from "./copy";
 import { askAbilities, recordPlan } from "./record-sequence";
@@ -25,8 +25,6 @@ import { studioPlan, studioView, type Phase, type SequenceCard, type StudioView,
  */
 
 export type VideoStudioProps = Readonly<{
-  /** The design this studio belongs to, for the media-set save. */
-  projectId?: string;
   /** The 3D canvas. Found on the page when it is not given (the end-to-end test gives one). */
   canvas?: HTMLCanvasElement | null;
 }>;
@@ -39,7 +37,7 @@ const HINT = "text-[12px] leading-relaxed text-ink-2";
 const find3dCanvas = (): HTMLCanvasElement | null =>
   document.querySelector<HTMLCanvasElement>('[data-testid="garment-3d"] canvas, [data-testid="gltf-3d"] canvas');
 
-export default function VideoStudio({ projectId, canvas }: VideoStudioProps) {
+export default function VideoStudio({ canvas }: VideoStudioProps) {
   const [view3d, setView3d] = useState<Readonly<{ hasView: boolean; abilities: readonly ViewCapability[] }> | null>(null);
   const [aspect, setAspect] = useState<VideoAspect>("9:16");
   const [sequenceKey, setSequenceKey] = useState<SequenceKey>("turntable");
@@ -96,6 +94,17 @@ export default function VideoStudio({ projectId, canvas }: VideoStudioProps) {
     setMessage(copy.SAVED_LINE);
   }
 
+  /**
+   * A social frame is recorded from its own sequence, so picking one picks that sequence too: the
+   * Record button then says what it would really record, and there is one answer to "which video is
+   * this?" rather than two that can disagree.
+   */
+  function pickTemplate(key: string): void {
+    if (templateKey === key) return setTemplateKey(null);
+    setTemplateKey(key);
+    if (isSequenceKey(key)) setSequenceKey(key);
+  }
+
   const slots = findTemplate(templateKey)?.slots ?? [];
 
   return (
@@ -126,35 +135,49 @@ export default function VideoStudio({ projectId, canvas }: VideoStudioProps) {
               ))}
             </ul>
           </fieldset>
-          <Templates view={view} onPick={(key) => setTemplateKey(templateKey === key ? null : key)} />
+          <Templates view={view} onPick={pickTemplate} />
           {slots.length > 0 ? <SlotFields slots={slots} text={text} onChange={(id, value) => setText({ ...text, [id]: value })} /> : null}
-          <div className="flex flex-col gap-2">
-            <Button type="button" onClick={() => void record()} pending={phase === "recording" || phase === "saving"} disabled={view.recordable === null && templateKey === null}>
-              {copy.RECORD_LABEL}
-            </Button>
-            {view.statusLine ? (
-              <p role="status" className={HINT} data-testid="studio-status">
-                {view.statusLine}
-              </p>
-            ) : null}
-            {phase === "failed" && message ? (
-              <Notice tone="warn" role="alert">
-                {message}
-              </Notice>
-            ) : null}
-            {file ? (
-              <p className={HINT}>
-                <a href={file.url} download="knitwright-video" className={CHIP} data-testid="studio-download">
-                  {copy.DOWNLOAD_LABEL}
-                </a>{" "}
-                {file.note}
-              </p>
-            ) : null}
-            {projectId ? null : <p className={HINT}>{copy.STUDIO_EMPTY.line}</p>}
-          </div>
+          <Controls view={view} file={file} onRecord={() => void record()} />
         </>
       )}
     </section>
+  );
+}
+
+type ControlProps = Readonly<{
+  view: StudioView;
+  /** The finished file, with what to say about the container it came out in. */
+  file: Readonly<{ url: string; note: string }> | null;
+  onRecord: () => void;
+}>;
+
+/** Record, what is happening in words, what went wrong, and the file when there is one. */
+function Controls({ view, file, onRecord }: ControlProps) {
+  const working = view.phase === "recording" || view.phase === "saving";
+  return (
+    <div className="flex flex-col gap-2">
+      <Button type="button" onClick={onRecord} pending={working} disabled={view.recordable === null}>
+        {copy.RECORD_LABEL}
+      </Button>
+      {view.statusLine && view.phase !== "failed" ? (
+        <p role="status" className={HINT} data-testid="studio-status">
+          {view.statusLine}
+        </p>
+      ) : null}
+      {view.phase === "failed" && view.statusLine ? (
+        <Notice tone="warn" role="alert">
+          {view.statusLine}
+        </Notice>
+      ) : null}
+      {file ? (
+        <p className={HINT}>
+          <a href={file.url} download="knitwright-video" className={CHIP} data-testid="studio-download">
+            {copy.DOWNLOAD_LABEL}
+          </a>{" "}
+          {file.note}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
