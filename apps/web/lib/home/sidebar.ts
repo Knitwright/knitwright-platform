@@ -63,6 +63,9 @@ export const SIDEBAR: readonly SidebarGroup[] = [
       { id: "templates", label: "Templates", target: page("/catalogue?tab=templates") },
       { id: "fabrics", label: "Fabrics", target: page("/brands/fabrics") },
       { id: "size-charts", label: "Size charts", target: page("/studio/charts") },
+      // Benchmarks (plan v5 Z3, spec F-S2, decision 0084). The one entry Z3 adds, and it is here rather than in the
+      // top bar: that row already holds seven sections, and an eighth squeezes the account controls beside it.
+      { id: "benchmarks", label: "Benchmarks", target: page("/studio/benchmarks"), hint: "Compare products" },
     ],
   },
   {

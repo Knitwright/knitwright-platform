@@ -9,7 +9,7 @@ import { COMING_LATER, hrefOf, isLater } from "./targets";
  */
 
 describe("the studio sidebar", () => {
-  it("holds every entry spec F-S4 lists, in its order", () => {
+  it("holds every entry spec F-S4 lists, in its order, and the later workstreams' own entries after them", () => {
     expect(sidebarItems().map((item) => item.label)).toEqual([
       "+ New",
       "Workspace",
@@ -26,6 +26,8 @@ describe("the studio sidebar", () => {
       "Templates",
       "Fabrics",
       "Size charts",
+      // Added by plan v5 Z3 (spec F-S2, decision 0084), after the entries F-S4 names.
+      "Benchmarks",
       "Help",
       "Trash",
     ]);
