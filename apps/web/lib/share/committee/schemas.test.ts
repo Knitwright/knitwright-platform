@@ -89,6 +89,13 @@ describe("an approval", () => {
     expect(committeeApproveSchema.parse({ token: TOKEN, name: "Dana", version: "4", email: "   ", ...CHECK }).email).toBeNull();
   });
 
+  it("says which field to look at when no option was chosen", () => {
+    const refused = committeeApproveSchema.safeParse({ token: TOKEN, name: "Dana", ...CHECK });
+
+    expect(refused.success).toBe(false);
+    expect(refused.error?.issues[0]).toMatchObject({ path: ["version"], message: "Choose which one you are approving." });
+  });
+
   it("refuses something that is not an address, and a missing name", () => {
     expect(committeeApproveSchema.safeParse({ token: TOKEN, name: "Dana", version: "4", email: "dana@", ...CHECK }).success).toBe(false);
     expect(committeeApproveSchema.safeParse({ token: TOKEN, name: " ", version: "4", ...CHECK }).success).toBe(false);
@@ -103,6 +110,18 @@ describe("making and locking a link", () => {
     expect(createCommitteeLinkSchema.safeParse({ projectId, versions: [] }).success).toBe(false);
     expect(createCommitteeLinkSchema.safeParse({ projectId, versions: [1, 2, 3, 4] }).success).toBe(false);
     expect(createCommitteeLinkSchema.safeParse({ projectId, versions: [2, 2] }).success).toBe(false);
+  });
+
+  it("takes the one version a form with a single field sends, which arrives as a value and not a list", () => {
+    expect(createCommitteeLinkSchema.parse({ projectId, versions: "4" }).versions).toEqual([4]);
+    expect(createCommitteeLinkSchema.parse({ projectId, versions: ["2", "1"] }).versions).toEqual([2, 1]);
+  });
+
+  it("reads a form that sent no version at all as nothing chosen, in words a club can act on", () => {
+    const refused = createCommitteeLinkSchema.safeParse({ projectId });
+
+    expect(refused.success).toBe(false);
+    expect(refused.error?.issues[0]?.message).toBe("Choose at least one version to share.");
   });
 
   it("names the design, the link and the version to lock", () => {

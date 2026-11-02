@@ -100,27 +100,40 @@ export const committeeVoteSchema = z.object({
 });
 export type CommitteeVoteInput = z.output<typeof committeeVoteSchema>;
 
-/** An approval, given under a name, against one version. */
+const CHOOSE_ONE = "Choose which one you are approving.";
+
+/**
+ * An approval, given under a name, against one version. The version has a message of its own,
+ * because a page showing more than one option starts with none of them chosen and a visitor who
+ * presses Approve first must be told which field to look at.
+ */
 export const committeeApproveSchema = z.object({
   token,
   name,
   email: optionalEmail,
-  version,
+  version: z.coerce.number(CHOOSE_ONE).int(CHOOSE_ONE).min(1, CHOOSE_ONE).max(2_147_483_647),
   [CAPTCHA_FIELD]: captcha,
 });
 export type CommitteeApproveInput = z.output<typeof committeeApproveSchema>;
 
 const projectId = z.uuid("That is not a design.");
 
-/** The club making a link. F-T3: up to three versions, read only. */
-export const createCommitteeLinkSchema = z.object({
-  projectId,
-  versions: z
+/**
+ * The versions a link shows. A form sends one field per version, and a form with exactly one of
+ * them arrives as a single value rather than a list (`lib/server/core/create-define-action.ts`
+ * reads `getAll`), so both shapes are taken and nothing missing is read as nothing chosen.
+ */
+const versions = z.preprocess(
+  (raw) => (raw === undefined ? [] : Array.isArray(raw) ? raw : [raw]),
+  z
     .array(version)
     .min(1, "Choose at least one version to share.")
     .max(COMMITTEE_SLOTS.length, `A committee link shows up to ${COMMITTEE_SLOTS.length} versions.`)
     .refine((all) => new Set(all).size === all.length, "Each version can be shown once."),
-});
+);
+
+/** The club making a link. F-T3: up to three versions, read only. */
+export const createCommitteeLinkSchema = z.object({ projectId, versions });
 
 export const committeeLinkSchema = z.object({ projectId, linkId: z.uuid("That is not a link.") });
 
