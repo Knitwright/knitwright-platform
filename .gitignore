@@ -47,3 +47,7 @@ knitwright-reference/
 
 # Editor settings are each developer's own.
 .vscode/
+
+# Claude Code agent worktrees and session files. Never committed: each worktree is its own
+# checkout of this repository.
+.claude/
