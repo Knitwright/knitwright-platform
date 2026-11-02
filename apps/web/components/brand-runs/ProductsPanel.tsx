@@ -56,11 +56,11 @@ export function ProductsPanel({ products, designs, canEdit, selectedId }: Props)
           return (
             <li key={product.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <p className="min-w-0 text-[15px] text-ink">
-                <Link href={`/studio/${product.projectId}`} className="soft-link">{product.name}</Link>
+                <Link href={`/studio/${product.projectId}`} className="soft-link underline underline-offset-4">{product.name}</Link>
                 <span className="text-muted"> · {STAGE_LABELS[product.stage]} · design version {product.designVersion} · added {date(product.createdAt)}</span>
               </p>
               <div className="flex flex-wrap gap-2">
-                <Link href={`/brand?product=${product.id}#builder`} className="soft-link text-[15px] text-cobalt-soft" aria-current={selectedId === product.id ? "true" : undefined}>
+                <Link href={`/brand?product=${product.id}#builder`} className="text-[15px] text-cobalt-soft underline-offset-4 hover:underline" aria-current={selectedId === product.id ? "true" : undefined}>
                   {selectedId === product.id ? "Open in the run builder" : "Plan a sample or run"}
                 </Link>
                 {canEdit && next && canConfirm(product.stage, sampleOrdered) ? (

@@ -33,7 +33,7 @@ export default async function SamplePage({ params, searchParams }: PageProps<"/s
       lead={
         <>
           One piece of each size you choose, made in the next slot. You see the price and the delivery date before anything is sent; Knitwright
-          invoices it outside this platform. <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-cobalt-soft">Back to the product</Link>.
+          invoices it outside this platform. <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-ink underline underline-offset-4">Back to the product</Link>.
         </>
       }
     >
