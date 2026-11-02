@@ -52,26 +52,32 @@ export const NOTHING_GIVEN = "Upload your crest, or pick up to three of your col
 /** Said where a picked colour is not a colour. */
 export const BAD_COLOUR = "One of those colours could not be read. Pick it again from the swatches.";
 
+export type IntakeFields = z.output<typeof intakeSchema>;
+
 /**
- * The intake as the engine needs it, or what is wrong with the form. A crest and picked colours can
- * both be given: the crest wins, and the picked colours are not used, because the crest's own
+ * The rules the schema cannot state: a colour that is not a colour, and a form with neither a crest
+ * nor a colour on it. A crest and picked colours can both be given — the crest wins, because its own
  * colours are the ones the kits are matched against.
  */
-export function readIntake(form: unknown, hasCrest: boolean): IntakeOutcome {
-  const parsed = intakeSchema.safeParse(form);
-  if (!parsed.success) return { ok: false, errors: parsed.error.issues.map((issue) => issue.message) };
-  const colours = parsed.data.colour.map((value) => value.toLowerCase());
-  const bad = colours.filter((value) => !swatch.safeParse(value).success);
-  if (bad.length > 0) return { ok: false, errors: [BAD_COLOUR] };
+export function checkIntake(fields: IntakeFields, hasCrest: boolean): IntakeOutcome {
+  const colours = fields.colour.map((value) => value.toLowerCase());
+  if (colours.some((value) => !swatch.safeParse(value).success)) return { ok: false, errors: [BAD_COLOUR] };
   if (!hasCrest && colours.length === 0) return { ok: false, errors: [NOTHING_GIVEN] };
   return {
     ok: true,
     input: {
-      sportId: parsed.data.sportId,
-      roles: parsed.data.roles,
-      feel: parsed.data.feel,
-      clubName: parsed.data.clubName,
+      sportId: fields.sportId,
+      roles: fields.roles,
+      feel: fields.feel,
+      clubName: fields.clubName,
       colours: colours.slice(0, CREST_LIMITS.maxPickedColours),
     },
   };
+}
+
+/** The intake of a raw form, or what is wrong with it. */
+export function readIntake(form: unknown, hasCrest: boolean): IntakeOutcome {
+  const parsed = intakeSchema.safeParse(form);
+  if (!parsed.success) return { ok: false, errors: parsed.error.issues.map((issue) => issue.message) };
+  return checkIntake(parsed.data, hasCrest);
 }
