@@ -1092,6 +1092,16 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), payload: { kind: "launch-listing" } }),
     change: { payload: { kind: "changed by a stranger" } },
   },
+  // Plan v5 L3 (decision 0093): one press of Generate on an AI image board. A member reads their own
+  // brand's rows; only the two shoot functions write; the garment it kept is named by a Design board
+  // the row cannot be without; and an upload's consent is recorded or the row is refused.
+  shoot_jobs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedShoot(brandId, ownerId)).jobId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), board_id: randomUUID(), design_board_id: randomUUID(), scene_slug: "kit-on-a-bench", style: "editorial", aspect: "match" }),
+    change: { status: "ready", credits: 99 },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -1739,6 +1749,33 @@ const seedFlow = async (
     }),
   ) as string;
   return { launchProjectId: launch.launchProjectId, runId, runBoardId, listingId };
+};
+
+/**
+ * Plan v5 L3 (decision 0093): one shoot of an AI image board on a launch canvas. The job is written
+ * by `start_shoot_job` and by nothing else, and it names the Design board its garment came from.
+ */
+const seedShoot = async (brandId: string, ownerId: string): Promise<{ jobId: string }> => {
+  const launch = await seedLaunch(brandId, ownerId);
+  const boardId = must(
+    await adminClient().rpc("save_launch_board", {
+      p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launch.launchProjectId, p_board_id: null,
+      p_kind: "ai_image", p_name: "ai_image", p_x: 0, p_y: 0, p_width: 1080, p_height: 1080, p_settings: {}, p_input_version: 1,
+    }),
+  ) as string;
+  must(
+    await adminClient().rpc("connect_launch_boards", { p_brand_id: brandId, p_user_id: ownerId, p_from_board_id: launch.designBoardId, p_to_board_id: boardId, p_input_index: 1 }),
+  );
+  const jobId = must(
+    await adminClient().rpc("start_shoot_job", {
+      p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launch.launchProjectId, p_board_id: boardId,
+      p_design_board_id: launch.designBoardId, p_scene_slug: "kit-on-a-bench", p_style: "editorial", p_aspect: "match",
+      p_image_count: 1, p_pose_key: null, p_camera_key: null, p_model_source: "none", p_model_preset_key: null,
+      p_model_file_id: null, p_consent_ref: null, p_consent_statement: null, p_consent_given_at: null,
+      p_concept_slug: null, p_input_version: 1,
+    }),
+  ) as string;
+  return { jobId };
 };
 
 const seedGoldenSample = async (
@@ -2528,6 +2565,12 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   flow_templates: { privileges: ["SELECT"] },
   flow_template_steps: { privileges: ["SELECT"] },
   flow_template_links: { privileges: ["SELECT"] },
+  // Decision 0093: the twelve shoot ideas of F-L1, the pose and camera presets, and the model presets
+  // with the licence reference each one needs. Read by every signed-in user; seeded by the server
+  // from apps/web/lib/shoots. tests/integration/shoots.test.ts covers them.
+  shoot_concepts: { privileges: ["SELECT"] },
+  shoot_poses: { privileges: ["SELECT"] },
+  model_presets: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;

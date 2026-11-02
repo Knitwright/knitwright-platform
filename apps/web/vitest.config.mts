@@ -212,6 +212,7 @@ export default defineConfig({
             "rulebook",
             "settings",
             "shell",
+            "shoots",
             "store-contract",
             "teamwear",
             "templates",
