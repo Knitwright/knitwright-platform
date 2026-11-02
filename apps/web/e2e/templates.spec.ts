@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { TEMPLATES_PER_PAGE } from "../lib/templates/filters";
-import { allSeedTemplates } from "../lib/templates/seed/all";
+import { everySeedTemplate } from "../lib/templates/seed/seed";
 import { seedTemplates } from "../lib/templates/seed/seed";
 import { createAccount, signIn, test } from "./support";
 
@@ -53,7 +53,7 @@ test.describe("the template library", () => {
     await page.getByLabel("Sport", { exact: true }).selectOption("cricket");
     await page.getByRole("button", { name: "Show templates" }).click();
     await expect(page).toHaveURL(/sport=cricket/);
-    const cricket = allSeedTemplates().filter((seed) => seed.sport === "cricket").length;
+    const cricket = everySeedTemplate().filter((seed) => seed.sport === "cricket").length;
     await expect(page.getByRole("list", { name: "Templates" }).getByRole("listitem")).toHaveCount(Math.min(cricket, TEMPLATES_PER_PAGE));
 
     await page.goto("/templates?sport=running&colour=white");

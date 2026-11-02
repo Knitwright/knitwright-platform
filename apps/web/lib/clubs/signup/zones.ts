@@ -3,7 +3,7 @@ import { PLACE_DEFINITIONS, PLAYER_MARK_PLACES, type PlayerMarkPlace } from "@/l
 /**
  * How long a name or a number may be in each place it is printed (spec F-T4 "names are checked
  * against the safe zone and character limits (maximum length per article and zone)", plan v5 Z7,
- * decision 0086).
+ * decision 0087).
  *
  * The zones are the places `lib/garment/names-numbers.ts` already names, so there is one list of
  * places in the platform and not two. The lengths are rows of `shirt_zone_limits`, read by

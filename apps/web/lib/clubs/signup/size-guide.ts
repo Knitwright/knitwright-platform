@@ -6,7 +6,7 @@ import type { WearerGroup } from "../wording";
 
 /**
  * The size guide on the sign-up page (spec F-T4 step 2 "with the size guide on the page", plan v5
- * Z7, decision 0086).
+ * Z7, decision 0087).
  *
  * The guide is the club's own size chart, graded by the same code the tech pack grades with, so a
  * player reads the numbers the garment will actually be made to. Nothing is invented: a club with
@@ -18,7 +18,7 @@ import type { WearerGroup } from "../wording";
  * The wearer the chart is kept under, for each cut a player may choose. Three of the four are the
  * registry's own wearers. **Unisex is a labelled default**: the registry has no unisex wearer, so a
  * unisex kit is shown the men's chart and the guide says so in `WEARER_NOTE`. Owner question in
- * `docs/decisions/0086-committee-link-and-roster-signup.md`.
+ * `docs/decisions/0087-committee-link-and-roster-signup.md`.
  */
 const CHART_WEARER: Readonly<Record<WearerGroup, string>> = {
   mens: "men",

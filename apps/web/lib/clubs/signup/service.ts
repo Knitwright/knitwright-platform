@@ -11,7 +11,7 @@ import type { ZoneLimit } from "./zones";
 import { isZone } from "./zones";
 
 /**
- * Roster sign-up in the database (spec F-T4, plan v5 Z7, decision 0086). Writes, and every read
+ * Roster sign-up in the database (spec F-T4, plan v5 Z7, decision 0087). Writes, and every read
  * made with a token, go through the sign-up functions, which only the server's own key may run and
  * which check the person's role or the token themselves. A club's own lists are read through the
  * member's client, so row level security decides what they see.

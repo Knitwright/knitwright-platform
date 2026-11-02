@@ -2,8 +2,8 @@ import { Text, View } from "@react-pdf/renderer";
 import { createElement as h, type ReactElement } from "react";
 import type { ImageMap } from "@/lib/flat/images";
 import type { FlatModel } from "@/lib/flat/model";
-import { PDF_FONT_FAMILY } from "@/lib/flat/pdf-font";
 import { renderPdf } from "@/lib/flat/render-pdf";
+import { drawable } from "../pdf-text";
 import type { FlatViewSection, SectionId, TechPack } from "../../types";
 import { PICTURE_LEFT_OUT } from "../limits";
 import type { PageBlock } from "../pages";
@@ -29,19 +29,28 @@ const DRAWING_WIDTH = (CONTENT_WIDTH - DRAWING_GAP) / 2;
 /** The sections whose pictures may have been left out for size, so the page says so. */
 export const PICTURE_SECTIONS: ReadonlySet<SectionId> = new Set<SectionId>(["flats", "artwork"]);
 
-/** The drawing with the text in it made safe for the font. The drawing it is given is not changed. */
-function withSafeText(model: FlatModel, safe: Safe): FlatModel {
+/**
+ * The drawing with the text in it made safe for the font. The drawing it is given is not changed.
+ * The drawing keeps the Latin font whatever language the pages are set in — `lib/flat/render-pdf.ts`
+ * draws its own labels in that one — so its text is made safe against that font and not against the
+ * document's (decision 0104).
+ */
+function withSafeText(model: FlatModel): FlatModel {
   return {
     ...model,
     layers: model.layers.map((layer) => ({
       ...layer,
-      elements: layer.elements.map((element) => (element.kind === "text" ? { ...element, text: safe(element.text) } : element)),
+      elements: layer.elements.map((element) => (element.kind === "text" ? { ...element, text: drawable(element.text) } : element)),
     })),
   };
 }
 
 const small = (text: string, key: string, safe: Safe): ReactElement =>
-  h(Text, { key, style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.cell, color: COLOURS.muted, marginTop: 3 } }, safe(text));
+  h(
+    Text,
+    { key, style: { fontFamily: safe.family, direction: safe.direction, fontSize: SIZES.cell, color: COLOURS.muted, marginTop: 3 } },
+    safe(text),
+  );
 
 function drawing(view: FlatViewSection, context: Context): ReactElement {
   const { safe, images } = context;
@@ -50,8 +59,8 @@ function drawing(view: FlatViewSection, context: Context): ReactElement {
     { key: view.view, wrap: false, style: { width: DRAWING_WIDTH } },
     small(view.label, "label", safe),
     view.model
-      ? renderPdf(withSafeText(view.model, safe), { widthPoints: DRAWING_WIDTH, images })
-      : h(Text, { style: { fontFamily: PDF_FONT_FAMILY, fontSize: SIZES.body, color: COLOURS.warn } }, safe(view.notice ?? "")),
+      ? renderPdf(withSafeText(view.model), { widthPoints: DRAWING_WIDTH, images })
+      : h(Text, { style: { fontFamily: safe.family, direction: safe.direction, fontSize: SIZES.body, color: COLOURS.warn } }, safe(view.notice ?? "")),
     ...(view.model && view.notice ? [small(view.notice, "notice", safe)] : []),
   );
 }
@@ -60,7 +69,7 @@ function drawing(view: FlatViewSection, context: Context): ReactElement {
 export const drawingRow = (key: string, views: readonly FlatViewSection[], context: Context): ReactElement =>
   h(
     View,
-    { key, style: { flexDirection: "row", flexWrap: "wrap", gap: DRAWING_GAP, marginVertical: 6 } },
+    { key, style: { flexDirection: context.safe.row, flexWrap: "wrap", gap: DRAWING_GAP, marginVertical: 6 } },
     ...views.map((view, index) => h(View, { key: `${key}-${index}`, wrap: false }, drawing(view, context))),
   );
 

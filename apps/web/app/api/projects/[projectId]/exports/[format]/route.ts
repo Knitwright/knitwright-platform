@@ -8,6 +8,7 @@ import { LIMITS } from "@/lib/server/limits";
 import { PRINT_MAX_EMBEDDED_BYTES } from "@/lib/techpack/exports/limits";
 import { shrinkForPrint } from "@/lib/techpack/exports/print-images";
 import { exportParamsSchema, exportQuerySchema, rawQuerySchema } from "@/lib/techpack/exports/request";
+import { loadTranslations } from "@/lib/translate/server";
 
 /** No handler may rely on more than 60 seconds (decision 0002). An export takes a second or two. */
 export const maxDuration = 60;
@@ -45,6 +46,8 @@ export const GET = defineRoute({
             maxEmbeddedBytes: PRINT_MAX_EMBEDDED_BYTES,
           }),
         record: (entry) => recordDownload(adminClient(), session.userId, entry),
+        // The words of the language a PDF is asked for (decision 0104).
+        translations: (language) => loadTranslations(client, language),
       },
       { projectId, format, query: input.query },
     );

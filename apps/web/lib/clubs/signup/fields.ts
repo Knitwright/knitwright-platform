@@ -1,5 +1,5 @@
 /**
- * The words and limits a sign-up page shows (spec F-T4, plan v5 Z7, decision 0086).
+ * The words and limits a sign-up page shows (spec F-T4, plan v5 Z7, decision 0087).
  *
  * No zod here, so a browser component can import them without shipping the schema library
  * (`tests/architecture/client-weight.test.ts`). Nothing here is a rule: every number the sign-up

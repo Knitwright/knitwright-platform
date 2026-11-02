@@ -3,7 +3,7 @@ import { PublicHeader } from "@/components/shell/PublicHeader";
 import { LINK_CLOSED_BODY, LINK_CLOSED_TITLE } from "@/lib/clubs/signup/fields";
 
 /**
- * What a sign-up link that no longer works says (plan v5 Z7, decision 0086). The answer is still
+ * What a sign-up link that no longer works says (plan v5 Z7, decision 0087). The answer is still
  * 404, and deliberately so: a link that ran out, a link that was withdrawn and an address that was
  * never a link all take one path and give one answer, because telling them apart would say whether
  * a link exists (decision 0026). What changes here is only the words: a player is told what

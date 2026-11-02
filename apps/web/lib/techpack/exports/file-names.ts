@@ -1,3 +1,4 @@
+import { SOURCE_LANGUAGE, type Language } from "@/lib/translate/languages";
 import { EXTENSIONS, type ExportFormat } from "./formats";
 import type { View } from "@/lib/flat/model";
 
@@ -21,6 +22,12 @@ interface FileNameInput {
    * colourways are saved under two names (owner decision 2026-09-30: one drawing per colourway).
    */
   readonly colourway?: string | null;
+  /**
+   * Which language the PDF's fixed words are set in. Left out, or English, names nothing: the English
+   * document keeps the name it always had. Another language is named in the file, so a factory holding
+   * two copies of one pack can tell them apart before opening either (decision 0104).
+   */
+  readonly language?: Language;
 }
 
 /** The longest the colourway part of a drawing's file name may be, in characters. */
@@ -33,7 +40,11 @@ export interface FileName {
   readonly original: string;
 }
 
-const kind = (input: FileNameInput): string => (input.format === "svg" && input.view ? input.view : "tech-pack");
+const kind = (input: FileNameInput): string => {
+  if (input.format === "svg" && input.view) return input.view;
+  const language = input.language ?? SOURCE_LANGUAGE;
+  return language === SOURCE_LANGUAGE ? "tech-pack" : `tech-pack-${language}`;
+};
 
 const nameOf = (input: FileNameInput): string =>
   input.styleNumber.trim() !== "" ? input.styleNumber.trim() : input.designName.trim();

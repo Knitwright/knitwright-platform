@@ -2,7 +2,7 @@ import { cleanName } from "@/lib/orders/text";
 import { REQUESTS_MAX } from "./fields";
 
 /**
- * The pasted list (spec F-T4 step 1 "paste a list", plan v5 Z7, decision 0086).
+ * The pasted list (spec F-T4 step 1 "paste a list", plan v5 Z7, decision 0087).
  *
  * One person per line. A line may carry a phone number or an email address after a comma or a tab,
  * because that is how a club's own list usually looks, and because a chase needs one of them. Names

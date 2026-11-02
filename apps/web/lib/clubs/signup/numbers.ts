@@ -1,6 +1,6 @@
 /**
  * The shirt numbers a sport allows (spec F-T4 "numbers are 0-99 by default; configurable per
- * sport", plan v5 Z7, decision 0086).
+ * sport", plan v5 Z7, decision 0087).
  *
  * Every number here is a row of `sport_number_rules`, read by `service.ts` and passed in. Nothing
  * in this file decides a range, and there is no fallback that invents one: a sport with no row is a

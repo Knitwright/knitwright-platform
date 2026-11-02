@@ -1,5 +1,5 @@
 /**
- * Where a committee pin sits (spec F-T3 "a pin on the panel", plan v5 Z7, decision 0086).
+ * Where a committee pin sits (spec F-T3 "a pin on the panel", plan v5 Z7, decision 0087).
  *
  * A pin is held the way a design comment holds one (decision 0063): a panel, and a distance across
  * and down in millimetres. This file turns a press on a drawing into those two distances, and gives

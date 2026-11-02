@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createAccount, passBotCheck, signIn, standInForBotCheck, test } from "./support";
 
 /**
- * Committee link v2 (spec F-T3, plan v5 Z7, decision 0086).
+ * Committee link v2 (spec F-T3, plan v5 Z7, decision 0087).
  *
  * The acceptance test is "works on a phone without login; approval is recorded with name, timestamp
  * and version", so the committee member here is a separate browser context at 390 by 844 with no
