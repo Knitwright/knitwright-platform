@@ -4,11 +4,15 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { RaiseExceptionForm } from "@/components/ops/ExceptionForms";
 import { OrderControls } from "@/components/ops/OrderControls";
+import { StatusEmailForm } from "@/components/ops/StatusEmailForm";
 import { AppError } from "@/lib/server/core/errors";
 import { batchLabel, orderValue, sizesLine } from "@/lib/ops/format";
 import { latestInspection } from "@/lib/ops/qc/rows";
 import { listInspections } from "@/lib/ops/qc/service";
 import { loadOrder, movableBatches } from "@/lib/ops/service";
+import { kindForStatus } from "@/lib/ops/notify/email";
+import { listCustomerEmails } from "@/lib/ops/notify/service";
+import { emailIsSetUp } from "@/lib/ops/notify/select";
 import { listShipments } from "@/lib/ops/shipping/service";
 import { FULFILMENT_LABELS, fulfilmentOf } from "@/lib/ops/shipping/rules";
 import { STATUS_LABELS } from "@/lib/ops/status";
@@ -30,8 +34,9 @@ export default async function OrderPage({ params }: PageProps<"/ops/orders/[orde
   });
   const { order, events } = loaded;
   const batches = (await movableBatches(client, order)).map((b) => ({ id: b.id, label: batchLabel(b) }));
-  const [inspections, shipments] = await Promise.all([listInspections(client, order.id), listShipments(client, order.id)]);
+  const [inspections, shipments, emails] = await Promise.all([listInspections(client, order.id), listShipments(client, order.id), listCustomerEmails(client, order.id)]);
   const latest = latestInspection(inspections);
+  const suggested = shipments.length > 0 ? "shipped" : (kindForStatus(order.status) ?? "batched");
 
   return (
     <main id="main" className="rise">
@@ -68,6 +73,28 @@ export default async function OrderPage({ params }: PageProps<"/ops/orders/[orde
         <h2 id="exception" className="text-lg font-semibold text-ink">Raise an exception</h2>
         <p className="mt-1 text-sm text-muted">A remake, partial shipment, lost parcel or size swap. Every exception has an owner and a due date.</p>
         <div className="mt-3"><RaiseExceptionForm orderId={order.id} /></div>
+      </section>
+
+      <section aria-labelledby="tell" className="mt-8">
+        <h2 id="tell" className="text-lg font-semibold text-ink">Tell the customer</h2>
+        <p className="mt-1 text-sm text-muted">
+          The words are written from this order. No message states a delivery date: the days for QC and the freight days are not set.
+        </p>
+        <div className="mt-3">
+          <StatusEmailForm orderId={order.id} suggested={suggested} isSetUp={emailIsSetUp()} />
+        </div>
+        {emails.length === 0 ? (
+          <p className="mt-3 text-sm text-muted">Nothing has been sent about this order yet.</p>
+        ) : (
+          <ul className="mt-3 flex flex-col divide-y divide-hairline text-sm">
+            {emails.map((e) => (
+              <li key={e.id} className="py-2" data-testid="customer-email">
+                {e.sent ? "Sent" : "Not sent"} · {e.kind.replaceAll("_", " ")} · {e.toEmail} · {formatDateTime(e.at)}
+                {e.sent ? null : <p className="text-muted">{e.reason}</p>}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section aria-labelledby="history" className="mt-8">

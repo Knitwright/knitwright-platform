@@ -1,6 +1,7 @@
 # 0082: The inspiration board
 
 Status: Proposed. Every provider is an interface with a deterministic stub; only Unsplash, Pexels and Pinterest have
+Index: Proposed; owner questions listed
 real adapters, and none of the three has been run against a live key. The mood-image price, the moodboard limit and
 the per-source budget are Knitwright defaults, not measured. Owner questions below.
 Date: 2026-10-30

@@ -1,6 +1,7 @@
 # 0054: Media sets, studio renders and watermark
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-27
 Plan step: plans/platform-v4.md, workstream W3-A. Builds on 0018 (photoreal images), 0044 (credits ledger) and 0051 (credit gates).
 

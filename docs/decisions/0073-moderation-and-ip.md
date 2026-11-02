@@ -1,6 +1,7 @@
 # 0073: Moderation and IP basics
 
 Status: Proposed. The word list, the picture-hash distances and the strike count are Knitwright defaults, not reviewed by a
+Index: Proposed; owner questions listed
 lawyer and not tuned on real uploads. Owner questions below.
 Date: 2026-10-29
 Plan step: platform v5, wave 1, X8 (`plans/platform-v5.md`). Spec: F-G1 (`docs/spec/02-features.md`), spec decision 7

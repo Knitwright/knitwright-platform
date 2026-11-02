@@ -13,6 +13,8 @@ const alias = {
 /** The tests that make PDF files. They are the slowest in the suite and run alone, after the others. */
 const PDF_TESTS = [
   "lib/techpack/exports/pdf/**/*.test.ts",
+  // The marketing export's PDF (plan v5 L4, decision 0094): one page per artboard.
+  "lib/marketing/export/pdf.test.ts",
   "lib/techpack/exports/formats.test.ts",
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
@@ -134,13 +136,59 @@ export default defineConfig({
         // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        // The committee link and the roster sign-up are public, unauthenticated surfaces, so they are held
-        // to the same mark as the production outputs (plan v5 Z7, decision 0086).
-        "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The committee link and the roster sign-up are public pages a club's own people use without an
+        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
         "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
+        "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration", "collections", "compliance", "launch", "benchmarks", "brand-studio", "colour"].map((dir) => [
+          [
+            "artwork-intake",
+            "artwork-stack",
+            "benchmarks",
+            "brand-runs",
+            "brand-studio",
+            "catalogue",
+            "collections",
+            "colour",
+            "comments",
+            "compliance",
+            "credits-gate",
+            "cutting",
+            "design-diff",
+            "design-import",
+            "design-object",
+            "designers",
+            "fabrics",
+            "factory",
+            "gltf",
+            "guardrails",
+            "home",
+            "inspiration",
+            "job-packet",
+            "launch",
+            "make",
+            "marketing",
+            "media",
+            "media-check",
+            "moderation",
+            "ops",
+            "orders",
+            "panel-layers",
+            "parametric",
+            "pattern-library",
+            "pattern-service",
+            "print",
+            "production",
+            "proofs",
+            "releases",
+            "rulebook",
+            "settings",
+            "teamwear",
+            "templates",
+            "validation",
+            "variants",
+          
+          ].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

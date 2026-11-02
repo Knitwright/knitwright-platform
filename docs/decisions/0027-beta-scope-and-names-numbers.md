@@ -1,6 +1,7 @@
 # 0027: Beta scope, and player names and numbers
 
 Status: Accepted. Which garments launch, the lettering and places, and the 3D verdict are asked in apps/web/lib/config/OWNER-QUESTIONS.md.
+Index: Accepted; launch garments and 3D verdict asked of the owner
 Date: 2026-10-11
 Plan step: wave 3 (Platform and Store Guide, 2026-10-10)
 

@@ -1,6 +1,8 @@
 # 0021: Construction rules, words and golden sets for bottoms, outerwear and close-fitting
 
 Status: Accepted. The rules wait for a factory; the golden sets wait for the owner (A7, A8).
+Index title: Construction rules, words and golden sets for the other families
+Index: Accepted; rules wait for a factory
 Date: 2026-09-30
 Plan steps: 18 (bottoms), 21 (outerwear), 24 (close-fitting)
 

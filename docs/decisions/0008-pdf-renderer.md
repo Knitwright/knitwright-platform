@@ -1,6 +1,7 @@
 # 0008: The PDF renderer
 
 Status: Accepted locally, deployed check owed
+Index: Accepted locally; deployed check owed
 Date: 2026-09-29
 Plan step: 7
 

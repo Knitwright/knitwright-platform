@@ -1,6 +1,8 @@
 # 0062: Brand workspace, product list and brand runs (W4-C)
 
 Status: Proposed
+Index title: Brand workspace, product list and brand runs
+Index: Proposed; owner questions listed
 Date: 2026-10-25
 Plan step: platform-v4 W4-C
 

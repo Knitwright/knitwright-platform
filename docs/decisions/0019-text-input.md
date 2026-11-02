@@ -1,6 +1,7 @@
 # 0019: Text input
 
 Status: Accepted. The model choice and the live evaluation wait for provider keys (A3) and the
+Index: Accepted; model choice and live evaluation wait for keys
 approved golden set (A7).
 Date: 2026-09-29
 Plan step: 12
