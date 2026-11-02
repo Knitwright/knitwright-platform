@@ -65,6 +65,9 @@ test.describe("reading a design from a picture", () => {
     // What accepting really does, said before anyone accepts: the reading is kept, this design is
     // not changed, because putting an accepted reading onto a design is not built (decision 0038).
     await expect(panel).toContainText("It does not change this design");
+    // And the reload rule: the panel does not look for a reading when it opens, and a second
+    // reading of the same picture is a second vision call, so it says both before anyone starts.
+    await expect(panel).toContainText("starts again from the picture");
     // Decision 0038 item 9: three words the screen never uses.
     await expect(panel).not.toContainText(/\b(exact|identical|matches your picture)\b/i);
 

@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { DesignImportPanel, NOT_APPLIED_YET } from "./DesignImportPanel";
+import { DesignImportPanel, NOT_APPLIED_YET, RELOAD_STARTS_AGAIN } from "./DesignImportPanel";
 
 /**
  * WHAT ACCEPTING A READING DOES NOT DO, said before anyone accepts (decision 0124 item 3a).
@@ -28,6 +28,16 @@ describe("the design-import panel's standing note", () => {
     const html = render();
     expect(html).toContain(NOT_APPLIED_YET);
     expect(html).toContain("Nothing is kept until you accept it.");
+  });
+
+  /**
+   * The reload rule: a reading is kept on the server at once, and this panel does not look for one
+   * when it opens, so the person is told before they start rather than after losing a paid reading.
+   */
+  it("says that leaving the screen starts again from the picture, and that a second reading costs", () => {
+    expect(RELOAD_STARTS_AGAIN).toContain("starts again from the picture");
+    expect(RELOAD_STARTS_AGAIN).toContain("a second reading");
+    expect(render()).toContain(RELOAD_STARTS_AGAIN);
   });
 
   it("never says a design was saved or changed, in any of its words", () => {

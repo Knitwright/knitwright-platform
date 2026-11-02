@@ -19,6 +19,16 @@ const STAGE_TEXT = { uploading: "Uploading the picture...", reading: "Reading th
 export const NOT_APPLIED_YET =
   "Accepting keeps the reading and keeps the pictures cut from yours in your artwork. It does not change this design: putting an accepted reading onto the design it was read for is not built yet, so your design is left as it was.";
 
+/**
+ * A reading is kept on the server the moment it is made, and this panel does not look for one when
+ * it opens, so leaving the screen and coming back starts from the picture again -- and reading a
+ * picture again is another reading, which costs. The person is told that before they start, rather
+ * than finding out by losing one. `GET /api/design-import` already lists a brand's readings, so
+ * finding the last one again is a small piece of work nobody has owned yet (decision 0124).
+ */
+export const RELOAD_STARTS_AGAIN =
+  "Leave this screen before you accept and the panel starts again from the picture. Your reading is kept, but this panel does not find it again, and reading a picture a second time is a second reading.";
+
 const KEPT_NOT_APPLIED = "Accepted. The reading is kept and its pictures are in your artwork. This design is unchanged.";
 
 /**
@@ -99,7 +109,9 @@ export function DesignImportPanel() {
       <p className="text-[15px] leading-relaxed text-muted">
         Hand over a mockup, a flat, a photo of a kit or a sketch. You get a close reading of your picture to look at beside it. Nothing is kept until you accept it.
       </p>
-      <Notice>{NOT_APPLIED_YET}</Notice>
+      <Notice>
+        {NOT_APPLIED_YET} {RELOAD_STARTS_AGAIN}
+      </Notice>
       <label className="flex items-start gap-3 text-sm text-ink">
         <input type="checkbox" className="mt-1 size-4" checked={rights} disabled={busy} onChange={(event) => setRights(event.target.checked)} />
         <span>

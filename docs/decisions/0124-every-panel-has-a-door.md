@@ -87,6 +87,13 @@ before anyone accepts, and the sentence after an accept, which now reads "Accept
 kept and its pictures are in your artwork. This design is unchanged." The old sentence said "Saved.
 The layers you chose are now part of your design", which was the one thing it must not say.
 
+The same note says the other thing a person needs before they start: **leaving the screen starts
+again from the picture.** A reading is kept on the server the moment it is made, and the panel does
+not look for one when it opens, so coming back means reading the picture again -- and a second
+reading is a second vision call, which costs. `GET /api/design-import` already lists a brand's
+readings, so finding the last one again is small work nobody has owned; saying so is what this
+branch owes a person who would otherwise find out by losing one.
+
 This is the same choice decision 0121 made for a point of measure a person types: the loss is named
 on the screen that would otherwise hide it, and the gap is written down rather than papered over.
 **Applying an accepted reading to its design is the follow-up this record leaves open** (owner
