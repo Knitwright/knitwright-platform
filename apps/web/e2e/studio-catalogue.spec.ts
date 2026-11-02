@@ -178,6 +178,41 @@ test.describe("the article page", () => {
     await expect(page.getByRole("dialog").first()).toBeVisible();
   });
 
+  test("says what choosing Australia means: the currency, the GST, the label lines and what is missing", async ({ page }) => {
+    await signedIn(page, "o3-market");
+    await page.goto("/catalogue/JSY-SS-01?market=au");
+
+    const market = page.getByRole("region", { name: "Selling in Australia" });
+    await expect(market).toContainText("Prices are shown in AUD.");
+    await expect(market).toContainText("Prices carry no GST: Knitwright is not registered for GST in Australia.");
+    await expect(market).toContainText("No AUD price is set in any tier.");
+    // No date anywhere: QC days and freight days are both unset (decision 0104).
+    await expect(market).toContainText("No delivery date yet. Not set: the days for QC and the freight days.");
+
+    const lines = market.getByRole("list", { name: "Label lines for Australia" });
+    await expect(lines.getByRole("listitem")).toHaveCount(5);
+    await expect(lines).toContainText("Made in Pakistan");
+    await expect(lines).toContainText("ISO 3758 is a paid standard and is not in this repository");
+    await expect(market.getByRole("list", { name: "Still missing for AU | AUD" }).getByRole("listitem").first()).toBeVisible();
+
+    // The ladder beside it is in the same currency, with no converted figure in it.
+    const prices = page.getByRole("region", { name: "Price ladder" });
+    await expect(prices).toContainText("No AUD price is set yet");
+    await expect(prices).not.toContainText("£");
+
+    await accessible(page);
+  });
+
+  test("shows the United Kingdom's own tax treatment when that market is chosen", async ({ page }) => {
+    await signedIn(page, "o3-market-uk");
+    await page.goto("/catalogue/JSY-SS-01?market=uk");
+
+    const market = page.getByRole("region", { name: "Selling in the United Kingdom" });
+    await expect(market).toContainText("Prices are shown in GBP.");
+    await expect(market).toContainText("Prices carry no VAT: Knitwright is not registered for VAT in the United Kingdom.");
+    await expect(market).toContainText("Every tier has a GBP price.");
+  });
+
   test("answers not found for a code the catalogue does not hold", async ({ page }) => {
     await signedIn(page, "y1-missing");
     const answer = await page.goto("/catalogue/ZZZ-ZZ-99");

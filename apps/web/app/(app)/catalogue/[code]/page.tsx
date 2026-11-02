@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageIntro } from "@/components/shell/PageIntro";
 import { ArticleNotes, ArticlePhotos, FabricCards, PriceLadder, SizeChartTable } from "@/components/studio/home/ArticleSections";
+import { MarketPanel } from "@/components/studio/home/MarketPanel";
+import { loadMarketSummary } from "@/lib/markets/server";
 import { careNote, fabricCard, fitNotes, leadTime, sizeChart } from "@/lib/home/article-view";
 import { STATUS_LABELS } from "@/lib/home/catalogue-view";
 import { getBaseArticle } from "@/lib/catalogue";
@@ -30,6 +32,8 @@ export default async function ArticlePage({ params, searchParams }: PageProps<"/
   const article = await getBaseArticle(await sessionClient(), code.toUpperCase());
   if (!article) notFound();
   const book = await priceBook();
+  // What choosing this market means: the currency, the tax, the label lines and what is still missing.
+  const summary = await loadMarketSummary(market, book.source(article.code), book.capability(article.code)?.leadTimeDays ?? null);
 
   return (
     <>
@@ -55,6 +59,7 @@ export default async function ArticlePage({ params, searchParams }: PageProps<"/
         <ArticlePhotos name={article.name} />
         <PriceLadder rows={ladderRows(book.source(article.code).ladder, market.currency)} currency={market.currency} />
       </div>
+      <MarketPanel summary={summary} />
       <FabricCards cards={article.fabrics.map((fabric) => fabricCard(fabric, book.fabrics, book.colours))} />
       <SizeChartTable chart={sizeChart(article)} />
       <ArticleNotes fit={fitNotes(article)} care={careNote()} lead={leadTime(book.capability(article.code))} />
