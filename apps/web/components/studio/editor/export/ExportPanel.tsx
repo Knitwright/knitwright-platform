@@ -48,7 +48,7 @@ function Tabs({ open, onOpen }: Readonly<{ open: ExportPanelTabId; onOpen: (id: 
           id={`export-tab-${tab.id}`}
           aria-selected={open === tab.id}
           aria-controls="export-tab-panel"
-          className={`${TAB} ${open === tab.id ? "bg-tile-2 text-ink" : "text-chalk-muted"}`}
+          className={`${TAB} ${open === tab.id ? "bg-tile-2 text-ink" : "text-ink-2"}`}
           onClick={() => onOpen(tab.id)}
         >
           {tab.label}
@@ -68,7 +68,7 @@ function Gate({ gate }: Readonly<{ gate: ExportGate }>) {
         </p>
       )}
       {gate.items.length === 0 ? null : (
-        <ul className="flex list-disc flex-col gap-1 pl-5 text-[13px] text-chalk-muted">
+        <ul className="flex list-disc flex-col gap-1 pl-5 text-[13px] text-ink-2">
           {gate.items.map((item) => (
             <li key={item.key}>
               {item.label} <span className="font-mono text-[11px]">{item.ruleId}</span>
@@ -76,7 +76,7 @@ function Gate({ gate }: Readonly<{ gate: ExportGate }>) {
           ))}
         </ul>
       )}
-      {gate.caution === null ? null : <p className="text-[12px] leading-relaxed text-chalk-muted">{gate.caution}</p>}
+      {gate.caution === null ? null : <p className="text-[12px] leading-relaxed text-ink-2">{gate.caution}</p>}
     </div>
   );
 }
@@ -85,7 +85,7 @@ function Gate({ gate }: Readonly<{ gate: ExportGate }>) {
 function Output({ output, busy }: Readonly<{ output: ExportOutput; busy: boolean }>) {
   if (output.address === null) {
     return (
-      <li className="text-[13px] leading-relaxed text-chalk-muted" data-testid={`export-not-yet-${output.id}`}>
+      <li className="text-[13px] leading-relaxed text-ink-2" data-testid={`export-not-yet-${output.id}`}>
         <span className="text-ink">{output.label}:</span> {output.notYet}
       </li>
     );
@@ -96,7 +96,7 @@ function Output({ output, busy }: Readonly<{ output: ExportOutput; busy: boolean
         href={output.address}
         aria-disabled={busy}
         data-testid={`export-output-${output.id}`}
-        className={`text-[13px] font-medium underline ${busy ? "pointer-events-none text-chalk-muted" : "text-ink"}`}
+        className={`text-[13px] font-medium underline ${busy ? "pointer-events-none text-ink-2" : "text-ink"}`}
       >
         {output.label}
       </a>
@@ -107,7 +107,7 @@ function Output({ output, busy }: Readonly<{ output: ExportOutput; busy: boolean
 function TabBody({ tab, outputs, gate, busy }: Readonly<{ tab: ExportPanelTab; outputs: readonly ExportOutput[]; gate: ExportGate; busy: boolean }>) {
   return (
     <div id="export-tab-panel" role="tabpanel" aria-labelledby={`export-tab-${tab.id}`} className="flex flex-col gap-3">
-      <p className="text-[13px] leading-relaxed text-chalk-muted">
+      <p className="text-[13px] leading-relaxed text-ink-2">
         {tab.lead} {CHARGE_WORDS[tab.charge]}
       </p>
       {gate.open ? (
@@ -117,7 +117,7 @@ function TabBody({ tab, outputs, gate, busy }: Readonly<{ tab: ExportPanelTab; o
           ))}
         </ul>
       ) : (
-        <p className="text-[13px] leading-relaxed text-chalk-muted" data-testid="export-shut">
+        <p className="text-[13px] leading-relaxed text-ink-2" data-testid="export-shut">
           No file is offered while export is blocked.
         </p>
       )}

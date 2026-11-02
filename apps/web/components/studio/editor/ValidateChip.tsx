@@ -42,7 +42,7 @@ export function ValidateChip({ chip, findings }: Props) {
           id="validate-findings"
           className="glass absolute right-0 z-30 mt-2 flex w-[min(26rem,calc(100vw-2rem))] flex-col gap-2 rounded-2xl p-4 text-left shadow-lg"
         >
-          <h2 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">What the checks found</h2>
+          <h2 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">What the checks found</h2>
           {findings.length === 0 ? (
             <p className="text-sm text-ink">{chip.description}</p>
           ) : (
@@ -53,7 +53,7 @@ export function ValidateChip({ chip, findings }: Props) {
                     <span className={`font-medium ${line.severity === "blocker" ? "text-warn" : "text-ink-2"}`}>
                       {line.severity === "blocker" ? "Must fix" : "Have a look"}
                     </span>
-                    {line.target ? <span className="text-chalk-muted"> · {line.target}</span> : null} {line.message}
+                    {line.target ? <span className="text-ink-2"> · {line.target}</span> : null} {line.message}
                   </p>
                   <WhyButton ruleId={line.ruleId} context={`validate ${line.key}`} />
                 </li>

@@ -39,13 +39,13 @@ export function ItemRow({ item, panels, busy, onAll, onPanel }: ItemRowProps) {
           onClick={() => onAll(item)}
           className="chip-btn min-h-10 flex-1 rounded-full border border-white/20 px-3 text-left text-[13px] font-medium text-ink disabled:opacity-50"
         >
-          {item.code === null ? null : <span className="font-mono text-[11px] text-chalk-muted">{item.code} </span>}
+          {item.code === null ? null : <span className="font-mono text-[11px] text-ink-2">{item.code} </span>}
           {item.label}
         </button>
         <WhyButton ruleId={item.ruleId} context={`library ${item.kind} ${item.id}`} />
       </div>
       {item.card.length === 0 ? null : (
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 text-[11px] text-chalk-muted">
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 text-[11px] text-ink-2">
           {item.card.map((row) => (
             <div key={row.label} className="col-span-2 grid grid-cols-subgrid">
               <dt>{row.label}</dt>
@@ -56,7 +56,7 @@ export function ItemRow({ item, panels, busy, onAll, onPanel }: ItemRowProps) {
       )}
       {cannot === null ? (
         <div className="flex items-center gap-2">
-          <label htmlFor={pickerId} className="text-[11px] text-chalk-muted">
+          <label htmlFor={pickerId} className="text-[11px] text-ink-2">
             Or one panel
           </label>
           <select

@@ -3,11 +3,12 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { CanvasView, EditorDraft, EditorModel } from "@/lib/editor";
+import type { CanvasView, EditorDraft, EditorModel, EditorSlotProps } from "@/lib/editor";
 import { VIEWS, viewsShown } from "@/lib/editor";
 import type { EditorData } from "@/lib/projects/editor-data";
 import { DesignCanvas } from "../workspace/DesignCanvas";
-import { SlotPlaceholder } from "./slots";
+import PatternView from "./view-2d/PatternView";
+import TechPackView from "./techpack-view/TechPackView";
 import { View3D } from "./View3D";
 
 type Props = Readonly<{
@@ -18,6 +19,8 @@ type Props = Readonly<{
   show3d: boolean;
   draft: EditorDraft | null;
   model: EditorModel | null;
+  /** What the 2D and Tech pack slot panels are given, and all they are given (`lib/editor/slots.ts`). */
+  slot: EditorSlotProps;
   notices: ReactNode;
   bottomBar: ReactNode;
 }>;
@@ -27,7 +30,7 @@ type Props = Readonly<{
  * bar under them. Switching views changes nothing but which of them is drawn, so the design and
  * its version are the same in all three.
  */
-export function CanvasFrame({ data, view, beside, show3d, draft, model, notices, bottomBar }: Props) {
+export function CanvasFrame({ data, view, beside, show3d, draft, model, slot, notices, bottomBar }: Props) {
   const shown = viewsShown(view, beside);
   return (
     <section aria-label="Canvas" className="order-first flex min-h-0 flex-col overflow-hidden lg:order-none" data-testid="canvas">
@@ -36,7 +39,7 @@ export function CanvasFrame({ data, view, beside, show3d, draft, model, notices,
       <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
         {shown.map((id) => (
           <div key={id} role="region" aria-label={VIEWS[id].region} className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
-            <ViewBody id={id} data={data} show3d={show3d} draft={draft} model={model} />
+            <ViewBody id={id} data={data} show3d={show3d} draft={draft} model={model} slot={slot} />
           </div>
         ))}
       </div>
@@ -45,15 +48,15 @@ export function CanvasFrame({ data, view, beside, show3d, draft, model, notices,
   );
 }
 
-type BodyProps = Readonly<{ id: CanvasView; data: EditorData; show3d: boolean; draft: EditorDraft | null; model: EditorModel | null }>;
+type BodyProps = Readonly<{ id: CanvasView; data: EditorData; show3d: boolean; draft: EditorDraft | null; model: EditorModel | null; slot: EditorSlotProps }>;
 
-function ViewBody({ id, data, show3d, draft, model }: BodyProps) {
+function ViewBody({ id, data, show3d, draft, model, slot }: BodyProps) {
   if (id === "2d") {
-    // A grid, so the drawing fills what is left and the slot keeps its own height.
+    // A grid, so the drawing fills what is left and Y3's pattern sheet keeps its own height.
     return (
-      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2">
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-2 overflow-y-auto">
         <DesignCanvas flat={data.flat} table={data.table} show3d={show3d} notices={null} />
-        <SlotPlaceholder id="view-2d" />
+        <PatternView {...slot} />
       </div>
     );
   }
@@ -66,7 +69,7 @@ function ViewBody({ id, data, show3d, draft, model }: BodyProps) {
   }
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-      <SlotPlaceholder id="tech-pack" />
+      <TechPackView {...slot} />
       <Link href={`/studio/${data.projectId}/tech-pack` as Route} className="chip-btn inline-flex min-h-10 items-center justify-center rounded-full border border-white/20 px-4 text-sm font-medium text-ink">
         Open the factory file
       </Link>

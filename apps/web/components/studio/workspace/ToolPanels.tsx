@@ -58,7 +58,7 @@ function PanelBody({ tool, context }: Readonly<{ tool: ToolId; context: SectionC
     <div className="panel-in flex flex-col gap-5">
       <header className="flex flex-col gap-1">
         <h2 className="text-xl font-medium tracking-[-0.02em] text-ink">{info.title}</h2>
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{info.lead}</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">{info.lead}</p>
       </header>
       {info.sections.map((section) => (
         <PanelSection key={section} section={section} context={context} />

@@ -90,7 +90,7 @@ function AutoMap({ plan }: Readonly<{ plan: AutoMapPlan }>) {
       >
         Auto-map
       </button>
-      <span id="techpack-auto-map-note" className="text-[11px] text-chalk-muted">
+      <span id="techpack-auto-map-note" className="text-[11px] text-ink-2">
         {plan.message}
       </span>
     </span>
@@ -105,22 +105,22 @@ function PomTable({ view, shownSize }: Readonly<{ view: MeasurementsView; shownS
         <caption className="sr-only">Points of measure, in {view.unit}</caption>
         <thead>
           <tr>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Letter
             </th>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Measurement
             </th>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Grade type
             </th>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Grade
             </th>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Tol &minus;
             </th>
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Tol +
             </th>
             {view.columns.map((column) => (
@@ -128,14 +128,14 @@ function PomTable({ view, shownSize }: Readonly<{ view: MeasurementsView; shownS
                 key={column.size}
                 scope="col"
                 aria-current={column.isSample ? "true" : undefined}
-                className={`px-2 py-1 text-[11px] font-medium ${column.isSample ? "bg-cobalt/20 text-ink" : "text-chalk-muted"}`}
+                className={`px-2 py-1 text-[11px] font-medium ${column.isSample ? "bg-cobalt/20 text-ink" : "text-ink-2"}`}
                 data-testid={`techpack-size-${column.size}`}
               >
                 {column.size}
                 {column.isSample ? <span className="sr-only"> (the sample size)</span> : null}
               </th>
             ))}
-            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-chalk-muted">
+            <th scope="col" className="px-2 py-1 text-[11px] font-medium text-ink-2">
               Rule
             </th>
           </tr>
@@ -180,7 +180,7 @@ function Row({ row, grading, shownSize }: RowProps) {
       ))}
       <td className="px-2 py-1">
         <span className="flex items-center gap-1">
-          <span className="font-mono text-[11px] text-chalk-muted">{row.ruleId}</span>
+          <span className="font-mono text-[11px] text-ink-2">{row.ruleId}</span>
           <WhyButton ruleId={row.ruleId} context={`techpack measurement ${row.letter}`} />
         </span>
       </td>
@@ -200,7 +200,7 @@ const Value = ({ text }: Readonly<{ text: string | null }>) =>
   );
 
 const Lock = () => (
-  <span className="ml-1 text-[11px] text-chalk-muted" title={LOCK_NOTE}>
+  <span className="ml-1 text-[11px] text-ink-2" title={LOCK_NOTE}>
     <span aria-hidden="true">&#128274;</span>
     <span className="sr-only">{LOCK_NOTE}</span>
   </span>
@@ -214,10 +214,10 @@ function AddMeasurement({ busy, onAdd }: Readonly<{ busy: boolean; onAdd: (extra
   const given = description.trim() !== "";
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-white/10 p-3" data-testid="techpack-add-form">
-      <p className="text-[11px] leading-relaxed text-chalk-muted">
+      <p className="text-[11px] leading-relaxed text-ink-2">
         A measurement of your own is measured on the sample at the sample size. The base article does not grade it, so it takes no grade and no tolerance.
       </p>
-      <label htmlFor={`${id}-description`} className="text-[11px] text-chalk-muted">
+      <label htmlFor={`${id}-description`} className="text-[11px] text-ink-2">
         What is measured
       </label>
       <input
@@ -229,7 +229,7 @@ function AddMeasurement({ busy, onAdd }: Readonly<{ busy: boolean; onAdd: (extra
         onChange={(event) => setDescription(event.target.value)}
         className="min-h-10 rounded-xl border border-white/20 bg-tile-2 px-2 text-[13px] text-ink"
       />
-      <label htmlFor={`${id}-mm`} className="text-[11px] text-chalk-muted">
+      <label htmlFor={`${id}-mm`} className="text-[11px] text-ink-2">
         What it measured on the sample, in millimetres (leave it empty until you measure one)
       </label>
       <input

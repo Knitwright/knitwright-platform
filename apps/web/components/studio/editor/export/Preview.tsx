@@ -40,7 +40,7 @@ export function Preview({ design }: Readonly<{ design: EditorDesign }>) {
       {model ? (
         <>
           <ModelViewer model={model.model} layout={model.layout} panelPictures={{}} shape={flat.shape} pictures={{ front: front.src, back: back.src }} />
-          <p className="text-xs text-chalk-muted">Shape: {model.label}. It shows where the panels are, not how the garment hangs.</p>
+          <p className="text-xs text-ink-2">Shape: {model.label}. It shows where the panels are, not how the garment hangs.</p>
         </>
       ) : (
         <>
@@ -51,7 +51,7 @@ export function Preview({ design }: Readonly<{ design: EditorDesign }>) {
               <img key={view.view} src={view.src} alt={view.alt} className="w-1/2 rounded-xl bg-white p-2" />
             ))}
           </div>
-          <p className="text-xs text-chalk-muted">
+          <p className="text-xs text-ink-2">
             {flat.notice ?? "The drawings of this version, in the colourway you are exporting."}
           </p>
         </>

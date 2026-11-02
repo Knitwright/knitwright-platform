@@ -13,7 +13,10 @@ import type { PatternPiece } from "@/lib/production/contract";
  * without a loud note on the pull request, because four workstreams depend on it.
  *
  * A slot component is a default export taking `EditorSlotProps`, so the shell can load it with
- * `next/dynamic`. Until a slot is built the shell draws `slotPlaceholder(id)` in its place.
+ * `next/dynamic`. All seven are built and mounted: the shell makes the props in
+ * `components/studio/editor/slot-props.ts` and draws each panel where it drew a labelled
+ * placeholder before (code review v5, A7-A12). The placeholder, and the words naming the
+ * workstream that owed each panel, went out with the last slot that needed them.
  */
 
 /** Every panel the shell leaves for another workstream to fill. */
@@ -94,40 +97,4 @@ export interface EditorCommands {
 export interface EditorSlotProps {
   readonly design: EditorDesign;
   readonly commands: EditorCommands;
-}
-
-/** What the shell draws where a slot is not built yet: the panel's name, who is building it, and a test id. */
-export interface SlotPlaceholder {
-  readonly id: EditorSlotId;
-  readonly title: string;
-  readonly note: string;
-  readonly testId: string;
-}
-
-const PLACEHOLDERS: Readonly<Record<EditorSlotId, Readonly<{ title: string; note: string }>>> = {
-  library: {
-    title: "Library",
-    note: "Fabrics, colours, pattern fills and graphics. Built by workstream Y3; this panel is the slot it drops into.",
-  },
-  specs: {
-    title: "Specs",
-    note: "Select, measure point, measure line, measure edge and callout. Built by workstream Y4; this panel is the slot it drops into.",
-  },
-  "view-2d": {
-    title: "2D pattern view",
-    note: "Pattern pieces on a dotted grid with rulers, sew line, bleed, safe zone and a 100 mm scale bar. Built by workstream Y3.",
-  },
-  "tech-pack": {
-    title: "Tech pack view",
-    note: "The tech pack tabs, with the mm, cm and inch toggle and provenance chips. Built by workstream Y4.",
-  },
-  export: { title: "Export", note: "Tech pack, images, pattern, print files and the production package. Built by workstream Y5." },
-  "names-numbers": { title: "Names & numbers", note: "Licensed fonts, colour roles and the zones the base article fixes. Built by workstream Y8." },
-  "repeat-maker": { title: "Repeat maker", note: "Tile size, repeat style, layers and background, published to your library. Built by workstream Y8." },
-};
-
-/** The labelled placeholder for a slot. Says plainly that the panel is not built yet, and never pretends to be it. */
-export function slotPlaceholder(id: EditorSlotId): SlotPlaceholder {
-  const entry = PLACEHOLDERS[id];
-  return { id, title: entry.title, note: entry.note, testId: `editor-slot-${id}` };
 }

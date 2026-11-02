@@ -16,7 +16,7 @@ import { WhyButton } from "../WhyButton";
 export function Rulers({ sheet, widthPx }: Readonly<{ sheet: PatternSheet; widthPx: number }>) {
   const zoom = zoomFor(sheet.boundsMm, widthPx);
   return (
-    <div aria-hidden="true" data-testid="view-2d-ruler" className="relative h-5 overflow-hidden border-b border-white/15 text-[9px] text-chalk-muted">
+    <div aria-hidden="true" data-testid="view-2d-ruler" className="relative h-5 overflow-hidden border-b border-white/15 text-[9px] text-ink-2">
       {sheet.rulerX.map((tick) => (
         <span
           key={tick.mm}
@@ -43,14 +43,14 @@ export function Legend({ sheet }: Readonly<{ sheet: PatternSheet }>) {
   return (
     <ul data-testid="view-2d-legend" className="flex flex-col gap-1">
       {kinds.map((kind) => (
-        <li key={kind} className="flex flex-wrap items-center gap-1 text-[11px] text-chalk-muted">
+        <li key={kind} className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2">
           <span className="font-medium text-ink">{LEGEND[kind]}.</span>
           {kind === "bleed" || kind === "cut" ? <span>{sheet.rules.bleed.note}</span> : null}
           {kind === "safe" || kind === "sew" ? <span>{sheet.rules.safeZone.note}</span> : null}
           <WhyButton ruleId={kind === "bleed" || kind === "cut" ? sheet.rules.bleed.ruleId : sheet.rules.safeZone.ruleId} context={`2D view ${kind} line`} />
         </li>
       ))}
-      <li className="flex flex-wrap items-center gap-1 text-[11px] text-chalk-muted">
+      <li className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2">
         <span className="font-medium text-ink">Scale bar.</span>
         <span>{sheet.scaleBar.note}</span>
         <span>{sheet.grid.note}</span>
@@ -90,7 +90,7 @@ export function PieceList({ sheet, dragType, onDrop, busy }: PieceListProps) {
             setOver(null);
             onDrop(piece.id, event.dataTransfer.getData(dragType));
           }}
-          className={`rounded-xl border px-3 py-2 text-[12px] leading-relaxed ${over === piece.id ? "border-cobalt text-ink" : "border-white/10 text-chalk-muted"}`}
+          className={`rounded-xl border px-3 py-2 text-[12px] leading-relaxed ${over === piece.id ? "border-cobalt text-ink" : "border-white/10 text-ink-2"}`}
         >
           {pieceSummary(piece)}
           {piece.notes.map((note) => (

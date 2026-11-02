@@ -91,13 +91,13 @@ function ViewToggle({ view, beside, onView }: ToggleProps) {
             type="button"
             aria-pressed={on}
             onClick={(event) => onView(id, event.shiftKey)}
-            className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-3 text-[13px] font-medium ${on ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"}`}
+            className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-3 text-[13px] font-medium ${on ? "bg-cobalt text-white" : "text-ink-2 hover:text-ink"}`}
           >
             {VIEWS[id].label}
           </button>
         );
       })}
-      <label className="inline-flex min-h-10 items-center gap-2 px-2 text-[11px] text-chalk-muted">
+      <label className="inline-flex min-h-10 items-center gap-2 px-2 text-[11px] text-ink-2">
         <input
           type="checkbox"
           checked={beside !== null}

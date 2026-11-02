@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CANVAS_VIEWS, EDITOR_SLOTS, RAIL_SEGMENTS, SUMMARY_SECTIONS, slotPlaceholder } from "./index";
+import { CANVAS_VIEWS, EDITOR_SLOTS, RAIL_SEGMENTS, SUMMARY_SECTIONS } from "./index";
 
 /**
  * The slot contract. Y3, Y4, Y5 and Y8 code against it, so this test is what catches a change to
@@ -11,13 +11,11 @@ describe("the slots the shell leaves for other workstreams", () => {
     expect(EDITOR_SLOTS).toEqual(["library", "specs", "view-2d", "tech-pack", "export", "names-numbers", "repeat-maker"]);
   });
 
-  it("gives every slot a title, a note naming its workstream, and a test id", () => {
-    for (const id of EDITOR_SLOTS) {
-      const slot = slotPlaceholder(id);
-      expect(slot.title.length).toBeGreaterThan(0);
-      expect(slot.note).toMatch(/workstream Y[3-8]/);
-      expect(slot.testId).toBe(`editor-slot-${id}`);
-    }
+  // Every one of them is built and mounted now (code review v5, A7-A12), so there is no
+  // placeholder left to name a workstream and no `editor-slot-*` box on the page.
+  it("has no placeholder of its own any more", async () => {
+    const contract: Record<string, unknown> = await import("./slots");
+    expect(Object.keys(contract)).not.toContain("slotPlaceholder");
   });
 });
 

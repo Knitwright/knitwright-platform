@@ -5,13 +5,10 @@ import { createAccount, signIn, test } from "./support";
 /**
  * Plan v5 Y3 (spec F-S4, decision 0076): the 2D pattern view and the Library toolbar.
  *
- * Both are **slot panels**. The shell owns where they go, and the slot contract
- * (`apps/web/lib/editor/slots.ts`) says the shell loads each one with `next/dynamic` where it now
- * draws `slotPlaceholder(id)`. Y3 does not own the shell's files, so it built the panels and left
- * the one line that mounts them to the orchestrator. Until that line lands, the shell still draws
- * the placeholder, and each test below skips itself and says why rather than failing on work that
- * was deliberately left to someone else. The day the slots are wired, these tests start running as
- * they are, against the real route and the real database.
+ * Both are **slot panels**, and both are mounted: the shell makes `EditorSlotProps` and draws each
+ * one where it drew a labelled placeholder (code review v5, A7 and A8). Every test below used to
+ * skip itself with that as the reason; they run as they were written, against the real route and
+ * the real database, now the shell gives them their props.
  *
  * Each test makes its own account and its own design name, so nothing it filters on can be another
  * run's row (plan v5, lesson 11).
@@ -50,17 +47,16 @@ const open2d = async (page: Page): Promise<void> => {
   await expect(page.getByRole("region", { name: "2D pattern view" })).toBeVisible();
 };
 
-/** True while the shell still draws the labelled placeholder in place of this workstream's panel. */
-const notWired = async (page: Page, slot: "library" | "view-2d"): Promise<boolean> => (await page.getByTestId(`editor-slot-${slot}`).count()) > 0;
-
-const WIRING = "The editor shell still draws the slot placeholder: the one line that mounts Y3's panel is the orchestrator's (decision 0076).";
+/** Opens a section of the toolbar: each is a <details> whose <summary> carries its name and count. */
+const openSection = async (page: Page, id: string): Promise<void> => {
+  await page.getByTestId("library-toolbar").getByTestId(`library-section-${id}`).locator("summary").click();
+};
 
 test.describe("the Library toolbar", () => {
   test("shows the Knitwright library, Your library and Inspiration, and applies a fabric to every panel", async ({ page }) => {
     await signedIn(page, "library-apply");
     await startJersey(page, "Library kit");
     await openLibrary(page);
-    test.skip(await notWired(page, "library"), WIRING);
 
     const toolbar = page.getByTestId("library-toolbar");
     await expect(toolbar).toBeVisible();
@@ -69,7 +65,7 @@ test.describe("the Library toolbar", () => {
     await expect(toolbar.getByRole("heading", { name: "Inspiration" })).toBeVisible();
 
     // The fabrics are the base article's own approved list, with their spec cards.
-    await toolbar.getByTestId("library-section-kw-fabrics").getByText("Fabrics").click();
+    await openSection(page, "kw-fabrics");
     const fabric = toolbar.getByTestId("library-item-fabric-F-POLY-INT");
     await expect(fabric).toContainText("100% polyester interlock");
     await fabric.getByRole("button", { name: /F-POLY-INT/ }).click();
@@ -81,26 +77,26 @@ test.describe("the Library toolbar", () => {
     await signedIn(page, "library-ports");
     await startJersey(page, "Ports kit");
     await openLibrary(page);
-    test.skip(await notWired(page, "library"), WIRING);
 
     await expect(page.getByTestId("library-empty-yours-brand-kit")).toContainText("not on the editor's slot contract yet");
     await expect(page.getByTestId("library-empty-kw-graphics")).toContainText("no graphics library on file yet");
     await expect(page.getByTestId("library-section-kw-colours")).toContainText("licensed");
-    await expect(page.getByTestId("library-empty-inspiration-board")).toContainText("wave 3");
+    await expect(page.getByTestId("library-empty-inspiration-board")).toContainText("inspiration board");
   });
 
   test("puts a pattern fill on the body and offers only the settings the design can store", async ({ page }) => {
     await signedIn(page, "library-fill");
     await startJersey(page, "Fill kit");
     await openLibrary(page);
-    test.skip(await notWired(page, "library"), WIRING);
 
     const toolbar = page.getByTestId("library-toolbar");
-    await toolbar.getByTestId("library-section-kw-colours").getByText("Colours").click();
+    // The section's own <summary>. `getByText("Colours")` matches the nineteen swatch buttons under
+    // it as well, which nothing noticed while these tests skipped themselves.
+    await openSection(page, "kw-colours");
     await toolbar.getByTestId("library-item-colour-classic-navy").getByRole("button", { name: /Navy/ }).click();
     await expect(page.getByTestId("library-said")).toContainText("every panel");
 
-    await toolbar.getByTestId("library-section-kw-pattern-fills").getByText("Pattern fills").click();
+    await openSection(page, "kw-pattern-fills");
     await toolbar.getByTestId("library-item-fill-kit-hoops-classic").getByRole("button", { name: /Hoops/ }).click();
 
     const popover = page.getByTestId("pattern-fill");
@@ -118,12 +114,12 @@ test.describe("the 2D pattern view", () => {
     await signedIn(page, "view2d-draw");
     await startJersey(page, "Sheet kit");
     await open2d(page);
-    test.skip(await notWired(page, "view-2d"), WIRING);
 
     const view = page.getByTestId("view-2d");
     await expect(view).toBeVisible();
     await expect(view.getByTestId("view-2d-hint")).toHaveText("Click to apply to all or drag to apply to one panel");
-    await expect(view.getByTestId("pattern-canvas").locator("canvas")).toBeVisible();
+    // fabric.js draws two stacked canvases, a lower and an upper; the drawing is on the lower one.
+    await expect(view.getByTestId("pattern-canvas").locator("canvas").first()).toBeVisible();
     await expect(view.getByTestId("view-2d-ruler")).toBeVisible();
 
     const legend = view.getByTestId("view-2d-legend");
@@ -139,7 +135,6 @@ test.describe("the 2D pattern view", () => {
     await signedIn(page, "view2d-why");
     await startJersey(page, "Why kit");
     await open2d(page);
-    test.skip(await notWired(page, "view-2d"), WIRING);
 
     await page.getByTestId("view-2d-legend").getByRole("button", { name: "Why?" }).first().click();
     await expect(page.getByTestId("why-panel")).toBeVisible();

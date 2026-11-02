@@ -25,7 +25,7 @@ function FactList({ facts, label }: Readonly<{ facts: readonly Fact[]; label: st
       {facts.map((fact) => (
         <div key={fact.label} className="flex items-baseline justify-between gap-4 py-2.5 text-sm">
           <dt className="text-ink-2">{fact.label}</dt>
-          <dd className="text-right font-mono text-xs text-chalk-muted">{fact.value}</dd>
+          <dd className="text-right font-mono text-xs text-ink-2">{fact.value}</dd>
         </div>
       ))}
     </dl>

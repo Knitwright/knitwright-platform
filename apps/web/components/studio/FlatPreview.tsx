@@ -28,7 +28,7 @@ export function FlatPreview({ flat, show3d = false }: FlatPreviewProps) {
                 className="mx-auto h-auto max-h-[38vh] w-full object-contain lg:max-h-[calc(100dvh-25rem)]"
               />
             </div>
-            <figcaption className="font-mono text-xs text-chalk-muted">{view.label}</figcaption>
+            <figcaption className="font-mono text-xs text-ink-2">{view.label}</figcaption>
           </figure>
         ))}
       </div>
