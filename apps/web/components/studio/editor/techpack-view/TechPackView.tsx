@@ -9,6 +9,7 @@ import {
   UNIT_LABELS,
   UNIT_NAMES,
   buildTechPackView,
+  marksOf,
   tabKeyTarget,
   tabPanelId,
   tabTestId,
@@ -18,7 +19,6 @@ import {
   type OverviewHeader,
   type TechPackTabId,
 } from "@/lib/techpack/view";
-import { marksKey, useMarks } from "../specs/marks-store";
 import { ChipLegend } from "./Chips";
 import { MeasurementsTab } from "./MeasurementsTab";
 import { ReviewTab } from "./ReviewTab";
@@ -30,9 +30,13 @@ import { TabSections } from "./Sections";
  *
  * It fetches nothing. Everything it draws is `buildTechPackView` over what the slot contract hands
  * it, so the panel, the Excel and the PDF read the same numbers from the same call
- * (`lib/techpack/view/export-values.ts`). What the person chooses here — the open tab, the unit,
- * the Measurement | Grading toggle and the points of measure they added — is this panel's own
- * state, because none of it is part of the design.
+ * (`lib/techpack/view/export-values.ts`). The open tab, the unit and the Measurement | Grading
+ * toggle are this panel's own state, because none of them is part of the design.
+ *
+ * The marks the Specs toolbar drew ARE part of the design and are read from it (`marksOf`), so a
+ * reload shows them again. A point of measure typed in here with "+ Add measurement" is still this
+ * panel's own state and a reload still loses it: it has no place on a panel, so none of the stored
+ * shapes in `lib/garment/design-marks.ts` fits it. An owner question in decision 0121.
  */
 
 /**
@@ -54,7 +58,6 @@ export default function TechPackView({ design, commands }: EditorSlotProps) {
   const [unit, setUnit] = useState<LengthUnit>("mm");
   const [mode, setMode] = useState<MeasurementMode>("measurement");
   const [extras, setExtras] = useState<readonly ExtraPom[]>([]);
-  const { marks } = useMarks(marksKey(design.projectId, design.version));
   const tabs = useRef(new Map<TechPackTabId, HTMLButtonElement>());
 
   const view = buildTechPackView({
@@ -64,7 +67,8 @@ export default function TechPackView({ design, commands }: EditorSlotProps) {
     size: design.size,
     sizes: design.sizes,
     colourwayId: design.colourwayId,
-    marks,
+    // What the Specs toolbar drew, read from the design itself, so a reload shows it again.
+    marks: marksOf(design.spec),
     extras,
     unit,
     mode,

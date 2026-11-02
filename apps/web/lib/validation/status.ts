@@ -35,6 +35,12 @@ const MOVES: Readonly<Record<VersionStatus, readonly VersionStatus[]>> = {
 
 export const canMove = (from: VersionStatus, to: VersionStatus): boolean => MOVES[from].includes(to);
 
+/*
+ * The moves the factory file's PANEL offers are a subset of these, and they live in `moves.ts`
+ * rather than here, because the panel is a client component and this file holds a zod schema.
+ * `status.test.ts` holds every one of them to `canMove`.
+ */
+
 type Transition = { readonly ok: true; readonly record: StatusRecord } | { readonly ok: false; readonly reason: string };
 
 interface TransitionContext {

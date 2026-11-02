@@ -1,8 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it } from "vitest";
-import { marksKey, resetMarks, writeMarks } from "../specs/marks-store";
-import { slotProps } from "./fixtures";
+import { describe, expect, it } from "vitest";
+import { designWith, drawnCallout, drawnPom, slotProps } from "./fixtures";
 import TechPackView from "./TechPackView";
 
 /**
@@ -15,8 +14,6 @@ import TechPackView from "./TechPackView";
 const html = (patch: Parameters<typeof slotProps>[0] = {}): string => renderToStaticMarkup(createElement(TechPackView, slotProps(patch)));
 
 describe("the tech pack panel", () => {
-  beforeEach(resetMarks);
-
   it("draws a tab for each of the eleven tabs the spec names, as one tab list", () => {
     const markup = html();
     expect(markup).toContain('role="tablist"');
@@ -79,17 +76,20 @@ describe("the tech pack panel", () => {
     expect(markup).toContain("Nobody has given this yet.");
   });
 
-  it("reads the marks the Specs toolbar drew, because the two panels share them", () => {
-    const props = slotProps();
+  it("reads the marks the Specs toolbar drew from the design, so a reload shows them again", () => {
     const waiting = (markup: string): number => Number(/chip-needs_input[^]*?<\/span><span>(\d+)<\/span>/.exec(markup)?.[1] ?? "0");
-    const before = waiting(renderToStaticMarkup(createElement(TechPackView, props)));
+    const before = waiting(html());
     // A measure point with nothing measured becomes a point of measure that asks for a measurement.
-    writeMarks(marksKey(props.design.projectId, props.design.version), [
-      { id: "m1", tool: "measure-point", label: "Pocket opening", note: null, points: [{ panelId: "front", xMm: 0, yMm: 0 }], lengthMm: null, drawnOn: "2d" },
-    ]);
-    const after = waiting(renderToStaticMarkup(createElement(TechPackView, props)));
+    const spec = designWith(slotProps().design.spec, [drawnPom({ id: "m1", tool: "measure-point", lengthMm: null })]);
+    const after = waiting(html({ spec }));
     expect(before).toBeGreaterThan(0);
     expect(after).toBeGreaterThan(before);
+  });
+
+  it("counts a callout the design holds as the person's own, not as the base article's", () => {
+    const fromDesign = (markup: string): number => Number(/chip-from_design[^]*?<\/span><span>(\d+)<\/span>/.exec(markup)?.[1] ?? "0");
+    const spec = designWith(slotProps().design.spec, [drawnCallout()]);
+    expect(fromDesign(html({ spec }))).toBeGreaterThan(fromDesign(html()));
   });
 
   it("holds none of the words that would make a tab read as settled", () => {

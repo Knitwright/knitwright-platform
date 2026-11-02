@@ -97,9 +97,10 @@ test.describe("the teamwear configurator", () => {
     await handoff.click();
     await expect(page.getByTestId("teamwear-handoff-note")).toContainText("Save the kit first");
 
-    // The quote is workstream Z6's and says so, rather than making a number up.
+    // The quote needs what the hand-off needs, and says the same thing while there is no version.
     await page.getByTestId("teamwear-quote").click();
-    await expect(page.getByTestId("teamwear-quote-note")).toContainText("not switched on yet");
+    await expect(page.getByTestId("teamwear-quote-note")).toContainText("Save the kit first");
+    await expect(page.getByTestId("teamwear-quote-download")).toHaveCount(0);
 
     // Save stores the part showing as a design, and comes back with it on the address.
     await page.getByTestId("teamwear-save").click();
@@ -113,6 +114,20 @@ test.describe("the teamwear configurator", () => {
     // The hand-off now has a saved version to refer to.
     await handoff.click();
     await expect(page.getByTestId("teamwear-handoff-note")).toContainText(/reference: [0-9a-f-]{36}@v\d/);
+
+    /*
+     * And so does the quote: Z6's `quoteSource` is wired into Z5's button (code review of plan v5,
+     * item B2), so pressing it gives a real quote number and the address the PDF comes down from.
+     * The file itself is built when the link is pressed, which `crest-to-kit.spec.ts` already times.
+     */
+    await page.getByTestId("teamwear-quote").click();
+    await expect(page.getByTestId("teamwear-quote-note")).toContainText(/Quote KWQ-\d{8}-[A-Z2-9]{6} is ready/);
+    const quoteDownload = page.getByTestId("teamwear-quote-download");
+    await expect(quoteDownload).toHaveAttribute("href", /^\/api\/quotes\?.*sport=football/);
+    await expect(quoteDownload).toHaveAttribute("href", /line=JSY-SS-01%3A21|line=JSY-SS-01:21/);
+    const quoteFile = page.waitForEvent("download");
+    await quoteDownload.click();
+    expect((await quoteFile).suggestedFilename()).toMatch(/^KWQ-\d{8}-[A-Z2-9]{6}-quote\.pdf$/);
 
     // "Design in Studio" then opens that design in the editor, with the configurator's own form.
     await page.getByTestId("teamwear-studio").click();

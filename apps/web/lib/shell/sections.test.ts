@@ -24,6 +24,7 @@ describe("the sections themselves", () => {
       "Size charts",
       "Designer",
       "Teamwear",
+      "Crest to kit",
       "Club",
       "Brand",
       "Benchmarks",
@@ -67,6 +68,8 @@ describe("the section an address belongs to", () => {
     expect(sectionFor("/studio/abc-123/make/sample")?.label).toBe("Designs");
     expect(sectionFor("/club/seasons")?.label).toBe("Club");
     expect(sectionFor("/launch/xyz/history")?.label).toBe("Launch");
+    // Crest to kit was reachable by address only until it had a section of its own.
+    expect(sectionFor("/crest-to-kit")?.label).toBe("Crest to kit");
   });
 
   it("gives the longest owned prefix the address, so a section under another is still its own", () => {
@@ -97,6 +100,7 @@ describe("the section an address belongs to", () => {
 describe("what the overflow button says about the current section", () => {
   it("names the section when the current one is inside the menu", () => {
     expect(currentInOverflow("/teamwear")).toBe("Teamwear");
+    expect(currentInOverflow("/crest-to-kit")).toBe("Crest to kit");
     expect(currentInOverflow("/studio/charts")).toBe("Size charts");
     expect(currentInOverflow("/studio/benchmarks")).toBe("Benchmarks");
   });
