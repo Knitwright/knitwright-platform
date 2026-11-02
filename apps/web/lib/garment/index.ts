@@ -91,6 +91,19 @@ export {
   type KitPatternStyle,
   type PatternColour,
 } from "./kit-pattern";
+export {
+  MARK_LABEL_MAX_LENGTH,
+  MARK_NOTE_MAX_LENGTH,
+  MAX_CALLOUTS,
+  MAX_EXTRA_POMS,
+  MEASURE_TOOLS,
+  designCalloutSchema,
+  designPomSchema,
+  type DesignCallout,
+  type DesignPom,
+  type MarkPoint,
+  type MeasureTool,
+} from "./design-marks";
 export { PROVENANCE_LABELS, PROVENANCE_VALUES, type Provenance } from "./provenance";
 export {
   USUAL_SIZE_SYSTEM,
@@ -102,7 +115,7 @@ export {
   type ResolvedType,
 } from "./registry";
 export { TEAMWEAR_TYPE_IDS } from "./registry/teamwear";
-export { garmentSpecSchema, garmentSpecStructureSchema } from "./spec-schema";
+export { articleRefSchema, garmentSpecSchema, garmentSpecStructureSchema, type ArticleRef } from "./spec-schema";
 export { createSpec, validateSpec, type GarmentSpec } from "./spec";
 export {
   MEASUREMENT_MAX_TENTHS_MM,

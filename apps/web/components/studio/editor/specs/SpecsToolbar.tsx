@@ -10,14 +10,17 @@ import {
   isDrawingTool,
   liveLength,
   makeMark,
+  markSaveKey,
+  marksOf,
   pendingPick,
   polylineLengthMm,
+  removeMarkAction,
+  saveMarkAction,
   type PickedPoint,
   type SpecMark,
   type SpecTool,
 } from "@/lib/techpack/view";
 import { WhyButton } from "../WhyButton";
-import { marksKey, useMarks } from "./marks-store";
 import { listenForPicks, pickingNote } from "./pick-bus";
 
 /**
@@ -29,20 +32,20 @@ import { listenForPicks, pickingNote } from "./pick-bus";
  * numbered row on the Callouts tab. All of the thinking is in `lib/techpack/view/marks.ts`, which
  * is tested without a browser; this file only draws it.
  *
- * Two things it says plainly rather than hiding:
+ * A mark is **part of the design**: "Keep the mark" saves it with `set-extra-pom` or `set-callout`,
+ * and "Take off" removes it again, so a person's own point of measure and callout are still there
+ * after a reload (review of plan v5 item D-5, decision 0121). The marks drawn on the design are read back with
+ * `marksOf`, which is also what the tech pack view reads, so the two panels cannot disagree.
  *
- * - **No view reports a click yet** (`pick-bus.ts`). The place is given in the fields below, which
- *   is also how a person who cannot use a pointer gives one, so the tool is never pointer-only.
- * - **A mark is not saved.** There is no `SpecAction` that stores a founder's own point of measure
- *   (`marks-store.ts` says why), so a reload loses what was drawn. The panel says so.
+ * One thing it says plainly rather than hiding: **no view reports a click yet** (`pick-bus.ts`).
+ * The place is given in the fields below, which is also how a person who cannot use a pointer gives
+ * one, so the tool is never pointer-only.
  */
 
-const NOT_SAVED = "A mark you draw shows on the tech pack straight away. It is not saved with the design yet, so a reload loses it.";
 const GAP_RULE = "R-GAP-000";
 
 export default function SpecsToolbar({ design, commands }: EditorSlotProps) {
-  const key = marksKey(design.projectId, design.version);
-  const { marks, add, remove, clear } = useMarks(key);
+  const marks = marksOf(design.spec);
   const [tool, setTool] = useState<SpecTool>("select");
   const [points, setPoints] = useState<readonly PickedPoint[]>([]);
   const [label, setLabel] = useState("");
@@ -64,15 +67,20 @@ export default function SpecsToolbar({ design, commands }: EditorSlotProps) {
   const length = polylineLengthMm(points);
 
   const keep = () => {
-    const mark = makeMark({ id: `${key}-${marks.length + 1}-${tool}`, tool, label, note, points, drawnOn: "2d" });
-    if (!mark) return;
-    add(mark);
+    // The id names the design version it was drawn on and the marks already on it, so two marks of
+    // one session never share one, and `localId` accepts it.
+    const mark = makeMark({ id: `v${design.version}-${marks.length + 1}-${tool}`, tool, label, note, points, drawnOn: "2d" });
+    const action = mark ? saveMarkAction(mark) : null;
+    if (!mark || !action) return;
+    commands.save(markSaveKey(mark.id), action);
     setPoints([]);
     setLabel("");
     setNote("");
     // The tech pack is where the mark lands, so take the person there.
     commands.showView("tech-pack", true);
   };
+
+  const takeOff = (mark: SpecMark) => commands.save(markSaveKey(mark.id), removeMarkAction(mark));
 
   return (
     <div className="flex flex-col gap-4" data-testid="specs-toolbar">
@@ -96,10 +104,9 @@ export default function SpecsToolbar({ design, commands }: EditorSlotProps) {
       ) : (
         <p className="text-[13px] leading-relaxed text-chalk-muted">{TOOL_HELP.select}</p>
       )}
-      <Marks marks={marks} onRemove={remove} onClear={clear} />
-      <p className="flex flex-wrap items-center gap-1 text-[11px] text-warn" data-testid="specs-not-saved">
-        <span aria-hidden="true">&#9888;</span>
-        <span>{NOT_SAVED}</span>
+      <Marks marks={marks} busy={design.busy} onRemove={takeOff} />
+      <p className="flex flex-wrap items-center gap-1 text-[11px] text-ink-2" data-testid="specs-not-graded">
+        <span>A mark you draw is your own measurement on the sample. It is saved with the design, and it is never graded.</span>
         <WhyButton ruleId={GAP_RULE} context="specs toolbar mark" />
       </p>
     </div>
@@ -263,10 +270,10 @@ function NumberField({ label, id, value, busy, onChange }: Readonly<{ label: str
   );
 }
 
-type MarksProps = Readonly<{ marks: readonly SpecMark[]; onRemove: (id: string) => void; onClear: () => void }>;
+type MarksProps = Readonly<{ marks: readonly SpecMark[]; busy: boolean; onRemove: (mark: SpecMark) => void }>;
 
 /** What has been drawn, so a person can see it and take it off again. */
-function Marks({ marks, onRemove, onClear }: MarksProps) {
+function Marks({ marks, busy, onRemove }: MarksProps) {
   if (marks.length === 0) {
     return (
       <p className="text-[11px] text-chalk-muted" data-testid="specs-marks-none">
@@ -284,15 +291,18 @@ function Marks({ marks, onRemove, onClear }: MarksProps) {
               <span className="font-mono text-[11px] text-chalk-muted">{TOOL_LABELS[mark.tool]}</span> {mark.label}
               {mark.lengthMm === null ? null : <span className="block text-[11px] text-ink-2">{mark.lengthMm} mm</span>}
             </span>
-            <button type="button" onClick={() => onRemove(mark.id)} className="min-h-10 px-2 text-[13px] font-medium text-ink underline">
+            <button
+              type="button"
+              onClick={() => onRemove(mark)}
+              disabled={busy}
+              aria-label={`Take off ${mark.label}`}
+              className="min-h-10 px-2 text-[13px] font-medium text-ink underline"
+            >
               Take off
             </button>
           </li>
         ))}
       </ul>
-      <button type="button" onClick={onClear} className="min-h-10 self-start px-2 text-[13px] font-medium text-ink underline">
-        Take all of them off
-      </button>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyAction } from "./apply-action";
 import { accepted, fabric, rejected, setOption, start } from "./fixtures/specs";
 import { validateSpec } from "./spec";
+import { garmentSpecSchema } from "./spec-schema";
 
 const FILE_ID = "3f0c2c9e-6f0a-4d0e-9a51-0d6c1c1f7a11";
 
@@ -262,6 +263,119 @@ describe("applyAction, wearer and type", () => {
     expect(rejected(applyAction(start("polo"), { type: "change-type", typeId: "kilt" }))).toBe(
       "There is no garment type called kilt.",
     );
+  });
+});
+
+/**
+ * The founder's own marks and the base article the design sits on (review of plan v5 item D-5, decision 0121).
+ * What is proved here is that the design keeps them, and that reading a stored design back gives
+ * them again: that is the reload a person does.
+ */
+describe("applyAction, the founder's own marks", () => {
+  const pom = (patch: object = {}) => ({
+    type: "set-extra-pom",
+    pom: {
+      id: "m1",
+      tool: "measure-line",
+      label: "Pocket opening",
+      note: null,
+      points: [
+        { panelId: "body-front", xMm: 0, yMm: 0 },
+        { panelId: "body-front", xMm: 120, yMm: 0 },
+      ],
+      lengthMm: 120,
+      drawnOn: "2d",
+      provenance: "user-edited",
+      ...patch,
+    },
+  });
+  const callout = (patch: object = {}) => ({
+    type: "set-callout",
+    callout: {
+      id: "c1",
+      label: "Hem finish",
+      note: "Twin needle, 6 mm",
+      points: [{ panelId: "body-front", xMm: 30, yMm: 40 }],
+      drawnOn: "2d",
+      provenance: "user-edited",
+      ...patch,
+    },
+  });
+
+  it("keeps a point of measure a person drew, with its own name and its measured length", () => {
+    const after = accepted(applyAction(start("team-jersey"), pom())).spec;
+    expect(after.extraPoms).toEqual([
+      {
+        id: "m1",
+        tool: "measure-line",
+        label: "Pocket opening",
+        note: null,
+        points: [
+          { panelId: "body-front", xMm: 0, yMm: 0 },
+          { panelId: "body-front", xMm: 120, yMm: 0 },
+        ],
+        lengthMm: 120,
+        drawnOn: "2d",
+        provenance: "user-edited",
+      },
+    ]);
+  });
+
+  it("keeps a callout a person drew, with the note that goes to the factory", () => {
+    const after = accepted(applyAction(start("team-jersey"), callout())).spec;
+    expect(after.callouts?.[0]?.note).toBe("Twin needle, 6 mm");
+  });
+
+  it("survives being written out and read back, which is what a reload does", () => {
+    const drawn = accepted(applyAction(start("team-jersey"), pom())).spec;
+    const both = accepted(applyAction(drawn, callout())).spec;
+    const reloaded = garmentSpecSchema.parse(JSON.parse(JSON.stringify(both)));
+    expect(reloaded.extraPoms?.[0]?.label).toBe("Pocket opening");
+    expect(reloaded.extraPoms?.[0]?.lengthMm).toBe(120);
+    expect(reloaded.callouts?.[0]?.label).toBe("Hem finish");
+  });
+
+  it("replaces a mark with the same id rather than keeping two of it", () => {
+    const once = accepted(applyAction(start("team-jersey"), pom())).spec;
+    const twice = accepted(applyAction(once, pom({ label: "Pocket opening, again", lengthMm: 140 }))).spec;
+    expect(twice.extraPoms).toHaveLength(1);
+    expect(twice.extraPoms?.[0]?.lengthMm).toBe(140);
+  });
+
+  it("leaves the list out again when the last mark is taken off, as a design that never had one", () => {
+    const drawn = accepted(applyAction(start("team-jersey"), pom())).spec;
+    const gone = accepted(applyAction(drawn, { type: "remove-extra-pom", id: "m1" })).spec;
+    expect(gone.extraPoms).toBeUndefined();
+    expect("extraPoms" in gone).toBe(false);
+  });
+
+  it("says plainly that a mark it is asked to remove is not there", () => {
+    expect(rejected(applyAction(start("team-jersey"), { type: "remove-callout", id: "c9" }))).toBe("There is no callout with the id c9.");
+  });
+
+  it("refuses a mark with no place picked, and a callout that carries a length", () => {
+    expect(applyAction(start("team-jersey"), pom({ points: [] })).ok).toBe(false);
+    expect(applyAction(start("team-jersey"), callout({ lengthMm: 10 })).ok).toBe(false);
+  });
+
+  it("keeps a point of measure and a callout apart, even when they share an id", () => {
+    const drawn = accepted(applyAction(start("team-jersey"), pom())).spec;
+    const both = accepted(applyAction(drawn, callout({ id: "m1" }))).spec;
+    expect(both.extraPoms).toHaveLength(1);
+    expect(both.callouts).toHaveLength(1);
+  });
+
+  it("stores the base article and the parameters chosen inside its approved ranges", () => {
+    const article = { baseArticleCode: "TJS-SS-01", productionClass: "A" as const, parameters: { body_length_offset: 20 } };
+    const after = accepted(applyAction(start("team-jersey"), { type: "set-article", article })).spec;
+    expect(after.article).toEqual(article);
+    const reloaded = garmentSpecSchema.parse(JSON.parse(JSON.stringify(after)));
+    expect(reloaded.article?.parameters).toEqual({ body_length_offset: 20 });
+  });
+
+  it("refuses an article code that is not a catalogue code", () => {
+    const article = { baseArticleCode: "nope", productionClass: "A", parameters: {} };
+    expect(applyAction(start("team-jersey"), { type: "set-article", article }).ok).toBe(false);
   });
 });
 

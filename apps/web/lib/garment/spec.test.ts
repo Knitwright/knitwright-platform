@@ -198,6 +198,17 @@ describe("validateSpec", () => {
     ]);
   });
 
+  it("rejects a repeated id in either list of the marks a founder drew, so one mark cannot hide another", () => {
+    const base = copy(start("crew-tee"));
+    const place = [{ panelId: "body-front", xMm: 0, yMm: 0 }];
+    const pom = { id: "m1", tool: "measure-point", label: "Pocket opening", note: null, points: place, lengthMm: null, drawnOn: "2d", provenance: "user-edited" };
+    const callout = { id: "c1", label: "Hem finish", note: null, points: place, drawnOn: "2d", provenance: "user-edited" };
+    expect(problems({ ...base, extraPoms: [pom, { ...pom, label: "Again" }] })).toEqual(["The point of measure id m1 is used more than once."]);
+    expect(problems({ ...base, callouts: [callout, { ...callout, label: "Again" }] })).toEqual(["The callout id c1 is used more than once."]);
+    // One in each list may share an id: they are two different things on two different tabs.
+    expect(problems({ ...base, extraPoms: [pom], callouts: [{ ...callout, id: "m1" }] })).toEqual([]);
+  });
+
   it("rejects too many fabrics or colourways", () => {
     const base = copy(start("crew-tee"));
     const fabric = (base.fabrics as object[])[0];

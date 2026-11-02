@@ -1,5 +1,6 @@
 import { checkCombination } from "./combinations";
 import { conditionsHold } from "./conditions";
+import { repeatedMarkIds, type DesignCallout, type DesignPom } from "./design-marks";
 import { anchorName, choiceName, panelName, pointName } from "./labels";
 import { kitPatternProblem, type KitPattern } from "./kit-pattern";
 import { namesNumbersProblem, type NamesAndNumbers } from "./names-numbers";
@@ -42,6 +43,8 @@ interface CheckedSpec {
   readonly construction: readonly ConstructionEntry[];
   readonly namesAndNumbers?: NamesAndNumbers;
   readonly kitPattern?: KitPattern;
+  readonly extraPoms?: readonly DesignPom[];
+  readonly callouts?: readonly DesignCallout[];
 }
 
 /** The most fabrics and colourways a design may hold. Kept here so the schema stays a plain tuple. */
@@ -209,6 +212,19 @@ function kitPatternProblems(spec: CheckedSpec): SpecProblem[] {
   return message ? [problem(["kitPattern"], message)] : [];
 }
 
+/**
+ * The founder's own points of measure and callouts. Each list's ids are its own, so one mark can
+ * never hide another. The panel a mark names is NOT checked against the ones the options leave on
+ * the garment: a mark is a note on a drawing, not a value the registry grades, and a design must
+ * not become invalid because an option took a panel away from under an old mark.
+ */
+function markProblems(spec: CheckedSpec): SpecProblem[] {
+  return [
+    ...repeatedMarkIds(spec.extraPoms ?? []).map((id) => problem(["extraPoms"], `The point of measure id ${id} is used more than once.`)),
+    ...repeatedMarkIds(spec.callouts ?? []).map((id) => problem(["callouts"], `The callout id ${id} is used more than once.`)),
+  ];
+}
+
 function limitProblems(spec: CheckedSpec): SpecProblem[] {
   const found: SpecProblem[] = [];
   if (spec.fabrics.length > LIST_LIMITS.fabrics) {
@@ -245,6 +261,7 @@ export function specProblems(spec: CheckedSpec): SpecProblem[] {
     ...artworkProblems(spec, type),
     ...namesNumbersProblems(spec, type),
     ...kitPatternProblems(spec),
+    ...markProblems(spec),
     ...techProblems(spec, type),
   ];
 }
