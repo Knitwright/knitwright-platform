@@ -75,6 +75,9 @@ describe("the files of this directory", () => {
       "@/lib/colour/convert",
       "@/lib/colour/palette",
       "@/lib/consent/wording",
+      // The one list of addresses that are not a public web page, which this directory used to carry
+      // a second copy of (review v5, decision 0112). It reads a hostname and nothing else.
+      "@/lib/http/public-url",
       "@/lib/providers/catalog",
       "@/lib/providers/text-model",
       "@/lib/server/core/guard",
