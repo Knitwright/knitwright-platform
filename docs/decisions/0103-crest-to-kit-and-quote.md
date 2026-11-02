@@ -1,8 +1,7 @@
-# 0102: Crest to kit, and the quote PDF
+# 0103: Crest to kit, and the quote PDF
 
 Status: Proposed
-Index: Proposed; no Pantone data ships so no Pantone match is claimed, no delivery date can be shown, the socks of every
-kit are unpriced, three template families are deliberately not offered, owner questions listed
+Index: Proposed; no Pantone data ships so no Pantone match is claimed, no delivery date can be shown, every kit's socks are unpriced, three template families deliberately not offered, owner questions listed
 Date: 2026-11-02
 Plan step: `plans/platform-v5.md`, wave 3, workstream Z6. Spec: `docs/spec/02-features.md` F-T2 (crest to kit) and F-T5
 (instant quote PDF). Reads decisions 0066 (the base article catalogue), 0069 (validation on every save), 0071 (the

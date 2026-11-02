@@ -108,9 +108,25 @@ export const LIMITS = {
   jobPacketPhotoLink: { name: "job-packet-photo-link", limit: 40, windowSeconds: 10 * MINUTE },
   // Brand Studio (decision 0079): details, palettes, fonts and pictures. Each is a small write checked against the member's role.
   brandStudioWrite: { name: "brand-studio-write", limit: 60, windowSeconds: 10 * MINUTE },
+  // Committee links and roster sign-up (plan v5 Z7, decision 0086). The committee and the players
+  // have no account: the pages are drawn on the server and the writes are guarded by the bot check
+  // and a limit per address, and the writes per link as well, so one leaked link cannot be used
+  // from many addresses to flood one design or one season.
+  manageCommitteeLink: { name: "manage-committee-link", limit: 60, windowSeconds: 10 * MINUTE },
+  committeeView: { name: "committee-view", limit: 60, windowSeconds: MINUTE },
+  committeeWrite: { name: "committee-write", limit: 20, windowSeconds: 10 * MINUTE },
+  committeeWriteLink: { name: "committee-write-link", limit: 120, windowSeconds: 10 * MINUTE },
+  manageRosterSignup: { name: "manage-roster-signup", limit: 60, windowSeconds: 10 * MINUTE },
+  rosterSignupView: { name: "roster-signup-view", limit: 60, windowSeconds: MINUTE },
+  rosterSignupWrite: { name: "roster-signup-write", limit: 10, windowSeconds: 10 * MINUTE },
+  rosterSignupWriteLink: { name: "roster-signup-write-link", limit: 120, windowSeconds: 10 * MINUTE },
   // Benchmarks (plan v5 Z3, decision 0084). Making a comparison, confirming or correcting a card.
   benchmarkWrite: { name: "benchmark-write", limit: 60, windowSeconds: 10 * MINUTE },
   // Taking a card in reaches a competitor's page and then a vision model. The per-brand counts, which the spec asks
   // for, are kept beside these in lib/benchmarks/limits.ts and counted inside the action.
   benchmarkIntake: { name: "benchmark-intake", limit: 20, windowSeconds: 10 * MINUTE },
+  // Brand import (plan v5 L7, decision 0102). One import reads a page of the brand's own site and then a handful of
+  // its pictures, and reaches a vision model once, so it is held tighter than a read. The per-brand counts the spec
+  // asks for are kept beside the engine in lib/brand-studio/import/settings.ts, where an admin row can change them.
+  brandImport: { name: "brand-import", limit: 10, windowSeconds: HOUR },
 } as const satisfies Record<string, RateLimitRule>;

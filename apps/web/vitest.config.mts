@@ -19,7 +19,7 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
-  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0102).
+  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0103).
   "lib/quotes/document.test.ts",
   // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
   // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
@@ -113,12 +113,16 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Joins the flow screens to the launch canvas, the credit ledger and the flow tables; the
+        // order, the estimate, the refunds, the artwork check and the summary are tested on their
+        // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
+        "lib/flows/server.ts",
         // Joins crest-to-kit to the catalogue and the picture decoder; the pipeline it hands over is tested on
-        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0102).
+        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0103).
         "lib/crest-to-kit/server.ts",
         // Joins a quote to the factory rows: the tiers, the cut-off and the market rules. Every rule it hands
         // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
-        // decision 0102).
+        // decision 0103).
         "lib/quotes/server.ts",
       ],
       thresholds: {
@@ -145,15 +149,10 @@ export default defineConfig({
         // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        /*
-         * The production outputs (plans/production-outputs.md), each held to the higher mark. One
-         * name per line and in alphabetical order, deliberately: this was a single line of about a
-         * thousand characters, and because every workstream added its directory to that one line,
-         * every pair of branches conflicted on it. Five of those conflicts were resolved by hand in
-         * one day on pull requests whose own work was already finished and green, each costing a
-         * further full run. One name per line means two workstreams touch two lines and git merges
-         * them by itself. Keep it sorted, and add only your own name.
-         */
+        // The committee link and the roster sign-up are public pages a club's own people use without an
+        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
+        "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
           [
             "artwork-intake",
@@ -175,6 +174,7 @@ export default defineConfig({
             "designers",
             "fabrics",
             "factory",
+            "flows",
             "gltf",
             "guardrails",
             "home",
@@ -203,6 +203,7 @@ export default defineConfig({
             "templates",
             "validation",
             "variants",
+          
           ].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
