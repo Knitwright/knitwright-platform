@@ -109,6 +109,12 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Join the market panel and the translated tech pack to the outside world: one gathers the market's
+        // own row and the production settings, the other reads the translation library. The tax treatment,
+        // the market summary and the dictionary are tested on their own, and the database and end-to-end
+        // tests cover the joining (plan v5 O3, decision 0102).
+        "lib/markets/server.ts",
+        "lib/translate/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -170,6 +176,7 @@ export default defineConfig({
             "job-packet",
             "launch",
             "make",
+            "markets",
             "media",
             "media-check",
             "moderation",
@@ -187,6 +194,7 @@ export default defineConfig({
             "settings",
             "teamwear",
             "templates",
+            "translate",
             "validation",
             "variants",
           ].map((dir) => [

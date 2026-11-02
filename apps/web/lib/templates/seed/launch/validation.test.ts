@@ -8,7 +8,7 @@ import { specInput, standardRegistry } from "@/lib/validation/spec-input";
 import { defaultFactoryProfile } from "@/lib/validation/profile";
 import { validateDesign, type ValidationResult } from "@/lib/validation/validate";
 import type { DesignInput } from "@/lib/validation/registry";
-import { allSeedTemplates } from "../all";
+import { everySeedTemplate } from "../seed";
 import type { SeedTemplate } from "../build";
 
 /**
@@ -45,7 +45,7 @@ const inputFor = async (seed: SeedTemplate): Promise<DesignInput> => ({
 const validate = async (seed: SeedTemplate): Promise<ValidationResult> =>
   validateDesign(await inputFor(seed), defaultFactoryProfile(), standardRegistry());
 
-const seeds = allSeedTemplates();
+const seeds = everySeedTemplate();
 
 describe("every design template passes validation", () => {
   it.each(seeds.map((seed) => [seed.slug, seed] as const))("%s has no blocker", async (_slug, seed) => {
