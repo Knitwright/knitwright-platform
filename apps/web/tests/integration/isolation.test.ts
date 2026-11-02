@@ -980,6 +980,37 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, collection_id: randomUUID(), version: 1, payload: { kind: "collection-drop" } }),
     change: { payload: { kind: "changed by a stranger" } },
   },
+  // Plan v5 L1 (decision 0091): the launch canvases, their boards, their connectors and their saved
+  // versions. A member reads their own brand's rows; only the launch functions write; a saved version
+  // is append-only; and a generated board's output can never be artwork (spec decision 13).
+  launch_projects: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedLaunch(brandId, ownerId)).launchProjectId }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly" }),
+    change: { name: "Changed by a stranger" },
+  },
+  boards: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedLaunch(brandId, ownerId)).designBoardId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), kind: "design" }),
+    change: { x: 999, output_role: "print_file" },
+  },
+  board_edges: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedLaunch(brandId, ownerId)).edgeId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), from_board_id: randomUUID(), to_board_id: randomUUID(), input_index: 1 }),
+    change: { input_index: 9 },
+  },
+  launch_project_versions: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedLaunch(brandId, ownerId)).versionId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), version: 1, snapshot: { kind: "launch-canvas" } }),
+    change: { snapshot: { kind: "changed by a stranger" } },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -1307,6 +1338,31 @@ const seedCollection = async (
   return { collectionId, frameId, styleId, dropId: drops[0]!.id };
 };
 
+const seedLaunch = async (
+  brandId: string,
+  ownerId: string,
+): Promise<{ launchProjectId: string; designBoardId: string; mockupBoardId: string; edgeId: string; versionId: string }> => {
+  const launchProjectId = must(
+    await adminClient().rpc("create_launch_project", { p_brand_id: brandId, p_user_id: ownerId, p_name: `Launch ${randomUUID().slice(0, 8)}`, p_units: "px", p_design_project_id: null }),
+  ) as string;
+  const addBoard = async (kind: string): Promise<string> =>
+    must(
+      await adminClient().rpc("save_launch_board", {
+        p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launchProjectId, p_board_id: null, p_kind: kind,
+        p_name: kind, p_x: 0, p_y: 0, p_width: 1080, p_height: 1080, p_settings: {}, p_input_version: 1,
+      }),
+    ) as string;
+  const designBoardId = await addBoard("design");
+  const mockupBoardId = await addBoard("mockup");
+  const edgeId = must(
+    await adminClient().rpc("connect_launch_boards", { p_brand_id: brandId, p_user_id: ownerId, p_from_board_id: designBoardId, p_to_board_id: mockupBoardId, p_input_index: 1 }),
+  ) as string;
+  const versions = must(
+    await adminClient().rpc("save_launch_project_version", { p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launchProjectId, p_snapshot: { kind: "launch-canvas", boards: 2 } }),
+  ) as { id: string }[];
+  return { launchProjectId, designBoardId, mockupBoardId, edgeId, versionId: versions[0]!.id };
+};
+
 const seedGoldenSample = async (
   brandId: string,
   ownerId: string,
@@ -1508,12 +1564,34 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { fabric_code: "F-STK-TEE", name: "Made directly", hex: "#000000", label: "Made directly" },
     change: { hex: "#FFFFFF" },
   },
+  // Plan v5 L1 (decision 0091): the artboard sizes the launch inspector offers, as rows rather than
+  // literals in code. Every signed-in member reads them; only the server writes them.
+  launch_artboard_presets: {
+    privileges: ["SELECT"],
+    row: { key: "story-9-16" },
+    attempt: { key: "made-directly", label: "Made directly", width: 10, height: 10, unit: "px", note: "Made directly" },
+    change: { label: "Changed by a member" },
+  },
   // Plan v5 X6 (decision 0071): market rules, so a member sees the VAT treatment of their own market.
   country_rules: {
     privileges: ["SELECT"],
     row: { country: "GB" },
     attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
     change: { selling_enabled: false },
+  },
+  // Plan v5 Z8 (decision 0089): the ISO 3758 care symbols and the AQL plan. A member reads both, because the
+  // tech pack's Labels and QC tabs show them; nobody writes either from a browser.
+  care_symbols: {
+    privileges: ["SELECT"],
+    row: { code: "ISO3758-WASHING" },
+    attempt: { code: "MADE-DIRECTLY", kind: "washing", label: "Made directly" },
+    change: { words: "Made directly" },
+  },
+  aql_plans: {
+    privileges: ["SELECT"],
+    row: { scope: "class_a_sample" },
+    attempt: { scope: "run", inspect_every_piece: true, label: "Made directly" },
+    change: { inspect_every_piece: false },
   },
   // Plan v5 Z4 (decision 0085): freight per piece to a destination, and the basis duty is charged on.
   collection_freight_rates: {
@@ -1939,6 +2017,12 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
   // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
   rulebook_entries: { privileges: ["SELECT"] },
+  // Decision 0098: the kit bundles of docs/spec/07-template-library.md and what is in each one. Read by every
+  // signed-in user; seeded by the server. tests/integration/template-kinds.test.ts covers them.
+  template_kit_bundles: { privileges: ["SELECT"] },
+  template_kit_bundle_members: { privileges: ["SELECT"] },
+  // Decision 0098: the tech pack templates, one per base article, with the gaps that article has no data for.
+  template_techpacks: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;
