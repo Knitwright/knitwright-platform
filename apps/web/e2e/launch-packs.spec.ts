@@ -65,7 +65,7 @@ test.describe("the launch packs", () => {
     await expect(page.getByTestId("flow-notes-sponsor-pack")).toBeVisible();
 
     // Decision 0096: there is no film, and the card says so rather than opening nothing.
-    await expect(page.getByTestId("flow-tutorial-sponsor-pack")).toContainText(/no film/i);
+    await expect(page.getByTestId("flow-tutorial-sponsor-pack")).toContainText("No tutorial film has been made yet");
 
     await accessible(page);
     await noSidewaysScroll(page);
