@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { checkOwnerAndDue } from "../exceptions/rules";
 import { CHECKLIST_KEYS, CHECKLIST_RESULTS, evaluateInspection, type ChecklistItem } from "./checklist";
+import { colourReadingsPass, parseColourReadings } from "./colour";
 import { parseFileIds, parseMeasurements, parseSizes } from "./parse";
 import type { InspectionToRecord } from "./service";
 
@@ -19,6 +20,15 @@ export const inspectionFormSchema = z
     artworkResult: result,
     namesNumbersResult: result,
     measurements: z.string().default(""),
+    colourReadings: z.string().default(""),
+    /**
+     * The factory's own colour tolerance, put into the form by the page from the factory's row. The browser
+     * cannot invent one: a value the schema does not recognise is read as "no tolerance on file", and the
+     * action reads the tolerance again from the factory before the reading is recorded.
+     */
+    colourLimit: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.coerce.number().min(0).max(200).nullable().catch(null)),
+    /** The sample size code letter the plan gave, when one is on file. Empty: none was, and none is invented. */
+    aqlCodeLetter: z.string().trim().regex(/^[A-R]?$/, "That is not a sample size code letter.").default(""),
     sampleSize: int("Pieces inspected", 1, 99_999),
     defectCount: int("Defective pieces", 0, 99_999),
     photos: z.string().default(""),
@@ -34,6 +44,8 @@ export const inspectionFormSchema = z
     };
     const measurements = parseMeasurements(v.measurements);
     if (!measurements.ok) return fail("measurements", measurements.problem);
+    const readings = parseColourReadings(v.colourReadings, v.colourLimit);
+    if (!readings.ok) return fail("colourReadings", readings.problem);
     const photos = parseFileIds(v.photos);
     if (!photos.ok) return fail("photos", photos.problem);
     if (v.defectCount > v.sampleSize) return fail("defectCount", "More defective pieces than pieces inspected.");
@@ -41,8 +53,18 @@ export const inspectionFormSchema = z
       measurements: v.measurementsResult, colour: v.colourResult, artwork: v.artworkResult, names_numbers: v.namesNumbersResult,
     };
     const checklist: ChecklistItem[] = CHECKLIST_KEYS.map((key) => ({ key, result: answers[key], note: "" }));
-    const evaluation = evaluateInspection({ checklist, measurements: measurements.value, defectCount: v.defectCount });
-    const base = { orderId: v.orderId, checklist, measurements: measurements.value, sampleSize: v.sampleSize, defectCount: v.defectCount, photoFileIds: photos.value, note: v.note };
+    const evaluation = evaluateInspection({ checklist, measurements: measurements.value, defectCount: v.defectCount, colourReadingsPass: colourReadingsPass(readings.value) });
+    const base = {
+      orderId: v.orderId,
+      checklist,
+      measurements: measurements.value,
+      colourReadings: readings.value,
+      aqlCodeLetter: v.aqlCodeLetter === "" ? null : v.aqlCodeLetter,
+      sampleSize: v.sampleSize,
+      defectCount: v.defectCount,
+      photoFileIds: photos.value,
+      note: v.note,
+    };
     if (evaluation.result === "pass") return { ...base, remake: null };
     const sizes = parseSizes(v.remakeSizes);
     if (!sizes.ok) return fail("remakeSizes", `This inspection fails (${evaluation.reasons[0] ?? "see the checklist"}). ${sizes.problem}`);

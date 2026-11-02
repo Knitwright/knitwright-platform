@@ -128,7 +128,7 @@ test.describe("role journeys (W5-C)", () => {
     await expect(opsPage.getByTestId("bag").first()).toBeVisible();
 
     await opsPage.goto(`/ops/orders/${placed.id}/shipping`);
-    await opsPage.getByLabel("Courier").fill("DHL");
+    await opsPage.getByLabel("Courier", { exact: true }).fill("DHL");
     await opsPage.getByLabel("Tracking number").fill("JOURNEY-1");
     await opsPage.getByLabel("Shipped on").fill("2026-10-30");
     await opsPage.getByLabel("Pieces sent, by size").fill("M 3, L 2");

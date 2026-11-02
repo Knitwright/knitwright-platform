@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { CHECKLIST_KEYS, CHECKLIST_RESULTS, type ChecklistItem, type Measurement } from "./checklist";
+import type { ColourReading } from "./colour";
 
 const inspectionRow = z.object({
   id: z.uuid(),
@@ -13,6 +14,7 @@ const inspectionRow = z.object({
   photo_file_ids: z.array(z.string()),
   note: z.string(),
   exception_id: z.uuid().nullable(),
+  aql_code_letter: z.string().nullable().default(null),
   at: z.string(),
 });
 
@@ -28,6 +30,8 @@ export interface Inspection {
   readonly photoFileIds: readonly string[];
   readonly note: string;
   readonly exceptionId: string | null;
+  /** The sample size code letter the plan gave, or null when no sampling plan was on file. */
+  readonly aqlCodeLetter: string | null;
   /** ISO time. */
   readonly at: string;
 }
@@ -46,6 +50,45 @@ export const toInspection = (data: unknown): Inspection => {
     photoFileIds: r.photo_file_ids,
     note: r.note,
     exceptionId: r.exception_id,
+    aqlCodeLetter: r.aql_code_letter,
+    at: new Date(r.at).toISOString(),
+  };
+};
+
+const colourReadingRow = z.object({
+  id: z.uuid(),
+  inspection_id: z.uuid(),
+  colour_name: z.string(),
+  delta_e: z.coerce.number(),
+  limit_delta_e: z.coerce.number().nullable(),
+  method: z.string().nullable(),
+  instrument: z.string().nullable(),
+  white_point: z.string().nullable(),
+  observer: z.string().nullable(),
+  rule_id: z.string(),
+  at: z.string(),
+});
+
+/** A reading as the database kept it, with what it was judged against at the time. */
+export interface RecordedColourReading extends ColourReading {
+  readonly id: string;
+  readonly inspectionId: string;
+  readonly at: string;
+}
+
+export const toColourReading = (data: unknown): RecordedColourReading => {
+  const r = colourReadingRow.parse(data);
+  return {
+    id: r.id,
+    inspectionId: r.inspection_id,
+    colourName: r.colour_name,
+    deltaE: r.delta_e,
+    limitDeltaE: r.limit_delta_e,
+    method: r.method,
+    instrument: r.instrument,
+    whitePoint: r.white_point,
+    observer: r.observer,
+    ruleId: r.rule_id,
     at: new Date(r.at).toISOString(),
   };
 };
