@@ -226,6 +226,14 @@ describe("the words in the other parts of the product", () => {
     expect(WIDE.length).toBeGreaterThan(300);
   });
 
+  /*
+   * Thirty seconds, not the default five. This reads every one of 300-odd files and splits each into
+   * sentences, and it grew with the product: by the end of plan v5 the unit project was 1,229 files
+   * and 23,758 tests, and this one test began timing out in CI while passing in 1.6 s on its own.
+   * The headroom is spent by contention, not by the work -- the same thing that moved the print
+   * acceptance cases into the slow `pdf` project when the suite passed 18,000 tests. The budget is
+   * still a budget: a scan that takes thirty seconds is doing something pathological and should fail.
+   */
   it("appear in no sentence of those folders, except the sentences listed above and the ones listed here", () => {
     const found: string[] = [];
     for (const path of WIDE) {
@@ -234,5 +242,5 @@ describe("the words in the other parts of the product", () => {
       }
     }
     expect(found).toEqual([]);
-  });
+  }, 30_000);
 });
