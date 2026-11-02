@@ -107,12 +107,14 @@ test.describe("sharing a design with a committee", () => {
 
     // A pin on a point of a panel. The form is behind a disclosure, so it is opened first.
     await guest.locator("details").filter({ hasText: "Pin a comment on Option A" }).locator("summary").click();
-    await guest.getByRole("group", { name: "Where on it?" }).getByLabel("Top left").check();
-    await guest.getByLabel("Which part").selectOption({ index: 1 });
-    await guest.getByLabel("Your name").fill("Sam the chair");
-    await guest.getByLabel("What would you change?").fill("<b>Navy</b> sleeves please.");
-    await passBotCheck(guest.locator("form").filter({ has: guest.getByLabel("What would you change?") }));
-    await guest.getByRole("button", { name: "Pin this comment" }).click();
+    // Scoped to the option's own card: the pin form and the approval form both ask for a name.
+    const pin = guest.getByTestId("committee-option-A").locator("form");
+    await pin.getByRole("group", { name: "Where on it?" }).getByLabel("Top left").check();
+    await pin.getByLabel("Which part").selectOption({ index: 1 });
+    await pin.getByLabel("Your name").fill("Sam the chair");
+    await pin.getByLabel("What would you change?").fill("<b>Navy</b> sleeves please.");
+    await passBotCheck(pin);
+    await pin.getByRole("button", { name: "Pin this comment" }).click();
     await expect(guest.getByText("Your comment is pinned.")).toBeVisible();
 
     // Approve, with a name. One option was shared, so there is nothing to vote between and the page says so.
