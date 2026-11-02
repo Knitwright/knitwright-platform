@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import type { BaseArticle } from "@/lib/catalogue";
 import type { CanvasView, EditorDraft, EditorModel, EditorSlotProps, FormValues, RailSegment, SummarySectionId } from "@/lib/editor";
 import { SEGMENTS, addColourwayAction, autoDesignName, designSummary, findingLines, segmentPanelId, segmentTabId, simulateChip, simulationState, summaryTarget, validateChip } from "@/lib/editor";
@@ -50,14 +50,8 @@ export type EditorShellProps = Readonly<{
 const FRAME =
   "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(100vw_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(50vw_-_1.25rem,48rem))] lg:pb-0";
 
-/*
- * The left rail is **one** column here, divided again by `LeftRail` below: its icon column, the
- * 0.75rem gap between the two and the toolbar panel, so that the segmented toggle can span the
- * whole of it. The canvas and the Design Summary keep the widths they always had --
- * 4.75 + 0.75 + 20 = 25.5rem, and 21rem of panel at xl.
- */
 const COLUMNS =
-  "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[25.5rem_minmax(0,1fr)] xl:grid-cols-[26.5rem_minmax(0,1fr)_20rem]";
+  "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_20rem_minmax(0,1fr)] xl:grid-cols-[4.75rem_21rem_minmax(0,1fr)_20rem]";
 
 /**
  * The editor shell of spec F-S4: the top bar, the left rail with its Form, Library and Specs
@@ -165,32 +159,27 @@ export function EditorShell(props: EditorShellProps) {
         exportOpen={side === "export"}
       />
       <div className={COLUMNS}>
-        <LeftRail
-          segment={shell.state.segment}
-          onSegment={openRail}
-          toolRail={
-            shell.state.segment === "form" ? (
-              <ToolRail
-                tool={tool}
-                onChoose={choose}
-                onAssistant={() => dispatch({ type: layout.sheetOpen ? "closeSheet" : "openSheet" })}
-                assistantOpen={layout.sheetOpen}
-                assistantButton={assistantButton}
-              />
-            ) : null
-          }
-          panel={
-            <RailPanel
-              segment={shell.state.segment}
-              shell={shell}
-              article={article}
-              busy={editor.busy}
-              context={{ data, editor, assistantAvailable: assistant.available, slots }}
+        <div className="grid gap-2 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
+          <RailSegments segment={shell.state.segment} onChoose={openRail} />
+          {shell.state.segment === "form" ? (
+            <ToolRail
               tool={tool}
-              slot={slot}
-              libraryOpened={libraryOpened}
+              onChoose={choose}
+              onAssistant={() => dispatch({ type: layout.sheetOpen ? "closeSheet" : "openSheet" })}
+              assistantOpen={layout.sheetOpen}
+              assistantButton={assistantButton}
             />
-          }
+          ) : null}
+        </div>
+        <RailPanel
+          segment={shell.state.segment}
+          shell={shell}
+          article={article}
+          busy={editor.busy}
+          context={{ data, editor, assistantAvailable: assistant.available, slots }}
+          tool={tool}
+          slot={slot}
+          libraryOpened={libraryOpened}
         />
         <CanvasFrame
           data={data}
@@ -238,41 +227,6 @@ export function EditorShell(props: EditorShellProps) {
             onCloseSheet={closeSheet}
           />
         </div>
-      </div>
-    </div>
-  );
-}
-
-type LeftRailProps = Readonly<{
-  segment: RailSegment;
-  onSegment: (segment: RailSegment) => void;
-  /** Form's own eleven-tool rail, or nothing when another toolbar is open. */
-  toolRail: ReactNode;
-  panel: ReactNode;
-}>;
-
-/**
- * THE LEFT RAIL (spec F-S4): "a segmented toggle between three toolbars", and under the toggle the
- * open toolbar's panel, with the Form toolbar's own icon rail in a column beside it.
- *
- * The toggle belongs to the rail, not to that icon column, and it spans the whole width of both.
- * It was inside the icon column until now, and three words will not go in 4.75rem: the strip is
- * 8.5rem at its narrowest (three 2.5rem tabs, two 0.25rem gaps, 0.25rem of padding each side), so
- * it overflowed its column to the right, across the gap and into the panel column. The open panel
- * comes later in the document, which puts it above the overflow in the hit test, so it swallowed
- * every click meant for the third tab: Specs was on the screen, visible and enabled, and nothing
- * could press it. A person could not switch toolbars with a pointer at all (PR #150, CI run
- * 41472099701). Keep the toggle as wide as the rail and the tabs stay inside it.
- */
-function LeftRail({ segment, onSegment, toolRail, panel }: LeftRailProps) {
-  return (
-    <div className="flex min-h-0 flex-col gap-3">
-      <RailSegments segment={segment} onChoose={onSegment} />
-      <div className="flex min-h-0 flex-col gap-3 lg:grid lg:flex-1 lg:grid-cols-[4.75rem_minmax(0,1fr)]">
-        {/* `empty:hidden` so the column adds no gap on a phone, where the tool rail is a bar
-            drawn at the end of the body, and none when another toolbar has replaced Form. */}
-        <div className="grid min-h-0 empty:hidden lg:grid-rows-[minmax(0,1fr)]">{toolRail}</div>
-        {panel}
       </div>
     </div>
   );

@@ -116,30 +116,53 @@ Two further facts shaped how this was done:
    anywhere, and runs axe plus a sideways-scroll check on each at the browser tests' own desktop
    width and again at 390 x 844. Y3's self-skips are gone and its tests run as they were written.
 
-8. **The toolbar toggle is the rail's, not the icon column's — because it did not fit there.** This
+8. **The toolbar toggle stacks on a wide screen, because the column it lives in is 4.75rem.** This
    is what opening the panels in a browser found, and it is the whole reason item 7 was worth
-   doing. The segmented toggle for Form, Library and Specs was inside the left rail's 4.75rem icon
-   column, where three words do not go: the strip is 8.5rem at its narrowest (three 2.5rem tabs,
-   two 0.25rem gaps and 0.25rem of padding either side), so it overflowed its column to the right,
-   across the 0.75rem gap and into the toolbar panel column beside it. The open panel comes later
-   in the document, which puts it above that overflow in the hit test, so the panel swallowed every
-   click meant for the **third** tab. Specs was on the screen, visible and enabled, and no pointer
-   could press it — Playwright's own words were "element is visible, enabled and stable … `<h2>`
-   Library `</h2>` … intercepts pointer events", and then sixty seconds of retries. The keyboard
-   path worked throughout (`e2e/editor-shell.spec.ts` drives the toggle with the arrow keys), which
-   is why three waves of unit tests and one browser test had not caught it.
+   doing. The segmented toggle for Form, Library and Specs sits in the left rail's icon column, and
+   side by side three words do not go in 4.75rem: the strip is 8.5rem at its very narrowest (three
+   2.5rem tabs, two 0.25rem gaps and 0.25rem of padding either side), so it overflowed its column
+   to the right, across the 0.75rem gap and into the toolbar panel column beside it. The open panel
+   comes later in the document, which puts it above that overflow in the hit test, so the panel
+   swallowed every click meant for the **third** tab. Specs was on the screen, visible and enabled,
+   and no pointer could press it — Playwright's own words were "element is visible, enabled and
+   stable … `<h2>`Library`</h2>` … intercepts pointer events", and then sixty seconds of retries.
+   A person could not switch toolbars with a pointer at all.
 
-   So `EditorShell` now gives the whole left rail **one** column of the shell grid and `LeftRail`
-   divides it again under the toggle: the 4.75rem icon column beside the open panel. The toggle
-   spans both, which is what spec F-S4's "Left rail: a segmented toggle between three toolbars"
-   describes — the toggle belongs to the rail, and the icon rail of eleven tools belongs to the
-   Form toolbar inside it. The canvas and the Design Summary keep exactly the widths decision 0075
-   gave them: 4.75 + 0.75 + 20 = 25.5rem of rail, and 21rem of panel at xl. No `z-index` and no
-   `pointer-events` rule was involved; a tab drawn over is a tab laid out in the wrong box.
+   Two things hid it. The **keyboard** path worked throughout: `e2e/editor-shell.spec.ts` drives
+   the toggle with the arrow keys, and focus does not care what is painted over a button, so the
+   one browser test of the toggle exercised the one path that could not see the fault. And only the
+   **third** tab was covered: Library's centre lands at x≈68, still inside the 76px column, so
+   `e2e/editor-library-2d.spec.ts`'s own click on it passed and the fault looked arbitrary.
+
+   The toggle is therefore upright from `lg`, the way the tool rail under it and the launch shell's
+   icon rail both are: each tab is the full 4.25rem width of the column, and nothing leaves the
+   box. `aria-orientation` follows, so the arrow keys and the tab list agree about which way it
+   runs. No `z-index` and no `pointer-events` rule was involved; a tab drawn over is a tab laid out
+   in the wrong box, and it is the box that changed.
+
+   **What was tried first, and why it was backed out.** Spanning the toggle across the rail *and*
+   the panel reads better and is closer to the spec's "segmented toggle", and it was written that
+   way first. It costs the panel beneath it 3.75rem of height, and the shell has no 3.75rem to
+   spare: that was enough to push the Media tool's own panel below the fold of the rail's scroll
+   box, where the `IntersectionObserver` of `useMediaScreen.ts` never fires, so the panel waits on
+   "Looking for this design's media…" for ever and `e2e/media-screen.spec.ts` failed twice (CI run
+   41492407412). Hiding the icon column under the other two toolbars while keeping its track in the
+   column list cost the panel its width as well — a grid places what it is given, so the panel
+   became the first item and was laid out 76px wide, one word to a line. Both are recorded here
+   rather than in a branch nobody will read: the rail's widths and heights are decision 0075's, and
+   the toggle's shape on a wide screen is owner question 6.
 
    The regression guard is a measurement, not a click: `e2e/editor-panels.spec.ts` compares each
    tab's own box with its strip's and names any tab drawn outside it, so a recurrence says which
    tab is wrong instead of timing out after a minute and blaming the panel.
+
+9. **The drawing on the canvas can be scrolled from a keyboard.** The 2D view's drawing scrolls
+   inside its own box on a wide screen, where the shell's height is fixed, and the only thing in
+   that box is a picture: nothing in it could take focus, so a person on a keyboard could not
+   scroll it at all. That is WCAG 2.1.1 and axe's `scrollable-region-focusable`, and it is
+   pre-existing — the editor had simply never been scanned at desktop width with the 2D view open,
+   because the Specs tab could not be pressed to get there (item 8). `DesignCanvas` gives the box
+   `tabIndex={0}`; the section around it already names it.
 
 ## What is deliberately left unmounted
 
@@ -240,3 +263,10 @@ worse than an honest absence.
    was true of the Export placeholder before this change, so nothing got worse, but it is now a real
    panel a person cannot reach. Should the column become a sheet over the canvas in that band, or
    should the breakpoint move?
+6. **The shape of the toolbar toggle on a wide screen.** Spec F-S4 says "a segmented toggle", which
+   is a horizontal control, and the rail's icon column is 4.75rem, which will not hold three words
+   side by side (item 8). It is upright there now, which fits and costs the panel beside it
+   nothing. The two ways to make it horizontal both take something from a shell that has nothing
+   spare: widening the icon column narrows the canvas, and spanning the toggle across the rail
+   takes 3.75rem of height off the toolbar panel, which is already enough to push a lazily loaded
+   tool panel out of sight. Three words in a gutter, a wider rail, or shorter labels — which?

@@ -108,11 +108,11 @@ test.describe("the panels the shell never mounted", () => {
   });
 
   /**
-   * What the first browser run of this spec found, measured rather than clicked. The segmented
-   * toggle was inside the rail's 4.75rem icon column, where three words do not fit: it overflowed
-   * into the panel column, and the open panel -- later in the document, so above the overflow in
-   * the hit test -- swallowed every click meant for the Specs tab. A click only times out after a
-   * minute and blames the panel; this says which tab is drawn outside its own strip.
+   * What the first browser run of this spec found, measured rather than clicked. Side by side, the
+   * toggle's three tabs did not fit the rail's 4.75rem column: the strip overflowed into the panel
+   * column, and the open panel -- later in the document, so above the overflow in the hit test --
+   * swallowed every click meant for the Specs tab. A click only times out after a minute and blames
+   * whichever panel is open; this says which tab is drawn outside its own strip.
    */
   test("keeps all three toolbar tabs inside their own strip, where a pointer can reach them", async ({ page }) => {
     await signedIn(page, "panels-tabs");
