@@ -9,7 +9,7 @@ import type { OpenSignup, SubmitInput } from "./service";
 import { NAME_ZONE, checkAgainstZones, type ZoneLimit } from "./zones";
 
 /**
- * Taking one player's answer (spec F-T4, plan v5 Z7, decision 0086).
+ * Taking one player's answer (spec F-T4, plan v5 Z7, decision 0087).
  *
  * The order matters and is the whole point of this file being its own: the bot check first, so a
  * script cannot reach anything; then the link's own limit, so one leaked address cannot flood a

@@ -1,4 +1,4 @@
-# 0086: Committee link v2 and roster sign-up
+# 0087: Committee link v2 and roster sign-up
 
 Status: Proposed; every number behind both links is a labelled default, owner questions listed
 Date: 2026-11-02

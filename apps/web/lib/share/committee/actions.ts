@@ -28,7 +28,7 @@ import {
 } from "./service";
 
 /**
- * Committee links (spec F-T3, plan v5 Z7, decision 0086). A club's actions take the user from the
+ * Committee links (spec F-T3, plan v5 Z7, decision 0087). A club's actions take the user from the
  * session and never a club from the form; the database checks the person's role itself. The
  * committee's actions need no session: each is limited per address and per link, and guarded by the
  * bot check, exactly as a share answer is (decision 0026).

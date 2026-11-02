@@ -1296,7 +1296,7 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, email: "made-directly@test.knitwright.local", role: "viewer" }),
     change: { role: "admin" },
   },
-  // Plan v5 Z7 (decision 0086): a committee link and what a committee left through it. Members read
+  // Plan v5 Z7 (decision 0087): a committee link and what a committee left through it. Members read
   // their own club's rows; nobody writes any of them directly, and a pin, a vote record, an approval
   // and a lock are append only, so not even the server may change one.
   committee_links: {
@@ -1412,7 +1412,7 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     }),
     change: { version: 9 },
   },
-  // Plan v5 Z7 (decision 0086): a season's sign-up link, the people the club is waiting on and what
+  // Plan v5 Z7 (decision 0087): a season's sign-up link, the people the club is waiting on and what
   // the players sent. Personal data, removed with the season and with the club.
   roster_signup_links: {
     privileges: ["SELECT"],
@@ -1816,7 +1816,7 @@ const seedShareInvite = async (brandId: string, ownerId: string): Promise<{ id: 
 };
 
 /**
- * A committee link of a new design, made the way the server makes one (plan v5 Z7, decision 0086).
+ * A committee link of a new design, made the way the server makes one (plan v5 Z7, decision 0087).
  * Each call makes its own design, so one seed's lock can never clash with another's.
  */
 const seedCommitteeLink = async (
@@ -2413,7 +2413,7 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: () => ({ cut_for: new Date().toISOString() }),
     change: { orders_batched: 99 },
   },
-  // Plan v5 Z7 (decision 0086): the data behind the committee link and the sign-up. No browser role
+  // Plan v5 Z7 (decision 0087): the data behind the committee link and the sign-up. No browser role
   // reaches any of the four: the pages they feed are drawn on the server, and a club that could
   // change its own number range or name length could print what the factory cannot make. The
   // migration seeds every row, each with the rule that explains it.

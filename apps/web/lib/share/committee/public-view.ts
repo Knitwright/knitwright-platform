@@ -8,7 +8,7 @@ import { ONE_VERSION_NOTE, slotLabel, type CommitteeSlot } from "./fields";
 import type { PointBounds } from "./points";
 
 /**
- * What a committee page shows, and nothing more (spec F-T3, plan v5 Z7, decision 0086).
+ * What a committee page shows, and nothing more (spec F-T3, plan v5 Z7, decision 0087).
  *
  * Each option is one saved version, drawn by the same renderer the editor uses, which gives both
  * the pictures and the outline the read-only 3D view is built from. A visitor sees the design's

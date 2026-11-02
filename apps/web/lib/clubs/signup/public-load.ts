@@ -7,7 +7,7 @@ import type { OpenSignup } from "./service";
 import { guideForWearer, type SizeGuide } from "./size-guide";
 
 /**
- * Reads and draws a sign-up page from a token (spec F-T4, plan v5 Z7, decision 0086).
+ * Reads and draws a sign-up page from a token (spec F-T4, plan v5 Z7, decision 0087).
  *
  * Everything is read for the club the token's link belongs to, never for a club a player names: the
  * season through the token and the club's own size charts. A player is shown the club's name, the
