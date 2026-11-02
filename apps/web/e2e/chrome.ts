@@ -18,10 +18,26 @@ import { expect, type Locator, type Page } from "@playwright/test";
  * animations that end are waited for, and text still fading in fails the contrast rule for a
  * moment.
  */
-export const accessible = async (page: Page): Promise<void> => {
+/**
+ * Waits for the entrance animations to end, so a measurement is of the settled page.
+ *
+ * `globals.css`'s `kw-rise` runs for 900 ms and starts at `translateY(18px) scale(0.985)`, so
+ * anything measured while it plays is up to 1.5% small and up to 18 px high: a 40 px tap target
+ * measures 39.4, which rounds to 39 and fails a 40 px floor. That is how
+ * `studio-chrome.spec.ts`'s "the way home is this wide" failed on a loaded runner while passing
+ * everywhere else -- the assertion was right and the moment was wrong.
+ *
+ * The drifting aurora never ends, so only the animations that finish are waited for. Text still
+ * fading in also fails the contrast rule for a moment, which is why `accessible` waits too.
+ */
+export const settled = async (page: Page): Promise<void> => {
   await page.waitForFunction(() =>
     document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
   );
+};
+
+export const accessible = async (page: Page): Promise<void> => {
+  await settled(page);
   const { violations } = await new AxeBuilder({ page }).analyze();
   const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
   const where = (node: (typeof serious)[number]["nodes"][number]): string =>
@@ -38,6 +54,9 @@ const CONTROL_PADDING = 12;
  * The last control of the row is the first to go, whichever control that is at this width.
  */
 export const headerFits = async (page: Page, where = ""): Promise<void> => {
+  // Settled first, or the entrance's inward scale pulls the last control back inside the glass and
+  // a real spill measures as none: this guard was weaker than it read while the animation played.
+  await settled(page);
   const measured = await page.evaluate(() => {
     const bar = document.querySelector("header");
     if (bar === null) return null;
