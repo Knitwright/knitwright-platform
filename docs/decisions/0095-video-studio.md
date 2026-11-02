@@ -1,5 +1,7 @@
 # 0095: The video studio (L5)
 
+Index title: The video studio
+Index: Proposed; the encoder is the browser recorder until a deploy target with ffmpeg exists, every credit figure and every model row is a labelled placeholder, owner questions listed
 Status: Proposed; the encoder is the browser recorder until a deploy target with ffmpeg exists, every credit figure and
 every model row is a labelled placeholder, owner questions listed
 Date: 2026-11-02
