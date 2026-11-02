@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import {
   accountExists,
   createAccount,
+  openAccountMenu,
   invite,
   linkFromMail,
   mailCount,
@@ -45,9 +46,11 @@ test.describe("accounts", () => {
     await page.getByLabel("Club name").fill("Northfield FC");
     await page.getByRole("button", { name: "Set up your club" }).click();
     await expect(page).toHaveURL(/\/studio$/);
-    await expect(page.getByTestId("account-email")).toHaveText(email);
     await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
 
+    // The address signed in, Settings and Sign out are one account menu now (decision 0102).
+    await openAccountMenu(page);
+    await expect(page.getByTestId("account-email")).toHaveText(email);
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
 
@@ -144,6 +147,7 @@ test.describe("accounts", () => {
     await page.getByRole("button", { name: "Save password" }).click();
     await expect(page).toHaveURL(/\/studio$/);
 
+    await openAccountMenu(page);
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
     await signIn(page, email, newPassword);

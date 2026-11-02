@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { createAccount, signIn, test, userIdOf } from "./support";
+import { accessible, createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Make (plan v5 Y7, F-S7): the product-created page, a sample of one piece per size, the golden sample the founder
@@ -87,6 +87,10 @@ test.describe("make (Y7)", () => {
     const fabric = `make-${randomUUID().slice(0, 8)}`;
     await page.getByRole("link", { name: "Order a sample" }).click();
     await expect(page).toHaveURL(new RegExp(`/studio/${projectId}/make/sample$`));
+    // The first accessibility scan of a make page. Its lead holds a "Back to the product" link
+    // that colour alone used to carry, which axe reads at 1.64:1 against the words around it
+    // (decision 0102).
+    await accessible(page);
     await page.getByLabel("Fabric", { exact: true }).fill(fabric);
     await page.getByRole("button", { name: "Send the sample request" }).click();
     await expect(page.getByText(/Sent to production/)).toBeVisible();
@@ -94,6 +98,7 @@ test.describe("make (Y7)", () => {
     // The golden sample: a photo, what the tape read, the founder's marks, and the sign-off.
     await page.goto(`/studio/${projectId}/make/golden-sample`);
     await expect(page.getByRole("heading", { level: 1, name: "Golden sample" })).toBeVisible();
+    await accessible(page);
     await page.getByRole("button", { name: "Start judging it" }).click();
     await expect(page.getByRole("heading", { name: "A photo of the sample" })).toBeVisible();
     await page.getByRole("button", { name: "Attach it" }).click();
@@ -115,6 +120,7 @@ test.describe("make (Y7)", () => {
     await page.getByRole("link", { name: "Select sizes" }).click();
     await expect(page).toHaveURL(new RegExp(`/studio/${projectId}/make/order$`));
     await page.getByRole("heading", { level: 3, name: new RegExp(name) }).waitFor();
+    await accessible(page);
     await page.getByLabel("Size M", { exact: true }).fill("60");
     await expect(page.getByText(/60 pieces/)).toBeVisible();
     await page.getByRole("button", { name: "Hand this order to production" }).click();

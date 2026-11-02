@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { createAccount, createColleagueOf, signIn, test, userIdOf } from "./support";
+import { accessible, createAccount, createColleagueOf, openStudioSection, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan V4 (decision 0042): the club workspace. A season is made, a roster is read from a CSV file
@@ -19,8 +19,12 @@ test.describe("club workspace (V4)", () => {
   test("a season is made, a roster is imported, and next season starts with the same sizes", async ({ page }) => {
     await signIn(page, await createAccount("club"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.getByRole("link", { name: "Club" }).first().click();
+    // Club is one of the sections the top bar lists in its overflow menu (decision 0102).
+    await openStudioSection(page, "Club");
     await expect(page).toHaveURL(/\/club$/);
+    // The first accessibility scan of this page. With no design yet, the Designs section is one
+    // line of prose holding a link that colour alone used to carry (decision 0102).
+    await accessible(page);
 
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("2026");
