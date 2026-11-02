@@ -33,9 +33,6 @@ export type FileProvenance = (typeof FILE_PROVENANCES)[number];
 /** The value a file takes when nothing can say what made it. The safe default is the strict one. */
 export const UNKNOWN_PROVENANCE: FileProvenance = "generated";
 
-/** Whether a model made this file, which is the only question the garment lock asks of a file. */
-export const cameFromAModel = (provenance: FileProvenance): boolean => provenance === "generated";
-
 /** Reads a provenance out of a `files` row, which is plain text to the client library. */
 export const fileProvenanceOf = (value: unknown): FileProvenance =>
   FILE_PROVENANCES.includes(value as FileProvenance) ? (value as FileProvenance) : UNKNOWN_PROVENANCE;
