@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { VIDEO_GAP_RULE } from "./formats";
+import { TURNTABLE_SECONDS } from "./limits";
 import {
   COLOURWAY_LABELS,
   isSequenceKey,
@@ -18,6 +19,17 @@ describe("the deterministic sequences", () => {
     expect(VIDEO_SEQUENCES.flip.seconds).toBe(4);
     expect(VIDEO_SEQUENCES.kit_reveal.seconds).toBe(8);
     expect(VIDEO_SEQUENCES.carousel.seconds).toBe(9);
+  });
+
+  /**
+   * Code review of plan v5, item D-21: the browser recording of a turntable ran 8 s (decision 0058)
+   * and the launch video's turntable 6 s (F-L3 and `07`), so the same turn had two lengths. The
+   * spec's figure is the one, and it is read from one place (decision 0120).
+   */
+  it("gives one full turn one length, wherever a turntable is made", () => {
+    expect(TURNTABLE_SECONDS).toBe(6);
+    expect(VIDEO_SEQUENCES.turntable.seconds).toBe(TURNTABLE_SECONDS);
+    expect(VIDEO_SEQUENCES.turntable.shots[0]?.seconds).toBe(TURNTABLE_SECONDS);
   });
 
   it("have shots that add up to the length each one claims", () => {
