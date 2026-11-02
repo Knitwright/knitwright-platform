@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import type { BoardStatus, BoardView, LaunchPanelProps } from "@/lib/launch";
 import { readBoardSettings, writeBoardSettings, type AiVideoSettings } from "@/lib/media/video/ai-board";
-import { DURATION_BOUNDS, type VideoAspect } from "@/lib/media/video/formats";
+import { DURATION_BOUNDS, durationVerdict, type VideoAspect } from "@/lib/media/video/formats";
 import { PLACEHOLDER_MODEL_CONFIG, unknownModelKeys, videoModelsFrom, type VideoModel } from "@/lib/media/video/models";
 import type { PresetKey } from "@/lib/media/video/prompt-presets";
 import * as copy from "./copy";
@@ -213,6 +213,11 @@ type ShapeProps = Readonly<{
 
 function Shape({ view, onAspect, onSeconds, onAudio }: ShapeProps) {
   const ids = { seconds: useId(), audio: useId() };
+  // What was typed, until it is a length the spec allows. A length outside the range is refused with
+  // the bounds in the message, never quietly turned into one that is allowed (decision 0091, item 7).
+  const [typed, setTyped] = useState<string | null>(null);
+  const shown = typed ?? String(view.duration.seconds);
+  const verdict = durationVerdict(Number(shown));
   return (
     <section aria-label="Shape" className={SECTION}>
       <fieldset disabled={view.busy} className={SECTION} data-testid="video-aspects">
@@ -238,9 +243,15 @@ function Shape({ view, onAspect, onSeconds, onAudio }: ShapeProps) {
           min={DURATION_BOUNDS.minSeconds}
           max={DURATION_BOUNDS.maxSeconds}
           step={1}
-          value={view.duration.seconds}
+          value={shown}
           disabled={view.busy}
-          onChange={(event) => onSeconds(Number(event.target.value))}
+          aria-invalid={verdict.ok ? undefined : true}
+          onChange={(event) => {
+            setTyped(event.target.value);
+            const given = durationVerdict(Number(event.target.value));
+            if (given.ok) onSeconds(given.seconds);
+          }}
+          onBlur={() => setTyped(null)}
           aria-describedby={`${ids.seconds}-hint`}
           className={FIELD}
           data-testid="video-seconds"
@@ -248,6 +259,11 @@ function Shape({ view, onAspect, onSeconds, onAudio }: ShapeProps) {
         <p id={`${ids.seconds}-hint`} className={HINT}>
           {view.duration.min} to {view.duration.max}. {view.duration.note}.
         </p>
+        {verdict.ok ? null : (
+          <p role="alert" className="text-[12px] leading-relaxed text-warn" data-testid="video-seconds-error">
+            {verdict.reason}
+          </p>
+        )}
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center gap-3">
