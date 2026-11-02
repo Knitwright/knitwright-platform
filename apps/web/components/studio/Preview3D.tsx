@@ -13,6 +13,15 @@ const GarmentViewer = dynamic(() => import("@/components/garment3d/GarmentViewer
   loading: () => <p className="text-sm text-muted">{LOADING_LABEL}</p>,
 });
 
+/**
+ * The video studio of F-L3 (L5, decision 0095): the four free deterministic videos, recorded off
+ * this very canvas in the browser. It is fetched with the 3D code rather than with the page,
+ * because it is no use without a 3D view to record -- it finds the canvas itself and, when there
+ * is none, says so. It asks the view what it can do, so only the videos this view can really
+ * record are offered.
+ */
+const VideoStudio = dynamic(() => import("@/components/video/VideoStudio"), { ssr: false });
+
 /** A trial (step 9A, owner verdict A10 owed): the design as a 3D form, behind a button. */
 export function Preview3D({ flat }: Readonly<{ flat: FlatPreviewData }>) {
   const [open, setOpen] = useState(false);
@@ -29,6 +38,7 @@ export function Preview3D({ flat }: Readonly<{ flat: FlatPreviewData }>) {
         <div className="mt-3">
           <GarmentViewer shape={flat.shape} pictures={pictures} />
           <TurntableControl />
+          <VideoStudio />
         </div>
       ) : null}
     </div>

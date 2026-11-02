@@ -90,17 +90,25 @@ test.describe("the launch shell", () => {
     await page.keyboard.press("ArrowDown");
 
     await expect(panels.getByRole("tab", { name: "Text" })).toBeFocused();
-    await expect(page.getByTestId("launch-panel-text")).toContainText("workstream L4");
+    // L4's Text panel is mounted now (decision 0094), so this one shows the panel itself. The
+    // placeholder is gone rather than hidden behind it.
+    await expect(page.getByTestId("marketing-panel-text")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-text")).toHaveCount(0);
     await expect(page).toHaveURL(/panel=text/);
 
     await page.keyboard.press("End");
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
     // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder, as Templates, Uploads and Brand now do (decision 0108).
+    // than a placeholder, as Templates, Uploads and Brand now do (0108) and as L3's and L4's do.
     await panels.getByRole("tab", { name: "Mockups" }).click();
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
+
+    // Likes is the one panel of the rail still waiting: nothing records a like (0108's own owner
+    // question), so it says whose it is rather than showing an empty shelf with a heart on it.
+    await panels.getByRole("tab", { name: "Likes" }).click();
+    await expect(page.getByTestId("launch-panel-likes")).toContainText("workstream L8");
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {
@@ -131,7 +139,9 @@ test.describe("the canvas and the garment lock", () => {
     await expect(page.getByTestId("launch-empty-action")).toHaveText("Add a Design board");
 
     await page.getByTestId("launch-empty-action").click();
-    await expect(page.getByTestId("launch-boards")).toBeVisible();
+    // The boards are L6's flow canvas now (decision 0096): the same contract, with the connectors,
+    // the dragging and the keyboard moves L1 left to it.
+    await expect(page.getByTestId("flow-canvas")).toBeVisible();
     await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
   });
 
@@ -141,7 +151,9 @@ test.describe("the canvas and the garment lock", () => {
     await page.getByTestId("launch-empty-action").click();
     await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Add…" }).click();
+    // The right-edge dot of the spec, as a labelled button: a dot alone is not operable. Its name
+    // starts with the word on it, which is what WCAG 2.5.3 asks of every control on the card.
+    await page.getByRole("button", { name: /^Add…/ }).click();
     const menu = page.getByRole("list", { name: /^Add a board after/ });
 
     await expect(menu.getByRole("button")).toHaveText([/^Mockup/, /^AI image/, /^Marketing/, /^Info card/]);

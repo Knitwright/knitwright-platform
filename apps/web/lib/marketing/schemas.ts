@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RULE_ID } from "@/lib/rulebook/constants";
+import { CAMPAIGNS } from "./campaign/steps";
 import { COLOUR_SPACES, FILE_FORMATS } from "./export/targets";
 import { COLOUR_ROLES, MARKETING_FORMATS, MARKETING_GROUPS, SLOT_KINDS, TEXT_STYLES } from "./templates/types";
 
@@ -44,6 +45,23 @@ export const marketingSnapshotSchema = z.object({
 });
 
 export type MarketingSnapshotRow = z.infer<typeof marketingSnapshotSchema>;
+
+/**
+ * What "Write for me" may send (spec F-L2; the wiring of decision 0094). **The slot itself is not
+ * in the body**: a caller says which board and which slot id, and the server reads the board, the
+ * template that board took on and that template's own slot. A well-formed slot in a body would
+ * still be a slot the caller wrote, and a model may only ever be asked to fill a text field the
+ * library really holds.
+ */
+export const writeCopyBody = z.object({
+  launchProjectId: z.uuid(),
+  boardId: z.uuid(),
+  slotId: z.string().min(1).max(64),
+  /** What the person said they want to highlight (the campaign form's step 4), or "". */
+  highlight: z.string().trim().max(200).default(""),
+  campaign: z.enum(CAMPAIGNS).nullable().default(null),
+});
+export type WriteCopyBody = z.output<typeof writeCopyBody>;
 
 /** One row of `marketing_export_targets`. The vocabularies are `export/targets.ts`, which carries no zod. */
 export const exportTargetSchema = z.object({

@@ -1,6 +1,8 @@
 "use client";
 
+import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
 import { Notice } from "@/components/ui/Notice";
+import { flowCostSource } from "@/lib/flows";
 import {
   BOARDS,
   estimateRun,
@@ -9,6 +11,7 @@ import {
   runnable,
   type ArtboardPreset,
   type BoardKind,
+  type BoardView,
   type LaunchCostSource,
   type LaunchPanelProps,
   type LaunchProjectView,
@@ -17,11 +20,17 @@ import {
   type TaskAction,
 } from "@/lib/launch";
 import { canRedo, canUndo } from "@/lib/launch";
+import { writeMarketingCopyAction } from "@/lib/marketing/actions";
+import { MARKETING_RULE } from "@/lib/marketing";
+// Types only: `copy/write` carries zod, and a value import would ship it to the browser.
+import type { WriteRequest, WriteResult } from "@/lib/marketing/copy/write";
+import { renderMockupBoardAction } from "@/lib/mockups/actions";
 import { BoardCanvas } from "./BoardCanvas";
 import { BottomDock } from "./BottomDock";
 import { IconRail } from "./IconRail";
 import { Inspector } from "./Inspector";
 import { MainMenu } from "./MainMenu";
+import { drawnPictures, type MarketingShellData } from "./marketing-services";
 import { RailPanels } from "./RailPanels";
 import { TaskBar } from "./TaskBar";
 import { useLaunchShell } from "./useLaunchShell";
@@ -34,6 +43,8 @@ export type LaunchShellProps = Readonly<{
   /** The state the address asked for, worked out on the server by `launchPageState`. */
   state: LaunchState;
   canEdit: boolean;
+  /** What the marketing panels need from outside the canvas (decision 0094, `marketing-services.ts`). */
+  marketing: MarketingShellData;
 }>;
 
 /* The breakout, as the editor shell has it: from lg up the shell is wider than the page column and
@@ -50,19 +61,23 @@ const FRAME =
 const COLUMNS =
   "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_17rem_minmax(0,1fr)_17rem] xl:grid-cols-[4.75rem_21rem_minmax(0,1fr)_21rem]";
 
+const WRITE_FAILED = "Write for me could not be reached. Check your connection and try again.";
+
 /**
  * The launch shell of the spec's Launch section: the left icon rail with its twelve panels, the
  * canvas of boards, the right inspector, the contextual task bar and the bottom prompt pill and
  * tool dock, under a header with the project's name and the main menu.
  *
  * The rail panels and each board kind's inspector are panels other workstreams fill
- * (`lib/launch/panels.ts`); until they land the shell draws a labelled placeholder for each.
+ * (`lib/launch/panels.ts`). L2's mockups, L4's marketing panels, L5's AI video board and L6's info
+ * card, run summary and canvas are mounted; L3's AI image boards, L7's uploads and brand and L8's
+ * templates and likes still draw a labelled placeholder.
  *
  * Every garment-locked rule is on the screen and not only in the code: a board with no Design board
  * behind it says so in the inspector, its Run button says there is nothing to run, and the task
  * bar's Remove background and Remix are off on a picture the platform drew.
  */
-export function LaunchShell({ project, presets, credits, costs, state, canEdit }: LaunchShellProps) {
+export function LaunchShell({ project, presets, credits, costs, state, canEdit, marketing }: LaunchShellProps) {
   const graph = { boards: project.boards, edges: project.edges };
   const shell = useLaunchShell({
     launchProjectId: project.id,
@@ -73,6 +88,10 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
     state,
     credits,
     costs,
+    runner: (board: BoardView) =>
+      // L2's deterministic mockup is the one capability that is wired: it is free, it is drawn from
+      // the design version behind the board, and it stores a drawn asset (decision 0092).
+      board.kind === "mockup" ? () => renderMockupBoardAction({ launchProjectId: project.id, boardId: board.id }) : null,
   });
   const page = launchPageState({
     query: {
@@ -122,6 +141,32 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
     commands: shell.commands,
   };
 
+  /**
+   * "Write for me" against the selected board. The slot's own id goes to the server and the slot
+   * itself is read there, out of the library's copy of the board's template, so a panel cannot ask
+   * a model to fill anything the layout does not hold (`lib/marketing/actions.ts`).
+   */
+  const write = async (request: WriteRequest): Promise<WriteResult> => {
+    if (selected === null) return { ok: false, reason: "Select the board you are writing for first.", ruleId: MARKETING_RULE };
+    const reply = await writeMarketingCopyAction({
+      launchProjectId: project.id,
+      boardId: selected.id,
+      slotId: request.slot.id,
+      highlight: request.highlight,
+      campaign: request.campaign,
+    }).catch(() => null);
+    if (!reply) return { ok: false, reason: WRITE_FAILED, ruleId: MARKETING_RULE };
+    return reply.success ? reply.data : { ok: false, reason: reply.error.message, ruleId: MARKETING_RULE };
+  };
+
+  const services: Partial<MarketingServices> = {
+    writer: write,
+    voice: marketing.voice,
+    pictures: drawnPictures(project),
+    targets: marketing.targets,
+    watermarkRules: marketing.watermarkRules,
+  };
+
   const action = (id: TaskAction) => {
     if (!selected) return;
     if (id === "remove") return shell.commands.removeBoard(selected.id);
@@ -133,80 +178,75 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
   };
 
   return (
-    <div className={FRAME} data-testid="launch-shell">
-      <header className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] px-4 py-2.5 lg:pl-5">
-        <div className="min-w-0 flex-1 lg:flex-none lg:basis-72">
-          <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink">{project.name}</h1>
-          <p className="truncate font-mono text-xs text-ink-2">
-            {project.boards.length === 1 ? "1 board" : `${project.boards.length} boards`}
-            {selected ? ` · ${BOARDS[selected.kind].label} selected` : ""}
-          </p>
-        </div>
-        <MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} onUnit={shell.commands.setUnit} onCommand={command} />
-      </header>
+    <MarketingServicesProvider services={services}>
+      <div className={FRAME} data-testid="launch-shell">
+        <header className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] px-4 py-2.5 lg:pl-5">
+          <div className="min-w-0 flex-1 lg:flex-none lg:basis-72">
+            <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink">{project.name}</h1>
+            <p className="truncate font-mono text-xs text-ink-2">
+              {project.boards.length === 1 ? "1 board" : `${project.boards.length} boards`}
+              {selected ? ` · ${BOARDS[selected.kind].label} selected` : ""}
+            </p>
+          </div>
+          <MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} onUnit={shell.commands.setUnit} onCommand={command} />
+        </header>
 
-      {canEdit ? null : <Notice tone="info">You can look at this launch project. Only owners, admins and kit managers can change it.</Notice>}
+        {canEdit ? null : <Notice tone="info">You can look at this launch project. Only owners, admins and kit managers can change it.</Notice>}
 
-      {shell.note ? (
-        <div data-testid="launch-note">
-          <Notice tone={shell.note.tone} role={shell.note.tone === "warn" ? "alert" : "status"}>
-            {shell.note.text}
-          </Notice>
-        </div>
-      ) : null}
+        {shell.note ? (
+          <div data-testid="launch-note">
+            <Notice tone={shell.note.tone} role={shell.note.tone === "warn" ? "alert" : "status"}>
+              {shell.note.text}
+            </Notice>
+          </div>
+        ) : null}
 
-      <div className={COLUMNS}>
-        <IconRail open={shell.state.rail} onOpen={shell.commands.openPanel} />
-        <RailPanels open={shell.state.rail} panel={panel} />
+        <div className={COLUMNS}>
+          <IconRail open={shell.state.rail} onOpen={shell.commands.openPanel} />
+          <RailPanels open={shell.state.rail} panel={panel} />
 
-        <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
-          {page.taskBar ? <TaskBar bar={page.taskBar} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
-          <BoardCanvas
-            graph={graph}
-            selectedId={shell.state.boardId}
-            zoom={shell.state.zoom}
-            busy={busy}
-            empty={page.empty}
-            onSelect={shell.commands.selectBoard}
-            onAdd={(kind, fromBoardId) => shell.commands.addBoard(kind, { x: 0, y: 0 }, fromBoardId)}
-          />
-          <BottomDock
-            tool={shell.state.tool}
-            zoom={shell.state.zoom}
-            credits={credits}
-            estimate={estimate}
-            runLabel={estimate ? runLabel(estimate) : null}
-            canRun={canRun && !busy}
-            canUndo={canUndo(shell.stack)}
-            canRedo={canRedo(shell.stack)}
-            busy={busy}
-            prompt={shell.prompt}
-            onPrompt={shell.setPrompt}
-            onTool={shell.commands.chooseTool}
-            onZoom={shell.commands.setZoom}
-            onRun={() => selected && shell.commands.requestRun(selected.id)}
-            onUndo={shell.commands.undo}
-            onRedo={shell.commands.redo}
-          />
-        </div>
+          <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
+            {page.taskBar ? <TaskBar bar={page.taskBar} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
+            <BoardCanvas graph={graph} selectedId={shell.state.boardId} zoom={shell.state.zoom} busy={busy} empty={page.empty} commands={shell.commands} />
+            <BottomDock
+              tool={shell.state.tool}
+              zoom={shell.state.zoom}
+              credits={credits}
+              estimate={estimate}
+              runLabel={estimate ? runLabel(estimate) : null}
+              canRun={canRun && !busy}
+              canUndo={canUndo(shell.stack)}
+              canRedo={canRedo(shell.stack)}
+              busy={busy}
+              prompt={shell.prompt}
+              onPrompt={shell.setPrompt}
+              onTool={shell.commands.chooseTool}
+              onZoom={shell.commands.setZoom}
+              onRun={() => selected && shell.commands.requestRun(selected.id)}
+              onUndo={shell.commands.undo}
+              onRedo={shell.commands.redo}
+            />
+          </div>
 
-        <div className="flex min-h-0 flex-col">
-          <Inspector
-            projectName={project.name}
-            colours={project.colours}
-            selection={page.selection}
-            unit={shell.state.unit}
-            presets={presets}
-            busy={busy}
-            lockNote={page.lockNote}
-            panel={panel}
-            onUnit={shell.commands.setUnit}
-            onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
-            onColours={shell.commands.setProjectColours}
-            onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
-          />
+          <div className="flex min-h-0 flex-col">
+            <Inspector
+              projectName={project.name}
+              colours={project.colours}
+              selection={page.selection}
+              unit={shell.state.unit}
+              presets={presets}
+              busy={busy}
+              lockNote={page.lockNote}
+              panel={panel}
+              flow={{ costs: flowCostSource(costs), onRunAll: shell.runCanvas }}
+              onUnit={shell.commands.setUnit}
+              onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
+              onColours={shell.commands.setProjectColours}
+              onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </MarketingServicesProvider>
   );
 }

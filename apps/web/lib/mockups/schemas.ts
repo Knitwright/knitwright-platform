@@ -65,3 +65,11 @@ export function sceneFromSnapshot(snapshot: unknown): MockupScene | null {
   const parsed = mockupSceneSchema.safeParse(snapshot);
   return parsed.success ? (parsed.data as MockupScene) : null;
 }
+
+/**
+ * What a run of a mockup board may send (the wiring of decision 0092). Two ids and nothing else:
+ * the scene, the crop, the kit and the shirt are read off the board itself, so a request cannot ask
+ * for a picture of settings nobody saved.
+ */
+export const renderMockupBoardBody = z.object({ launchProjectId: z.uuid(), boardId: z.uuid() });
+export type RenderMockupBoardBody = z.output<typeof renderMockupBoardBody>;
