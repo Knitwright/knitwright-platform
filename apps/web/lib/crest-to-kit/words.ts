@@ -51,8 +51,10 @@ export const LABELS = {
   again: "Build them again",
 } as const;
 
+/** Said under the file input, after the formats line the crest module already owns. */
+export const NOTHING_STORED = "Nothing is stored: your crest is read and then forgotten.";
+
 export const HINTS = {
-  crest: "PNG, JPEG, SVG or PDF, up to 10 MB. An SVG or a PDF stays sharp at any size. Nothing is stored: your crest is read and then forgotten.",
   clubName: "It goes on the quote. Leave it empty and your workspace name is used.",
   colours: `Pick up to ${CREST_LIMITS.maxPickedColours} if you have no crest file to hand.`,
 } as const;

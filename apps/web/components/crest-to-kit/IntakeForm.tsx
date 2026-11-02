@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { CREST_ACCEPT, CREST_FORMATS_HINT } from "@/lib/crest-to-kit/crest";
 import { CREST_LIMITS, FEEL_DEFINITIONS, ROLE_CHOICES, ROLE_LABELS, type FeelId, type RoleChoice } from "@/lib/crest-to-kit/settings";
-import { HINTS, LABELS } from "@/lib/crest-to-kit/words";
+import { HINTS, LABELS, NOTHING_STORED } from "@/lib/crest-to-kit/words";
 
 /**
  * The intake of spec F-T2 steps 1 to 4: the crest or up to three colours, the club's name, the
@@ -154,7 +154,7 @@ export function IntakeForm({ sports, swatches, busy, built, onSubmit }: IntakeFo
           className="min-h-11 rounded-xl border border-hairline bg-white/[0.04] px-3 py-2 text-[15px] text-ink file:mr-3 file:h-8 file:rounded-full file:border file:border-white/20 file:bg-white/10 file:px-3 file:text-[13px] file:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-soft"
         />
         <p id={fileHintId} className="text-sm text-muted">
-          {CREST_FORMATS_HINT} {HINTS.crest.slice(HINTS.crest.indexOf("Nothing is stored"))}
+          {CREST_FORMATS_HINT} {NOTHING_STORED}
         </p>
       </div>
 
