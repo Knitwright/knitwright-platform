@@ -25,6 +25,14 @@ import { FLOW_GAP_RULE } from "./types";
  * used as artwork on a garment or in a print file a factory prints.
  */
 
+/**
+ * Whether a model made this board's own picture: its kind says so, or the board's settings do. The
+ * settings matter because a board a flow template made records how it is made, and a kind L1 counts
+ * as deterministic could be marked as a model scene by a later workstream's data.
+ */
+const drawnByModel = (board: Readonly<{ kind: Graph["boards"][number]["kind"]; settings: Readonly<Record<string, unknown>> }>): boolean =>
+  isGeneratedKind(board.kind) || board.settings["generation"] === "model";
+
 /** Every board a model drew that this board's picture could contain, however many hops back. */
 export function generatedUpstream(graph: Graph, boardId: string): readonly string[] {
   const seen = new Set<string>();
@@ -35,7 +43,7 @@ export function generatedUpstream(graph: Graph, boardId: string): readonly strin
     if (seen.has(id)) continue;
     seen.add(id);
     const board = graph.boards.find((one) => one.id === id);
-    if (board && isGeneratedKind(board.kind)) found.push(board.id);
+    if (board && drawnByModel(board)) found.push(board.id);
     for (const edge of inputsOf(graph, id)) queue.push(edge.fromBoardId);
   }
   return found;

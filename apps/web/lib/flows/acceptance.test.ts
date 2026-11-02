@@ -86,7 +86,7 @@ describe("the Club kit launch pack", () => {
     const { report } = await runAll(graph);
     const byKind = report.lines.reduce<Record<string, number>>((count, line) => ({ ...count, [line.kind]: (count[line.kind] ?? 0) + 1 }), {});
 
-    expect(byKind).toEqual({ mockup: 10, marketing: 4 });
+    expect(byKind).toEqual({ mockup: 7, ai_image: 3, marketing: 4 });
     expect(report.lines.filter((line) => line.format === "mp4")).toHaveLength(1);
   });
 });

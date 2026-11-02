@@ -24,7 +24,16 @@ const RENDERS: readonly Readonly<{ key: string; name: string; scene: string }>[]
   { key: "hanger", name: "On a hanger", scene: "hanger" },
 ];
 
-/** The three teamwear scenes of `07`. A model makes the scene; the garment stays the render. */
+/**
+ * The three teamwear scenes of `07`.
+ *
+ * They are **AI Image boards**, not Mockup boards. `07`'s own flow calls them mockups and the spec's
+ * board table prices a Mockup board as "free if deterministic, credits if AI scene", but F-L1 says
+ * what an AI scene actually becomes -- "each result appears as an AI Image board" -- and L1's asset
+ * model agrees: a Mockup board is a picture the platform drew, and `acceptAsset` refuses a generated
+ * picture on one. So a scene a model makes is an AI Image board here, which keeps the garment lock,
+ * the "AI-generated" label and the refund on failure all working on it (decision 0096).
+ */
 const TEAMWEAR: readonly Readonly<{ key: string; name: string; scene: string }>[] = [
   { key: "changing-room", name: "Changing-room kit layout", scene: "changing-room-kit-layout" },
   { key: "line-up", name: "Team line-up (11)", scene: "team-line-up-11" },
@@ -47,10 +56,10 @@ const teamwearSteps: readonly FlowStepSpec[] = TEAMWEAR.map((one, at) =>
   step({
     key: one.key,
     section: SECTIONS[1],
-    kind: "mockup",
+    kind: "ai_image",
     name: one.name,
     generation: "model",
-    settings: { scene: one.scene, aspect: "4:5", garmentLocked: true },
+    settings: { scene: one.scene, prompt: `${one.name}, floodlit, the garment unchanged`, aspect: "4:5", count: 1, garmentLocked: true },
     feeds: ["design"],
     note: at === 0 ? "A model makes the scene around the kit. The kit itself stays the picture the platform drew." : null,
   }),
