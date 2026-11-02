@@ -47,7 +47,11 @@ const optionalEmail = z
   .refine((text) => text === "" || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(text), EMAIL_RULE)
   .transform((text) => (text === "" ? null : text));
 
-/** The words of a pin, cleaned exactly as a design comment's are. */
+/**
+ * The words of a pin, cleaned exactly as a design comment's are, which includes its length: a pin
+ * IS a design comment (decision 0063), so `COMMENT_MAX_LENGTH` is the only limit and `PIN_MAX` is
+ * the same number for the field's own `maxLength`. `schemas.test.ts` fails if the two ever drift.
+ */
 const pinWords = z
   .string(PIN_RULE)
   .max(PIN_MAX * 5)
@@ -55,10 +59,6 @@ const pinWords = z
     const cleaned = cleanComment(raw);
     if (!cleaned.ok) {
       ctx.addIssue({ code: "custom", message: cleaned.message });
-      return z.NEVER;
-    }
-    if (cleaned.text.length > PIN_MAX) {
-      ctx.addIssue({ code: "custom", message: PIN_RULE });
       return z.NEVER;
     }
     return cleaned.text;
