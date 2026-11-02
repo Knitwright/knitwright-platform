@@ -177,6 +177,7 @@ export default defineConfig({
             "inspiration",
             "job-packet",
             "launch",
+            "launch-panels",
             "make",
             "marketing",
             "markets",

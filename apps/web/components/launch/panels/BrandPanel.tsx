@@ -130,7 +130,7 @@ function Group({ heading, empty, testId, children }: GroupProps) {
 
 type PaletteProps = Readonly<{ palette: BrandPaletteRow; busy: boolean; onApply: () => void }>;
 
-function Palette({ palette, busy, onApply }: PaletteProps) {
+export function Palette({ palette, busy, onApply }: PaletteProps) {
   return (
     <div className={CARD} data-testid={`launch-brand-palette-${palette.id}`}>
       <h4 className="text-[13px] font-medium text-ink">{palette.name}</h4>
@@ -161,7 +161,7 @@ function Palette({ palette, busy, onApply }: PaletteProps) {
   );
 }
 
-function Font({ font }: Readonly<{ font: BrandTabFont }>) {
+export function Font({ font }: Readonly<{ font: BrandTabFont }>) {
   return (
     <div className={CARD} data-testid={`launch-brand-font-${font.key}`}>
       <h4 className="text-[13px] font-medium text-ink">

@@ -81,7 +81,10 @@ test.describe("the launch shell", () => {
     const panels = page.getByRole("tablist", { name: "Panels" });
 
     await expect(panels.getByRole("tab", { name: "Templates" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("launch-panel-templates")).toContainText("workstream L8");
+    // The Templates panel is built now (decision 0106), so it shows the library rather than a
+    // placeholder. The placeholder is gone rather than hidden behind it.
+    await expect(page.getByTestId("launch-templates-panel")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-templates")).toHaveCount(0);
 
     await panels.getByRole("tab", { name: "Templates" }).focus();
     await page.keyboard.press("ArrowDown");
@@ -94,7 +97,7 @@ test.describe("the launch shell", () => {
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
     // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder. The other ten still name the workstream that will fill them.
+    // than a placeholder, as Templates, Uploads and Brand now do (decision 0106).
     await panels.getByRole("tab", { name: "Mockups" }).click();
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);

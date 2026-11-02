@@ -57,7 +57,7 @@ export default function UploadsPanel({ context }: LaunchPanelProps) {
   );
 }
 
-function UploadCard({ row }: Readonly<{ row: UploadRow }>) {
+export function UploadCard({ row }: Readonly<{ row: UploadRow }>) {
   return (
     <div className={CARD} data-testid={`launch-upload-${row.id}`}>
       <h3 className="text-[13px] font-medium text-ink">{row.label}</h3>

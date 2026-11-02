@@ -138,7 +138,7 @@ export default function TemplatesPanel({ context, commands }: LaunchPanelProps) 
 
 type FilterRowProps = Readonly<{ group: TagFilterGroup; chosen: string | null; onChoose: (id: string) => void }>;
 
-function FilterRow({ group, chosen, onChoose }: FilterRowProps) {
+export function FilterRow({ group, chosen, onChoose }: FilterRowProps) {
   return (
     <ul {...listProps(`${group.label} filters`)} className="flex flex-wrap gap-1.5" data-testid={`launch-templates-filter-${group.group}`}>
       {group.choices.map((choice) => (
@@ -162,7 +162,7 @@ function FilterRow({ group, chosen, onChoose }: FilterRowProps) {
 
 type CollectionProps = Readonly<{ collection: TemplateCollection; open: boolean; busy: boolean; onToggle: () => void }>;
 
-function Collection({ collection, open, busy, onToggle }: CollectionProps) {
+export function Collection({ collection, open, busy, onToggle }: CollectionProps) {
   const headingId = `launch-templates-collection-${collection.key.toLowerCase().replaceAll(" ", "-")}`;
   return (
     <section {...collectionProps(headingId)} data-testid={headingId} className="flex min-w-0 flex-col gap-2">
