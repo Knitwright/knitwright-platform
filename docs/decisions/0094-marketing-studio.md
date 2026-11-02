@@ -84,9 +84,13 @@ restyle, recolour or redraw the garment in a picture.
    characters, held to the field's limit, and offered as three options a person chooses between.
    Nothing reaches the artboard until they pick one.
 
-7. **Brand Studio is not in `main`, so the brand's voice is the smallest interface with a stub.**
-   `copy/voice.ts` holds `BrandVoice` and `BrandVoiceSource`, which Y6 will implement; this
-   workstream imports nothing from an unmerged directory (plan lesson 9).
+7. **The voice tags are Brand Studio's own list, and one adapter reads its record.** This branch was
+   written against an interface of its own, because `lib/brand-studio` was not in `main` (plan
+   lesson 9); Y6 (decision 0079) merged while it was in flight, so `copy/voice.ts` now re-exports
+   `VOICE_TAGS` and `VOICE_TAG_LABELS` from `lib/brand-studio/words.ts` rather than keeping a second
+   copy of the five tags, and `voiceFromRecord` is the one adapter from a `BrandRecord` to what
+   "Write for me" needs. `BrandVoiceSource` stays an interface with a stub, so the writer's tests
+   need no database.
 
 8. **The export panel refuses what it cannot do, in words, and never exports something else.**
    `export/panel.ts` turns every choice into one verdict. A CMYK file with no profile on file, a
