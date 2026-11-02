@@ -18,7 +18,7 @@ import type { MockupScene, SceneGroup } from "./types";
  *
  * A scene is not a design, so two of the table's columns have nothing true to put in them:
  * `article_id` (a scene is not drawn on one article -- `07` gives it garment *slots*) and `wearer`.
- * The migration `20261201060000_mockup_scenes.sql` lets them be null for a row that is not a design
+ * The migration `20261201070000_mockup_scenes.sql` lets them be null for a row that is not a design
  * and keeps them required for one that is, rather than this file writing a garment type that the
  * scene is not for.
  */

@@ -18,7 +18,7 @@ import { adminClient, anonClient, must, person, type Person } from "./support";
  *     the narrowing L8 said had to come with the first row of a second kind, and a scene row would
  *     otherwise fail its parse and take the whole page with it;
  *   * **a design still names its article and its wearer.** Both columns became nullable so a scene
- *     could leave them empty, and `templates_design_names_an_article` keeps them required for a
+ *     could leave them empty, and L4's `templates_design_columns_describe_a_design` keeps them required for a
  *     design.
  *
  * Every test reads. The one write is the seed itself, which is platform data found by slug, so running
@@ -111,7 +111,8 @@ describe("what the database refuses", () => {
     const once = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const base = { ...mockupSceneRow(ALL_MOCKUP_SCENES[0]!), slug: `design-no-article-${once}`, title: `Design check ${once}` };
 
-    // A design with neither: refused by templates_design_names_an_article.
+    // A design with neither: refused by templates_design_columns_describe_a_design (L4's, an
+    // equality, so a design must name all five and a row that is not a design must leave one empty).
     expect((await adminClient().from("templates").insert({ ...base, kind: "design" })).error).not.toBeNull();
     // A design with only one of the two: refused as well.
     expect((await adminClient().from("templates").insert({ ...base, kind: "design", article_id: "crew-tee" })).error).not.toBeNull();

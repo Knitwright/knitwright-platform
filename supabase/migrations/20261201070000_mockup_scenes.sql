@@ -1,0 +1,33 @@
+-- The mockup scenes of docs/spec/07-template-library.md as rows of public.templates
+-- (plans/platform-v5.md wave 4, workstream L2; spec F-L1; decision 0092).
+--
+-- No migration was assigned to L2. This one takes the wave's own date and the next free hour.
+-- It was first written as hour 06, which **collided with L4's 20261201060000_marketing_studio.sql**:
+-- two workstreams each took "the next free hour" without seeing the other, and the second to be
+-- applied failed with `duplicate key value violates unique constraint "schema_migrations_pkey"`.
+-- The orchestrator moved this file to hour 07 when L4 merged first.
+--
+-- `07` names seven kinds of template and L8 added `templates.kind` for them
+-- (20261201050000_template_kinds.sql). A mockup scene is one of those kinds, seeded as a `templates`
+-- row with the scene itself in `snapshot`: no column is added here, so nothing runs into the trap
+-- that a column added later carries no grant and a read naming it is refused for the whole table.
+-- `snapshot` is already granted to `authenticated` (20261030020000_member_visible_columns.sql).
+--
+-- WHAT THIS FILE NO LONGER DOES, AND WHY.
+--
+-- `templates` was written for finished designs, so it required `article_id` (a garment type) and
+-- `wearer` on every row, and a mockup scene has neither: `07` gives a scene garment *slots*, and a
+-- scene like "Folded stack" is for any garment the platform can draw. Writing a garment type a scene
+-- is not for would state a fact nobody can support. This file used to make those two columns
+-- nullable and add its own check. **L4's migration now does strictly more** -- it makes `sport`,
+-- `article_id`, `wearer`, `style_tags` and `colour_family` nullable and adds
+-- `templates_design_columns_describe_a_design`, an equality, so a row that is not a design must
+-- leave at least one of the five empty. A scene leaves `article_id` and `wearer` empty, which
+-- satisfies it. So this file keeps only what is still its own and does not add a second, weaker
+-- constraint saying the same thing.
+--
+-- No measurement, no money, no Store concept and no person is anywhere in this file. The scene rows
+-- themselves are written by the server's key through lib/mockups/seed.ts, as every other template is.
+
+-- Reading scenes by kind is what every reader of this table now does, so the index carries it.
+create index templates_mockup_scene_idx on public.templates (kind, slug) where kind = 'mockup_scene';

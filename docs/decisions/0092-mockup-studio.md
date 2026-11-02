@@ -35,8 +35,8 @@ Three things were already true and are built on rather than around:
 
 3. **A scene is not drawn on one base article, and the row says so by holding nothing.** `07` gives a scene garment
    *slots*, not an article: the article is whatever design feeds the board. `article_id` and `wearer` therefore have
-   nothing true to hold for a scene, so migration `20261201060000_mockup_scenes.sql` drops their `not null` and adds
-   `templates_design_names_an_article`, which keeps both required for a row of kind `design`. Writing a garment type
+   nothing true to hold for a scene, so migration `20261201070000_mockup_scenes.sql` drops their `not null` and adds
+   L4's `templates_design_columns_describe_a_design`, which keeps them required for a row of kind `design`. Writing a garment type
    a scene is not for would have been an invented fact; a nullable column with a constraint is the honest shape.
    The same reading is why F-L1's **article filter is not offered**: `ARTICLE_FILTER_GAP` says on the screen that
    there is nothing to filter on, rather than a control that quietly does nothing.
