@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Layer } from "@/lib/artwork-stack";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 
 const uploads: string[] = [];
 const deletes: string[] = [];
@@ -26,7 +27,7 @@ const crest = (over: object): Layer => ({ ...base, id: "g", kind: "graphic", pro
 
 describe("the store of cut pictures", () => {
   it("stores a picture through W7b with the rights the person ticked, and removes without ever throwing", async () => {
-    const store = createDerivedStore(admin, who, new Date("2026-10-15T00:00:00Z"));
+    const store = createDerivedStore(admin, who, new Date("2026-10-15T00:00:00Z"), clearUploads());
     expect(await store.add(new Uint8Array([1]), "design-tile-front.png")).toMatch(/^eeeeeeee/);
     expect(uploads).toEqual(["design-tile-front.png:true"]);
     await store.remove(["eeeeeeee-0000-4000-8000-000000000001", "eeeeeeee-0000-4000-8000-000000000009"]);

@@ -1793,7 +1793,7 @@ const seedGoldenSample = async (
   const runId = runs[0]!.run_id;
   const id = must(await adminClient().rpc("start_golden_sample", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_run_id: runId })) as string;
   const fileId = randomUUID();
-  must(await adminClient().from("files").insert({ id: fileId, brand_id: brandId, bucket: "uploads", path: filePath(brandId), kind: "photo", content_type: "image/png", bytes: 10, created_by: ownerId }));
+  must(await adminClient().from("files").insert({ id: fileId, brand_id: brandId, bucket: "uploads", path: filePath(brandId), kind: "photo", provenance: "uploaded", content_type: "image/png", bytes: 10, created_by: ownerId }));
   must(await adminClient().rpc("add_golden_sample_photo", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_file_id: fileId, p_angle: "front", p_caption: "" }));
   must(await adminClient().rpc("add_golden_sample_pom", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_size_label: "M", p_letter: "A", p_code: "chest", p_measured_mm: 530 }));
   must(await adminClient().rpc("add_golden_sample_colour_reading", { p_brand_id: brandId, p_user_id: ownerId, p_golden_sample_id: id, p_colour_name: "Navy", p_delta_e: 1.2 }));

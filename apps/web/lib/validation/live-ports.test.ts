@@ -172,13 +172,23 @@ describe("the moderation port", () => {
     expect(await moderationReader(store).statusesFor("brand-1", [])).toEqual([]);
   });
 
-  it("leaves out a target with no screening, and keeps the order it was asked in", async () => {
+  /**
+   * M9 and H3 of the v5 security review (decision 0116). A target with no screening used to be
+   * dropped from the answer, so `moderationClear` raised nothing and F-G2's "moderation status
+   * clear" held for content nobody had ever looked at: a check that never ran reported as a pass.
+   * It says `pending` now, which the readiness list refuses on.
+   */
+  it("says pending for a target with no screening, rather than leaving it out, and keeps the order it was asked in", async () => {
     const { store } = createMemoryStore();
     await store.record({ brandId: "brand-1", userId: null, targetKind: "asset", targetId: "b", hook: "upload", label: "Crest", subjectSha256: null, verdict: verdict("flagged") });
 
     const statuses = await moderationReader(store).statusesFor("brand-1", [target("a"), target("b"), target("c")]);
 
-    expect(statuses).toEqual([{ target: target("b"), result: "flagged" }]);
+    expect(statuses).toEqual([
+      { target: target("a"), result: "pending" },
+      { target: target("b"), result: "flagged" },
+      { target: target("c"), result: "pending" },
+    ]);
   });
 
   it("reads the newest screening of each target, and tells an asset from a text of the same id", async () => {

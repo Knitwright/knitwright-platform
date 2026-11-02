@@ -38,7 +38,7 @@ describe("logo rights on a stored file", () => {
     const check = logoRightsFor({ kind: "artwork", confirmed: true, userId: owner.userId, now: new Date("2026-10-11T09:00:00Z") });
     if (!check.ok) throw new Error("expected rights");
 
-    const file = await storeImage({ admin: adminClient(), brandId: brand, userId: owner.userId, kind: "artwork", bytes: await logo(), statedType: "image/png", rights: check.rights });
+    const file = await storeImage({ admin: adminClient(), brandId: brand, userId: owner.userId, kind: "artwork", provenance: "uploaded", bytes: await logo(), statedType: "image/png", rights: check.rights });
 
     const [stored] = must(await adminClient().from("files").select("rights_confirmed_by, rights_confirmed_at, rights_wording_version").eq("id", file.id));
     expect(stored).toEqual({
@@ -49,7 +49,7 @@ describe("logo rights on a stored file", () => {
   });
 
   it("are not asked of a sketch, and a sketch cannot carry them", async () => {
-    const file = await storeImage({ admin: adminClient(), brandId: brand, userId: owner.userId, kind: "sketch", bytes: await logo(), statedType: "image/png" });
+    const file = await storeImage({ admin: adminClient(), brandId: brand, userId: owner.userId, kind: "sketch", provenance: "uploaded", bytes: await logo(), statedType: "image/png" });
     const [stored] = must(await adminClient().from("files").select("rights_confirmed_at").eq("id", file.id));
     expect(stored).toEqual({ rights_confirmed_at: null });
 

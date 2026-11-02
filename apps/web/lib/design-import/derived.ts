@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ArtworkStack, Layer } from "@/lib/artwork-stack";
 import { deleteArtwork, uploadArtwork } from "@/lib/artwork-intake";
+import type { UploadGate } from "@/lib/moderation/gate";
 import { log } from "@/lib/server/log";
 import type { CropFile, PictureFile } from "./cuts";
 import type { ImportReport } from "./report";
@@ -22,10 +23,21 @@ export interface DerivedStore {
   remove(ids: readonly string[]): Promise<void>;
 }
 
-export function createDerivedStore(admin: SupabaseClient, who: { readonly brandId: string; readonly userId: string }, now: Date): DerivedStore {
+export function createDerivedStore(
+  admin: SupabaseClient,
+  who: { readonly brandId: string; readonly userId: string },
+  now: Date,
+  /**
+   * The same screen the artwork upload route uses. **Required**: this path called `uploadArtwork`
+   * with three arguments and so skipped the screen silently, and it is the sharpest of the unwired
+   * upload paths -- up to eight crests, sponsors and badges cut out of a picture a person supplied
+   * (security review v5 H3, decision 0116).
+   */
+  screen: UploadGate,
+): DerivedStore {
   return {
     async add(png, name) {
-      const record = await uploadArtwork(admin, who, { bytes: png, fileName: name, rightsConfirmed: true, now });
+      const record = await uploadArtwork(admin, who, { bytes: png, fileName: name, rightsConfirmed: true, now }, screen);
       return record.id;
     },
     async remove(ids) {

@@ -145,8 +145,8 @@ const BUCKET = "images";
  */
 export function mediaFiles(admin: SupabaseClient, client: SupabaseClient, who: Readonly<{ brandId: string; userId: string }>): MediaFiles {
   return {
-    async saveWatermarked(png) {
-      return (await storeImage({ admin, brandId: who.brandId, userId: who.userId, kind: "render", bytes: png, statedType: "image/png" })).id;
+    async saveWatermarked(png, provenance) {
+      return (await storeImage({ admin, brandId: who.brandId, userId: who.userId, kind: "render", provenance, bytes: png, statedType: "image/png" })).id;
     },
     async saveClean(path, png) {
       const { error } = await admin.storage.from(BUCKET).upload(path, png, { contentType: "image/png", upsert: true });

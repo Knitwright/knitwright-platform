@@ -3,6 +3,7 @@ import { PHOTOREAL_COST } from "@/lib/images/cost";
 import { JOB_STALE_AFTER_MS, type JobRow } from "@/lib/images/job-view";
 import { runImageJob } from "@/lib/images/run-job";
 import { createJob, expireJob, imageRemover, imageSaver, jobStore, latestImages, readJob } from "@/lib/images/service";
+import { clearGenerations } from "@/lib/moderation/fixtures/gates";
 import type { ImageProvider } from "@/lib/providers";
 import { failingImageProvider, stubImageProvider } from "@/lib/providers/image-stub";
 import { createUsageMeter, type UsageMeter } from "@/lib/usage/meter";
@@ -57,6 +58,7 @@ const makeImages = async (provider: ImageProvider) => {
     {
       provider,
       jobs: jobStore(adminClient()),
+      screen: clearGenerations(),
       saveImage: imageSaver(adminClient(), brandId, owner.userId),
       removeImages: imageRemover(adminClient(), brandId),
       refund: meter.refund,

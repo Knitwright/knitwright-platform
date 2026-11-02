@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { seedTemplates } from "../lib/templates/seed/seed";
-import { createAccount, makePlatformAdmin, signIn, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan v4 W5-C: one journey for each role, start to finish. The pieces are covered one by one in the
@@ -145,6 +145,10 @@ test.describe("role journeys (W5-C)", () => {
     await expect(page).toHaveURL(/\/studio$/);
     const projectId = await startDesign(page, "Journey hoodie");
     await freeze(email, projectId, "Round 1");
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
+    // run starts (spec F-G1; security review v5 H3, decision 0116). This journey is about the
+    // durable records; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
+    await allowClassBRun(projectId, "journey-reviewer");
 
     await page.goto("/brand");
     const products = page.getByRole("region", { name: "Product list" });

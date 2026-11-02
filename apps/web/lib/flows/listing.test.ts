@@ -83,6 +83,30 @@ describe("the listing payload", () => {
     expect(drop.media.find((one) => one.boardId === "lifestyle-city")?.trueColourFileId).not.toBeNull();
   });
 
+  /**
+   * H1 of the v5 security review (decision 0116). The label was worked out from the shape of the
+   * canvas alone, and the whole of what that attack bought was a generated picture sitting on a
+   * board the platform draws, whose topology says nothing a model made could have reached it -- so
+   * the mandatory label came out `null`. The files' own rows answer as well now, and either answer
+   * is enough: pass the render's own file as one a model made and it is labelled.
+   */
+  it("labels a picture its own file says a model made, whatever the shape of the canvas says", async () => {
+    const graph = await ran();
+    const render = graph.boards.find((one) => one.id === "render-front");
+    const fileId = render?.outputFileId as string;
+
+    expect(listingPayload(graph, input).media.find((one) => one.boardId === "render-front")?.label).toBeNull();
+    expect(listingPayload(graph, { ...input, generatedFileIds: [fileId] }).media.find((one) => one.boardId === "render-front")?.label).toBe(
+      "AI-generated",
+    );
+  });
+
+  it("still labels a picture the canvas says a model touched when the files say nothing", async () => {
+    const graph = await ran();
+    const payload = listingPayload(graph, { ...input, generatedFileIds: [] });
+    expect(payload.media.find((one) => one.boardId === "line-up")?.label).toBe("AI-generated");
+  });
+
   it("finds the nearest picture the platform drew, walking back up the connectors", async () => {
     const graph = await ran("brand-drop-pack");
 

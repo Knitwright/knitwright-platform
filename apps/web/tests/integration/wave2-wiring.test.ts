@@ -92,8 +92,14 @@ describe("the moderation port over the server's own key", () => {
     expect(await moderation().statusesFor(brand, [asset(id)])).toEqual([{ target: asset(id), result: "clear" }]);
   });
 
-  it("leaves a target nobody has screened out of the answer", async () => {
-    expect(await moderation().statusesFor(brand, [asset(randomUUID())])).toEqual([]);
+  /**
+   * It used to leave such a target out of the answer, so `moderationClear` raised nothing and
+   * F-G2's "moderation status clear" held for content nobody had ever looked at -- a check that
+   * never ran reported as a pass (M9 and H3 of the v5 security review, decision 0116).
+   */
+  it("says pending for a target nobody has screened, rather than leaving it out", async () => {
+    const id = randomUUID();
+    expect(await moderation().statusesFor(brand, [asset(id)])).toEqual([{ target: asset(id), result: "pending" }]);
   });
 
   it("reads a reviewer's decision, so an allowed picture stops raising a finding", async () => {

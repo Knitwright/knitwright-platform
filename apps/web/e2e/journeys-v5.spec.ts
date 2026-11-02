@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import sharp from "sharp";
-import { createAccount, makePlatformAdmin, passBotCheck, signIn, standInForBotCheck, summary, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, makePlatformAdmin, passBotCheck, signIn, standInForBotCheck, summary, test, userIdOf } from "./support";
 
 /**
  * THE THREE JOURNEYS OF PLAN v5 WAVE 5 (R3), ON REAL SCREENS.
@@ -118,6 +118,10 @@ async function listAsProduct(email: string, projectId: string, name: string): Pr
       bucket: "uploads",
       path: `${brandId}/journeys-v5/${randomUUID()}.png`,
       kind: "photo",
+      // A golden sample's picture is a photograph somebody took of the sample, and nothing a model
+      // made (security review v5 H1, migration 20261215010000). The column's default is the strict
+      // value, so a seed that says nothing is refused by `add_golden_sample_photo`.
+      provenance: "uploaded",
       content_type: "image/png",
       bytes: 10,
       created_by: userId,
@@ -169,6 +173,10 @@ test.describe("the founder journey (R3)", () => {
     expect(projectId).not.toBe("");
 
     await listAsProduct(email, projectId, name);
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
+    // run starts (spec F-G1; security review v5 H3, decision 0116). This journey is about reaching
+    // the production package; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
+    await allowClassBRun(projectId, "founder-reviewer");
 
     // The make hub, reached the way the editor offers it: the File menu.
     await page.getByTestId("file-menu-button").click();

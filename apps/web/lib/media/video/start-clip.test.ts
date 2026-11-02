@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { clearGenerations } from "@/lib/moderation/fixtures/gates";
 import { cleanPath } from "../paths";
 import { memoryFiles, memoryStore } from "../test-deps";
 import { startClip, type StartClipDeps } from "./start-clip";
@@ -20,7 +21,7 @@ async function setup(provider = stubVideoProvider()) {
   await store.move(id, ["running"], "succeeded");
   const scheduled: Array<() => Promise<unknown>> = [];
   const refund = vi.fn(async () => {});
-  const deps: StartClipDeps = { store, files, videos: memoryVideos(), provider, log: vi.fn(), schedule: (work) => void scheduled.push(work), refund };
+  const deps: StartClipDeps = { store, files, videos: memoryVideos(), provider, screen: clearGenerations(), log: vi.fn(), schedule: (work) => void scheduled.push(work), refund };
   return { deps, scheduled, refund, ask: { brandId: BRAND, projectId: PROJECT, setId: id }, store, id };
 }
 

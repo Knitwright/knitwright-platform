@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { createAssetReader } from "@/lib/artwork-intake";
 import { createFakeAdmin, type FakeAdmin } from "@/lib/artwork-intake/fixtures/fake-admin";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 import { uploadArtwork } from "@/lib/artwork-intake/service";
 import type { ArtworkStack, AssetReader } from "@/lib/artwork-stack";
 import type { GradedPattern, PrintFileSpec, PrintProfile } from "@/lib/production/contract";
@@ -34,7 +35,7 @@ export async function realWorld(): Promise<RealWorld> {
     fake,
     assets,
     pattern: found.pattern,
-    upload: async (bytes, fileName) => (await uploadArtwork(fake.admin, { brandId: BRAND, userId: USER }, { bytes, fileName, rightsConfirmed: true, now: NOW })).id,
+    upload: async (bytes, fileName) => (await uploadArtwork(fake.admin, { brandId: BRAND, userId: USER }, { bytes, fileName, rightsConfirmed: true, now: NOW }, clearUploads())).id,
     builder: (stack, over = {}) =>
       createPrintFileBuilder({
         pattern: found.pattern,
