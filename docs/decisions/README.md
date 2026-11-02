@@ -115,6 +115,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
 | 0100 | [Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard](0100-ops-completion.md) | Proposed; the AQL figures are seeded with no source cited, owner questions listed |
 | 0101 | [What one garment consumes, per bill-of-materials line](0101-bom-consumption.md) | Proposed; one article's five figures seeded, each quoted and labelled a Knitwright draft no factory has agreed, seven of eight articles deliberately hold nothing and are still refused, owner questions listed |
+| 0102 | [Crest to kit, and the quote PDF](0102-crest-to-kit-and-quote.md) | Proposed; no Pantone data ships so no Pantone match is claimed, no delivery date can be shown, the socks of every |
 
 <!-- End of the generated table. -->
 | 0100 | [Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard](0100-ops-completion.md) | Proposed; the AQL figures are seeded with no source cited, owner questions listed |
