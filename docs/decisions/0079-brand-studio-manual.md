@@ -150,7 +150,10 @@ loss of the `club_kits` data a club has already entered.
    chest-sponsor and crest width per article, so the DPI check can run without the brand typing a number?
 5. **The top bar is full, and Y6 only bought it 43 px.** Seven sections plus the mark, the brand, the credits, the
    account, Settings and Sign out do not fit in 1110 px, and no screen is ever wider than that because the bar is
-   capped at the page width. Z3, Z5 and Z8 each add a section, and one section is about 90 px, so the next one spends
+   capped at the page width. The history shows how little room there was: this branch first added a section of its own
+   to `StudioNav`, which failed the same scan; it gave the section back and kept only the pill, and the scan passed on
+   30 October at 05:27; then `main` added Y1's own **Catalogue** section, about 106 px, and the scan failed again. Two
+   workstreams each adding one thing to the row is what crossed the line, and neither of them was unreasonable. Z3, Z5 and Z8 each add a section, and one section is about 90 px, so the next one spends
    everything this change bought and the contrast fault comes back for all of them. Three ways out, and the choice is
    the owner's: move the sections into an overflow menu beyond the first four; collapse the account cluster (email,
    Settings, Sign out) into one account menu, reusing the `PhoneMenu` panel at every width; or let the bar be wider
