@@ -82,10 +82,15 @@ Two further facts shaped how this was done:
    toolbar: decision 0083 left it for "the Studio's design surface", and F-S5 asks for a box "scoped
    to the current design".
 
-   **The board is mounted the first time the Library toolbar is opened**, not on every editor load.
-   All three toolbars are drawn at once so a hidden panel keeps what was typed in it, and the board
-   asks its server action for the whole board as soon as it is mounted; mounting it eagerly would
-   spend a server round trip on every editor page view. Once it is up it stays up.
+   **The board and the repeat maker are mounted the first time the Library toolbar is opened**, not
+   on every editor load, and then kept, so a draft and a board already read survive a switch to
+   another toolbar. All three toolbars are drawn at once so a hidden panel keeps what was typed in
+   it, and neither of these two belongs there unasked: the board asks its server action for the
+   whole board as soon as it is mounted, which would be a round trip on every editor page view, and
+   the repeat maker carries the ordinary artwork upload (decision 0081 item 11), whose rights tick
+   and file field would be a second copy of the Logos tool's own on every editor page. That second
+   copy is also why `e2e/flats.spec.ts` now scopes its rights tick and its file field to the Logos
+   tool's panel: the locator was never safe against a second upload anywhere on the screen.
 
    **The Ask box is scoped to the article and not to a method.** The rulebook scopes a rule to a
    make method ("sublimation") and no method is on the slot contract: a design's artwork carries a
@@ -161,6 +166,7 @@ worse than an honest absence.
 
 | Claim | Test |
 |---|---|
+| Every one of the nine commands the contract declares reaches something, and a panel is given the design and the commands and nothing else | `components/studio/editor/slot-props.test.ts` — the test that would have caught this whole class of fault |
 | Every slot draws its own panel, and no placeholder is left on the page | `e2e/editor-panels.spec.ts`, "draws each one's own content where a placeholder used to be" |
 | The Library toolbar carries the repeat maker and the inspiration board | same file, "gives the Library toolbar the repeat maker and the inspiration board under it" |
 | The Ask box is on the design surface and refuses an empty question | same file, "puts the Ask box under the Specs toolbar" |
@@ -188,3 +194,10 @@ worse than an honest absence.
    publish to the brand's library the same way?
 4. **The Ask box's place.** It is under the Specs toolbar. The assistant dock on the right is the
    other candidate and is where a founder already types a question. Should the two be one box?
+5. **The right-hand panel between 1024 px and 1279 px.** Decision 0075 hides that column there,
+   because there is no room for a fourth column beside the canvas. Now that the column carries the
+   Export panel and Names & numbers as well as the Design Summary, **neither can be opened at all
+   at a laptop width in that band** — the Export button toggles a panel that is not drawn. The same
+   was true of the Export placeholder before this change, so nothing got worse, but it is now a real
+   panel a person cannot reach. Should the column become a sheet over the canvas in that band, or
+   should the breakpoint move?

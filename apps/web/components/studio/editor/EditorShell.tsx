@@ -72,9 +72,9 @@ export function EditorShell(props: EditorShellProps) {
   const { tool, choose, layout, dispatch, root } = useWorkspace();
   const shell = useShell({ segment: props.segment, view: props.view, beside: props.beside, size: props.size, form: props.form });
   const [side, setSide] = useState<SideId>("summary");
-  // The inspiration board reads its own board as soon as it is mounted, so it is mounted the first
-  // time the Library toolbar is opened rather than on every editor load, and kept once it is up.
-  const [boardShown, setBoardShown] = useState(props.segment === "library");
+  // The repeat maker and the inspiration board are drawn once the Library toolbar has been opened
+  // and then kept: `RailSlots.tsx` says why neither belongs in every editor page view.
+  const [libraryOpened, setLibraryOpened] = useState(props.segment === "library");
   // Set by a slot panel saying the 3D model no longer matches the design. Simulate clears it.
   const [modelStale, setModelStale] = useState(false);
   // The version the last undo of this session moved away from, which is what a redo restores.
@@ -89,13 +89,13 @@ export function EditorShell(props: EditorShellProps) {
     if (shell.state.segment !== "form") shell.openRail("form");
   };
   const openRail = (segment: RailSegment) => {
-    if (segment === "library") setBoardShown(true);
+    if (segment === "library") setLibraryOpened(true);
     shell.openRail(segment);
   };
   /**
-   * `EditorCommands.openSummary`, and what a Design Summary row does: the two sections whose editor
-   * is a slot panel open it in the right-hand panel; the rest open their tool in the left rail, as
-   * they always have.
+   * `EditorCommands.openSummary`, and what a Design Summary row does: a section whose editor is a
+   * slot panel opens it in the right-hand panel (Names & numbers is the one such section today);
+   * the rest open their tool in the left rail, as they always have.
    */
   const openSummary = (section: SummarySectionId) => {
     const here = SIDE_OF_SECTION[section];
@@ -127,6 +127,7 @@ export function EditorShell(props: EditorShellProps) {
     draft: props.draft,
     busy: editor.busy,
     save: editor.saveAction,
+    openRail,
     openSummary,
     needsSimulation: () => setModelStale(true),
   });
@@ -178,7 +179,7 @@ export function EditorShell(props: EditorShellProps) {
           context={{ data, editor, assistantAvailable: assistant.available, slots }}
           tool={tool}
           slot={slot}
-          boardShown={boardShown}
+          libraryOpened={libraryOpened}
         />
         <CanvasFrame
           data={data}
@@ -239,29 +240,35 @@ type PanelProps = Readonly<{
   context: Parameters<typeof ToolPanels>[0]["context"];
   tool: ToolId;
   slot: EditorSlotProps;
-  boardShown: boolean;
+  libraryOpened: boolean;
 }>;
 
 /**
  * The three toolbars' panels. All three are drawn and only the open one shows, so every segment's
  * `aria-controls` names a panel that really exists and a hidden panel keeps what was typed in it.
  */
-function RailPanel({ segment, shell, article, busy, context, tool, slot, boardShown }: PanelProps) {
+function RailPanel({ segment, shell, article, busy, context, tool, slot, libraryOpened }: PanelProps) {
   return (
     <div className="grid gap-3 lg:min-h-0 lg:grid-rows-[minmax(0,1fr)]">
       <FormPanel hidden={segment !== "form"} shell={shell} article={article} busy={busy} context={context} tool={tool} />
-      <RailSlotPanel segment="library" hidden={segment !== "library"} slot={slot} boardShown={boardShown} />
-      <RailSlotPanel segment="specs" hidden={segment !== "specs"} slot={slot} boardShown={boardShown} />
+      <RailSlotPanel segment="library" hidden={segment !== "library"} slot={slot} libraryOpened={libraryOpened} />
+      <RailSlotPanel segment="specs" hidden={segment !== "specs"} slot={slot} libraryOpened={libraryOpened} />
     </div>
   );
 }
 
-type FormPanelProps = Omit<PanelProps, "segment" | "slot" | "boardShown"> & Readonly<{ hidden: boolean }>;
+type FormPanelProps = Omit<PanelProps, "segment" | "slot" | "libraryOpened"> & Readonly<{ hidden: boolean }>;
 
 /** Form: the article's own option tiles and sliders, above the open tool's panel. */
 function FormPanel({ hidden, shell, article, busy, context, tool }: FormPanelProps) {
   return (
-    <div id={segmentPanelId("form")} role="tabpanel" aria-labelledby={segmentTabId("form")} hidden={hidden} className="grid min-h-0 gap-3 lg:grid-rows-[auto_minmax(0,1fr)]">
+    <div
+      id={segmentPanelId("form")}
+      role="tabpanel"
+      aria-labelledby={segmentTabId("form")}
+      hidden={hidden}
+      className="grid min-h-0 gap-3 lg:row-start-1 lg:grid-rows-[auto_minmax(0,1fr)]"
+    >
       {/* The tool panels come first in the markup, so Tab from the tool rail reaches the open
           panel as it always has; the article's own form is drawn above them. */}
       <div className="grid min-h-0 lg:row-start-2">

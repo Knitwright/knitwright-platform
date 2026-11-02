@@ -43,7 +43,9 @@ const startJersey = async (page: Page, label: string): Promise<string> => {
 };
 
 const openToolbar = async (page: Page, label: "Form" | "Library" | "Specs"): Promise<void> => {
-  await page.getByRole("tablist", { name: "Toolbars" }).getByRole("tab", { name: label, exact: true }).click();
+  const tab = page.getByRole("tablist", { name: "Toolbars" }).getByRole("tab", { name: label, exact: true });
+  await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
 };
 
 const openView = async (page: Page, label: "2D" | "3D" | "Tech pack"): Promise<void> => {
@@ -51,9 +53,9 @@ const openView = async (page: Page, label: "2D" | "3D" | "Tech pack"): Promise<v
 };
 
 /** Nothing scrolls sideways, at whatever width the test is running. */
-const noSidewaysScroll = async (page: Page): Promise<void> => {
+const noSidewaysScroll = async (page: Page, where: string): Promise<void> => {
   const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(sideways).toBeLessThanOrEqual(1);
+  expect(sideways, `${where} scrolls the page sideways by this many pixels`).toBeLessThanOrEqual(1);
 };
 
 /**
@@ -64,6 +66,11 @@ const noSidewaysScroll = async (page: Page): Promise<void> => {
 const eachPanel = async (page: Page, work: (where: string) => Promise<void>): Promise<void> => {
   await openToolbar(page, "Library");
   await expect(page.getByTestId("library-toolbar")).toBeVisible();
+  // The board reads itself when it is mounted: wait for it to be up and for the first read to have
+  // answered, so nothing scans or clicks a panel halfway through its first paint.
+  const board = page.getByTestId("editor-inspiration");
+  await expect(board.getByRole("button", { name: "Refresh" })).toBeVisible();
+  await expect(board.getByText("Reading the board.")).toHaveCount(0);
   await work("the Library toolbar");
 
   await openToolbar(page, "Specs");
@@ -197,9 +204,12 @@ test.describe("the panels the shell never mounted", () => {
     await signedIn(page, "panels-axe");
     await startJersey(page, "Axe kit");
 
-    await eachPanel(page, async () => {
+    await eachPanel(page, async (where) => {
+      // The rail writes the address in a router transition, and axe reports `document-title`
+      // against a page whose <title> that transition is still replacing. Wait for it to land.
+      await expect(page).toHaveTitle(/\S/);
       await accessible(page);
-      await noSidewaysScroll(page);
+      await noSidewaysScroll(page, where);
     });
   });
 });
@@ -212,9 +222,12 @@ test.describe("the editor panels on a phone", () => {
     await signedIn(page, "panels-phone");
     await startJersey(page, "Phone kit");
 
-    await eachPanel(page, async () => {
+    await eachPanel(page, async (where) => {
+      // The rail writes the address in a router transition, and axe reports `document-title`
+      // against a page whose <title> that transition is still replacing. Wait for it to land.
+      await expect(page).toHaveTitle(/\S/);
       await accessible(page);
-      await noSidewaysScroll(page);
+      await noSidewaysScroll(page, where);
     });
   });
 });

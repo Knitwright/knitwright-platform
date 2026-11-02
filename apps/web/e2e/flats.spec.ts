@@ -154,8 +154,9 @@ test.describe("the drawing", () => {
     expect(await svgOf(page)).not.toContain("<image");
 
     await openTool(page, "Logos");
-    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
-    await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
+    const logos = page.locator('[data-tool="logos"]');
+    await logos.getByLabel("I own this logo or have permission to use it on garments.").check();
+    await logos.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
     const form = page.getByRole("form", { name: "New artwork" });
     await expect(form).toBeVisible();
     await form.getByLabel("Name").fill("Club badge");
@@ -215,7 +216,8 @@ test.describe("the drawing", () => {
       if (request.method() === "POST" && new URL(request.url()).pathname === "/api/files") uploads.push(request.url());
     });
 
-    await page.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
+    const logos = page.locator('[data-tool="logos"]');
+    await logos.getByLabel("Logo or picture").setInputFiles({ name: "badge.png", mimeType: "image/png", buffer: await logo() });
 
     // The file is kept in the browser, and nothing is sent, until the box is ticked.
     await expect(page.getByText(/^Tick the box below to say you own this logo/)).toBeVisible();
@@ -223,7 +225,7 @@ test.describe("the drawing", () => {
     await expect(page.getByRole("form", { name: "New artwork" })).toHaveCount(0);
     expect(uploads).toEqual([]);
 
-    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
+    await logos.getByLabel("I own this logo or have permission to use it on garments.").check();
     await expect(page.getByRole("form", { name: "New artwork" })).toBeVisible();
     expect(uploads).toHaveLength(1);
   });
@@ -233,8 +235,9 @@ test.describe("the drawing", () => {
     await startDesign(page, "Crew neck tee");
     await openTool(page, "Logos");
 
-    await page.getByLabel("I own this logo or have permission to use it on garments.").check();
-    await page.getByLabel("Logo or picture").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
+    const logos = page.locator('[data-tool="logos"]');
+    await logos.getByLabel("I own this logo or have permission to use it on garments.").check();
+    await logos.getByLabel("Logo or picture").setInputFiles({ name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("hello") });
 
     await expect(page.getByText("Upload a PNG, JPEG or WebP image.")).toBeVisible();
     await expect(page.getByRole("form", { name: "New artwork" })).toHaveCount(0);

@@ -1,7 +1,7 @@
 "use client";
 
 import type { BaseArticle } from "@/lib/catalogue";
-import type { CanvasView, EditorCommands, EditorDesign, EditorDraft, EditorSlotProps, SummarySectionId } from "@/lib/editor";
+import type { CanvasView, EditorCommands, EditorDesign, EditorDraft, EditorSlotProps, RailSegment, SummarySectionId } from "@/lib/editor";
 import type { SpecAction } from "@/lib/garment";
 import type { Shell } from "./useShell";
 
@@ -32,6 +32,9 @@ export type SlotPartsFor = Readonly<{
   busy: boolean;
   /** Saves a change under the name of the control it came from, through the shell's own queue. */
   save: (key: string, action: SpecAction) => void;
+  /** Opens one of the three toolbars. The shell's own, not `useShell`'s: the Library toolbar
+   * mounts the inspiration board the first time it is opened. */
+  openRail: (segment: RailSegment) => void;
   /** Opens one section of the Design Summary, whose editor then shows in the right-hand panel. */
   openSummary: (section: SummarySectionId) => void;
   /** Says the 3D model no longer matches the design, so the chip reads "Not sim ready". */
@@ -60,7 +63,7 @@ export function slotPropsFor(parts: SlotPartsFor): EditorSlotProps {
     setColourway: shell.setColourway,
     // The contract's second argument is optional; the shell's own takes it as given.
     showView: (view: CanvasView, beside = false) => shell.showView(view, beside),
-    openRail: shell.openRail,
+    openRail: parts.openRail,
     openSummary: parts.openSummary,
     save: parts.save,
     needsSimulation: parts.needsSimulation,

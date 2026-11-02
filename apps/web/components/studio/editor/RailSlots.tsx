@@ -11,67 +11,79 @@ import SpecsToolbar from "./specs/SpecsToolbar";
 /**
  * THE LIBRARY AND SPECS TOOLBARS, WITH THE PANELS OTHER WORKSTREAMS BUILT IN THEM.
  *
- * Both were labelled placeholders until now (code review v5, A7, A9, A13, A14): Y3's Library
- * toolbar, Y4's Specs toolbar, Y8's repeat maker, Z1's inspiration board and Z2's Ask box were all
- * built, tested and drawn nowhere. Every one of them is mounted here, in the shell's own directory,
- * so nothing is written into a directory another workstream owns (decision 0075 item 1).
+ * Both segments drew a labelled placeholder until now (code review v5, A7, A9, A12, A13, A14):
+ * Y3's Library toolbar, Y4's Specs toolbar, Y8's repeat maker, Z1's inspiration board and Z2's Ask
+ * box were all built, tested and drawn nowhere. Every one of them is mounted here, in the shell's
+ * own directory, so nothing is written into a directory another workstream owns (decision 0075
+ * item 1).
  *
- * Each slot panel is given exactly `EditorSlotProps`. The three panels that are not slot panels sit
- * where the workstream that built them pointed:
+ * The three slot panels are given exactly `EditorSlotProps`, and each one sits where the
+ * workstream that built it pointed:
  *
- * - **The repeat maker** under Pattern fills, where `lib/panel-layers/library.ts` already says in
- *   its own words that a style a design cannot store is published as a tile by the repeat maker.
- * - **The inspiration board** in the Inspiration group, the labelled slot Y3 left for it
- *   (decision 0082: "Y3 leaves a labelled Inspiration slot in the editor's Library panel").
- * - **The Ask box** under the Specs toolbar: decision 0083 left it for "the Studio's design
- *   surface", which is this shell, and scoped to the design it sits beside.
+ * - **The repeat maker** (the `repeat-maker` slot) under Pattern fills, where
+ *   `lib/panel-layers/library.ts` already says in its own words that a style a design cannot store
+ *   is published as a tile by the repeat maker.
+ * - **The inspiration board**, which is not a slot panel, in the Inspiration group: the labelled
+ *   slot Y3 left for it (decision 0082, "Y3 leaves a labelled Inspiration slot in the editor's
+ *   Library panel"). It takes the design's own id and nothing else.
+ * - **The Ask box**, which is not a slot panel either, under the Specs toolbar: decision 0083 left
+ *   it for "the Studio's design surface", which is this shell, and F-S5 asks for a box scoped to
+ *   the design it sits beside.
  */
 
-type PanelProps = Readonly<{ segment: Exclude<RailSegment, "form">; hidden: boolean; slot: EditorSlotProps; boardShown: boolean }>;
+type PanelProps = Readonly<{ segment: Exclude<RailSegment, "form">; hidden: boolean; slot: EditorSlotProps; libraryOpened: boolean }>;
 
 /**
  * One of the two toolbars the shell does not build itself. Both are drawn and only the open one
  * shows, so every segment's `aria-controls` names a panel that really exists and a hidden panel
  * keeps what was typed in it.
+ *
+ * `lg:row-start-1` puts all three toolbars in the rail column's one `minmax(0,1fr)` row, as the
+ * launch shell's rail does (`components/launch/RailPanels.tsx`). Without it the second and third
+ * panel land in an implicit `auto` row, so a toolbar as tall as these grows past the shell instead
+ * of scrolling inside itself, and the overflow carried the panel over the toolbar tabs.
  */
-export function RailSlotPanel({ segment, hidden, slot, boardShown }: PanelProps) {
+export function RailSlotPanel({ segment, hidden, slot, libraryOpened }: PanelProps) {
   return (
     <div
       id={segmentPanelId(segment)}
       role="tabpanel"
       aria-labelledby={segmentTabId(segment)}
       hidden={hidden}
-      className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4"
+      className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4 lg:row-start-1"
     >
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{SEGMENTS[segment].title}</h2>
         <p className="text-[13px] leading-relaxed text-ink-2">{SEGMENTS[segment].lead}</p>
       </header>
-      {segment === "library" ? <LibraryBody slot={slot} boardShown={boardShown} /> : <SpecsBody slot={slot} />}
+      {segment === "library" ? <LibraryBody slot={slot} opened={libraryOpened} /> : <SpecsBody slot={slot} />}
     </div>
   );
 }
 
-/** Y3's toolbar, Y8's repeat maker and Z1's board, in the order the spec draws the Library toolbar. */
-function LibraryBody({ slot, boardShown }: Readonly<{ slot: EditorSlotProps; boardShown: boolean }>) {
+/**
+ * Y3's toolbar, Y8's repeat maker and Z1's board, in the order the spec draws the Library toolbar.
+ *
+ * The repeat maker and the board are drawn only once this toolbar has been opened, and then kept,
+ * so a draft and a board already read survive a switch to another toolbar. All three toolbars are
+ * in the page at once and neither of these two belongs there unasked: the board asks its server
+ * action for the whole board as soon as it is mounted, which would be a round trip on every editor
+ * page view, and the repeat maker carries the ordinary artwork upload, whose rights tick and file
+ * field would be a second copy of the Logos tool's own on every editor page.
+ */
+function LibraryBody({ slot, opened }: Readonly<{ slot: EditorSlotProps; opened: boolean }>) {
   return (
     <>
       <LibraryToolbar {...slot} />
-      <RepeatMaker {...slot} />
-      <section aria-label="Inspiration board" className="flex flex-col gap-2" data-testid="editor-inspiration">
-        <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Inspiration board</h3>
-        {/*
-         * The board asks its server action for the whole board as soon as it is mounted, and all
-         * three toolbars are drawn at once, so it is mounted the first time the Library toolbar is
-         * opened rather than on every editor load. Once it is up it stays up, so switching toolbars
-         * does not ask again.
-         */}
-        {boardShown ? (
-          <InspirationPanel projectId={slot.design.projectId} />
-        ) : (
-          <p className="text-[13px] leading-relaxed text-ink-2">Open the Library toolbar to read the board for this design.</p>
-        )}
-      </section>
+      {opened ? (
+        <>
+          <RepeatMaker {...slot} />
+          <section aria-label="Inspiration board" className="flex flex-col gap-2" data-testid="editor-inspiration">
+            <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">Inspiration board</h3>
+            <InspirationPanel projectId={slot.design.projectId} />
+          </section>
+        </>
+      ) : null}
     </>
   );
 }

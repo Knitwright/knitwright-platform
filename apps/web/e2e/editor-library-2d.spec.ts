@@ -47,6 +47,11 @@ const open2d = async (page: Page): Promise<void> => {
   await expect(page.getByRole("region", { name: "2D pattern view" })).toBeVisible();
 };
 
+/** Opens a section of the toolbar: each is a <details> whose <summary> carries its name and count. */
+const openSection = async (page: Page, id: string): Promise<void> => {
+  await page.getByTestId("library-toolbar").getByTestId(`library-section-${id}`).locator("summary").click();
+};
+
 test.describe("the Library toolbar", () => {
   test("shows the Knitwright library, Your library and Inspiration, and applies a fabric to every panel", async ({ page }) => {
     await signedIn(page, "library-apply");
@@ -60,7 +65,7 @@ test.describe("the Library toolbar", () => {
     await expect(toolbar.getByRole("heading", { name: "Inspiration" })).toBeVisible();
 
     // The fabrics are the base article's own approved list, with their spec cards.
-    await toolbar.getByTestId("library-section-kw-fabrics").getByText("Fabrics").click();
+    await openSection(page, "kw-fabrics");
     const fabric = toolbar.getByTestId("library-item-fabric-F-POLY-INT");
     await expect(fabric).toContainText("100% polyester interlock");
     await fabric.getByRole("button", { name: /F-POLY-INT/ }).click();
@@ -85,11 +90,13 @@ test.describe("the Library toolbar", () => {
     await openLibrary(page);
 
     const toolbar = page.getByTestId("library-toolbar");
-    await toolbar.getByTestId("library-section-kw-colours").getByText("Colours").click();
+    // The section's own <summary>. `getByText("Colours")` matches the nineteen swatch buttons under
+    // it as well, which nothing noticed while these tests skipped themselves.
+    await openSection(page, "kw-colours");
     await toolbar.getByTestId("library-item-colour-classic-navy").getByRole("button", { name: /Navy/ }).click();
     await expect(page.getByTestId("library-said")).toContainText("every panel");
 
-    await toolbar.getByTestId("library-section-kw-pattern-fills").getByText("Pattern fills").click();
+    await openSection(page, "kw-pattern-fills");
     await toolbar.getByTestId("library-item-fill-kit-hoops-classic").getByRole("button", { name: /Hoops/ }).click();
 
     const popover = page.getByTestId("pattern-fill");
@@ -111,7 +118,8 @@ test.describe("the 2D pattern view", () => {
     const view = page.getByTestId("view-2d");
     await expect(view).toBeVisible();
     await expect(view.getByTestId("view-2d-hint")).toHaveText("Click to apply to all or drag to apply to one panel");
-    await expect(view.getByTestId("pattern-canvas").locator("canvas")).toBeVisible();
+    // fabric.js draws two stacked canvases, a lower and an upper; the drawing is on the lower one.
+    await expect(view.getByTestId("pattern-canvas").locator("canvas").first()).toBeVisible();
     await expect(view.getByTestId("view-2d-ruler")).toBeVisible();
 
     const legend = view.getByTestId("view-2d-legend");

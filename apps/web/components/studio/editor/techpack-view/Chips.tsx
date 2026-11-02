@@ -9,9 +9,15 @@ import { WhyButton } from "../WhyButton";
  * way on another.
  */
 
+/**
+ * The chip is 10 px, so its words are small text and need 4.5:1. `text-cobalt` is **3.08:1** on the
+ * studio's canvas, which axe measured the first time this panel was ever scanned (code review v5,
+ * A10): the blue tone uses `text-cobalt-soft`, which is 6.6:1, and keeps `border-cobalt/50` so the
+ * chip still reads as the blue one. `ok` and `warn` are 11:1 and 11.6:1 and are left alone.
+ */
 const TONE_CLASS: Readonly<Record<"green" | "blue" | "amber" | "neutral", string>> = {
   green: "border-ok/40 text-ok",
-  blue: "border-cobalt/50 text-cobalt",
+  blue: "border-cobalt/50 text-cobalt-soft",
   amber: "border-warn/50 text-warn",
   neutral: "border-white/20 text-ink-2",
 };
