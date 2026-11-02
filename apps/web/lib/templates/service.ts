@@ -32,9 +32,18 @@ const summaryRow = z.object({
 const NOT_FOUND = "That template does not exist.";
 const unreadable = (cause: unknown): AppError => new AppError("internal", MESSAGES.internal, undefined, { cause });
 
-/** Every template, in a fixed order, without its design. */
+/**
+ * Every design template, in a fixed order, without its design.
+ *
+ * **It asks for `kind = 'design'` and it has to.** `templates` holds the seven kinds of
+ * `docs/spec/07-template-library.md` (L8, decision 0098), and this read parses every row it is given
+ * against the design shape: a mockup scene, a marketing layout or a flow has no `article_id` and no
+ * `wearer`, so one of them in the answer would fail the parse and take the whole library page with
+ * it. L2 seeds the mockup scenes (decision 0092) and narrows this read in the same change, which is
+ * the one thing L8 said it could not do for the workstream that seeds a second kind.
+ */
 export async function loadLibrary(client: SupabaseClient): Promise<readonly TemplateSummary[]> {
-  const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).order("slug").limit(LIBRARY_READ_LIMIT);
+  const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).eq("kind", "design").order("slug").limit(LIBRARY_READ_LIMIT);
   if (error) throw unreadable(error);
   const parsed = z.array(summaryRow).safeParse(data);
   if (!parsed.success) throw unreadable(parsed.error);

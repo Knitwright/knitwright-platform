@@ -34,7 +34,8 @@ describe("the templates the start offers first", () => {
 
   it("reads them, with a drawing for each", async () => {
     const rows = buildSeedTemplates().map((seed, n) => ({ id: summaries[n]!.id, ...rowOf(seed) }));
-    const query = { select: () => query, order: () => query, limit: async () => ({ data: rows, error: null }), in: async () => ({ data: rows, error: null }) };
+    // `loadLibrary` asks for `kind = 'design'` (decision 0092), so the stub answers an `eq` too.
+    const query = { select: () => query, eq: () => query, order: () => query, limit: async () => ({ data: rows, error: null }), in: async () => ({ data: rows, error: null }) };
     const shown = await featuredTemplates({ from: () => query } as unknown as SupabaseClient);
     expect(shown).toHaveLength(FEATURED_COUNT);
     expect(shown.every((entry) => entry.preview !== null)).toBe(true);
