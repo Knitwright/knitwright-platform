@@ -55,28 +55,28 @@ export const familiesMissingNote = (families: readonly TemplateFamily[]): string
 export const fillCodesOf = (article: BaseArticle | null): readonly string[] =>
   (article?.options ?? []).filter((option) => option.group === FILL_GROUP).map((option) => option.code);
 
+/** The families a list of names stands for, in that order. A name no family carries is left out. */
+export const familiesOf = (ids: readonly string[]): readonly TemplateFamily[] =>
+  ids.flatMap((id) => {
+    const family = familyById(id);
+    return family === undefined ? [] : [family];
+  });
+
+/** A family the engine may actually use: one whose fill code the article lists. */
+export type OfferedFamily = TemplateFamily & Readonly<{ code: string }>;
+
 /**
  * The families a feel offers on one base article: the feel's own families in its own order, cut to
  * those whose fill code the article actually offers. An article with no fill group gives an empty
  * list, and the engine then says so rather than proposing a fill nobody listed.
  */
-export function familiesFor(feel: FeelId, article: BaseArticle | null): readonly TemplateFamily[] {
+export function familiesFor(feel: FeelId, article: BaseArticle | null): readonly OfferedFamily[] {
   const offered = new Set(fillCodesOf(article));
-  return feelById(feel)
-    .families.flatMap((id) => {
-      const family = familyById(id);
-      return family === undefined ? [] : [family];
-    })
-    .filter((family) => family.code !== null && offered.has(family.code));
+  return familiesOf(feelById(feel).families).flatMap((family) => (family.code !== null && offered.has(family.code) ? [family as OfferedFamily] : []));
 }
 
 /** The families a feel asked for that the article could not offer, so the screen can name them. */
 export function familiesWithoutCode(feel: FeelId, article: BaseArticle | null): readonly TemplateFamily[] {
   const offered = new Set(fillCodesOf(article));
-  return feelById(feel)
-    .families.flatMap((id) => {
-      const family = familyById(id);
-      return family === undefined ? [] : [family];
-    })
-    .filter((family) => family.code === null || !offered.has(family.code));
+  return familiesOf(feelById(feel).families).filter((family) => family.code === null || !offered.has(family.code));
 }

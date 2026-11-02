@@ -3,7 +3,7 @@ import { defaultsOver } from "@/lib/editor";
 import { partsForSport, startingKit, type ArticleBook, type KitPart, type TeamwearKit } from "@/lib/teamwear/kit";
 import { sportById } from "@/lib/teamwear/vocabulary";
 import { arrangementsFor, unarrangedRoles, type Arrangement } from "./arrange";
-import { familiesFor, familiesWithoutCode, FILL_GROUP, type TemplateFamily } from "./families";
+import { familiesFor, familiesWithoutCode, FILL_GROUP, type OfferedFamily, type TemplateFamily } from "./families";
 import type { CrestFile } from "./crest";
 import { primaryDrift, type CrestColour } from "./palette";
 import { CREST_LIMITS, feelById, GAP_RULE_ID, RULES, rolesOf, type FeelId, type KitRoleId, type RoleChoice } from "./settings";
@@ -27,7 +27,7 @@ import { CREST_LIMITS, feelById, GAP_RULE_ID, RULES, rolesOf, type FeelId, type 
 /** The three axes a candidate varies along, for the card's own words and for a stable id. */
 export interface CandidateChoice {
   readonly role: KitRoleId;
-  readonly family: TemplateFamily;
+  readonly family: OfferedFamily;
   /** The option code chosen in each of the article's groups, by group name. Catalogue codes only. */
   readonly codes: Readonly<Record<string, string>>;
 }
@@ -108,38 +108,41 @@ export function finishVariantsFor(feel: FeelId, article: BaseArticle): readonly 
   return [...variants].sort((a, b) => score(b) - score(a)).slice(0, MAX_FINISH_VARIANTS);
 }
 
-const idOf = (choice: CandidateChoice): string =>
-  [choice.role, choice.family.code ?? choice.family.id, ...Object.entries(choice.codes).sort(([a], [b]) => a.localeCompare(b)).map(([group, code]) => `${group}-${code}`)].join(
-    "_",
-  );
+export const idOf = (choice: CandidateChoice): string =>
+  [choice.role, choice.family.code, ...Object.entries(choice.codes).sort(([a], [b]) => a.localeCompare(b)).map(([group, code]) => `${group}-${code}`)].join("_");
 
-const noteFor = (arrangement: Arrangement, family: TemplateFamily, codes: Readonly<Record<string, string>>, shirtCode: string | null): string => {
+export const noteFor = (arrangement: Arrangement, family: OfferedFamily, codes: Readonly<Record<string, string>>, articleCode: string): string => {
   const finish = Object.values(codes).join(" · ");
-  const fill = family.code === null ? family.label : `${family.label} · ${family.code}`;
-  return `${arrangement.roleLabel} kit: ${fill}${finish === "" ? "" : `, ${finish}`}${shirtCode === null ? "" : ` on ${shirtCode}`}. ${arrangement.note}`;
+  return `${arrangement.roleLabel} kit: ${family.label} · ${family.code}${finish === "" ? "" : `, ${finish}`} on ${articleCode}. ${arrangement.note}`;
 };
 
-/** The kit of one candidate: Z5's starting kit in the arrangement's colours, with the codes set. */
-function kitFor(input: EngineInput, arrangement: Arrangement, family: TemplateFamily, codes: Readonly<Record<string, string>>, shirt: KitPart): TeamwearKit {
+/**
+ * The kit of one candidate: Z5's starting kit in the arrangement's colours, with the fill and the
+ * finish codes set. The shirt's part is always there, because `startingKit` builds one for every
+ * part the sport offers and the shirt is one of them.
+ */
+function kitFor(
+  input: EngineInput,
+  arrangement: Arrangement,
+  family: OfferedFamily,
+  codes: Readonly<Record<string, string>>,
+  shirt: KitPart,
+  article: BaseArticle,
+): TeamwearKit {
   const started = startingKit(input.sportId, input.articles, arrangement.colours);
-  const article = shirt.articleCode === null ? null : (input.articles.get(shirt.articleCode) ?? null);
-  const choice = started.parts[shirt.id];
-  const wanted = { ...codes, ...(family.code === null ? {} : { [FILL_GROUP]: family.code }) };
-  const parts =
-    article === null || choice === undefined
-      ? started.parts
-      : {
-          ...started.parts,
-          [shirt.id]: {
-            ...choice,
-            // Every code goes through the editor's own resolver, which drops anything the article
-            // does not offer and anything outside the range the factory approved.
-            form: defaultsOver(article, { options: { ...choice.form.options, ...wanted }, parameters: choice.form.parameters }),
-          },
-        };
+  const choice = started.parts[shirt.id]!;
+  const wanted = { ...codes, [FILL_GROUP]: family.code };
   return {
     ...started,
-    parts,
+    parts: {
+      ...started.parts,
+      [shirt.id]: {
+        ...choice,
+        // Every code goes through the editor's own resolver, which drops anything the article does
+        // not offer and anything outside the range the factory approved.
+        form: defaultsOver(article, { options: { ...choice.form.options, ...wanted }, parameters: choice.form.parameters }),
+      },
+    },
     socksColour: arrangement.socksColour,
     bundleId: arrangement.role,
     elements: input.crest === null ? [] : ["crest"],
@@ -147,13 +150,20 @@ function kitFor(input: EngineInput, arrangement: Arrangement, family: TemplateFa
 }
 
 /** One candidate per role, family and finish, interleaved by role so every role asked for appears. */
-function candidatesFor(input: EngineInput, arrangements: readonly Arrangement[], families: readonly TemplateFamily[], article: BaseArticle, shirt: KitPart) {
+function candidatesFor(
+  input: EngineInput,
+  arrangements: readonly Arrangement[],
+  families: readonly OfferedFamily[],
+  article: BaseArticle,
+  shirt: KitPart,
+  articleCode: string,
+) {
   const finishes = finishVariantsFor(input.feel, article);
   const perRole = arrangements.map((arrangement) =>
     families.flatMap((family) =>
       finishes.map((codes) => {
         const choice: CandidateChoice = { role: arrangement.role, family, codes };
-        const kit = kitFor(input, arrangement, family, codes, shirt);
+        const kit = kitFor(input, arrangement, family, codes, shirt, article);
         return {
           id: idOf(choice),
           sportId: input.sportId,
@@ -163,7 +173,7 @@ function candidatesFor(input: EngineInput, arrangements: readonly Arrangement[],
           kit,
           crest: input.crest,
           primaryDeltaE00: primaryDrift(input.palette, kit.colours.main),
-          note: noteFor(arrangement, family, codes, shirt.articleCode),
+          note: noteFor(arrangement, family, codes, articleCode),
           ruleIds: [RULES.patternCost, RULES.optionCost, RULES.crestPlacement, RULES.colourTolerance],
         } satisfies KitCandidate;
       }),
@@ -174,6 +184,12 @@ function candidatesFor(input: EngineInput, arrangements: readonly Arrangement[],
   for (let at = 0; at < longest; at += 1) for (const list of perRole) if (list[at]) woven.push(list[at]!);
   return woven.slice(0, CREST_LIMITS.maxKits);
 }
+
+/** The note naming the families no base article carries a fill code for, or no note at all. */
+export const missingFamiliesNote = (missing: readonly TemplateFamily[]): readonly string[] =>
+  missing.length === 0
+    ? []
+    : [`${missing.map((family) => family.label.toLowerCase()).join(", ")}: no base article carries a print fill for ${missing.length === 1 ? "this" : "these"} yet.`];
 
 /** Said where the engine could build some kits but fewer than the specification's six. */
 export const fewKitsNote = (count: number): string =>
@@ -187,19 +203,16 @@ export const fewKitsNote = (count: number): string =>
 export function candidateKits(input: EngineInput): EngineOutcome {
   const asked = rolesOf(input.roles);
   const shirt = shirtOf(input.sportId);
-  const article = shirt?.articleCode === undefined || shirt.articleCode === null ? null : (input.articles.get(shirt.articleCode) ?? null);
+  const code = shirt?.articleCode ?? null;
+  const article = code === null ? null : (input.articles.get(code) ?? null);
   const arranged = arrangementsFor(input.palette, input.feel, asked);
   const missing = familiesWithoutCode(input.feel, article);
-  const notes = [
-    ...unarrangedRoles(input.palette, input.feel, asked),
-    ...(missing.length === 0 ? [] : [`${missing.map((family) => family.label.toLowerCase()).join(", ")}: no base article carries a print fill for ${missing.length === 1 ? "this" : "these"} yet.`]),
-  ];
-  if (shirt === undefined || article === null) return { status: "none", reason: NO_SHIRT_ARTICLE, notes };
+  const notes = [...unarrangedRoles(input.palette, input.feel, asked), ...missingFamiliesNote(missing)];
+  if (shirt === undefined || code === null || article === null) return { status: "none", reason: NO_SHIRT_ARTICLE, notes };
   if (!arranged.ok) return { status: "none", reason: arranged.reason, notes };
   const families = familiesFor(input.feel, article);
   if (families.length === 0) return { status: "none", reason: NO_FILLS, notes };
-  const candidates = candidatesFor(input, arranged.arrangements, families, article, shirt);
-  if (candidates.length === 0) return { status: "none", reason: NO_FILLS, notes };
+  const candidates = candidatesFor(input, arranged.arrangements, families, article, shirt, code);
   return {
     status: "kits",
     candidates,

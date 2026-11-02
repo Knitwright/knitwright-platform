@@ -1,6 +1,7 @@
 import type { BaseArticle } from "@/lib/catalogue";
 import type { Finding } from "@/lib/production/contract";
-import { partsForSport, type ArticleBook } from "@/lib/teamwear/kit";
+import { finding } from "@/lib/validation/finding";
+import { partsForSport, type ArticleBook, type KitPart } from "@/lib/teamwear/kit";
 import { partSpec } from "@/lib/teamwear/preview";
 import { sportById } from "@/lib/teamwear/vocabulary";
 import { toValidationParameter } from "@/lib/validation/live-ports";
@@ -48,13 +49,12 @@ export interface ValidatedCandidate {
 const parametersOf = (parameters: Readonly<Record<string, number>>): Readonly<Record<string, number>> => ({ ...parameters });
 
 /** What the checks read about one part of a candidate kit. */
-export function partInput(candidate: KitCandidate, partId: string, article: BaseArticle | null, typeId: string): DesignInput | null {
-  const choice = candidate.kit.parts[partId];
-  const part = partsForSport(sportById(candidate.sportId)).find((one) => one.id === partId);
-  if (choice === undefined || part === undefined) return null;
+export function partInput(candidate: KitCandidate, part: KitPart, article: BaseArticle | null): DesignInput | null {
+  const choice = candidate.kit.parts[part.id];
+  if (choice === undefined) return null;
   const spec = partSpec(candidate.kit, part, choice, candidate.kit.wearer);
   return {
-    typeId,
+    typeId: part.typeId,
     readiness: null,
     article: article === null ? null : { baseArticleCode: article.code, productionClass: article.productionClass, parameters: parametersOf(choice.form.parameters) },
     parameterDefs: article === null ? null : article.parameters.flatMap((def) => toValidationParameter(def) ?? []),
@@ -68,6 +68,22 @@ export function partInput(candidate: KitCandidate, partId: string, article: Base
 const unique = (ids: readonly (string | undefined)[]): readonly string[] => [...new Set(ids.filter((id): id is string => id !== undefined))];
 
 /**
+ * A part whose base article could not be read is a blocker, not a warning: the kit was built from
+ * that article's own options, so without the row nothing holds it to a range the factory approved.
+ * It is X4's own code and X4's own rule, so the screen reads it exactly as the editor would.
+ */
+export const articleUnreadable = (part: KitPart): Finding => ({
+  ...finding({
+    code: "article-not-offered",
+    severity: "blocker",
+    article: part.typeId,
+    message: `Base article ${part.articleCode ?? ""} is not in the catalogue, so this kit cannot be held to a range the factory approved.`,
+    action: "Try again in a moment. If it keeps failing, tell Knitwright.",
+    whoActs: "owner",
+  }),
+});
+
+/**
  * One candidate's checks: every part of the kit, checked against the factory profile. A part with
  * no base article is still checked — the profile decides whether the factory makes that garment at
  * all — and its parameters are simply not judged, because it has none.
@@ -79,13 +95,14 @@ export function validateCandidate(
   registry: CheckRegistry = standardRegistry(),
 ): CandidateValidation {
   const parts = partsForSport(sportById(candidate.sportId));
+  const unreadable = parts.flatMap((part) => (part.articleCode !== null && !articles.has(part.articleCode) ? [articleUnreadable(part)] : []));
   const results = parts.flatMap((part) => {
     const article = part.articleCode === null ? null : (articles.get(part.articleCode) ?? null);
-    const input = partInput(candidate, part.id, article, part.typeId);
+    const input = partInput(candidate, part, article);
     return input === null ? [] : [validateDesign(input, profile, registry)];
   });
-  const findings = results.flatMap((result) => result.findings);
-  const blockers = results.reduce((sum, result) => sum + result.blockers, 0);
+  const findings = [...unreadable, ...results.flatMap((result) => result.findings)];
+  const blockers = unreadable.length + results.reduce((sum, result) => sum + result.blockers, 0);
   return {
     candidateId: candidate.id,
     findings,
@@ -119,12 +136,15 @@ export function validatedKits(
   const checked = candidates.map((candidate) => ({ candidate, validation: validateCandidate(candidate, articles, profile, registry) }));
   const offered = checked.filter((one) => one.validation.offerable);
   const setAside = checked.filter((one) => !one.validation.offerable);
-  return {
-    offered,
-    setAside,
-    setAsideNote:
-      setAside.length === 0
-        ? null
-        : `${setAside.length} ${setAside.length === 1 ? "kit was" : "kits were"} set aside because ${setAside.length === 1 ? "it" : "they"} failed a manufacturing check. ${setAside[0]!.validation.findings[0]?.message ?? ""}`.trim(),
-  };
+  return { offered, setAside, setAsideNote: setAsideNote(setAside) };
+}
+
+/** The first thing that stopped a candidate, or an empty string when nothing was recorded. */
+export const firstStopper = (one: ValidatedCandidate | undefined): string => one?.validation.findings[0]?.message ?? "";
+
+/** One line naming how many kits were set aside and what stopped the first of them. */
+export function setAsideNote(setAside: readonly ValidatedCandidate[]): string | null {
+  if (setAside.length === 0) return null;
+  const many = setAside.length !== 1;
+  return `${setAside.length} ${many ? "kits were" : "kit was"} set aside because ${many ? "they" : "it"} failed a manufacturing check. ${firstStopper(setAside[0])}`.trim();
 }
