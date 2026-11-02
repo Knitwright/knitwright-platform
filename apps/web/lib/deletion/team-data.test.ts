@@ -24,6 +24,12 @@ const createdTables = (sql: string): readonly { name: string; body: string }[] =
 const registered = (table: string): boolean => PERSONAL_DATA_TABLES.some((p) => p.table === table);
 
 /** The text of `create table public.<name> (...)` up to its closing line. */
+/**
+ * Tables the committee migration creates that hold no brand's data at all: the platform's own rule
+ * rows, the same for every club. They are not personal data and have no brand to go with.
+ */
+const PLATFORM_RULE_TABLES = ["chase_templates", "public_link_windows", "shirt_zone_limits", "sport_number_rules"];
+
 const tableBody = (name: string): string => {
   const start = SQL.indexOf(`create table public.${name} (`);
   expect(start, `${name} is created`).toBeGreaterThanOrEqual(0);
@@ -127,5 +133,11 @@ describe("what holds people's names for production", () => {
     expect(created.filter((t) => !PERSONAL_DATA_TABLES.some((p) => p.table === t))).toEqual([]);
     expect(comments).toMatch(/foreign key \(project_id, brand_id\) references public\.projects \(id, brand_id\) on delete cascade/);
     expect(comments).toMatch(/foreign key \(comment_id, brand_id\) references public\.design_comments \(id, brand_id\) on delete cascade/);
+  });
+
+  it("the platform's rule rows hold nobody's personal data, so they are not on the list", () => {
+    for (const table of PLATFORM_RULE_TABLES) {
+      expect(PERSONAL_DATA_TABLES.some((p) => p.table === table), `${table} is a rule table`).toBe(false);
+    }
   });
 });

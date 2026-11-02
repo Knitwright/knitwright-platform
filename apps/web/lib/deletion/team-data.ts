@@ -48,6 +48,10 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   // personal data about someone who may never have signed in. It goes with its design through
   // (project_id, brand_id), and so with the brand.
   { table: "share_invites", holds: "the email address a design was shared with, and the member's words to them", erasableAlone: false },
+  // None of the nine can be erased on its own: a pin, a vote and an approval are append-only by
+  // trigger, and a sign-up entry has no erase function of its own, unlike `roster_players`. So a
+  // committee member who asks for their words to be removed can be answered today only by deleting
+  // the whole design. Recorded as a finding for the owner by both reviews (0110 and security-v5 M3).
   // The committee link and the roster sign-up link (plan v5 Z7, decision 0087). Neither the strangers
   // who answer nor the players named have an account, so everything they leave is personal data about
   // someone who cannot delete it themselves. Every record hangs off its link by (link_id, brand_id);

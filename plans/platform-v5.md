@@ -488,7 +488,11 @@ record, seeds labelled. In addition, from the spec:
    Search for them and update them.
 7. **Do not stop early.** You are done when CI has finished on your last push. **From 2026-11-02 the
    browser tests are not part of the pull-request gate**: they run on `main` after a merge, and on a
-   pull request only when it carries the `e2e` label or someone starts the workflow by hand. The gate
+   pull request only when it carries the `e2e` label or someone starts the workflow by hand.
+   **Pass the label when you open the pull request — `gh pr create --label e2e` — not afterwards.**
+   Adding it later now starts a fresh run (the workflow listens for `labeled`), but the run already
+   in flight evaluated the job's condition before the label existed and will stay skipped, so you
+   pay for two runs instead of one. The gate
    is `Secret scan and invariants`, `Checks` and `Standard gate`. Still **write** your browser tests
    with the same care — they run on `main` and a failure there blocks the next merge and names the
    merge that caused it. Add the `e2e` label to your own pull request when your change is one the
