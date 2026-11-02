@@ -15,16 +15,15 @@ import { RAIL_PANELS } from "./RailPanels";
  * one place to look for "what is left".
  */
 
-/** The ids no workstream has filled yet, with the one that owns each. */
-const PLACEHOLDERS: Readonly<Record<string, string>> = {
-  templates: "L8",
-  likes: "L8",
-  uploads: "L7",
-  brand: "L7",
-};
+/**
+ * The ids nothing fills yet. `likes` is the only one left, and it is left on purpose: nothing in
+ * the platform records a like, so the panel says whose it is rather than showing an empty shelf
+ * with a heart on it (decision 0108's own owner question).
+ */
+const PLACEHOLDERS: Readonly<Record<string, string>> = { likes: "L8" };
 
 describe("the rail's panels", () => {
-  it("mounts every rail panel but the four nobody has built", () => {
+  it("mounts every rail panel but Likes, which nothing can fill yet", () => {
     const left = RAIL_ITEMS.filter((id) => RAIL_PANELS[id] === undefined);
 
     expect([...left].sort()).toEqual(Object.keys(PLACEHOLDERS).sort());

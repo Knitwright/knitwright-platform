@@ -1,29 +1,26 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 import { accessible } from "./chrome";
-import { createAccount, signIn, test, userIdOf } from "./support";
+import { createAccount, signIn, test } from "./support";
 
 /**
- * THE PANELS OF WAVE 4, ON A SCREEN (the wiring of decisions 0092, 0094, 0095 and 0096).
+ * THE PANELS NO WORKSTREAM OWNED, ON A SCREEN (plan v5, decision 0108).
  *
- * Every one of these panels was built, tested against `panelDouble()` and then left unmounted,
- * because `components/launch/{RailPanels,Inspector,BoardCanvas}.tsx` are L1's files and five
- * workstreams needed the same two lines in one wave. So **none of them had ever been opened in a
- * browser or scanned by axe**, and that is what this file is for: each panel is opened, asked to
- * show its own content rather than a placeholder, and scanned at a desktop width and at 390 x 844.
+ * L1's contract named a workstream for every panel of the rail, and four of them named a workstream
+ * the plan gave no component path: Templates and Likes to L8, Uploads and Brand to L7. Three of
+ * them are built now and are opened here, asked to show their own content rather than a
+ * placeholder, and scanned by axe at a desktop width and at 390 x 844. **Likes still holds its
+ * placeholder, because nothing in the platform records a like**, and that is asserted rather than
+ * left to be noticed.
  *
- * It also proves the one loop that crossed two workstreams: L2's renderer asks the shell to run a
- * mockup board, and the board comes back with a real file behind it.
+ * The import screen of F-S9 is in the same file, because it is the other half of what L7 left: its
+ * engine was finished and its renderer did not exist. A run reads a real website, so what is
+ * exercised here is everything around that: the empty state, a refusal that says why, and the
+ * completion % with what is still missing.
  *
  * Each test makes its own account and its own launch name, so nothing it filters on can be another
  * run's row (plan v5, lesson 11). CI retries a failed browser test once.
  */
-
-const admin = () =>
-  createClient(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "", process.env.SUPABASE_SECRET_KEY ?? "", {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
@@ -31,7 +28,7 @@ const signedIn = async (page: Page, label: string): Promise<void> => {
   await expect(page).toHaveURL(/\/studio$/);
 };
 
-/** A launch project with nothing behind it, which is enough to open every panel. */
+/** A launch project with nothing behind it, which is enough to open every panel of the rail. */
 const startLaunch = async (page: Page, label: string): Promise<string> => {
   const name = `${label} ${randomUUID().slice(0, 8)}`;
   await page.goto("/launch");
@@ -47,271 +44,194 @@ const openRail = async (page: Page, label: string): Promise<void> => {
   await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: label, exact: true }).click();
 };
 
-/** Adds a board from the inspector's Tools list and selects it, so its own panel is on screen. */
-const addAndSelect = async (page: Page, kind: string, label: string): Promise<void> => {
-  await page.getByTestId(`add-${kind}`).click();
-  const board = page.getByRole("article", { name: `${label} board` });
-  await expect(board).toBeVisible();
-  await board.getByRole("button", { name: `Select ${label}` }).click();
+/** Nothing scrolls sideways, at whatever width the test is running. */
+const noSidewaysScroll = async (page: Page): Promise<void> => {
+  const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(sideways).toBeLessThanOrEqual(1);
 };
 
-test.describe("the rail panels L3 and L4 filled", () => {
-  test("shows Text, Elements, Pattern fills, AI assistant and Layers, each with its own content", async ({ page }) => {
-    await signedIn(page, "panels-rail");
-    await startLaunch(page, "Rail panels kit");
+test.describe("the rail panels that had no workstream", () => {
+  test("shows Templates, Uploads and Brand, each with its own content", async ({ page }) => {
+    await signedIn(page, "unowned-rail");
+    await startLaunch(page, "Unowned kit");
 
     for (const [label, id] of [
-      ["Text", "text"],
-      ["Elements", "elements"],
-      ["Pattern fills", "pattern-fills"],
-      ["AI assistant", "assistant"],
-      ["Layers", "layers"],
+      ["Templates", "templates"],
+      ["Uploads", "uploads"],
+      ["Brand", "brand"],
     ] as const) {
       await openRail(page, label);
       // The panel itself, and no placeholder anywhere near it.
-      await expect(page.getByTestId(`marketing-panel-${id}`)).toBeVisible();
+      await expect(page.getByTestId(`launch-${id}-panel`)).toBeVisible();
       await expect(page.getByTestId(`launch-panel-${id}`)).toHaveCount(0);
     }
   });
 
-  test("shows L3's shoot ideas on the AI image panel", async ({ page }) => {
-    await signedIn(page, "panels-shoots");
-    await startLaunch(page, "Shoots panel kit");
+  /**
+   * The spec's own data model puts a `likes` count on a template row rather than a record of who
+   * liked what, and no migration in this repository has either, so there is nothing to list.
+   */
+  test("keeps the Likes placeholder, saying why there is nothing to list", async ({ page }) => {
+    await signedIn(page, "unowned-likes");
+    await startLaunch(page, "Likes kit");
 
-    await openRail(page, "AI image");
-
-    await expect(page.getByTestId("shoots-panel")).toBeVisible();
-    await expect(page.getByTestId("launch-panel-ai-image")).toHaveCount(0);
+    await openRail(page, "Likes");
+    await expect(page.getByTestId("launch-panel-likes")).toContainText("Nothing in the platform records a like");
+    // Nothing is asserted here about `ai-image`. L3's panel exists and the wave-4 wiring change
+    // mounts it, so a test of this file saying it is still a placeholder would break on that merge.
   });
 
-  test("says what each empty panel needs, and the Elements panel offers the shapes it draws", async ({ page }) => {
-    await signedIn(page, "panels-empty");
-    await startLaunch(page, "Empty panels kit");
+  test("lists the seeded templates, narrows them by a tag and finds one by name", async ({ page }) => {
+    await signedIn(page, "unowned-templates");
+    await startLaunch(page, "Templates kit");
+    await openRail(page, "Templates");
 
-    await openRail(page, "Text");
-    await expect(page.getByTestId("marketing-empty-text")).toContainText("Add a marketing board");
+    const panel = page.getByTestId("launch-templates-panel");
+    await expect(panel.getByRole("heading", { level: 3 }).first()).toBeVisible();
 
-    // The one action an empty panel offers really adds the board, and the panel then has fields.
-    await page.getByTestId("marketing-action-text").click();
-    await expect(page.getByRole("article", { name: "Marketing board" })).toBeVisible();
+    // The five tag groups of 07 are offered as chips with a count each.
+    const sport = page.getByTestId("launch-templates-filter-sport");
+    await expect(sport).toBeVisible();
+    const football = sport.getByRole("button", { name: /^Football/ });
+    await football.click();
+    await expect(football).toHaveAttribute("aria-pressed", "true");
 
-    await openRail(page, "Pattern fills");
-    await expect(page.getByTestId("marketing-empty-pattern-fills")).toContainText("repeat print");
+    // A seeded design template is on a card, with the garment it is drawn on and its review label.
+    await expect(panel).toContainText("not reviewed by a factory");
+
+    // Search really narrows: a word no starter holds shows the no-match state and the way out.
+    await page.getByTestId("launch-templates-search").fill("zzzzqqqq");
+    await expect(page.getByTestId("launch-templates-no-match")).toBeVisible();
+    await page.getByTestId("launch-templates-clear").click();
+    await expect(page.getByTestId("launch-templates-no-match")).toHaveCount(0);
   });
 
-  test("still holds a labelled placeholder for the panels nobody has built", async ({ page }) => {
-    await signedIn(page, "panels-placeholders");
-    await startLaunch(page, "Placeholder kit");
+  test("says a template whose garment has no measurement on file, rather than looking ready", async ({ page }) => {
+    await signedIn(page, "unowned-gap");
+    await startLaunch(page, "Gap kit");
+    await openRail(page, "Templates");
 
-    // The four that are left. `components/launch/panel-mounting.test.ts` holds the same list
-    // against the maps, so the two cannot disagree about what is still to come.
-    for (const [label, id, workstream] of [
-      ["Templates", "templates", "workstream L8"],
-      ["Likes", "likes", "workstream L8"],
-      ["Uploads", "uploads", "workstream L7"],
-      ["Brand", "brand", "workstream L7"],
+    const panel = page.getByTestId("launch-templates-panel");
+    await expect(panel).toContainText("No measurement on file for this garment yet");
+    await expect(panel.getByText(/^R-[A-Z]{3}-/).first()).toBeVisible();
+  });
+
+  test("shows a real empty state for a brand with nothing uploaded and nothing in its brand", async ({ page }) => {
+    await signedIn(page, "unowned-empty");
+    await startLaunch(page, "Empty brand kit");
+
+    await openRail(page, "Uploads");
+    const uploads = page.getByTestId("launch-uploads-empty");
+    await expect(uploads).toContainText("Nothing uploaded yet");
+    await expect(page.getByTestId("launch-uploads-action")).toBeVisible();
+    // The rights gap is said whether or not there is a file, because it is about every file.
+    await expect(page.getByTestId("launch-uploads-rights-gap")).toContainText("R-GAP-000");
+
+    await openRail(page, "Brand");
+    await expect(page.getByTestId("launch-brand-empty")).toContainText("Your brand is empty");
+    await expect(page.getByTestId("launch-brand-action")).toBeVisible();
+    await expect(page.getByTestId("launch-brand-import")).toHaveAttribute("href", "/brand-studio/import");
+  });
+
+  test("keeps each new panel free of serious accessibility problems, and never scrolls sideways", async ({ page }) => {
+    await signedIn(page, "unowned-axe");
+    await startLaunch(page, "Axe unowned kit");
+
+    for (const [label, id] of [
+      ["Templates", "templates"],
+      ["Uploads", "uploads"],
+      ["Brand", "brand"],
     ] as const) {
       await openRail(page, label);
-      await expect(page.getByTestId(`launch-panel-${id}`)).toContainText(workstream);
-    }
-  });
-});
-
-test.describe("the board panels L3, L4, L5 and L6 filled", () => {
-  test("opens the AI image board's own panel, with the cost in the button's own words", async ({ page }) => {
-    await signedIn(page, "panels-ai-image-board");
-    await startLaunch(page, "AI image board kit");
-    await addAndSelect(page, "ai_image", "AI image");
-
-    await expect(page.getByTestId("ai-image-panel")).toBeVisible();
-    await expect(page.getByTestId("launch-panel-board-ai-image")).toHaveCount(0);
-  });
-
-  test("opens the marketing board's own panel, with its layouts", async ({ page }) => {
-    await signedIn(page, "panels-marketing-board");
-    await startLaunch(page, "Marketing board kit");
-    await addAndSelect(page, "marketing", "Marketing");
-
-    await expect(page.getByTestId("marketing-panel-board-marketing")).toBeVisible();
-    await expect(page.getByTestId("launch-panel-board-marketing")).toHaveCount(0);
-    await expect(page.getByTestId("marketing-templates")).toBeVisible();
-  });
-
-  test("opens the AI video board's own panel, which asks for a first frame before anything else", async ({ page }) => {
-    await signedIn(page, "panels-video-board");
-    await startLaunch(page, "Video board kit");
-    await addAndSelect(page, "ai_video", "AI video");
-
-    await expect(page.getByTestId("video-panel")).toBeVisible();
-    await expect(page.getByTestId("launch-panel-board-ai-video")).toHaveCount(0);
-    // A clip starts from a picture the platform drew, so a board with nothing feeding it shows the
-    // one action that fixes that rather than a model picker it cannot honour (decision 0095).
-    await expect(page.getByTestId("video-empty")).toBeVisible();
-    await expect(page.getByTestId("video-add-mockup")).toBeVisible();
-  });
-
-  test("opens the info card's own panel, which says how much of the garment's data is missing", async ({ page }) => {
-    await signedIn(page, "panels-info-card");
-    await startLaunch(page, "Info card kit");
-    await addAndSelect(page, "info_card", "Info card");
-
-    await expect(page.getByTestId("launch-panel-board-info-card")).toBeVisible();
-    await expect(page.getByTestId("info-card-note")).toBeVisible();
-  });
-
-  test("shows the run summary of the whole canvas, with what a run would cost", async ({ page }) => {
-    await signedIn(page, "panels-run-summary");
-    await startLaunch(page, "Run summary kit");
-
-    // The summary is about the canvas, not one board, so it shows with nothing selected -- and only
-    // once there is something to run.
-    await expect(page.getByTestId("launch-panel-flow-run")).toHaveCount(0);
-    await page.getByTestId("launch-empty-action").click();
-    await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
-
-    await expect(page.getByTestId("launch-panel-flow-run")).toBeVisible();
-    await expect(page.getByTestId("flow-run-all")).toBeVisible();
-  });
-});
-
-test.describe("L2's renderer, end to end", () => {
-  test("draws a mockup board from the design behind it and leaves a real file on it", async ({ page }) => {
-    // A design, a launch, a scene and a real render with sharp: more steps than one minute allows.
-    test.setTimeout(180_000);
-    const email = await createAccount("panels-render");
-    await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
-
-    // A design to launch. The mockup is drawn from this design's own flat drawing.
-    const designName = `Render kit ${randomUUID().slice(0, 8)}`;
-    await page.goto("/studio/new");
-    await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
-    await page.getByLabel("Made for").selectOption({ label: "Women" });
-    await page.getByLabel("Design name").fill(designName);
-    await page.getByRole("button", { name: "Create design" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: designName })).toBeVisible();
-
-    const launchName = `Render launch ${randomUUID().slice(0, 8)}`;
-    await page.goto("/launch");
-    await page.getByLabel("Name this launch").fill(launchName);
-    await page.getByLabel("Design to launch").selectOption({ label: `${designName} (version 1)` });
-    await page.getByRole("button", { name: "Start the launch" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: launchName })).toBeVisible();
-    // The Design board is put on the canvas with the launch, so the garment is locked at once.
-    await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
-
-    // A mockup board fed by it, then the scene on that board: the library adds the board first and
-    // sets the scene on the second press, because `addBoard` hands no id back (decision 0092).
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
-    await page.getByTestId("mockup-use-product-front").click();
-    const board = page.getByRole("article", { name: "Mockup board" });
-    await expect(board).toBeVisible();
-    await board.getByRole("button", { name: "Select Mockup" }).click();
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
-    await page.getByTestId("mockup-use-product-front").click();
-    await expect(page.getByTestId("mockup-board-scene")).toHaveText("Front render");
-
-    // Before the run there is nothing to bake into a picture.
-    await expect(page.getByTestId("mockup-board-convert")).toBeDisabled();
-
-    await page.getByTestId("mockup-board-render").click();
-
-    // Drawing is sharp on the server: the board comes back ready, and the picture it holds is what
-    // Convert to image needs, so that button is no longer refused.
-    await expect(board).toContainText("Ready", { timeout: 40_000 });
-    await expect(page.getByTestId("mockup-board-convert")).toBeEnabled();
-
-    // And the file is real: a `files` row of the brand, with bytes in it.
-    const userId = await userIdOf(email);
-    const membership = await admin().from("memberships").select("brand_id").eq("user_id", userId).single();
-    const brandId = (membership.data as { brand_id: string }).brand_id;
-    const boards = await admin().from("boards").select("output_file_id, output_role, status").eq("brand_id", brandId).eq("kind", "mockup");
-    const row = (boards.data as { output_file_id: string | null; output_role: string; status: string }[])[0];
-    expect(row?.status).toBe("ready");
-    // A drawn mockup is an asset, which is the one role the garment lock allows a board's output.
-    expect(row?.output_role).toBe("asset");
-    expect(row?.output_file_id).toBeTruthy();
-
-    const file = await admin().from("files").select("kind, content_type, bytes").eq("id", row?.output_file_id ?? "").single();
-    const stored = file.data as { kind: string; content_type: string; bytes: number };
-    expect(stored.kind).toBe("render");
-    expect(stored.content_type).toMatch(/^image\//);
-    expect(stored.bytes).toBeGreaterThan(1000);
-  });
-
-  test("refuses to draw a mockup board with no design behind it, and says why", async ({ page }) => {
-    await signedIn(page, "panels-render-locked");
-    await startLaunch(page, "Locked render kit");
-
-    await page.getByTestId("add-mockup").click();
-    await page.getByRole("article", { name: "Mockup board" }).getByRole("button", { name: "Select Mockup" }).click();
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
-    await page.getByTestId("mockup-use-flat-lay-white").click();
-
-    await page.getByTestId("mockup-board-render").click();
-
-    await expect(page.getByTestId("launch-note")).toContainText("Connect a board into this Mockup board first");
-  });
-});
-
-/**
- * The axe scan of every panel, at a desktop width and at 390 x 844. Ten scans in one test: a fresh
- * account and a fresh launch project for each panel would be ten sign-ins, and the scan is of the
- * panel rather than of the way in.
- *
- * `accessible` is the shared helper (`e2e/chrome.ts`): it waits for the entrance animations to
- * finish, because text still fading in fails the contrast check for a moment, and it names the
- * element and its colours when something fails.
- */
-test.describe("accessibility of the panels, at both widths", () => {
-  /** Puts a board of each newly mounted kind on the canvas, while nothing is selected. */
-  const addBoards = async (page: Page): Promise<void> => {
-    for (const [kind, label] of [
-      ["ai_image", "AI image"],
-      ["marketing", "Marketing"],
-      ["ai_video", "AI video"],
-      ["info_card", "Info card"],
-    ] as const) {
-      await page.getByTestId(`add-${kind}`).click();
-      await expect(page.getByRole("article", { name: `${label} board` })).toBeVisible();
-    }
-  };
-
-  /** Opens each newly mounted panel in turn and scans the page with each one open. */
-  const scanEveryPanel = async (page: Page): Promise<void> => {
-    for (const label of ["Text", "Elements", "Pattern fills", "AI assistant", "Layers", "AI image", "Mockups", "Photos"]) {
-      await openRail(page, label);
+      await expect(page.getByTestId(`launch-${id}-panel`)).toBeVisible();
       await accessible(page);
+      await noSidewaysScroll(page);
     }
-    await addBoards(page);
-    // The run summary shows with nothing selected, so it is scanned before anything is.
-    await expect(page.getByTestId("launch-panel-flow-run")).toBeVisible();
+  });
+});
+
+/** The same three panels at phone width, where the rail is a bar along the bottom (decision 0091). */
+test.describe("the rail panels on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test("opens each one, scans it and never scrolls sideways", async ({ page }) => {
+    await signedIn(page, "unowned-phone");
+    await startLaunch(page, "Phone unowned kit");
+
+    for (const [label, id] of [
+      ["Templates", "templates"],
+      ["Uploads", "uploads"],
+      ["Brand", "brand"],
+    ] as const) {
+      await openRail(page, label);
+      await expect(page.getByTestId(`launch-${id}-panel`)).toBeVisible();
+      await accessible(page);
+      await noSidewaysScroll(page);
+    }
+  });
+});
+
+test.describe("the brand import screen", () => {
+  test("says what the import is for, and names the one action that starts it", async ({ page }) => {
+    await signedIn(page, "import-empty");
+    await page.goto("/brand-studio/import");
+
+    await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "Import your brand from your own site" })).toBeVisible();
+    await expect(page.getByLabel("Your site's address")).toBeVisible();
+    await expect(page.getByTestId("import-run")).toBeDisabled();
+
+    // The completion % and what is still missing, from Y6's own weighting.
+    await expect(page.getByTestId("import-completion")).toContainText("% complete");
+    await expect(page.getByTestId("import-completion")).toContainText("not reviewed by anyone");
+  });
+
+  /**
+   * A refusal that happens before any request: the address is not https, so nothing is fetched and
+   * the screen says what to do about it. That is the error state of decision 0102 item 10, on a
+   * real page, without reaching the network.
+   */
+  test("says why a site could not be read, and what to do about it", async ({ page }) => {
+    await signedIn(page, "import-refusal");
+    await page.goto("/brand-studio/import");
+
+    await page.getByLabel("Your site's address").fill("http://example.com");
+    await page.getByTestId("import-run").click();
+
+    const refusal = page.getByTestId("import-refusal");
+    await expect(refusal).toContainText("Your site could not be read");
+    await expect(refusal).toContainText("Paste the https:// address");
+    // Retrying the same address would be refused the same way, so no Try again is offered.
+    await expect(page.getByTestId("import-retry")).toHaveCount(0);
+  });
+
+  test("says that a word address is not a web address at all", async ({ page }) => {
+    await signedIn(page, "import-bad-url");
+    await page.goto("/brand-studio/import");
+
+    await page.getByLabel("Your site's address").fill("not an address");
+    await page.getByTestId("import-run").click();
+
+    await expect(page.getByTestId("import-refusal")).toContainText("That is not a web address");
+  });
+
+  test("keeps the import screen free of serious accessibility problems", async ({ page }) => {
+    await signedIn(page, "import-axe");
+    await page.goto("/brand-studio/import");
+    await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
+
     await accessible(page);
-    for (const label of ["AI image", "Marketing", "AI video", "Info card"]) {
-      await page.getByRole("article", { name: `${label} board` }).getByRole("button", { name: `Select ${label}` }).click();
-      await expect(page.getByTestId("launch-inspector")).toContainText(label);
-      await accessible(page);
-    }
-  };
-
-  test("keeps every panel free of serious problems at a desktop width", async ({ page }) => {
-    test.setTimeout(180_000);
-    await signedIn(page, "panels-axe");
-    await startLaunch(page, "Axe panels kit");
-
-    await scanEveryPanel(page);
-    await expect(page.getByTestId("launch-shell").getByRole("heading", { level: 1 })).toHaveCount(1);
+    await noSidewaysScroll(page);
   });
 
-  test("keeps every panel free of serious problems on a phone, and never scrolls sideways", async ({ page }) => {
-    test.setTimeout(180_000);
+  test("is reachable and readable on a phone", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await signedIn(page, "panels-axe-phone");
-    await startLaunch(page, "Axe phone panels kit");
+    await signedIn(page, "import-phone");
+    await page.goto("/brand-studio/import");
+    await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
 
-    await scanEveryPanel(page);
-
-    const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(sideways, "the launch shell scrolls sideways on a phone by this many pixels").toBeLessThanOrEqual(1);
+    await expect(page.getByLabel("Your site's address")).toBeVisible();
+    await accessible(page);
+    await noSidewaysScroll(page);
   });
 });

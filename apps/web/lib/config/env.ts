@@ -103,6 +103,11 @@ const envSchema = z.object({
   // decision 0100). Optional and server only: without it the route answers 503 and cuts nothing, because an
   // open cut is worse than a cut that never happens. Read from the process environment, like WHATSAPP_TOKEN.
   CRON_SECRET: z.string().min(16).optional(),
+  // The secret the separate Store signs its reads with (app/api/store, decision 0106). Optional and server
+  // only: without it every Store endpoint answers 503 and reads nothing, because an open read of every brand's
+  // products is worse than an endpoint that answers nothing. At least 32 characters, like FILES_SERVICE_TOKEN,
+  // because the signature is the only thing standing in front of those reads. Never set where tests run.
+  STORE_SERVICE_TOKEN: z.string().min(32).optional(),
   // Who sends a customer a status email (F-O4, decision 0100). All three optional and server only: without all
   // three, lib/ops/notify/select.ts sends nothing, and ops is shown the words to send by hand. The record of
   // what was sent, or of why nothing was, is kept either way. Never set where tests run: no test emails anyone.

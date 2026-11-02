@@ -81,7 +81,10 @@ test.describe("the launch shell", () => {
     const panels = page.getByRole("tablist", { name: "Panels" });
 
     await expect(panels.getByRole("tab", { name: "Templates" })).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByTestId("launch-panel-templates")).toContainText("workstream L8");
+    // The Templates panel is built now (decision 0108), so it shows the library rather than a
+    // placeholder. The placeholder is gone rather than hidden behind it.
+    await expect(page.getByTestId("launch-templates-panel")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-templates")).toHaveCount(0);
 
     await panels.getByRole("tab", { name: "Templates" }).focus();
     await page.keyboard.press("ArrowDown");
@@ -97,13 +100,15 @@ test.describe("the launch shell", () => {
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
     // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder. The four panels that still name a workstream are L7's and L8's.
+    // than a placeholder, as Templates, Uploads and Brand now do (0108) and as L3's and L4's do.
     await panels.getByRole("tab", { name: "Mockups" }).click();
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
 
-    await panels.getByRole("tab", { name: "Templates" }).click();
-    await expect(page.getByTestId("launch-panel-templates")).toContainText("workstream L8");
+    // Likes is the one panel of the rail still waiting: nothing records a like (0108's own owner
+    // question), so it says whose it is rather than showing an empty shelf with a heart on it.
+    await panels.getByRole("tab", { name: "Likes" }).click();
+    await expect(page.getByTestId("launch-panel-likes")).toContainText("workstream L8");
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {

@@ -1,4 +1,4 @@
-# 0106: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
+# 0107: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
 
 Status: Proposed; the panels are on a screen and scanned by axe for the first time, L2's run loop is closed end to
 end, the carousel is still disabled for want of a second colourway in the viewer, owner questions listed
@@ -36,8 +36,10 @@ properties of a panel on a page rather than of a component in a unit test.
    `ai-image` and `board-ai-image` (L3, decision 0093); `board-ai-video` (L5); `board-info-card` and
    `flow-run` (L6), beside L2's `mockups`, `photos` and `board-mockup`. **Every board kind of the
    contract now has a panel**, so a selected board never draws a placeholder.
-   **Still placeholders, and still saying whose they are**: `templates` and `likes` (L8), `uploads`
-   and `brand` (L7).
+   Decision 0108 landed the four panels no workstream owned while this change was in flight, so its
+   registry is spread into the same map and **`likes` is the one panel of the rail left** -- nothing
+   in the platform records a like, which is that record's own owner question. Four registries now
+   meet in `RAIL_PANELS`, one per workstream, which is what keeps five branches off one file.
 
    `components/launch/panel-mounting.test.ts` reads both maps rather than trusting them: a lookup
    that misses is silent -- the shell draws the labelled placeholder and nothing says the id and the
@@ -186,8 +188,9 @@ properties of a panel on a page rather than of a component in a unit test.
   recorded on the board, and the colourway a kit role finds by name.
 * `apps/web/lib/garment3d/video-events.test.ts`: 17 tests over the listener and the figures, including the event
   names held to the recorder's own and `sequenceVerdict` asked what each set of abilities may record.
-* `apps/web/e2e/launch-panels.spec.ts`: every newly mounted panel on a real page, the axe scan at both widths, and
-  L2's renderer end to end with the stored file read back.
+* `apps/web/e2e/launch-wiring.spec.ts`: every newly mounted panel on a real page, the axe scan at both widths, and
+  L2's renderer end to end with the stored file read back. It was `launch-panels.spec.ts` until decision 0108 landed a
+  file of that name for its own four panels; the two cover different panels and share only the way in.
 * `apps/web/components/launch/panel-mounting.test.ts`: both mount maps read rather than trusted, every board kind
   answered, and the four panels that are left held as one list.
 * `apps/web/e2e/launch.spec.ts`: L1's own suite, with exactly three assertions changed (the Text panel's placeholder,

@@ -4,6 +4,7 @@ import MockupsPanel from "@/components/mockups/MockupsPanel";
 import PhotosPanel from "@/components/mockups/PhotosPanel";
 import ShootsPanel from "@/components/shoots/ShootsPanel";
 import { panelPlaceholder, RAIL, RAIL_ITEMS, railPanelId, railTabId, type LaunchPanelId, type LaunchPanelProps, type RailId } from "@/lib/launch";
+import { LAUNCH_PANEL_COMPONENTS } from "./panels/panels";
 import { PanelPlaceholder } from "./PanelPlaceholder";
 
 /**
@@ -13,27 +14,31 @@ import { PanelPlaceholder } from "./PanelPlaceholder";
  *
  * A panel another workstream has built is mounted here and given exactly `LaunchPanelProps`
  * (`lib/launch/panels.ts`); the rest still draw a labelled placeholder. **Mockups and Photos are
- * L2's** (decision 0092), **AI image is L3's** (0093) and **Text, Elements, Pattern fills, AI
- * assistant and Layers are L4's**, which come through that workstream's own registry rather than
- * being listed again here (decision 0094, item 16). What those five need from outside the canvas --
- * the brand's voice, the pictures the platform drew, the export rows and "Write for me" -- reaches
- * them through `MarketingServicesProvider`, which `LaunchShell` wraps the whole shell in.
+ * L2's** (decision 0092), **AI image is L3's** (0093), **Text, Elements, Pattern fills, AI
+ * assistant and Layers are L4's** (0094) and **Templates, Uploads and Brand** are the panels whose
+ * workstreams were given a library and no component path (0108). Each of those three workstreams
+ * keeps its own registry and this file spreads them in, so none of them has to edit the others'.
  *
- * Templates, Likes, Uploads and Brand still hold their placeholders: L8 and L7 own them and are
- * being built separately.
+ * What L4's five need from outside the canvas -- the brand's voice, the pictures the platform drew,
+ * the export rows and "Write for me" -- reaches them through `MarketingServicesProvider`, which
+ * `LaunchShell` wraps the whole shell in.
+ *
+ * **`likes` is the one placeholder left.** Nothing in the platform records a like (decision 0108's
+ * owner question), and an empty grid with a heart on it would be a feature that looks real.
  */
 
 /**
- * Every panel that is built, by its id: L2's two and L4's own registry, spread in rather than
- * listed again. One map, made once, so nothing is looked up by calling a function while the shell
- * renders (`react-hooks/static-components`). The map's board panels are never reached from here,
- * because this file only ever indexes it by a `RailId`.
+ * Every panel that is built, by its id: L2's two, L3's one, and three workstreams' own registries
+ * spread in rather than listed again. One map, made once, so nothing is looked up by calling a
+ * function while the shell renders (`react-hooks/static-components`). The map is only ever indexed
+ * by a `RailId` from here, so the board panels in it are never reached.
  */
 export const RAIL_PANELS: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
   "ai-image": ShootsPanel,
   mockups: MockupsPanel,
   photos: PhotosPanel,
   ...MARKETING_PANEL_COMPONENTS,
+  ...LAUNCH_PANEL_COMPONENTS,
 };
 
 export function RailPanels({ open, panel }: Readonly<{ open: RailId; panel: LaunchPanelProps }>) {
