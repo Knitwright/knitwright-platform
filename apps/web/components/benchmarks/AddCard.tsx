@@ -6,7 +6,7 @@ import { useFormAction } from "@/components/forms/useFormAction";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { SelectField } from "@/components/ui/SelectField";
-import { FIELD_CONTROL } from "@/components/ui/field-styles";
+import { TEXT_AREA } from "@/components/ui/field-styles";
 import { addBenchmarkPhotoAction, addBenchmarkReviewTextAction, addBenchmarkUrlAction } from "@/lib/benchmarks/actions";
 // From the vocabulary, not the barrel: a client component must not pull zod into the browser
 // (tests/architecture/client-weight.test.ts).
@@ -53,8 +53,8 @@ function UrlForm({ benchmarkId }: Readonly<{ benchmarkId: string }>) {
         hint="We read the page once, logged out, and only if the site's robots.txt allows it. Nothing of the page itself is kept."
         errors={fieldErrors("url")}
       />
-      <p className="text-sm text-muted">
-        We tell the site who we are: <code className="font-mono text-xs">{BENCHMARK_USER_AGENT}</code>
+      <p className="text-sm break-words text-muted">
+        We tell the site who we are: <code className="font-mono text-xs break-all">{BENCHMARK_USER_AGENT}</code>
       </p>
       <Button type="submit" disabled={pending}>
         {pending ? "Reading the page…" : "Read this page"}
@@ -120,7 +120,7 @@ function ReviewsForm({ benchmarkId }: Readonly<{ benchmarkId: string }>) {
           minLength={40}
           aria-invalid={errors.length > 0 || undefined}
           aria-describedby="benchmark-reviews-hint"
-          className={FIELD_CONTROL}
+          className={`${TEXT_AREA} w-full min-w-0`}
         />
         <p id="benchmark-reviews-hint" className="text-sm text-muted">
           We read them once and keep only our own short summaries of the themes. The reviews themselves are not stored.

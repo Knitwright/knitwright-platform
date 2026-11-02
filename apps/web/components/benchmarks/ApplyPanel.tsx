@@ -18,11 +18,13 @@ const RULE = "font-mono text-xs text-muted";
 
 const ArticlePicker = ({ id, articles, chosen }: Readonly<{ id: string; articles: readonly BaseArticleSummary[]; chosen: string | null }>) => (
   <form method="get" className="flex flex-wrap items-end gap-3">
-    <div className="flex flex-col gap-1.5">
+    {/* A base product's name runs to forty characters, and a select is as wide as its widest choice unless it is
+        told otherwise, which is what pushes a phone screen sideways. It fills the row and shrinks instead. */}
+    <div className="flex min-w-0 flex-1 basis-56 flex-col gap-1.5">
       <label htmlFor={`apply-article-${id}`} className="text-sm font-medium text-ink">
         Map these features onto
       </label>
-      <select id={`apply-article-${id}`} name="article" defaultValue={chosen ?? ""} className={FIELD_CONTROL}>
+      <select id={`apply-article-${id}`} name="article" defaultValue={chosen ?? ""} className={`${FIELD_CONTROL} w-full min-w-0 max-w-full`}>
         <option value="">Choose a base product</option>
         {articles.map((article) => (
           <option key={article.code} value={article.code}>

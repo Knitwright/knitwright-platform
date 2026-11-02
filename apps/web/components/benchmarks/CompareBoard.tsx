@@ -31,7 +31,7 @@ export function CompareBoard({ view }: Readonly<{ view: CompareView }>) {
       <h2 id="compare-heading" className="text-lg font-medium text-ink">
         Side by side
       </h2>
-      <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface">
+      <div className="min-w-0 overflow-x-auto rounded-2xl border border-hairline bg-surface">
         <table className="w-full min-w-[40rem] text-left text-[15px]">
           <caption className="sr-only">The products, with how each value is known</caption>
           <thead>
@@ -71,7 +71,7 @@ export function CompareBoard({ view }: Readonly<{ view: CompareView }>) {
         </table>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-hairline bg-surface">
+      <div className="min-w-0 overflow-x-auto rounded-2xl border border-hairline bg-surface">
         <table className="w-full min-w-[40rem] text-left text-[15px]">
           <caption className="px-3 py-2 text-left text-sm text-muted">
             What each one has. obs = stated on the page · inf = read off a picture · – = not found. {GRAPHICS_NOTE}
