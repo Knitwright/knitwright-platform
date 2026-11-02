@@ -4,7 +4,7 @@ import { getBaseArticle } from "@/lib/catalogue";
 import { getEnv } from "@/lib/config/env";
 import { creditsService } from "@/lib/credits/server";
 import { createGate } from "@/lib/credits-gate/gate";
-import { toDesignObjectV2 } from "@/lib/design-object";
+import { designObjectFacts } from "@/lib/design-object";
 import { factoryStore } from "@/lib/factory/server";
 import { capabilityFor } from "@/lib/factory/service";
 import { loadPrintContext, type Clients, type PrintContext } from "@/lib/print/inputs/context";
@@ -21,6 +21,7 @@ import { catalogueFrom, moderationFrom } from "@/lib/validation/live-ports";
 import { articleOf, moderationTargets } from "@/lib/validation/spec-input";
 import { creditCharge } from "../charge";
 import { exportPackage, packageFileName } from "../export";
+import { checkPackage } from "../gate";
 import { buildKppInput, NOTHING_UNSOURCED, type KppRows } from "../input";
 import type { KppInput, KppSources } from "../model";
 import { recordPackageExport } from "../record";
@@ -89,10 +90,13 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
     bomConsumption(clients.client, ref.baseArticleCode),
   ]);
   if (article === null) throw new AppError("conflict", NOT_ON_ARTICLE);
+  // The design's own facts, not the export format: `designObjectFacts` applies none of techpack.json's limits, so
+  // the package's own F-G2 gate (`lib/kpp/gate.ts`) is what refuses, naming every gap in one answer. The format's
+  // refusal used to run here instead, which meant a design whose colourway had no screen colour was turned away by
+  // the export format and never heard the gate's sentence about its care label (decision 0089, R3 question 3b).
   // The fabric's catalogue code is not passed: nothing maps a design's own fabric to a programme code, so the
   // design object carries its own and `chosenFabric` finds a programme row only when the two already agree.
-  const object = toDesignObjectV2(project.spec, { article: ref, moderation: new Map(statuses.map((status) => [status.target.id, status.result])) });
-  if (!object.ok) throw new AppError("conflict", object.reason);
+  const object = designObjectFacts(project.spec, { article: ref, moderation: new Map(statuses.map((status) => [status.target.id, status.result])) });
   const factory = await readFactory(article.code);
   return {
     project,
@@ -101,7 +105,7 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
       // The route exports a sample package: a batch is Knitwright's own run, which ops orders, and it needs orders.
       kind: "sample",
       design: designFactsOf(project, who.brandName),
-      object: object.object,
+      object,
       article,
       factory: factory.factory,
       capability: factory.capability,
@@ -166,6 +170,12 @@ export async function serveProductionPackage(who: Who, projectId: string): Promi
   const clients: Clients = { client: await sessionClient(), admin: adminClient() };
   const { rows, project, context } = await readRows(clients, who, projectId);
   const built = buildKppInput(rows);
+  // The F-G2 gate before anything is drafted. `exportPackage` checks again — cheap and deterministic — but it is
+  // reached only through `sourcesFor`, and the drafter has a script for one article (`sources/pattern.ts`), so for
+  // every other one the drafter's refusal used to answer in the gate's place. A brand asking for a package has to
+  // hear what its own garment is missing, which is the care label among the rest (decision 0089, R3 question 3b).
+  const blocked = checkPackage(built);
+  if (blocked.length > 0) throw packageRefusal({ ok: false, reason: "blocked", issues: blocked });
   const { sources, notes } = await sourcesFor(clients, who, projectId, built, project, context);
   // The consumption sentence goes on the package itself, so a reader is told how many of its quantities were
   // quoted, from where, and that no factory has agreed any of them.

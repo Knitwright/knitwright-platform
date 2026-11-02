@@ -131,5 +131,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0116 | [The four HIGH findings of the v5 security review](0116-security-v5-high-findings.md) | Proposed; H1 the garment lock's provenance moved to `public.files`, H2 the credit key digested, H3 moderation wired to every generation and order path with an unscreened target blocking the hand-off, H4 a viewer may not spend credits; three owner questions |
 | 0120 | [One length for one full turn of a turntable](0120-turntable-length.md) | Proposed; the turntable is six seconds everywhere, read from one constant, and decision 0058's eight is superseded |
 | 0121 | [A founder's own point of measure and callout are part of the design](0121-marks-are-part-of-the-design.md) | Proposed; the Specs toolbar's marks are stored on the design, so a reload no longer loses them, and decision 0077 item 12 is superseded |
+| 0122 | [The F-G2 gate speaks for the production package](0122-the-gate-speaks-for-the-package.md) | Accepted; the package route reads `designObjectFacts` and runs the F-G2 gate before drafting, so the care-label refusal of decision 0089 is reachable |
 
 <!-- End of the generated table. -->
