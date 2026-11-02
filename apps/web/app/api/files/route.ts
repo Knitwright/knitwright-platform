@@ -36,6 +36,8 @@ export const POST = defineRoute({
       brandId: session.brand.id,
       userId: session.userId,
       kind: input.form.kind,
+      // A person chose this file and sent it. No model is reachable from this route.
+      provenance: "uploaded",
       bytes: new Uint8Array(await input.form.file.arrayBuffer()),
       statedType: input.form.file.type,
       rights: check.rights,

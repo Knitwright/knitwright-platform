@@ -1,5 +1,5 @@
 import type { LogEvent } from "@/lib/server/core/guard";
-import type { GeneratedMedia, GenerateRequest, MediaGenerator } from "./contract";
+import { provenanceOfMediaKind, type GeneratedMedia, type GenerateRequest, type MediaGenerator } from "./contract";
 import { cleanPath } from "./paths";
 import type { MediaFiles, MediaStore } from "./ports";
 import { watermark } from "./watermark";
@@ -28,7 +28,9 @@ const WHERE = "media set";
 
 async function keep(deps: GenerateDeps, work: SetWork, media: GeneratedMedia, kept: { fileIds: string[]; cleanPaths: string[] }): Promise<void> {
   const marked = await watermark(media.png);
-  const fileId = await deps.files.saveWatermarked(marked);
+  // The kind says what made the picture: this one call keeps the deterministic studio renders and
+  // the model-made lifestyle pictures alike, and both are stored as `kind: "render"` (H1).
+  const fileId = await deps.files.saveWatermarked(marked, provenanceOfMediaKind(media.kind));
   kept.fileIds.push(fileId);
   const path = cleanPath(work.brandId, work.setId, media.kind, media.view);
   await deps.files.saveClean(path, media.png);

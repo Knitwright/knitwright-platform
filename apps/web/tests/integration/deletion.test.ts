@@ -47,6 +47,7 @@ const upload = async (owner: Person, brandId: string) =>
     brandId,
     userId: owner.userId,
     kind: "artwork",
+    provenance: "uploaded",
     bytes: await png(),
     statedType: "image/png",
   });
@@ -177,6 +178,7 @@ const photorealJob = async (owner: Person, brandId: string, projectId: string, s
     brandId,
     userId: owner.userId,
     kind: "render",
+    provenance: "generated",
     bytes: await png(),
     statedType: "image/png",
   });

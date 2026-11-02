@@ -56,7 +56,9 @@ export async function makeClip(deps: ClipDeps, ask: ClipAsk, plan: Extract<ClipP
     const result = await deps.provider.generate({ still: poster, seconds: CLIP_SECONDS, prompt: CLIP_PROMPT }, signal);
     if (!result.ok) return { ok: false, message: CLIP_FAILED_MESSAGE };
     if (sniffVideo(result.video) !== result.type || result.video.byteLength > MAX_CLIP_BYTES) return { ok: false, message: CLIP_FAILED_MESSAGE };
-    saved.fileId = await deps.files.saveWatermarked(await watermark(poster));
+    // `planClip` only ever picks a still whose kind is `lifestyle`, so this poster is a picture a
+    // model made and the file's own row says so.
+    saved.fileId = await deps.files.saveWatermarked(await watermark(poster), "generated");
     await deps.files.saveClean(posterPath, poster);
     await deps.videos.save(moviePath, result.video, result.type);
     const itemId = await attachItem(deps.store, set.id, {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeClient } from "@/lib/orders/fixtures/fake-client";
-import type { LaunchAsset } from "./assets";
+import type { AssetOffer } from "./assets";
 import { board, designBoard, link, project } from "./fixtures/canvas";
 import {
   connectBoards,
@@ -232,41 +232,89 @@ describe("the writes", () => {
 });
 
 describe("recordOutput, the one door to a board's output", () => {
-  const generated: LaunchAsset = { role: "scene", provenance: "generated", file: { fileId: FILE, contentType: "image/png" }, label: "AI-generated", showsPerson: true };
-  const drawn: LaunchAsset = { role: "print_file", provenance: "deterministic", file: { fileId: FILE, contentType: "image/png" } };
+  const asScene: AssetOffer = { role: "scene", file: { fileId: FILE, contentType: "image/png" }, showsPerson: true };
+  const asPrintFile: AssetOffer = { role: "print_file", file: { fileId: FILE, contentType: "image/png" }, showsPerson: false };
+
+  /** The file's own row, which is where the provenance comes from and the only place it can. */
+  const withFile = (provenance: string, over: Record<string, unknown> = {}) =>
+    fakeClient({ files: { data: { provenance } }, set_launch_board_output: { data: BOARD }, ...over });
+
+  /** The rpc call, which is the second call: the file is read first. */
+  const rpcArgs = (calls: { kind: string; steps: readonly (readonly [string, readonly unknown[]])[] }[]) =>
+    calls.find((call) => call.kind === "rpc")?.steps[0]?.[1][0];
 
   it("records a generated picture as scenery and never as artwork", async () => {
-    const { client, calls } = fakeClient({ set_launch_board_output: { data: BOARD } });
-    await recordOutput(client, who, { boardId: BOARD, kind: "ai_image", asset: generated, status: "ready", credits: 20 });
+    const { client, calls } = withFile("generated");
+    await recordOutput(client, who, { boardId: BOARD, kind: "ai_image", offer: asScene, status: "ready", credits: 20 });
 
-    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({ p_output_role: "asset", p_output_file_id: FILE, p_status: "ready", p_last_cost_credits: 20 });
+    expect(rpcArgs(calls)).toMatchObject({ p_output_role: "asset", p_output_file_id: FILE, p_status: "ready", p_last_cost_credits: 20 });
   });
 
   it("records a drawn picture in the role it was offered in", async () => {
-    const { client, calls } = fakeClient({ set_launch_board_output: { data: BOARD } });
-    await recordOutput(client, who, { boardId: BOARD, kind: "mockup", asset: drawn, status: "ready", credits: null });
+    const { client, calls } = withFile("deterministic");
+    await recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asPrintFile, status: "ready", credits: null });
 
-    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({ p_output_role: "print_file" });
+    expect(rpcArgs(calls)).toMatchObject({ p_output_role: "print_file" });
+  });
+
+  it("records a picture the brand uploaded in the role it was offered in", async () => {
+    const { client, calls } = withFile("uploaded");
+    await recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asPrintFile, status: "ready", credits: null });
+
+    expect(rpcArgs(calls)).toMatchObject({ p_output_role: "print_file" });
   });
 
   it("refuses a generated picture offered to a board the platform draws itself", async () => {
-    const { client, calls } = fakeClient({ set_launch_board_output: { data: BOARD } });
-    const message = await failing(recordOutput(client, who, { boardId: BOARD, kind: "mockup", asset: generated, status: "ready", credits: 0 }));
+    const { client, calls } = withFile("generated");
+    const message = await failing(recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asScene, status: "ready", credits: 0 }));
 
     expect(message).toMatch(/cannot hold a generated picture/);
-    expect(calls).toEqual([]);
+    expect(calls.filter((call) => call.kind === "rpc")).toEqual([]);
+  });
+
+  /**
+   * H1 of the v5 security review, at this seam. The offer carries no provenance at all, so the one
+   * thing left to decide the role is the file's own row -- and a file a model made is refused the
+   * print-file role however the offer was worded.
+   */
+  it("refuses a print file whose file turns out to have come from a model", async () => {
+    const { client, calls } = withFile("generated");
+    const message = await failing(recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asPrintFile, status: "ready", credits: 0 }));
+
+    expect(message).toMatch(/cannot hold a generated picture/);
+    expect(calls.filter((call) => call.kind === "rpc")).toEqual([]);
+  });
+
+  it("treats a provenance this release does not recognise as generated, which is the strict answer", async () => {
+    const { client, calls } = withFile("something-new");
+    const message = await failing(recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asPrintFile, status: "ready", credits: 0 }));
+
+    expect(message).toMatch(/cannot hold a generated picture/);
+    expect(calls.filter((call) => call.kind === "rpc")).toEqual([]);
+  });
+
+  it("refuses a file that is not this brand's, because the read is scoped to the brand", async () => {
+    const { client, calls } = fakeClient({ files: { data: null }, set_launch_board_output: { data: BOARD } });
+    expect(await failing(recordOutput(client, who, { boardId: BOARD, kind: "mockup", offer: asPrintFile, status: "ready", credits: 0 }))).toBe(
+      "That file does not exist.",
+    );
+    expect(calls.filter((call) => call.kind === "rpc")).toEqual([]);
   });
 
   it("records a failed run with no picture at all, so a refund has something to point at", async () => {
-    const { client, calls } = fakeClient({ set_launch_board_output: { data: BOARD } });
-    await recordOutput(client, who, { boardId: BOARD, kind: "ai_video", asset: null, status: "failed", credits: 0 });
+    const { client, calls } = withFile("generated");
+    await recordOutput(client, who, { boardId: BOARD, kind: "ai_video", offer: null, status: "failed", credits: 0 });
 
-    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({ p_output_file_id: null, p_output_role: "asset", p_status: "failed" });
+    expect(rpcArgs(calls)).toMatchObject({ p_output_file_id: null, p_output_role: "asset", p_status: "failed" });
   });
 
   it("passes a refusal of the database on", async () => {
-    const { client } = fakeClient({ set_launch_board_output: { error: { code: "P0001", message: "Connect a Design board first." } } });
-    expect(await failing(recordOutput(client, who, { boardId: BOARD, kind: "ai_image", asset: generated, status: "ready", credits: 1 }))).toBe("Connect a Design board first.");
+    const { client } = withFile("generated", {
+      set_launch_board_output: { error: { code: "P0001", message: "Connect a Design board first." } },
+    });
+    expect(await failing(recordOutput(client, who, { boardId: BOARD, kind: "ai_image", offer: asScene, status: "ready", credits: 1 }))).toBe(
+      "Connect a Design board first.",
+    );
   });
 });
 

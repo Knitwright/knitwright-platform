@@ -55,7 +55,7 @@ async function prepare(email: string, projectId: string, name: string): Promise<
   const product = await db.rpc("create_brand_product", { p_brand_id: brandId, p_user_id: userId, p_project_id: projectId, p_name: name });
   if (product.error) throw new Error(product.error.message);
   const picture = await db.from("files").insert({
-    brand_id: brandId, bucket: "uploads", path: `${brandId}/make/${randomUUID()}.png`, kind: "photo", content_type: "image/png", bytes: 10, created_by: userId,
+    brand_id: brandId, bucket: "uploads", path: `${brandId}/make/${randomUUID()}.png`, kind: "photo", provenance: "uploaded", content_type: "image/png", bytes: 10, created_by: userId,
   });
   if (picture.error) throw new Error(picture.error.message);
 }

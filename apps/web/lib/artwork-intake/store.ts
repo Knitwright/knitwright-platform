@@ -48,6 +48,11 @@ const writeFile = async (input: FileInput): Promise<Written> => {
     bucket: input.bucket,
     path,
     kind: input.kind,
+    // The screen copy, the print copy and the vector copy are all made by our own code from the
+    // picture the person sent, so the picture in them is theirs and no model was called. Fixed
+    // here rather than taken as an argument because this writer has no other kind of caller
+    // (security review v5 H1, decision 0116).
+    provenance: "uploaded",
     content_type: input.contentType,
     bytes: input.bytes.byteLength,
     width: input.width,

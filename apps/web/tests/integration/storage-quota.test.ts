@@ -97,6 +97,7 @@ describe("the brand storage quota", () => {
       brandId,
       userId: owner.userId,
       kind: "artwork",
+      provenance: "uploaded",
       bytes: await png(),
       statedType: "image/png",
     }).catch((error: unknown) => error);

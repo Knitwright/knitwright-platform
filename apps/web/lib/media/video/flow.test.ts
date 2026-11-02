@@ -39,7 +39,7 @@ async function finishedSet(stills: StillSpec[] = []) {
   for (const spec of stills) {
     const path = cleanPath(BRAND, id, "lifestyle", spec.view);
     await files.saveClean(path, await png("#cc3333", 80, 60));
-    await store.putItem(id, { kind: "lifestyle" as MediaKind, view: spec.view, fileId: await files.saveWatermarked(await png()), cleanPath: path, width: 80, height: 60, checker: spec.checker, provider: "t", costMicrodollars: 0 });
+    await store.putItem(id, { kind: "lifestyle" as MediaKind, view: spec.view, fileId: await files.saveWatermarked(await png(), "generated"), cleanPath: path, width: 80, height: 60, checker: spec.checker, provider: "t", costMicrodollars: 0 });
   }
   await store.move(id, ["running"], "succeeded");
   return { store, files, videos, setId: id };

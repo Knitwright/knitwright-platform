@@ -341,6 +341,159 @@ describe("the garment lock, in the database", () => {
   });
 });
 
+/**
+ * H1 OF THE V5 SECURITY REVIEW, IN THE DATABASE (migration 20261215010000, decision 0116).
+ *
+ * The lock's third question -- *did this file come out of a model?* -- used to be a string in the
+ * request body, and `public.files` had no column that could answer instead: a deterministic mockup
+ * and an AI lifestyle picture are both `kind: 'render'`. Every one of the six gates tested the
+ * board or the graph; none tested the file. So a member with `manageKit` could connect a design
+ * board to a mockup board and record a generated file on it as a print file, and the mandatory
+ * "AI-generated" label on the Store hand-off came out null.
+ *
+ * Three files are made once for the whole block rather than one per test: `public.files` is
+ * append-only to everything but the server's own key, so each row written here stays in the shared
+ * local database for good.
+ */
+describe("a file's own provenance, which the garment lock now reads", () => {
+  let generatedFile: string;
+  let drawnFile: string;
+  let uploadedPhoto: string;
+
+  const fileOf = async (kind: string, provenance: string): Promise<string> => {
+    const id = randomUUID();
+    must(await adminClient().from("files").insert({
+      id, brand_id: annBrand, bucket: kind === "render" ? "images" : "uploads",
+      path: `${annBrand}/${kind}/${randomUUID()}.png`, kind, provenance,
+      content_type: "image/png", bytes: 10, created_by: ann.userId,
+    }));
+    return id;
+  };
+
+  beforeAll(async () => {
+    [generatedFile, drawnFile, uploadedPhoto] = await Promise.all([
+      fileOf("render", "generated"),
+      fileOf("render", "deterministic"),
+      fileOf("photo", "uploaded"),
+    ]);
+  });
+
+  it("defaults to generated, so a store site that says nothing loses the right to use the file as artwork", async () => {
+    const id = randomUUID();
+    must(await adminClient().from("files").insert({
+      id, brand_id: annBrand, bucket: "images", path: `${annBrand}/render/${randomUUID()}.png`,
+      kind: "render", content_type: "image/png", bytes: 10, created_by: ann.userId,
+    }));
+
+    expect(must(await adminClient().from("files").select("provenance").eq("id", id).single())).toEqual({ provenance: "generated" });
+  });
+
+  it("takes only the three values, so a fourth cannot be invented past the check", async () => {
+    const refused = await adminClient().from("files").insert({
+      brand_id: annBrand, bucket: "images", path: `${annBrand}/render/${randomUUID()}.png`,
+      kind: "render", provenance: "definitely-not-ai", content_type: "image/png", bytes: 10, created_by: ann.userId,
+    });
+
+    expect(refused.error).not.toBeNull();
+  });
+
+  /** The attack itself: a design board, a mockup board, a connector and a file a model made. */
+  it("refuses a generated file the artwork roles on a board the platform draws, which was the whole attack", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const design = await makeBoard(ann, annBrand, canvasId, "design");
+    const mockup = await makeBoard(ann, annBrand, canvasId, "mockup");
+    must(await connect(ann, annBrand, design, mockup));
+
+    for (const role of ["panel_layer", "print_file"]) {
+      const refused = await setOutput(ann, annBrand, mockup, { p_output_file_id: generatedFile, p_output_role: role });
+      expect(refused.error?.hint, role).toBe("generated_is_never_artwork");
+    }
+  });
+
+  it("refuses a generated file on a board the platform draws even as a plain asset, because it does not belong there", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const mockup = await makeBoard(ann, annBrand, canvasId, "mockup");
+    const refused = await setOutput(ann, annBrand, mockup, { p_output_file_id: generatedFile, p_output_role: "asset" });
+
+    expect(refused.error?.hint).toBe("generated_file_on_a_drawn_board");
+  });
+
+  it("still lets a file the platform drew be a print file, so the lock is not a wall", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const mockup = await makeBoard(ann, annBrand, canvasId, "mockup");
+    must(await setOutput(ann, annBrand, mockup, { p_output_file_id: drawnFile, p_output_role: "print_file" }));
+
+    expect(must(await ann.client.from("boards").select("output_role, output_file_id").eq("id", mockup).single())).toEqual({
+      output_role: "print_file",
+      output_file_id: drawnFile,
+    });
+  });
+
+  it("keeps a generated file as the asset of an AI board, which is what it is for", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const design = await makeBoard(ann, annBrand, canvasId, "design");
+    const scene = await makeBoard(ann, annBrand, canvasId, "ai_image");
+    must(await connect(ann, annBrand, design, scene));
+    must(await setOutput(ann, annBrand, scene, { p_output_file_id: generatedFile, p_output_role: "asset" }));
+
+    expect(must(await ann.client.from("boards").select("output_file_id").eq("id", scene).single())).toEqual({ output_file_id: generatedFile });
+  });
+
+  /**
+   * The marketing lock, which `lib/marketing/assets.ts` describes as shut "in three places" and
+   * which ran only in the browser: the chosen file id is persisted as plain settings jsonb, which
+   * `save_launch_board` used to validate with nothing but `jsonb_typeof(p_settings) <> 'object'`.
+   */
+  it("refuses a marketing board whose layout names a generated picture", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const marketing = await makeBoard(ann, annBrand, canvasId, "marketing");
+    const refused = await rpc("save_launch_board", {
+      p_brand_id: annBrand, p_user_id: ann.userId, p_launch_project_id: canvasId, p_board_id: marketing,
+      p_kind: "marketing", p_name: "Post", p_x: 0, p_y: 0, p_width: 1080, p_height: 1080,
+      p_settings: { pictures: { "slot-mockup": generatedFile } }, p_input_version: 1,
+    });
+
+    expect(refused.error?.hint).toBe("generated_is_never_artwork");
+  });
+
+  it("refuses a marketing board that names a file of another brand, or something that is not a file id at all", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const marketing = await makeBoard(ann, annBrand, canvasId, "marketing");
+    const save = (pictures: Record<string, unknown>) =>
+      rpc("save_launch_board", {
+        p_brand_id: annBrand, p_user_id: ann.userId, p_launch_project_id: canvasId, p_board_id: marketing,
+        p_kind: "marketing", p_name: "Post", p_x: 0, p_y: 0, p_width: 1080, p_height: 1080,
+        p_settings: { pictures }, p_input_version: 1,
+      });
+
+    expect((await save({ "slot-mockup": randomUUID() })).error?.hint).toBe("marketing_picture_not_a_file");
+    expect((await save({ "slot-mockup": "../../etc/passwd" })).error?.hint).toBe("marketing_picture_not_a_file");
+  });
+
+  it("lets a marketing board name a picture the brand uploaded or the platform drew", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const marketing = await makeBoard(ann, annBrand, canvasId, "marketing");
+    must(await rpc("save_launch_board", {
+      p_brand_id: annBrand, p_user_id: ann.userId, p_launch_project_id: canvasId, p_board_id: marketing,
+      p_kind: "marketing", p_name: "Post", p_x: 0, p_y: 0, p_width: 1080, p_height: 1080,
+      p_settings: { pictures: { "slot-mockup": drawnFile, "slot-logo": uploadedPhoto } }, p_input_version: 1,
+    }));
+
+    const row = must(await ann.client.from("boards").select("settings").eq("id", marketing).single()) as { settings: { pictures: unknown } };
+    expect(row.settings.pictures).toEqual({ "slot-mockup": drawnFile, "slot-logo": uploadedPhoto });
+  });
+
+  it("says nothing about the pictures of a board that is not a marketing board, which has no such setting", async () => {
+    const canvasId = await makeCanvas(ann, annBrand);
+    const card = await makeBoard(ann, annBrand, canvasId, "info_card", { p_settings: { pictures: { "slot-a": generatedFile } } });
+
+    expect(card).not.toBeNull();
+  });
+
+  // The third store site H1 names, `add_golden_sample_photo`, is held in golden-samples.test.ts,
+  // where there is a real sample to attach a photograph to.
+});
+
 describe("the version history", () => {
   it("counts up per canvas, and two canvases count on their own", async () => {
     const one = await makeCanvas(ann, annBrand);

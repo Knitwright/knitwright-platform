@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { FileProvenance } from "@/lib/storage/provenance";
 
 /**
  * The contract of a media set (plan v4, W3-A, decision 0054). Studio renders implement it now; lifestyle images, the
@@ -17,6 +18,15 @@ export const checkerVerdictSchema = z.enum(CHECKER_VERDICTS);
 export const setStatusSchema = z.enum(SET_STATUSES);
 
 export type MediaKind = z.infer<typeof mediaKindSchema>;
+
+/**
+ * What made a picture of this kind (H1 of the v5 security review, decision 0116). A studio render
+ * and a turntable's poster frame are drawn by our own code from the design; a lifestyle picture
+ * comes out of a model, and a clip's poster is the lifestyle still it was made from. All four are
+ * stored as `kind: "render"` in `public.files`, which is exactly why the file's row has to say.
+ */
+export const provenanceOfMediaKind = (kind: MediaKind): FileProvenance =>
+  kind === "lifestyle" || kind === "clip" ? "generated" : "deterministic";
 export type MediaView = z.infer<typeof mediaViewSchema>;
 export type CheckerVerdict = z.infer<typeof checkerVerdictSchema>;
 export type SetStatus = z.infer<typeof setStatusSchema>;
