@@ -31,7 +31,7 @@ export const NO_CREST_NOTE = "No crest is on this kit yet. Adding one does not c
 export const sponsorNote = (count: number): string =>
   count === 0
     ? "No sponsor marks are on this kit yet. Adding up to three does not change the price."
-    : `${count} sponsor ${count === 1 ? "mark is" : "marks are"} printed in the same pass as the shirt, so they add nothing to the price.`;
+    : `${count} sponsor ${count === 1 ? "mark is" : "marks are"} printed in the same pass as the shirt, so ${count === 1 ? "it adds" : "they add"} nothing to the price.`;
 
 /**
  * Said on the names and numbers line. The rulebook's own per-piece figure for personalisation is a

@@ -98,7 +98,7 @@ describe("what a quote says is included", () => {
   it("never shows a per-piece price for names and numbers, because none is agreed", () => {
     expect(NAMES_NOTE).toContain("Knitwright placeholder");
     expect(NAMES_NOTE).not.toMatch(/[£$]/);
-    expect(sponsorNote(1)).toContain("1 sponsor mark is");
-    expect(sponsorNote(3)).toContain("3 sponsor marks are");
+    expect(sponsorNote(1)).toBe("1 sponsor mark is printed in the same pass as the shirt, so it adds nothing to the price.");
+    expect(sponsorNote(3)).toBe("3 sponsor marks are printed in the same pass as the shirt, so they add nothing to the price.");
   });
 });
