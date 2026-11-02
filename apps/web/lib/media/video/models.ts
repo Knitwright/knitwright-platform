@@ -139,6 +139,9 @@ export function videoCost(model: VideoModel, seconds: number): VideoCost {
 export const licenceLabel = (model: VideoModel): string =>
   model.commercialLicence ? "Commercial licence" : "Commercial licence not confirmed";
 
+/** True when the Audio switch does anything for this model, so the panel can say why it is off. */
+export const audioAvailable = (model: VideoModel): boolean => model.audio;
+
 /** Roughly how long a run will take, in seconds, for the "Generating mm:ss" placeholder. */
 export const estimatedWait = (model: VideoModel, seconds: number): number =>
   Math.max(1, Math.round(model.estimatedWaitPerSecond * Math.max(0, seconds)));

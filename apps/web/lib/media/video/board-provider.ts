@@ -1,6 +1,5 @@
 import { createFalBoardVideoProvider, type Fetch } from "./fal";
 import type { VideoAspect } from "./formats";
-import type { VideoModel } from "./models";
 import type { VideoType } from "./sniff";
 import { stubWebm } from "./stub";
 
@@ -68,5 +67,5 @@ export function chooseBoardVideoProvider(
   return stubBoardVideoProvider();
 }
 
-/** True when the Audio switch does anything for this model, so the panel can say why it is off. */
-export const audioAvailable = (model: VideoModel): boolean => model.audio;
+/** Whether a model makes sound of its own. Kept with the model rows, which carry no zod. */
+export { audioAvailable } from "./models";
