@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
+import { clearUploads } from "@/lib/moderation/fixtures/gates";
 import { createAssetReader } from "./reader";
 import { changeArtwork, checkArtworkTile, deleteArtwork, getArtworkDetail, listArtworks } from "./service";
 
@@ -27,7 +28,7 @@ describe("when the database fails", () => {
     await expect(getArtworkDetail(failing, BRAND, ID)).rejects.toThrow("could not be read");
     await expect(deleteArtwork(failing, BRAND, ID)).rejects.toThrow("could not be read");
     await expect(checkArtworkTile(failing, { brandId: BRAND, userId: "u" }, ID)).rejects.toThrow("could not be read");
-    await expect(changeArtwork(failing, { brandId: BRAND, userId: "u" }, ID, { action: "remove-white-background" }, false)).rejects.toThrow("could not be read");
+    await expect(changeArtwork(failing, { brandId: BRAND, userId: "u" }, ID, { action: "remove-white-background" }, false, clearUploads())).rejects.toThrow("could not be read");
   });
 
   it("gives not found for an artwork that is not there, and an empty list for none", async () => {

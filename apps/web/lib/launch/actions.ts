@@ -6,7 +6,7 @@ import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
-import { GENERATED_LABEL, type LaunchAsset } from "./assets";
+import type { AssetOffer } from "./assets";
 import { canConnect, nextInput } from "./graph";
 import { LAUNCH_HOME, launchProjectPath } from "./menu";
 import {
@@ -148,11 +148,14 @@ export const disconnectLaunchBoardsAction = defineAction({
 });
 
 /**
- * Records what a run produced (`offerAsset` of the contract). The asset is rebuilt here as a
- * `LaunchAsset` so `acceptAsset` judges it: a generated picture offered as a panel layer or a
- * print file is refused in this action, refused again by the service, and refused a third time by
- * the database's own constraint (spec decision 13). The board's kind comes from the canvas, never
- * from the body.
+ * Records what a run produced (`offerAsset` of the contract).
+ *
+ * The body says which file and what the panel wants it used as. **What made the file is not in the
+ * body and cannot be**: `recordOutput` reads it from `public.files.provenance` and judges the ask
+ * against that, the database judges it again in `set_launch_board_output`, and
+ * `boards_generated_output_is_never_artwork` refuses the row a third time (spec decision 13;
+ * security review v5 H1, decision 0116). The board's kind comes from the canvas, never from the
+ * body.
  */
 export const recordBoardOutputAction = defineAction({
   auth: "member",
@@ -166,7 +169,7 @@ export const recordBoardOutputAction = defineAction({
     await recordOutput(adminClient(), whoOf(session), {
       boardId: board.id,
       kind: board.kind,
-      asset: assetFrom(input.asset),
+      offer: offerFrom(input.asset),
       status: input.status,
       credits: input.credits,
     });
@@ -176,17 +179,22 @@ export const recordBoardOutputAction = defineAction({
 });
 
 /**
- * The body's asset as a `LaunchAsset`, exactly as the body gave it -- including a role a generated
- * picture may not have. The cast is deliberate: `acceptAsset` is the one thing that refuses such an
- * asset, and rewriting it here would hide the refusal instead of making it.
+ * The body as an offer. There is no cast here any more, and nothing for one to hide.
+ *
+ * The old version of this function rebuilt the body's asset verbatim and asserted `as LaunchAsset`
+ * on purpose, with a comment saying the cast was safe because "`acceptAsset` is the one thing that
+ * refuses such an asset". That was the false premise the v5 security review's H1 turned on:
+ * `acceptAsset` only entered its refusal branch when the body *admitted* `"generated"`, so a body
+ * that said `"deterministic"` about a file a model had made fell straight through. An offer carries
+ * no provenance at all, so there is nothing left to assert.
  */
-function assetFrom(asset: RecordOutputBody["asset"]): LaunchAsset | null {
+function offerFrom(asset: RecordOutputBody["asset"]): AssetOffer | null {
   if (asset === null) return null;
-  const file = { fileId: asset.fileId, contentType: "application/octet-stream" };
-  if (asset.provenance === "generated") {
-    return { role: asset.role, provenance: "generated", file, label: GENERATED_LABEL, showsPerson: asset.showsPerson } as LaunchAsset;
-  }
-  return { role: asset.role, provenance: asset.provenance, file };
+  return {
+    role: asset.role,
+    file: { fileId: asset.fileId, contentType: "application/octet-stream" },
+    showsPerson: asset.showsPerson,
+  };
 }
 
 /** The main menu's Save: the canvas as it stands, kept for the Version history. */

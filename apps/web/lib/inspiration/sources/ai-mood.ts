@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import type { GenerationGate } from "@/lib/moderation/gate";
 import type { ImageProvider } from "@/lib/providers/image-provider";
 import { microdollars } from "@/lib/usage/cost";
 import type { UsageMeter } from "@/lib/usage/meter";
@@ -26,6 +28,13 @@ export const MOOD_IMAGES_PER_REFRESH = 1;
 export const ALLOWANCE_USED_UP = "The AI allowance for this month is used up, so no mood image was made.";
 
 /**
+ * Said when the content review refuses the mood image. It is thrown rather than returned so the
+ * board drops this one source and shows the rest, which is what it does for every source that
+ * cannot answer (security review v5 H3, decision 0116).
+ */
+export const MOOD_BLOCKED = "The mood image was refused by the content review, so it is not shown.";
+
+/**
  * The prompt. It asks for a mood board photograph, never a garment: a model that drew a garment here would still never
  * reach a panel (the picture is not storable), but asking for one at all would be against spec decision 13.
  */
@@ -44,7 +53,18 @@ const dataUrl = (bytes: Uint8Array, contentType: string): string => `data:${cont
  * The AI mood source, built only when an image provider is configured. The bytes come back as a data address inside
  * the one answer: nothing is written to storage, so the picture lives for as long as the panel is open and no longer.
  */
-export function aiMoodProvider(provider: ImageProvider, meter: UsageMeter, who: Who, route = "inspiration/mood"): CardProvider {
+export function aiMoodProvider(
+  provider: ImageProvider,
+  meter: UsageMeter,
+  who: Who,
+  /**
+   * X8's `screenGeneration`, bound to the brand and the person. The spec asks for a screen on every
+   * AI generation and this is one, even though the picture is never stored: a blocked picture is
+   * not shown and the cost goes back (security review v5 H3, decision 0116).
+   */
+  screen: GenerationGate,
+  route = "inspiration/mood",
+): CardProvider {
   return {
     source: "ai-mood",
     name: provider.name,
@@ -57,7 +77,12 @@ export function aiMoodProvider(provider: ImageProvider, meter: UsageMeter, who: 
       });
       if (!reservation.ok) throw new Error(ALLOWANCE_USED_UP);
       try {
-        const made = await provider.generate({ prompt: moodPrompt(query), reference: new Uint8Array() }, signal);
+        const prompt = moodPrompt(query);
+        const made = await provider.generate({ prompt, reference: new Uint8Array() }, signal);
+        // Nothing is stored, so there is no asset to keep the result against: the check is recorded
+        // against a fresh generation id, which is what the ops queue reviews it under.
+        const verdict = await screen({ generationId: randomUUID(), image: made.bytes, prompt });
+        if (verdict.result === "blocked") throw new Error(MOOD_BLOCKED);
         return [moodCard(query, dataUrl(made.bytes, made.contentType))];
       } catch (error) {
         await meter.refund(reservation.eventId).catch(() => false);

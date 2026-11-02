@@ -33,7 +33,8 @@ export async function saveTurntable(deps: TurntableDeps, ask: TurntableAsk): Pro
 
   const posterPath = cleanPath(ask.brandId, set.id, "turntable", TURNTABLE_VIEW);
   const moviePath = videoPath(ask.brandId, set.id, "turntable", TURNTABLE_VIEW);
-  const fileId = await deps.files.saveWatermarked(await watermark(recording.poster));
+  // A turntable is a recording of the deterministic 3D render, so its poster frame is ours.
+  const fileId = await deps.files.saveWatermarked(await watermark(recording.poster), "deterministic");
   try {
     await deps.files.saveClean(posterPath, recording.poster);
     await deps.videos.save(moviePath, recording.video, recording.type);

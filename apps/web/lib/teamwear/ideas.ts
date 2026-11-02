@@ -81,12 +81,13 @@ export interface QuoteSource {
   quoteFor(request: QuoteRequest): Promise<QuoteOutcome>;
 }
 
-/** Said where the quote PDF is not wired in. */
-export const QUOTE_UNAVAILABLE = "The quote PDF is not switched on yet. The prices above are the ones it will carry.";
-
-export const unavailableQuotes: QuoteSource = {
-  quoteFor: () => Promise.resolve({ status: "unavailable", reason: QUOTE_UNAVAILABLE }),
-};
+/*
+ * There is no `unavailableQuotes` any more, and no "not switched on yet" sentence. The configurator
+ * calls Z6's own `quoteSource` (`lib/quotes/source.ts`), so the only refusals a club can see are
+ * the true ones: a kit nobody has saved, and a kit nothing in which has a price. Both come from
+ * `handoff.ts`, because a quote needs exactly what the Store hand-off needs (code review of plan
+ * v5, item B2).
+ */
 
 /** The test double: one fixed quote number and path, whatever is asked for. */
 export const fixedQuote = (quoteNumber: string, downloadPath: string): QuoteSource => ({

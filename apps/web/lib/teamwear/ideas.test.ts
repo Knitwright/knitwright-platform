@@ -4,10 +4,8 @@ import {
   fixedIdeas,
   fixedQuote,
   IDEAS_UNAVAILABLE,
-  QUOTE_UNAVAILABLE,
   sampleIdeas,
   unavailableIdeas,
-  unavailableQuotes,
 } from "./ideas";
 
 const request = { sportId: "football", colours: DEFAULT_CLUB_COLOURS, typeId: "football-shirt", limit: 9 };
@@ -44,9 +42,10 @@ describe("the ideas seam", () => {
 describe("the quote seam", () => {
   const ask = { projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", version: 1, lines: [{ articleCode: "JSY-SS-01", qty: 20 }], currency: "GBP" } as const;
 
-  it("says plainly that the quote PDF is not switched on, and that the prices shown are the ones it will carry", async () => {
-    await expect(unavailableQuotes.quoteFor(ask)).resolves.toEqual({ status: "unavailable", reason: QUOTE_UNAVAILABLE });
-    expect(QUOTE_UNAVAILABLE).toMatch(/prices above are the ones it will carry/);
+  it("has no 'not switched on yet' source left to offer, because the real one is wired in", async () => {
+    const seam = await import("./ideas");
+    expect("unavailableQuotes" in seam).toBe(false);
+    expect("QUOTE_UNAVAILABLE" in seam).toBe(false);
   });
 
   it("gives one fixed quote number, so a test can assert the footer without making a PDF", async () => {

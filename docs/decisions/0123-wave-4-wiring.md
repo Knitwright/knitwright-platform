@@ -1,4 +1,4 @@
-# 0116: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
+# 0123: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
 
 Status: Proposed; the panels are on a screen and scanned by axe for the first time, L2's run loop is closed end to
 end, the carousel is still disabled for want of a second colourway in the viewer, owner questions listed

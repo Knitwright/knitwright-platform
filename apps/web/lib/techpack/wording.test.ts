@@ -281,26 +281,21 @@ describe("the words in the other parts of the product", () => {
     expect(WIDE.length).toBeGreaterThan(300);
   });
 
-  /**
-   * This check reads every file of `components` and `app` and runs the word list over every
-   * sentence in them, which takes several seconds on a loaded runner with coverage on -- and longer
-   * every time the product grows a folder. It timed out at the default five seconds once wave 4's
-   * panels, the crest-to-kit screens and the shoot library landed in one afternoon. The same budget
-   * and the same reason as `tests/architecture/garment3d.test.ts`'s own scans.
+  /*
+   * Thirty seconds, not the default five. This reads every one of 300-odd files and splits each into
+   * sentences, and it grew with the product: by the end of plan v5 the unit project was 1,229 files
+   * and 23,758 tests, and this one test began timing out in CI while passing in 1.6 s on its own.
+   * The headroom is spent by contention, not by the work -- the same thing that moved the print
+   * acceptance cases into the slow `pdf` project when the suite passed 18,000 tests. The budget is
+   * still a budget: a scan that takes thirty seconds is doing something pathological and should fail.
    */
-  const SCAN_MS = 30_000;
-
-  it(
-    "appear in no sentence of those folders, except the sentences listed above and the ones listed here",
-    () => {
-      const found: string[] = [];
-      for (const path of WIDE) {
-        for (const sentence of sentencesIn(path).filter(isProse)) {
-          if (SETTLED.test(withoutAllowed(withoutWide(sentence)))) found.push(`${path.slice(ROOT.length + 1)}: ${sentence}`);
-        }
+  it("appear in no sentence of those folders, except the sentences listed above and the ones listed here", () => {
+    const found: string[] = [];
+    for (const path of WIDE) {
+      for (const sentence of sentencesIn(path).filter(isProse)) {
+        if (SETTLED.test(withoutAllowed(withoutWide(sentence)))) found.push(`${path.slice(ROOT.length + 1)}: ${sentence}`);
       }
-      expect(found).toEqual([]);
-    },
-    SCAN_MS,
-  );
+    }
+    expect(found).toEqual([]);
+  }, 30_000);
 });

@@ -23,7 +23,7 @@ let bobBrand: string;
 const picture = () => sharp({ create: { width: 16, height: 8, channels: 3, background: "#2b46f0" } }).png().toBuffer();
 
 const file = async (owner: Person, brandId: string, kind: ImageKind = "artwork"): Promise<string> =>
-  (await storeImage({ admin: adminClient(), brandId, userId: owner.userId, kind, bytes: await picture(), statedType: "image/png" })).id;
+  (await storeImage({ admin: adminClient(), brandId, userId: owner.userId, kind, provenance: "uploaded", bytes: await picture(), statedType: "image/png" })).id;
 
 beforeAll(async () => {
   [alice, bob] = await Promise.all([person("art-alice"), person("art-bob")]);

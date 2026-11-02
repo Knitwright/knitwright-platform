@@ -136,6 +136,26 @@ describe("scrub", () => {
     const token = `${"knitwright".repeat(4)}fix`;
     expect(scrub(`GET https://app.knitwright.com/s/${token} failed`)).toBe("GET https://app.knitwright.com/s/[removed] failed");
   });
+
+  it("removes a share token that happens to look like a provider key, and keeps the path", async () => {
+    const { scrub } = await import("./log");
+    /*
+     * A share token is 43 characters of base64url, so about one in thirteen thousand contains `sk-`
+     * followed by twenty more. The generic provider-key pattern used to run first and eat that tail,
+     * leaving a fragment `/s/` no longer matched: the token never reached the log, but the path did
+     * not survive either, so the line stopped saying what was asked for. `job-packet/headers.test.ts`
+     * found it by chance with a random token. This holds the order that fixes it.
+     */
+    const token = `aa-sk-${"b".repeat(20)}${"c".repeat(17)}`;
+    expect(token).toHaveLength(43);
+    expect(scrub(`GET https://app.knitwright.com/s/${token} failed`)).toBe("GET https://app.knitwright.com/s/[removed] failed");
+  });
+
+  it("removes a job token that happens to look like a provider key, and keeps the path", async () => {
+    const { scrub } = await import("./log");
+    const token = `aa-sk-${"b".repeat(20)}${"c".repeat(17)}`;
+    expect(scrub(`GET https://app.knitwright.com/job/${token}/sheet failed`)).toBe("GET https://app.knitwright.com/job/[removed]/sheet failed");
+  });
 });
 
 describe("AI provider keys", () => {

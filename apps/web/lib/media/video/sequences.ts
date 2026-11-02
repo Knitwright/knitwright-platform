@@ -1,4 +1,5 @@
 import { VIDEO_GAP_RULE } from "./formats";
+import { TURNTABLE_SECONDS } from "./limits";
 
 /**
  * The four free deterministic videos of the spec's Video studio (F-L3), as rows.
@@ -84,8 +85,9 @@ export const VIDEO_SEQUENCES: Readonly<Record<SequenceKey, VideoSequence>> = {
     key: "turntable",
     label: "360° kit turntable",
     lead: "The garment turns once on the spot, so every side of the kit is on screen.",
-    seconds: 6,
-    shots: [shot("turn", "Turning the garment once", 6, { kind: "orbit", fromDegrees: 0, toDegrees: 360 })],
+    // The one length of one full turn, shared with the browser recording (`limits.ts`).
+    seconds: TURNTABLE_SECONDS,
+    shots: [shot("turn", "Turning the garment once", TURNTABLE_SECONDS, { kind: "orbit", fromDegrees: 0, toDegrees: 360 })],
     needs: ["turn"],
     ruleId: VIDEO_GAP_RULE,
     note: SPEC_NOTE,

@@ -2,7 +2,8 @@ import sharp from "sharp";
 import { describe, expect, it, vi } from "vitest";
 import type { GeneratorResult, MediaGenerator } from "./contract";
 import { mediaItemSchema, mediaSetSchema } from "./contract";
-import { FAILED_MESSAGE, runMediaSet } from "./generate";
+import { blockGenerations, clearGenerations } from "@/lib/moderation/fixtures/gates";
+import { BLOCKED_MESSAGE, FAILED_MESSAGE, runMediaSet } from "./generate";
 import { CLEAN_FOLDER } from "./paths";
 import { serveItem } from "./serve";
 import { NO_DRAWING_MESSAGE, startMediaSet } from "./start";
@@ -30,7 +31,7 @@ const okGenerator = (): MediaGenerator =>
     ],
   }));
 
-const setup = (generators: MediaGenerator[] = [okGenerator()]) => {
+const setup = (generators: MediaGenerator[] = [okGenerator()], screen = clearGenerations()) => {
   const store = memoryStore();
   const files = memoryFiles();
   const log = vi.fn();
@@ -41,14 +42,14 @@ const setup = (generators: MediaGenerator[] = [okGenerator()]) => {
         store,
         loadVersion: async () => ({ version }),
         schedule: (work) => void scheduled.push(work),
-        run: (work) => runMediaSet({ store, files, generators, log }, { ...work, brandId: BRAND }),
+        run: (work) => runMediaSet({ store, files, generators, screen, log }, { ...work, brandId: BRAND }),
       },
       { brandId: BRAND, projectId: PROJECT, userId: USER },
     );
   const drain = async () => {
     while (scheduled.length) await scheduled.shift()?.();
   };
-  return { store, files, log, start, drain };
+  return { store, files, log, screen, start, drain };
 };
 
 describe("starting a set", () => {
@@ -153,9 +154,46 @@ describe("making a set", () => {
     const t = setup();
     const { set } = await t.start();
     await t.drain();
-    const outcome = await runMediaSet({ store: t.store, files: t.files, generators: [okGenerator()], log: t.log }, { setId: set.id, brandId: BRAND, request: { design: { projectId: PROJECT, version: 1 } } });
+    const outcome = await runMediaSet({ store: t.store, files: t.files, generators: [okGenerator()], screen: clearGenerations(), log: t.log }, { setId: set.id, brandId: BRAND, request: { design: { projectId: PROJECT, version: 1 } } });
     expect(outcome).toBe("failed");
     expect((await t.store.read(BRAND, PROJECT, set.id))?.status).toBe("succeeded");
+  });
+
+  /**
+   * H3 of the v5 security review (decision 0116). `screenGeneration` had no production caller, so
+   * the lifestyle pictures -- the one thing in a media set that a model makes -- went to storage
+   * unscreened. A studio render is not an AI generation: our own code draws it from the design, so
+   * there is nothing for a content review to look at that it has not already approved as artwork.
+   */
+  const lifestyleGenerator = () =>
+    generator(async () => ({
+      ok: true,
+      media: [
+        { kind: "lifestyle" as const, view: "scene" as const, png: await solid("#3344cc"), width: 200, height: 160, checker: "passed" as const, provider: "model", costMicrodollars: 10, prompt: "a floodlit pitch" },
+      ],
+    }));
+
+  it("screens every picture a model made, and nothing our own code drew", async () => {
+    const screen = clearGenerations();
+    const t = setup([okGenerator(), lifestyleGenerator()], screen);
+    const { set } = await t.start();
+    await t.drain();
+
+    expect(screen.asks).toHaveLength(1);
+    expect(screen.asks[0]).toMatchObject({ generationId: set.id, prompt: "a floodlit pitch" });
+    expect((await t.store.read(BRAND, PROJECT, set.id))?.status).toBe("succeeded");
+  });
+
+  it("keeps nothing at all when the content review blocks a picture, and says why", async () => {
+    const t = setup([lifestyleGenerator()], blockGenerations());
+    const { set } = await t.start();
+    await t.drain();
+    const done = await t.store.read(BRAND, PROJECT, set.id);
+
+    expect(done?.status).toBe("failed");
+    expect(done?.error).toBe(BLOCKED_MESSAGE);
+    expect(t.files.watermarked.size).toBe(0);
+    expect(t.files.clean.size).toBe(0);
   });
 
   it("survives a failure to clean up and a failure to mark failed", async () => {

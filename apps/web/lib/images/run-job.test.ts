@@ -3,7 +3,8 @@ import { ProviderError, type ImageProvider } from "@/lib/providers";
 import { AppError } from "@/lib/server/core/errors";
 import { STORAGE_FULL_MESSAGE } from "@/lib/storage/quota";
 import { failingImageProvider, stubImageProvider } from "@/lib/providers/image-stub";
-import { FAILED_MESSAGE, UNAVAILABLE_MESSAGE, runImageJob, type RunJobDeps } from "./run-job";
+import { blockGenerations, clearGenerations } from "@/lib/moderation/fixtures/gates";
+import { BLOCKED_MESSAGE, FAILED_MESSAGE, UNAVAILABLE_MESSAGE, runImageJob, type RunJobDeps } from "./run-job";
 
 const REFERENCE = new Uint8Array([1, 2, 3]);
 
@@ -27,6 +28,7 @@ const makeDeps = (provider: ImageProvider, overrides: Partial<RunJobDeps> = {}) 
       ),
       markFailed: vi.fn(async (id: string, message: string) => void calls.push(`failed ${id} ${message}`)),
     },
+    screen: clearGenerations(),
     saveImage: vi.fn(async (view: string) => `${view}-file`),
     removeImages: vi.fn(async (ids: readonly string[]) => void calls.push(`removed ${ids.join(" ")}`)),
     refund: vi.fn(async (eventId: string) => {
@@ -170,6 +172,30 @@ describe("runImageJob", () => {
 
     await expect(runImageJob(deps, work)).resolves.toBe("failed");
     expect(deps.log).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/refund/i) }));
+  });
+
+  /**
+   * H3 of the v5 security review (decision 0116). The spec says a screen runs "on every AI
+   * generation", and `screenGeneration` had no production caller at all: this is one of the five
+   * generation paths that now has one.
+   */
+  it("screens both pictures the model made, naming the job and the prompt it was asked for", async () => {
+    const screen = clearGenerations();
+    const { deps } = makeDeps(stubImageProvider(), { screen });
+
+    expect(await runImageJob(deps, work)).toBe("succeeded");
+    expect(screen.asks.map((ask) => ask.prompt)).toEqual(["front prompt", "back prompt"]);
+    expect(screen.asks.map((ask) => ask.generationId)).toEqual(["job-1", "job-1"]);
+    expect(screen.asks.every((ask) => ask.bytes > 0)).toBe(true);
+  });
+
+  it("keeps nothing the content review blocks, marks the job failed and gives the cost back", async () => {
+    const { deps } = makeDeps(stubImageProvider(), { screen: blockGenerations() });
+
+    expect(await runImageJob(deps, work)).toBe("failed");
+    expect(deps.saveImage).not.toHaveBeenCalled();
+    expect(deps.jobs.markFailed).toHaveBeenCalledWith("job-1", BLOCKED_MESSAGE);
+    expect(deps.refund).toHaveBeenCalledWith("event-1");
   });
 
   it("stops a slow model at the time limit", async () => {
