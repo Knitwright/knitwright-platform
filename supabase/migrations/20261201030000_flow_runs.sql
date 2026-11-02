@@ -201,10 +201,15 @@ create table public.flow_run_boards (
   rule_id text not null default 'R-GAP-000' check (rule_id ~ '^R-[A-Z]+-[0-9]{3}$'),
   updated_at timestamptz not null default now(),
   unique (run_id, board_id),
-  -- A board that did not finish holds no picture, and a board that was skipped was never charged.
+  -- A board that did not finish holds no picture, and a board that was skipped was never charged:
+  -- a skipped board is one the run never asked a model for, so there is nothing to charge or refund.
+  --
+  -- There is deliberately NO constraint saying a failed board kept nothing. It normally does -- the
+  -- run gives its credits back before the next board starts -- but a refund that itself fails has to
+  -- be recordable, and `credits` with `refunded_credits` beside it is then the only honest account of
+  -- what happened. A constraint that refused to write that would hide it.
   constraint flow_run_boards_only_ready_holds_a_picture check (output_file_id is null or status = 'ready'),
-  constraint flow_run_boards_skipped_is_never_charged check (status <> 'skipped' or (credits = 0 and refunded_credits = 0)),
-  constraint flow_run_boards_failed_keeps_nothing check (status <> 'failed' or credits = 0)
+  constraint flow_run_boards_skipped_is_never_charged check (status <> 'skipped' or (credits = 0 and refunded_credits = 0))
 );
 
 comment on table public.flow_run_boards is
@@ -249,16 +254,37 @@ security definer
 set search_path = ''
 as $$
 begin
-  if tg_op = 'DELETE' and not exists (select 1 from public.launch_projects p where p.id = old.launch_project_id) then
+  -- A statement-level TRUNCATE trigger has no `old` to look at, so it is answered first: reading
+  -- `old` there is a run-time error, which would refuse the truncate with the wrong words.
+  if tg_op = 'TRUNCATE' then
+    raise exception 'A listing hand-off is never truncated.' using errcode = 'P0001', hint = 'append_only';
+  end if;
+  -- A hand-off goes when its brand or its canvas goes, and not otherwise. Both are checked because
+  -- the row hangs off both, and which cascade fires first is not something to depend on.
+  if tg_op = 'DELETE' and (
+       not exists (select 1 from public.launch_projects p where p.id = old.launch_project_id)
+       or not exists (select 1 from public.brands b where b.id = old.brand_id)
+     ) then
     return old;
   end if;
-  if tg_op = 'UPDATE'
-     and old.collected_at is null
-     and new.collected_at is not null
-     and row(new.id, new.brand_id, new.launch_project_id, new.payload, new.rule_id, new.created_by, new.created_at)
-       = row(old.id, old.brand_id, old.launch_project_id, old.payload, old.rule_id, old.created_by, old.created_at)
-  then
-    return new;
+  if tg_op = 'UPDATE' then
+    -- The Store saying it has read the row. `is not distinct from` rather than `=`, because a
+    -- row-wise `=` is null when a nullable field is null on both sides, and `created_by` is
+    -- nullable: with `=` a hand-off whose author had been deleted could never be marked collected.
+    if old.collected_at is null and new.collected_at is not null
+       and row(new.id, new.brand_id, new.launch_project_id, new.payload, new.rule_id, new.created_by, new.created_at)
+         is not distinct from row(old.id, old.brand_id, old.launch_project_id, old.payload, old.rule_id, old.created_by, old.created_at)
+    then
+      return new;
+    end if;
+    -- The person who pressed the button being deleted: `created_by` is set to null by the reference
+    -- itself, and the record of the hand-off stays. Without this, deleting a user fails here.
+    if old.created_by is not null and new.created_by is null
+       and row(new.id, new.brand_id, new.launch_project_id, new.payload, new.rule_id, new.collected_at, new.created_at)
+         is not distinct from row(old.id, old.brand_id, old.launch_project_id, old.payload, old.rule_id, old.collected_at, old.created_at)
+    then
+      return new;
+    end if;
   end if;
   raise exception 'A listing hand-off can never be changed or removed; it can only be marked collected.'
     using errcode = 'P0001', hint = 'append_only';
@@ -332,6 +358,61 @@ create trigger boards_artwork_never_comes_through_a_generated_board
   for each row when (new.output_role in ('panel_layer', 'print_file'))
   execute function private.refuse_laundered_artwork();
 
+/*
+ * The same rule from the other end, which the trigger above cannot see.
+ *
+ * Setting an output and drawing a connector are two different writes, and the rule can be broken by
+ * doing them in the other order: make a Marketing board's output a print file while its chain is
+ * clean -- which is allowed, and right -- and then connect an AI Image board into it. The board's
+ * row never changes, so nothing above fires, and the print file now holds pixels a model made.
+ *
+ * So a connector is refused when it would put something a model made behind a board whose output is
+ * already artwork, anywhere downstream of it.
+ */
+create function private.launch_board_artwork_downstream(p_board_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with recursive downstream as (
+    select b.id, b.output_role
+      from public.boards b
+     where b.id = p_board_id
+    union
+    select b.id, b.output_role
+      from public.board_edges e
+      join public.boards b on b.id = e.to_board_id
+      join downstream d on d.id = e.from_board_id
+  )
+  select exists (select 1 from downstream where output_role in ('panel_layer', 'print_file'));
+$$;
+
+revoke all on function private.launch_board_artwork_downstream(uuid) from public, anon, authenticated;
+
+create function private.refuse_laundering_connector()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if private.launch_board_has_generated_upstream(new.from_board_id)
+     and private.launch_board_artwork_downstream(new.to_board_id) then
+    raise exception 'That connector would put a picture a model made into a layer on the garment or part of a print file. Make that board''s output an asset first.'
+      using errcode = 'P0001', hint = 'generated_is_never_artwork';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.refuse_laundering_connector() from public, anon, authenticated;
+
+create trigger board_edges_artwork_never_comes_through_a_generated_board
+  after insert on public.board_edges
+  for each row execute function private.refuse_laundering_connector();
+
 -- ---------------------------------------------------------------------------------------------
 -- Rights and row level security.
 
@@ -398,6 +479,15 @@ begin
   end if;
   if not exists (select 1 from public.launch_projects p where p.id = p_launch_project_id and p.brand_id = p_brand_id) then
     raise exception 'That launch project does not exist.' using errcode = 'P0002', hint = 'launch_project_not_found';
+  end if;
+  -- The board the button was pressed on has to be a board of this brand and of this canvas. The
+  -- column is a plain reference rather than a composite one, because `on delete set null` on a
+  -- composite would try to null the brand as well (the same reason L1 gives on its own tables).
+  if p_from_board_id is not null and not exists (
+    select 1 from public.boards b
+     where b.id = p_from_board_id and b.brand_id = p_brand_id and b.launch_project_id = p_launch_project_id
+  ) then
+    raise exception 'That board does not exist.' using errcode = 'P0002', hint = 'board_not_found';
   end if;
 
   insert into public.flow_runs (brand_id, launch_project_id, scope, from_board_id, status, estimate_credits, template_slug, created_by)
@@ -467,6 +557,12 @@ begin
   if not private.can_manage_kit(p_user_id, p_brand_id) then
     raise exception 'You may not run a flow for this brand.' using errcode = '42501';
   end if;
+  -- Closing a run means it ended. A run that is still going is written by set_flow_run_board, so
+  -- the state it ends in is one of the three a finished run can be in; anything else would leave a
+  -- row saying it had finished at a time it had not.
+  if coalesce(p_status, '') not in ('done', 'part_done', 'failed') then
+    raise exception 'A run is closed as done, part done or failed.' using errcode = 'P0001', hint = 'run_not_finished';
+  end if;
   update public.flow_runs
      set status = p_status,
          spent_credits = coalesce(p_spent, spent_credits),
@@ -494,6 +590,13 @@ $$;
  * `credit_refund_for_order` still sweeps a flow's spends up when the design is ordered. Only the
  * idempotency key differs.
  *
+ * **The output key carries the run, not only the board** (`lib/flows/server.ts` passes
+ * `<run>:<board>`). Charging per board alone would make a retry free after its credits had been
+ * given back: the key would already be in the ledger, so the second model call would cost nothing.
+ * Within one run the key does not change, so a retry inside a run is free, which is the promise the
+ * platform already makes. The key is stored as a digest, because a run, a board and a version hash
+ * together are longer than a ledger key may be.
+ *
  * Returns { ok: true, charged, price, balance, entry_id } or
  * { ok: false, reason: 'insufficient', price, balance }, exactly as `credit_spend` does.
  */
@@ -512,7 +615,9 @@ set search_path = ''
 as $$
 declare
   v_price integer;
-  v_key text := 'spend:' || p_kind || ':' || p_version_hash || ':' || p_output_key;
+  -- A digest, so a run id, a board id and a version hash together always fit a ledger key. The
+  -- prefix differs from `credit_spend`'s, so the two can never land on one key.
+  v_key text := 'spend-output:' || p_kind || ':' || md5(p_version_hash || ':' || p_output_key);
   v_existing uuid;
   v_balance bigint;
   v_id uuid;
@@ -520,15 +625,17 @@ begin
   if p_version_hash is null or length(p_version_hash) not between 1 and 200 then
     raise exception 'A design version is named by a hash of 1 to 200 characters.' using errcode = '22023';
   end if;
-  if p_output_key is null or length(p_output_key) not between 1 and 64 then
-    raise exception 'An output is named by a key of 1 to 64 characters.' using errcode = '22023';
+  if p_output_key is null or length(p_output_key) not between 1 and 200 then
+    raise exception 'An output is named by a key of 1 to 200 characters.' using errcode = '22023';
   end if;
   select cp.credits into v_price from public.credit_prices cp where cp.output_kind = p_kind;
   if not found then
     raise exception 'No credit price is set for that output.' using errcode = '22023';
   end if;
-  if not private.belongs_to(p_user_id, p_brand_id) then
-    raise exception 'That brand does not exist.' using errcode = 'P0002';
+  -- Charging a brand's credits is changing its kit, so the same ability the rest of this file asks
+  -- for. `credit_spend` asks only for membership; a viewer should not be able to spend.
+  if not private.can_manage_kit(p_user_id, p_brand_id) then
+    raise exception 'You may not spend this brand''s credits.' using errcode = '42501';
   end if;
 
   perform private.credit_lock(p_brand_id);
@@ -577,8 +684,10 @@ begin
   with given as (
     insert into public.credit_ledger
       (brand_id, kind, amount, output_kind, design_version_hash, refund_of, idempotency_key, note)
+    -- The note is cut to what a ledger line holds: a board's own reason may be longer than that,
+    -- and a refund that failed a length check would leave the brand short.
     select s.brand_id, 'refund', -s.amount, s.output_kind, s.design_version_hash, s.id, 'refund:' || s.id,
-           coalesce(nullif(btrim(p_note), ''), 'Output did not finish')
+           left(coalesce(nullif(btrim(p_note), ''), 'Output did not finish'), 200)
       from public.credit_ledger s
      where s.id = p_entry_id and s.brand_id = p_brand_id and s.kind = 'spend'
        and not exists (select 1 from public.credit_ledger r where r.refund_of = s.id)

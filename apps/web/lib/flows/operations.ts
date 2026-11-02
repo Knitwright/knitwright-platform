@@ -45,7 +45,8 @@ export type OperationVerdict = Readonly<{ allowed: true }> | Readonly<{ allowed:
 const refuse = (reason: string): OperationVerdict => ({ allowed: false, reason, ruleId: FLOW_GAP_RULE });
 
 /** The factors Upscale offers. Two and four, as the image modal of F-L1 and F-L2 offers them. */
-export const UPSCALE_FACTORS: readonly number[] = [2, 4];
+export const DEFAULT_UPSCALE = 2;
+export const UPSCALE_FACTORS: readonly number[] = [DEFAULT_UPSCALE, 4];
 
 export interface OperationInput {
   readonly graph: Graph;
@@ -70,7 +71,7 @@ const upscaleSize = (size: Size, factor: number): Size => ({ width: Math.round(s
 function upscaleVerdict(input: OperationInput): OperationVerdict {
   const picture = hasPicture(input.board);
   if (!picture.allowed) return picture;
-  const factor = input.factor ?? UPSCALE_FACTORS[0] ?? 2;
+  const factor = input.factor ?? DEFAULT_UPSCALE;
   if (!UPSCALE_FACTORS.includes(factor)) return refuse(`Upscale goes ${UPSCALE_FACTORS.join(" or ")} times, not ${factor}.`);
   const wanted = upscaleSize(input.board.size, factor);
   if (Math.max(wanted.width, wanted.height) > MAX_ARTBOARD_PX) {
@@ -142,7 +143,7 @@ export function planOperation(id: OperationId, input: OperationInput): Operation
     };
   }
   if (id === "upscale") {
-    const factor = input.factor ?? UPSCALE_FACTORS[0] ?? 2;
+    const factor = input.factor ?? DEFAULT_UPSCALE;
     return {
       ...base,
       settings: { ...input.board.settings, upscale: factor },
@@ -150,13 +151,14 @@ export function planOperation(id: OperationId, input: OperationInput): Operation
       note: `Upscale ${factor}× to ${upscaleSize(input.board.size, factor).width} px wide (${money(credits)}).`,
     };
   }
-  const preset = input.presets.find((one) => one.key === input.presetKey);
-  const size = preset ? presetSize(preset) : input.board.size;
+  // Reframe. `reframeVerdict` has already found the row, so it is here.
+  const preset = input.presets.find((one) => one.key === input.presetKey) as ArtboardPreset;
+  const size = presetSize(preset);
   return {
     ...base,
-    settings: { ...input.board.settings, aspect: aspectOf(size), preset: preset?.key },
+    settings: { ...input.board.settings, aspect: aspectOf(size), preset: preset.key },
     size,
-    note: `Reframe to ${preset?.label ?? "another shape"}, ${size.width} by ${size.height} px (${money(credits)}). ${preset?.note ?? ""}`.trim(),
+    note: `Reframe to ${preset.label}, ${size.width} by ${size.height} px (${money(credits)}). ${preset.note}`.trim(),
   };
 }
 

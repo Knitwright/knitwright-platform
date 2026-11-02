@@ -43,7 +43,7 @@ export interface FlowRunDeps {
  * failing gives back one charge and the rest stand. `credit_spend_output` is the migration's own
  * function for that shape (decision 0096).
  */
-export function flowMeter(admin: SupabaseClient, who: Who): FlowMeter {
+export function flowMeter(admin: SupabaseClient, who: Who, runId: string): FlowMeter {
   const entries = new Map<string, string | null>();
   return {
     charge: async (input): Promise<Charge> => {
@@ -55,7 +55,9 @@ export function flowMeter(admin: SupabaseClient, who: Who): FlowMeter {
         brandId: who.brandId,
         userId: who.userId,
         designVersionHash: designVersionHash(design.designProjectId, design.version),
-        outputKey: input.boardId,
+        // The run as well as the board: a retry inside one run is free, and a fresh press after a
+        // refund is charged again rather than quietly free (migration 20261201030000).
+        outputKey: `${runId}:${input.boardId}`,
       });
       if (!outcome.ok) return { ok: false, reason: `This board costs ${outcome.price} credits and the balance is ${outcome.balance}.` };
       entries.set(input.boardId, outcome.entryId);
@@ -108,7 +110,7 @@ export async function runFlowForBrand(
   const report = await runFlow(
     {
       capability: capabilityOf(deps.registry ?? EMPTY_REGISTRY),
-      meter: flowMeter(deps.admin, deps.who),
+      meter: flowMeter(deps.admin, deps.who, runId),
       recorder: flowRecorder(deps.admin, deps.who),
       onProgress: () => undefined,
     },
