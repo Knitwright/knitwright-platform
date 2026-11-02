@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { seedTemplates } from "../lib/templates/seed/seed";
-import { createAccount, makePlatformAdmin, signIn, test, userIdOf } from "./support";
+import { allowClassBRun, createAccount, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan v4 W5-C: one journey for each role, start to finish. The pieces are covered one by one in the
@@ -187,6 +187,10 @@ test.describe("role journeys (W5-C)", () => {
     await expect(builder.getByRole("button", { name: "Order run" })).toBeDisabled();
     await builder.getByLabel("I have read these notes and want to send this anyway.").check();
     await expect(builder.getByRole("button", { name: "Order run" })).toBeEnabled();
+    // A crew tee is Class B, so a person at Knitwright has to have looked at the design first (spec
+    // F-G1; security review v5 H3, decision 0116). This journey is about the durable records, so
+    // the review is given here; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
+    await allowClassBRun(projectId, "journey-reviewer");
     await builder.getByRole("button", { name: "Order run" }).click();
     await expect(builder.getByRole("alert")).toHaveCount(0);
     await expect(sent.getByText(/Journey hoodie · Brand run · 60 pieces/)).toBeVisible();

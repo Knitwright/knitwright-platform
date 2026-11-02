@@ -10,6 +10,7 @@ import {
   listLaunchProjects,
   listLaunchVersions,
   loadLaunchProject,
+  generatedOutputFiles,
   recordOutput,
   removeBoard,
   removeLaunchProject,
@@ -228,6 +229,46 @@ describe("the writes", () => {
       const { client } = fakeClient({ create_launch_project: { error: { code, message } } });
       expect(await failing(createLaunchProject(client, who, { name: "x", units: "px", designProjectId: null }))).toBe(message);
     }
+  });
+});
+
+/**
+ * The read behind the mandatory "AI-generated" label on the Store hand-off, which used to be worked
+ * out from the shape of the canvas alone (security review v5 H1, decision 0116).
+ */
+describe("which of a canvas's output files a model made", () => {
+  const ONE = "88888888-8888-4888-8888-888888888881";
+  const TWO = "88888888-8888-4888-8888-888888888882";
+  const THREE = "88888888-8888-4888-8888-888888888883";
+
+  it("asks nothing when there are no files to ask about", async () => {
+    const { client, calls } = fakeClient({});
+    expect(await generatedOutputFiles(client, BRAND, [])).toEqual([]);
+    expect(calls).toEqual([]);
+  });
+
+  it("names only the files whose own rows say a model made them, in the order asked", async () => {
+    const { client, calls } = fakeClient({
+      files: {
+        data: [
+          { id: TWO, provenance: "generated" },
+          { id: ONE, provenance: "deterministic" },
+        ],
+      },
+    });
+
+    expect(await generatedOutputFiles(client, BRAND, [ONE, TWO])).toEqual([TWO]);
+    expect(calls[0]?.steps.map(([step]) => step)).toEqual(["select", "eq", "in"]);
+  });
+
+  it("counts a file whose row it could not read as a model's, which is the strict answer", async () => {
+    const { client } = fakeClient({ files: { data: [{ id: ONE, provenance: "uploaded" }] } });
+    expect(await generatedOutputFiles(client, BRAND, [ONE, THREE])).toEqual([THREE]);
+  });
+
+  it("says so plainly when the files cannot be read at all", async () => {
+    const { client } = fakeClient({ files: { error: { message: "database down" } } });
+    expect(await failing(generatedOutputFiles(client, BRAND, [ONE]))).toBe("Those files could not be read.");
   });
 });
 

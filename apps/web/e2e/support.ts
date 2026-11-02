@@ -245,29 +245,38 @@ export const allowClassBRun = async (projectId: string, label = "class-b-reviewe
   const db = admin();
   const project = await db.from("projects").select("brand_id").eq("id", projectId).single();
   if (project.error) throw new Error(project.error.message);
+  const brandId = project.data.brand_id as string;
   const release = await db
     .from("production_releases")
     .select("id")
-    .eq("brand_id", project.data.brand_id as string)
+    .eq("brand_id", brandId)
     .order("created_at", { ascending: false })
     .limit(1)
     .single();
   if (release.error) throw new Error(release.error.message);
-  const check = await db
-    .from("moderation_checks")
-    .select("id")
-    .eq("target_kind", "version")
-    .eq("target_id", release.data.id as string)
-    .order("seq", { ascending: false })
-    .limit(1)
-    .single();
-  if (check.error) throw new Error(`No review was asked for this release: ${check.error.message}`);
+
+  // The review is asked for, then given. Asking here rather than relying on a refused press means a
+  // test that only wants to get past the gate does not have to press twice; `moderation_human_allowed`
+  // reads the newest decision, so a flagged row an earlier press left behind has a lower sequence
+  // number and does not undo this one.
+  const asked = await db.rpc("moderation_record", {
+    p_brand_id: brandId,
+    p_user_id: null,
+    p_target_kind: "version",
+    p_target_id: release.data.id as string,
+    p_hook: "order",
+    p_label: "A Class B run, for review",
+    p_subject_sha256: null,
+    p_result: "flagged",
+    p_reasons: [{ code: "human_review_required", severity: "flag", message: "A run needs our review of the design before it starts.", ruleId: "R-GAP-000" }],
+  });
+  if (asked.error) throw new Error(asked.error.message);
 
   const reviewer = await createAccount(label, { brand: `Ops ${label}` });
   await makePlatformAdmin(reviewer);
   const allowed = await db.rpc("moderation_review", {
     p_actor: await userIdOf(reviewer),
-    p_check_id: check.data.id as string,
+    p_check_id: asked.data as string,
     p_decision: "allowed",
     p_reason: "Looked at it; it is the club's own kit.",
   });
