@@ -1,4 +1,4 @@
-import { isCrop, type Crop } from "@/lib/mockups";
+import { isCrop, sceneBySlug, type Crop } from "@/lib/mockups";
 import { imageCount } from "./cost";
 import { consentFrom } from "./models";
 import {
@@ -133,18 +133,27 @@ export const writeBoardSettings = (settings: ShootBoardSettings): Readonly<Recor
   extraProductIds: [...settings.extraProductIds],
 });
 
-/** The settings a shoot idea starts a board at: its scene, its style and its own output set. */
-export function settingsOfConcept(concept: ShootConcept): ShootBoardSettings {
+/**
+ * The settings a shoot idea starts a board at: its scene, its style and its own output set.
+ *
+ * **Whether a model is asked for follows the scene, not the idea.** A shoot idea can hold two scenes
+ * of which one has a person in it and one does not -- the shop rail and the studio backdrop are one
+ * idea in `07`'s retail group -- and asking for a model on the scene that has nobody in it would put
+ * the words "AI-generated model" under a picture with no model in it.
+ */
+export function settingsOfConcept(concept: ShootConcept, sceneSlug: string | null = null): ShootBoardSettings {
+  const slug = sceneSlug ?? concept.sceneSlugs[0] ?? null;
+  const scene = slug === null ? null : sceneBySlug(slug);
   return {
     ...DEFAULT_SETTINGS,
     conceptSlug: concept.slug,
-    sceneSlug: concept.sceneSlugs[0] ?? null,
+    sceneSlug: slug,
     style: concept.style,
     aspect: concept.outputs.aspects[0] ?? "match",
     count: concept.outputs.count,
     poseKey: concept.poseKeys[0] ?? null,
     cameraKey: concept.cameraKeys[0] ?? null,
-    modelSource: concept.needsModel ? "preset" : "none",
+    modelSource: scene !== null && scene.people !== "none" ? "preset" : "none",
   };
 }
 

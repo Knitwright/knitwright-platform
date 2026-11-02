@@ -3,6 +3,7 @@ import { FACTORY_SETTINGS } from "@/lib/factory/settings";
 import { VIDEO_SETTINGS } from "@/lib/media/video/model-settings";
 import { OPS_INSPECTION_SETTINGS } from "@/lib/ops/inspection/settings";
 import { PATTERN_SERVICE_SETTINGS } from "@/lib/pattern-service/settings";
+import { SHOOT_SETTINGS } from "@/lib/shoots/settings";
 import type { SettingDef } from "./types";
 
 /**
@@ -29,4 +30,7 @@ export const EXTENSION_SETTINGS: readonly SettingDef[] = [
   ...VIDEO_SETTINGS,
   // Plan v5 O1 (decision 0100): the run size above which a third-party inspection is offered (F-O3).
   ...OPS_INSPECTION_SETTINGS,
+  // Plan v5 L3 (decision 0093): the licence reference behind each AI model preset, and who holds it.
+  // Empty until somebody has read the terms, which means no likeness can be generated. No secret.
+  ...SHOOT_SETTINGS,
 ];
