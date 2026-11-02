@@ -73,11 +73,23 @@ It is seeded as that and labelled as the spec's convention, not as a figure out 
 With an empty table the answer is `{ status: "not-on-file", missing: [...] }` and the screen names what is missing.
 Nothing is ever worked out from no rows.
 
-**Coordination with Z8.** Workstream Z8 is seeding the *per-factory AQL plan*. `main` carried no AQL rows when this
-was written: the only AQL text anywhere was the production package's `aqlPlan` sentence (`lib/kpp/input/quality.ts`,
-owner decision 19), which is a sentence on a document and not a table. So this adds the sample-size table as the
-first source of truth for it. If Z8's per-factory plan lands, the join is `ops_aql_acceptance` (what the standard
-says) × Z8's rows (what a factory agreed), and the per-factory row wins where the two differ.
+**Coordination with Z8: this builds on Z8's rows, and the two are kept apart.** Z8's decision 0089 merged while this
+was being written and added `aql_plans` (`supabase/migrations/20261120070000_compliance.sql`) with
+`lib/compliance/aql.ts`'s `planFor`, `planSentence`, `planFindings` and `qualityPlanLine`. The division is:
+
+- **`aql_plans` (Z8) decides which levels apply** to a factory and a scope: inspection level II, AQL 0 critical /
+  2.5 major / 4.0 minor, quoted from rulebook `R-QC-001` with its source, `confirmed false` and its own label. A
+  factory's own row wins over the row for every factory, and owner decision 19's Class A sample stands above both.
+  **Nothing here decides a level or a limit, and nothing here seeds a second plan.**
+- **`ops_aql_sample_plans` and `ops_aql_acceptance` (this decision) hold what the standard's table does with those
+  levels**: the lot band, the sample size code letter, the sample size, and the accept and reject numbers per AQL
+  column. Z8's rows hold none of that; neither table duplicates the other.
+
+`lib/ops/aql/from-plan.ts` is the one seam between them. `samplingFor` asks Z8 which plan is in force, then looks up
+**only the AQL columns that plan names** — a column this table happens to hold but no factory agreed to inspect
+against is never shown — and answers "inspect every piece" with no sample size at all where the plan says so. The QC
+screen prints Z8's own `planSentence` first, so ops reads exactly what the factory reads in the production package,
+and the sample size beneath it. The database test holds the join to the real rows of both tables.
 
 ## 3. ΔE readings are typed, and are judged only by a tolerance on file
 

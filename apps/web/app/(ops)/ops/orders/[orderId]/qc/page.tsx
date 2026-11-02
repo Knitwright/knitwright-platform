@@ -2,7 +2,9 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { InspectionBookingForm } from "@/components/ops/InspectionBookingForm";
 import { QcForm } from "@/components/ops/QcForm";
-import { describeAql, describeLevel, describePlan, planFor, UNSOURCED_PLAN_NOTE } from "@/lib/ops/aql/plan";
+import { planSentence } from "@/lib/compliance/aql";
+import { describeAql, describeLevel, describePlan, UNSOURCED_PLAN_NOTE } from "@/lib/ops/aql/plan";
+import { factoryIdOf, loadAqlPlans, samplingFor } from "@/lib/ops/aql/from-plan";
 import { loadAqlTable } from "@/lib/ops/aql/service";
 import { listExceptions } from "@/lib/ops/exceptions/service";
 import { EXCEPTION_LABELS } from "@/lib/ops/exceptions/rules";
@@ -37,18 +39,22 @@ export default async function QcPage({ params }: PageProps<"/ops/orders/[orderId
   await requirePlatformAdmin();
   const { client, order } = await loadOrderOrNotFound((await params).orderId);
   const admin = adminClient();
-  const [inspections, exceptions, readings, aql, overPieces, bookings, colour] = await Promise.all([
+  const [inspections, exceptions, readings, aql, aqlPlans, factoryId, overPieces, bookings, colour] = await Promise.all([
     listInspections(client, order.id),
     listExceptions(client, { orderId: order.id }),
     listColourReadings(client, order.id),
     loadAqlTable(admin),
+    loadAqlPlans(client),
+    factoryIdOf(admin, order.factoryProfileId),
     loadThirdPartyOverPieces(admin),
     listBookings(client, order.id),
     colourTolerance(order.factoryProfileId),
   ]);
   const remakes = exceptions.filter((e) => e.kind === "remake");
   const ready = order.status === "ready";
-  const plan = planFor(aql, order.pieces);
+  // Z8's aql_plans says which levels apply to this factory; this table says what the standard does with them.
+  const sampling = samplingFor(aqlPlans, aql, { factoryId, lotSize: order.pieces });
+  const plan = sampling.status === "sampled" ? sampling.sampling : null;
   const bookBlocker = bookingBlocker({ pieces: order.pieces, overPieces, status: order.status, alreadyBooked: bookings.length > 0 });
   const today = new Date().toISOString().slice(0, 10);
 
@@ -64,25 +70,36 @@ export default async function QcPage({ params }: PageProps<"/ops/orders/[orderId
 
       <section aria-labelledby="plan" className="mt-6">
         <h2 id="plan" className="text-lg font-semibold text-ink">Sampling plan</h2>
-        {plan.status === "not-on-file" ? (
+        {sampling.status === "no-plan" ? (
           <p className="mt-2 text-[15px] text-warn" data-testid="aql-missing">
-            No sampling plan is on file for a lot of {order.pieces} pieces. Missing: {plan.missing.join("; ")}. Seed the ISO 2859-1 level II table before a
-            plan can be shown; nothing is worked out without it.
+            No inspection plan is on file for this factory. Record one against the factory before a run is cut; nothing here is worked out without it.
           </p>
         ) : (
           <div className="mt-2 text-[15px] text-ink-2" data-testid="aql-plan">
-            <p>{describePlan(plan, order.pieces)}</p>
-            <ul className="mt-2 flex flex-col gap-1 text-sm">
-              {plan.levels.map((level) => (
-                <li key={level.aql}>
-                  AQL {describeAql(level.aql)} ({level.defectClass}): {describeLevel(level)} <span className="text-faint">{level.ruleId}</span>
-                </li>
-              ))}
-            </ul>
-            {plan.sourced ? null : (
-              <p className="mt-2 text-sm text-warn" data-testid="aql-unsourced">
-                {UNSOURCED_PLAN_NOTE}
+            {/* The plan in Z8's own words, so ops reads what the factory reads in the production package. */}
+            <p data-testid="aql-sentence">{planSentence(sampling.plan)}</p>
+            {plan === null ? (
+              <p className="mt-2 text-sm text-ink-2">Every piece is inspected, so no sample size applies.</p>
+            ) : plan.status === "not-on-file" ? (
+              <p className="mt-2 text-sm text-warn" data-testid="aql-missing-table">
+                The plan names a level, but the sampling table has nothing for it: {plan.missing.join("; ")}.
               </p>
+            ) : (
+              <>
+                <p className="mt-2">{describePlan(plan, order.pieces)}</p>
+                <ul className="mt-2 flex flex-col gap-1 text-sm">
+                  {plan.levels.map((level) => (
+                    <li key={level.aql}>
+                      AQL {describeAql(level.aql)} ({level.defectClass}): {describeLevel(level)} <span className="text-faint">{level.ruleId}</span>
+                    </li>
+                  ))}
+                </ul>
+                {plan.sourced ? null : (
+                  <p className="mt-2 text-sm text-warn" data-testid="aql-unsourced">
+                    {UNSOURCED_PLAN_NOTE}
+                  </p>
+                )}
+              </>
             )}
           </div>
         )}
@@ -96,8 +113,8 @@ export default async function QcPage({ params }: PageProps<"/ops/orders/[orderId
               orderId={order.id}
               colourLimit={colour.limit}
               colourNote={colour.note}
-              aqlCodeLetter={plan.status === "on-file" ? plan.codeLetter : ""}
-              sampleSize={plan.status === "on-file" ? plan.sampleSize : null}
+              aqlCodeLetter={plan?.status === "on-file" ? plan.codeLetter : ""}
+              sampleSize={plan?.status === "on-file" ? plan.sampleSize : null}
             />
           </div>
         ) : (

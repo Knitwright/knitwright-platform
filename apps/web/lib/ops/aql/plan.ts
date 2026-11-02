@@ -133,8 +133,12 @@ function resolveLevel(table: AqlTable, letter: string, aql: number): AqlLevel | 
 /** The AQL columns the table holds, smallest first. Empty when the table is empty. */
 export const aqlColumnsOf = (table: AqlTable): readonly number[] => [...new Set(table.acceptance.map((a) => a.aql))].sort((a, b) => a - b);
 
-/** The plan for a lot of `lotSize` pieces: the code letter, the sample size and every AQL column on file. */
-export function planFor(table: AqlTable, lotSize: number, level: string = DEFAULT_INSPECTION_LEVEL): ResolvedPlan {
+/**
+ * The plan for a lot of `lotSize` pieces at one inspection level, for the AQL columns asked for. The caller
+ * asks for the columns the factory's own AQL plan names (`lib/ops/aql/from-plan.ts`), so a column this table
+ * happens to hold but nobody agreed to inspect against is never shown.
+ */
+export function planAtLevels(table: AqlTable, lotSize: number, level: string, aqls: readonly number[]): ResolvedPlan {
   const plan = letterFor(table, lotSize, level);
   if (plan === null) {
     return {
@@ -142,7 +146,7 @@ export function planFor(table: AqlTable, lotSize: number, level: string = DEFAUL
       missing: [`the sampling table for inspection level ${level} covering a lot of ${lotSize} pieces`],
     };
   }
-  const levels = aqlColumnsOf(table)
+  const levels = aqls
     .map((aql) => resolveLevel(table, plan.codeLetter, aql))
     .filter((level_): level_ is AqlLevel => level_ !== null);
   if (levels.length === 0) {
@@ -159,6 +163,14 @@ export function planFor(table: AqlTable, lotSize: number, level: string = DEFAUL
     label: plan.label,
   };
 }
+
+/**
+ * The plan for a lot, for every AQL column this table holds. Used where no factory plan narrows it: the
+ * tests, and nothing on a screen — a screen always asks through `samplingFor`, which takes the columns from
+ * the factory's own plan.
+ */
+export const planFor = (table: AqlTable, lotSize: number, level: string = DEFAULT_INSPECTION_LEVEL): ResolvedPlan =>
+  planAtLevels(table, lotSize, level, aqlColumnsOf(table));
 
 /** What a reader is told about a plan no source backs. Never softened: a figure like that decides nothing. */
 export const UNSOURCED_PLAN_NOTE =

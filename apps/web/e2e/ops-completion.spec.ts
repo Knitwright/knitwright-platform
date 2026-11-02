@@ -72,7 +72,9 @@ test.describe("ops completion", () => {
     await expect(page).toHaveURL(/\/studio$/);
 
     await page.goto(`/ops/orders/${orderId}/qc`);
-    // 400 pieces falls in the 281-500 band: code letter H, 50 pieces, and the plan says it is not sourced.
+    // Z8's own plan row decides the level and the limits, and its sentence is what ops reads first.
+    await expect(page.getByTestId("aql-sentence")).toContainText("Inspection level II");
+    // 400 pieces falls in the 281-500 band: code letter H, 50 pieces, and the table says it cites no source.
     await expect(page.getByTestId("aql-plan")).toContainText("Code letter H, 50 pieces inspected out of 400");
     await expect(page.getByTestId("aql-unsourced")).toContainText("ISO 2859-1");
 

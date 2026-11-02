@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { planFor, type AqlTable } from "@/lib/ops/aql/plan";
+import { AQL_PLAN_COLUMNS, toAqlPlan } from "@/lib/compliance/rows";
+import { samplingFor } from "@/lib/ops/aql/from-plan";
+import { EMPTY_AQL_TABLE, planFor, type AqlTable } from "@/lib/ops/aql/plan";
 import { readable, toAcceptance, toSamplePlan, ACCEPTANCE_COLUMNS, SAMPLE_PLAN_COLUMNS } from "@/lib/ops/aql/rows";
 import { evaluateInspection, type ChecklistItem } from "@/lib/ops/qc/checklist";
 import { colourReadingsPass } from "@/lib/ops/qc/colour";
@@ -142,6 +144,30 @@ describe("the AQL table", () => {
     // Every AQL column the spec names (0 critical, 2.5 major, 4.0 minor) resolves to accept and reject numbers.
     expect(plan.levels.map((l) => l.aql)).toEqual([0, 2.5, 4]);
     for (const level of plan.levels) expect(level.rejectAt).toBe(level.acceptAt + 1);
+  });
+
+  it("takes the levels from Z8's own plan row and finds them in this table", async () => {
+    const [plans, acceptance, aqlPlans] = await Promise.all([
+      adminClient().from("ops_aql_sample_plans").select(SAMPLE_PLAN_COLUMNS).order("lot_min"),
+      adminClient().from("ops_aql_acceptance").select(ACCEPTANCE_COLUMNS).order("aql").order("code_letter"),
+      adminClient().from("aql_plans").select(AQL_PLAN_COLUMNS),
+    ]);
+    const table: AqlTable = { plans: readable(must(plans) as unknown[], toSamplePlan), acceptance: readable(must(acceptance) as unknown[], toAcceptance) };
+    const rows = (must(aqlPlans) as Record<string, unknown>[]).map(toAqlPlan);
+    // The seeded run plan is the one for every factory, so a factory with no plan of its own still gets it.
+    const answer = samplingFor(rows, table, { factoryId: null, lotSize: 400 });
+    expect(answer.status).toBe("sampled");
+    if (answer.status !== "sampled" || answer.sampling.status !== "on-file") return;
+    expect(answer.plan.inspectionLevel).toBe("II");
+    expect(answer.sampling.codeLetter).toBe("H");
+    // Only the levels the plan names, which are the spec's three.
+    expect(answer.sampling.levels.map((l) => l.aql)).toEqual([0, 2.5, 4]);
+  });
+
+  it("asks for no sample size for a Class A sample, because owner decision 19 inspects every piece", async () => {
+    const aqlPlans = must(await adminClient().from("aql_plans").select(AQL_PLAN_COLUMNS)) as Record<string, unknown>[];
+    const answer = samplingFor(aqlPlans.map(toAqlPlan), EMPTY_AQL_TABLE, { factoryId: null, lotSize: 3, scope: "class_a_sample" });
+    expect(answer.status).toBe("every-piece");
   });
 
   it("every arrow in the table points at a letter that holds numbers", async () => {
