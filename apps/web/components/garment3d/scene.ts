@@ -107,11 +107,49 @@ const standAt = (camera: PerspectiveCamera, theta: number, radius: number, y: nu
   camera.position.set(radius * Math.sin(theta), y, radius * Math.cos(theta));
 };
 
-/** Draws the form into the canvas and lets a person turn it and come closer. */
-export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictures: Pictures, motion: ViewerMotion): GarmentScene {
-  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputColorSpace = SRGBColorSpace;
+/** What a camera move needs of the scene, so the move itself is not inside the mount. */
+interface Rig {
+  readonly camera: PerspectiveCamera;
+  readonly controls: OrbitControls;
+  readonly size: GarmentMesh["size"];
+  readonly limits: Readonly<{ min: number; max: number }>;
+}
+
+/**
+ * Points the camera where a shot asks, and answers with the push it left running, or null for a
+ * shot that holds still. The angle is round the garment from the front, the distance comes from the
+ * zoom inside the view's own limits, and the height comes from what the shot is pointed at.
+ */
+function pointAt(rig: Rig, ask: CameraAsk): Push | null {
+  rig.controls.autoRotate = false;
+  const theta = (ask.degrees * Math.PI) / 180;
+  const y = subjectHeight(ask.subject, rig.size.height);
+  // The distance the whole garment fills the frame at, which a zoom of 1 means.
+  const whole = new Vector3(...cameraFor("front", rig.size, FOV, rig.camera.aspect)).length();
+  const from = distanceFor(whole, ask.zoom, rig.limits);
+  rig.controls.target.set(0, y, 0);
+  standAt(rig.camera, theta, from, y);
+  rig.controls.update();
+  const to = ask.toZoom === null ? null : distanceFor(whole, ask.toZoom, rig.limits);
+  if (to === null || to === from || ask.seconds <= 0) return null;
+  return { from, to, start: performance.now(), ms: ask.seconds * 1000, theta, y };
+}
+
+/** Puts another kit's drawings on the garment, keeping each texture made so it can be disposed. */
+function swapKit(parts: readonly Mesh[], kit: SidePictures, made: CanvasTexture[]): void {
+  parts.forEach((part, index) => {
+    const texture = new CanvasTexture(index === 0 ? kit.front : kit.back);
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 4;
+    made.push(texture);
+    const material = part.material as MeshStandardMaterial;
+    material.map = texture;
+    material.needsUpdate = true;
+  });
+}
+
+/** The scene, its lights and the two painted sheets of the garment. */
+function buildScene(mesh: GarmentMesh, pictures: SidePictures): { readonly scene: Scene; readonly parts: readonly Mesh[] } {
   const scene = new Scene();
   scene.add(new HemisphereLight(0xffffff, 0x8a8f99, 2.2));
   const key = new DirectionalLight(0xffffff, 1.6);
@@ -122,8 +160,11 @@ export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictu
   // The inside of the back shows through the neck opening, so the back is drawn on both faces.
   const parts = [sheetMesh(mesh.front, pictures.front, FrontSide), sheetMesh(mesh.back, pictures.back, DoubleSide)];
   scene.add(...parts);
+  return { scene, parts };
+}
 
-  const camera = new PerspectiveCamera(FOV, 1, 0.01, 50);
+/** The orbit controls, with how close and how far this garment lets the camera go. */
+function buildControls(canvas: HTMLCanvasElement, camera: PerspectiveCamera, mesh: GarmentMesh, motion: ViewerMotion): OrbitControls {
   const controls = new OrbitControls(camera, canvas);
   const limits = zoomLimits(mesh.size);
   controls.minDistance = limits.min;
@@ -135,6 +176,19 @@ export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictu
   controls.addEventListener("start", () => {
     controls.autoRotate = false;
   });
+  return controls;
+}
+
+/** Draws the form into the canvas and lets a person turn it and come closer. */
+export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictures: Pictures, motion: ViewerMotion): GarmentScene {
+  const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = SRGBColorSpace;
+  const { scene, parts } = buildScene(mesh, pictures);
+
+  const camera = new PerspectiveCamera(FOV, 1, 0.01, 50);
+  const controls = buildControls(canvas, camera, mesh, motion);
+  const limits = zoomLimits(mesh.size);
 
   const resize = () => {
     const width = canvas.clientWidth || 1;
@@ -153,47 +207,24 @@ export function mountGarment(canvas: HTMLCanvasElement, mesh: GarmentMesh, pictu
   let push: Push | null = null;
   const swapped: CanvasTexture[] = [];
 
-  /** The distance the whole garment fills the frame at, which a zoom of 1 means. */
-  const whole = (): number => new Vector3(...cameraFor("front", mesh.size, FOV, camera.aspect)).length();
-
-  const point = (ask: CameraAsk): void => {
-    controls.autoRotate = false;
-    ease = null;
-    const theta = (ask.degrees * Math.PI) / 180;
-    const y = subjectHeight(ask.subject, mesh.size.height);
-    const from = distanceFor(whole(), ask.zoom, limits);
-    controls.target.set(0, y, 0);
-    standAt(camera, theta, from, y);
-    controls.update();
-    const to = ask.toZoom === null ? null : distanceFor(whole(), ask.toZoom, limits);
-    push = to === null || to === from || ask.seconds <= 0 ? null : { from, to, start: performance.now(), ms: ask.seconds * 1000, theta, y };
-  };
-
-  /** Shows another colour version of the design, when this view was given one. */
-  const showKit = (kit: SidePictures): void => {
-    parts.forEach((part, index) => {
-      const texture = new CanvasTexture(index === 0 ? kit.front : kit.back);
-      texture.colorSpace = SRGBColorSpace;
-      texture.anisotropy = 4;
-      swapped.push(texture);
-      const material = part.material as MeshStandardMaterial;
-      material.map = texture;
-      material.needsUpdate = true;
-    });
-  };
-
+  const rig: Rig = { camera, controls, size: mesh.size, limits };
   const kits = pictures.kits ?? {};
   const handlers: ViewHandlers = {
     turn: (seconds) => {
       controls.autoRotateSpeed = seconds ? 60 / seconds : AUTO_ROTATE_SPEED;
       controls.autoRotate = seconds !== null;
     },
-    camera: point,
+    camera: (ask) => {
+      ease = null;
+      push = pointAt(rig, ask);
+    },
+    // Claimed only by a view that was given more than one kit, so the carousel is never recorded
+    // as three shots of the same one (decision 0095, item 3).
     ...(Object.keys(kits).length > 0
       ? {
           colourway: (asked: string) => {
             const kit = kits[asked];
-            if (kit) showKit(kit);
+            if (kit) swapKit(parts, kit, swapped);
           },
         }
       : {}),
