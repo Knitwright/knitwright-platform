@@ -226,22 +226,32 @@ Everything on the way works and is honest about what it does not know:
 | The golden sample | `/studio/{id}/make/golden-sample` | Photo, measurement (*"Point A is 2 mm off, inside minus 10 to plus 10 mm."*), marks, sign-off |
 | The run | `/studio/{id}/make/order` | Run gate now open; 60 pieces handed to production. The "Ready to ship by" filter is present and disabled, labelled **"Ready to ship by: no date yet"** |
 
-**What stops it.** The order exists; the thing a factory makes the garment from does not.
-`GET /api/projects/{id}/production-package` answers **409** with
-*"This production package cannot be built yet."* followed by every gap, which for this article are
-`Points of measure: none are listed.`, `Bill of materials: no lines.` and
-**`Care label GB: missing care, size.`** (rule `R-LAB-002`). That is decision 0089 and decision 0090 arriving
-together, and the refusal is exactly right: it names what is missing and guesses nothing.
+**What stops it — and it is not the wall anyone expected.** The order exists; the thing a factory makes the
+garment from does not. `GET /api/projects/{id}/production-package` answers **409**, but the message is
 
-Two findings about *how* it stops, rather than *that* it stops:
+> *"No colour of this design has a screen colour yet, and the export format needs at least one."*
+
+`lib/kpp/sources/server.ts` writes the design object **before** it builds the gate's input, and
+`lib/design-object/to-v2.ts` refuses a design whose colourway has no screen colour — which a design made from a
+base article has, because nothing on the way here sets one. **So `lib/kpp/gate.ts` never runs, and the care
+label of decision 0089 is named nowhere a founder can reach**: not on a screen, and not in this refusal either.
+The journey test asserts that message exactly, and asserts that `Care label` is *absent* from it.
+
+The sentence is also about the wrong thing. It names "the export format" on a route whose purpose is to tell a
+factory what is missing, and it names no action that would fix it.
+
+Three findings about *how* it stops, rather than *that* it stops:
 
 - **The production package has no screen at all.** The Export panel's own tab says
   *"The production package is built for the factory when the order is placed. There is no download for it here
   yet."* So a founder who hands a run to production is never told the package was refused: the refusal exists
   only on a route the Store would call. The journey reaches a wall it cannot see.
 - **The hand-off itself does not run the F-G2 check.** The only gate on `Hand this order to production` is the
-  golden sample (`lib/make/gate.ts`). A run can therefore be handed over for a design whose package will be
-  refused, which is the thing decision 0089 set out to prevent.
+  golden sample (`lib/make/gate.ts`). A run can therefore be handed over for a design whose package cannot be
+  built at all, which is the thing decision 0089 set out to prevent.
+- **An export-format precondition is standing in front of the compliance gate.** Whatever the right answer is,
+  a design object written for the sake of the ZIP's layout should not be able to hide the F-G2 checklist. Order
+  the two the other way and the care label becomes the message, which is what decision 0089 says it should be.
 
 #### The F-G2 checklist is a library with no consumer
 
@@ -262,7 +272,7 @@ roster in — and the version cannot be locked, and there is no screen that send
 |---|---|---|
 | Crest to kit | `/crest-to-kit` | Six to nine kits from the club's own crest, each validated first; the palette reads the crest's own hexes back; **"No delivery date can be shown yet: the days for QC and the freight days are not set…"** |
 | The quote | `Quote this kit` | A real PDF, `KWQ-…-quote.pdf`, whose Delivery row reads *"No delivery date yet. Not set: the days for QC and the freight days."* (asserted by `crest-to-kit.spec.ts`, not repeated in the journey) |
-| The configurator | `/teamwear` | Opens the exact kit from the card; `Save` makes it a design at version 1 |
+| The configurator | `/teamwear` | Opens the exact kit from the card; `Save` makes it a design — **at version 2**, because `saveKitAction` creates the project and then saves the kit's colourway as a second version. A club's saved kit is never at version 1 |
 | Committee link | `/collect` | Made per design, address shown once |
 | The committee | `/s/{token}` | A phone with no account: options, a pin, an approval recorded with name, time and version |
 | The club's view | `/collect` | *"Dana the treasurer approved version 1 on …"*, with the email |
@@ -307,7 +317,7 @@ Also worth recording: `/teamwear`'s own `Quote` button is **not** the quote. It 
 | QC | `/ops/orders/{id}/qc` | Level II, **code letter H, 50 pieces inspected out of 400**, and the plan says it was typed from a republished copy and not read against ISO 2859-1; a ΔE reading is kept and *not* judged, because this factory has no agreed tolerance; a third-party inspection is offered over 300 pieces and **nothing is booked**, which it says |
 | Packing | `/ops/orders/{id}/packing` | Bags made |
 | The shipment | `/ops/orders/{id}/shipping` | No blocker (the inspection passed); parcel recorded; *"Entered by hand. Nothing is sent to a courier, and no label is booked."* |
-| The customer | `/ops/orders/{id}` | *"We are not giving you a delivery date yet: the days for quality checks and the days in transit are not agreed, so any date would be a guess."* |
+| The customer | `/ops/orders/{id}` | *"We are not giving you a delivery date yet: the days for quality checks and the days in transit are not agreed, so any date would be a guess."* — on the six messages sent while an order is being made. The **"Sent"** message, which the screen offers by default once a parcel exists, carries the courier and the tracking number and **no date line**, which is right: there is nothing left to promise |
 
 **What stops it.** The commercial invoice. `Issue the invoice` is refused with
 *"The factory "{profile}" is not on file, so the country the goods were made in is not known. Add the factory at
@@ -332,7 +342,7 @@ The brief named three expected walls. All three are real, all three are reached 
 
 | Wall | Surfaces | Wording |
 |---|---|---|
-| **No care label in any market** (ISO 3758, decision 0089) | the production-package route (409); the article page's Market panel; the Store contract's `sellable` blocker | *"ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed, redrawn or written down from memory…"* on screen; `Care label GB: missing care, size.` in the package refusal |
+| **No care label in any market** (ISO 3758, decision 0089) | **only** the article page's Market panel and the Store contract's `sellable` blocker. **Not** the production-package route: it refuses earlier, on the design object, so `Care label GB: missing care, size.` is a sentence `lib/kpp/gate.ts` can produce and nothing can reach | *"ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed, redrawn or written down from memory…"* on the article page |
 | **No delivery date anywhere** (`qcDays` and `freightDays` both unset) | `/catalogue/{code}`, `/studio/{id}/make`, `/make/sample`, `/make/order` (footer, per product, and a disabled filter chip), `/crest-to-kit`, the quote PDF, `/ops`, `/ops/batches/{id}`, `/job/{token}`, the customer email, `/ops/scorecard`, the Store contract | always `Not set: …` naming the missing parts; never a date |
 | **Seven of eight base articles publish no measurement** (decision 0090) | `/catalogue/{code}`'s size chart; the package refusal's `Points of measure: none are listed.` | *"This article has no measurements on file yet. The build pack gives them for the worked article only."* |
 
@@ -452,6 +462,24 @@ The three new journey tests in this change deliberately add **no** axe scans: a 
 page it passed would take minutes and would hide a scan failure behind a journey failure. **Owner question 2**
 proposes where the scans should go instead.
 
+### The one accessibility guard that already fails, intermittently
+
+The run that proved these journeys reported **1 flaky**, and it is not one of them:
+`e2e/studio-chrome.spec.ts:130` ("the top bar on a phone"). Its assertion is that the top bar's way home is at
+least 40 px square — the tap-target size the rest of the suite holds everything to — and it measured **39**:
+
+```
+Error: the way home is this wide
+expect(received).toBeGreaterThanOrEqual(expected)
+Expected: >= 40
+Received:    39
+```
+
+It passed on the retry, so CI called the job's other 416 tests green and the suite "1 flaky". But a tap target
+that measures 39 px on one run and 40 on the next is not flaky: it is 40 px wide only when the layout rounds up.
+Decision 0103 added this guard; it is one pixel from failing every time, and a retry is hiding it. **Owner
+question 8.**
+
 ## Tests that enumerate a list
 
 These break when anyone adds a row. Some of them should.
@@ -503,6 +531,10 @@ importing the constant is the fix for all of them.
    does, the Review tab, the production package and ordering each use a different check — which is the state
    decision 0089 was written to end. Wiring it means editing `lib/kpp/gate.ts`, the tech pack's Review tab and
    `lib/make/gate.ts`, three files belonging to three different workstreams.
+3b. **Should the design object be written before or after the gate runs?** Today it is before, so an
+   export-format precondition about screen colours answers the production-package route and the compliance
+   checklist never runs. Swapping the order in `lib/kpp/sources/server.ts` is two lines and makes the care
+   label the message, which is what decision 0089 says it should be.
 4. **How does an order's `factory_profile_id` map to a row in `factories`?** Today it does not, so **no order
    can be invoiced**, the scorecard shows no card for any real order, and no colour reading can be judged.
    `knitwright-default` is a validation profile and `sialkot-partner` is a factory; nothing joins them. This is
@@ -518,6 +550,9 @@ importing the constant is the fix for all of them.
 7. **Should `ops_cut_batches` be reachable from the screen for a test?** `Cut batches now` passes `now()`, so
    neither it nor the cron route has any browser coverage. An ops-only "cut as if it were \<date\>" control, or a
    test-only parameter, would put the platform's weekly mechanism under a browser test.
+8. **Is the top bar's way home 40 px, or 39?** `studio-chrome.spec.ts:130` measured 39 on this run and 40 on
+   its retry, so CI reports it as flaky rather than as a tap target one pixel under the size the suite holds
+   everything else to. Either the control gets a pixel, or the assertion says 39 and explains why.
 
 ## Gap tests added
 

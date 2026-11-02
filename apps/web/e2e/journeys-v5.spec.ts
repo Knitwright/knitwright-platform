@@ -221,23 +221,32 @@ test.describe("the founder journey (R3)", () => {
     await page.getByRole("button", { name: "Hand this order to production" }).click();
     await expect(page.getByText(/Sent to production: 1 order/)).toBeVisible();
 
-    // AND HERE THE JOURNEY STOPS. The order exists, but the thing a factory makes the garment
-    // from cannot be built: the F-G2 gate refuses it, and the care label is one of the gaps it
-    // names. There is no screen for this at all -- the Export panel's own tab says the package is
-    // built "when the order is placed" and offers no download -- so the only way to reach the
-    // refusal is the route the Store would call.
+    // AND HERE THE JOURNEY STOPS. The order exists, but the thing a factory makes the garment from
+    // cannot be built. There is no screen for this at all -- the Export panel's own tab says the
+    // package is built "when the order is placed" and offers no download -- so the only way to
+    // reach the refusal is the route the Store would call.
     const answer = await page.request.get(`/api/projects/${projectId}/production-package`);
     expect(answer.status()).toBe(409);
     const refused = (await answer.json()) as { success: boolean; error: { code: string; message: string; fields?: Record<string, string[]> } };
     expect(refused.success).toBe(false);
     expect(refused.error.code).toBe("conflict");
-    expect(refused.error.message).toContain("This production package cannot be built yet.");
-    // The care label, named, with the rule that explains it on the gap line beside it.
-    expect(refused.error.message).toContain("Care label");
-    expect((refused.error.fields?.package ?? []).join("\n")).toContain("R-LAB-002");
-    // And the two gaps decision 0090 predicts for a base article with no published measurement.
-    expect(refused.error.message).toContain("Points of measure: none are listed.");
-    expect(refused.error.message).toContain("Bill of materials");
+
+    /*
+     * AND IT IS NOT THE F-G2 GATE THAT STOPS IT.
+     *
+     * `lib/kpp/sources/server.ts` writes the design object before it builds the gate's input, and
+     * `lib/design-object/to-v2.ts` refuses a design whose colourway has no screen colour -- which a
+     * design made from this base article has, because nothing on the way here sets one. So the
+     * checklist never runs, and **the care label of decision 0089 is named nowhere a founder can
+     * reach**: not on a screen, and not in this refusal either.
+     *
+     * The sentence is also about the wrong thing. It names "the export format" rather than the one
+     * action that would fix it, on a route whose purpose is to tell a factory what is missing.
+     */
+    expect(refused.error.message).toBe("No colour of this design has a screen colour yet, and the export format needs at least one.");
+    expect(refused.error.message).not.toContain("Care label");
+    expect(refused.error.message).not.toContain("This production package cannot be built yet.");
+    expect(refused.error.fields?.package).toBeUndefined();
   });
 });
 
@@ -316,15 +325,23 @@ test.describe("the club journey (R3)", () => {
     await approve.getByRole("button", { name: "Approve" }).click();
     await expect(guest.getByText("Your approval is recorded with your name, the time and the option you chose.")).toBeVisible();
 
-    // The club sees the approval, with who, when and against which version.
+    /*
+     * The club sees the approval, with who, when and against which version.
+     *
+     * The version is **2**, not 1: `saveKitAction` creates the project and then saves the kit's
+     * colourway as a second version, so a kit is already at version 2 the moment it is saved. The
+     * committee panel pre-ticks the current version, so that is the one the committee saw. Asserted
+     * as "some version" rather than a number, because the number is the configurator's business.
+     */
     await page.reload();
     const link = page.getByTestId("committee-link").first();
-    await expect(link.getByTestId("committee-approvals")).toContainText("Dana the treasurer approved version 1");
+    await expect(link.getByTestId("committee-approvals")).toContainText(/Dana the treasurer approved version \d/);
+    await expect(link.getByTestId("committee-approvals")).toContainText("dana@example.test");
 
     // AND HERE THE COMMITTEE LEG STOPS. Locking the approved version needs that version checked
     // against a factory profile, and this kit has never been checked: the refusal says so in the
     // form's own summary rather than crashing or locking anything.
-    await link.getByRole("button", { name: /^Lock version 1/ }).click();
+    await link.getByRole("button", { name: /^Lock version \d/ }).first().click();
     await expect(summary(page)).toContainText("has not been checked against a factory profile");
     await expect(page.getByTestId("committee-lock")).toHaveCount(0);
     await phone.close();
@@ -561,10 +578,21 @@ test.describe("the ops journey (R3)", () => {
     await expect(page.getByTestId("parcel")).toHaveCount(1);
     await expect(page.getByTestId("fulfilment")).toContainText("Shipped");
 
-    // Wall 2, the last time: the customer is told there is no date rather than given a guess.
+    /*
+     * Wall 2, the last time: the customer is told there is no date rather than given a guess.
+     *
+     * The message to write has to be chosen. The screen offers the one that matches the order's
+     * state, and a parcel has just been recorded, so the one it offers is "Sent" -- which carries
+     * the courier and the tracking number and **no date line at all**, because there is nothing to
+     * promise once the goods have gone. The six messages that are sent while an order is still
+     * being made are the ones that carry `NO_DATE_LINE`, so one of those is chosen here.
+     */
     await page.goto(`/ops/orders/${orderId}`);
+    await page.getByLabel("What the message is about").selectOption({ label: "Ready at the factory" });
     await page.getByLabel("Customer's email address").fill("club@example.com");
     await page.getByRole("button", { name: /Write the message|Send the message/ }).click();
     await expect(page.getByTestId("email-body")).toContainText("not giving you a delivery date yet");
+    // And no date is in it anywhere, under any wording.
+    await expect(page.getByTestId("email-body")).not.toContainText(/\b20\d\d-\d\d-\d\d\b/);
   });
 });

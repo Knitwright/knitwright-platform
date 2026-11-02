@@ -4,7 +4,7 @@ Status: Proposed. The three journeys of the plan are browser tests now, and each
 it stops at rather than around it. Three walls were expected and are reached honestly; four more were found.
 The coverage figure holds every threshold and measures less than it looks like it measures. Owner questions
 below.
-Index: Proposed; the three v5 journeys written as browser tests with their stops asserted, four more walls found, `components/**` and 6,600 lines of `lib` seams outside the coverage figure, the F-G2 checklist has no caller, 44 of 62 specs run no axe scan, owner questions listed
+Index: Proposed; the three v5 journeys written as browser tests with their stops asserted; the production package never reaches the F-G2 gate so the care label is unreachable; four more walls found; `components` and 6,600 lines of `lib` seams outside the coverage figure; 44 of 62 specs run no axe scan; owner questions listed
 Index title: The three journeys of plan v5, and what coverage really covers
 Date: 2026-11-02
 Plan step: `plans/platform-v5.md`, wave 5, R3 ("journeys and coverage (`coverage-v5.md`)"). Follows v4's W5-C
@@ -65,6 +65,23 @@ The care label is right in the package's refusal (`Care label GB: missing care, 
 right on the article page's market panel (the market row's own `gapNote`, which is the canonical wording of
 decision 0089). The missing measurement is one sentence on the size chart and `Points of measure: none are
 listed.` in the package refusal.
+
+### 2b. The care-label wall is not where decision 0089 thinks it is
+
+Walking the founder journey turned up the one thing a review of the files could not have: **the production
+package never reaches the F-G2 gate.** `lib/kpp/sources/server.ts` writes the design object before it builds the
+gate's input, and `lib/design-object/to-v2.ts` refuses a design whose colourway has no screen colour — which a
+design made from a base article has. So the route answers 409 with
+
+> *"No colour of this design has a screen colour yet, and the export format needs at least one."*
+
+and `lib/kpp/gate.ts` never runs. **`Care label GB: missing care, size.` is a sentence the platform can produce
+and nothing can reach.** The care-label wall is real, but today it is reachable only on the article page's
+market panel and in the Store contract's `sellable` blocker.
+
+The journey test asserts that message exactly and asserts that `Care label` is absent from it, so the day
+somebody swaps the two steps the test says so. Swapping them is owner question 3b: two lines, and it makes the
+care label the message decision 0089 says it should be.
 
 ### 3. Four more walls, which this review found by walking the screens
 
@@ -172,6 +189,11 @@ next step and say nothing about behaviour. `templates.spec.ts` shows the fix —
    already open those pages?
 3. Should the F-G2 checklist of decision 0089 be wired, and by whom? It means editing `lib/kpp/gate.ts`, the
    tech pack's Review tab and `lib/make/gate.ts`.
+3b. Should the design object be written before or after the gate runs? Today it is before, so an export-format
+   precondition answers the production-package route and the compliance checklist never runs at all.
+8. Is the top bar's way home 40 px or 39? `studio-chrome.spec.ts:130` measured 39 on this run and 40 on its
+   retry, so CI calls it flaky rather than a tap target one pixel under the size the suite holds everything
+   else to.
 4. How does an order's `factory_profile_id` map to a row in `factories`? Today it does not, so no order can be
    invoiced, no ΔE reading can be judged, and the factory scorecard shows no card for any real order.
 5. Should a club be able to send a kit to production at all, or is the Store reference the end of the journey
