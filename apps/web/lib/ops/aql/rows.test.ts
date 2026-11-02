@@ -67,6 +67,20 @@ describe("loadAqlTable", () => {
     expect(await loadAqlTable({ from } as never)).toEqual({ plans: [], acceptance: [] });
   });
 
+  it("gives the empty table when a read answers nothing at all", async () => {
+    const from = vi.fn(() => answer([]));
+    expect(await loadAqlTable({ from } as never)).toEqual({ plans: [], acceptance: [] });
+  });
+
+  it("gives the empty table when only the acceptance read fails", async () => {
+    const from = vi.fn((name: string) =>
+      name === "ops_aql_sample_plans"
+        ? answer([planRow])
+        : { select: () => ({ order: () => ({ order: () => ({ limit: () => ({ data: null, error: { message: "no" } }) }) }) }) },
+    );
+    expect(await loadAqlTable({ from } as never)).toEqual({ plans: [], acceptance: [] });
+  });
+
   it("gives the empty table when the read throws", async () => {
     const from = vi.fn(() => {
       throw new Error("down");

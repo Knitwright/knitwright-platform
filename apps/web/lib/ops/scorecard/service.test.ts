@@ -70,4 +70,34 @@ describe("loadScorecards", () => {
     const client = reader(rows, { message: "raw", code: "42501" });
     await expect(loadScorecards(client as never, client as never)).rejects.toThrow();
   });
+
+  it("shows no card at all when the factory tables answer nothing, rather than guessing one", async () => {
+    const client = reader({ ...rows, ops_orders: [], factories: [], factory_capabilities: [] });
+    expect((await loadScorecards(client as never, client as never)).cards).toEqual([]);
+  });
+
+  it("leaves out a factory row it cannot read, and a capability row it cannot read", async () => {
+    const client = reader({ ...rows, factories: [{ id: 7 }], factory_capabilities: [{ nonsense: true }] });
+    const loaded = await loadScorecards(client as never, client as never, new Date("2026-12-07T10:00:00Z"));
+    // The order still names its factory, so that card stands, with no golden sample and so not active.
+    expect(loaded.cards.map((c) => [c.factoryProfileId, c.isActive])).toEqual([["sialkot-partner", false]]);
+  });
+
+  it("counts nothing from a table that answers nothing", async () => {
+    const client = {
+      from: vi.fn(() => {
+        const chain: Record<string, unknown> = {};
+        for (const step of ["select", "order", "eq", "limit"]) chain[step] = () => chain;
+        return Object.assign(chain, { data: null, error: null });
+      }),
+    };
+    const loaded = await loadScorecards(client as never, client as never, new Date("2026-12-07T10:00:00Z"));
+    expect([loaded.cards, loaded.truncated]).toEqual([[], false]);
+  });
+
+  it("says so when there are more rows than one card can count", async () => {
+    const many = Array.from({ length: 5000 }, () => orderRow);
+    const client = reader({ ...rows, ops_orders: many });
+    expect((await loadScorecards(client as never, client as never, new Date("2026-12-07T10:00:00Z"))).truncated).toBe(true);
+  });
 });

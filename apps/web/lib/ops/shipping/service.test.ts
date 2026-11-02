@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { listCouriers, manualCourier, toCourier, trackingUrlFor, selectCourierProvider, type Courier } from "./courier";
-import { recordShipment, type ParcelToRecord } from "./service";
+import { listShipments, recordShipment, type ParcelToRecord } from "./service";
 
 const parcel: ParcelToRecord = { orderId: "o", courier: " DHL ", trackingNumber: "T1 ", shippedOn: "2026-10-30", sizes: { M: 2 }, note: "", rest: null };
 
@@ -56,6 +56,43 @@ describe("recordShipment", () => {
   });
 });
 
+describe("listShipments", () => {
+  const row = {
+    id: "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a41",
+    order_id: "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11",
+    provider: "manual",
+    courier: "DHL",
+    tracking_number: "T1",
+    shipped_on: "2026-12-07",
+    sizes: { M: 2 },
+    pieces: 2,
+    note: "",
+    courier_code: "by-hand",
+    tracking_url: null,
+    at: "2026-12-07T10:00:00Z",
+  };
+  const reader = (answer: { data: unknown; error: unknown }) =>
+    vi.fn(() => ({ select: () => ({ eq: () => ({ order: () => ({ order: () => ({ limit: () => answer }) }) }) }) }));
+
+  it("reads an order's parcels with the courier row and the tracking address", async () => {
+    const shipments = await listShipments({ from: reader({ data: [row], error: null }) } as never, row.order_id);
+    expect(shipments[0]).toMatchObject({ courierCode: "by-hand", trackingUrl: null, provider: "manual" });
+  });
+
+  it("treats a row with no courier columns as one with none, so an older parcel still reads", async () => {
+    const older: Record<string, unknown> = { ...row };
+    delete older.courier_code;
+    delete older.tracking_url;
+    const shipments = await listShipments({ from: reader({ data: [older], error: null }) } as never, row.order_id);
+    expect(shipments[0]).toMatchObject({ courierCode: null, trackingUrl: null });
+  });
+
+  it("refuses when the read fails", async () => {
+    const from = reader({ data: null, error: { message: "raw", hint: "qc_not_passed" } });
+    await expect(listShipments({ from } as never, row.order_id)).rejects.toThrow(/not a pass/);
+  });
+});
+
 describe("couriers as data", () => {
   it("reads a courier row", () => {
     expect(toCourier(courierRow)).toMatchObject({ code: "by-hand", trackingUrlTemplate: null, transitDays: null, terms: "" });
@@ -69,6 +106,10 @@ describe("couriers as data", () => {
 
   it("falls back to the courier row's name when ops typed none", async () => {
     expect(await manualCourier.book({ courier: withTracking, courierName: "  ", trackingNumber: "T1" })).toMatchObject({ courier: "A courier", courierCode: "a-courier" });
+  });
+
+  it("leaves the courier empty when neither a row nor a typed name gives one", async () => {
+    expect(await manualCourier.book({ courier: null, courierName: "   ", trackingNumber: "T1" })).toMatchObject({ courier: "", courierCode: null, trackingUrl: null });
   });
 
   it("is the manual option whatever the environment says, because no courier adapter exists", () => {

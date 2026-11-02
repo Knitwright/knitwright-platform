@@ -99,3 +99,4 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
+| 0100 | [Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard](0100-ops-completion.md) | Proposed; the AQL figures are seeded with no source cited, owner questions listed |
