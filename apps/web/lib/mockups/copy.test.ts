@@ -22,7 +22,7 @@ const SETTLED = /\b(checked|verified|approved|confirmed|final|production[- ]read
 /** The one phrase allowed to hold such a word: the words this app uses for a missing value. */
 const withoutAllowed = (text: string): string => text.split(TO_BE_CONFIRMED).join(" ");
 
-const sentences = (): readonly string[] => Object.values(copy).filter((value): value is string => typeof value === "string");
+const sentences = (): readonly string[] => (Object.values(copy) as unknown[]).filter((value): value is string => typeof value === "string");
 
 describe("the words on the mockup studio's screens", () => {
   it("has a word for every part of the surface", () => {

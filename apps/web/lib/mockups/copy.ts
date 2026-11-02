@@ -38,6 +38,10 @@ export const NO_MATCH_BODY = "Clear the filters to see every scene again.";
 export const CLEAR_FILTERS = "Clear the filters";
 export const NO_PHOTOS_TITLE = "No photograph yet";
 export const NO_PHOTOS_BODY = "Upload a photograph in the Uploads panel, or make a golden sample of this design to get its photographs.";
+export const OPEN_UPLOADS = "Open the Uploads panel";
+
+/** Why a golden sample's photograph is the other picture a mockup may start from. */
+export const GOLDEN_SAMPLE_LEAD = "A golden-sample photograph is the one picture of the garment that is not drawn: it is a photograph of a sample somebody signed off, so a mockup may start from it as well as from the render.";
 export const NO_BOARD_SCENE_TITLE = "No scene on this board yet";
 export const NO_BOARD_SCENE_BODY = "Choose one in the Mockups panel and this board draws it.";
 export const OPEN_MOCKUPS = "Open the Mockups panel";
@@ -64,6 +68,9 @@ export const ROSTER_NUMBER_LABEL = "Number";
 export const RENDER_LABEL = "Draw this mockup";
 export const USE_SCENE_LABEL = "Use this scene";
 
+/** How a kit role becomes a colourway, said on the screen because the design names its own. */
+export const COLOURWAY_BY_NAME = "A kit draws the colourway of the design whose name matches it, so a design with a colourway called Away draws it for Away. A design that names none draws its first colourway.";
+
 /** The placement rule, said on the screen because the spec says it on the page. */
 export const PLACEMENT_FIXED = "The scene decides where the garment sits, so the print area cannot be dragged. The garment is the design the platform drew, warped into the scene's own slot.";
 
@@ -78,3 +85,16 @@ export const TURNED_VIEW_LEAD = "About this view";
 
 /** The heading of the gap list on a card or a board. */
 export const GAPS_HEADING = "What this cannot show yet";
+
+/** What the panel says after a scene has been put on the board that was selected. */
+export const sceneSet = (title: string): string => `This board now draws ${title}. Press Draw this mockup to see it.`;
+
+/**
+ * What the panel says after it has added a board. The shell's `addBoard` does not hand back the new
+ * board's id (`lib/launch/panels.ts`), so the panel cannot put the scene on it in the same step and
+ * says what to do instead of silently doing half the job.
+ */
+export const boardAdded = (title: string): string => `A Mockup board was added, fed by your Design board. Select it and press Use this scene to put ${title} on it.`;
+
+/** Where the list of scenes in the rail comes from, said plainly. */
+export const SCENES_FROM_SEED = "These are the scenes the platform seeds. A panel is given the project and the selection, not the library, so a scene a platform admin has since changed is shown here as it was seeded.";

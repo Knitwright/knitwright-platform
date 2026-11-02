@@ -47,6 +47,16 @@ export const CONTEXT_ARTICLE_GAP: SceneGap = {
   line: "A scene card in the rail cannot name the design's base article: LaunchContext carries the project and the selection, not the design. The board's own panel shows the article's gaps instead.",
 };
 
+/**
+ * The Photos panel shows two things a panel cannot reach: the brand's own uploads (L7's) and the
+ * photographs of a golden sample of this design (Y7's `golden_samples`). `LaunchContext` carries
+ * neither, so the panel names both doors instead of showing an empty grid and calling it a library.
+ */
+export const PHOTOS_GAP: SceneGap = {
+  ruleId: MOCKUP_GAP_RULE,
+  line: "A panel is given the project and the selection, not the brand's files. Your uploads are in the Uploads panel (L7) and a golden sample's photographs are on the design's Make page (F-S7), so this panel points at both rather than showing a library it cannot read.",
+};
+
 /** Every gap this workstream carries, for the pull request and for a test that counts them. */
 export function allMockupGaps(): readonly SceneGap[] {
   const count = specCountGap();
@@ -57,6 +67,7 @@ export function allMockupGaps(): readonly SceneGap[] {
     SERVER_RENDER_GAP,
     TURNTABLE_CLIP_GAP,
     CONTEXT_ARTICLE_GAP,
+    PHOTOS_GAP,
     ...(count === null ? [] : [count]),
   ];
 }

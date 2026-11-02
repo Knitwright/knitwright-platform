@@ -59,7 +59,7 @@ const MUTED = "#5b636f";
 const RULE = "#d8dbe0";
 
 /** The size-chart card as an SVG. Pure: the same card gives the same string every time. */
-export function sizeChartSvg(card: SizeChartCard, width = CARD.width, height = CARD.height): string {
+export function sizeChartSvg(card: SizeChartCard, width: number = CARD.width, height: number = CARD.height): string {
   const { pad } = CARD;
   const columns = card.sizes.length + 1;
   const columnWidth = (width - pad * 2) / Math.max(1, columns);
@@ -87,7 +87,7 @@ export function sizeChartSvg(card: SizeChartCard, width = CARD.width, height = C
 }
 
 /** The colour-chart card as an SVG. A colour with no swatch shows an empty chip and its code. */
-export function colourChartSvg(card: ColourChartCard, width = CARD.width, height = CARD.height): string {
+export function colourChartSvg(card: ColourChartCard, width: number = CARD.width, height: number = CARD.height): string {
   const { pad } = CARD;
   const perRow = 3;
   const gap = 28;
