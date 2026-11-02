@@ -25,7 +25,7 @@ know what state this is actually in.
 | Running production | [`docs/runbook/ops.md`](docs/runbook/ops.md) |
 | Setting up hosting | [`docs/runbooks/supabase-hosted.md`](docs/runbooks/supabase-hosted.md) |
 | Preparing to launch | [`docs/launch-checklist.md`](docs/launch-checklist.md) |
-| Looking for why something is built a way | [`docs/decisions/README.md`](docs/decisions/README.md), 105 records |
+| Looking for why something is built a way | [`docs/decisions/README.md`](docs/decisions/README.md), 106 records |
 | About to open a pull request here | ["How this repository is worked on"](docs/architecture.md#how-this-repository-is-worked-on) — it is unusual, and the next person will otherwise get it wrong |
 
 ## Run it
