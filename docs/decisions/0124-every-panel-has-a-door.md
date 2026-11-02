@@ -180,9 +180,20 @@ order those pull requests merge in is not this branch's to choose, and a red `ma
 teaches people to ignore the test. What the test is strict about is the thing it exists for — a
 component, an action or a route that appears with no door and no entry fails it.
 
-**That mechanism was used within the hour.** PR #140 merged while this branch was being written, the
-test printed its thirty-one component entries and `runFlowAction` as lines to delete, and they were
-deleted. What is left `in-flight` is PR #150's ten files and nothing else.
+**That mechanism was used twice.** PR #140 merged while this branch was being written, the test
+printed its thirty-one component entries and `runFlowAction` as lines to delete, and they were
+deleted. PR #150 then merged before this branch did, and its three `in-flight` groups went the same
+way — thirty-nine files, of which thirty-eight are now mounted in `EditorShell`.
+
+**Nothing is left `in-flight`.** The thirty-ninth, `BestPracticeCard`, and `bestPracticeAction`
+beside it, moved to `reported`: #150 declined to mount them and said why in decision 0117's owner
+question 1. F-S5 v2 asks for the card "when a part is selected", and nothing in the editor selects
+one of the rulebook's six parts — the Specs toolbar picks a *pattern panel*, which is a different
+vocabulary covering three of the six at best, so mapping one to the other would be a guess. The three
+ways out are a part chooser beside the Ask box, that mapping, or decision 0053's piece mapper making
+a click on the canvas mean a part. All three are doors, and which one is the owner's to pick. Until
+then the half of Ask that spec F-S5 asks for is built, tested and unreachable, and this test says so
+out loud rather than letting it pass as finished.
 
 The test also guards itself: it asserts that the sweep reaches components a page really draws, that
 it does not reach a test builder, that every allow-list path names a file or route that exists, that
