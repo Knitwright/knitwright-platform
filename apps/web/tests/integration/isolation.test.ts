@@ -732,8 +732,28 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
       token_hash: "\\x" + "00".repeat(32),
       created_by: userId,
       expires_at: "2099-01-01T00:00:00Z",
+      audience: "anyone",
     }),
-    change: { revoked_at: "2026-01-01T00:00:00Z", version: 9 },
+    // Plan v5 Y8: a browser must not be able to widen a link from "Only invited people" either.
+    change: { revoked_at: "2026-01-01T00:00:00Z", version: 9, audience: "anyone" },
+  },
+  // Plan v5 Y8 (decision 0081): members read their brand's invites; only the server makes,
+  // withdraws or marks one as emailed, through the invite functions.
+  share_invites: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedShareInvite(brandId, ownerId)).id }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      access: "edit",
+      email: "stranger@example.test",
+      message: "",
+      token_hash: "\\x" + "11".repeat(32),
+      invited_by: userId,
+      expires_at: "2099-01-01T00:00:00Z",
+    }),
+    change: { access: "edit", email_sent_at: "2026-01-01T00:00:00Z" },
   },
   // Answers left through a share link. Only the server keeps one, after the bot check.
   share_responses: {
@@ -1416,6 +1436,24 @@ const seedShareLink = async (brandId: string, ownerId: string): Promise<{ id: st
   return { id: rows[0].id, token };
 };
 
+/** A share invite made the way the server makes one, to a new design (plan v5 Y8). */
+const seedShareInvite = async (brandId: string, ownerId: string): Promise<{ id: string; token: string }> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const token = randomBytes(32).toString("base64url");
+  const rows = must(
+    await adminClient().rpc("create_share_invite", {
+      p_project_id: projectId,
+      p_user_id: ownerId,
+      p_email: `chair-${randomUUID().slice(0, 8)}@northside.test`,
+      p_access: "comment",
+      p_message: "Have a look.",
+      p_token: token,
+      p_days: 30,
+    }),
+  ) as { id: string }[];
+  return { id: rows[0]!.id, token };
+};
+
 /** A pattern service request made the way the server makes one, for a new design. Returns its id. */
 const seedPatternRequest = async (brandId: string, ownerId: string): Promise<string> => {
   const projectId = await seedProject(brandId, ownerId);
@@ -1549,6 +1587,20 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     row: { country: "GB" },
     attempt: { country: "ZZ", name: "Made directly", currency: "GBP", label: "Made directly" },
     change: { selling_enabled: false },
+  },
+  // Plan v5 Z8 (decision 0089): the ISO 3758 care symbols and the AQL plan. A member reads both, because the
+  // tech pack's Labels and QC tabs show them; nobody writes either from a browser.
+  care_symbols: {
+    privileges: ["SELECT"],
+    row: { code: "ISO3758-WASHING" },
+    attempt: { code: "MADE-DIRECTLY", kind: "washing", label: "Made directly" },
+    change: { words: "Made directly" },
+  },
+  aql_plans: {
+    privileges: ["SELECT"],
+    row: { scope: "class_a_sample" },
+    attempt: { scope: "run", inspect_every_piece: true, label: "Made directly" },
+    change: { inspect_every_piece: false },
   },
   // Plan v5 Z4 (decision 0085): freight per piece to a destination, and the basis duty is charged on.
   collection_freight_rates: {
@@ -1884,6 +1936,12 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   // Decision 0067: the rulebook. Every signed-in user reads it (not who wrote or confirmed a version); only
   // rulebook_entry_save and rulebook_entry_confirm write it. tests/integration/rulebook.test.ts covers it.
   rulebook_entries: { privileges: ["SELECT"] },
+  // Decision 0098: the kit bundles of docs/spec/07-template-library.md and what is in each one. Read by every
+  // signed-in user; seeded by the server. tests/integration/template-kinds.test.ts covers them.
+  template_kit_bundles: { privileges: ["SELECT"] },
+  template_kit_bundle_members: { privileges: ["SELECT"] },
+  // Decision 0098: the tech pack templates, one per base article, with the gaps that article has no data for.
+  template_techpacks: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;

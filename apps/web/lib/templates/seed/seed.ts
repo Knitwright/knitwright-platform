@@ -1,20 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { allSeedTemplates } from "./all";
 import type { SeedTemplate } from "./build";
+import { tagsOf } from "./tagging";
 
-/** The row the table stores for a starter template. */
-export const rowOf = (seed: SeedTemplate) => ({
-  slug: seed.slug,
-  title: seed.title,
-  sport: seed.sport,
-  article_id: seed.articleId,
-  wearer: seed.wearer,
-  style_tags: [...seed.styleTags],
-  colour_family: seed.colourFamily,
-  snapshot: seed.snapshot,
-  source: "knitwright",
-  review_state: seed.reviewState,
-});
+/** The row the table stores for a starter template, with the launch tags of `07` (decision 0098). */
+export const rowOf = (seed: SeedTemplate) => {
+  const tags = tagsOf(seed);
+  return {
+    slug: seed.slug,
+    title: seed.title,
+    kind: "design",
+    sport: seed.sport,
+    article_id: seed.articleId,
+    wearer: seed.wearer,
+    style_tags: [...seed.styleTags],
+    colour_family: seed.colourFamily,
+    sport_tags: [...tags.sport],
+    era_tags: [...tags.era],
+    mood_tags: [...tags.mood],
+    snapshot: seed.snapshot,
+    source: "knitwright",
+    review_state: seed.reviewState,
+  };
+};
 
 /**
  * Puts the starter templates in the library with the service client. A row is found by its slug, so running

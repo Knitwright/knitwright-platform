@@ -93,9 +93,12 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0076 | [The 2D pattern view and the Library toolbar](0076-view-2d-and-library-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
+| 0081 | [Names & numbers, the repeat maker, and Share](0081-names-numbers-repeat-maker-share.md) | Proposed; the font list is a labelled placeholder, owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
 | 0083 | [Ask and best practice over the rulebook](0083-ask-and-best-practice.md) | Proposed; owner questions listed |
 | 0084 | [Benchmarks — compare products without copying one](0084-benchmarks.md) | Proposed; every fetch allowance and closeness threshold is a labelled draft, two R-GAP-000 rules, owner questions listed |
 | 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
+| 0089 | [Compliance and pre-export unification](0089-compliance-and-pre-export.md) | Proposed; the label wording and the AQL plan are seeded as labelled defaults, no care symbol or CPSIA certificate exists, so every label is refused, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
+| 0098 | [The template library to the launch counts of `07`](0098-template-library.md) | Proposed; four of the spec's football styles deliberately not seeded, three R-GAP-000 entries, owner questions listed |
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
