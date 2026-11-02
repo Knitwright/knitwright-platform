@@ -65,6 +65,11 @@ export default defineConfig({
         // Two lines joining the package to the tech pack generator and to the environment; nothing
         // calls either yet (decision 0070), and the generator has its own tests.
         "lib/kpp/sources/techpack.ts",
+        // Joins the production package to the design, the catalogue, the factory rows, the brand's print settings,
+        // the drafter and the print builder, and holds no rules of its own: `input/**`, `sources/rows.ts` and
+        // `sources/print.ts` have those and are tested, and the route test and the end-to-end tests cover the
+        // joining (plan v5 X5/X5b, decision 0070 revision 3).
+        "lib/kpp/sources/server.ts",
         // One line each joining the files-service seam to the environment; `filesServiceFrom` has its own tests
         // and there is no service to call (decision 0070, plan v5 X5b).
         "lib/files-service/server.ts",
@@ -90,6 +95,10 @@ export default defineConfig({
         // Joins the invite functions to the server's own client; the database tests and the end-to-end test of the
         // share popover cover it (plan v5 Y8, decision 0081).
         "lib/share/invite-service.ts",
+        // Joins the collection screens to the plan, the brand's products, the factory tiers and the destination's
+        // rows; the counters, the landed cost and the line plan are tested on their own, and the database and
+        // end-to-end tests cover the joining (plan v5 Z4, decision 0085).
+        "lib/collections/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -112,9 +121,12 @@ export default defineConfig({
         "lib/files-service/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The repeat maker lays out what goes on a print file, so it is held to the same mark (plan v5 Y8, decision 0081).
         "lib/repeat/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
+        // (plan v5 section 6 item 3, decision 0099).
+        "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration"].map((dir) => [
+          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration", "collections"].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),
