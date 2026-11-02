@@ -74,6 +74,9 @@ export function ExportPanel({ board, others, busy, unit: projectUnit }: Props) {
     cmykProfile: cmykProfile !== null,
   });
 
+  /** The row these choices are, so the export is asked for by its own key, or "custom" for a size typed in. */
+  const matching = targets.find((one) => one.format === format && one.colourSpace === space && one.dpi === dpi && !one.quick);
+
   const send = (targetKey: string): void => {
     if (onExport === null) return setNote(NOT_WIRED);
     setNote(null);
@@ -105,6 +108,33 @@ export function ExportPanel({ board, others, busy, unit: projectUnit }: Props) {
             );
           })}
         </ul>
+      </section>
+
+      <section aria-label="Targets" className="flex flex-col gap-2">
+        <h4 className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">Target</h4>
+        <ul className="flex flex-wrap gap-2">
+          {full.map((target) => (
+            <li key={target.key}>
+              <button
+                type="button"
+                disabled={busy}
+                aria-pressed={matching?.key === target.key}
+                title={`${target.lead} ${target.note}`}
+                onClick={() => {
+                  setSize(null);
+                  setFormat(target.format);
+                  setSpace(target.colourSpace);
+                  setDpi(target.dpi);
+                }}
+                className={PANEL_CHIP}
+                data-testid={`marketing-target-${target.key}`}
+              >
+                {target.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[12px] leading-relaxed text-ink-2">{matching ? matching.note : "A size of your own. Nobody has reviewed these figures."}</p>
       </section>
 
       <section aria-label="Selected artboards" className="flex flex-col gap-2">
@@ -186,7 +216,7 @@ export function ExportPanel({ board, others, busy, unit: projectUnit }: Props) {
             {verdict.plan.zip ? `${verdict.plan.fileNames.length} files as a zip, a folder per format.` : verdict.plan.fileNames[0]}
             {verdict.plan.watermark ? ` ${rule?.label} exports carry the Knitwright preview mark.` : ""}
           </p>
-          <button type="button" disabled={busy} onClick={() => send(full[0]?.key ?? "png-1x")} className={PANEL_CHIP} data-testid="marketing-export-run">
+          <button type="button" disabled={busy} onClick={() => send(matching?.key ?? "custom")} className={PANEL_CHIP} data-testid="marketing-export-run">
             Export {verdict.plan.zip ? "as a zip" : FORMAT_LABELS[verdict.plan.format]}
           </button>
         </>
