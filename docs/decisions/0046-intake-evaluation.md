@@ -1,6 +1,7 @@
 # 0046: Intake test set and evaluation harness
 
 Status: Accepted. The test set waits for the owner (A7); no live run has been made.
+Index: Accepted; test set waits for the owner, no live run yet
 Date: 2026-10-24
 Plan step: V8 (plan v4)
 

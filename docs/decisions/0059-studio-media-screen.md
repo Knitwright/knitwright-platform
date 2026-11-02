@@ -1,6 +1,7 @@
 # 0059: The Studio media screen
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-27
 Plan step: plans/platform-v4.md, workstream W3-E (spec stage 4). Builds on 0054 (media sets), 0055 (checker), 0057 (lifestyle), 0058 (turntable and clip), 0051 (credit gates), 0012 (metering).
 

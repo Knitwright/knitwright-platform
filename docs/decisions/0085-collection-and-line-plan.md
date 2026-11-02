@@ -1,6 +1,7 @@
 # 0085: The collection plan and the line plan (Z4)
 
 Status: Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed
+Index title: The collection plan and the line plan
 Date: 2026-10-30
 Plan step: platform-v5 Z4 (F-S10)
 

@@ -1,6 +1,8 @@
 # 0024: The lead engine: buyer kind, organisation details, quote requests and the leads page
 
 Status: Accepted. The mail notice waits for the owner (A4); platform admins are added by hand.
+Index title: The lead engine: buyer kind, organisation details, quote requests, leads page
+Index: Accepted; mail notice waits for the owner
 Date: 2026-10-11
 Plan step: wave 3 (Platform and Store Guide, 2026-10-10, pages 2, 8, 9 and 12)
 

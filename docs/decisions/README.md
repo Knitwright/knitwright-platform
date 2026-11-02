@@ -8,10 +8,15 @@ Copy `0000-template.md` to start.
 
 ## Index
 
-The status column is a short reading of each record's own `Status:` line, checked
-against the files on 2026-10-25. The record is the authority: open it for the full line.
+The table is generated from the records by `scripts/write-decision-index.mjs`, so it is never
+edited by hand: write your record, then run the script. Each record supplies its own row, and may
+carry an `Index:` line (a shorter reading of its state than `Status:`) and an `Index title:` line
+(where the index leaves out a workstream suffix). The record is the authority: open it for the
+full line.
 "Proposed" means built and waiting for the orchestrator or the owner to accept it. Nothing
 here is superseded. Owner questions are collected in `docs/owner/questionnaire-2026-10-25.md`.
+
+<!-- The table below is written by scripts/write-decision-index.mjs. Do not edit it by hand. -->
 
 | No. | Decision | Status |
 |---|---|---|
@@ -93,6 +98,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0076 | [The 2D pattern view and the Library toolbar](0076-view-2d-and-library-toolbar.md) | Proposed; owner questions listed |
 | 0077 | [The Specs toolbar and the tech pack view](0077-specs-toolbar-and-techpack-view.md) | Proposed; owner questions listed |
 | 0078 | [The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel](0078-techpack-pdf-pages-and-export-panel.md) | Proposed; owner questions listed |
+| 0080 | [Make — product created, samples, golden samples and the order modal (Y7)](0080-make-samples-golden-samples.md) | Proposed |
 | 0081 | [Names & numbers, the repeat maker, and Share](0081-names-numbers-repeat-maker-share.md) | Proposed; the font list is a labelled placeholder, owner questions listed |
 | 0082 | [The inspiration board](0082-inspiration-board.md) | Proposed; owner questions listed |
 | 0083 | [Ask and best practice over the rulebook](0083-ask-and-best-practice.md) | Proposed; owner questions listed |
@@ -103,3 +109,5 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0091 | [The launch shell and its boards](0091-launch-shell-and-boards.md) | Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed |
 | 0098 | [The template library to the launch counts of `07`](0098-template-library.md) | Proposed; four of the spec's football styles deliberately not seeded, three R-GAP-000 entries, owner questions listed |
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
+
+<!-- End of the generated table. -->

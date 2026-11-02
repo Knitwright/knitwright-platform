@@ -1,6 +1,7 @@
 # 0089: Compliance and pre-export unification
 
 Status: Proposed. Every label line the platform can print today comes from a row that cites a source in this repository. The
+Index: Proposed; the label wording and the AQL plan are seeded as labelled defaults, no care symbol or CPSIA certificate exists, so every label is refused, owner questions listed
 care symbols are not written, and the gate refuses every label because of it. The two tables decision 0070 left owed are
 seeded as labelled defaults: the AQL plan, including the run plan rulebook `R-QC-001` states, and the label wording per
 market, including the size line. Owner questions below.

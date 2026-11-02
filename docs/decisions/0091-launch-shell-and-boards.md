@@ -1,6 +1,7 @@
 # 0091: The launch shell and its boards (L1)
 
 Status: Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed
+Index title: The launch shell and its boards
 Date: 2026-11-02
 Plan step: platform-v5 L1 (the Launch section of `docs/spec/02-features.md`, F-L1 to F-L4)
 
