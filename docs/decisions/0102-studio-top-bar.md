@@ -2,7 +2,7 @@
 
 Status: Proposed; the owner's choice of both ways out of decision 0079 owner question 5, measured offline and in the
 browser tests; Benchmarks keeps its sidebar entry as well; owner questions listed
-Index: Proposed; the bar's sections go from 625 px to 389 px and the account cluster from three controls to one, Teamwear, Launch and Benchmarks get the entry each workstream was waiting for, Collect deliberately gets none, the inline-link contrast pattern swept and five pages scanned for the first time, owner questions listed
+Index: Proposed; the bar's sections go from 625 px to 389 px and the account cluster from three controls to one, Teamwear, Launch and Benchmarks get the entry each workstream was waiting for, Collect deliberately gets none and is reached from the club page instead, the inline-link contrast pattern swept and five pages scanned for the first time, owner questions listed
 Index title: The studio top bar: one account menu, an overflow menu, and room to grow
 Date: 2026-11-02
 Pull request: #134
@@ -80,11 +80,11 @@ its glass by 374 px at 768 and 118 px at 1024 the whole time**, because the bar 
      because it is the entry that carries the "Compare products" hint; the difference is that the section is now
      reachable from every signed-in page rather than only from the studio home. Owner question 2 asks whether to
      keep both.
-   - **No `Collect` section** (Z7). Z7 recommends reaching it from the club page's "Seasons and rosters" section
-     instead, which costs the bar nothing. **No link was added**, and not because the bar had no room: there is no
-     `/collect` route in this repository at all. Z7 is wave 3 and owns `app/join/[token]`; a typed `Route` to
-     `/collect` does not compile and would be a dead link. The one-line change belongs in the change that creates
-     the address.
+   - **No `Collect` section, but the club page now has the link** (Z7). Z7 recommends reaching `/collect` from the
+     club page's "Seasons and rosters" section rather than from the bar, which costs the bar nothing, and that is
+     what this does: `PageSection`'s `description` takes a `ReactNode`, so it is the one-line change Z7 asked for.
+     The route did not exist when this branch opened — Z7 merged while it was in flight — and the link was held back
+     rather than written as a dead one. `club.spec.ts` asserts the link's address, so it cannot rot.
 
 7. **The menus are menus, not hover panels.** `GlassMenu` is a disclosure: it opens on a click or a press, carries
    `aria-expanded` and `aria-controls`, closes on Escape, on a click outside it and on a new address, and gives focus
@@ -161,6 +161,10 @@ The bar after this change, same harness, same tolerance:
 - **Two specs reached `/brand` and `/club` by clicking a section pill** and now go through the overflow menu, by
   `openStudioSection`, which opens the menu only when the section is not a pill. `accounts.spec.ts` opens the account
   menu for the address and for Sign out.
+- **`/collect`'s own two inline links were swept with the rest.** It arrived after the sweep, carrying both shapes:
+  a cobalt link inside muted prose, and a design name with no style of its own inside a heading that also holds muted
+  words. It has no axe scan of its own — `roster-signup.spec.ts` and `committee.spec.ts` each scan the page the
+  player or the guest sees, not `/collect` — and adding one is Z7's to do.
 - **Five pages are scanned by axe for the first time**: `/brand`, `/club` and the three make pages. That is what
   stops the inline-link fault coming back, and it is why those specs are the ones that matter most on this branch.
 - `e2e/studio-chrome.spec.ts` is new and owns the chrome's own cover: which sections are pills and which are listed,

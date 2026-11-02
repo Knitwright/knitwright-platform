@@ -28,6 +28,9 @@ test.describe("club workspace (V4)", () => {
     await accessible(page);
 
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
+    // The one way into Collect, which has no section of its own in the top bar on Z7's own
+    // recommendation: a section there costs about 90 px and this costs nothing (decision 0102).
+    await expect(seasons.getByRole("link", { name: "Collect", exact: true })).toHaveAttribute("href", "/collect");
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();
     await expect(seasons.getByText("The season is made.")).toBeVisible();

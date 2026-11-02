@@ -59,7 +59,24 @@ export default async function ClubPage() {
         <MembersPanel members={members} invitations={invitations} me={userId} canManage={canManageMembers} />
       </PageSection>
 
-      <PageSection id="seasons" title="Seasons and rosters" description="One roster for each season, with a size for each player. Import a CSV, or start from last season.">
+      {/*
+        The one way into Collect (plan v5 Z7). It is here rather than in the top bar on Z7's own
+        recommendation: a section in the bar costs about 90 px, and this costs nothing.
+      */}
+      <PageSection
+        id="seasons"
+        title="Seasons and rosters"
+        description={
+          <>
+            One roster for each season, with a size for each player. Import a CSV, or start from last season. Ask the
+            players themselves on{" "}
+            <Link href="/collect" className="soft-link text-ink underline underline-offset-4">
+              Collect
+            </Link>
+            .
+          </>
+        }
+      >
         <SeasonsPanel seasons={seasons} canEdit={canEdit} />
       </PageSection>
 

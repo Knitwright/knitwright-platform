@@ -86,7 +86,7 @@ export default async function CollectPage() {
         {committee.length === 0 ? (
           <p className="text-[15px] text-muted">
             No designs yet.{" "}
-            <Link href="/studio/new" className="soft-link text-cobalt-soft">
+            <Link href="/studio/new" className="soft-link text-ink underline underline-offset-4">
               Start one
             </Link>
             , then come back and share it.
@@ -96,7 +96,7 @@ export default async function CollectPage() {
             {committee.map((design) => (
               <li key={design.projectId} className="flex flex-col gap-3">
                 <h3 className="text-[15px] font-medium text-ink">
-                  <Link href={`/studio/${design.projectId}`} className="soft-link text-ink">
+                  <Link href={`/studio/${design.projectId}`} className="soft-link text-ink underline underline-offset-4">
                     {design.name}
                   </Link>{" "}
                   <span className="text-muted">· version {design.currentVersion}</span>
@@ -116,7 +116,7 @@ export default async function CollectPage() {
         {collecting.length === 0 ? (
           <p className="text-[15px] text-muted">
             No seasons yet.{" "}
-            <Link href="/club" className="soft-link text-cobalt-soft">
+            <Link href="/club" className="soft-link text-ink underline underline-offset-4">
               Make a season
             </Link>
             , then come back and collect its sizes.
