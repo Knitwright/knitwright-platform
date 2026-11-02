@@ -31,6 +31,7 @@ function ColourRow({ colour, disabled, onChange, onRemove }: Readonly<{ colour: 
         />
         <input
           className={FIELD_CONTROL}
+          aria-label="Colour name"
           placeholder="Name, such as Club red"
           maxLength={LIMITS.colourName}
           disabled={disabled}
@@ -39,6 +40,7 @@ function ColourRow({ colour, disabled, onChange, onRemove }: Readonly<{ colour: 
         />
         <input
           className={FIELD_CONTROL}
+          aria-label="Pantone TCX code"
           placeholder="Pantone TCX, as printed in your book"
           maxLength={LIMITS.pantone}
           disabled={disabled}
@@ -46,7 +48,7 @@ function ColourRow({ colour, disabled, onChange, onRemove }: Readonly<{ colour: 
           onChange={(event) => onChange({ ...colour, pantoneTcx: event.target.value })}
         />
         {onRemove ? (
-          <Button variant="quiet" type="button" onClick={onRemove}>
+          <Button variant="quiet" type="button" aria-label={`Remove ${colour.name === "" ? "this colour" : colour.name}`} onClick={onRemove}>
             Remove
           </Button>
         ) : null}
@@ -110,6 +112,7 @@ function PaletteEditor({ palette, uploads, canEdit }: Readonly<{ palette: BrandP
     <div className="flex flex-col gap-4">
       <input
         className={FIELD_CONTROL}
+        aria-label="Palette name"
         placeholder="Palette name, such as Primary or Kit colours"
         maxLength={LIMITS.paletteName}
         disabled={!canEdit}

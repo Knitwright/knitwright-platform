@@ -113,7 +113,7 @@ test.describe("Brand Studio (Y6)", () => {
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
     await editor.getByPlaceholder("Palette name, such as Primary or Kit colours").fill(`Primary ${runId()}`);
-    await editor.getByLabel("Colour").fill("#0000ff");
+    await editor.getByLabel("Colour", { exact: true }).fill("#0000ff");
     await editor.getByPlaceholder("Name, such as Club red").fill("Electric blue");
 
     const warning = editor.getByTestId("gamut-warning");
@@ -137,7 +137,7 @@ test.describe("Brand Studio (Y6)", () => {
     await page.goto("/brand-studio?tab=colours");
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
-    await editor.getByLabel("Colour").fill("#0b1f4b");
+    await editor.getByLabel("Colour", { exact: true }).fill("#0b1f4b");
     await expect(editor.getByTestId("gamut-warning")).toBeHidden();
   });
 

@@ -85,30 +85,39 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
       <ul className="flex flex-col gap-3">
         {rows.map((row, at) => (
           <li key={at} className="grid gap-2 rounded-xl border border-hairline px-3 py-3">
-            <select className={FIELD_CONTROL} disabled={!canEdit} value={row.artworkId} onChange={(event) => setRow(at, { artworkId: event.target.value })}>
-              {uploads.map((upload) => (
-                <option key={upload.artworkId} value={upload.artworkId}>
-                  {upload.label} ({upload.kind === "vector" ? "drawing" : `${upload.widthPx} by ${upload.heightPx} pixels`})
-                </option>
-              ))}
-            </select>
-            <input
-              className={FIELD_CONTROL}
-              placeholder="Name"
-              maxLength={LIMITS.assetLabel}
-              disabled={!canEdit}
-              value={row.label}
-              onChange={(event) => setRow(at, { label: event.target.value })}
-            />
-            {kind === "sponsor" ? (
+            <label className="flex flex-col gap-1">
+              <span className="text-[13px] text-muted">Which of your uploads is it?</span>
+              <select className={FIELD_CONTROL} disabled={!canEdit} value={row.artworkId} onChange={(event) => setRow(at, { artworkId: event.target.value })}>
+                {uploads.map((upload) => (
+                  <option key={upload.artworkId} value={upload.artworkId}>
+                    {upload.label} ({upload.kind === "vector" ? "drawing" : `${upload.widthPx} by ${upload.heightPx} pixels`})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[13px] text-muted">What do you call it?</span>
               <input
                 className={FIELD_CONTROL}
-                placeholder="Sponsor name"
-                maxLength={LIMITS.sponsorName}
+                placeholder="Name"
+                maxLength={LIMITS.assetLabel}
                 disabled={!canEdit}
-                value={row.sponsorName}
-                onChange={(event) => setRow(at, { sponsorName: event.target.value })}
+                value={row.label}
+                onChange={(event) => setRow(at, { label: event.target.value })}
               />
+            </label>
+            {kind === "sponsor" ? (
+              <label className="flex flex-col gap-1">
+                <span className="text-[13px] text-muted">Whose sponsor logo is it?</span>
+                <input
+                  className={FIELD_CONTROL}
+                  placeholder="Sponsor name"
+                  maxLength={LIMITS.sponsorName}
+                  disabled={!canEdit}
+                  value={row.sponsorName}
+                  onChange={(event) => setRow(at, { sponsorName: event.target.value })}
+                />
+              </label>
             ) : null}
             {checked ? (
               <label className="flex flex-col gap-1">
@@ -125,7 +134,12 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
             ) : null}
             {canEdit ? (
               <div>
-                <Button variant="quiet" type="button" onClick={() => setRows(rows.filter((_, index) => index !== at))}>
+                <Button
+                  variant="quiet"
+                  type="button"
+                  aria-label={`Remove ${row.label === "" ? `this ${ASSET_KIND_LABELS[kind].toLowerCase()}` : row.label}`}
+                  onClick={() => setRows(rows.filter((_, index) => index !== at))}
+                >
                   Remove
                 </Button>
               </div>
