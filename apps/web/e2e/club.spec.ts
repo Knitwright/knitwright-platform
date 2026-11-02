@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, createAccount, createColleagueOf, openStudioSection, signIn, test, userIdOf } from "./support";
+import { accessible, openStudioSection } from "./chrome";
+import { createAccount, createColleagueOf, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan V4 (decision 0042): the club workspace. A season is made, a roster is read from a CSV file

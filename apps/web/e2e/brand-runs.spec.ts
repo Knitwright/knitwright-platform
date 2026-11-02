@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, createAccount, createColleagueOf, makePlatformAdmin, openStudioSection, signIn, test, userIdOf } from "./support";
+import { accessible, openStudioSection } from "./chrome";
+import { createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
  * Plan W4-C (decision 0062): a small brand lists a design as a product, orders a sample of one piece per size, moves the product

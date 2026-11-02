@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, createAccount, signIn, test, userIdOf } from "./support";
+import { accessible } from "./chrome";
+import { createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Make (plan v5 Y7, F-S7): the product-created page, a sample of one piece per size, the golden sample the founder

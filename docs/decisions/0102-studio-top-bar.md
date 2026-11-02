@@ -124,7 +124,8 @@ its glass by 374 px at 768 and 118 px at 1024 the whole time**, because the bar 
     `.soft-link` across the whole product and that is not this change's to make.
 
 11. **The guard is extended, not replaced.** `headerFits` and the axe helper were written in
-    `e2e/brand-studio.spec.ts` and move to `e2e/support.ts`, because five specs want them at once. `headerFits`
+    `e2e/brand-studio.spec.ts` and move to `e2e/chrome.ts`, because five specs want them at once and `e2e/support.ts`
+    is already the longest file in that folder. `headerFits`
     asserts exactly what it did — the last control of the row keeps its words on the glass, tolerance the control's
     own 12 px of padding — but finds that control at whatever width it is measured at, since Sign out is no longer
     last and no longer in the row. `headerFitsAtEveryWidth` runs it at **390, 768, 1024, 1280 and 1440**.

@@ -1,13 +1,6 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import {
-  accessible,
-  createAccount,
-  headerFitsAtEveryWidth,
-  openAccountMenu,
-  openStudioSection,
-  signIn,
-  test,
-} from "./support";
+import { accessible, headerFitsAtEveryWidth, openAccountMenu, openStudioSection } from "./chrome";
+import { createAccount, signIn, test } from "./support";
 
 /**
  * The studio top bar (decision 0102): the shared chrome of every signed-in page. The account

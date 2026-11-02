@@ -1,8 +1,8 @@
 import { expect } from "@playwright/test";
+import { openAccountMenu } from "./chrome";
 import {
   accountExists,
   createAccount,
-  openAccountMenu,
   invite,
   linkFromMail,
   mailCount,

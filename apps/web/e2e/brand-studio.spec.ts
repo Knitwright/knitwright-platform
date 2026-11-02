@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, createAccount, headerFitsAtEveryWidth, signIn, test, userIdOf } from "./support";
+import { accessible, headerFitsAtEveryWidth } from "./chrome";
+import { createAccount, signIn, test, userIdOf } from "./support";
 
 /**
  * Brand Studio, typed by hand (spec F-S9 without the URL import; plan v5 Y6, decision 0079): the
