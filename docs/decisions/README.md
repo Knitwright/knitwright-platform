@@ -105,9 +105,13 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0083 | [Ask and best practice over the rulebook](0083-ask-and-best-practice.md) | Proposed; owner questions listed |
 | 0084 | [Benchmarks — compare products without copying one](0084-benchmarks.md) | Proposed; every fetch allowance and closeness threshold is a labelled draft, two R-GAP-000 rules, owner questions listed |
 | 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
+| 0086 | [Committee link v2 and roster sign-up](0086-committee-link-and-roster-signup.md) | Proposed; every number behind both links is a labelled default, owner questions listed |
+| 0086 | [The teamwear configurator](0086-teamwear-configurator.md) | Proposed |
 | 0089 | [Compliance and pre-export unification](0089-compliance-and-pre-export.md) | Proposed; the label wording and the AQL plan are seeded as labelled defaults, no care symbol or CPSIA certificate exists, so every label is refused, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
 | 0091 | [The launch shell and its boards](0091-launch-shell-and-boards.md) | Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed |
+| 0094 | [The marketing studio (L4)](0094-marketing-studio.md) | Proposed; CMYK is refused because no colour profile may be committed, every slot figure and character limit is a labelled placeholder, owner questions listed |
+| 0095 | [The video studio](0095-video-studio.md) | Proposed; the encoder is the browser recorder until a deploy target with ffmpeg exists, every credit figure and every model row is a labelled placeholder, owner questions listed |
 | 0096 | [Flows, the launch pack on one canvas (L6)](0096-flows.md) | Proposed; every credit figure is a labelled placeholder, every flow pack is a labelled default nobody has reviewed, owner questions listed |
 | 0098 | [The template library to the launch counts of `07`](0098-template-library.md) | Proposed; four of the spec's football styles deliberately not seeded, three R-GAP-000 entries, owner questions listed |
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |

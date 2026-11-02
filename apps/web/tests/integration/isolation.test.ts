@@ -1296,6 +1296,186 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, email: "made-directly@test.knitwright.local", role: "viewer" }),
     change: { role: "admin" },
   },
+  // Plan v5 Z7 (decision 0086): a committee link and what a committee left through it. Members read
+  // their own club's rows; nobody writes any of them directly, and a pin, a vote record, an approval
+  // and a lock are append only, so not even the server may change one.
+  committee_links: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedCommitteeLink(brandId, ownerId)).id }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      project_id: randomUUID(),
+      token_hash: "\\x" + "22".repeat(32),
+      created_by: userId,
+      expires_at: "2099-01-01T00:00:00Z",
+    }),
+    change: { revoked_at: "2026-01-01T00:00:00Z", expires_at: "2099-01-01T00:00:00Z" },
+  },
+  committee_link_versions: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ link_id: (await seedCommitteeLink(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ link_id: randomUUID(), brand_id: brandId, slot: "A", version: 1 }),
+    change: { version: 9 },
+  },
+  committee_pins: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const made = await seedCommitteeLink(brandId, ownerId);
+      must(
+        await adminClient().rpc("committee_pin", {
+          p_token: made.token,
+          p_visitor_key: made.visitor,
+          p_name: "Seeded committee",
+          p_version: 1,
+          p_panel_id: "body-front",
+          p_x_mm: 10,
+          p_y_mm: 20,
+          p_body: "Seeded comment.",
+        }),
+      );
+      return { link_id: made.id };
+    },
+    attempt: (brandId) => ({
+      link_id: randomUUID(),
+      brand_id: brandId,
+      visitor_hash: "\\x" + "33".repeat(32),
+      version: 1,
+      name: "Made directly",
+      panel_id: "body-front",
+      x_mm: 1,
+      y_mm: 1,
+      body: "Made directly.",
+    }),
+    change: { body: "Changed by a stranger." },
+  },
+  committee_votes: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const made = await seedCommitteeLink(brandId, ownerId);
+      must(
+        await adminClient().rpc("committee_vote", {
+          p_token: made.token,
+          p_visitor_key: made.visitor,
+          p_name: "Seeded committee",
+          p_slot: "A",
+        }),
+      );
+      return { link_id: made.id };
+    },
+    attempt: (brandId) => ({ link_id: randomUUID(), brand_id: brandId, visitor_hash: "\\x" + "44".repeat(32), slot: "A", name: "Made directly" }),
+    change: { slot: "B", name: "Changed by a stranger" },
+  },
+  committee_approvals: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const made = await seedCommitteeLink(brandId, ownerId);
+      must(
+        await adminClient().rpc("committee_approve", {
+          p_token: made.token,
+          p_visitor_key: made.visitor,
+          p_name: "Seeded chair",
+          p_email: null,
+          p_version: 1,
+        }),
+      );
+      return { link_id: made.id };
+    },
+    attempt: (brandId) => ({
+      link_id: randomUUID(),
+      brand_id: brandId,
+      project_id: randomUUID(),
+      version: 1,
+      name: "Made directly",
+      visitor_hash: "\\x" + "55".repeat(32),
+    }),
+    change: { name: "Changed by a stranger", version: 9 },
+  },
+  committee_locks: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const made = await seedLockableCommitteeLink(brandId, ownerId);
+      must(await adminClient().rpc("committee_lock_version", { p_link_id: made.id, p_user_id: ownerId, p_version: 1 }));
+      return { link_id: made.id };
+    },
+    attempt: (brandId, userId) => ({
+      link_id: randomUUID(),
+      brand_id: brandId,
+      project_id: randomUUID(),
+      version: 1,
+      locked_by: userId,
+    }),
+    change: { version: 9 },
+  },
+  // Plan v5 Z7 (decision 0086): a season's sign-up link, the people the club is waiting on and what
+  // the players sent. Personal data, removed with the season and with the club.
+  roster_signup_links: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedSignupLink(brandId, ownerId)).id }),
+    attempt: (brandId, userId) => ({
+      brand_id: brandId,
+      season_id: randomUUID(),
+      token_hash: "\\x" + "66".repeat(32),
+      sport: "football",
+      created_by: userId,
+      expires_at: "2099-01-01T00:00:00Z",
+    }),
+    change: { revoked_at: "2026-01-01T00:00:00Z", sport: "rugby" },
+  },
+  roster_signup_requests: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const seasonId = await seedSeason(brandId, ownerId);
+      must(
+        await adminClient().rpc("set_roster_signup_requests", {
+          p_brand_id: brandId,
+          p_user_id: ownerId,
+          p_season_id: seasonId,
+          p_people: [{ name: "Seeded Player", phone: "07700900000", email: "" }],
+        }),
+      );
+      return { season_id: seasonId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, season_id: randomUUID(), name: "Made directly", match_key: "made directly" }),
+    change: { name: "Changed by a stranger" },
+  },
+  roster_signup_entries: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const made = await seedSignupLink(brandId, ownerId);
+      must(
+        await adminClient().rpc("roster_signup_submit", {
+          p_token: made.token,
+          p_visitor_key: made.visitor,
+          p_name: "SEEDED",
+          p_number: "7",
+          p_size_label: "M",
+          p_wearer_group: "mens",
+        }),
+      );
+      return { link_id: made.id };
+    },
+    attempt: (brandId) => ({
+      link_id: randomUUID(),
+      brand_id: brandId,
+      season_id: randomUUID(),
+      visitor_hash: "\\x" + "77".repeat(32),
+      name_on_shirt: "DIRECT",
+      match_key: "direct",
+      number: "9",
+      size_label: "M",
+      wearer_group: "mens",
+    }),
+    change: { number: "1", size_label: "XL" },
+  },
   // Benchmarks (plan v5 Z3, decision 0084): a comparison, its cards and the one-fetch-per-brand record.
   benchmarks: {
     privileges: ["SELECT"],
@@ -1635,6 +1815,63 @@ const seedShareInvite = async (brandId: string, ownerId: string): Promise<{ id: 
   return { id: rows[0]!.id, token };
 };
 
+/**
+ * A committee link of a new design, made the way the server makes one (plan v5 Z7, decision 0086).
+ * Each call makes its own design, so one seed's lock can never clash with another's.
+ */
+const seedCommitteeLink = async (
+  brandId: string,
+  ownerId: string,
+): Promise<{ id: string; token: string; projectId: string; visitor: string }> => {
+  const projectId = await seedProject(brandId, ownerId);
+  const token = randomBytes(32).toString("base64url");
+  const rows = must(
+    await adminClient().rpc("create_committee_link", {
+      p_project_id: projectId,
+      p_user_id: ownerId,
+      p_token: token,
+      p_versions: [1],
+    }),
+  ) as { id: string }[];
+  return { id: rows[0]!.id, token, projectId, visitor: randomBytes(32).toString("base64url") };
+};
+
+/** A committee link whose one version has been checked, so it can be locked. */
+const seedLockableCommitteeLink = async (brandId: string, ownerId: string) => {
+  const made = await seedCommitteeLink(brandId, ownerId);
+  must(
+    await adminClient().rpc("set_design_status", {
+      p_project_id: made.projectId,
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_version: 1,
+      p_status: "validated",
+      p_profile_id: "knitwright-default",
+      p_findings_hash: "b".repeat(64),
+    }),
+  );
+  return made;
+};
+
+/** A season's sign-up link of a new season, made the way the server makes one. */
+const seedSignupLink = async (
+  brandId: string,
+  ownerId: string,
+): Promise<{ id: string; token: string; seasonId: string; visitor: string }> => {
+  const seasonId = await seedSeason(brandId, ownerId);
+  const token = randomBytes(32).toString("base64url");
+  const rows = must(
+    await adminClient().rpc("create_roster_signup_link", {
+      p_brand_id: brandId,
+      p_user_id: ownerId,
+      p_season_id: seasonId,
+      p_token: token,
+      p_sport: "football",
+    }),
+  ) as { id: string }[];
+  return { id: rows[0]!.id, token, seasonId, visitor: randomBytes(32).toString("base64url") };
+};
+
 /** A pattern service request made the way the server makes one, for a new design. Returns its id. */
 const seedPatternRequest = async (brandId: string, ownerId: string): Promise<string> => {
   const projectId = await seedProject(brandId, ownerId);
@@ -1769,6 +2006,21 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     row: { key: "story-9-16" },
     attempt: { key: "made-directly", label: "Made directly", width: 10, height: 10, unit: "px", note: "Made directly" },
     change: { label: "Changed by a member" },
+  },
+  // Plan v5 L4 (decision 0094): what the marketing export panel offers, and the watermark rule of
+  // each plan, as rows rather than literals in code. Every signed-in member reads them; only the
+  // server writes them. tests/integration/marketing.test.ts covers them.
+  marketing_export_targets: {
+    privileges: ["SELECT"],
+    row: { key: "png-1x" },
+    attempt: { key: "made-directly", label: "Made directly", lead: "Made directly", file_format: "png", colour_space: "rgb", dpi: 72, note: "Made directly" },
+    change: { label: "Changed by a member" },
+  },
+  marketing_watermark_rules: {
+    privileges: ["SELECT"],
+    row: { plan: "free" },
+    attempt: { plan: "paid", label: "Made directly", watermarked: false, max_dpi: 72, note: "Made directly" },
+    change: { max_dpi: 1200 },
   },
   // Plan v5 X6 (decision 0071): market rules, so a member sees the VAT treatment of their own market.
   country_rules: {
@@ -2160,6 +2412,34 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: () => ({ cut_for: new Date().toISOString() }),
     change: { orders_batched: 99 },
+  },
+  // Plan v5 Z7 (decision 0086): the data behind the committee link and the sign-up. No browser role
+  // reaches any of the four: the pages they feed are drawn on the server, and a club that could
+  // change its own number range or name length could print what the factory cannot make. The
+  // migration seeds every row, each with the rule that explains it.
+  public_link_windows: {
+    privileges: [],
+    seed: async () => ({ kind: "committee" }),
+    attempt: () => ({ kind: "roster_signup", days: 365, rule_id: "R-GAP-000", label: "Made directly" }),
+    change: { days: 365 },
+  },
+  sport_number_rules: {
+    privileges: [],
+    seed: async () => ({ sport: "default" }),
+    attempt: () => ({ sport: "made-up", label: "Made directly", lowest: 0, highest: 999, rule_id: "R-GAP-000", note: "Made directly" }),
+    change: { highest: 999 },
+  },
+  shirt_zone_limits: {
+    privileges: [],
+    seed: async () => ({ zone: "back-name" }),
+    attempt: () => ({ zone: "back-number", label: "Made directly", max_characters: 40, rule_id: "R-GAP-000", note: "Made directly" }),
+    change: { max_characters: 40 },
+  },
+  chase_templates: {
+    privileges: [],
+    seed: async () => ({ id: "first-ask-whatsapp" }),
+    attempt: () => ({ id: "made-directly", channel: "whatsapp", subject: "", body: "Made directly", note: "Made directly" }),
+    change: { body: "Changed by a member" },
   },
   // Plan v5 X8 (decision 0073): moderation. Read by platform admins only; written by the moderation functions only.
   moderation_checks: {

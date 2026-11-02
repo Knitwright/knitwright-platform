@@ -34,7 +34,9 @@ describe("the templates the start offers first", () => {
 
   it("reads them, with a drawing for each", async () => {
     const rows = buildSeedTemplates().map((seed, n) => ({ id: summaries[n]!.id, ...rowOf(seed) }));
-    const query = { select: () => query, order: () => query, limit: async () => ({ data: rows, error: null }), in: async () => ({ data: rows, error: null }) };
+    // `eq` is here because the read asks for the design rows only: `templates` also holds the
+    // marketing rows of L4 (decision 0094) and will hold the other kinds of 07.
+    const query = { select: () => query, order: () => query, eq: () => query, limit: async () => ({ data: rows, error: null }), in: async () => ({ data: rows, error: null }) };
     const shown = await featuredTemplates({ from: () => query } as unknown as SupabaseClient);
     expect(shown).toHaveLength(FEATURED_COUNT);
     expect(shown.every((entry) => entry.preview !== null)).toBe(true);
