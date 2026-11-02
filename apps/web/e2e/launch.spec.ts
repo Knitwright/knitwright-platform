@@ -247,3 +247,28 @@ test.describe("the inspector, the dock and the menu", () => {
     await expect(page).toHaveURL(/unit=mm/);
   });
 });
+
+/**
+ * The phone layout, following the pattern this app already uses for the editor's rail (decision
+ * 0064 and `components/studio/workspace/ToolRail.tsx`): the rail becomes a bar fixed along the
+ * bottom of the screen, the canvas comes first, and nothing scrolls sideways.
+ */
+test.describe("on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test("puts the rail along the bottom, keeps the inspector reachable and never scrolls sideways", async ({ page }) => {
+    await signedIn(page, "launch-phone");
+    await startLaunch(page, "Phone kit");
+
+    const rail = page.getByTestId("launch-rail");
+    await expect(rail).toBeVisible();
+    expect(await rail.evaluate((node) => getComputedStyle(node).position)).toBe("fixed");
+
+    // The inspector is stacked below rather than taken away: an artboard size is not optional.
+    await expect(page.getByTestId("launch-inspector")).toBeVisible();
+    await expect(page.getByTestId("launch-dock")).toBeVisible();
+
+    const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(sideways).toBeLessThanOrEqual(1);
+  });
+});
