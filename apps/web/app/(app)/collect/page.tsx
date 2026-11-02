@@ -16,7 +16,7 @@ import { requireMember } from "@/lib/server/page-guards";
 import { listCommittee } from "@/lib/share/committee/service";
 
 /**
- * Collect: the one place a kit manager asks other people for something (plan v5 Z7, decision 0086).
+ * Collect: the one place a kit manager asks other people for something (plan v5 Z7, decision 0087).
  * The committee is asked to comment, vote and approve (spec F-T3); the squad is asked for a shirt
  * name, a number and a size (spec F-T4).
  *

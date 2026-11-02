@@ -147,7 +147,7 @@ export default defineConfig({
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         // The committee link and the roster sign-up are public pages a club's own people use without an
-        // account, so they are held to the same mark (plan v5 Z7, decision 0086).
+        // account, so they are held to the same mark (plan v5 Z7, decision 0087).
         "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(

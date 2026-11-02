@@ -1,4 +1,4 @@
--- Committee links and roster sign-up (spec F-T3 and F-T4, plan v5 Z7, decision 0086).
+-- Committee links and roster sign-up (spec F-T3 and F-T4, plan v5 Z7, decision 0087).
 --
 -- Two kinds of public link, both built on the share-link idiom of decision 0026, which this file
 -- reuses rather than repeats: the token is 256 random bits, never stored, and looked up through

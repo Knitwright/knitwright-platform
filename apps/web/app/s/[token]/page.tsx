@@ -20,7 +20,7 @@ import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 
 /**
  * A design shared with people who have no account (decision 0026), and a committee asked to
- * comment, vote and approve (spec F-T3, plan v5 Z7, decision 0086). Both kinds of link live at this
+ * comment, vote and approve (spec F-T3, plan v5 Z7, decision 0087). Both kinds of link live at this
  * one address because both are the same thing to a visitor: a token, and nothing else, deciding
  * what they may see. The page is never indexed, never stored by a cache and never sends its address
  * on (next.config.ts sets the headers). An unknown, expired or revoked link is the page that does

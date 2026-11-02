@@ -70,7 +70,7 @@ function Option({ option, token, siteKey }: Readonly<{ option: CommitteeOption; 
 }
 
 /**
- * The whole committee page (spec F-T3, plan v5 Z7, decision 0086). Read only: there is no control
+ * The whole committee page (spec F-T3, plan v5 Z7, decision 0087). Read only: there is no control
  * here that changes the design, and the only three things a visitor can leave are a pinned comment,
  * a vote and an approval given under their name.
  */

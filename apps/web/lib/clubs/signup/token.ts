@@ -1,7 +1,7 @@
 import { newVisitorKey } from "@/lib/share/token";
 
 /**
- * The sign-up page's own visitor cookie (plan v5 Z7, decision 0086).
+ * The sign-up page's own visitor cookie (plan v5 Z7, decision 0087).
  *
  * The share cookie is scoped to `/s`, so it never reaches `/join`. This is the same cookie in every
  * other way — httpOnly, lax, one random key per browser, hashed with the link before it is stored —
