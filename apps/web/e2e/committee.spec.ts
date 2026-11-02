@@ -133,15 +133,16 @@ test.describe("sharing a design with a committee", () => {
     // The club sees the comment and the approval, with who, when and against which version.
     await page.reload();
     const link = page.getByTestId("committee-link").first();
-    await expect(link.getByTestId("committee-pin")).toContainText("Navy sleeves please.");
-    // Shown as typed, never as markup.
+    // Shown exactly as it was typed, and as text rather than markup.
+    await expect(link.getByTestId("committee-pin")).toContainText("<b>Navy</b> sleeves please.");
     await expect(link.getByText("<b>Navy</b> sleeves please.")).toBeVisible();
     await expect(link.getByTestId("committee-approvals")).toContainText("Dana the treasurer approved version 1");
     await expect(link.getByTestId("committee-approvals")).toContainText("dana@example.test");
 
     // The club locks the version the committee approved, which moves it to status approved.
+    // The action revalidates the page itself, so the lock is waited for rather than reloaded into
+    // view: a reload straight after the click would abandon the action that is still in flight.
     await page.getByRole("button", { name: "Lock version 1" }).first().click();
-    await page.reload();
     await expect(page.getByTestId("committee-lock")).toContainText("Version 1 is locked");
     expect(await statusOf(projectId)).toBe("approved");
 
@@ -174,9 +175,11 @@ test.describe("sharing a design with a committee", () => {
 
     await page.reload();
     const made = page.getByRole("listitem").filter({ hasText: designName }).first();
+    // Waited for, not reloaded into view: the action revalidates the page, and a reload straight
+    // after the click would abandon the action that is still in flight.
     await made.getByRole("button", { name: "Withdraw" }).click();
-    await page.reload();
     await expect(page.getByTestId("committee-link").first()).toHaveAttribute("data-state", "closed");
+    await expect(made.getByRole("button", { name: "Withdraw" })).toHaveCount(0);
 
     const gone = await guest.goto(address);
     expect(gone?.status()).toBe(404);
