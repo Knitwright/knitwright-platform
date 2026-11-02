@@ -146,13 +146,14 @@ carries `R-GAP-000` in code and is listed on the pull request.
    part of the spec's kit bundle the platform cannot quote.
 7. **Does a base article get a placement table?** Without one the crest and sponsor slots can be recorded but not
    placed, and step 4 of the F-T1 flow stays in the Studio editor.
-8. **Where does Teamwear's entry in the studio navigation go, and who widens the row?** `components/shell/StudioNav.tsx`
-   holds seven fixed pills in a `h-16` header with no overflow rule. An eighth makes the row wider than the header can
-   hold at the 1280-pixel test width: the right-hand group is squeezed and the "Sign out" button ends up over a bluer
-   part of the backdrop, where its quiet text reads 4.04:1 against the glass instead of the 4.5:1 it needs. That failed
-   the accessibility check on nine browser tests across `guided-flow`, `studio-catalogue` and `templates` — every
-   signed-in page, and none of them teamwear's. The entry is therefore **not** in this pull request: a feature
-   workstream should not ship an accessibility regression on every other screen, and neither the header's overflow nor
-   the shared quiet-button colour is Z5's to redesign. `/teamwear` is reachable by address meanwhile. The row needs
-   either an overflow rule (scroll, wrap, or a "more" menu) or a quiet button with contrast that does not depend on
-   what it happens to sit over. Hand-off to W2 (interface wiring).
+8. **Where does Teamwear's entry in the studio top bar go, and who makes room for it?** The bar is capped at
+   `PAGE_WIDTH.content` (`max-w-6xl`, 1110px) at every desktop width, and the section pills in
+   `components/shell/StudioNav.tsx` already take about 625px of it, so it is structurally over capacity. Its content
+   overflows the glass pill, so the last control in the row — the quiet "Sign out" button — is painted over the aurora
+   rather than over `glass-strong`, and muted text on the aurora fails AA. Adding a teamwear section costs about 90px
+   and so re-breaks this for every workstream, including after the shared fix lands.
+
+   The entry is therefore **not** in this pull request. The shared chrome fault is owned by pull request #101, which is
+   fixing it for Z3 (#117) and Z8 (#116) as well; this file is not Z5's to change, and a feature workstream should not
+   take width from another one. Teamwear is reached by its own routes and links meanwhile. The owner is deciding how
+   the bar handles growth — an overflow menu, or collapsing the account cluster — and Z5's entry waits for that.
