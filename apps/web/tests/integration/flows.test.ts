@@ -344,8 +344,9 @@ describe("the credits of one board", () => {
   it("are refused a key that is not a key, an output nobody priced, and a viewer", async () => {
     expect((await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "marketing_media", p_version_hash: "", p_output_key: "board" })).error).not.toBeNull();
     expect((await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "invented", p_version_hash: "hash", p_output_key: "board" })).error).not.toBeNull();
-    // `credit_spend` asks only for membership; spending a brand's credits on a flow asks for the
-    // ability to change its kit, so a viewer cannot run up a bill.
+    // Spending a brand's credits asks for the ability to change its kit, so a viewer cannot run up
+    // a bill. `credit_spend` asked only for membership until the v5 security review's H4; migration
+    // 20261215020000 brought it into line, and credits.test.ts holds it there.
     expect((await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: viewer.userId, p_kind: "marketing_media", p_version_hash: "hash", p_output_key: "board" })).error?.code).toBe("42501");
   });
 
