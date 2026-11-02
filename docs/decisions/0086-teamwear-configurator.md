@@ -146,3 +146,13 @@ carries `R-GAP-000` in code and is listed on the pull request.
    part of the spec's kit bundle the platform cannot quote.
 7. **Does a base article get a placement table?** Without one the crest and sponsor slots can be recorded but not
    placed, and step 4 of the F-T1 flow stays in the Studio editor.
+8. **Where does Teamwear's entry in the studio navigation go, and who widens the row?** `components/shell/StudioNav.tsx`
+   holds seven fixed pills in a `h-16` header with no overflow rule. An eighth makes the row wider than the header can
+   hold at the 1280-pixel test width: the right-hand group is squeezed and the "Sign out" button ends up over a bluer
+   part of the backdrop, where its quiet text reads 4.04:1 against the glass instead of the 4.5:1 it needs. That failed
+   the accessibility check on nine browser tests across `guided-flow`, `studio-catalogue` and `templates` — every
+   signed-in page, and none of them teamwear's. The entry is therefore **not** in this pull request: a feature
+   workstream should not ship an accessibility regression on every other screen, and neither the header's overflow nor
+   the shared quiet-button colour is Z5's to redesign. `/teamwear` is reachable by address meanwhile. The row needs
+   either an overflow rule (scroll, wrap, or a "more" menu) or a quiet button with contrast that does not depend on
+   what it happens to sit over. Hand-off to W2 (interface wiring).

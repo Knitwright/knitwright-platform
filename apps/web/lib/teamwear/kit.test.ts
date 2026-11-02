@@ -96,6 +96,15 @@ describe("choosing an option", () => {
     expect(next.parts.shirt?.settled).toEqual(["option:collar"]);
   });
 
+  it("settles the row for the code already chosen, so a club may agree with the article's default", () => {
+    const kit = startingKit("football", articleBook());
+    // C01 is what the article defaults to, so this is the club saying "yes, that one" rather than
+    // changing anything. The group is answered either way, which is what the pill's tick reads.
+    const next = withPart(kit, "shirt", (choice) => chooseOption(choice, jersey(), "collar", "C01", "option:collar"));
+    expect(next.parts.shirt?.form.options.collar).toBe("C01");
+    expect(next.parts.shirt?.settled).toEqual(["option:collar"]);
+  });
+
   it("refuses a code the article does not offer and falls back to its default", () => {
     const kit = startingKit("football", articleBook());
     const next = withPart(kit, "shirt", (choice) => chooseOption(choice, jersey(), "collar", "C99", "option:collar"));

@@ -13,7 +13,13 @@ const STUDIO_SECTIONS: readonly NavItem[] = [
     label: "Designs",
     matches: (path) => (path === "/studio" || path.startsWith("/studio/")) && !path.startsWith("/studio/charts"),
   },
-  { href: "/teamwear", label: "Teamwear", matches: (path) => path.startsWith("/teamwear") },
+  // Teamwear has no entry here yet, and the reason is measured rather than guessed: an eighth pill
+  // makes this row wider than the header can hold at 1280px, the right-hand group is squeezed, and
+  // the "Sign out" button lands over a bluer part of the backdrop. Its quiet text then reads 4.04:1
+  // against the glass instead of 4.5:1, which failed the accessibility check on nine tests across
+  // guided-flow, studio-catalogue and templates — every signed-in page, none of them teamwear's.
+  // The row needs an overflow rule (or the quiet button more contrast) before a section is added.
+  // Owner question and hand-off to W2 on pull request #120; `/teamwear` is reachable by address.
   { href: "/templates", label: "Templates", matches: (path) => path.startsWith("/templates") },
   { href: "/catalogue", label: "Catalogue", matches: (path) => path.startsWith("/catalogue") },
   { href: "/studio/charts", label: "Size charts", matches: (path) => path.startsWith("/studio/charts") },

@@ -64,15 +64,18 @@ test.describe("the teamwear configurator", () => {
     await page.getByTestId("teamwear-row-option:collar").click();
     const collar = page.getByTestId("teamwear-row-open-option:collar");
     await expect(collar).toContainText("C01");
-    await collar.getByRole("radio", { name: /C02/ }).check();
+    await collar.getByRole("radio", { name: /C02/ }).click();
     await expect(page.getByTestId("teamwear-row-option:collar")).toHaveAttribute("data-value", /^C02/);
     await expect(page.getByTestId("teamwear-row-option:collar")).toHaveAttribute("data-rule-id", "R-CON-005");
 
-    // Every option group answered, so the shirt's pill ticks.
+    // Every option group answered, so the shirt's pill ticks. K01 and P00 are the codes the article
+    // already defaults to, and the club here agrees with both: pressing the code already selected is
+    // how they answer the group, which is why these are clicks and not `check()` (which does nothing
+    // at all to a radio that is already selected).
     await page.getByTestId("teamwear-row-option:sleeve_finish").click();
-    await page.getByTestId("teamwear-row-open-option:sleeve_finish").getByRole("radio", { name: /K01/ }).check();
+    await page.getByTestId("teamwear-row-open-option:sleeve_finish").getByRole("radio", { name: /K01/ }).click();
     await page.getByTestId("teamwear-row-option:pattern_fill").click();
-    await page.getByTestId("teamwear-row-open-option:pattern_fill").getByRole("radio", { name: /P00/ }).check();
+    await page.getByTestId("teamwear-row-open-option:pattern_fill").getByRole("radio", { name: /P00/ }).click();
     await expect(page.getByTestId("teamwear-pill-shirt")).toHaveAttribute("data-done", "true");
 
     // A parameter cannot leave the range the factory approved: the slider's own ends are the article's.

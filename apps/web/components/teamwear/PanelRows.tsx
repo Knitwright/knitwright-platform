@@ -91,6 +91,15 @@ function OptionsControl({ row, handlers }: Readonly<{ row: Row<"options">; handl
             value={tile.code}
             checked={tile.chosen}
             onChange={() => handlers.setOption(row.group.group, tile.code)}
+            // A club that is happy with the code the article defaults to still has to answer the
+            // group before the part's pill can tick. A radio that is already selected fires no
+            // change, so without this the one group whose default they agree with could never be
+            // answered and the pill never ticked. `tile.chosen` is React's value, not the input's,
+            // so it still reads false here for a radio the click is about to select: the two
+            // handlers never both fire for one press.
+            onClick={() => {
+              if (tile.chosen) handlers.setOption(row.group.group, tile.code);
+            }}
             className="mt-1 size-5"
           />
           <span>
