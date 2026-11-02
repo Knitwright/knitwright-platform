@@ -38,7 +38,7 @@ import {
   type SceneGroup,
 } from "@/lib/mockups";
 import { FIELD_CONTROL } from "@/components/ui/field-styles";
-import { alertProps, busyProps, collectionProps, filterProps, listProps, panelProps, showAllProps } from "./a11y";
+import { alertProps, busyProps, collectionProps, filterProps, filterSuffix, listProps, panelProps, showAllProps } from "./a11y";
 import { SceneCard } from "./SceneCard";
 
 /**
@@ -228,7 +228,11 @@ function FilterRow({ group, choices, chosen, onChoose }: FilterRowProps) {
             onClick={() => onChoose(chosen === choice.value ? null : choice.value)}
             className={`chip-btn inline-flex min-h-9 items-center rounded-full border px-3 text-[12px] ${chosen === choice.value ? "border-cobalt text-ink" : "border-white/15 text-ink-2"}`}
           >
-            {choice.label} <span className="ml-1 font-mono text-[11px]">{choice.count}</span>
+            {choice.label}
+            <span aria-hidden="true" className="ml-1 font-mono text-[11px]">
+              {choice.count}
+            </span>
+            <span className="sr-only">{filterSuffix(group, choice.count)}</span>
           </button>
         </li>
       ))}

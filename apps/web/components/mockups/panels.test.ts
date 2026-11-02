@@ -24,7 +24,7 @@ import MockupBoardPanel from "./MockupBoardPanel";
 import MockupsPanel from "./MockupsPanel";
 import PhotosPanel from "./PhotosPanel";
 import { SceneThumb, THUMB_NOTE } from "./SceneThumb";
-import { collectionProps, filterProps, listProps, panelProps, premiumProps, showAllProps, useSceneProps } from "./a11y";
+import { collectionProps, filterProps, filterSuffix, listProps, panelProps, premiumProps, sceneSuffix, showAllProps, useSceneProps } from "./a11y";
 
 /**
  * The three panels of the mockup studio, rendered against `panelDouble()` -- **no shell and no
@@ -114,6 +114,8 @@ describe("the mockup library panel", () => {
     const html = render(createElement(MockupsPanel, given()));
     for (const group of ["sport", "mood", "people", "aspect"]) expect(html, group).toContain(`mockup-filter-${group}`);
     expect(html).toContain("Filter by sport: Football");
+    // The chip's own words are its name; the count and the group are for a screen reader only.
+    expect(html).toContain("scenes, sport filter");
   });
 
   it("says it is busy while the shell is saving, rather than looking frozen", () => {
@@ -209,15 +211,29 @@ describe("the attributes a screen reader reads", () => {
     expect(listProps("Product shots scenes")).toEqual({ role: "list", "aria-label": "Product shots scenes" });
   });
 
-  it("says what pressing a control does, not what it is called", () => {
-    expect(useSceneProps("Flat lay on white", false)).toEqual({ type: "button", "aria-label": "Use the Flat lay on white scene", disabled: false });
+  /**
+   * A button whose words say one thing and whose `aria-label` says another is axe's
+   * `label-content-name-mismatch`, and voice control asks for a name nobody can see. So the two
+   * controls whose words are the same on every card -- Use this scene, and a filter chip -- take
+   * their name from their own words and add the rest for a screen reader only.
+   */
+  it("never replaces a control's own words with an aria-label", () => {
+    expect(useSceneProps("Flat lay on white", false)).toEqual({ type: "button", title: "Use the Flat lay on white scene", disabled: false });
+    expect(sceneSuffix("Flat lay on white")).toBe(": Flat lay on white");
+    expect(filterProps("sport", "Football", false)).toEqual({ type: "button", title: "Filter by sport: Football", "aria-pressed": false });
+    expect(filterSuffix("sport", 3)).toBe(", 3 scenes, sport filter");
+    expect(filterSuffix("sport", 1)).toBe(", 1 scene, sport filter");
+  });
+
+  it("keeps the aria-label where it begins with the words on the button", () => {
     expect(showAllProps("teamwear", false, 1)).toEqual({ type: "button", "aria-label": "Show all 1 more teamwear scenes", "aria-expanded": false });
     expect(showAllProps("teamwear", true, 0)["aria-label"]).toBe("Show fewer teamwear scenes");
   });
 
   it("says which filter is chosen, so the ring is not the only sign of it", () => {
-    expect(filterProps("sport", "Football", false)).toEqual({ type: "button", "aria-label": "Filter by sport: Football", "aria-pressed": false });
-    expect(filterProps("sport", "Football", true)["aria-label"]).toBe("Clear the sport filter Football");
+    expect(filterProps("sport", "Football", false)["aria-pressed"]).toBe(false);
+    expect(filterProps("sport", "Football", true)["aria-pressed"]).toBe(true);
+    expect(filterProps("sport", "Football", true).title).toBe("Clear the sport filter Football");
   });
 
   it("gives the crown a title, because a crown alone says nothing", () => {

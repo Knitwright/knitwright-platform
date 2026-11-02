@@ -138,7 +138,10 @@ test.describe("a mockup board", () => {
     await page.getByTestId("mockup-use-product-front").click();
     await expect(page.getByTestId("mockup-board-scene")).toHaveText("Front render");
 
-    await page.getByTestId("mockup-board-roster-on").check();
+    // The checkbox is a saved setting, not local state: the shell writes it and redraws, so the box
+    // is clicked and the saved state waited for, rather than asserted in the same tick.
+    await page.getByTestId("mockup-board-roster-on").click();
+    await expect(page.getByTestId("mockup-board-roster-on")).toBeChecked();
     await expect(page.getByTestId("mockup-board-roster-shown")).toContainText("PLAYER 10");
     await expect(page.getByTestId("mockup-board-panel")).toContainText("cannot be dragged");
   });
@@ -179,7 +182,8 @@ test.describe("accessibility", () => {
     await openMockups(page);
     await page.getByTestId("mockup-use-product-three-quarter").click();
     await expect(page.getByTestId("mockup-board-scene")).toHaveText("Three-quarter render");
-    await page.getByTestId("mockup-board-roster-on").check();
+    await page.getByTestId("mockup-board-roster-on").click();
+    await expect(page.getByTestId("mockup-board-roster-name")).toBeVisible();
 
     const results = await new AxeBuilder({ page }).include('[data-testid="launch-inspector"]').analyze();
     const serious = results.violations.filter((one) => one.impact === "serious" || one.impact === "critical");

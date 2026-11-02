@@ -10,7 +10,7 @@ import {
   sceneGaps,
   type MockupScene,
 } from "@/lib/mockups";
-import { premiumProps, useSceneProps } from "./a11y";
+import { premiumProps, sceneSuffix, useSceneProps } from "./a11y";
 import { SceneThumb, THUMB_NOTE } from "./SceneThumb";
 
 /**
@@ -80,6 +80,7 @@ export function SceneCard({ scene, busy, onUse }: Props) {
         className="chip-btn inline-flex min-h-10 items-center justify-center rounded-full border border-white/20 px-4 text-[13px] font-medium text-ink"
       >
         {USE_SCENE_LABEL}
+        <span className="sr-only">{sceneSuffix(scene.title)}</span>
       </button>
     </article>
   );

@@ -21,19 +21,39 @@ export const collectionProps = (headingId: string) => ({ role: "group" as const,
 /** A list of scenes or photographs: one list, so a screen reader counts them. */
 export const listProps = (label: string) => ({ role: "list" as const, "aria-label": label });
 
-/** The button that puts a scene on the canvas. */
+/**
+ * The button that puts a scene on the canvas.
+ *
+ * **No `aria-label`.** Its visible words are "Use this scene", and an `aria-label` naming the scene
+ * instead would replace them with words the button does not show -- which axe reports as
+ * `label-content-name-mismatch`, and which leaves somebody using voice control asking for a button
+ * whose name they cannot see. The scene's own title is added inside the button, for a screen reader
+ * only, so the accessible name begins with the words on the screen and then says which scene.
+ */
 export const useSceneProps = (title: string, disabled: boolean) => ({
   type: "button" as const,
-  "aria-label": `Use the ${title} scene`,
+  title: `Use the ${title} scene`,
   disabled,
 });
 
-/** One filter chip, which says whether it is the one chosen. */
+/** What a screen reader hears after the visible words of a Use this scene button. */
+export const sceneSuffix = (title: string): string => `: ${title}`;
+
+/**
+ * One filter chip, which says whether it is the one chosen.
+ *
+ * `aria-pressed` carries the state, so the ring is not the only sign of it, and the name comes from
+ * the chip's own words for the same reason `useSceneProps` has no `aria-label`. The hint about what
+ * pressing it again does is a `title`, which replaces nothing.
+ */
 export const filterProps = (group: string, label: string, chosen: boolean) => ({
   type: "button" as const,
-  "aria-label": chosen ? `Clear the ${group} filter ${label}` : `Filter by ${group}: ${label}`,
+  title: chosen ? `Clear the ${group} filter ${label}` : `Filter by ${group}: ${label}`,
   "aria-pressed": chosen,
 });
+
+/** What a screen reader hears after a filter chip's own words: how many, and of what. */
+export const filterSuffix = (group: string, count: number): string => `, ${count} ${count === 1 ? "scene" : "scenes"}, ${group} filter`;
 
 /** The Show all / Show fewer button of one shelf. */
 export const showAllProps = (group: string, open: boolean, hidden: number) => ({
