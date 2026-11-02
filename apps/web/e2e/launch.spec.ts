@@ -87,17 +87,23 @@ test.describe("the launch shell", () => {
     await page.keyboard.press("ArrowDown");
 
     await expect(panels.getByRole("tab", { name: "Text" })).toBeFocused();
-    await expect(page.getByTestId("launch-panel-text")).toContainText("workstream L4");
+    // L4's Text panel is mounted now (decision 0094), so this one shows the panel itself. The
+    // placeholder is gone rather than hidden behind it.
+    await expect(page.getByTestId("marketing-panel-text")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-text")).toHaveCount(0);
     await expect(page).toHaveURL(/panel=text/);
 
     await page.keyboard.press("End");
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
     // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder. The other ten still name the workstream that will fill them.
+    // than a placeholder. The five panels that still name a workstream are L3's, L7's and L8's.
     await panels.getByRole("tab", { name: "Mockups" }).click();
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
+
+    await panels.getByRole("tab", { name: "AI image" }).click();
+    await expect(page.getByTestId("launch-panel-ai-image")).toContainText("workstream L3");
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {
@@ -128,7 +134,9 @@ test.describe("the canvas and the garment lock", () => {
     await expect(page.getByTestId("launch-empty-action")).toHaveText("Add a Design board");
 
     await page.getByTestId("launch-empty-action").click();
-    await expect(page.getByTestId("launch-boards")).toBeVisible();
+    // The boards are L6's flow canvas now (decision 0096): the same contract, with the connectors,
+    // the dragging and the keyboard moves L1 left to it.
+    await expect(page.getByTestId("flow-canvas")).toBeVisible();
     await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
   });
 
@@ -138,7 +146,8 @@ test.describe("the canvas and the garment lock", () => {
     await page.getByTestId("launch-empty-action").click();
     await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
 
-    await page.getByRole("button", { name: "Add…" }).click();
+    // The right-edge dot of the spec, as a labelled button: a dot alone is not operable.
+    await page.getByRole("button", { name: /^Add a board after/ }).click();
     const menu = page.getByRole("list", { name: /^Add a board after/ });
 
     await expect(menu.getByRole("button")).toHaveText([/^Mockup/, /^AI image/, /^Marketing/, /^Info card/]);
