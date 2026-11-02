@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { finding } from "./finding";
-import { DRAFT, VERSION_STATUSES, canMove, panelMoves, statusSentence, transition, type VersionStatus } from "./status";
+import { panelMoves } from "./moves";
+import { DRAFT, VERSION_STATUSES, canMove, statusSentence, transition, type VersionStatus } from "./status";
 
 const at = new Date("2026-10-24T10:00:00Z");
 const blocker = finding({ code: "a-a", severity: "blocker", message: "m", action: "x", whoActs: "owner" });

@@ -35,39 +35,11 @@ const MOVES: Readonly<Record<VersionStatus, readonly VersionStatus[]>> = {
 
 export const canMove = (from: VersionStatus, to: VersionStatus): boolean => MOVES[from].includes(to);
 
-/** The moves the factory file's own panel may ask for. Ordering is the order's screen, never a button here. */
-export type PanelMove = Exclude<VersionStatus, "ordered">;
-
-export interface StatusMove {
-  readonly to: PanelMove;
-  readonly label: string;
-  /** True for a move that is only offered once nothing blocks an order. */
-  readonly needsNoBlockers: boolean;
-}
-
-/**
- * What the "Factory file" panel offers from each status, in the order it draws them.
- *
- * It is a subset of `MOVES`: a person records that there are no blockers today, accepts that
- * version for ordering, or puts it back to draft. Moving to `ordered` is the order's own screen, so
- * it is never a button in this panel, and nothing moves out of `approved` or `ordered` here —
- * `MOVES` allows neither back to draft.
- *
- * The panel used to hard-code two buttons and know three of the four statuses, so "approved" was a
- * state the route accepted and no screen could reach (code review of plan v5, item D-6). The list
- * lives beside `MOVES` instead, and a test holds every entry to it.
+/*
+ * The moves the factory file's PANEL offers are a subset of these, and they live in `moves.ts`
+ * rather than here, because the panel is a client component and this file holds a zod schema.
+ * `status.test.ts` holds every one of them to `canMove`.
  */
-const PANEL_MOVES: Readonly<Record<VersionStatus, readonly StatusMove[]>> = {
-  draft: [{ to: "validated", label: "Record no blockers today", needsNoBlockers: true }],
-  validated: [
-    { to: "approved", label: "Accept for ordering", needsNoBlockers: true },
-    { to: "draft", label: "Back to draft", needsNoBlockers: false },
-  ],
-  approved: [],
-  ordered: [],
-};
-
-export const panelMoves = (from: VersionStatus): readonly StatusMove[] => PANEL_MOVES[from];
 
 type Transition = { readonly ok: true; readonly record: StatusRecord } | { readonly ok: false; readonly reason: string };
 

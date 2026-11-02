@@ -5,7 +5,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
 import type { Finding } from "@/lib/production/contract";
-import { panelMoves, type PanelMove, type VersionStatus } from "@/lib/validation/status";
+// `moves.ts`, never `status.ts`: this is a client component and `status.ts` holds a zod schema.
+import { panelMoves, type PanelMove } from "@/lib/validation/moves";
+import type { VersionStatus } from "@/lib/validation/status";
 import { call, projectUrl } from "../orders/call";
 import { useRemote } from "../orders/useRemote";
 import { FindingList } from "./FindingList";
