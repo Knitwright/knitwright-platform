@@ -1,6 +1,8 @@
 # 0041: The template library (V3)
 
 Status: Proposed. Built in plans/platform-v4.md, workstream V3.
+Index title: The template library
+Index: Proposed; owner questions listed
 Date: 2026-10-25
 
 ## Context

@@ -1,6 +1,7 @@
 # 0010: The tech pack document
 
 Status: Accepted. The construction rules wait for a factory.
+Index: Accepted; construction rules wait for a factory
 Date: 2026-09-29
 Plan step: 8
 

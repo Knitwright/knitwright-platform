@@ -1,6 +1,7 @@
 # 0070: The production package (KPP) and the files-service seam
 
 Status: Proposed. Nothing calls either yet: the assembler has no route and the files service does not exist.
+Index: Proposed; owner questions listed
 Date: 2026-10-29
 Plan step: `plans/platform-v5.md`, wave 1, workstream X5. Spec: `docs/spec/04-production-package.md`, F-S6 and F-G2 of
 `docs/spec/02-features.md`. Builds on 0011 (exports), 0031 (print files), 0037 (pattern generators), 0044 and 0051 (credits).

@@ -1,6 +1,7 @@
 # 0053: Per-panel layers in a Fabric.js editor: decision, data model and spike
 
 Status: Proposed
+Index: Proposed; waits for the owner (question 20)
 Date: 2026-10-24
 Plan step: platform v4, wave 2, W2-G (`plans/platform-v4.md`)
 

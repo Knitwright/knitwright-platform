@@ -1,6 +1,7 @@
 # 0083: Ask and best practice over the rulebook
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-30
 Plan step: `plans/platform-v5.md`, workstream Z2. Spec: `docs/spec/02-features.md` F-S5 (the v2 part) and its acceptance
 tests, `docs/spec/01-product-direction.md` decision 11. Builds on decision 0067 and its revision of 2026-10-30

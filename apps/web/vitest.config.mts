@@ -134,9 +134,62 @@ export default defineConfig({
         // The map from the registry's option keys to the catalogue's codes: a factory file names options by it
         // (plan v5 section 6 item 3, decision 0099).
         "lib/option-codes/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
-        // The production outputs (plans/production-outputs.md). Each directory is added by its workstream.
+        /*
+         * The production outputs (plans/production-outputs.md), each held to the higher mark. One
+         * name per line and in alphabetical order, deliberately: this was a single line of about a
+         * thousand characters, and because every workstream added its directory to that one line,
+         * every pair of branches conflicted on it. Five of those conflicts were resolved by hand in
+         * one day on pull requests whose own work was already finished and green, each costing a
+         * further full run. One name per line means two workstreams touch two lines and git merges
+         * them by itself. Keep it sorted, and add only your own name.
+         */
         ...Object.fromEntries(
-          ["production", "pattern-library", "fabrics", "cutting", "print", "orders", "releases", "proofs", "artwork-stack", "artwork-intake", "design-import", "guardrails", "ops", "templates", "validation", "design-diff", "variants", "gltf", "credits-gate", "panel-layers", "media-check", "settings", "media", "brand-runs", "comments", "pattern-service", "designers", "parametric", "catalogue", "rulebook", "design-object", "moderation", "factory", "job-packet", "make", "home", "inspiration", "collections", "compliance", "launch", "benchmarks", "brand-studio", "colour", "teamwear"].map((dir) => [
+          [
+            "artwork-intake",
+            "artwork-stack",
+            "benchmarks",
+            "brand-runs",
+            "brand-studio",
+            "catalogue",
+            "collections",
+            "colour",
+            "comments",
+            "compliance",
+            "credits-gate",
+            "cutting",
+            "design-diff",
+            "design-import",
+            "design-object",
+            "designers",
+            "fabrics",
+            "factory",
+            "gltf",
+            "guardrails",
+            "home",
+            "inspiration",
+            "job-packet",
+            "launch",
+            "make",
+            "media",
+            "media-check",
+            "moderation",
+            "ops",
+            "orders",
+            "panel-layers",
+            "parametric",
+            "pattern-library",
+            "pattern-service",
+            "print",
+            "production",
+            "proofs",
+            "releases",
+            "rulebook",
+            "settings",
+            "teamwear",
+            "templates",
+            "validation",
+            "variants",
+          ].map((dir) => [
             `lib/${dir}/**`,
             { lines: 90, functions: 90, branches: 90, statements: 90 },
           ]),

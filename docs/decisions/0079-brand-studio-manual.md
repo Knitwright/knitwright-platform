@@ -1,6 +1,7 @@
 # 0079: Brand Studio, typed by hand
 
 Status: Proposed
+Index: Proposed; club_kits read through not migrated, only the bundled Geist faces are licensed, owner questions listed
 Date: 2026-10-30
 Plan step: `plans/platform-v5.md`, wave 2, workstream Y6. Spec: `docs/spec/02-features.md` F-S9 (without the URL
 import, which is wave 4, L7) and F-T2 (the crest palette, which wave 3's Z6 shares). Builds on decisions 0024 (brand

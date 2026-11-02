@@ -1,6 +1,7 @@
 # 0018: Photoreal images as background jobs
 
 Status: Accepted. The provider is provisional until the owner judges quality (A3).
+Index: Accepted; provider provisional until the owner judges quality
 Date: 2026-09-29
 Plan step: 14
 

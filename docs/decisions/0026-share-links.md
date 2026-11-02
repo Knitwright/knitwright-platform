@@ -1,6 +1,7 @@
 # 0026: Share links with comments and votes
 
 Status: Accepted. Questions for the owner in `apps/web/lib/share/OWNER-QUESTIONS.md`.
+Index: Accepted; questions open for the owner
 Date: 2026-10-11
 Plan step: wave 3 (Platform and Store Guide, module 4)
 

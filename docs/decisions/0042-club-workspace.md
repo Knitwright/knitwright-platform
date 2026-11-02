@@ -1,6 +1,7 @@
 # 0042: Club workspace (V4)
 
 Status: Accepted
+Index title: Club workspace
 Date: 2026-10-24
 Plan step: platform-v4 V4
 

@@ -1,6 +1,7 @@
 # 0038: Design from the user's image (W7d, phases A and B)
 
 Status: Proposed
+Index title: Design from the user's image
 Date: 2026-10-14
 Plan step: production outputs, W7d (`plans/production-outputs.md`)
 

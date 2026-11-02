@@ -1,6 +1,7 @@
 # 0090: The remaining base article data (onboarding waves 2 and 3)
 
 Status: Proposed; owner questions listed
+Index: Proposed; every point-of-measure table is deliberately empty, owner questions listed
 Date: 2026-10-30
 Plan step: plans/platform-v5.md, workstream Z9. No migration.
 

@@ -1,6 +1,8 @@
 # 0063: Design comments (W4-D)
 
 Status: Proposed. Owner questions listed.
+Index title: Design comments
+Index: Proposed; owner questions listed
 Date: 2026-10-28
 Plan step: platform-v4 W4-D
 

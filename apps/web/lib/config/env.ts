@@ -99,6 +99,16 @@ const envSchema = z.object({
   SHARE_EMAIL_FROM: z.string().regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/).optional(),
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
+  // The scheduler's own secret, sent as a bearer token to the weekly cut (app/api/cron/ops-cut-batches,
+  // decision 0100). Optional and server only: without it the route answers 503 and cuts nothing, because an
+  // open cut is worse than a cut that never happens. Read from the process environment, like WHATSAPP_TOKEN.
+  CRON_SECRET: z.string().min(16).optional(),
+  // Who sends a customer a status email (F-O4, decision 0100). All three optional and server only: without all
+  // three, lib/ops/notify/select.ts sends nothing, and ops is shown the words to send by hand. The record of
+  // what was sent, or of why nothing was, is kept either way. Never set where tests run: no test emails anyone.
+  OPS_EMAIL_PROVIDER: z.enum(["resend"]).optional(),
+  OPS_EMAIL_KEY: z.string().regex(/^\S{1,200}$/).optional(),
+  OPS_EMAIL_FROM: z.string().regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/).optional(),
   // Signs the assistant's proposals (lib/projects/assistant.ts). Optional: without it the key is derived from
   // SUPABASE_SECRET_KEY as before. Set a dedicated one so rotating the service key does not invalidate proposals.
   ASSISTANT_SIGNING_KEY: z.string().min(32).optional(),
