@@ -137,6 +137,13 @@ test.describe("crest to kit on a phone", () => {
     const kits = await page.getByTestId("crest-to-kit-kits").boundingBox();
     expect(form?.y ?? 0).toBeLessThan(kits?.y ?? 0);
 
+    // The entrance animations finish first: text that is still fading in fails the contrast rule
+    // for a moment, which is why `e2e/mobile.spec.ts` waits the same way before it runs axe.
+    await page.waitForLoadState("networkidle");
+    await page.waitForFunction(() =>
+      document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
+    );
+
     // The same two measures `e2e/mobile.spec.ts` holds every key screen to (decision 0064).
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, `crest to kit scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
