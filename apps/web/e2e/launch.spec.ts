@@ -228,6 +228,8 @@ test.describe("the inspector, the dock and the menu", () => {
 
     await page.getByTestId("launch-menu-button").click();
     await page.getByTestId("launch-menu-save").click();
+    // The shell says which version it wrote, so the history is read after the write has landed.
+    await expect(page.getByTestId("launch-note")).toContainText("Version 1 saved");
 
     await page.goto(`${path}/history`);
     await expect(page.getByRole("heading", { level: 1, name: "Version history" })).toBeVisible();

@@ -38,6 +38,7 @@ import {
   removeBoardAction,
   saveBoardAction,
   saveLaunchProjectAction,
+  saveLaunchVersionAction,
 } from "@/lib/launch/actions";
 
 /**
@@ -97,14 +98,15 @@ export interface ShellInput {
   readonly costs: LaunchCostSource;
 }
 
-export type Problem = Readonly<{ text: string }> | null;
+/** What the shell is telling the person now: a refusal to act on, or a change that landed. */
+export type Note = Readonly<{ tone: "warn" | "ok"; text: string }> | null;
 
 export function useLaunchShell(input: ShellInput) {
   const router = useRouter();
   const path = usePathname();
   const [state, setState] = useState(input.state);
   const [stack, setStack] = useState<UndoStack<Frame>>(() => started(frameOf(input.boards, input.units, input.colours)));
-  const [problem, setProblem] = useState<Problem>(null);
+  const [note, setNote] = useState<Note>(null);
   const [prompt, setPrompt] = useState("");
   const [pending, start] = useTransition();
 
@@ -124,9 +126,9 @@ export function useLaunchShell(input: ShellInput) {
     (run: () => Promise<Reply>) => {
       start(async () => {
         const reply = await run().catch(() => null);
-        if (!reply) return setProblem({ text: "That change could not be saved. Check your connection and try again." });
-        if (!reply.success) return setProblem({ text: reply.error?.message ?? "That change was refused." });
-        setProblem(null);
+        if (!reply) return setNote({ tone: "warn", text: "That change could not be saved. Check your connection and try again." });
+        if (!reply.success) return setNote({ tone: "warn", text: reply.error?.message ?? "That change was refused." });
+        setNote(null);
         router.refresh();
       });
     },
@@ -180,11 +182,12 @@ export function useLaunchShell(input: ShellInput) {
       const board = boardById(boardId);
       if (!board) return;
       const verdict = runnable(input.graph, boardId);
-      if (!verdict.canRun) return setProblem({ text: verdict.reason });
+      if (!verdict.canRun) return setNote({ tone: "warn", text: verdict.reason });
       const estimate = estimateRun(input.graph, boardId, input.costs, downstream);
       const purse = affordable(estimate, input.credits);
-      if (!purse.affordable) return setProblem({ text: purse.reason });
-      setProblem({
+      if (!purse.affordable) return setNote({ tone: "warn", text: purse.reason });
+      setNote({
+        tone: "ok",
         text: `This ${BOARDS[board.kind].label} board is ready to run for ${estimate.credits === 0 ? "nothing" : `${estimate.credits} credits`}, and nothing has been spent. The panel that runs it is not built yet.`,
       });
     },
@@ -201,7 +204,7 @@ export function useLaunchShell(input: ShellInput) {
 
     connect: (fromBoardId: string, toBoardId: string, inputIndex: number) => {
       const verdict = canConnect(input.graph, fromBoardId, toBoardId, inputIndex);
-      if (!verdict.allowed) return setProblem({ text: verdict.reason });
+      if (!verdict.allowed) return setNote({ tone: "warn", text: verdict.reason });
       structural(() => connectLaunchBoardsAction({ launchProjectId: input.launchProjectId, fromBoardId, toBoardId, inputIndex }));
     },
 
@@ -284,7 +287,20 @@ export function useLaunchShell(input: ShellInput) {
     },
   } satisfies LaunchCommands;
 
-  return { state, stack, commands, problem, prompt, setPrompt, setProblem, busy: pending };
+  /**
+   * The main menu's Save. Not part of the contract: a panel never saves a version of the whole
+   * project. It says which version it wrote, so the person can find it in the history.
+   */
+  const saveVersion = useCallback(() => {
+    start(async () => {
+      const reply = await saveLaunchVersionAction({ launchProjectId: input.launchProjectId }).catch(() => null);
+      if (!reply) return setNote({ tone: "warn", text: "The version could not be saved. Check your connection and try again." });
+      if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
+      setNote({ tone: "ok", text: `Version ${reply.data.version} saved. It is in the version history.` });
+    });
+  }, [input.launchProjectId]);
+
+  return { state, stack, commands, note, saveVersion, prompt, setPrompt, setNote, busy: pending };
 }
 
 export type LaunchShellState = ReturnType<typeof useLaunchShell>;

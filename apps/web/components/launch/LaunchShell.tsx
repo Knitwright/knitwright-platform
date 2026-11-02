@@ -16,7 +16,6 @@ import {
   type TaskAction,
 } from "@/lib/launch";
 import { canRedo, canUndo } from "@/lib/launch";
-import { saveLaunchVersionAction } from "@/lib/launch/actions";
 import { BoardCanvas } from "./BoardCanvas";
 import { BottomDock } from "./BottomDock";
 import { IconRail } from "./IconRail";
@@ -94,7 +93,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
   const command = (id: MenuCommand) => {
     // Save keeps the canvas as a version; Duplicate copies the selected board, or adds a fresh
     // artboard when nothing is selected. Settings is handled inside the menu itself.
-    if (id === "save") return void saveLaunchVersionAction({ launchProjectId: project.id }).catch(() => null);
+    if (id === "save") return shell.saveVersion();
     if (id === "duplicate") {
       return selected
         ? shell.commands.addBoard(selected.kind, { x: selected.at.x + 40, y: selected.at.y + 40 })
@@ -128,10 +127,12 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
 
       {canEdit ? null : <Notice tone="info">You can look at this launch project. Only owners, admins and kit managers can change it.</Notice>}
 
-      {shell.problem ? (
-        <Notice tone="warn" role="alert">
-          {shell.problem.text}
-        </Notice>
+      {shell.note ? (
+        <div data-testid="launch-note">
+          <Notice tone={shell.note.tone} role={shell.note.tone === "warn" ? "alert" : "status"}>
+            {shell.note.text}
+          </Notice>
+        </div>
       ) : null}
 
       <div className={COLUMNS}>

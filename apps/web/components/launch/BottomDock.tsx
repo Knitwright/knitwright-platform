@@ -86,7 +86,10 @@ export function BottomDock(props: Props) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div role="tablist" aria-label="Tools" aria-orientation="horizontal" onKeyDown={move} className="flex gap-1 rounded-full bg-tile-2/90 p-1" data-testid="launch-tools">
+        {/* A toolbar of pressed buttons rather than a tab list: these tools change what the canvas
+            does, not which panel is shown, and there is no tab panel for any of them. The arrow
+            keys still move between them, which is what a toolbar is expected to do. */}
+        <div role="toolbar" aria-label="Tools" aria-orientation="horizontal" onKeyDown={move} className="flex gap-1 rounded-full bg-tile-2/90 p-1" data-testid="launch-tools">
           {DOCK_TOOLS.map((id) => {
             const selected = id === props.tool;
             return (
@@ -97,8 +100,7 @@ export function BottomDock(props: Props) {
                   else tabs.current.delete(id);
                 }}
                 type="button"
-                role="tab"
-                aria-selected={selected}
+                aria-pressed={selected}
                 tabIndex={selected ? 0 : -1}
                 title={TOOLS[id].hint}
                 onClick={() => props.onTool(id)}
