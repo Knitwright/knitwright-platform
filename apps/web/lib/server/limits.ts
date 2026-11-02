@@ -106,6 +106,8 @@ export const LIMITS = {
   jobPacketRecordLink: { name: "job-packet-record-link", limit: 60, windowSeconds: 10 * MINUTE },
   jobPacketPhoto: { name: "job-packet-photo", limit: 20, windowSeconds: 10 * MINUTE },
   jobPacketPhotoLink: { name: "job-packet-photo-link", limit: 40, windowSeconds: 10 * MINUTE },
+  // Brand Studio (decision 0079): details, palettes, fonts and pictures. Each is a small write checked against the member's role.
+  brandStudioWrite: { name: "brand-studio-write", limit: 60, windowSeconds: 10 * MINUTE },
   // Committee links and roster sign-up (plan v5 Z7, decision 0086). The committee and the players
   // have no account: the pages are drawn on the server and the writes are guarded by the bot check
   // and a limit per address, and the writes per link as well, so one leaked link cannot be used
