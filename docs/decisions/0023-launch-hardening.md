@@ -1,6 +1,7 @@
 # 0023: Launch hardening: deletion, monitoring, legal pages
 
 Status: Accepted, with owner actions open (A9 legal review; the Sentry DSN). Amended 2026-09-30: the owner chose Sentry in its EU region, and the storage quota (500 MB a brand) is built.
+Index: Accepted; legal review and Sentry DSN open
 Date: 2026-09-30
 Plan step: 26
 

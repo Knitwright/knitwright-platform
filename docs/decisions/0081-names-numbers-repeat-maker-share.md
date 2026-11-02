@@ -1,6 +1,7 @@
 # 0081: Names & numbers, the repeat maker, and Share
 
 Status: Proposed. Owner questions are listed at the end and in `apps/web/lib/share/OWNER-QUESTIONS.md`.
+Index: Proposed; the font list is a labelled placeholder, owner questions listed
 Date: 2026-10-30
 Plan step: plan v5 wave 2, Y8 (`plans/platform-v5.md`, "Y8. Names & numbers, repeat maker and Share (F-S4)")
 

@@ -9,7 +9,7 @@ const NOW = new Date("2026-10-28T10:00:00Z"); // a Wednesday
 const ID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 let shipments = 0;
 const ship = (orderId: string, shippedOn: string, sizes: Record<string, number>): Shipment => ({
-  id: ID(500 + ++shipments), orderId, provider: "manual", courier: "DHL", trackingNumber: "T", shippedOn, sizes, pieces: Object.values(sizes).reduce((n, v) => n + v, 0), note: "", at: `${shippedOn}T09:00:00.000Z`,
+  id: ID(500 + ++shipments), orderId, provider: "manual", courier: "DHL", trackingNumber: "T", shippedOn, sizes, pieces: Object.values(sizes).reduce((n, v) => n + v, 0), note: "", courierCode: null, trackingUrl: null, at: `${shippedOn}T09:00:00.000Z`,
 });
 const exception = (n: number, over: Partial<OpsException> = {}): OpsException => ({ id: ID(n), orderId: ID(1), kind: "remake", status: "open", owner: "Sam", dueOn: "2026-11-05", detail: {}, note: "", resolution: null, resolvedOn: null, createdAt: "2026-10-27T10:00:00.000Z", ...over });
 const empty: MetricsInput = { now: NOW, orders: [], shipments: [], inspections: [], exceptions: [], settings: DEFAULT_OPS_SETTINGS };

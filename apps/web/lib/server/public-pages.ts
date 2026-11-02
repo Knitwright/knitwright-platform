@@ -30,4 +30,8 @@ export const PUBLIC_PAGES = [
   // A factory's job packet (decision 0072). The token in the address is the only key: the page reads through the
   // job packet functions, which check it, and shows only that batch's lists.
   "app/job/[token]/page.tsx",
+  // A player's sign-up link (F-T4, decision 0086): a teenager on a phone has no account. The token in the address is
+  // the only key: the page reads through the sign-up functions, which check it, and shows only the club's name, the
+  // season's name, the sport's number range and the size guide. It shows no other player's answer and no roster.
+  "app/join/[token]/page.tsx",
 ] as const;

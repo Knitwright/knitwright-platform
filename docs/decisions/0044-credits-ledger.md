@@ -1,6 +1,7 @@
 # 0044: Credits ledger
 
 Status: Accepted (the numbers are placeholders; see Owner questions)
+Index: Accepted; numbers are placeholders
 Date: 2026-10-24
 Plan step: plans/platform-v4.md, workstream V6
 

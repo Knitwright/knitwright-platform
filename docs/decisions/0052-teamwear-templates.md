@@ -1,6 +1,7 @@
 # 0052: Football and cricket starter templates (W2-F)
 
 Status: Proposed
+Index title: Football and cricket starter templates
 Date: 2026-10-25
 Plan step: platform v4 wave 2, workstream W2-F (`plans/platform-v4.md`). Builds on 0040 (articles) and 0041 (library).
 

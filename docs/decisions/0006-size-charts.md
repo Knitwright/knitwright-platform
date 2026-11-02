@@ -1,6 +1,7 @@
 # 0006: Size charts and how a measurement is worked out
 
 Status: Accepted. No chart data yet: it waits for the owner (action A5).
+Index: Accepted; no chart data yet, waits for the owner
 Date: 2026-09-29
 Plan step: 5
 

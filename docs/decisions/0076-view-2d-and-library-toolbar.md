@@ -1,6 +1,7 @@
 # 0076: The 2D pattern view and the Library toolbar
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-30
 Plan step: platform v5, wave 2, Y3 (`plans/platform-v5.md`, "Y3. 2D pattern view and Library toolbar (F-S4)")
 Spec: `docs/spec/02-features.md` F-S4 — the 2D view, the Library toolbar, the pattern-fill popover and

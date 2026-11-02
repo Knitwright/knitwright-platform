@@ -37,4 +37,21 @@ export const PUBLIC_ENTRY_POINTS = [
   "app/api/job/[token]/photos/route.ts#POST",
   "app/api/job/[token]/sheet/route.ts#GET",
   "app/api/job/[token]/files/route.ts#GET",
+  // The weekly cut, run by the scheduler (F-O1, decision 0100). There is no session: the scheduler sends the
+  // deploy's own CRON_SECRET as a bearer token, compared in constant time, and that is the only door. Without
+  // the secret set the route answers 503 and cuts nothing; a wrong secret answers 404. It takes no input, and
+  // all it can do is put orders whose cut-off has passed into their batch, which is idempotent per cut-off.
+  "app/api/cron/ops-cut-batches/route.ts#GET",
+  // A committee comments, votes and approves without an account (F-T3, decision 0086). The token in
+  // the form is the only key; the database hashes it and answers only for a link that is open (not
+  // expired, not withdrawn). Each is limited per address and per link, and guarded by the bot check.
+  // None of them can read anything: a pin, a vote and an approval are writes against one link.
+  "lib/share/committee/actions.ts#committeePinAction",
+  "lib/share/committee/actions.ts#committeeVoteAction",
+  "lib/share/committee/actions.ts#committeeApproveAction",
+  // A player gives their shirt name, number and size without an account (F-T4, decision 0086). The
+  // sign-up token names the season; the number is checked against the sport's range, the name
+  // against the zone's length and the words against moderation (F-G1) before anything is kept. It
+  // can only write that one browser's own answer, and it reads back nothing about anyone else.
+  "lib/clubs/signup/actions.ts#rosterSignupAction",
 ] as const;

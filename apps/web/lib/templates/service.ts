@@ -33,14 +33,13 @@ const NOT_FOUND = "That template does not exist.";
 const unreadable = (cause: unknown): AppError => new AppError("internal", MESSAGES.internal, undefined, { cause });
 
 /**
- * Every design template, in a fixed order, without its design.
+ * Every DESIGN template, in a fixed order, without its design.
  *
- * **It asks for `kind = 'design'` and it has to.** `templates` holds the seven kinds of
- * `docs/spec/07-template-library.md` (L8, decision 0098), and this read parses every row it is given
- * against the design shape: a mockup scene, a marketing layout or a flow has no `article_id` and no
- * `wearer`, so one of them in the answer would fail the parse and take the whole library page with
- * it. L2 seeds the mockup scenes (decision 0092) and narrows this read in the same change, which is
- * the one thing L8 said it could not do for the workstream that seeds a second kind.
+ * `templates.kind` holds the seven kinds of `docs/spec/07-template-library.md` (L8, decision 0098),
+ * and this read parses every row against the design shape, so it asks for the design rows and no
+ * others. Without that, the first `marketing`, `mockup_scene`, `video` or `flow` row seeded breaks
+ * the design library page -- which is why the narrowing lands in the same change as the first such
+ * seed (the marketing rows of L4, decision 0094, and the mockup scenes of L2, decision 0092).
  */
 export async function loadLibrary(client: SupabaseClient): Promise<readonly TemplateSummary[]> {
   const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).eq("kind", "design").order("slug").limit(LIBRARY_READ_LIMIT);
@@ -78,7 +77,8 @@ type NewFromTemplate = Readonly<{ brandId: string; userId: string; templateId: s
  * the template's snapshot; nothing links the two afterwards. The brand and user come from the session.
  */
 export async function createFromTemplate(admin: SupabaseClient, client: SupabaseClient, input: NewFromTemplate): Promise<string> {
-  const { data, error } = await client.from("templates").select("title, snapshot, source").eq("id", input.templateId).maybeSingle();
+  // A design is made from a design template. A row of another kind is not a design and is not found here.
+  const { data, error } = await client.from("templates").select("title, snapshot, source").eq("id", input.templateId).eq("kind", "design").maybeSingle();
   if (error) throw unreadable(error);
   const row = z.object({ title: z.string(), snapshot: z.unknown(), source: z.string().optional() }).nullish().parse(data);
   if (!row) throw new AppError("not_found", NOT_FOUND);

@@ -1,6 +1,7 @@
 # 0084: Benchmarks — compare products without copying one
 
 Status: Proposed. Every number in it (the fetch allowances, the two closeness thresholds, the eight-word paraphrase
+Index: Proposed; every fetch allowance and closeness threshold is a labelled draft, two R-GAP-000 rules, owner questions listed
 rule) is a Knitwright draft, chosen to be cautious rather than tuned, and not reviewed by a lawyer. Owner questions
 below.
 Date: 2026-10-30

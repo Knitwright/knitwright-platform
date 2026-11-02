@@ -1,6 +1,7 @@
 # 0050: Ops console, part 2: quality control, packing, shipping, exceptions and metrics
 
 Status: Accepted locally. The database tests and the end-to-end tests have not run in the sandbox that wrote this (see Evidence).
+Index: Accepted locally; database and browser tests first ran in CI
 Date: 2026-10-26
 Plan step: platform v4, workstream W2-D. Continues decision 0043.
 

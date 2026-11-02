@@ -1,6 +1,7 @@
 # 0002: Function time limit on the host
 
 Status: Open
+Index: Open: needs a deployment
 Date: 2026-09-29
 Plan step: 1, task 6
 

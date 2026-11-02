@@ -1,6 +1,7 @@
 # 0078: The tech pack PDF as sixteen pages, the Excel file as eleven sheets, and the Export panel
 
 Status: Proposed. The PDF and the Excel file are live through the routes that already serve them. The Export panel is built and
+Index: Proposed; owner questions listed
 is not drawn by the shell yet: the shell still draws the slot placeholder, and wiring it is one import and one line in
 `components/studio/editor/EditorShell.tsx`, which Y5 does not own.
 Date: 2026-10-30

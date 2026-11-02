@@ -32,6 +32,12 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "ops_pack_bags", holds: "no names: the position of a line in the team list, a size and a count", erasableAlone: false },
   { table: "ops_cartons", holds: "no names: a carton's weight and size as typed by ops", erasableAlone: false },
   { table: "ops_shipments", holds: "no names of players: courier, tracking number and a free-text note", erasableAlone: false },
+  // Ops completion (plan v5 O1, decision 0100). The same rule: tied to the brand and goes with it. The status
+  // email is the one here that holds an address of its own, so it is named as that rather than as "no names".
+  { table: "ops_qc_colour_readings", holds: "no names: a colour, the Delta-E the instrument gave and what it was judged against", erasableAlone: false },
+  { table: "ops_inspection_bookings", holds: "no names: a provider, its reference and a free-text note", erasableAlone: false },
+  { table: "ops_commercial_invoices", holds: "no names of people: the goods, their HS code and origin, and what the invoice could not state", erasableAlone: false },
+  { table: "ops_customer_emails", holds: "the email address a status message went to, and the words as sent", erasableAlone: false },
   // Design comments (plan W4-D, decision 0063). A comment goes with its design, and so with its brand. The words can name
   // people, so the earlier words and the mentions go with the comment too; an author who removes a comment that has replies
   // empties it, and its earlier words and mentions go at once.

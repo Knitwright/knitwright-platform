@@ -1,6 +1,7 @@
 # 0016: Registry models for bottoms, outerwear and close-fitting
 
 Status: Accepted, with questions open for the owner (A5)
+Index: Accepted; questions open for the owner
 Date: 2026-09-29
 Plan steps: 16 (bottoms), 19 (outerwear), 22 (close-fitting)
 
