@@ -10,6 +10,7 @@ import {
   type ArtboardPreset,
   type BoardKind,
   type LaunchCostSource,
+  type LaunchPanelProps,
   type LaunchProjectView,
   type LaunchState,
   type MenuCommand,
@@ -102,6 +103,25 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
     return undefined;
   };
 
+  /**
+   * What a panel another workstream built is given, and all it is given: the project as read-only
+   * facts and the commands it may ask for (`lib/launch/panels.ts`). Built once here so the rail's
+   * panels and the selected board's inspector are handed the same thing.
+   */
+  const panel: LaunchPanelProps = {
+    context: {
+      project,
+      selection: page.selection,
+      credits,
+      presets,
+      unit: shell.state.unit,
+      zoom: shell.state.zoom,
+      dockTool: shell.state.tool,
+      busy,
+    },
+    commands: shell.commands,
+  };
+
   const action = (id: TaskAction) => {
     if (!selected) return;
     if (id === "remove") return shell.commands.removeBoard(selected.id);
@@ -137,7 +157,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
 
       <div className={COLUMNS}>
         <IconRail open={shell.state.rail} onOpen={shell.commands.openPanel} />
-        <RailPanels open={shell.state.rail} />
+        <RailPanels open={shell.state.rail} panel={panel} />
 
         <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
           {page.taskBar ? <TaskBar bar={page.taskBar} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
@@ -179,6 +199,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit }
             presets={presets}
             busy={busy}
             lockNote={page.lockNote}
+            panel={panel}
             onUnit={shell.commands.setUnit}
             onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
             onColours={shell.commands.setProjectColours}

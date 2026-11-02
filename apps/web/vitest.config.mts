@@ -175,6 +175,7 @@ export default defineConfig({
             "marketing",
             "media",
             "media-check",
+            "mockups",
             "moderation",
             "ops",
             "orders",
