@@ -44,6 +44,13 @@ export type FlowRunPanelProps = LaunchPanelProps &
     report?: FlowRunReport | null;
     /** What is happening now, while a run is in flight. */
     busyNote?: string | null;
+    /**
+     * Runs the whole canvas through this workstream's own action (`runFlowAction`, scope "all").
+     * Without it the panel asks the shell instead, through `requestRunDownstream` on the Design
+     * board, which the shell answers by checking the lock and the cost and stopping -- the shell
+     * makes no paid call of its own (decision 0091, item 6).
+     */
+    onRunAll?: () => void;
     onExportAll?: () => void;
     onPublishListing?: () => void;
   }>;
@@ -60,7 +67,7 @@ const NO_PRICE = "The credit price could not be read just now, so this run has n
 
 const CHIP = "chip-btn inline-flex min-h-11 items-center rounded-full border border-white/20 px-4 text-[13px] text-ink";
 
-export default function FlowRunPanel({ context, commands, costs = null, report = null, busyNote = null, onExportAll, onPublishListing }: FlowRunPanelProps) {
+export default function FlowRunPanel({ context, commands, costs = null, report = null, busyNote = null, onRunAll, onExportAll, onPublishListing }: FlowRunPanelProps) {
   const [confirming, setConfirming] = useState(false);
   const graph = { boards: context.project.boards, edges: context.project.edges };
   const estimate = costs === null ? null : estimateFlow(graph, { from: null, scope: "all" }, costs);
@@ -75,7 +82,14 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
       designVersion: design?.inputVersion ?? null,
     }),
   );
-  const canRun = estimate !== null && estimate.lines.length > 0 && money?.affordable === true && !context.busy;
+  /**
+   * Run all is `requestRunDownstream` on the Design board, not on the first board of the estimate.
+   * Every board of a flow descends from the Design board, so "everything this one feeds" is the
+   * whole canvas; starting from the first runnable board would quietly run one branch of it and
+   * leave the other renders alone. The contract has no "run everything" of its own, and this is
+   * what it means here.
+   */
+  const canRun = estimate !== null && estimate.lines.length > 0 && design !== null && money?.affordable === true && !context.busy;
 
   return (
     <section aria-label="Run summary" data-testid="launch-panel-flow-run" className="flex min-h-0 flex-col gap-3">
@@ -127,14 +141,14 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
           type="button"
           disabled={!canRun}
           onClick={() => {
-            if (estimate === null) return;
+            if (estimate === null || design === null) return;
             if (estimate.credits > 0 && !confirming) {
               setConfirming(true);
               return;
             }
             setConfirming(false);
-            const first = estimate.lines[0];
-            if (first) commands.requestRunDownstream(first.boardId);
+            if (onRunAll) onRunAll();
+            else commands.requestRunDownstream(design.id);
           }}
           className={CHIP}
           data-testid="flow-run-all"
