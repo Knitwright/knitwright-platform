@@ -105,6 +105,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0083 | [Ask and best practice over the rulebook](0083-ask-and-best-practice.md) | Proposed; owner questions listed |
 | 0084 | [Benchmarks — compare products without copying one](0084-benchmarks.md) | Proposed; every fetch allowance and closeness threshold is a labelled draft, two R-GAP-000 rules, owner questions listed |
 | 0085 | [The collection plan and the line plan](0085-collection-and-line-plan.md) | Proposed; every freight figure and the duty basis are labelled placeholders, owner questions listed |
+| 0086 | [The teamwear configurator](0086-teamwear-configurator.md) | Proposed |
 | 0089 | [Compliance and pre-export unification](0089-compliance-and-pre-export.md) | Proposed; the label wording and the AQL plan are seeded as labelled defaults, no care symbol or CPSIA certificate exists, so every label is refused, owner questions listed |
 | 0090 | [The remaining base article data (onboarding waves 2 and 3)](0090-remaining-base-article-data.md) | Proposed; every point-of-measure table is deliberately empty, owner questions listed |
 | 0091 | [The launch shell and its boards](0091-launch-shell-and-boards.md) | Proposed; every artboard preset and credit figure is a labelled placeholder, owner questions listed |

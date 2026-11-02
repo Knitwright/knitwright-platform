@@ -13,6 +13,18 @@ const STUDIO_SECTIONS: readonly NavItem[] = [
     label: "Designs",
     matches: (path) => (path === "/studio" || path.startsWith("/studio/")) && !path.startsWith("/studio/charts"),
   },
+  // Teamwear has no entry here on purpose, and the reason is measured rather than guessed.
+  //
+  // This bar is capped at PAGE_WIDTH.content (max-w-6xl, 1110px) at every desktop width, and these
+  // section pills already take about 625px of it, so it is structurally over capacity. Its content
+  // overflows the glass pill, which paints the last control of the row over the aurora rather than
+  // over glass-strong, and muted text on the aurora fails AA. A teamwear section costs about 90px
+  // and so re-breaks that for every workstream, including after the shared fix lands.
+  //
+  // The shared chrome fault is owned by pull request #101; this file is not Z5's to change. The
+  // owner is deciding how the bar handles growth (an overflow menu, or collapsing the account
+  // cluster). Until that lands a new section takes width from another workstream, so teamwear is
+  // reached by its own routes and links instead. Owner question 8 of decision 0086, pull #120.
   { href: "/templates", label: "Templates", matches: (path) => path.startsWith("/templates") },
   { href: "/catalogue", label: "Catalogue", matches: (path) => path.startsWith("/catalogue") },
   { href: "/studio/charts", label: "Size charts", matches: (path) => path.startsWith("/studio/charts") },

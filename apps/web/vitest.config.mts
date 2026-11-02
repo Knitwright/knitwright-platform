@@ -185,6 +185,7 @@ export default defineConfig({
             "releases",
             "rulebook",
             "settings",
+            "teamwear",
             "templates",
             "validation",
             "variants",
