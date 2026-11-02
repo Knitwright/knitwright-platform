@@ -8,6 +8,11 @@ import { blocker, CLASS_A_MIN_PIECES, CLASS_B_MAX_PIECES, CLASS_B_MIN_PIECES, pi
  *
  * The factory's own minimum order is separate and is "not set" until a factory agrees one (decision 0071). Under it the
  * run is noted, not refused, as the run builder already does (decision 0062, rule 5).
+ *
+ * The Class B range is **noted, not refused**, for the same reason (orchestrator decision, plan v5 wave 2). Refusing a
+ * 400-piece run would assert that a factory will not cut 400 of a style, and none has said so: 50 to 300 is
+ * Knitwright's own draft programme range, not a limit a factory has confirmed. Class A's minimum of one piece stays a
+ * blocker, because a run of nothing is not a run.
  */
 
 export type RunClass = "A" | "B" | null;
@@ -54,7 +59,10 @@ function classFinding(productionClass: RunClass, total: number): MakeFinding | n
     return total < CLASS_A_MIN_PIECES ? blocker("class_a_quantity", `A Class A run is ${pieces(CLASS_A_MIN_PIECES)} or more.`) : null;
   }
   if (total < CLASS_B_MIN_PIECES || total > CLASS_B_MAX_PIECES) {
-    return blocker("class_b_quantity", `A Class B run is ${CLASS_B_MIN_PIECES} to ${CLASS_B_MAX_PIECES} pieces per style. This one is ${pieces(total)}.`);
+    return warning(
+      "class_b_quantity",
+      `A Class B run is ${CLASS_B_MIN_PIECES} to ${CLASS_B_MAX_PIECES} pieces per style. This one is ${pieces(total)}. Knitwright draft range, not a quantity a factory has refused.`,
+    );
   }
   return null;
 }

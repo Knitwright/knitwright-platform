@@ -103,10 +103,11 @@ describe("the rows and the total", () => {
     expect(describeTotal(selection)).toBe("Nothing selected yet.");
   });
 
-  it("refuses a Class B style outside 50 to 300 pieces, as the run page does", () => {
+  it("notes a Class B style outside 50 to 300 pieces and still lets it be sent, as the run page does", () => {
     const selection = priceSelection([product({ productionClass: "B" })], typed([["p1", "M", "20"]]), "GBP");
-    expect(selection.canSend).toBe(false);
+    expect(selection.canSend).toBe(true);
     expect(selection.findings.map((f) => f.code)).toContain("class_b_quantity");
+    expect(selection.findings.find((f) => f.code === "class_b_quantity")?.severity).toBe("warning");
     expect(selection.pieces).toBe(20);
   });
 
