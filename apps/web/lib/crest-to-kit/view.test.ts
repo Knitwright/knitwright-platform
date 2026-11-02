@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { DEFAULT_MARKET } from "@/lib/home/market";
+import { quoteQuerySchema } from "@/lib/quotes/download";
 import { articleBook } from "@/lib/teamwear/fixtures/kit";
 import { askForKits, kitsForm, KITS_PATH } from "./client";
 import { crestFileFixture, crestPixels } from "./fixtures/crests";
@@ -44,6 +46,27 @@ describe("what the screen is sent", () => {
     expect(href).toContain("line=SHO-TR-01%3A20");
     expect(href).toContain("unpriced=Socks");
     expect(href).toContain("crest=1");
+  });
+
+  it("writes a quote address the quote route reads back as the same basket", async () => {
+    const view = kitsView(await run(), "Sialkot Rovers");
+    const url = new URL(view.kits[0]!.quoteHref, "https://app.knitwright.com");
+    const fields: Record<string, string | string[]> = {};
+    for (const key of new Set(url.searchParams.keys())) {
+      const values = url.searchParams.getAll(key);
+      fields[key] = values.length > 1 ? values : values[0]!;
+    }
+    expect(quoteQuerySchema.parse(fields)).toMatchObject({
+      sport: "football",
+      market: DEFAULT_MARKET.currency,
+      clubName: "Sialkot Rovers",
+      lines: [
+        { articleCode: "JSY-SS-01", qty: 20 },
+        { articleCode: "SHO-TR-01", qty: 20 },
+      ],
+      unpriced: ["Socks"],
+      crest: true,
+    });
   });
 
   it("carries the crest's colours with what the print estimate said, and the two basis sentences", async () => {
