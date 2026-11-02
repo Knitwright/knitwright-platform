@@ -83,7 +83,7 @@ export function CrestToKit({ sports, swatches }: CrestToKitProps) {
           <div className="flex flex-col items-start gap-2 rounded-2xl border border-hairline bg-surface p-6" data-testid="crest-to-kit-empty">
             <h2 className="text-lg font-medium text-ink">{EMPTY_TITLE}</h2>
             <p className="max-w-md text-[15px] leading-relaxed text-muted">{EMPTY_BODY}</p>
-            <p className="text-[13px] text-faint">Press “{EMPTY_ACTION}” when your crest is chosen.</p>
+            <p className="text-[13px] text-muted">Press “{EMPTY_ACTION}” when your crest is chosen.</p>
           </div>
         ) : null}
 

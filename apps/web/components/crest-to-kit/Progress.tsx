@@ -35,7 +35,7 @@ export function Progress() {
       <p className="text-sm font-medium text-ink">{BUSY_LABEL}</p>
       <ol className="flex flex-col gap-1">
         {STEPS.map((step, index) => (
-          <li key={step} className={`text-[13px] ${index <= at ? "text-ink-2" : "text-faint"}`}>
+          <li key={step} className={`text-[13px] ${index <= at ? "text-ink-2" : "text-muted"}`}>
             <span aria-hidden="true" className="mr-2">
               {index < at ? "✓" : index === at ? "…" : "·"}
             </span>

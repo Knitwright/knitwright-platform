@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import sharp from "sharp";
 import { createAccount, signIn, test } from "./support";
@@ -127,13 +128,20 @@ test.describe("crest to kit", () => {
 test.describe("crest to kit on a phone", () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 
-  test("the form comes first and the kits stack under it, with no sideways scrolling", async ({ page }) => {
+  test("the form comes first and the kits stack under it, with no sideways scroll and no axe problem", async ({ page }) => {
     await openCrestToKit(page, await createAccount("crest-phone", { brand: "Pocket Rovers" }));
     await buildKits(page);
+
+    // The order a club fills them in: the form, then its answer.
     const form = await page.getByTestId("crest-to-kit-form").boundingBox();
     const kits = await page.getByTestId("crest-to-kit-kits").boundingBox();
     expect(form?.y ?? 0).toBeLessThan(kits?.y ?? 0);
-    const widest = await page.evaluate(() => document.documentElement.scrollWidth);
-    expect(widest).toBeLessThanOrEqual(390);
+
+    // The same two measures `e2e/mobile.spec.ts` holds every key screen to (decision 0064).
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, `crest to kit scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(0);
+    const { violations } = await new AxeBuilder({ page }).analyze();
+    const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
+    expect(serious.map((entry) => `${entry.id}: ${entry.help}`)).toEqual([]);
   });
 });

@@ -64,12 +64,12 @@ function Card({ kit }: Readonly<{ kit: KitCardView }>) {
         </Link>
         <a
           href={kit.quoteHref}
-          className="soft-link text-[15px] text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-soft"
+          className="soft-link inline-flex h-11 items-center text-[15px] text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalt-soft"
         >
           {CARD_QUOTE}
         </a>
       </div>
-      <p className="font-mono text-[11px] text-faint">{kit.ruleIds.join(" · ")}</p>
+      <p className="font-mono text-[11px] text-muted">{kit.ruleIds.join(" · ")}</p>
     </li>
   );
 }
