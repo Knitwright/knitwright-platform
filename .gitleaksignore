@@ -1,3 +1,8 @@
 # Test fixtures that look like secrets but are not. One gitleaks fingerprint per line.
 # A made-up share-link token used to test that logs remove it (decision 0026).
 67e7e1a5a0287b223a30204a6639381a37aae58d:apps/web/lib/server/log.test.ts:generic-api-key:97
+# The same fixture again, at the line the v5 security review moved it to. A fingerprint is
+# <commit>:<file>:<rule>:<line>, so every commit that moves this line needs its own entry — which is
+# why the literal has now been replaced by an assembled string in `log.test.ts`. These two entries
+# cover the history that still holds it; no future commit should need a third.
+e3c2fa9c4fab33dd61d36e6786cfc5a1e72f916c:apps/web/lib/server/log.test.ts:generic-api-key:135
