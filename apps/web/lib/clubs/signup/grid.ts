@@ -33,6 +33,8 @@ export interface SignupEntry {
 export interface GridRow {
   readonly key: string;
   readonly name: string;
+  /** The person on the club's list, or null for an answer that matched nobody on it. */
+  readonly requestId: string | null;
   readonly state: "collected" | "missing" | "extra";
   readonly stateLabel: string;
   /** What they sent, or null while the club is still waiting on them. */
@@ -114,6 +116,7 @@ export function buildGrid(requests: readonly SignupRequest[], entries: readonly 
     return {
       key,
       name: request.name,
+      requestId: request.id,
       state: entry ? ("collected" as const) : ("missing" as const),
       stateLabel: entry ? STATE_LABELS.collected : STATE_LABELS.missing,
       entry,
@@ -127,6 +130,7 @@ export function buildGrid(requests: readonly SignupRequest[], entries: readonly 
     .map((entry) => ({
       key: matchKey(entry.nameOnShirt),
       name: entry.nameOnShirt,
+      requestId: null,
       state: "extra" as const,
       stateLabel: STATE_LABELS.extra,
       entry,
