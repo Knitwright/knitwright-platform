@@ -6,6 +6,8 @@ export const shipmentFormSchema = z
   .object({
     orderId: z.uuid("That is not an order."),
     courier: z.string().trim().min(1, "Give the courier.").max(80),
+    /** The courier row chosen, when one was. Empty: none, and no tracking link is shown. */
+    courierCode: z.string().trim().regex(/^[a-z0-9]*(-[a-z0-9]+)*$/, "That is not a courier.").max(40).default(""),
     trackingNumber: z.string().trim().min(1, "Give the tracking number.").max(80),
     shippedOn: z.string().refine(isRealDate, "Give the day it was sent, year-month-day."),
     sizes: z.string().min(1, "List the pieces sent, such as M 2, L 1."),
@@ -19,7 +21,7 @@ export const shipmentFormSchema = z
       ctx.addIssue({ code: "custom", path: ["sizes"], message: sizes.problem });
       return z.NEVER;
     }
-    return { orderId: v.orderId, courier: v.courier, trackingNumber: v.trackingNumber, shippedOn: v.shippedOn, sizes: sizes.value, note: v.note, restOwner: v.restOwner, restDueOn: v.restDueOn };
+    return { orderId: v.orderId, courier: v.courier, courierCode: v.courierCode, trackingNumber: v.trackingNumber, shippedOn: v.shippedOn, sizes: sizes.value, note: v.note, restOwner: v.restOwner, restDueOn: v.restDueOn };
   });
 
 /** The owner and date for what a parcel leaves behind, when it leaves something. */

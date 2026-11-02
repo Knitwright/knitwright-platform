@@ -1429,8 +1429,8 @@ const seedReadyOrder = async (brandId: string): Promise<{ orderId: string; actor
 };
 
 const PASSING_CHECKLIST = ["measurements", "colour", "artwork", "names_numbers"].map((key) => ({ key, result: "pass", note: "" }));
-const inspect = async (actor: string, orderId: string) =>
-  must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0 })) as { inspection_id: string }[];
+const inspect = async (actor: string, orderId: string, colourReadings: readonly Record<string, unknown>[] = []) =>
+  must(await adminClient().rpc("ops_record_inspection", { p_actor: actor, p_order_id: orderId, p_checklist: PASSING_CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 521, toleranceMm: 5 }], p_sample_size: 1, p_defect_count: 0, p_colour_readings: colourReadings })) as { inspection_id: string }[];
 
 /** A product listed the way the server lists one, for a new design. */
 const seedBrandProduct = async (brandId: string, ownerId: string): Promise<{ productId: string; projectId: string }> => {
@@ -1946,6 +1946,63 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, courier: "x", tracking_number: "x", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1 }),
     change: { tracking_number: "changed" },
   },
+  // Ops completion (decision 0100): read by platform admins only, written by the ops functions only, and
+  // append-only. A colour reading carries what it was judged against, so the judgement can be read back.
+  ops_qc_colour_readings: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      const inspection = (await inspect(actor, orderId, [{ colourName: "Kit navy", deltaE: 1.2, limitDeltaE: 1.5 }]))[0]!.inspection_id;
+      return { inspection_id: inspection };
+    },
+    attempt: (brandId) => ({ inspection_id: randomUUID(), order_id: randomUUID(), brand_id: brandId, colour_name: "Direct", delta_e: 1 }),
+    change: { colour_name: "Changed by a stranger" },
+  },
+  ops_inspection_bookings: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      const id = must(
+        await adminClient().rpc("ops_book_inspection", {
+          p_actor: actor, p_order_id: orderId, p_provider: "stub", p_reference: `isolation-${randomUUID().slice(0, 8)}`,
+          p_state: "not_available", p_requested_on: "2026-12-07",
+        }),
+      ) as string;
+      return { id };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, provider: "x", reference: "r", pieces: 1, requested_on: "2026-12-07", state: "requested" }),
+    change: { state: "booked" },
+  },
+  ops_commercial_invoices: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(
+        await adminClient().rpc("ops_issue_commercial_invoice", {
+          p_actor: actor, p_order_id: orderId, p_issued_on: "2026-12-07", p_origin_country: "PK", p_destination_country: "GB",
+          p_lines: [{ description: "Jersey", hsCode: "6110.30", originCountry: "PK", pieces: 1, unitValueMinor: null, lineValueMinor: null }],
+        }),
+      );
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, invoice_no: 1, issued_on: "2026-12-07", origin_country: "PK", destination_country: "GB", lines: [], total_pieces: 1 }),
+    change: { incoterms: "EXW" },
+  },
+  ops_customer_emails: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const { orderId, actor } = await seedReadyOrder(brandId);
+      must(
+        await adminClient().rpc("ops_record_customer_email", {
+          p_actor: actor, p_order_id: orderId, p_kind: "ready", p_to_email: "club@example.com", p_subject: "Ready",
+          p_body: "Your order is made.", p_provider: "none", p_sent: false, p_reason: "No email provider is set up.",
+        }),
+      );
+      return { order_id: orderId };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), brand_id: brandId, kind: "ready", to_email: "a@b.co", subject: "s", body: "b", provider: "none", sent: false, reason: "r" }),
+    change: { sent: true },
+  },
   // Factory job packets (decision 0072): the factory has no account, so the link is the only key. Platform admins read
   // both tables; no member and no visitor reads or writes either, and factory_events is append-only.
   job_packets: {
@@ -2029,6 +2086,39 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     seed: async () => ({ qty_min: 10 }),
     attempt: () => ({ capability_id: randomUUID(), qty_min: 1, label: "Made directly" }),
     change: { sell_gbp_minor: 1 },
+  },
+  // Plan v5 O1 (decision 0100): the AQL sampling table and the couriers. Platform data, like the factory rows:
+  // no browser role reaches either, and every seeded AQL row cites no source. The migration seeds them.
+  ops_aql_sample_plans: {
+    privileges: [],
+    seed: async () => ({ code_letter: "H" }),
+    attempt: () => ({ code_letter: "Z", lot_min: 1, sample_size: 1, label: "Made directly" }),
+    change: { sample_size: 999 },
+  },
+  ops_aql_acceptance: {
+    privileges: [],
+    seed: async () => ({ code_letter: "H", aql: 2.5 }),
+    attempt: () => ({ code_letter: "H", aql: 9.9, defect_class: "major", accept_at: 0, reject_at: 1, label: "Made directly" }),
+    change: { accept_at: 99 },
+  },
+  ops_couriers: {
+    privileges: [],
+    seed: async () => ({ code: "by-hand" }),
+    attempt: () => ({ code: "made-directly", name: "Made directly", label: "Made directly" }),
+    change: { terms: "Changed by a member" },
+  },
+  // The runs of the scheduled cut. Platform admins read them; nothing in a browser writes one, and the
+  // scheduled cut has no actor at all: the cron route's shared secret is its door.
+  ops_cut_runs: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      // A cut-off many weeks back: no order's cut-off is in the past, so this cuts nothing.
+      const past = new Date(Date.now() - (500 + Math.floor(Math.random() * 200)) * 7 * 86_400_000);
+      const rows = must(await adminClient().rpc("ops_cut_scheduled", { p_now: past.toISOString() })) as { cut_for: string }[];
+      return { cut_for: rows[0]!.cut_for };
+    },
+    attempt: () => ({ cut_for: new Date().toISOString() }),
+    change: { orders_batched: 99 },
   },
   // Plan v5 X8 (decision 0073): moderation. Read by platform admins only; written by the moderation functions only.
   moderation_checks: {

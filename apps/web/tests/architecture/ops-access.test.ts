@@ -91,10 +91,20 @@ describe("the ops console is for platform admins only", () => {
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/factory-sheet": ["./assets/fonts/**"]');
     expect(config).toContain('"/api/ops/batches/\\\\[batchId\\\\]/print-files": ["./assets/fonts/**"]');
     expect(config).toContain('"/api/ops/orders/\\\\[orderId\\\\]/packing-list": ["./assets/fonts/**"]');
+    expect(config).toContain('"/api/ops/orders/\\\\[orderId\\\\]/commercial-invoice": ["./assets/fonts/**"]');
   });
 
   it("never reaches the public routes list or the public pages list", () => {
-    expect(read("lib/server/public-routes.ts")).not.toMatch(/ops/);
+    // No console page and no /api/ops route is ever public. One public entry touches ops at all: the
+    // scheduled cut (F-O1, decision 0100). It is not a console route, it takes no input, all it can do is put
+    // orders whose cut-off has passed into their batch, and the deploy's own CRON_SECRET is its only door —
+    // without the secret it answers 503 and cuts nothing. Any other ops entry fails this test.
+    const entries = read("lib/server/public-routes.ts")
+      .split("\n")
+      .filter((line) => /^\s*"/.test(line))
+      .map((line) => line.trim());
+    for (const entry of entries) expect(entry, entry).not.toMatch(/\(ops\)|api\/ops/);
+    expect(entries.filter((entry) => /ops/.test(entry))).toEqual(['"app/api/cron/ops-cut-batches/route.ts#GET",']);
     expect(read("lib/server/public-pages.ts")).not.toMatch(/\(ops\)|\/ops/);
   });
 

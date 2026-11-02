@@ -37,4 +37,9 @@ export const PUBLIC_ENTRY_POINTS = [
   "app/api/job/[token]/photos/route.ts#POST",
   "app/api/job/[token]/sheet/route.ts#GET",
   "app/api/job/[token]/files/route.ts#GET",
+  // The weekly cut, run by the scheduler (F-O1, decision 0100). There is no session: the scheduler sends the
+  // deploy's own CRON_SECRET as a bearer token, compared in constant time, and that is the only door. Without
+  // the secret set the route answers 503 and cuts nothing; a wrong secret answers 404. It takes no input, and
+  // all it can do is put orders whose cut-off has passed into their batch, which is idempotent per cut-off.
+  "app/api/cron/ops-cut-batches/route.ts#GET",
 ] as const;

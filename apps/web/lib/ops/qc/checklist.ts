@@ -45,6 +45,12 @@ interface InspectionInput {
   readonly checklist: readonly ChecklistItem[];
   readonly measurements: readonly Measurement[];
   readonly defectCount: number;
+  /**
+   * False when a colour reading is over the factory's own tolerance (decision 0100). A reading with no
+   * tolerance on file judges nothing, so it leaves this true: see lib/ops/qc/colour.ts. Left out: no reading
+   * was taken, which is the same as nothing to judge.
+   */
+  readonly colourReadingsPass?: boolean;
 }
 
 /**
@@ -64,5 +70,6 @@ export function evaluateInspection(input: InspectionInput): Evaluation {
     reasons.push(`${m.point}: measured ${m.measuredMm} mm, spec ${m.specMm} mm, tolerance ${m.toleranceMm} mm.`);
   }
   if (input.defectCount > 0) reasons.push(`${input.defectCount} defective ${input.defectCount === 1 ? "piece" : "pieces"} in the sample.`);
+  if (input.colourReadingsPass === false) reasons.push("A colour reading is over the tolerance this factory works to.");
   return { result: reasons.length === 0 ? "pass" : "fail", reasons };
 }
