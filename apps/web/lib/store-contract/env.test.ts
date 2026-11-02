@@ -4,7 +4,7 @@ import { parseEnv } from "@/lib/config/env";
 import { SECRET_MIN_LENGTH } from "./token";
 
 /**
- * `STORE_SERVICE_TOKEN` as the environment contract holds it (plan v5 O2, decision 0105). Optional,
+ * `STORE_SERVICE_TOKEN` as the environment contract holds it (plan v5 O2, decision 0106). Optional,
  * server only, and set in no environment where tests run: with it unset every Store endpoint answers
  * 503 and reads nothing. No test here reaches a network and nothing is called.
  */

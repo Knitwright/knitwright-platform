@@ -1,4 +1,4 @@
-# 0105: The Store contract v2 — what the separate Store reads, and what it is told we do not have
+# 0106: The Store contract v2 — what the separate Store reads, and what it is told we do not have
 
 Status: Proposed; every gap in the payload is a gap because the platform really holds nothing there, nothing is
 sellable today, and the AUD and delivery gaps are the two the owner's own decisions put there; owner questions listed

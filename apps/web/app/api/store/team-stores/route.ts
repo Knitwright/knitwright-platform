@@ -5,7 +5,7 @@ import { listQuery } from "@/lib/store-contract/schemas";
 import { serveTeamStores, storeSecret } from "@/lib/store-contract/server";
 
 /**
- * A team store's configuration, from a club design (plan v5 O2, decision 0105; spec F-T1).
+ * A team store's configuration, from a club design (plan v5 O2, decision 0106; spec F-T1).
  *
  * A configuration and nothing else: the design, the colours, the crest, the sponsors, the fonts for
  * names and numbers, the seasons and the numbers the sport allows. There is no link here and no

@@ -76,6 +76,8 @@ const nextConfig: NextConfig = {
     "/api/ops/orders/\\[orderId\\]/packing-list": ["./assets/fonts/**"],
     // The commercial invoice (decision 0100) draws text in the same font.
     "/api/ops/orders/\\[orderId\\]/commercial-invoice": ["./assets/fonts/**"],
+    // The instant quote (decision 0105) draws text in the same font, through the same PDF machinery.
+    "/api/quotes": ["./assets/fonts/**"],
     // A factory's job packet (decision 0072) downloads the same factory sheet and print files.
     "/api/job/\\[token\\]/sheet": ["./assets/fonts/**"],
     "/api/job/\\[token\\]/files": ["./assets/fonts/**"],

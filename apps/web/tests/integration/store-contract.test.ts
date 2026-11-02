@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
 /**
- * The Store contract's reads, against the real database (plan v5 O2, decision 0105).
+ * The Store contract's reads, against the real database (plan v5 O2, decision 0106).
  *
  * The endpoints answer a service and read **across brands**, which no member's session may do. The
  * route test proves the door — a signed-in member's own session opens nothing without the signed

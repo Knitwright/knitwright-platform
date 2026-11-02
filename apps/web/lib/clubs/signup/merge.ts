@@ -5,7 +5,7 @@ import type { SignupEntry } from "./grid";
 import { matchKey } from "./paste";
 
 /**
- * Folding what the players sent into the season's roster (spec F-T4, plan v5 Z7, decision 0086).
+ * Folding what the players sent into the season's roster (spec F-T4, plan v5 Z7, decision 0087).
  *
  * The roster is written by the club workspace's own function (`replace_season_roster`, decision
  * 0042), so nothing here writes to `roster_players`: this builds the list that function is given.

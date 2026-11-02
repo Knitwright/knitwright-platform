@@ -1,11 +1,11 @@
 import { Document, Font, Text, renderToBuffer, type DocumentProps } from "@react-pdf/renderer";
 import { createElement as h, type ReactElement } from "react";
 import type { ImageMap } from "@/lib/flat/images";
-import { PDF_FONT_FAMILY, registerPdfFont } from "@/lib/flat/pdf-font";
+import { SOURCE_LANGUAGE, type Language } from "@/lib/translate/languages";
+import type { TranslationRow } from "@/lib/translate/rows";
 import { TO_BE_CONFIRMED } from "../../cell";
 import type { TechPack } from "../../types";
 import { assertEverySetCellHasSource } from "../guard";
-import { drawable, hasUndrawable } from "../pdf-text";
 import { leaves } from "../../walk";
 import type { ExportIllustrations } from "../illustrations";
 import { pagePlan } from "../pages";
@@ -14,6 +14,7 @@ import { appendixTables } from "./appendix";
 import { sourceMarks } from "./marks";
 import { pageElement } from "./page";
 import { COLOURS, MARGIN, SIZES } from "./styles";
+import { registerFontsFor, typesetFor, type Safe } from "./typeset";
 
 /** Said on the first page when a character the font lacks was shown as a question mark. It holds no digit. */
 export const CHARACTERS_REPLACED = "Some characters could not be drawn in this file, so each is shown as a question mark.";
@@ -23,6 +24,10 @@ export interface PdfOptions {
   readonly pictureLeftOut?: boolean;
   /** AI pictures of the design, added to the reference-images page and labelled as illustrations. */
   readonly illustrations?: ExportIllustrations | null;
+  /** Which language the fixed words of the pages are set in. English by default (decision 0104). */
+  readonly language?: Language;
+  /** The words the library holds for that language. Empty: the labelled draft in the code is used. */
+  readonly translations?: readonly TranslationRow[];
 }
 
 /**
@@ -31,8 +36,8 @@ export interface PdfOptions {
  * before the rest. Everything a person typed is in the document, and the words the platform adds
  * are all plain, so this finds every case the renderer would replace.
  */
-const noticeFor = (pack: TechPack): string | null =>
-  leaves(pack).some(({ leaf }) => hasUndrawable(String(leaf))) ? CHARACTERS_REPLACED : null;
+const noticeFor = (pack: TechPack, safe: Safe): string | null =>
+  leaves(pack).some(({ leaf }) => safe.lacks(String(leaf))) ? CHARACTERS_REPLACED : null;
 
 const designLabel = (pack: TechPack, safe: (text: string) => string): string => {
   const { styleNumber, designName } = pack.cover;
@@ -41,8 +46,9 @@ const designLabel = (pack: TechPack, safe: (text: string) => string): string => 
 };
 
 /** The footer of every page: the style, the version, the date this copy was printed, and "Page x of y". */
-const footer = (pack: TechPack, safe: (text: string) => string): ReactElement => {
-  const label = `${designLabel(pack, safe)}  ·  Version ${pack.cover.version}  ·  ${pack.printedOn}`;
+const footer = (pack: TechPack, safe: Safe): ReactElement => {
+  const label = `${designLabel(pack, safe)}  ·  ${safe.words("field.version")} ${pack.cover.version}  ·  ${pack.printedOn}`;
+  const [page, of] = [safe.words("footer.page"), safe.words("footer.of")];
   return h(Text, {
     fixed: true,
     style: {
@@ -50,7 +56,8 @@ const footer = (pack: TechPack, safe: (text: string) => string): ReactElement =>
       bottom: 24,
       left: MARGIN.side,
       right: MARGIN.side,
-      fontFamily: PDF_FONT_FAMILY,
+      fontFamily: safe.family,
+      direction: safe.direction,
       fontSize: SIZES.footer,
       color: COLOURS.muted,
       borderTopWidth: 0.5,
@@ -58,7 +65,7 @@ const footer = (pack: TechPack, safe: (text: string) => string): ReactElement =>
       paddingTop: 4,
     },
     render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-      `${label}  ·  Page ${pageNumber} of ${totalPages}`,
+      `${label}  ·  ${page} ${pageNumber} ${of} ${totalPages}`,
   });
 };
 
@@ -75,8 +82,7 @@ function switchHyphenationOff(): void {
  * The pages of the document: the sixteen of F-S6 in the specification's order, then the sources
  * page and the sign-off page.
  */
-function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, notice: string | null): readonly ReactElement[] {
-  const safe = drawable;
+function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, safe: Safe, notice: string | null): readonly ReactElement[] {
   const exported = exportSections(pack);
   const marks = sourceMarks(exported);
   const context = { pack, images, safe, pictureLeftOut: options.pictureLeftOut === true, marks };
@@ -91,11 +97,13 @@ function buildPages(pack: TechPack, images: ImageMap, options: PdfOptions, notic
 
 /** The document as a React element for the PDF library (decision 0078). */
 function techPackDocument(pack: TechPack, images: ImageMap, options: PdfOptions = {}): ReactElement<DocumentProps> {
-  registerPdfFont();
+  const language = options.language ?? SOURCE_LANGUAGE;
+  registerFontsFor(language);
   switchHyphenationOff();
-  const pages = buildPages(pack, images, options, noticeFor(pack));
-  const title = designLabel(pack, drawable);
-  return h(Document, { title, creator: "Knitwright", producer: "Knitwright" }, ...pages);
+  const safe = typesetFor(language, options.translations ?? []);
+  const pages = buildPages(pack, images, options, safe, noticeFor(pack, safe));
+  const title = designLabel(pack, safe);
+  return h(Document, { title, creator: "Knitwright", producer: "Knitwright", language }, ...pages);
 }
 
 /** The PDF of a tech pack, in memory. Nothing is written to disk. */

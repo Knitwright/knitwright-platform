@@ -5,7 +5,7 @@ import { productsQuery } from "@/lib/store-contract/schemas";
 import { serveProducts, storeSecret } from "@/lib/store-contract/server";
 
 /**
- * Published products, as the separate Store reads them (plan v5 O2, decision 0105): the pictures,
+ * Published products, as the separate Store reads them (plan v5 O2, decision 0106): the pictures,
  * the sizes, the tier prices in pounds and Australian dollars, the delivery dates, the
  * personalisation rules and the size chart — each carried with its gaps showing.
  *

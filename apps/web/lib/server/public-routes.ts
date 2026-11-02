@@ -42,7 +42,7 @@ export const PUBLIC_ENTRY_POINTS = [
   // the secret set the route answers 503 and cuts nothing; a wrong secret answers 404. It takes no input, and
   // all it can do is put orders whose cut-off has passed into their batch, which is idempotent per cut-off.
   "app/api/cron/ops-cut-batches/route.ts#GET",
-  // The Store contract (plan v5 O2, decision 0105). The separate Store is a service, not a person: there is no
+  // The Store contract (plan v5 O2, decision 0106). The separate Store is a service, not a person: there is no
   // session, and the only door is a token signed with the deploy's own STORE_SERVICE_TOKEN over the payload kind
   // and the call's query, compared in constant time. Without the secret set every one answers 503 and reads
   // nothing; a token that does not verify answers 404. Every one is a read, rate limited per address, and the
@@ -52,14 +52,14 @@ export const PUBLIC_ENTRY_POINTS = [
   "app/api/store/drops/route.ts#GET",
   "app/api/store/listings/route.ts#GET",
   "app/api/store/team-stores/route.ts#GET",
-  // A committee comments, votes and approves without an account (F-T3, decision 0086). The token in
+  // A committee comments, votes and approves without an account (F-T3, decision 0087). The token in
   // the form is the only key; the database hashes it and answers only for a link that is open (not
   // expired, not withdrawn). Each is limited per address and per link, and guarded by the bot check.
   // None of them can read anything: a pin, a vote and an approval are writes against one link.
   "lib/share/committee/actions.ts#committeePinAction",
   "lib/share/committee/actions.ts#committeeVoteAction",
   "lib/share/committee/actions.ts#committeeApproveAction",
-  // A player gives their shirt name, number and size without an account (F-T4, decision 0086). The
+  // A player gives their shirt name, number and size without an account (F-T4, decision 0087). The
   // sign-up token names the season; the number is checked against the sport's range, the name
   // against the zone's length and the words against moderation (F-G1) before anything is kept. It
   // can only write that one browser's own answer, and it reads back nothing about anyone else.

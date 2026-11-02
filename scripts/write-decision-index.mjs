@@ -43,6 +43,13 @@ export const rows = () => {
     if (heading[1] !== file.slice(0, 4)) throw new Error(`${file}: the heading says ${heading[1]} and the filename says ${file.slice(0, 4)}.`);
     const status = field(body, "Index") ?? field(body, "Status");
     if (status === null) throw new Error(`${file}: no "Index:" or "Status:" line, so it has nothing to show in the status column.`);
+    const already = found.find((row) => row.number === heading[1]);
+    if (already !== undefined) {
+      // Two workstreams each took "the next free number" without being able to see the other. It
+      // happened twice in one day: L2 and L4 on a migration hour, then O3 and the top bar on 0103.
+      // Each branch is correct alone, so only the merge can catch it -- here, in a second.
+      throw new Error(`${file} and ${already.file} are both numbered ${heading[1]}. Move the later one to the next free number and rename every citation of it.`);
+    }
     found.push({ number: heading[1], title: field(body, "Index title") ?? heading[2].trim(), file, status });
   }
   return found;

@@ -5,7 +5,7 @@ import { listQuery } from "@/lib/store-contract/schemas";
 import { serveDrops, storeSecret } from "@/lib/store-contract/server";
 
 /**
- * Drops from collection plans (plan v5 O2, decision 0105; spec F-S10, decision 0085).
+ * Drops from collection plans (plan v5 O2, decision 0106; spec F-S10, decision 0085).
  *
  * "Create drop" already wrote the payload and `collection_drops` already keeps it, append-only and
  * numbered per collection. This hands each one over unchanged. A row this deploy cannot read is

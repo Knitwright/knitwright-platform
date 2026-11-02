@@ -2,7 +2,7 @@ import type { InviteMessage } from "@/lib/share/email";
 
 /**
  * Chasing a player who has not answered (spec F-T4 step 4 "chase stragglers by WhatsApp link or
- * email", plan v5 Z7, decision 0086).
+ * email", plan v5 Z7, decision 0087).
  *
  * WhatsApp needs no API and no account: a `wa.me` address with the words already written opens the
  * person's own WhatsApp, and the club presses send themselves. Email goes through the provider

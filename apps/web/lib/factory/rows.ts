@@ -30,7 +30,7 @@ export const FABRIC_COLUMNS =
   "id, code, name, production_class, blend, gsm_min, gsm_max, stretch, finish, pfas_free, oeko_tex_cert, sublimatable, swatch_ref, rule_id, label";
 export const COLOUR_COLUMNS = "id, fabric_code, name, hex, lab_l, lab_a, lab_b, pantone, label";
 export const COUNTRY_COLUMNS =
-  "id, country, name, currency, vat_rate_bp, low_value_threshold_minor, duty_by_hs, preference_scheme, label_rules, freight_days, selling_enabled, rule_id, label";
+  "id, country, name, currency, vat_rate_bp, low_value_threshold_minor, duty_by_hs, preference_scheme, label_rules, freight_days, selling_enabled, tax_name, tax_registration_threshold_minor, tax_registered, tax_source, rule_id, label";
 
 export const toFactory = (r: Row): Factory =>
   factorySchema.parse({
@@ -125,6 +125,10 @@ export const toCountryRule = (r: Row): CountryRule =>
     labelRules: r.label_rules ?? {},
     freightDays: num(r.freight_days),
     sellingEnabled: r.selling_enabled,
+    taxName: r.tax_name ?? null,
+    taxRegistrationThresholdMinor: num(r.tax_registration_threshold_minor),
+    taxRegistered: r.tax_registered === true,
+    taxSource: r.tax_source ?? null,
     ruleId: r.rule_id,
     label: r.label,
   });

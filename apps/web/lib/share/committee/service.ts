@@ -5,7 +5,7 @@ import { COMMITTEE_SLOTS, type CommitteeSlot } from "./fields";
 import type { CommitteeApproval, CommitteePin, CommitteeVote } from "./tally";
 
 /**
- * Committee links in the database (spec F-T3, plan v5 Z7, decision 0086). Writes, and every read
+ * Committee links in the database (spec F-T3, plan v5 Z7, decision 0087). Writes, and every read
  * made with a token, go through the committee functions, which only the server's own key may run
  * and which check the member's role or the token themselves. A club's own lists are read through
  * the member's client, so the database's rules decide what they see. The brand always comes from

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 type NewLinkBoxProps = Readonly<{ address: string; label: string; testId: string; children: React.ReactNode }>;
 
 /**
- * A link that has just been made, shown once (plan v5 Z7, decision 0086). Only its hash is kept, as
+ * A link that has just been made, shown once (plan v5 Z7, decision 0087). Only its hash is kept, as
  * a share link's is (decision 0026), so it cannot be shown again: the club copies it now and sends
  * it themselves. Knitwright emails nobody unless a provider is set up.
  */

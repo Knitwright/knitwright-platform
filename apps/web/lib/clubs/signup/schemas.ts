@@ -6,7 +6,7 @@ import { WEARER_GROUPS } from "../wording";
 import { PASTE_MAX, RAW_NAME_MAX } from "./fields";
 
 /**
- * What the sign-up forms may send (spec F-T4, plan v5 Z7, decision 0086).
+ * What the sign-up forms may send (spec F-T4, plan v5 Z7, decision 0087).
  *
  * The shirt name goes through the same cleaner a roster and a team order use (decision 0027), so a
  * name that reaches a shirt is cleaned once in one place. The length against the zone and the

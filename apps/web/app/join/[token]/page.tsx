@@ -14,7 +14,7 @@ import { adminClient, productionDeps } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 
 /**
- * A player's sign-up link (spec F-T4, plan v5 Z7, decision 0086). A teenager on a phone with no
+ * A player's sign-up link (spec F-T4, plan v5 Z7, decision 0087). A teenager on a phone with no
  * account opens it, types three things and is done. The page is never indexed, never stored by a
  * cache and never sends its address on (next.config.ts sets the headers).
  *

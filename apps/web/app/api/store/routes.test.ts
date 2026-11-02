@@ -4,7 +4,7 @@ import { canonicalQuery, signStoreToken, TOKEN_HEADER } from "@/lib/store-contra
 import type { PayloadKind } from "@/lib/store-contract/version";
 
 /**
- * The five Store endpoints (plan v5 O2, decision 0105). `defineRoute` is replaced by one that hands
+ * The five Store endpoints (plan v5 O2, decision 0106). `defineRoute` is replaced by one that hands
  * its own config back, so the guard, the limit and the schema can be read and the handler called
  * with the context the framework would build. The reads themselves are `lib/store-contract/server`,
  * which the database test covers; what is proved here is the door.

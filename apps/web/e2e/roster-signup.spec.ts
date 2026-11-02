@@ -3,7 +3,7 @@ import { expect, type Browser, type Page } from "@playwright/test";
 import { createAccount, passBotCheck, signIn, standInForBotCheck, test } from "./support";
 
 /**
- * Roster sign-up (spec F-T4, plan v5 Z7, decision 0086).
+ * Roster sign-up (spec F-T4, plan v5 Z7, decision 0087).
  *
  * The acceptance test is "a roster of 25 is collected through the sign-up link with zero spreadsheet
  * work". Twenty-five browsers would make the suite minutes longer for nothing, so this collects a

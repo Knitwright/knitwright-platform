@@ -174,7 +174,7 @@ function Collected({ design, link }: Readonly<{ design: CommitteeDesign; link: C
 }
 
 /**
- * One design's committee links (spec F-T3, plan v5 Z7, decision 0086). The kit manager sees the
+ * One design's committee links (spec F-T3, plan v5 Z7, decision 0087). The kit manager sees the
  * comments, the votes and the approvals, and locks the version the committee chose, which moves
  * that version to status approved.
  */

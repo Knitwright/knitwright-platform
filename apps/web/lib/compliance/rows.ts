@@ -125,7 +125,19 @@ export const SIZE_CODE_CONVENTION = "size_code";
  */
 export type SizeLine = WordingLine & Readonly<{ convention: typeof SIZE_CODE_CONVENTION | null }>;
 
-export type CareLine = Readonly<{ symbolCodes: readonly string[]; source: string | null; confirmed: boolean }>;
+/**
+ * The care line. `gapNote` is the market's own words for why no care symbol is chosen, and `gapRuleId`
+ * the rule that explains it, both added by O3 (decision 0104): the reason a care label is refused is a
+ * fact about a standard nobody here holds a licence to, so it belongs in the row rather than in a
+ * sentence in this directory, and a market whose position changes changes its row.
+ */
+export type CareLine = Readonly<{
+  symbolCodes: readonly string[];
+  source: string | null;
+  confirmed: boolean;
+  gapNote: string | null;
+  gapRuleId: string | null;
+}>;
 
 /** `country_rules.label_rules`, as the label builder reads it. An empty object gives every line empty. */
 export type LabelRules = Readonly<{
@@ -159,6 +171,8 @@ const linesSchema = z.object({
       symbolCodes: z.array(z.string()).nullish().transform((v) => v ?? []),
       source: z.string().nullish().transform((v) => str(v)),
       confirmed: z.boolean().nullish().transform((v) => v === true),
+      gapNote: z.string().nullish().transform((v) => str(v)),
+      gapRuleId: z.string().nullish().transform((v) => str(v)),
     })
     .nullish(),
   origin: lineSchema.nullish(),
@@ -196,7 +210,7 @@ export function labelRulesOf(stored: Readonly<Record<string, unknown>>): LabelRu
   const origin = lines?.origin ?? null;
   return {
     fibre: { ...EMPTY, language: null, order: null, ...(lines?.fibre ?? {}) },
-    care: lines?.care ?? { symbolCodes: [], source: null, confirmed: false },
+    care: lines?.care ?? { symbolCodes: [], source: null, confirmed: false, gapNote: null, gapRuleId: null },
     // The flat `origin` key and the `lines.origin` block describe one sentence; the block wins when both are set.
     origin: origin?.text !== undefined && origin?.text !== null ? origin : { ...EMPTY, text: value?.origin ?? null, source: origin?.source ?? null },
     size: { ...EMPTY, convention: null, ...(lines?.size ?? {}) },

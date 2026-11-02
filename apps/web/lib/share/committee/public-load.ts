@@ -8,7 +8,7 @@ import { buildCommitteePage, type CommitteePageData } from "./public-view";
 import type { OpenCommittee } from "./service";
 
 /**
- * Reads and draws a committee page from a token (spec F-T3, plan v5 Z7, decision 0086).
+ * Reads and draws a committee page from a token (spec F-T3, plan v5 Z7, decision 0087).
  *
  * Everything is read for the club the token's link belongs to, never for a club a visitor names:
  * the design through the token, the club's size charts, and only the stored pictures each shared

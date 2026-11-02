@@ -4,7 +4,7 @@ import { admitRequest } from "@/lib/store-contract/admit";
 import { serveManifest, storeSecret } from "@/lib/store-contract/server";
 
 /**
- * The Store contract's manifest (plan v5 O2, decision 0105): the endpoints, how a call is signed,
+ * The Store contract's manifest (plan v5 O2, decision 0106): the endpoints, how a call is signed,
  * how a value the platform does not hold is shaped, and the sentence that says nothing here takes
  * money. It is what a reader that has only the address can start from.
  *
