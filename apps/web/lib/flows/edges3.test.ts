@@ -43,6 +43,7 @@ describe("when the database refuses a write", () => {
         setFlowRunBoard(client, who, {
           runId: RUN,
           boardId: BOARD,
+          kind: "mockup",
           position: 1,
           status: "ready",
           credits: 0,
@@ -84,10 +85,15 @@ describe("dropping a pack where it is asked for", () => {
   });
 });
 
-describe("a contents list for a file that is no longer there", () => {
-  it("names the board rather than leaving the line blank", () => {
-    const written = contentsText([], [{ boardId: BOARD, path: "png/front-render.png", label: null }]);
+describe("a contents list", () => {
+  it("names each file after the output it holds, so a board that makes several is not one line", () => {
+    const entry = { boardId: BOARD, name: "Front render", format: "png" as const, bytes: new Uint8Array([1]), label: null };
+    const written = contentsText([
+      { boardId: BOARD, path: "png/front-render.png", label: null, entry },
+      { boardId: BOARD, path: "png/front-render-2.png", label: "AI-generated", entry },
+    ]);
 
-    expect(written).toContain(`png/front-render.png\t${BOARD}`);
+    expect(written).toContain("png/front-render.png\tFront render");
+    expect(written).toContain("png/front-render-2.png\tFront render\tAI-generated");
   });
 });

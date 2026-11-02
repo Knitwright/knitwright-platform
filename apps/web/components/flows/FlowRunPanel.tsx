@@ -50,7 +50,7 @@ export type FlowRunPanelProps = LaunchPanelProps &
      * board, which the shell answers by checking the lock and the cost and stopping -- the shell
      * makes no paid call of its own (decision 0091, item 6).
      */
-    onRunAll?: () => void;
+    onRunAll?: (shownCredits: number) => void;
     onExportAll?: () => void;
     onPublishListing?: () => void;
   }>;
@@ -90,6 +90,16 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
    * what it means here.
    */
   const canRun = estimate !== null && estimate.lines.length > 0 && design !== null && money?.affordable === true && !context.busy;
+
+  /** Why Run all is off, or null. A disabled button with no sentence beside it explains nothing. */
+  const whyNot = ((): string | null => {
+    if (canRun) return null;
+    if (estimate === null) return NO_PRICE;
+    if (design === null) return "Add a Design board first: every board of a flow starts from the design the platform drew.";
+    if (estimate.lines.length === 0) return "There is nothing on this canvas to run yet.";
+    if (money !== null && !money.affordable) return money.reason;
+    return "Something else is saving just now. This will come back when it finishes.";
+  })();
 
   return (
     <section aria-label="Run summary" data-testid="launch-panel-flow-run" className="flex min-h-0 flex-col gap-3">
@@ -140,6 +150,7 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
         <button
           type="button"
           disabled={!canRun}
+          aria-describedby={whyNot === null ? undefined : "flow-run-why"}
           onClick={() => {
             if (estimate === null || design === null) return;
             if (estimate.credits > 0 && !confirming) {
@@ -147,7 +158,9 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
               return;
             }
             setConfirming(false);
-            if (onRunAll) onRunAll();
+            // The figure the person just agreed to goes with the request, so the action can refuse
+            // a run that has since become dearer (decision 0096, item 4).
+            if (onRunAll) onRunAll(estimate.credits);
             else commands.requestRunDownstream(design.id);
           }}
           className={CHIP}
@@ -161,6 +174,11 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
           </button>
         ) : null}
       </div>
+      {whyNot === null ? null : (
+        <p className="text-[12px] leading-relaxed text-ink-2" id="flow-run-why" data-testid="flow-run-why">
+          {whyNot}
+        </p>
+      )}
 
       {summary === null || summary.rows.length === 0 ? null : (
         <ol className="flex flex-col gap-1.5" data-testid="flow-run-rows">

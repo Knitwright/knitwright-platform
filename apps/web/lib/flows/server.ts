@@ -58,6 +58,8 @@ export function flowMeter(admin: SupabaseClient, who: Who, runId: string): FlowM
         // The run as well as the board: a retry inside one run is free, and a fresh press after a
         // refund is charged again rather than quietly free (migration 20261201030000).
         outputKey: `${runId}:${input.boardId}`,
+        // How many of its output the board makes, so the ledger charges what the estimate quoted.
+        units: input.units,
       });
       if (!outcome.ok) return { ok: false, reason: `This board costs ${outcome.price} credits and the balance is ${outcome.balance}.` };
       entries.set(input.boardId, outcome.entryId);
@@ -106,34 +108,45 @@ export async function runFlowForBrand(
     estimateCredits: estimate.credits,
     template: input.template,
   });
+  /**
+   * A board's row is written **as the board finishes**, not after the whole run. A launch pack takes
+   * minutes, and a row written at the end would mean the run panel could show nothing while it ran
+   * and nothing at all if the action died half way -- with boards already charged. A write that
+   * itself fails must not take the run down either, so it is caught: the board has its picture, and
+   * the row is the record, not the thing.
+   */
   let position = 0;
+  const written: Promise<unknown>[] = [];
   const report = await runFlow(
     {
       capability: capabilityOf(deps.registry ?? EMPTY_REGISTRY),
       meter: flowMeter(deps.admin, deps.who, runId),
       recorder: flowRecorder(deps.admin, deps.who),
-      onProgress: () => undefined,
+      onProgress: (line) => {
+        position += 1;
+        written.push(
+          setFlowRunBoard(deps.admin, deps.who, {
+            runId,
+            boardId: line.boardId,
+            kind: line.kind,
+            position,
+            status: line.state,
+            credits: line.credits,
+            refunded: line.refunded,
+            spendEntryId: line.entryId,
+            assets: line.assets,
+            format: line.format,
+            outputFileId: line.fileId,
+            reason: line.reason,
+          }).catch(() => undefined),
+        );
+      },
     },
     input.graph,
     input.scope,
     input.costs,
   );
-  for (const line of report.lines) {
-    position += 1;
-    await setFlowRunBoard(deps.admin, deps.who, {
-      runId,
-      boardId: line.boardId,
-      position,
-      status: line.state,
-      credits: line.credits,
-      refunded: line.refunded,
-      spendEntryId: null,
-      assets: line.assets,
-      format: line.format,
-      outputFileId: line.fileId,
-      reason: line.reason,
-    });
-  }
+  await Promise.all(written);
   await finishFlowRun(deps.admin, deps.who, {
     runId,
     status: report.state,

@@ -74,11 +74,25 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
 
       <div className="mt-auto flex flex-wrap items-center gap-1.5">
         {info.maxInputs === 0 ? null : (
-          <button type="button" disabled={busy} onClick={props.onRun} className={CHIP} data-testid={`flow-run-${board.id}`}>
+          <button
+            type="button"
+            disabled={busy}
+            aria-label={`Regenerate ${name}`}
+            onClick={props.onRun}
+            className={CHIP}
+            data-testid={`flow-run-${board.id}`}
+          >
             Regenerate
           </button>
         )}
-        <button type="button" disabled={busy} onClick={props.onRunDownstream} className={CHIP} data-testid={`flow-run-downstream-${board.id}`}>
+        <button
+          type="button"
+          disabled={busy}
+          aria-label={`Run everything ${name} feeds`}
+          onClick={props.onRunDownstream}
+          className={CHIP}
+          data-testid={`flow-run-downstream-${board.id}`}
+        >
           Run all downstream
         </button>
       </div>
@@ -91,6 +105,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
             disabled={busy}
             aria-expanded={props.menuOpen}
             aria-controls={`flow-add-${board.id}`}
+            aria-label={`Add a board after ${name}`}
             onClick={props.onMenu}
             className={CHIP}
             data-testid={`flow-add-open-${board.id}`}
@@ -103,6 +118,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
           disabled={busy}
           aria-expanded={props.connectingOpen}
           aria-controls={`flow-connect-${board.id}`}
+          aria-label={`Connect ${name} into another board`}
           onClick={props.onConnecting}
           className={CHIP}
           data-testid={`flow-connect-open-${board.id}`}
@@ -133,37 +149,39 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         </span>
       </div>
 
-      {props.menuOpen ? (
-        <ul
-          id={`flow-add-${board.id}`}
-          aria-label={`Add a board after ${name}`}
-          className="glass absolute top-full right-0 z-30 mt-1 flex w-60 flex-col gap-0.5 rounded-2xl p-2 shadow-lg"
-        >
-          {props.addItems.map((item) => (
-            <li key={item.kind}>
-              <button
-                type="button"
-                onClick={() => props.onAdd(item)}
-                className="flex min-h-10 w-full flex-col items-start rounded-xl px-3 py-1.5 text-left hover:bg-tile-2"
-                data-testid={`flow-add-${item.kind}-${board.id}`}
-              >
-                <span className="flex w-full items-center justify-between gap-2 text-[13px] text-ink">
-                  {item.label}
-                  <span className="font-mono text-[10px] text-ink-2">{item.paid ? "credits" : "free"}</span>
-                </span>
-                <span className="text-[11px] leading-snug text-ink-2">{item.lead}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {/* Both lists are always rendered and hidden when closed, so each button's `aria-controls`
+          always names a panel that really exists -- the arrangement the launch shell's own rail
+          uses for the same reason. */}
+      <ul
+        id={`flow-add-${board.id}`}
+        hidden={!props.menuOpen}
+        aria-label={`Add a board after ${name}`}
+        className="glass absolute top-full right-0 z-30 mt-1 flex w-60 flex-col gap-0.5 rounded-2xl p-2 shadow-lg"
+      >
+        {props.addItems.map((item) => (
+          <li key={item.kind}>
+            <button
+              type="button"
+              onClick={() => props.onAdd(item)}
+              className="flex min-h-10 w-full flex-col items-start rounded-xl px-3 py-1.5 text-left hover:bg-tile-2"
+              data-testid={`flow-add-${item.kind}-${board.id}`}
+            >
+              <span className="flex w-full items-center justify-between gap-2 text-[13px] text-ink">
+                {item.label}
+                <span className="font-mono text-[10px] text-ink-2">{item.paid ? "credits" : "free"}</span>
+              </span>
+              <span className="text-[11px] leading-snug text-ink-2">{item.lead}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
 
-      {props.connectingOpen ? (
-        <ul
-          id={`flow-connect-${board.id}`}
-          aria-label={`Connect ${name} into another board`}
-          className="glass absolute top-full right-0 z-30 mt-1 flex max-h-72 w-72 flex-col gap-0.5 overflow-y-auto rounded-2xl p-2 shadow-lg"
-        >
+      <ul
+        id={`flow-connect-${board.id}`}
+        hidden={!props.connectingOpen}
+        aria-label={`Connect ${name} into another board`}
+        className="glass absolute top-full right-0 z-30 mt-1 flex max-h-72 w-72 flex-col gap-0.5 overflow-y-auto rounded-2xl p-2 shadow-lg"
+      >
           {props.targets.map((target) => (
             <li key={target.boardId}>
               <button
@@ -186,8 +204,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
               </button>
             </li>
           ))}
-        </ul>
-      ) : null}
+      </ul>
     </article>
   );
 }

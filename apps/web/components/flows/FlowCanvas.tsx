@@ -5,6 +5,7 @@ import {
   addMenuFor,
   connectorsOf,
   connectTargets,
+  CARD_SIZE,
   dragTo,
   extentOf,
   inputState,
@@ -53,8 +54,12 @@ const DOTS: CSSProperties = {
   backgroundSize: "18px 18px",
 };
 
-/** A board is drawn at a readable size whatever its artboard is: the canvas is a map, not a preview. */
-const CARD = { width: 248, height: 168 } as const;
+/**
+ * A board is drawn at a readable size whatever its artboard is: the canvas is a map of the flow, not
+ * a preview of it. `CARD_SIZE` is the one place that size lives, because the dots and the curves are
+ * worked out from it too -- `lib/flows/canvas.ts`.
+ */
+const CARD = CARD_SIZE;
 const PAD = 64;
 
 export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = {} }: FlowCanvasProps) {
@@ -62,8 +67,8 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
   const [connecting, setConnecting] = useState<string | null>(null);
   const [said, setSaid] = useState("");
   const dragging = useRef<Readonly<{ id: string; from: Point }> | null>(null);
-  const extent = extentOf(graph);
-  const connectors = connectorsOf(graph);
+  const extent = extentOf(graph, CARD);
+  const connectors = connectorsOf(graph, CARD);
 
   /** Canvas pixels to screen pixels: the boards keep their places and the cards keep their size. */
   const place = (board: BoardView): CSSProperties => ({
@@ -80,6 +85,15 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
 
   const onKey = (board: BoardView) => (event: KeyboardEvent<HTMLDivElement>): void => {
     if (busy) return;
+    // An open menu owns its own arrow keys: inside the connect list they scroll and move focus, and
+    // a board that moved under the person's hand while they were reading a list would be a surprise.
+    if ((menu === board.id || connecting === board.id) && event.target !== event.currentTarget) {
+      if (event.key === "Escape") {
+        setMenu(null);
+        setConnecting(null);
+      }
+      return;
+    }
     if (isArrowKey(event.key)) {
       event.preventDefault();
       move(board, nudge(board, event.key, event.shiftKey), event.shiftKey ? "ten steps" : "one step");
@@ -125,7 +139,9 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
             out on the board it ends at instead, where a person can also cut it. */}
         <svg
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 h-full w-full"
+          className="pointer-events-none absolute"
+          width={extent.width + PAD * 2}
+          height={extent.height + PAD * 2}
           style={{ left: PAD - extent.x, top: PAD - extent.y }}
         >
           {connectors.map((connector) => (
@@ -133,7 +149,7 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
           ))}
         </svg>
 
-        <ul className="contents">
+        <ul className="absolute inset-0">
           {graph.boards.map((board) => (
             <li key={board.id} className="absolute" style={place(board)}>
               <div
@@ -143,15 +159,25 @@ export function FlowCanvas({ graph, selectedId, zoom, busy, commands, running = 
                 onKeyDown={onKey(board)}
                 onPointerDown={(event) => {
                   if (busy || event.button !== 0) return;
+                  // The pointer is captured, or a drag that ends outside the 248 px card -- which is
+                  // every drag worth making, since the columns are 360 px apart -- never reports.
+                  event.currentTarget.setPointerCapture(event.pointerId);
                   dragging.current = { id: board.id, from: { x: event.clientX, y: event.clientY } };
                 }}
                 onPointerUp={(event) => {
                   const start = dragging.current;
                   dragging.current = null;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
                   if (!start || start.id !== board.id) return;
                   const by = { x: event.clientX - start.from.x, y: event.clientY - start.from.y };
                   if (Math.abs(by.x) < 4 && Math.abs(by.y) < 4) return;
                   move(board, dragTo(board, by), "by hand");
+                }}
+                onPointerCancel={() => {
+                  dragging.current = null;
+                }}
+                onLostPointerCapture={() => {
+                  dragging.current = null;
                 }}
                 className="h-full"
               >

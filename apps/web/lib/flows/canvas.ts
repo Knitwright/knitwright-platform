@@ -64,17 +64,36 @@ export function nudge(board: BoardView, key: ArrowKey, shift = false): Point {
   return dragTo(board, by);
 }
 
+/**
+ * THE SIZE A BOARD IS DRAWN AT, which is not the size of its artboard.
+ *
+ * A board's `size` is the artboard it will export at -- 1080 by 1920 for a story. The canvas is a
+ * map of the flow rather than a preview of it, so every board is drawn as a card of one size, and
+ * the dots and the curves have to be worked out at *that* size or a connector leaves from a point
+ * a thousand pixels away from the card it belongs to. The card size is therefore an argument here
+ * and not read off the board.
+ */
+export interface Size {
+  readonly width: number;
+  readonly height: number;
+}
+
+export const CARD_SIZE: Size = { width: 248, height: 168 };
+
 /** The right-edge dot a connector leaves from (spec F-L4: "each connector runs from a board's right-edge dot"). */
-export const outputDot = (board: BoardView): Point => ({ x: board.at.x + board.size.width, y: board.at.y + Math.round(board.size.height / 2) });
+export const outputDot = (board: BoardView, card: Size = CARD_SIZE): Point => ({
+  x: board.at.x + card.width,
+  y: board.at.y + Math.round(card.height / 2),
+});
 
 /**
  * The dot a connector ends at: one per input, spread down the board's left edge, so "image 1" and
  * "image 2" are in the same places on every board of a kind.
  */
-export function inputDot(board: BoardView, inputIndex: number): Point {
+export function inputDot(board: BoardView, inputIndex: number, card: Size = CARD_SIZE): Point {
   const slots = Math.max(1, BOARDS[board.kind].maxInputs);
   const index = clamp(inputIndex, 1, slots);
-  return { x: board.at.x, y: board.at.y + Math.round((board.size.height * index) / (slots + 1)) };
+  return { x: board.at.x, y: board.at.y + Math.round((card.height * index) / (slots + 1)) };
 }
 
 /**
@@ -82,9 +101,9 @@ export function inputDot(board: BoardView, inputIndex: number): Point {
  * and arrives horizontally, so a connector reads as a flow from left to right even when the boards
  * are stacked.
  */
-export function connectorPath(from: BoardView, to: BoardView, inputIndex: number): string {
-  const start = outputDot(from);
-  const end = inputDot(to, inputIndex);
+export function connectorPath(from: BoardView, to: BoardView, inputIndex: number, card: Size = CARD_SIZE): string {
+  const start = outputDot(from, card);
+  const end = inputDot(to, inputIndex, card);
   const span = Math.max(48, Math.abs(end.x - start.x) / 2);
   return `M ${start.x} ${start.y} C ${start.x + span} ${start.y}, ${end.x - span} ${end.y}, ${end.x} ${end.y}`;
 }
@@ -99,8 +118,8 @@ export interface Connector {
   readonly label: string;
 }
 
-/** Every connector on the canvas, with its curve and its words. */
-export function connectorsOf(graph: Graph): readonly Connector[] {
+/** Every connector on the canvas, with its curve and its words, drawn at the card size. */
+export function connectorsOf(graph: Graph, card: Size = CARD_SIZE): readonly Connector[] {
   return graph.edges.flatMap((edge): readonly Connector[] => {
     const from = graph.boards.find((one) => one.id === edge.fromBoardId);
     const to = graph.boards.find((one) => one.id === edge.toBoardId);
@@ -111,7 +130,7 @@ export function connectorsOf(graph: Graph): readonly Connector[] {
         fromBoardId: from.id,
         toBoardId: to.id,
         inputIndex: edge.inputIndex,
-        path: connectorPath(from, to, edge.inputIndex),
+        path: connectorPath(from, to, edge.inputIndex, card),
         label: `${from.name || BOARDS[from.kind].label} feeds input ${edge.inputIndex} of ${to.name || BOARDS[to.kind].label}`,
       },
     ];
@@ -183,12 +202,16 @@ export function inputState(graph: Graph, board: BoardView): string {
   return used === 0 ? `Nothing feeds this yet, of ${slots}` : `${used} of ${slots} ${slots === 1 ? "input" : "inputs"} connected`;
 }
 
-/** The canvas's own size, so the scrolling region is as big as the boards on it and no bigger. */
-export function extentOf(graph: Graph): Readonly<{ width: number; height: number; x: number; y: number }> {
+/**
+ * The canvas's own size, so the scrolling region is as big as the boards on it and no bigger. It is
+ * measured at the card size for the same reason the dots are: a sheet sized to the artboards would
+ * be ten times wider than the cards drawn on it.
+ */
+export function extentOf(graph: Graph, card: Size = CARD_SIZE): Readonly<{ width: number; height: number; x: number; y: number }> {
   if (graph.boards.length === 0) return { width: 0, height: 0, x: 0, y: 0 };
   const left = Math.min(...graph.boards.map((one) => one.at.x));
   const top = Math.min(...graph.boards.map((one) => one.at.y));
-  const right = Math.max(...graph.boards.map((one) => one.at.x + one.size.width));
-  const bottom = Math.max(...graph.boards.map((one) => one.at.y + one.size.height));
+  const right = Math.max(...graph.boards.map((one) => one.at.x + card.width));
+  const bottom = Math.max(...graph.boards.map((one) => one.at.y + card.height));
   return { x: left, y: top, width: right - left, height: bottom - top };
 }

@@ -35,13 +35,17 @@ const cardOf = (value: unknown): CardKind => {
 
 export default function InfoCardPanel({ context, commands, facts = EMPTY_FACTS }: InfoCardPanelProps) {
   const board = context.selection?.board ?? null;
-  const [chosen, setChosen] = useState<CardKind | null>(null);
-  const kind = chosen ?? cardOf(board?.settings["card"]);
+  /**
+   * The choice is held with the board it was made on. Held on its own, picking "Care card" on one
+   * info card would follow the person to the next one and quietly override that board's own setting.
+   */
+  const [chosen, setChosen] = useState<Readonly<{ boardId: string; kind: CardKind }> | null>(null);
+  const kind = chosen !== null && chosen.boardId === board?.id ? chosen.kind : cardOf(board?.settings["card"]);
   const unit: LengthUnit = lengthUnitFrom(context.unit === "in" ? "in" : "cm");
   const view = infoCard(kind, facts, unit);
 
   const choose = (next: CardKind): void => {
-    setChosen(next);
+    if (board) setChosen({ boardId: board.id, kind: next });
     // The board keeps which card it is, so a rerun draws the same one (spec F-L4).
     if (board) commands.setBoardSettings(board.id, { ...board.settings, card: next });
   };
@@ -90,7 +94,7 @@ export default function InfoCardPanel({ context, commands, facts = EMPTY_FACTS }
           {section.rows.length === 0 ? null : section.columns.length === 0 ? (
             <dl className="flex flex-col gap-1">
               {section.rows.map((row) => (
-                <div key={row.label} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 pb-1">
+                <div key={row.key} className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 pb-1">
                   <dt className="text-[12px] text-ink-2">{row.label}</dt>
                   <dd className={`text-[12px] ${row.cells[0]?.missing ? "text-warn" : "text-ink"}`}>{row.cells[0]?.value}</dd>
                 </div>
@@ -112,13 +116,13 @@ export default function InfoCardPanel({ context, commands, facts = EMPTY_FACTS }
                 </thead>
                 <tbody>
                   {section.rows.map((row) => (
-                    <tr key={row.label}>
+                    <tr key={row.key}>
                       <th scope="row" className="border-b border-white/10 px-2 py-1 text-[12px] font-normal text-ink-2">
                         {row.label}
                       </th>
                       {row.cells.map((cell, at) => (
                         <td
-                          key={`${row.label}-${at}`}
+                          key={`${row.key}-${at}`}
                           className={`border-b border-white/10 px-2 py-1 text-[12px] ${cell.missing ? "text-warn" : "text-ink"}`}
                         >
                           {cell.value}

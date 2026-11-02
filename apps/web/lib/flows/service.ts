@@ -3,7 +3,7 @@ import { z } from "zod";
 import { refusal } from "@/lib/make/service";
 import { connectBoards, saveBoard, type Who } from "@/lib/launch/service";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
-import type { ArtboardPreset } from "@/lib/launch";
+import { BOARD_KINDS, type ArtboardPreset } from "@/lib/launch";
 import { planTemplate, type FlowPlan } from "./apply";
 import type { ListingPayload } from "./listing";
 import type { FlowRunLine, FlowRunReport } from "./run";
@@ -112,6 +112,7 @@ export async function setFlowRunBoard(
   input: Readonly<{
     runId: string;
     boardId: string;
+    kind: FlowRunLine["kind"];
     position: number;
     status: FlowBoardState;
     credits: number;
@@ -137,6 +138,7 @@ export async function setFlowRunBoard(
     p_format: input.format,
     p_output_file_id: input.outputFileId,
     p_reason: input.reason,
+    p_kind: input.kind,
   });
   if (error) throw refusal(error, "That board does not exist.");
 }
@@ -179,7 +181,7 @@ export type SpendOutcome =
  */
 export async function spendFlowOutput(
   admin: SupabaseClient,
-  input: Readonly<{ brandId: string; userId: string; designVersionHash: string; outputKey: string; usageEventId?: string | null }>,
+  input: Readonly<{ brandId: string; userId: string; designVersionHash: string; outputKey: string; units?: number; usageEventId?: string | null }>,
 ): Promise<SpendOutcome> {
   const { data, error } = await admin.rpc("credit_spend_output", {
     p_brand_id: input.brandId,
@@ -188,6 +190,7 @@ export async function spendFlowOutput(
     p_version_hash: input.designVersionHash,
     p_output_key: input.outputKey,
     p_usage_event_id: input.usageEventId ?? null,
+    p_units: input.units ?? 1,
   });
   if (error) throw refusal(error, "The credits could not be charged.");
   const answer = spendAnswer.parse(data);
@@ -223,6 +226,7 @@ export async function publishFlowListing(admin: SupabaseClient, who: Who, launch
 
 const runBoardRow = z.object({
   board_id: z.uuid(),
+  kind: z.enum(BOARD_KINDS),
   position: z.number().int(),
   status: z.enum(FLOW_BOARD_STATES),
   credits: z.number().int(),
@@ -230,6 +234,7 @@ const runBoardRow = z.object({
   assets: z.number().int(),
   format: z.enum(FLOW_FORMATS),
   output_file_id: z.uuid().nullable(),
+  spend_entry_id: z.uuid().nullable(),
   reason: z.string().nullable(),
   rule_id: z.string(),
 });
@@ -262,7 +267,7 @@ export interface SavedRun {
 
 const RUN_SELECT = [
   "id, scope, from_board_id, status, estimate_credits, spent_credits, refunded_credits, assets, template_slug, created_at, finished_at",
-  "flow_run_boards(board_id, position, status, credits, refunded_credits, assets, format, output_file_id, reason, rule_id)",
+  "flow_run_boards(board_id, kind, position, status, credits, refunded_credits, assets, format, output_file_id, spend_entry_id, reason, rule_id)",
 ].join(", ");
 
 /**
@@ -292,13 +297,16 @@ export async function latestFlowRun(
     .map((one) => ({
       boardId: one.board_id,
       name: names.get(one.board_id)?.name ?? "",
-      kind: names.get(one.board_id)?.kind ?? "mockup",
+      // The kind the board had when it ran, from the run's own row: a board that has since been
+      // removed would otherwise read back on the summary as some other kind of board.
+      kind: one.kind,
       state: one.status,
       format: one.format,
       assets: one.assets,
       credits: one.credits,
       refunded: one.refunded_credits,
       fileId: one.output_file_id,
+      entryId: one.spend_entry_id,
       reason: one.reason,
       ruleId: one.rule_id || FLOW_GAP_RULE,
     }));

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BoardView } from "@/lib/launch";
-import { addMenuFor, connectorPath, connectorsOf, connectTargets, CANVAS_MAX, dragTo, extentOf, GRID_PX, inputDot, inputState, isArrowKey, nudge, outputDot, placeOf } from "./canvas";
+import { addMenuFor, CARD_SIZE, connectorPath, connectorsOf, connectTargets, CANVAS_MAX, dragTo, extentOf, GRID_PX, inputDot, inputState, isArrowKey, nudge, outputDot, placeOf } from "./canvas";
 import { canvasOfTemplate, withBoard } from "./fixtures/canvas";
 
 /**
@@ -47,7 +47,8 @@ describe("the connectors", () => {
     const { graph } = canvasOfTemplate("club-kit-launch-pack");
     const post = boardOf("post-square", graph);
 
-    expect(outputDot(boardOf("design", graph))).toEqual({ x: 1080, y: 540 });
+    // The card size, not the artboard size: the canvas is a map of the flow, not a preview of it.
+    expect(outputDot(boardOf("design", graph))).toEqual({ x: CARD_SIZE.width, y: CARD_SIZE.height / 2 });
     // Six inputs on a Marketing board, so the dots are spread one seventh apart down the edge.
     expect(inputDot(post, 1).y).toBeLessThan(inputDot(post, 2).y);
     expect(inputDot(post, 1).x).toBe(post.at.x);
@@ -137,7 +138,9 @@ describe("what the canvas says about a board", () => {
     const extent = extentOf(graph);
 
     expect(extent.x).toBe(0);
-    expect(extent.width).toBeGreaterThan(1080);
+    // Three section columns 360 px apart, plus one card: wider than one column and nothing like
+    // the 3240 px a sheet measured at the artboard sizes would be.
+    expect(extent.width).toBe(2 * 360 + CARD_SIZE.width);
     expect(extentOf({ boards: [], edges: [] })).toEqual({ x: 0, y: 0, width: 0, height: 0 });
   });
 });

@@ -94,11 +94,19 @@ export interface CardCell {
   readonly ruleId: string;
 }
 
+export interface CardRow {
+  /** Stable and unique within the card, because two rows can carry the same human label. */
+  readonly key: string;
+  readonly label: string;
+  readonly cells: readonly CardCell[];
+  readonly ruleId: string;
+}
+
 export interface CardSection {
   readonly heading: string;
   /** The column headings, for a card that is a table. Empty for a card that is a list. */
   readonly columns: readonly string[];
-  readonly rows: readonly Readonly<{ label: string; cells: readonly CardCell[]; ruleId: string }>[];
+  readonly rows: readonly CardRow[];
 }
 
 export interface InfoCardView {
@@ -121,6 +129,7 @@ const sizeChart = (facts: InfoCardFacts, unit: LengthUnit): readonly CardSection
     heading: `Garment measurements (${unit === "cm" ? "centimetres" : "inches"})`,
     columns: ["Measurement", ...facts.sizes],
     rows: facts.measures.map((measure) => ({
+      key: measure.code,
       label: measure.label,
       cells: facts.sizes.map((size) => {
         const mm = measure.valuesMm[size];
@@ -135,7 +144,8 @@ const colourChart = (facts: InfoCardFacts): readonly CardSection[] => [
   {
     heading: "Colours",
     columns: ["Colour", "Catalogue code"],
-    rows: facts.colours.map((colour) => ({
+    rows: facts.colours.map((colour, at) => ({
+      key: `${at}-${colour.code ?? colour.name}`,
       label: colour.name,
       cells: [cell(colour.hex, colour.ruleId), cell(colour.code, colour.ruleId)],
       ruleId: colour.ruleId,
@@ -148,6 +158,7 @@ const fabricCallouts = (facts: InfoCardFacts): readonly CardSection[] => [
     heading: "Fabric",
     columns: ["Fabric", "Weight", "Blend"],
     rows: facts.fabrics.map((fabric) => ({
+      key: fabric.code,
       label: fabric.name,
       cells: [
         cell(fabric.code, fabric.ruleId),
@@ -163,7 +174,7 @@ const wordsSection = (heading: string, items: readonly WordsFact[]): readonly Ca
   {
     heading,
     columns: [],
-    rows: items.map((item) => ({ label: item.label, cells: [cell(item.words, item.ruleId)], ruleId: item.ruleId })),
+    rows: items.map((item, at) => ({ key: `${at}-${item.label}`, label: item.label, cells: [cell(item.words, item.ruleId)], ruleId: item.ruleId })),
   },
 ];
 

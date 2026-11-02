@@ -191,13 +191,27 @@ describe("a flow run", () => {
 
   it("records one row per board of a run, and changes it when the board finishes", async () => {
     const canvasId = await makeCanvas(ann, annBrand, "Again");
-    const board = await makeBoard(ann, annBrand, canvasId, "mockup");
+    const board = await makeBoard(ann, annBrand, canvasId, "ai_image");
     const runId = must(await startRun(ann, annBrand, canvasId)) as string;
     must(await setRunBoard(ann, annBrand, runId, board, { p_status: "running" }));
     must(await setRunBoard(ann, annBrand, runId, board, { p_status: "ready", p_credits: 1 }));
-    const boards = must(await ann.client.from("flow_run_boards").select("status, credits").eq("run_id", runId)) as Record<string, unknown>[];
+    const boards = must(await ann.client.from("flow_run_boards").select("status, credits, kind").eq("run_id", runId)) as Record<string, unknown>[];
 
-    expect(boards).toEqual([{ status: "ready", credits: 1 }]);
+    // The kind is kept on the run's own row, so a board removed later still reads back as itself.
+    expect(boards).toEqual([{ status: "ready", credits: 1, kind: "ai_image" }]);
+  });
+
+  it("lets a board go and takes its line of the run with it, while the run itself stays", async () => {
+    const canvasId = await makeCanvas(ann, annBrand, "Gone");
+    const board = await makeBoard(ann, annBrand, canvasId, "ai_video");
+    const runId = must(await startRun(ann, annBrand, canvasId)) as string;
+    must(await setRunBoard(ann, annBrand, runId, board, { p_status: "ready" }));
+    must(await rpc("remove_launch_board", { p_brand_id: annBrand, p_user_id: ann.userId, p_board_id: board }));
+
+    // A line of a run is about a board, so it goes when the board goes. What the money did is not
+    // in this table at all: the credit ledger keeps that, and it is append-only.
+    expect(must(await ann.client.from("flow_run_boards").select("kind").eq("run_id", runId))).toEqual([]);
+    expect(must(await ann.client.from("flow_runs").select("id").eq("id", runId))).toHaveLength(1);
   });
 
   it("refuses a board that was skipped being charged for, and records a refund that could not be made", async () => {
@@ -344,6 +358,17 @@ describe("the credits of one board", () => {
 
     expect(second["charged"]).toBe(true);
     expect(second["entry_id"]).not.toBe(first["entry_id"]);
+  });
+
+  it("charge for each of the pictures a board makes, so the quote and the ledger agree", async () => {
+    const version = hash();
+    must(await rpc("credit_grant", { p_brand_id: annBrand, p_amount: 40, p_key: `flow-grant-${randomUUID()}`, p_note: "Flow test" }));
+    const one = must(await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "marketing_media", p_version_hash: version, p_output_key: "units:one", p_units: 1 })) as Record<string, unknown>;
+    const four = must(await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "marketing_media", p_version_hash: version, p_output_key: "units:four", p_units: 4 })) as Record<string, unknown>;
+
+    expect(Number(four["price"])).toBe(Number(one["price"]) * 4);
+    expect((await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "marketing_media", p_version_hash: version, p_output_key: "units:none", p_units: 0 })).error).not.toBeNull();
+    expect((await rpc("credit_spend_output", { p_brand_id: annBrand, p_user_id: ann.userId, p_kind: "marketing_media", p_version_hash: version, p_output_key: "units:many", p_units: 500 })).error).not.toBeNull();
   });
 
   it("cut a reason longer than a ledger line holds, rather than failing the refund", async () => {

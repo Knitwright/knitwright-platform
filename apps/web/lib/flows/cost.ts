@@ -40,11 +40,15 @@ const number = (value: unknown, fallback: number): number => (typeof value === "
 /**
  * How a board's picture is made. A board a flow template made says so in its own settings; a board
  * somebody drew by hand is read from its kind, which is what L1 does.
+ *
+ * **The kind wins when it says a model draws it.** A board's settings are a bag of values the client
+ * writes, so reading them first would let `generation: "deterministic"` on an AI board make a paid
+ * model call free. Settings may only ever make a board cost more, never less.
  */
 export function boardGeneration(board: BoardView): Generation {
+  if (isGeneratedKind(board.kind)) return "model";
   const written = board.settings["generation"];
-  if (typeof written === "string" && (GENERATIONS as readonly string[]).includes(written)) return written as Generation;
-  return isGeneratedKind(board.kind) ? "model" : "deterministic";
+  return typeof written === "string" && (GENERATIONS as readonly string[]).includes(written) && written === "model" ? "model" : "deterministic";
 }
 
 /** The format a board's output comes out as, for the zip's folders. */
@@ -54,8 +58,23 @@ export function boardFormat(board: BoardView): FlowFormat {
   return board.kind === "ai_video" ? "mp4" : "png";
 }
 
-/** How many finished assets a board's output counts as. One, unless the board says otherwise. */
-export const boardAssets = (board: BoardView): number => Math.max(0, Math.round(number(board.settings["assets"], 1)));
+/** The most of anything a board may claim to make, since the claim comes from written settings. */
+export const MAX_PER_BOARD = 64;
+
+/**
+ * How many finished assets a board's output counts as. One, unless the board says otherwise, and
+ * never more than `MAX_PER_BOARD`: the number is in settings the client writes, and an unbounded
+ * one would reach the headline count of the estimate and the `assets` column of a run.
+ */
+export const boardAssets = (board: BoardView): number =>
+  Math.min(MAX_PER_BOARD, Math.max(0, Math.round(number(board.settings["assets"], 1))));
+
+/**
+ * How many of its output a board makes, which is what the charge is multiplied by. One to
+ * `MAX_PER_BOARD`, as `credit_spend_output` also holds it.
+ */
+export const chargeUnits = (board: BoardView): number =>
+  Math.min(MAX_PER_BOARD, Math.max(1, Math.round(number(board.settings["count"], 1))));
 
 /** What one board costs to run now. A board the platform draws itself is free and says so. */
 export function flowBoardCost(board: BoardView, source: FlowCostSource): number {
@@ -63,8 +82,7 @@ export function flowBoardCost(board: BoardView, source: FlowCostSource): number 
   if (board.kind === "ai_video" && source.perVideoSecond !== null) {
     return Math.max(0, Math.round(source.perVideoSecond * number(board.settings["seconds"], 1)));
   }
-  const count = Math.max(1, Math.round(number(board.settings["count"], 1)));
-  return Math.max(0, Math.round(source.perGeneratedBoard) * count);
+  return Math.max(0, Math.round(source.perGeneratedBoard) * chargeUnits(board));
 }
 
 export interface FlowCostLine {

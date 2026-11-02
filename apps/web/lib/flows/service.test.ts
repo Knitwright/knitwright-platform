@@ -125,6 +125,7 @@ describe("a run", () => {
     await setFlowRunBoard(client, who, {
       runId: RUN,
       boardId: BOARD,
+      kind: "ai_image",
       position: 4,
       status: "failed",
       credits: 0,
@@ -166,6 +167,7 @@ describe("the money", () => {
       p_version_hash: "hash",
       p_output_key: BOARD,
       p_usage_event_id: null,
+      p_units: 1,
     });
   });
 
@@ -224,8 +226,8 @@ describe("reading the last run back", () => {
     created_at: "2026-12-01T10:00:00Z",
     finished_at: "2026-12-01T10:02:00Z",
     flow_run_boards: [
-      { board_id: B2, position: 2, status: "failed", credits: 0, refunded_credits: 1, assets: 1, format: "png", output_file_id: null, reason: "It did not come back.", rule_id: "R-GAP-000" },
-      { board_id: B1, position: 1, status: "ready", credits: 1, refunded_credits: 0, assets: 1, format: "png", output_file_id: FILE, reason: null, rule_id: "R-GAP-000" },
+      { board_id: B2, kind: "ai_image", position: 2, status: "failed", credits: 0, refunded_credits: 1, assets: 1, format: "png", output_file_id: null, spend_entry_id: ENTRY, reason: "It did not come back.", rule_id: "R-GAP-000" },
+      { board_id: B1, kind: "mockup", position: 1, status: "ready", credits: 1, refunded_credits: 0, assets: 1, format: "png", output_file_id: FILE, spend_entry_id: null, reason: null, rule_id: "R-GAP-000" },
     ],
     ...over,
   });

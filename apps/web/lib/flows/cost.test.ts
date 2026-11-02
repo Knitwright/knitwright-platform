@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { affordable, type BoardView } from "@/lib/launch";
-import { boardAssets, boardFormat, boardGeneration, estimateFlow, flowBoardCost, flowCostSource, flowRunLabel } from "./cost";
+import { boardAssets, boardFormat, boardGeneration, chargeUnits, estimateFlow, flowBoardCost, flowCostSource, flowRunLabel, MAX_PER_BOARD } from "./cost";
 import { canvasOfTemplate, withBoard } from "./fixtures/canvas";
 import { STUB_COSTS } from "./stub";
 import { FLOW_GAP_RULE } from "./types";
@@ -22,9 +22,14 @@ const board = (over: Partial<BoardView> = {}): BoardView => ({
 });
 
 describe("how a board says it is made", () => {
-  it("believes the board's own settings before its kind", () => {
+  it("lets a board's own settings make it a model scene, because the spec's mockup table does", () => {
     expect(boardGeneration(board({ settings: { generation: "model" } }))).toBe("model");
-    expect(boardGeneration(board({ kind: "ai_image", settings: { generation: "deterministic" } }))).toBe("deterministic");
+  });
+
+  it("will not let written settings make an AI board free, because the client writes settings", () => {
+    expect(boardGeneration(board({ kind: "ai_image", settings: { generation: "deterministic" } }))).toBe("model");
+    expect(boardGeneration(board({ kind: "ai_video", settings: { generation: "deterministic" } }))).toBe("model");
+    expect(flowBoardCost(board({ kind: "ai_image", settings: { generation: "deterministic" } }), STUB_COSTS)).toBe(1);
   });
 
   it("reads a board nobody made from a template by its kind", () => {
@@ -44,9 +49,16 @@ describe("how a board says it is made", () => {
 });
 
 describe("what one board costs", () => {
-  it("costs nothing when the platform draws it, whatever its kind", () => {
+  it("costs nothing when the platform draws it", () => {
     expect(flowBoardCost(board(), STUB_COSTS)).toBe(0);
-    expect(flowBoardCost(board({ kind: "ai_image", settings: { generation: "deterministic" } }), STUB_COSTS)).toBe(0);
+    expect(flowBoardCost(board({ kind: "marketing" }), STUB_COSTS)).toBe(0);
+    expect(flowBoardCost(board({ kind: "info_card" }), STUB_COSTS)).toBe(0);
+  });
+
+  it("counts no more of an output than a board may claim to make", () => {
+    expect(chargeUnits(board({ settings: { count: 9_000 } }))).toBe(MAX_PER_BOARD);
+    expect(chargeUnits(board({ settings: { count: 0 } }))).toBe(1);
+    expect(boardAssets(board({ settings: { assets: 9_000 } }))).toBe(MAX_PER_BOARD);
   });
 
   it("costs the credit price for a mockup board with an AI scene, which L1's own price would miss", () => {

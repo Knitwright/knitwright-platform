@@ -186,6 +186,9 @@ create table public.flow_run_boards (
   brand_id uuid not null references public.brands (id) on delete cascade,
   run_id uuid not null references public.flow_runs (id) on delete cascade,
   board_id uuid not null references public.boards (id) on delete cascade,
+  -- The board's kind as it was when it ran, so the summary never has to guess it from a canvas read
+  -- that may not hold that board. A guess would read a clip back as a free deterministic render.
+  kind text not null default 'mockup' check (kind in ('design', 'artboard', 'mockup', 'ai_image', 'ai_video', 'marketing', 'info_card')),
   -- Where in the run's order this board came. 1 is first.
   position integer not null check (position between 1 and 1000),
   status text not null default 'queued' check (status in ('queued', 'running', 'ready', 'failed', 'skipped')),
@@ -539,7 +542,7 @@ $$;
 create function public.set_flow_run_board(
   p_brand_id uuid, p_user_id uuid, p_run_id uuid, p_board_id uuid, p_position integer, p_status text,
   p_credits integer, p_refunded integer, p_spend_entry_id uuid, p_assets integer, p_format text,
-  p_output_file_id uuid, p_reason text
+  p_output_file_id uuid, p_reason text, p_kind text default null
 )
 returns uuid
 language plpgsql
@@ -560,12 +563,15 @@ begin
   end if;
 
   insert into public.flow_run_boards
-    (brand_id, run_id, board_id, position, status, credits, refunded_credits, spend_entry_id, assets, format, output_file_id, reason)
+    (brand_id, run_id, board_id, kind, position, status, credits, refunded_credits, spend_entry_id, assets, format, output_file_id, reason)
   values
-    (p_brand_id, p_run_id, p_board_id, p_position, p_status, coalesce(p_credits, 0), coalesce(p_refunded, 0),
+    (p_brand_id, p_run_id, p_board_id,
+     coalesce(p_kind, (select b.kind from public.boards b where b.id = p_board_id), 'mockup'),
+     p_position, p_status, coalesce(p_credits, 0), coalesce(p_refunded, 0),
      p_spend_entry_id, coalesce(p_assets, 1), coalesce(p_format, 'png'), p_output_file_id, p_reason)
   on conflict (run_id, board_id) do update
-     set position = excluded.position,
+     set kind = excluded.kind,
+         position = excluded.position,
          status = excluded.status,
          credits = excluded.credits,
          refunded_credits = excluded.refunded_credits,
@@ -645,7 +651,10 @@ create function public.credit_spend_output(
   p_kind text,
   p_version_hash text,
   p_output_key text,
-  p_usage_event_id uuid default null
+  p_usage_event_id uuid default null,
+  -- How many of that output the board makes: an AI Image board asks for one to four pictures, and
+  -- charging once for four would be a quote the ledger did not keep (spec F-L1's image count).
+  p_units integer default 1
 )
 returns jsonb
 language plpgsql
@@ -654,6 +663,7 @@ set search_path = ''
 as $$
 declare
   v_price integer;
+  v_units integer := coalesce(p_units, 1);
   -- A digest, so a run id, a board id and a version hash together always fit a ledger key. The
   -- prefix differs from `credit_spend`'s, so the two can never land on one key.
   -- The length of the hash goes into the digest as well, so a version and an output key cannot be
@@ -669,10 +679,16 @@ begin
   if p_output_key is null or length(p_output_key) not between 1 and 200 then
     raise exception 'An output is named by a key of 1 to 200 characters.' using errcode = '22023';
   end if;
+  if v_units not between 1 and 64 then
+    raise exception 'A board makes 1 to 64 of an output.' using errcode = '22023';
+  end if;
   select cp.credits into v_price from public.credit_prices cp where cp.output_kind = p_kind;
   if not found then
     raise exception 'No credit price is set for that output.' using errcode = '22023';
   end if;
+  -- The price of the output, times how many of it this board makes. The price itself is never a
+  -- number the caller passes: it is only ever read from `credit_prices`.
+  v_price := v_price * v_units;
   -- Charging a brand's credits is changing its kit, so the same ability the rest of this file asks
   -- for. `credit_spend` asks only for membership; a viewer should not be able to spend.
   if not private.can_manage_kit(p_user_id, p_brand_id) then
@@ -798,17 +814,17 @@ end;
 $$;
 
 revoke all on function public.start_flow_run(uuid, uuid, uuid, text, uuid, integer, text) from public, anon, authenticated;
-revoke all on function public.set_flow_run_board(uuid, uuid, uuid, uuid, integer, text, integer, integer, uuid, integer, text, uuid, text) from public, anon, authenticated;
+revoke all on function public.set_flow_run_board(uuid, uuid, uuid, uuid, integer, text, integer, integer, uuid, integer, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function public.finish_flow_run(uuid, uuid, uuid, text, integer, integer, integer) from public, anon, authenticated;
-revoke all on function public.credit_spend_output(uuid, uuid, text, text, text, uuid) from public, anon, authenticated;
+revoke all on function public.credit_spend_output(uuid, uuid, text, text, text, uuid, integer) from public, anon, authenticated;
 revoke all on function public.credit_refund_spend(uuid, uuid, text) from public, anon, authenticated;
 revoke all on function public.publish_flow_listing(uuid, uuid, uuid, jsonb) from public, anon, authenticated;
 revoke all on function public.collect_flow_listing(uuid) from public, anon, authenticated;
 
 grant execute on function public.start_flow_run(uuid, uuid, uuid, text, uuid, integer, text) to service_role;
-grant execute on function public.set_flow_run_board(uuid, uuid, uuid, uuid, integer, text, integer, integer, uuid, integer, text, uuid, text) to service_role;
+grant execute on function public.set_flow_run_board(uuid, uuid, uuid, uuid, integer, text, integer, integer, uuid, integer, text, uuid, text, text) to service_role;
 grant execute on function public.finish_flow_run(uuid, uuid, uuid, text, integer, integer, integer) to service_role;
-grant execute on function public.credit_spend_output(uuid, uuid, text, text, text, uuid) to service_role;
+grant execute on function public.credit_spend_output(uuid, uuid, text, text, text, uuid, integer) to service_role;
 grant execute on function public.credit_refund_spend(uuid, uuid, text) to service_role;
 grant execute on function public.publish_flow_listing(uuid, uuid, uuid, jsonb) to service_role;
 grant execute on function public.collect_flow_listing(uuid) to service_role;

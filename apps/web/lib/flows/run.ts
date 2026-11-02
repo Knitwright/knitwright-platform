@@ -1,6 +1,6 @@
 import { acceptAsset, garmentSource, inputsOf, isGeneratedKind, type BoardKind, type BoardView, type Graph, type LaunchAsset } from "@/lib/launch";
 import { artworkVerdict } from "./artwork";
-import { boardAssets, boardFormat, boardGeneration, estimateFlow, type FlowCostSource, type FlowEstimate } from "./cost";
+import { boardAssets, boardFormat, boardGeneration, chargeUnits, estimateFlow, type FlowCostSource, type FlowEstimate } from "./cost";
 import { dependentsOf, type ScopeInput } from "./topology";
 import { FLOW_GAP_RULE, type FlowBoardState, type FlowFormat, type FlowRunState, type Generation } from "./types";
 
@@ -57,7 +57,10 @@ export interface FlowCapability {
 
 export interface ChargeInput {
   readonly boardId: string;
+  /** The figure the person was shown for this board. The meter may never take more than this. */
   readonly credits: number;
+  /** How many of its output the board makes, so the ledger charges what the estimate quoted. */
+  readonly units: number;
   readonly request: FlowRunRequest;
 }
 
@@ -93,6 +96,8 @@ export interface FlowRunLine {
   readonly credits: number;
   readonly refunded: number;
   readonly fileId: string | null;
+  /** The credit ledger line this board's charge made, so a run row can name the money it moved. */
+  readonly entryId: string | null;
   /** Why it did not finish, or null. Always a sentence a person can act on. */
   readonly reason: string | null;
   readonly ruleId: string;
@@ -126,10 +131,35 @@ const line = (board: BoardView, state: FlowBoardState, over: Partial<FlowRunLine
   credits: 0,
   refunded: 0,
   fileId: null,
+  entryId: null,
   reason: null,
   ruleId: board.ruleId || FLOW_GAP_RULE,
   ...over,
 });
+
+/**
+ * A capability is somebody else's code reaching a model over a network, so it may reject rather
+ * than answer. A rejection that got out of here would leave a board charged, with no row written
+ * and no refund made, which is the one thing this file exists to prevent. So every call to another
+ * workstream's code is a value, never an exception.
+ */
+async function attempt(deps: RunDeps, request: FlowRunRequest): Promise<FlowOutcome> {
+  try {
+    return await deps.capability.run(request);
+  } catch {
+    return { ok: false, reason: "That board could not be run just now. Nothing was kept, and the credits were given back.", ruleId: FLOW_GAP_RULE };
+  }
+}
+
+/** The same for the recorder: a write that fails is a board that did not finish, not a thrown run. */
+async function write(deps: RunDeps, input: Parameters<FlowRecorder["record"]>[0]): Promise<boolean> {
+  try {
+    await deps.recorder.record(input);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** What each board that feeds this one has, taking this run's own outputs into account. */
 function inputsFor(graph: Graph, boardId: string, produced: ReadonlyMap<string, string>): readonly FlowInputRef[] {
@@ -234,12 +264,20 @@ async function runBoard(deps: RunDeps, context: BoardRun): Promise<FlowRunLine> 
     return line(board, "skipped", { reason: "Connect a Design board first: every picture starts from the design the platform drew." });
   }
 
-  const charge = planned.credits > 0 ? await deps.meter.charge({ boardId: board.id, credits: planned.credits, request }) : null;
+  const charge = planned.credits > 0 ? await deps.meter.charge({ boardId: board.id, credits: planned.credits, units: chargeUnits(board), request }) : null;
   if (charge !== null && !charge.ok) return line(board, "failed", { reason: `${charge.reason} Nothing was charged for this board.` });
   const taken = charge !== null && charge.ok ? charge : null;
-  await deps.recorder.record({ boardId: board.id, kind: board.kind, asset: null, status: "running", credits: null });
+  // The last gate on money: the figure the person was shown is the most that may be taken. A meter
+  // that took more gives it straight back and the board fails, rather than the run carrying on with
+  // a charge nobody agreed to (decision 0096, item 4).
+  if (taken !== null && taken.credits > planned.credits) {
+    return await giveBack(deps, context, taken, `This board turned out to cost ${taken.credits} credits rather than the ${planned.credits} you were shown, so it was not run and the credits were given back.`, FLOW_GAP_RULE);
+  }
+  if (!(await write(deps, { boardId: board.id, kind: board.kind, asset: null, status: "running", credits: null }))) {
+    return await giveBack(deps, context, taken, "That board's status could not be saved, so it was not run.", FLOW_GAP_RULE);
+  }
 
-  const outcome = await deps.capability.run(request);
+  const outcome = await attempt(deps, request);
   if (!outcome.ok) return await giveBack(deps, context, taken, outcome.reason, outcome.ruleId);
   return acceptOutput(deps, context, outcome.asset, taken);
 }
@@ -249,9 +287,15 @@ type Taken = Readonly<{ credits: number; entryId: string | null }> | null;
 /** A board that did not finish: the credits go back before the next board starts, and the line says so. */
 async function giveBack(deps: RunDeps, context: BoardRun, taken: Taken, reason: string, ruleId: string): Promise<FlowRunLine> {
   const { board } = context;
-  const refunded = taken === null ? 0 : await deps.meter.refund({ boardId: board.id, entryId: taken.entryId, credits: taken.credits });
-  await deps.recorder.record({ boardId: board.id, kind: board.kind, asset: null, status: "failed", credits: 0 });
-  return line(board, "failed", { reason, ruleId, credits: Math.max(0, (taken?.credits ?? 0) - refunded), refunded });
+  const refunded = taken === null ? 0 : await deps.meter.refund({ boardId: board.id, entryId: taken.entryId, credits: taken.credits }).catch(() => 0);
+  await write(deps, { boardId: board.id, kind: board.kind, asset: null, status: "failed", credits: 0 });
+  return line(board, "failed", {
+    reason,
+    ruleId,
+    credits: Math.max(0, (taken?.credits ?? 0) - refunded),
+    refunded,
+    entryId: taken?.entryId ?? null,
+  });
 }
 
 /**
@@ -268,6 +312,8 @@ async function acceptOutput(deps: RunDeps, context: BoardRun, asset: LaunchAsset
   if (!verdict.accepted) return await giveBack(deps, context, taken, verdict.reason, verdict.ruleId);
   const branch = artworkVerdict(graph, board.id, verdict.role);
   if (!branch.allowed) return await giveBack(deps, context, taken, branch.reason, branch.ruleId);
-  await deps.recorder.record({ boardId: board.id, kind: board.kind, asset, status: "ready", credits: taken?.credits ?? 0 });
-  return line(board, "ready", { credits: taken?.credits ?? 0, fileId: asset.file.fileId });
+  if (!(await write(deps, { boardId: board.id, kind: board.kind, asset, status: "ready", credits: taken?.credits ?? 0 }))) {
+    return await giveBack(deps, context, taken, "That board's picture could not be saved, so it was not kept.", FLOW_GAP_RULE);
+  }
+  return line(board, "ready", { credits: taken?.credits ?? 0, fileId: asset.file.fileId, entryId: taken?.entryId ?? null });
 }

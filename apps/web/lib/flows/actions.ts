@@ -14,8 +14,7 @@ import { planOperation } from "./operations";
 import { applyFlowTemplateBody, flowOperationBody, publishFlowListingBody, runFlowBody } from "./schemas";
 import { applyFlowTemplate, publishFlowListing } from "./service";
 import { runFlowForBrand } from "./server";
-import { flowCostSource } from "./cost";
-import { estimateFlow } from "./cost";
+import { estimateFlow, flowCostSource } from "./cost";
 
 /**
  * The flow actions (plan v5 L6, decision 0096). The brand and the person come from the session; the
@@ -102,8 +101,9 @@ export const flowOperationAction = defineAction({
       ...(input.presetKey === undefined ? {} : { presetKey: input.presetKey }),
     });
     if (plan === null) throw new AppError("conflict", "That cannot be done to this board yet. The task bar says why.");
-    // The change is saved; the board is then rerun from it, so the operation is charged, refunded
-    // and recorded exactly like any other run.
+    // The change is saved and the board is then rerun from it, so the operation is charged,
+    // refunded and recorded exactly like any other run. The canvas is read again in between,
+    // because the run has to see the settings the operation just saved.
     await saveBoard(adminClient(), whoOf(session), {
       launchProjectId: input.launchProjectId,
       boardId: board.id,
@@ -116,8 +116,19 @@ export const flowOperationAction = defineAction({
       settings: plan.settings,
       inputVersion: board.inputVersion,
     });
+    const after = await canvasOf(session.brand.id, input.launchProjectId);
+    const outcome = await runFlowForBrand(
+      { admin: adminClient(), who: whoOf(session) },
+      {
+        launchProjectId: input.launchProjectId,
+        graph: { boards: after.project.boards, edges: after.project.edges },
+        scope: { from: board.id, scope: "board" },
+        template: null,
+        costs: flowCostSource(after.costs),
+      },
+    );
     refresh(input.launchProjectId);
-    return { credits: plan.credits, note: plan.note };
+    return { credits: outcome.report.spent, refunded: outcome.report.refunded, state: outcome.report.state, note: plan.note };
   },
 });
 

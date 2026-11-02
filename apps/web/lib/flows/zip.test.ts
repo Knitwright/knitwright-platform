@@ -73,6 +73,35 @@ describe("the zip itself", () => {
 
   it("is a zip with nothing but the contents list when nothing finished", () => {
     expect(Object.keys(unzipSync(flowZip([])))).toEqual(["contents.txt"]);
-    expect(contentsText([], [])).toContain("one flow run");
+    expect(contentsText([])).toContain("one flow run");
+  });
+
+  it("keeps every file of a board that makes several, each with its own bytes", () => {
+    const four = [1, 2, 3, 4].map((at) => ({ boardId: "scene", name: "City street", format: "png" as const, bytes: bytes(`picture ${at}`), label: "AI-generated" }));
+    const files = unzipSync(flowZip(four));
+
+    expect(Object.keys(files).sort()).toEqual([
+      "contents.txt",
+      "png/city-street-2.png",
+      "png/city-street-3.png",
+      "png/city-street-4.png",
+      "png/city-street.png",
+    ]);
+    expect([...new Set(Object.values(files).map((one) => strFromU8(one as Uint8Array)))].length).toBe(5);
+  });
+
+  it("numbers past a name that already ends in the number it was about to use", () => {
+    const clash = [
+      { boardId: "a", name: "Front render", format: "png" as const, bytes: bytes("a"), label: null },
+      { boardId: "b", name: "Front render", format: "png" as const, bytes: bytes("b"), label: null },
+      { boardId: "c", name: "Front render 2", format: "png" as const, bytes: bytes("c"), label: null },
+    ];
+
+    expect(exportPaths(clash).map((file) => file.path).sort()).toEqual([
+      "png/front-render-2-2.png",
+      "png/front-render-2.png",
+      "png/front-render.png",
+    ]);
+    expect(Object.keys(unzipSync(flowZip(clash))).length).toBe(4);
   });
 });

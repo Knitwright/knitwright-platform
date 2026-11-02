@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { acceptAsset, type BoardKind, type BoardLink, type BoardView, type Graph, type LaunchAsset } from "@/lib/launch";
-import { artworkVerdict, carriesGenerated, generatedUpstream, roleFor } from "./artwork";
+import { artworkVerdict, carriesGenerated, generatedUpstream, roleWanted } from "./artwork";
 import { runFlow } from "./run";
 import { STUB_COSTS, stubCapability, stubMeter, stubRecorder } from "./stub";
 import { FLOW_GAP_RULE } from "./types";
@@ -85,11 +85,14 @@ describe("what a chain of boards carries", () => {
     }
   });
 
-  it("gives a picture on such a board the only role it may have", () => {
+  it("says what a picture is asking for and refuses it, rather than quietly giving it a lesser role", () => {
     const graph = chain();
+    const onPost = roleWanted(graph, "post", printFile());
+    const onMockup = roleWanted(graph, "mockup", printFile());
 
-    expect(roleFor(graph, "post", printFile())).toBe("asset");
-    expect(roleFor(graph, "mockup", printFile())).toBe("print_file");
+    expect(onPost.role).toBe("print_file");
+    expect(onPost.verdict.allowed).toBe(false);
+    expect(onMockup).toEqual({ role: "print_file", verdict: { allowed: true } });
   });
 
   it("is not confused by a loop written straight into the database", () => {

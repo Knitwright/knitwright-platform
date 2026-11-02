@@ -41,38 +41,41 @@ export interface ExportFile {
   /** Where it sits in the zip: `<format>/<name>.<format>`. */
   readonly path: string;
   readonly label: string | null;
+  /**
+   * The output this path is for. It is carried here rather than looked back up by `boardId`,
+   * because one board can produce more than one file (an AI Image board asks for up to four), and
+   * a lookup by board would then write every one of them from the same bytes.
+   */
+  readonly entry: ExportEntry;
 }
 
 /**
- * Where each output goes in the zip. One folder per format, and a name used twice gets a number, so
- * two boards called "Front render" do not become one file.
+ * Where each output goes in the zip. One folder per format, and a name already used gets a number
+ * until the whole path is free -- so two boards called "Front render" do not become one file, and a
+ * third called "Front render 2" does not land on the second one's number either.
  */
 export function exportPaths(entries: readonly ExportEntry[]): readonly ExportFile[] {
-  const taken = new Map<string, number>();
+  const used = new Set<string>();
   return [...entries]
     .sort((a, b) => FLOW_FORMATS.indexOf(a.format) - FLOW_FORMATS.indexOf(b.format) || a.name.localeCompare(b.name) || a.boardId.localeCompare(b.boardId))
     .map((entry) => {
       const base = `${entry.format}/${safeName(entry.name)}`;
-      const seen = taken.get(base) ?? 0;
-      taken.set(base, seen + 1);
-      const suffix = seen === 0 ? "" : `-${seen + 1}`;
-      return { boardId: entry.boardId, path: `${base}${suffix}.${entry.format}`, label: entry.label };
+      let path = `${base}.${entry.format}`;
+      for (let at = 2; used.has(path); at += 1) path = `${base}-${at}.${entry.format}`;
+      used.add(path);
+      return { boardId: entry.boardId, path, label: entry.label, entry };
     });
 }
 
 /** The list inside the zip: every file, the board it came from, and its label where it has one. */
-export function contentsText(entries: readonly ExportEntry[], files: readonly ExportFile[]): string {
-  const byBoard = new Map(entries.map((entry) => [entry.boardId, entry]));
+export function contentsText(files: readonly ExportFile[]): string {
   const lines = [
     "Knitwright launch pack: every output of one flow run, in a folder per format.",
     "A file marked AI-generated holds a scene a model made. The garment in it is the one the platform drew.",
     "An AI-made picture is never artwork: it does not go on a panel and it is not part of a print file.",
     "",
   ];
-  for (const file of files) {
-    const entry = byBoard.get(file.boardId);
-    lines.push(`${file.path}\t${entry?.name ?? file.boardId}${file.label ? `\t${file.label}` : ""}`);
-  }
+  for (const file of files) lines.push(`${file.path}\t${file.entry.name}${file.label ? `\t${file.label}` : ""}`);
   lines.push("");
   return lines.join("\r\n");
 }
@@ -80,14 +83,9 @@ export function contentsText(entries: readonly ExportEntry[], files: readonly Ex
 /** The zip itself: a folder per format, plus contents.txt. The same outputs give the same bytes. */
 export function flowZip(entries: readonly ExportEntry[]): Uint8Array {
   const files = exportPaths(entries);
-  const byBoard = new Map(entries.map((entry) => [entry.boardId, entry]));
-  const tree: Zippable = { "contents.txt": [text(contentsText(entries, files)), { level: 6, mtime: FIXED_TIME }] };
-  for (const file of files) {
-    const entry = byBoard.get(file.boardId);
-    if (!entry) continue;
-    // Pictures and clips are already compressed, so storing them again only costs time.
-    tree[file.path] = [entry.bytes, { level: 0, mtime: FIXED_TIME }];
-  }
+  const tree: Zippable = { "contents.txt": [text(contentsText(files)), { level: 6, mtime: FIXED_TIME }] };
+  // Pictures and clips are already compressed, so storing them again only costs time.
+  for (const file of files) tree[file.path] = [file.entry.bytes, { level: 0, mtime: FIXED_TIME }];
   return zipSync(tree);
 }
 

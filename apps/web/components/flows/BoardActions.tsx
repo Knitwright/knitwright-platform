@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { operationsFor, planOperation, UPSCALE_FACTORS, type FlowCostSource, type OperationId } from "@/lib/flows";
+import { DEFAULT_UPSCALE, operationsFor, planOperation, UPSCALE_FACTORS, type FlowCostSource, type OperationId } from "@/lib/flows";
 import { aspectOf, presetSize, type ArtboardPreset, type BoardView, type Graph } from "@/lib/launch";
 
 /**
@@ -26,10 +26,20 @@ export type BoardActionsProps = Readonly<{
 const CHIP = "chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-3 text-[12px] text-ink";
 
 export function BoardActions({ graph, board, source, presets, busy, onOperation }: BoardActionsProps) {
-  const [factor, setFactor] = useState<number>(UPSCALE_FACTORS[0] as number);
-  const [presetKey, setPresetKey] = useState<string>(presets[0]?.key ?? "");
-  const options = { factor, presetKey };
+  const [factor, setFactor] = useState<number>(DEFAULT_UPSCALE);
+  const [chosen, setChosen] = useState<string | null>(null);
+  /**
+   * Derived, not initialised: the artboard rows arrive from the server, so a state set once from
+   * `presets[0]` would stay empty on the first paint and then disagree with the `<select>` the
+   * person is looking at. Reframe would be refused for a shape the screen shows as picked.
+   */
+  const presetKey = chosen ?? presets[0]?.key ?? "";
+  const options = { factor, ...(presetKey === "" ? {} : { presetKey }) };
   const offers = operationsFor({ graph, board, source, presets, ...options });
+
+  /** Only what the operation needs: a key the schema would refuse must not ride along with Flatten. */
+  const optionsFor = (id: OperationId): Readonly<{ factor?: number; presetKey?: string }> =>
+    id === "upscale" ? { factor } : id === "reframe" && presetKey !== "" ? { presetKey } : {};
 
   return (
     <section aria-label="This board" data-testid="flow-board-actions" className="flex flex-col gap-2">
@@ -45,7 +55,7 @@ export function BoardActions({ graph, board, source, presets, busy, onOperation 
                   type="button"
                   disabled={busy || offer.blocked !== null}
                   aria-describedby={`flow-op-why-${offer.id}`}
-                  onClick={() => onOperation(offer.id, options)}
+                  onClick={() => onOperation(offer.id, optionsFor(offer.id))}
                   className={CHIP}
                   data-testid={`flow-op-${offer.id}`}
                 >
@@ -84,7 +94,7 @@ export function BoardActions({ graph, board, source, presets, busy, onOperation 
                   <select
                     value={presetKey}
                     disabled={busy}
-                    onChange={(event) => setPresetKey(event.target.value)}
+                    onChange={(event) => setChosen(event.target.value)}
                     className="min-h-10 rounded-xl border border-white/20 bg-surface-solid px-2 text-[12px] text-ink"
                     data-testid="flow-reframe-preset"
                   >

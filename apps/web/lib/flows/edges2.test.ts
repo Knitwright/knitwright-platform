@@ -37,7 +37,7 @@ describe("a saved run with gaps in it", () => {
           created_at: "2026-12-01T10:00:00Z",
           finished_at: null,
           flow_run_boards: [
-            { board_id: BOARD, position: 1, status: "running", credits: 0, refunded_credits: 0, assets: 1, format: "png", output_file_id: null, reason: null, rule_id: "" },
+            { board_id: BOARD, kind: "mockup", position: 1, status: "running", credits: 0, refunded_credits: 0, assets: 1, format: "png", output_file_id: null, spend_entry_id: null, reason: null, rule_id: "" },
           ],
         },
       },
@@ -111,7 +111,7 @@ describe("the odd values a card and a zip can hold", () => {
       { boardId: "clip", name: "Walk-out", format: "mp4" as const, bytes: new Uint8Array([1]), label: "AI-generated" },
       { boardId: "render", name: "Front render", format: "png" as const, bytes: new Uint8Array([2]), label: null },
     ];
-    const written = contentsText(entries, exportPaths(entries));
+    const written = contentsText(exportPaths(entries));
 
     expect(written.indexOf("png/front-render.png")).toBeLessThan(written.indexOf("mp4/walk-out.mp4"));
     expect(written).toContain("mp4/walk-out.mp4\tWalk-out\tAI-generated");

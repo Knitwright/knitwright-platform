@@ -74,11 +74,15 @@ export function artworkVerdict(graph: Graph, boardId: string, role: OutputRole):
 }
 
 /**
- * The role a finished picture may take on this board. `acceptAsset` has already said what the asset
- * itself may be; this narrows it to what the branch behind the board allows, so a chain can never
- * end in artwork that a model touched.
+ * What role a finished picture is asking for, and whether this board's branch allows it.
+ *
+ * It deliberately does **not** hand back a quieter role when the answer is no. Downgrading an
+ * artwork role to an asset was considered and rejected (decision 0096): a print file that silently
+ * became an asset is a surprise in a factory file later, so the run fails the board, says why and
+ * gives the credits back. A caller cannot ignore this answer, because there is nothing in it to use
+ * except the refusal.
  */
-export function roleFor(graph: Graph, boardId: string, asset: LaunchAsset): OutputRole {
-  const wanted: OutputRole = asset.role === "scene" ? "asset" : asset.role;
-  return artworkVerdict(graph, boardId, wanted).allowed ? wanted : "asset";
+export function roleWanted(graph: Graph, boardId: string, asset: LaunchAsset): Readonly<{ role: OutputRole; verdict: ArtworkVerdict }> {
+  const role: OutputRole = asset.role === "scene" ? "asset" : asset.role;
+  return { role, verdict: artworkVerdict(graph, boardId, role) };
 }

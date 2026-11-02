@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BoardKind, BoardLink, BoardView, Graph } from "@/lib/launch";
-import { artworkVerdict, roleFor } from "./artwork";
+import { artworkVerdict, roleWanted } from "./artwork";
 import { connectorsOf, inputDot } from "./canvas";
 import { estimateFlow } from "./cost";
 import { canvasOfTemplate, withBoard } from "./fixtures/canvas";
@@ -61,7 +61,7 @@ describe("the odd corners of the maths", () => {
     expect(inputDot(post, 0)).toEqual(inputDot(post, 1));
   });
 
-  it("gives a generated asset the only role it may have, whatever it says it is", () => {
+  it("reads a generated asset as asking for nothing but an asset, whatever it says it is", () => {
     const graph: Graph = { boards: [board("scene", "ai_image")], edges: [] };
     const generated = {
       role: "scene",
@@ -71,7 +71,7 @@ describe("the odd corners of the maths", () => {
       showsPerson: false,
     } as const;
 
-    expect(roleFor(graph, "scene", generated)).toBe("asset");
+    expect(roleWanted(graph, "scene", generated)).toEqual({ role: "asset", verdict: { allowed: true } });
   });
 
   it("falls back to the board's own rule when a board carries none", () => {
