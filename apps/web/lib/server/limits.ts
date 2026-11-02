@@ -106,4 +106,16 @@ export const LIMITS = {
   jobPacketRecordLink: { name: "job-packet-record-link", limit: 60, windowSeconds: 10 * MINUTE },
   jobPacketPhoto: { name: "job-packet-photo", limit: 20, windowSeconds: 10 * MINUTE },
   jobPacketPhotoLink: { name: "job-packet-photo-link", limit: 40, windowSeconds: 10 * MINUTE },
+  // Committee links and roster sign-up (plan v5 Z7, decision 0086). The committee and the players
+  // have no account: the pages are drawn on the server and the writes are guarded by the bot check
+  // and a limit per address, and the writes per link as well, so one leaked link cannot be used
+  // from many addresses to flood one design or one season.
+  manageCommitteeLink: { name: "manage-committee-link", limit: 60, windowSeconds: 10 * MINUTE },
+  committeeView: { name: "committee-view", limit: 60, windowSeconds: MINUTE },
+  committeeWrite: { name: "committee-write", limit: 20, windowSeconds: 10 * MINUTE },
+  committeeWriteLink: { name: "committee-write-link", limit: 120, windowSeconds: 10 * MINUTE },
+  manageRosterSignup: { name: "manage-roster-signup", limit: 60, windowSeconds: 10 * MINUTE },
+  rosterSignupView: { name: "roster-signup-view", limit: 60, windowSeconds: MINUTE },
+  rosterSignupWrite: { name: "roster-signup-write", limit: 10, windowSeconds: 10 * MINUTE },
+  rosterSignupWriteLink: { name: "roster-signup-write-link", limit: 120, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
