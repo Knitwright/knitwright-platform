@@ -40,6 +40,8 @@ import {
   saveLaunchProjectAction,
   saveLaunchVersionAction,
 } from "@/lib/launch/actions";
+import { runFlowAction } from "@/lib/flows/actions";
+import { freePlace } from "./placing";
 
 /**
  * The launch shell's own state and the one place every command of the contract is carried out.
@@ -96,6 +98,14 @@ export interface ShellInput {
   readonly state: LaunchState;
   readonly credits: number | null;
   readonly costs: LaunchCostSource;
+  /**
+   * The workstream that really runs a board, or null for a kind nobody has wired yet.
+   *
+   * Decision 0091 item 6 stands: the shell still makes no call of its own. It checks the garment
+   * lock and the cost, and only then hands the board to whoever owns its capability -- today L2's
+   * deterministic mockup renderer. A kind with no runner gets the shell's honest note instead.
+   */
+  readonly runner?: (board: BoardView) => (() => Promise<Reply>) | null;
 }
 
 /** What the shell is telling the person now: a refusal to act on, or a change that landed. */
@@ -104,6 +114,7 @@ export type Note = Readonly<{ tone: "warn" | "ok"; text: string }> | null;
 export function useLaunchShell(input: ShellInput) {
   const router = useRouter();
   const path = usePathname();
+  const runner = input.runner;
   const [state, setState] = useState(input.state);
   const [stack, setStack] = useState<UndoStack<Frame>>(() => started(frameOf(input.boards, input.units, input.colours)));
   const [note, setNote] = useState<Note>(null);
@@ -173,9 +184,10 @@ export function useLaunchShell(input: ShellInput) {
   );
 
   /**
-   * A run the shell has checked but does not carry out. The garment lock and the cost are the
-   * shell's; the paid call itself belongs to the workstream that owns the board's capability, so
-   * the shell says who will do it rather than pretending to have done it.
+   * A run the shell has checked. The garment lock and the cost are the shell's; the call itself
+   * belongs to the workstream that owns the board's capability, which answers through `runner`. A
+   * kind nobody has wired yet is told the truth -- the cost, that nothing has been spent, and that
+   * the panel that would run it is not built -- rather than being left to look broken.
    */
   const askToRun = useCallback(
     (boardId: string, downstream: boolean) => {
@@ -186,18 +198,21 @@ export function useLaunchShell(input: ShellInput) {
       const estimate = estimateRun(input.graph, boardId, input.costs, downstream);
       const purse = affordable(estimate, input.credits);
       if (!purse.affordable) return setNote({ tone: "warn", text: purse.reason });
+      const run = downstream ? null : runner?.(board) ?? null;
+      if (run) return send(run);
       setNote({
         tone: "ok",
         text: `This ${BOARDS[board.kind].label} board is ready to run for ${estimate.credits === 0 ? "nothing" : `${estimate.credits} credits`}, and nothing has been spent. The panel that runs it is not built yet.`,
       });
     },
-    [boardById, input.costs, input.credits, input.graph],
+    [boardById, input.costs, input.credits, input.graph, runner, send],
   );
 
   const commands = {
     addBoard: (kind: BoardKind, at: Point, fromBoardId?: string) =>
       structural(async () => {
-        const added = await saveBoardAction({ launchProjectId: input.launchProjectId, boardId: null, kind, name: "", x: at.x, y: at.y, settings: {}, inputVersion: null }).catch(() => null);
+        const place = freePlace(input.boards, at);
+        const added = await saveBoardAction({ launchProjectId: input.launchProjectId, boardId: null, kind, name: "", x: place.x, y: place.y, settings: {}, inputVersion: null }).catch(() => null);
         if (!added?.success || !fromBoardId) return added;
         return connectLaunchBoardsAction({ launchProjectId: input.launchProjectId, fromBoardId, toBoardId: added.data.id, inputIndex: 1 });
       }),
@@ -303,7 +318,18 @@ export function useLaunchShell(input: ShellInput) {
     });
   }, [input.launchProjectId]);
 
-  return { state, stack, commands, note, saveVersion, prompt, setPrompt, setNote, busy: pending };
+  /**
+   * Run all, from the run summary panel (L6, decision 0096). Not part of the contract either: a
+   * panel asks the shell to run one board, and the whole canvas is the canvas's own button. The
+   * figure the person was shown goes with it, and L6's action refuses the run when its own estimate
+   * disagrees -- so a run can never cost more than the number on the button.
+   */
+  const runCanvas = useCallback(
+    (shownCredits: number) => send(() => runFlowAction({ launchProjectId: input.launchProjectId, boardId: null, scope: "all", shownCredits })),
+    [input.launchProjectId, send],
+  );
+
+  return { state, stack, commands, note, saveVersion, runCanvas, prompt, setPrompt, setNote, busy: pending };
 }
 
 export type LaunchShellState = ReturnType<typeof useLaunchShell>;

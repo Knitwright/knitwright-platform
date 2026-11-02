@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import { accessible, headerFitsAtEveryWidth, openAccountMenu, openStudioSection } from "./chrome";
+import { accessible, headerFitsAtEveryWidth, openAccountMenu, openStudioSection, settled } from "./chrome";
 import { createAccount, signIn, test } from "./support";
 
 /**
@@ -156,6 +156,9 @@ test.describe("the top bar on a phone", () => {
      * but the browser tests are not on the pull-request gate, so the chrome asserts its own.
      */
     const home = bar(page).getByRole("link", { name: "Knitwright", exact: true });
+    // Measured after the entrance, not during it: `kw-rise` starts at scale(0.985), so this link
+    // measures 39.4 while it plays and rounds to 39. See `settled` in `chrome.ts`.
+    await settled(page);
     const box = await home.boundingBox();
     expect(box, "the top bar's way home has no box").not.toBeNull();
     expect(Math.round(box?.width ?? 0), "the way home is this wide").toBeGreaterThanOrEqual(40);

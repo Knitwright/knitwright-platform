@@ -23,16 +23,23 @@ const SHARE_TOKEN = /(\/s\/)[A-Za-z0-9_-]{43}/g;
 /** The token in a factory's job packet address, page or download (decision 0072). */
 const JOB_TOKEN = /(\/job\/)[A-Za-z0-9_-]{43}/g;
 
+/**
+ * The token in a roster sign-up address (plan v5 Z7, decision 0087). The same rule as a share
+ * link: whoever holds it can read the club's season and write a player's name, and with the name
+ * the phone number and address the manager gave. It was the one token page left out of here.
+ */
+const SIGNUP_TOKEN = /(\/join\/)[A-Za-z0-9_-]{43}/g;
+
 /** Values that follow a telling name. The name stays, so the log still says what was there. */
 const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[^\s&"',;]+/g;
 
 /**
  * Removes keys and tokens from text that leaves the server: the log, and error monitoring.
  *
- * **The specific patterns run before the generic ones, and the order is load-bearing.** A share or
- * job token is 43 characters of base64url, so about one in thirteen thousand of them contains `sk-`
+ * **The specific patterns run before the generic ones, and the order is load-bearing.** A share, job
+ * or sign-up token is 43 characters of base64url, so about one in thirteen thousand contains `sk-`
  * followed by twenty more — and the generic provider-key pattern would eat that tail, leaving a
- * fragment the `/s/` and `/job/` patterns no longer match. The token still did not reach the log, so
+ * fragment the `/s/`, `/job/` and `/join/` patterns no longer match. The token still did not reach the log, so
  * nothing leaked; what broke was the path, and with it the only part of the line that says what was
  * asked for. It surfaced as `job-packet/headers.test.ts` failing about once in thirteen thousand
  * runs with a random token, which is exactly how long it takes to find a bug like this by accident.
@@ -42,7 +49,7 @@ const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[
 export const scrub = (text: string): string =>
   SECRETS.reduce(
     (cleaned, pattern) => cleaned.replace(pattern, "[removed]"),
-    text.replace(SHARE_TOKEN, "$1[removed]").replace(JOB_TOKEN, "$1[removed]"),
+    text.replace(SHARE_TOKEN, "$1[removed]").replace(JOB_TOKEN, "$1[removed]").replace(SIGNUP_TOKEN, "$1[removed]"),
   ).replace(LABELLED, "$1[removed]");
 
 type Described = Readonly<Record<string, unknown>>;

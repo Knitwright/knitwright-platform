@@ -92,6 +92,9 @@ const nextConfig: NextConfig = {
     // A factory's job packet (decision 0072) carries its token in the address in the same way.
     { source: "/job/:token", headers: SHARE_HEADERS },
     { source: "/api/job/:token/:path*", headers: SHARE_HEADERS },
+    // A club's roster sign-up link (plan v5 Z7, decision 0087) carries its token the same way, and
+    // the page it opens writes a player's name. It was the one token page with no rule of its own.
+    { source: "/join/:token", headers: SHARE_HEADERS },
   ],
 };
 
