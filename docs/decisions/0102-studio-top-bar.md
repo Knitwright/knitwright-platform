@@ -5,6 +5,7 @@ browser tests; Benchmarks keeps its sidebar entry as well; owner questions liste
 Index: Proposed; the bar's sections go from 625 px to 389 px and the account cluster from three controls to one, Teamwear, Launch and Benchmarks get the entry each workstream was waiting for, Collect deliberately gets none, the inline-link contrast pattern swept and five pages scanned for the first time, owner questions listed
 Index title: The studio top bar: one account menu, an overflow menu, and room to grow
 Date: 2026-11-02
+Pull request: #134
 Plan step: shared chrome. No workstream owns it: it was `plans/platform-v5.md`'s one unowned file, and four pull
 requests and three workstreams were waiting on it. Answers decision 0079 owner question 5, decision 0086 owner
 question 8 and decision 0091 owner question 5. Builds on decisions 0064 (the phone), 0074 (the studio sidebar),
