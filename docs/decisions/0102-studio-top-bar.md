@@ -118,7 +118,7 @@ its glass by 374 px at 768 and 118 px at 1024 the whole time**, because the bar 
     underlined too.
 
     A bold cobalt link measures clean — axe 4.14 counts a font-weight difference as distinguishing — so
-    `AuthCard`'s `TextLink`, `KitStylesLink` and the kit-style gallery's back link are left alone. Eight links of
+    `AuthCard`'s `TextLink`, `KitStylesLink` and the kit-style gallery's back link are left alone. Ten links of
     their own (not inside a block of text, so `link-in-text-block` does not apply) keep `soft-link text-cobalt-soft`
     and are listed in owner question 3 with their figure, because the single fix for all of them is a change to
     `.soft-link` across the whole product and that is not this change's to make.
@@ -185,11 +185,11 @@ present, and nothing was added to the repository for it.
    width. Keeping both is the state this change leaves; dropping the sidebar one is a one-line change in
    `lib/home/sidebar.ts`, which is Y1's file.
 3. **`.soft-link`'s `opacity: 0.9` is a contrast change, not just a finish.** It takes `--cobalt-soft` from AA to
-   **3.92:1** over the brightest part of the aurora, and every one of the eight remaining `soft-link text-cobalt-soft`
+   **3.92:1** over the brightest part of the aurora, and every one of the ten remaining `soft-link text-cobalt-soft`
    links carries that figure: the two launch error pages, the launch home's table, the launch history's two links,
-   the collections table, `BrandTab`'s two "Manage brand" links and `StyleCard`'s. None of them is inside a block of
-   text, so none fails `link-in-text-block`, and none of their pages is scanned today — but each will fail a
-   `color-contrast` scan wherever the aurora behind it is bright. The one fix for all of them is one line of
+   the collections table, `BrandTab`'s two "Manage brand" links, `StyleCard`'s and the factory file's "Back to the
+   design". None of them is inside a block of text, so none fails `link-in-text-block`, and none of their pages is
+   scanned today — but each will fail a `color-contrast` scan wherever the aurora behind it is bright. The one fix for all of them is one line of
    `globals.css`: stop dimming a link by a tenth at rest and settle something other than its colour on hover. That
    changes the hover of about forty links across the product, so it is the owner's call, not this change's.
 4. **Should the account menu show who is signed in without being opened?** The address was in the row and is now the
