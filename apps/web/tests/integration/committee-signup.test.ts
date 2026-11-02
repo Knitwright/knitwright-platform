@@ -788,7 +788,10 @@ describe("set_roster_signup_requests", () => {
       string,
       unknown
     >[];
-    expect(rows[0]).toEqual({ name: "N".repeat(40), phone: "+441632960000", email: "" });
+    // Every digit is kept as the club wrote it. The "(0)" of a British number is not dropped: what
+    // that zero means depends on where the number is being dialled from, and guessing it would send
+    // a player's chase to a number nobody typed. The club sees the number before they press send.
+    expect(rows[0]).toEqual({ name: "N".repeat(40), phone: "+4401632960000", email: "" });
     expect(rows[1]).toEqual({ name: "TabName", phone: "", email: "sam@example.test" });
   });
 

@@ -38,7 +38,12 @@ export function fillTemplate(text: string, words: ChaseWords): string {
     .replaceAll("{link}", words.link);
 }
 
-/** Only digits and a leading plus reach an address, so nothing a club pasted can change it. */
+/**
+ * Only digits reach an address, so nothing a club pasted can change where it goes. Every digit the
+ * club wrote is kept: the "(0)" of a British number is not dropped, because what that zero means
+ * depends on where the number is dialled from, and guessing it would open a chat with a number
+ * nobody typed. The club sees who they are messaging before they press send.
+ */
 export const phoneDigits = (phone: string): string => phone.replace(/[^0-9]/g, "");
 
 /**
