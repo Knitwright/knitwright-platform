@@ -46,8 +46,9 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
       </p>
       <FindingList findings={data.findings} />
       {moveProblem ? <Notice tone="warn" role="alert">{moveProblem}</Notice> : null}
-      {/* The moves this panel offers come from `lib/validation/status.ts`, so the panel cannot
-          forget a status the route accepts: "Accept for ordering" was missing before. */}
+      {/* The moves this panel offers come from `lib/validation/moves.ts`, which a test holds to the
+          status rules, so the panel cannot forget a status the route accepts: "Accept for ordering"
+          was missing before. */}
       {panelMoves(data.status).length === 0 ? null : (
         <div className="flex flex-wrap gap-2">
           {panelMoves(data.status).map((entry) => (
