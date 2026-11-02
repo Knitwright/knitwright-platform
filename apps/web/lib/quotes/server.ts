@@ -69,14 +69,17 @@ export async function buildQuoteFor(deps: QuoteDeps, ask: QuoteAsk): Promise<Quo
     qty: line.qty,
     ladder: ladderFor(snapshot, line.articleCode),
   }));
-  const capability = snapshot === null ? undefined : capabilityFor(snapshot, ask.lines[0]?.articleCode ?? "");
+  // A kit ships when its slowest part is done, so the lead time is the longest of the lines, and it
+  // is "not set" while any line's own factory capability has none.
+  const leadTimes = snapshot === null ? [] : ask.lines.map((line) => capabilityFor(snapshot, line.articleCode)?.leadTimeDays ?? null);
+  const leadTimeDays = leadTimes.length === 0 || leadTimes.includes(null) ? null : Math.max(...leadTimes.map((days) => days ?? 0));
   const promised = promisedDate({
     orderAt: deps.now(),
     // Every launch article is Class A (decision 0066), and a Class A order starts at the next cut-off.
     productionClass: "A",
     timeZone: factory?.timeZone ?? "UTC",
     cutoff: settings.cutoff,
-    leadTimeDays: capability?.leadTimeDays ?? null,
+    leadTimeDays,
     qcDays: settings.qcDays,
     freightDays: rule?.freightDays ?? null,
   });

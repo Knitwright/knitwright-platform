@@ -1,3 +1,4 @@
+import { DEFAULT_MARKET } from "@/lib/home/market";
 import { configuratorHref, kitStateOf } from "@/lib/teamwear/address";
 import { quoteHref } from "@/lib/quotes/download";
 import { kitParts } from "@/lib/teamwear/kit";
@@ -107,7 +108,10 @@ export function kitCardView(one: ValidatedCandidate, clubName: string | null): K
     href: configuratorHref({ sportId: candidate.sportId, part: "shirt", kit: kitStateOf(candidate.kit, "shirt") }),
     quoteHref: quoteHref({
       sportId: candidate.sportId,
-      currency: "GBP",
+      // This screen has no market selector, so a quote is asked for in the market the catalogue and
+      // the configurator open in. A club in another market changes it in the configurator, which is
+      // where the price is shown.
+      currency: DEFAULT_MARKET.currency,
       clubName,
       lines,
       unpriced: unpricedOf(one),
