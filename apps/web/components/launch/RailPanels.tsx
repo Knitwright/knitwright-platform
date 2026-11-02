@@ -28,7 +28,7 @@ function RailPanel({ id, hidden }: Readonly<{ id: RailId; hidden: boolean }>) {
     >
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{RAIL[id].label}</h2>
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{panel.note}</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">{panel.note}</p>
       </header>
       <PanelPlaceholder id={id} />
     </div>

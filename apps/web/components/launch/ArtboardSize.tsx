@@ -92,7 +92,7 @@ export function ArtboardSize({ board, unit, presets, busy, onUnit, onSize }: Pro
         <Field id={ids.height} label={`Height (${UNIT_SUFFIX[unit]})`} value={shown.height} busy={busy} onChange={(height) => setTyped({ ...shown, height })} onDone={apply} />
       </div>
 
-      <p className="font-mono text-[11px] tracking-wider text-chalk-muted uppercase" data-testid="artboard-print-size">
+      <p className="font-mono text-[11px] tracking-wider text-ink-2 uppercase" data-testid="artboard-print-size">
         {printSize(board.size, unit, dpi)} · {aspectOf(board.size)}
       </p>
 
@@ -105,7 +105,7 @@ export function ArtboardSize({ board, unit, presets, busy, onUnit, onSize }: Pro
       <div className="flex flex-col gap-2">
         <h3 className="text-[13px] font-medium text-ink">Presets</h3>
         {presets.length === 0 ? (
-          <p className="text-[13px] text-chalk-muted">No artboard size is on file yet. Type a width and a height instead.</p>
+          <p className="text-[13px] text-ink-2">No artboard size is on file yet. Type a width and a height instead.</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {presets.map((preset) => (
@@ -129,7 +129,7 @@ export function ArtboardSize({ board, unit, presets, busy, onUnit, onSize }: Pro
           </ul>
         )}
         {presets.length > 0 ? (
-          <p className="text-[12px] leading-relaxed text-chalk-muted">
+          <p className="text-[12px] leading-relaxed text-ink-2">
             {current ? current.note : "Every preset carries a note saying where its size came from. Hover one to read it."}
           </p>
         ) : null}

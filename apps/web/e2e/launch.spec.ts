@@ -214,7 +214,7 @@ test.describe("the inspector, the dock and the menu", () => {
     await expect(colours).toContainText("No colour on this project yet");
     await colours.getByLabel("Name it").fill("Club navy");
     await page.getByTestId("add-colour").click();
-    await expect(colours.getByText("Club navy")).toBeVisible();
+    await expect(colours.getByText("Club navy", { exact: true })).toBeVisible();
 
     await expect(page.getByTestId("zoom-percent")).toHaveText("100%");
     await page.getByTestId("zoom-out").click();

@@ -78,7 +78,7 @@ export function MainMenu({ projectId, unit, busy, onUnit, onCommand }: Props) {
         <div role="group" aria-label="Settings" className="glass absolute left-0 z-30 mt-2 flex w-64 flex-col gap-2 rounded-2xl p-3 shadow-lg" data-testid="launch-settings">
           <h2 className="text-sm font-medium text-ink">Settings</h2>
           <fieldset className="flex flex-col gap-1.5">
-            <legend className="text-[13px] text-chalk-muted">Units</legend>
+            <legend className="text-[13px] text-ink-2">Units</legend>
             {ARTBOARD_UNITS.map((one) => (
               <label key={one} className="flex min-h-10 items-center gap-2 text-[13px] text-ink">
                 <input type="radio" name="launch-unit" value={one} checked={one === unit} disabled={busy} onChange={() => onUnit(one)} className="size-4 accent-cobalt" />

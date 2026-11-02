@@ -105,7 +105,7 @@ export function BottomDock(props: Props) {
                 title={TOOLS[id].hint}
                 onClick={() => props.onTool(id)}
                 className={`inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-[13px] font-medium ${
-                  selected ? "bg-cobalt text-white" : "text-chalk-muted hover:text-ink"
+                  selected ? "bg-cobalt text-white" : "text-ink-2 hover:text-ink"
                 }`}
               >
                 <DockIcon tool={id} size={16} />
@@ -136,7 +136,7 @@ export function BottomDock(props: Props) {
           </button>
         </div>
 
-        <p className="ml-auto text-[12px] text-chalk-muted" data-testid="launch-credits">
+        <p className="ml-auto text-[12px] text-ink-2" data-testid="launch-credits">
           {props.credits === null ? "Credit balance not read" : `${props.credits} credits`}
           {props.estimate && props.estimate.credits > 0 ? ` · ${props.estimate.note}` : ""}
         </p>

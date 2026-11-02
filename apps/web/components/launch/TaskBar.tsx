@@ -28,11 +28,11 @@ export function TaskBar({ bar, busy, onAdd, onAction }: Props) {
 
   return (
     <div role="toolbar" aria-label={`Actions for the ${bar.title}`} data-testid="launch-task-bar" className="glass flex flex-wrap items-center gap-2 rounded-2xl px-3 py-2">
-      <p className="font-mono text-[11px] tracking-[0.08em] text-chalk-muted uppercase">{bar.title}</p>
+      <p className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">{bar.title}</p>
       {bar.add.map((entry) => (
         <button key={entry.kind} type="button" disabled={busy} onClick={() => onAdd(entry.kind)} className={CHIP} data-testid={`task-add-${entry.kind}`}>
           {entry.label}
-          <span className="ml-1.5 font-mono text-[11px] text-chalk-muted">{entry.paid ? "credits" : "free"}</span>
+          <span className="ml-1.5 font-mono text-[11px] text-ink-2">{entry.paid ? "credits" : "free"}</span>
         </button>
       ))}
       {front.map((item) => (

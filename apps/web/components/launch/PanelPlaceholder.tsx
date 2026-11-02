@@ -15,8 +15,8 @@ export function PanelPlaceholder({ id }: Readonly<{ id: LaunchPanelId }>) {
       data-testid={panel.testId}
       className="flex min-h-24 flex-col justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-tile-2/90 p-4"
     >
-      <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-chalk-muted uppercase">{panel.title}</h3>
-      <p className="text-[13px] leading-relaxed text-chalk-muted">{panel.note}</p>
+      <h3 className="font-mono text-[11px] font-medium tracking-[0.08em] text-ink-2 uppercase">{panel.title}</h3>
+      <p className="text-[13px] leading-relaxed text-ink-2">{panel.note}</p>
       <p className="text-[13px] font-medium text-ink">Not built yet.</p>
     </div>
   );

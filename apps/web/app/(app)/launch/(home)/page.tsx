@@ -15,6 +15,10 @@ export const metadata: Metadata = { title: "Launch" };
  * The brand's launch projects (spec Launch section). A launch project is a canvas of boards: the
  * design, its mockups, its AI scenes, its clips, its posts and its info cards.
  *
+ * This page sits in a `(home)` group, as the studio home does, so that its `loading.tsx` covers it
+ * alone. A loading file on the `launch` segment itself would cover `[launchProjectId]` too, and a
+ * flushed shell takes away that page's ability to answer 404 for a canvas that does not exist.
+ *
  * The garment is always locked: every board starts from a Design board, which is a design version
  * the platform drew, so a model only ever changes the scene around it (spec decision 13).
  */

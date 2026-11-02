@@ -472,7 +472,8 @@ begin
   -- A loop: the board being fed already reaches the board doing the feeding.
   if exists (
     with recursive downstream as (
-      select p_to_board_id as id
+      -- The cast is explicit so the non-recursive term settles the column's type as uuid.
+      select p_to_board_id::uuid as id
       union
       select e.to_board_id from public.board_edges e join downstream d on d.id = e.from_board_id
     )

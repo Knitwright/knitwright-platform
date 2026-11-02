@@ -46,7 +46,15 @@ const STATUS_WORDS: Readonly<Record<BoardView["status"], string>> = {
  */
 export function BoardCanvas({ graph, selectedId, zoom, busy, empty, onSelect, onAdd }: Props) {
   return (
-    <section aria-label="Canvas" data-testid="launch-canvas" style={DOTS} className="flex min-h-0 flex-1 flex-col overflow-auto rounded-3xl border border-hairline p-4">
+    // A solid surface rather than glass: the canvas is the one place a person reads small text
+    // against whatever the page happens to put behind it, and a known background is a known
+    // contrast ratio.
+    <section
+      aria-label="Canvas"
+      data-testid="launch-canvas"
+      style={DOTS}
+      className="flex min-h-0 flex-1 flex-col overflow-auto rounded-3xl border border-hairline bg-surface-solid p-4"
+    >
       {graph.boards.length === 0 ? (
         <EmptyCanvas empty={empty} busy={busy} onAdd={onAdd} />
       ) : (
@@ -133,11 +141,11 @@ function Board({ board, graph, selected, busy, onSelect, onAdd }: BoardProps) {
         onClick={() => onSelect(selected ? null : board.id)}
         className="flex min-h-10 flex-col items-start gap-0.5 rounded-xl px-1 text-left"
       >
-        <span className="font-mono text-[11px] tracking-[0.08em] text-chalk-muted uppercase">{info.label}</span>
+        <span className="font-mono text-[11px] tracking-[0.08em] text-ink-2 uppercase">{info.label}</span>
         <span className="text-[15px] font-medium text-ink">{board.name || info.label}</span>
       </button>
 
-      <dl className="flex flex-col gap-0.5 px-1 text-[12px] text-chalk-muted">
+      <dl className="flex flex-col gap-0.5 px-1 text-[12px] text-ink-2">
         <div className="flex gap-1">
           <dt>Status</dt>
           <dd className="text-ink-2">{STATUS_WORDS[board.status]}</dd>
@@ -197,7 +205,7 @@ function Board({ board, graph, selected, busy, onSelect, onAdd }: BoardProps) {
                     className="flex min-h-10 w-full items-center justify-between gap-2 rounded-xl px-3 text-left text-[13px] text-ink hover:bg-tile-2"
                   >
                     {BOARDS[kind].label}
-                    <span className="font-mono text-[11px] text-chalk-muted">{BOARDS[kind].paid ? "credits" : "free"}</span>
+                    <span className="font-mono text-[11px] text-ink-2">{BOARDS[kind].paid ? "credits" : "free"}</span>
                   </button>
                 </li>
               ))}

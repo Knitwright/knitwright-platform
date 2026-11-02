@@ -46,7 +46,7 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard }: Pro
     <>
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{projectName}</h2>
-        <p className="text-[13px] leading-relaxed text-chalk-muted">Nothing is selected, so this is the whole project: its colours and the boards you can add.</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">Nothing is selected, so this is the whole project: its colours and the boards you can add.</p>
       </header>
       <ProjectColours colours={colours} busy={busy} onColours={onColours} />
       <section aria-label="Tools" className="flex flex-col gap-2">
@@ -60,7 +60,7 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard }: Pro
             </li>
           ))}
         </ul>
-        <p className="text-[12px] leading-relaxed text-chalk-muted">
+        <p className="text-[12px] leading-relaxed text-ink-2">
           Every one of them starts from a Design board, so the garment in the picture is the one the platform drew.
         </p>
       </section>
@@ -77,7 +77,7 @@ function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize }
     <>
       <header className="flex flex-col gap-1">
         <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{selection.board.name || info.label}</h2>
-        <p className="text-[13px] leading-relaxed text-chalk-muted">{info.lead}</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">{info.lead}</p>
       </header>
       {lockNote ? (
         <p role="status" data-testid="garment-lock-note" className="rounded-2xl border border-warn/30 bg-warn-wash px-3 py-2 text-[13px] leading-relaxed text-warn">
@@ -112,7 +112,7 @@ function ProjectColours({ colours, busy, onColours }: ColourProps) {
     <section aria-label="Project colours" className="flex flex-col gap-2" data-testid="project-colours">
       <h3 className="text-[13px] font-medium text-ink">Project colours</h3>
       {colours.length === 0 ? (
-        <p className="text-[13px] leading-relaxed text-chalk-muted">No colour on this project yet. Name one below, or take a palette from the Brand panel.</p>
+        <p className="text-[13px] leading-relaxed text-ink-2">No colour on this project yet. Name one below, or take a palette from the Brand panel.</p>
       ) : (
         <ul className="flex flex-wrap gap-2">
           {colours.map((colour) => (
@@ -123,7 +123,7 @@ function ProjectColours({ colours, busy, onColours }: ColourProps) {
                 type="button"
                 disabled={busy}
                 onClick={() => onColours(colours.filter((one) => one !== colour))}
-                className="grid size-6 place-items-center rounded-full text-chalk-muted hover:text-ink"
+                className="grid size-6 place-items-center rounded-full text-ink-2 hover:text-ink"
               >
                 <span className="sr-only">Remove {colour.name}</span>
                 <span aria-hidden="true">×</span>
@@ -134,13 +134,13 @@ function ProjectColours({ colours, busy, onColours }: ColourProps) {
       )}
       <div className="flex items-end gap-2">
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={ids.hex} className="text-[12px] text-chalk-muted">
+          <label htmlFor={ids.hex} className="text-[12px] text-ink-2">
             Colour
           </label>
           <input id={ids.hex} type="color" value={hex} disabled={busy} onChange={(event) => setHex(event.target.value)} className="h-10 w-12 rounded-xl border border-white/15 bg-surface" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <label htmlFor={ids.name} className="text-[12px] text-chalk-muted">
+          <label htmlFor={ids.name} className="text-[12px] text-ink-2">
             Name it
           </label>
           <input
