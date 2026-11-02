@@ -145,10 +145,10 @@ directories import freely from one another.
    `roster_players` and `club_invitations`. A committee member who asks for their words to be removed can be answered
    today only by deleting the whole design.
 6. **Which of the twenty-five duplicate groups should be merged, and by whom?** Each names its winner in the review.
-   The cheapest three are `lib/design-import/marks.ts:90` (delete one line, import the identical exported function one
-   directory away), the four copies of the react-pdf document shell (two of which carry real defects — a missing page
-   footer and a title that skips the font-coverage guard), and the literal `£` at
-   `app/(ops)/ops/factories/sections.tsx:38` on a value that may be AUD.
+   The cheapest two are `lib/design-import/marks.ts:90` (delete one line, import the identical exported function one
+   directory away) and the four copies of the react-pdf document shell, two of which carry real defects: a missing page
+   footer, so a long player list is unnumbered, and a `title()` that skips the font-coverage guard every other string in
+   those four files goes through.
 7. **Two screens print a different number for the same thing.** `lib/crest-to-kit` reports CIEDE2000 and
    `lib/brand-studio` CIE76 for the same distance from the sublimation-safe colour; and the order modal says "no total
    yet" for a basket the quote PDF gives a figure for, because one uses the strict total and the other a partial one.
