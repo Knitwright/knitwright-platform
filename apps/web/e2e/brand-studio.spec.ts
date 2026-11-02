@@ -1,4 +1,5 @@
-import { expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { createAccount, signIn, test, userIdOf } from "./support";
 
@@ -25,6 +26,41 @@ const brandOf = async (email: string): Promise<string> => {
 
 const runId = () => Math.random().toString(36).slice(2, 10);
 
+/**
+ * No axe problem of impact serious or critical, and the node and its colours when there is one, as
+ * e2e/studio-catalogue.spec.ts reports them. The scan waits for the entrance animations first: the
+ * drifting aurora never stops, so only the animations that end are waited for.
+ */
+const accessible = async (page: Page): Promise<void> => {
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => animation.playState !== "running" || animation.effect?.getTiming().iterations === Infinity),
+  );
+  const { violations } = await new AxeBuilder({ page }).analyze();
+  const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
+  const where = (node: (typeof serious)[number]["nodes"][number]): string =>
+    `${node.target.join(" ")} ${JSON.stringify(node.any.map((check) => check.data))}`;
+  expect(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map(where).join("; ")})`)).toEqual([]);
+};
+
+/**
+ * Nothing in the top bar hangs outside its glass pill. Brand Studio's completion pill is the
+ * seventh thing in that row, and the row had no room left: what overflows is drawn over the
+ * aurora, where `text-muted` is 3.35:1 and fails the accessibility scan of every studio page.
+ * Sign out is last in the row, so it is the first to go. The figures are in StudioHeader.tsx.
+ */
+const headerFits = async (page: Page): Promise<void> => {
+  const spill = await page.evaluate(() => {
+    const bar = document.querySelector("header");
+    const out = document.querySelector("header form button");
+    if (bar === null || out === null) return null;
+    return Math.round(out.getBoundingClientRect().right - bar.getBoundingClientRect().right);
+  });
+  expect(spill, "the top bar's last control hangs outside the glass pill by this many pixels").not.toBeNull();
+  // The button's own side padding is 12 px, so anything up to that still keeps its words on the
+  // glass. Past it the words are over the aurora and the contrast scan fails.
+  expect(spill ?? 0).toBeLessThanOrEqual(12);
+};
+
 test.describe("Brand Studio (Y6)", () => {
   test("a brand is filled in by hand, and the top bar says how far it has got", async ({ page }) => {
     await signIn(page, await createAccount("bs-details"));
@@ -49,6 +85,25 @@ test.describe("Brand Studio (Y6)", () => {
     await expect(page.getByTestId("brand-completion")).not.toHaveText("0% complete");
     await expect(page.getByTestId("brand-completion-pill")).not.toHaveText("0%");
     await expect(page.getByRole("region", { name: "Overview", exact: true }).getByText("Community")).toBeVisible();
+
+    // One h1, the page's own landmark, and the top bar still inside its glass with the pill in it.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await headerFits(page);
+    await accessible(page);
+  });
+
+  test("the phone layout holds the tabs and the panels without scrolling sideways", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await signIn(page, await createAccount("bs-phone"));
+    await expect(page).toHaveURL(/\/studio$/);
+    await page.goto("/brand-studio?tab=colours");
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    // The tabs wrap rather than cut off, so every one of the seven is still reachable.
+    await expect(page.getByRole("navigation", { name: "Brand" }).getByRole("link")).toHaveCount(7);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, "Brand Studio scrolls sideways on a phone by this many pixels").toBeLessThanOrEqual(0);
+    await accessible(page);
   });
 
   test("a palette is saved, and a colour the estimate refuses says so and names its rule", async ({ page }) => {
