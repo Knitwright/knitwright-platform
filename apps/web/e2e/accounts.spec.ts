@@ -48,7 +48,7 @@ test.describe("accounts", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
 
-    // The address signed in, Settings and Sign out are one account menu now (decision 0102).
+    // The address signed in, Settings and Sign out are one account menu now (decision 0103).
     await openAccountMenu(page);
     await expect(page.getByTestId("account-email")).toHaveText(email);
     await page.getByRole("button", { name: "Sign out" }).click();

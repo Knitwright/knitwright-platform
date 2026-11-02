@@ -28,7 +28,7 @@ const runId = () => Math.random().toString(36).slice(2, 10);
 
 /*
  * `headerFits` and `accessible` were written here and now live in `e2e/support.ts`, because
- * decision 0102 rebuilt the top bar and five specs wanted both at once. `headerFits` still asserts
+ * decision 0103 rebuilt the top bar and five specs wanted both at once. `headerFits` still asserts
  * exactly what it did — the last control of the row keeps its words on the glass, with the
  * control's own 12 px of padding as the tolerance — but it finds that control at whatever width it
  * is measured at, since Sign out is no longer last and no longer in the row at all, and

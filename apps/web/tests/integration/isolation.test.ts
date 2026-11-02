@@ -1068,6 +1068,30 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), version: 1, snapshot: { kind: "launch-canvas" } }),
     change: { snapshot: { kind: "changed by a stranger" } },
   },
+  // Plan v5 L6 (decision 0096): a flow run, the boards it ran and the listing hand-offs it wrote.
+  // A member reads their own brand's rows; only the flow functions write; a hand-off is append-only;
+  // and no row anywhere here holds a price, a cart or anything else the Store owns (owner decision 1).
+  flow_runs: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedFlow(brandId, ownerId)).runId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), scope: "all" }),
+    change: { status: "failed" },
+  },
+  flow_run_boards: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedFlow(brandId, ownerId)).runBoardId }),
+    attempt: (brandId) => ({ brand_id: brandId, run_id: randomUUID(), board_id: randomUUID(), position: 1 }),
+    change: { status: "failed", credits: 99 },
+  },
+  flow_listings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedFlow(brandId, ownerId)).listingId }),
+    attempt: (brandId) => ({ brand_id: brandId, launch_project_id: randomUUID(), payload: { kind: "launch-listing" } }),
+    change: { payload: { kind: "changed by a stranger" } },
+  },
   // Plan W4-B (decision 0061): designers. A designer reads their own rows; only the server writes, through functions.
   designer_profiles: {
     privileges: ["SELECT"],
@@ -1683,6 +1707,38 @@ const seedLaunch = async (
     await adminClient().rpc("save_launch_project_version", { p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launchProjectId, p_snapshot: { kind: "launch-canvas", boards: 2 } }),
   ) as { id: string }[];
   return { launchProjectId, designBoardId, mockupBoardId, edgeId, versionId: versions[0]!.id };
+};
+
+/**
+ * Plan v5 L6 (decision 0096): one flow run over a launch canvas, one board of it, and one listing
+ * hand-off for the Store to collect. Every one is written by a flow function; nothing writes them
+ * directly.
+ */
+const seedFlow = async (
+  brandId: string,
+  ownerId: string,
+): Promise<{ launchProjectId: string; runId: string; runBoardId: string; listingId: string }> => {
+  const launch = await seedLaunch(brandId, ownerId);
+  const runId = must(
+    await adminClient().rpc("start_flow_run", {
+      p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launch.launchProjectId, p_scope: "all",
+      p_from_board_id: null, p_estimate_credits: 0, p_template_slug: null,
+    }),
+  ) as string;
+  const runBoardId = must(
+    await adminClient().rpc("set_flow_run_board", {
+      p_brand_id: brandId, p_user_id: ownerId, p_run_id: runId, p_board_id: launch.mockupBoardId, p_position: 1,
+      p_status: "ready", p_credits: 0, p_refunded: 0, p_spend_entry_id: null, p_assets: 1, p_format: "png",
+      p_output_file_id: null, p_reason: null,
+    }),
+  ) as string;
+  const listingId = must(
+    await adminClient().rpc("publish_flow_listing", {
+      p_brand_id: brandId, p_user_id: ownerId, p_launch_project_id: launch.launchProjectId,
+      p_payload: { kind: "launch-listing", payloadVersion: 1, media: [] },
+    }),
+  ) as string;
+  return { launchProjectId: launch.launchProjectId, runId, runBoardId, listingId };
 };
 
 const seedGoldenSample = async (
@@ -2457,6 +2513,12 @@ const LIBRARY_TABLES: Readonly<Record<string, Pick<PlatformTableSpec, "privilege
   template_kit_bundle_members: { privileges: ["SELECT"] },
   // Decision 0098: the tech pack templates, one per base article, with the gaps that article has no data for.
   template_techpacks: { privileges: ["SELECT"] },
+  // Decision 0096: the six flow templates of docs/spec/07-template-library.md, their steps and their
+  // connectors. Read by every signed-in user; seeded by the server from apps/web/lib/flows/templates.
+  // tests/integration/flows.test.ts covers them.
+  flow_templates: { privileges: ["SELECT"] },
+  flow_template_steps: { privileges: ["SELECT"] },
+  flow_template_links: { privileges: ["SELECT"] },
 };
 
 const BUCKETS = ["exports", "images", "uploads"] as const;

@@ -1,7 +1,7 @@
 import type { Route } from "next";
 
 /**
- * The studio's sections, in the order the top bar shows them (decision 0102).
+ * The studio's sections, in the order the top bar shows them (decision 0103).
  *
  * The first `PILLS` of them are drawn as pills; the rest are listed in the bar's overflow menu,
  * where a section costs no width at all. That is why the list may grow again: before this, every

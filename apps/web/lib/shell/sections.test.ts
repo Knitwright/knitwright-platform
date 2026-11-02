@@ -10,7 +10,7 @@ import {
 } from "./sections";
 
 /**
- * The studio's sections (decision 0102). The list is navigation data, so these say what the bar
+ * The studio's sections (decision 0103). The list is navigation data, so these say what the bar
  * draws, which addresses belong to which section, and which section the overflow button names.
  */
 

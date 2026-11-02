@@ -17,7 +17,7 @@ import { GlassMenu } from "./GlassMenu";
  * The studio's sections. A section is current for its own page and the pages under it.
  *
  * In the bar the first four are pills and the rest are listed in a "More" menu, because the bar is
- * held to 1110 px at every desktop width and seven pills alone took 625 px of it (decision 0102).
+ * held to 1110 px at every desktop width and seven pills alone took 625 px of it (decision 0103).
  * `stacked` lays every section out for the bar's compact menu, which is what a phone gets.
  */
 

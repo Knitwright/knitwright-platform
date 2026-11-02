@@ -111,6 +111,10 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Joins the flow screens to the launch canvas, the credit ledger and the flow tables; the
+        // order, the estimate, the refunds, the artwork check and the summary are tested on their
+        // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
+        "lib/flows/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -160,6 +164,7 @@ export default defineConfig({
             "designers",
             "fabrics",
             "factory",
+            "flows",
             "gltf",
             "guardrails",
             "home",

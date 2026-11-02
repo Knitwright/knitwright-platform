@@ -3,7 +3,7 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 import { GlassMenu } from "./GlassMenu";
 
 /**
- * The account cluster of the top bar, as one menu (decision 0102). The address signed in, Settings
+ * The account cluster of the top bar, as one menu (decision 0103). The address signed in, Settings
  * and Sign out stood in the row side by side and were the three things the row ran out of width
  * for: Sign out was last, so it was the control painted over the aurora, where muted text is
  * 3.35:1 and fails AA. They are the same three controls, in the bar's own glass panel.

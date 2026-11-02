@@ -90,7 +90,7 @@ test.describe("make (Y7)", () => {
     await expect(page).toHaveURL(new RegExp(`/studio/${projectId}/make/sample$`));
     // The first accessibility scan of a make page. Its lead holds a "Back to the product" link
     // that colour alone used to carry, which axe reads at 1.64:1 against the words around it
-    // (decision 0102).
+    // (decision 0103).
     await accessible(page);
     await page.getByLabel("Fabric", { exact: true }).fill(fabric);
     await page.getByRole("button", { name: "Send the sample request" }).click();

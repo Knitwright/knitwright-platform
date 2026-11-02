@@ -14,7 +14,7 @@ type StudioHeaderProps = Readonly<{ email: string | null; brandName: string; cre
  * The floating glass pill at the top of the studio: the mark and the name, the sections, the brand
  * being worked on and the account.
  *
- * THE ROW GREW BY MENU, NOT BY WIDTH (decision 0102). The pill is still held to the page width
+ * THE ROW GREW BY MENU, NOT BY WIDTH (decision 0103). The pill is still held to the page width
  * (`PAGE_WIDTH.content`), which is 1110 px of room at every desktop size, so a wider screen gives
  * it nothing. What changed is that the row no longer holds one control per thing it offers:
  *

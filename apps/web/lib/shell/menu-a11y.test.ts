@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { currentNote, FOCUSABLE, menuButtonProps, menuPanelProps } from "./menu-a11y";
 
 /**
- * The attributes of the top bar's menus (decision 0102). They are tested here rather than through
+ * The attributes of the top bar's menus (decision 0103). They are tested here rather than through
  * the component, as the "Why?" popover's and the create-new modal's are.
  */
 

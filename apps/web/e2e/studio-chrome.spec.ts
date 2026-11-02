@@ -3,7 +3,7 @@ import { accessible, headerFitsAtEveryWidth, openAccountMenu, openStudioSection 
 import { createAccount, signIn, test } from "./support";
 
 /**
- * The studio top bar (decision 0102): the shared chrome of every signed-in page. The account
+ * The studio top bar (decision 0103): the shared chrome of every signed-in page. The account
  * cluster is one menu, the sections past the fourth are in another, both are the bar's own glass
  * panel, and the row keeps its words on the glass at every width it supports.
  *

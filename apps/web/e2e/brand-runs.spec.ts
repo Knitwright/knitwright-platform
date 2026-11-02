@@ -55,12 +55,12 @@ test.describe("brand workspace (W4-C)", () => {
     const projectId = await startDesign(page, "Fern hoodie");
     await freeze(email, projectId);
 
-    // Brand is one of the sections the top bar lists in its overflow menu (decision 0102).
+    // Brand is one of the sections the top bar lists in its overflow menu (decision 0103).
     await openStudioSection(page, "Brand");
     await expect(page).toHaveURL(/\/brand$/);
     // The first accessibility scan of this page, with the run builder still empty: its one line of
     // prose holds a link that colour alone used to carry, which axe reads at 1.64:1 against the
-    // words around it (decision 0102).
+    // words around it (decision 0103).
     await accessible(page);
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Fern hoodie" });

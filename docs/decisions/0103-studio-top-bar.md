@@ -1,4 +1,4 @@
-# 0102: The studio top bar — one account menu, an overflow menu, and room to grow
+# 0103: The studio top bar — one account menu, an overflow menu, and room to grow
 
 Status: Proposed; the owner's choice of both ways out of decision 0079 owner question 5, measured offline and in the
 browser tests; Benchmarks keeps its sidebar entry as well; owner questions listed

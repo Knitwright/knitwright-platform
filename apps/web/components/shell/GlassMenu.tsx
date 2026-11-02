@@ -6,7 +6,7 @@ import { FOCUSABLE, menuButtonProps, menuPanelProps } from "@/lib/shell/menu-a11
 import { trapTarget } from "@/lib/workspace/focus-trap";
 
 /**
- * The glass panel the top bar's menus drop down. It was the phone's menu alone; decision 0102 made
+ * The glass panel the top bar's menus drop down. It was the phone's menu alone; decision 0103 made
  * it the bar's one menu at every width, so the account cluster and the sections past the fourth
  * each open one of these rather than taking room in the row.
  *

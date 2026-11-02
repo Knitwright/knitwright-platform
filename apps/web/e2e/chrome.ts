@@ -3,7 +3,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Helpers for the shared chrome every signed-in page carries: the studio top bar and the
- * accessibility scan of the page under it (decision 0102).
+ * accessibility scan of the page under it (decision 0103).
  *
  * They were written in `e2e/brand-studio.spec.ts`, where the top bar's first guard went, and sit
  * here rather than in `e2e/support.ts` because five specs want them at once and that file is
@@ -64,7 +64,7 @@ export const headerFits = async (page: Page, where = ""): Promise<void> => {
 
 /**
  * The widths the bar supports: a phone; the band nothing had ever measured, where the bar before
- * decision 0102 ran 374 px past its glass at 768 and 118 px at 1024; the browser tests' own
+ * decision 0103 ran 374 px past its glass at 768 and 118 px at 1024; the browser tests' own
  * desktop; and a wide screen, where the bar is no wider at all, because it is capped at the page
  * width.
  */

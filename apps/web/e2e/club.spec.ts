@@ -20,16 +20,16 @@ test.describe("club workspace (V4)", () => {
   test("a season is made, a roster is imported, and next season starts with the same sizes", async ({ page }) => {
     await signIn(page, await createAccount("club"));
     await expect(page).toHaveURL(/\/studio$/);
-    // Club is one of the sections the top bar lists in its overflow menu (decision 0102).
+    // Club is one of the sections the top bar lists in its overflow menu (decision 0103).
     await openStudioSection(page, "Club");
     await expect(page).toHaveURL(/\/club$/);
     // The first accessibility scan of this page. With no design yet, the Designs section is one
-    // line of prose holding a link that colour alone used to carry (decision 0102).
+    // line of prose holding a link that colour alone used to carry (decision 0103).
     await accessible(page);
 
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     // The one way into Collect, which has no section of its own in the top bar on Z7's own
-    // recommendation: a section there costs about 90 px and this costs nothing (decision 0102).
+    // recommendation: a section there costs about 90 px and this costs nothing (decision 0103).
     await expect(seasons.getByRole("link", { name: "Collect", exact: true })).toHaveAttribute("href", "/collect");
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();

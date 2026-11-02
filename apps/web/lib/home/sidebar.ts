@@ -64,8 +64,8 @@ export const SIDEBAR: readonly SidebarGroup[] = [
       { id: "fabrics", label: "Fabrics", target: page("/brands/fabrics") },
       { id: "size-charts", label: "Size charts", target: page("/studio/charts") },
       // Benchmarks (plan v5 Z3, spec F-S2, decision 0084). This was the only entry, because the top bar had no
-      // width for an eighth section; decision 0102 gave the bar an overflow menu, where a section costs no width,
-      // and Benchmarks is listed there as well. This one carries the hint, and 0102 owner question 2 asks the
+      // width for an eighth section; decision 0103 gave the bar an overflow menu, where a section costs no width,
+      // and Benchmarks is listed there as well. This one carries the hint, and 0103 owner question 2 asks the
       // owner whether to keep both.
       { id: "benchmarks", label: "Benchmarks", target: page("/studio/benchmarks"), hint: "Compare products" },
     ],
