@@ -1,3 +1,4 @@
+import { GOLDEN_SAMPLE_STATUSES } from "@/lib/factory/schemas";
 import type { OpsException } from "../exceptions/rows";
 import { isOverdue } from "../exceptions/rules";
 import type { OpsOrder } from "../rows";
@@ -24,7 +25,8 @@ export interface ScorecardReading {
   readonly limitDeltaE: number | null;
 }
 
-export type GoldenSampleState = "none" | "requested" | "approved" | "rejected";
+/** The states of `factory_capabilities.golden_sample_status`, owned by the factory rows (decision 0071). */
+export type GoldenSampleState = (typeof GOLDEN_SAMPLE_STATUSES)[number];
 
 export interface ArticleGoldenSample {
   readonly factoryProfileId: string;
@@ -65,6 +67,9 @@ export const NO_DEFECT_RATE_AGREED =
 
 export const NOT_ACTIVE_WITHOUT_GOLDEN_SAMPLE =
   "Not active: no article has a golden sample signed off at this factory, and a factory-article pair is active only with one.";
+
+/** The one state that makes a factory-article pair active. The value is the factory rows' own (decision 0071). */
+const SIGNED_OFF: GoldenSampleState = GOLDEN_SAMPLE_STATUSES[2];
 
 const rate = (part: number, whole: number): number | null => (whole === 0 ? null : part / whole);
 
@@ -119,7 +124,7 @@ function cardFor(input: ScorecardInput, slug: string, name: string): FactoryScor
     },
     remakes: { open: open.length, overdue: open.filter((e) => isOverdue(e, input.now)).length, total: remakes.length },
     goldenSamples,
-    isActive: goldenSamples.some((g) => g.state === "approved"),
+    isActive: goldenSamples.some((g) => g.state === SIGNED_OFF),
   };
   return { ...base, warnings: warningsOf(base) };
 }

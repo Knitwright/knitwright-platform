@@ -52,6 +52,8 @@ export type ProviderEnv = Readonly<Record<string, string | undefined>>;
  * The provider in force. There is no adapter to choose yet, so this is always the stub; it reads the
  * environment so that adding one is a change here and nowhere else, as the WhatsApp notifier does.
  */
-export function selectInspectionProvider(_env: ProviderEnv = process.env): InspectionProvider {
+export function selectInspectionProvider(env: ProviderEnv = process.env): InspectionProvider {
+  // Nothing is read from it yet: there is no adapter to choose, so the stub is what exists.
+  void env;
   return stubInspectionProvider;
 }

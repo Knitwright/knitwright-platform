@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { GOLDEN_SAMPLE_STATUSES } from "@/lib/factory/schemas";
 import { EXCEPTION_COLUMNS, toException } from "../exceptions/rows";
 import { METRICS_ROW_LIMIT } from "../metrics/service";
 import { throwIfQcFailed } from "../qc/errors";
@@ -16,7 +17,7 @@ import { buildScorecards, type ArticleGoldenSample, type FactoryScorecard, type 
 const inspectionRow = z.object({ id: z.string(), factory_profile_id: z.string(), result: z.enum(["pass", "fail"]), sample_size: z.number().int(), defect_count: z.number().int() });
 const readingRow = z.object({ inspection_id: z.string(), delta_e: z.coerce.number(), limit_delta_e: z.coerce.number().nullable() });
 const factoryRow = z.object({ id: z.string(), slug: z.string(), name: z.string() });
-const capabilityRow = z.object({ factory_id: z.string(), article_code: z.string(), golden_sample_status: z.enum(["none", "requested", "approved", "rejected"]) });
+const capabilityRow = z.object({ factory_id: z.string(), article_code: z.string(), golden_sample_status: z.enum(GOLDEN_SAMPLE_STATUSES) });
 
 export interface LoadedScorecards {
   readonly cards: readonly FactoryScorecard[];

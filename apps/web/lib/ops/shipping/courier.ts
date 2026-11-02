@@ -121,6 +121,8 @@ export type CourierEnv = Readonly<Record<string, string | undefined>>;
  * open), so this is always the manual option; it reads the environment so that adding an adapter is a change
  * here and nowhere else, as the WhatsApp notifier does.
  */
-export function selectCourierProvider(_env: CourierEnv = process.env): CourierProvider {
+export function selectCourierProvider(env: CourierEnv = process.env): CourierProvider {
+  // Nothing is read from it yet: there is no courier adapter to choose, so the manual option is what exists.
+  void env;
   return manualCourier;
 }
