@@ -41,7 +41,7 @@ type PanelProps = Readonly<{ segment: Exclude<RailSegment, "form">; hidden: bool
  * `lg:row-start-1` puts all three toolbars in the rail column's one `minmax(0,1fr)` row, as the
  * launch shell's rail does (`components/launch/RailPanels.tsx`). Without it the second and third
  * panel land in an implicit `auto` row, so a toolbar as tall as these grows past the shell instead
- * of scrolling inside itself, and the overflow carried the panel over the toolbar tabs.
+ * of scrolling inside itself.
  */
 export function RailSlotPanel({ segment, hidden, slot, libraryOpened }: PanelProps) {
   return (
