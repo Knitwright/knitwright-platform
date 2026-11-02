@@ -41,6 +41,7 @@ import {
   saveLaunchVersionAction,
 } from "@/lib/launch/actions";
 import { runFlowAction } from "@/lib/flows/actions";
+import { freePlace } from "./placing";
 
 /**
  * The launch shell's own state and the one place every command of the contract is carried out.
@@ -210,7 +211,8 @@ export function useLaunchShell(input: ShellInput) {
   const commands = {
     addBoard: (kind: BoardKind, at: Point, fromBoardId?: string) =>
       structural(async () => {
-        const added = await saveBoardAction({ launchProjectId: input.launchProjectId, boardId: null, kind, name: "", x: at.x, y: at.y, settings: {}, inputVersion: null }).catch(() => null);
+        const place = freePlace(input.boards, at);
+        const added = await saveBoardAction({ launchProjectId: input.launchProjectId, boardId: null, kind, name: "", x: place.x, y: place.y, settings: {}, inputVersion: null }).catch(() => null);
         if (!added?.success || !fromBoardId) return added;
         return connectLaunchBoardsAction({ launchProjectId: input.launchProjectId, fromBoardId, toBoardId: added.data.id, inputIndex: 1 });
       }),
