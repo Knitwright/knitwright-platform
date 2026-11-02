@@ -5,19 +5,20 @@ import {
   CHECK_FRAMES_KEY,
   checkFrameCount,
   COMMERCIAL_LICENCE_KEY,
+  configFromFallbacks,
   CREDITS_PER_SECOND_KEY,
-  DEFAULT_CHECK_FRAMES,
   MODELS_OFFERED_KEY,
-  PLACEHOLDER_CREDITS_PER_SECOND,
-  PLACEHOLDER_MODEL_CONFIG,
   VIDEO_SETTINGS,
   videoModelConfig,
 } from "./model-settings";
 import {
+  DEFAULT_CHECK_FRAMES,
   estimatedWait,
   findModel,
   licenceLabel,
   MODEL_CATALOGUE,
+  PLACEHOLDER_CREDITS_PER_SECOND,
+  PLACEHOLDER_MODEL_CONFIG,
   unknownModelKeys,
   videoCost,
   videoModelsFrom,
@@ -131,6 +132,10 @@ describe("the settings a platform admin sets", () => {
 
   it("have defaults that pass their own schemas", () => {
     for (const def of VIDEO_SETTINGS) expect(def.schema.safeParse(def.fallback).success, def.key).toBe(true);
+  });
+
+  it("read the same placeholder out of their own fallbacks as the panel uses", () => {
+    expect(configFromFallbacks()).toEqual(PLACEHOLDER_MODEL_CONFIG);
   });
 
   it("start with the placeholder price, every candidate offered and no commercial licence claimed", () => {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { SettingDef } from "@/lib/settings/types";
-import { MODEL_CATALOGUE, type VideoModelConfig } from "./models";
+import { CATALOGUE_KEYS, DEFAULT_CHECK_FRAMES, PLACEHOLDER_MODEL_CONFIG, type VideoModelConfig } from "./models";
 
 /**
  * The AI video board's model list as platform settings (spec F-L3: "the list is configured in
@@ -21,22 +21,7 @@ export const CREDITS_PER_SECOND_KEY = "media.video_credits_per_second";
 export const COMMERCIAL_LICENCE_KEY = "media.video_commercial_licence_models";
 export const CHECK_FRAMES_KEY = "media.video_check_frames";
 
-/**
- * One credit a second while the owner has not answered question 1. It is the same placeholder as
- * every other credit price (`lib/credits/settings.ts`, all 1) and it is not a price.
- */
-export const PLACEHOLDER_CREDITS_PER_SECOND = 1;
-
-/**
- * Frames of a finished clip the checker measures against the first frame. Five is a Knitwright
- * default: enough to catch a garment that drifts part way through, cheap enough to run on every
- * result. Nothing has been measured.
- */
-export const DEFAULT_CHECK_FRAMES = 5;
-
 const modelKey = z.string().regex(/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/, "Use model keys such as kling-2.1-standard.").max(64);
-
-const catalogueKeys: readonly string[] = MODEL_CATALOGUE.map((model) => model.key);
 
 export const VIDEO_SETTINGS: readonly SettingDef[] = [
   {
@@ -47,7 +32,7 @@ export const VIDEO_SETTINGS: readonly SettingDef[] = [
     question: 1,
     input: "list",
     schema: z.array(modelKey).max(24),
-    fallback: catalogueKeys,
+    fallback: CATALOGUE_KEYS,
   },
   {
     key: CREDITS_PER_SECOND_KEY,
@@ -58,7 +43,7 @@ export const VIDEO_SETTINGS: readonly SettingDef[] = [
     input: "lines",
     lines: "numbers",
     schema: z.record(modelKey, z.number({ error: "Give a number." }).min(0, "Use 0 or more.").max(10_000, "Use 10000 or less.")),
-    fallback: Object.fromEntries(catalogueKeys.map((key) => [key, PLACEHOLDER_CREDITS_PER_SECOND])),
+    fallback: PLACEHOLDER_MODEL_CONFIG.creditsPerSecond,
   },
   {
     key: COMMERCIAL_LICENCE_KEY,
@@ -104,5 +89,5 @@ export function checkFrameCount(read: (key: string) => unknown): number {
   return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 60 ? value : DEFAULT_CHECK_FRAMES;
 }
 
-/** The settings as they stand with nothing stored, so the board works before an admin visits. */
-export const PLACEHOLDER_MODEL_CONFIG: VideoModelConfig = videoModelConfig((key) => VIDEO_SETTINGS.find((def) => def.key === key)?.fallback);
+/** What `videoModelConfig` reads out of the definitions' own fallbacks: the placeholder, by another road. */
+export const configFromFallbacks = (): VideoModelConfig => videoModelConfig((key) => VIDEO_SETTINGS.find((def) => def.key === key)?.fallback);

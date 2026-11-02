@@ -107,6 +107,32 @@ export function videoModelsFrom(config: VideoModelConfig, catalogue: readonly Vi
 export const unknownModelKeys = (config: VideoModelConfig, catalogue: readonly VideoModel[] = MODEL_CATALOGUE): readonly string[] =>
   config.offered.filter((key) => !catalogue.some((model) => model.key === key));
 
+/**
+ * One credit a second while the owner has not answered question 1. It is the same placeholder as
+ * every other credit price (`lib/credits/settings.ts`, all 1) and it is **not a price**.
+ */
+export const PLACEHOLDER_CREDITS_PER_SECOND = 1;
+
+/**
+ * Frames of a clip the checker measures against the first frame. Five is a Knitwright default:
+ * enough to catch a garment that drifts part way through, cheap enough to run on every result.
+ */
+export const DEFAULT_CHECK_FRAMES = 5;
+
+/** The keys of the placeholder catalogue, in order. */
+export const CATALOGUE_KEYS: readonly string[] = MODEL_CATALOGUE.map((model) => model.key);
+
+/**
+ * The configuration as it stands with nothing stored, so the board works before an admin has
+ * visited the settings console. Here rather than beside the setting definitions, because the panel
+ * is a client component and the definitions carry zod (`tests/architecture/client-weight.test.ts`).
+ */
+export const PLACEHOLDER_MODEL_CONFIG: VideoModelConfig = {
+  offered: CATALOGUE_KEYS,
+  creditsPerSecond: Object.fromEntries(CATALOGUE_KEYS.map((key) => [key, PLACEHOLDER_CREDITS_PER_SECOND])),
+  commercialLicence: [],
+};
+
 export const findModel = (models: readonly VideoModel[], key: unknown): VideoModel | null =>
   (typeof key === "string" ? models.find((model) => model.key === key) : undefined) ?? null;
 

@@ -2,8 +2,7 @@ import { describe, expect, it } from "vitest";
 import { board, designBoard, link, project, ready } from "@/lib/launch/fixtures/canvas";
 import { panelDouble, PANEL_OF_KIND, type ArtboardPreset, type BoardView, type LaunchContext } from "@/lib/launch";
 import { readBoardSettings, writeBoardSettings } from "@/lib/media/video/ai-board";
-import { PLACEHOLDER_MODEL_CONFIG } from "@/lib/media/video/model-settings";
-import { videoModelsFrom, type VideoModel } from "@/lib/media/video/models";
+import { PLACEHOLDER_MODEL_CONFIG, videoModelsFrom, type VideoModel } from "@/lib/media/video/models";
 import * as copy from "./copy";
 import { framesOf, panelView } from "./panel-model";
 
