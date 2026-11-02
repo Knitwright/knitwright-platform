@@ -64,6 +64,11 @@ export async function loadSharePage(deps: ShareLoadDeps, token: string): Promise
   };
 }
 
-/** What an invited reader is told: who shared it, and that this invite is theirs alone. */
+/**
+ * What an invited reader is told: who shared it, and that the link is theirs to keep to themselves.
+ * It does not say the link works for them alone, because that is not true: an invite is opened by
+ * its token (`private.open_share_invite_row`), which is never checked against the address it was
+ * sent to, so a forwarded link works for whoever holds it (security-v5, L1).
+ */
 export const inviteNote = (brandName: string): string =>
-  `${brandName} invited you to this design. The link works for you alone.`;
+  `${brandName} invited you to this design. This link is yours: anyone you pass it to can read the design too.`;

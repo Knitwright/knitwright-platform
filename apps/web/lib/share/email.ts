@@ -89,7 +89,7 @@ export function inviteMessage(words: InviteWords): InviteMessage {
     "Open it here:",
     words.address,
     "",
-    "The link works for you alone. It stops working when it runs out or when it is withdrawn.",
+    "Keep the link to yourself: anyone you pass it to can read the design too. It stops working when it runs out or when it is withdrawn.",
     "You were sent this because someone shared a design with you. We will not email you about anything else.",
   );
   return {

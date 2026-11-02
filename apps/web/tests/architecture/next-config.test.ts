@@ -93,13 +93,17 @@ describe("the export route keeps its sandbox policy (T9)", () => {
  */
 describe("share pages keep their address to themselves", () => {
   const SHARE_SOURCE = "/s/:token";
+  // Every page that carries a token in its address, so a new one cannot be added without a rule.
+  // `/join/:token` had none until security-v5 (M4): it was in the public list but in neither of the
+  // two places that protect a token page.
+  const TOKEN_PAGES = ["/s/:token", "/job/:token", "/api/job/:token/:path*", "/join/:token"];
 
   const rules = async () => (await nextConfig.headers?.()) ?? [];
   const valueOf = (headers: readonly { key: string; value: string }[], key: string) =>
     headers.find((header) => header.key.toLowerCase() === key.toLowerCase())?.value;
 
-  it("sends no referrer, asks not to be indexed and not to be stored", async () => {
-    const share = (await rules()).find((rule) => rule.source === SHARE_SOURCE);
+  it.each(TOKEN_PAGES)("%s sends no referrer, asks not to be indexed and not to be stored", async (source) => {
+    const share = (await rules()).find((rule) => rule.source === source);
     expect(share).toBeDefined();
     expect(valueOf(share?.headers ?? [], "Referrer-Policy")).toBe("no-referrer");
     expect(valueOf(share?.headers ?? [], "X-Robots-Tag")).toBe("noindex, nofollow, noarchive");
