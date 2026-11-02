@@ -226,8 +226,10 @@ create table public.ops_commercial_invoices (
   brand_id uuid not null references public.brands (id) on delete cascade,
   -- 1 for the first invoice of an order, 2 for a correction, and so on.
   invoice_no integer not null check (invoice_no between 1 and 999),
-  -- The invoice this one corrects, when it corrects one. An invoice is never edited.
-  replaces_id uuid references public.ops_commercial_invoices (id) on delete restrict,
+  -- The invoice this one corrects, when it corrects one. An invoice is never edited. No "on delete" clause
+  -- on purpose: a brand's erasure removes every invoice of that brand in one statement, and `restrict` would
+  -- refuse that the moment one invoice replaced another. The default check lets the statement finish.
+  replaces_id uuid references public.ops_commercial_invoices (id),
   issued_on date not null,
   -- Where the goods were made and where they are going, as ISO country codes.
   origin_country text not null check (origin_country ~ '^[A-Z]{2}$'),
