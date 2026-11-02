@@ -25,7 +25,20 @@ export function DesignSummary({ sections, onOpen }: Props) {
               {section.readOnly ? <span className="text-ink-2"> (from base)</span> : null}
             </h3>
             {section.rows.length === 0 ? (
-              <p className="text-[13px] text-ink-2">{section.empty}</p>
+              /* An editable section with nothing in it yet still opens its editor: otherwise the
+                 Names & numbers panel could only be opened by a design that already had them. */
+              section.opens ? (
+                <button
+                  type="button"
+                  onClick={() => onOpen(section.id)}
+                  data-testid={`summary-empty-${section.id}`}
+                  className="flex min-h-10 items-center rounded-lg px-1 text-left text-[13px] text-ink-2 hover:bg-tile-2 hover:text-ink"
+                >
+                  {section.empty} <span className="ml-1 text-ink underline">Open</span>
+                </button>
+              ) : (
+                <p className="text-[13px] text-ink-2">{section.empty}</p>
+              )
             ) : (
               <ul className="flex flex-col">
                 {section.rows.map((row) => (
