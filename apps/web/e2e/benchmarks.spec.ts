@@ -147,3 +147,27 @@ test.describe("benchmarks", () => {
     expect(results.violations).toEqual([]);
   });
 });
+
+/**
+ * The same two screens on a 390 by 844 phone, the size and the two rules e2e/mobile.spec.ts holds every key screen
+ * to: the page never scrolls sideways, and axe finds nothing serious. The wide tables scroll inside their own box,
+ * which is why the page does not.
+ */
+test.describe("benchmarks on a phone", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test("neither screen scrolls sideways, and axe finds nothing serious on either", async ({ page }) => {
+    await signedIn(page, "benchmark-phone");
+    await newBenchmark(page, "Shorts on a phone");
+    await pasteReviews(page);
+
+    for (const path of ["/studio/benchmarks", new URL(page.url()).pathname]) {
+      await page.goto(path);
+      const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect.soft(sideways, `${path} scrolls sideways by ${sideways}px`).toBeLessThanOrEqual(0);
+      const { violations } = await new AxeBuilder({ page }).include("main").analyze();
+      const serious = violations.filter((entry) => entry.impact === "serious" || entry.impact === "critical");
+      expect.soft(serious.map((entry) => `${entry.id}: ${entry.help}`), `${path}: axe`).toEqual([]);
+    }
+  });
+});

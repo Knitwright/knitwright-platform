@@ -102,15 +102,20 @@ rather than the thing a policy asks people not to do.
     different page content. Benchmarks is a Library entry in `lib/home/sidebar.ts` instead, which changes no other
     screen's layout.
 
+12. **A photo card names one of the brand's own pictures; it does not upload a new one.** The screen's third tab is a
+    list of the brand's own pictures (kind `photo`, `render` or `artwork`), read with the person's own client so row
+    security answers as well as the code, and the action takes an id and nothing else — a picture is never fetched from
+    anybody. The picture itself is not stored again: it stays the brand's private upload and only the card is kept.
+    There is deliberately no uploader here. The artwork upload (`POST /api/artwork`) asks the person to confirm they
+    may use the picture *on garments*, which a photograph of somebody else's product is not, and mislabelling it would
+    put a false statement on the file's row (decision 0025). The Studio's own "Start from a sketch or photo" upload
+    makes a `photo` file and asks for no such statement, which is exactly the right kind, so that is the path a person
+    takes. A benchmark photo may still deserve an upload of its own on this screen: owner question 3.
+
 ## What was left, and why
 
-- **No photo uploader on the screen.** The photo intake exists as an action and is tested, but the only upload path in
-  the app today (`POST /api/artwork`) asks the person to confirm they may use the picture *on garments*. A photograph of
-  a competitor's product is not that, and mislabelling it would put a false statement on the file's row (decision
-  0025). A benchmark photo needs an upload kind of its own, with its own wording. Owner question 3.
-- **No "link each mapped feature to its F-S5 explanation" popover.** The plan carries the rule id; the Why? popover
-  lives in the rulebook's own components (decision 0067) and no page outside the admin one carries one yet. When the
-  Why? link is offered on ordinary screens, these rule ids are ready for it.
+- **No uploader inside the benchmark screen.** A person uploads a picture where the Studio already takes one and then
+  names it here (decision 12). Owner question 3.
 - **Accuracy is not measured.** F-S2's acceptance asks for 90% of `observed` fields correct on a 50-page test set. That
   needs 50 real competitor pages, read with a real model: it cannot be done in CI without a paid call, and the pages
   cannot be committed. The schema, the parser and the refusals are tested exhaustively; the accuracy figure is an owner
@@ -124,7 +129,8 @@ rather than the thing a policy asks people not to do.
 The rulebook has no entries for either of these, and the plan forbids inventing a rule's text:
 
 - **benchmark feature mapping** — which of a competitor's features a base article may be asked for, and on whose
-  authority. Today an unsupported feature is simply listed as unavailable.
+  authority. Today an unsupported feature is simply listed as unavailable, and its "Why?" link says there is no rule
+  yet and logs the gap for the team.
 - **design-around closeness** — how close a silhouette and a surface layout may come to a benchmark before anyone
   should be warned, and what the warning should ask for. Today: three silhouette choices, or three surface places that
   are 70% of the benchmark's.
@@ -136,9 +142,11 @@ The rulebook has no entries for either of these, and the plan forbids inventing 
 2. **Eight words is our paraphrase line.** A complaint theme sharing more than eight consecutive words with the text it
    came from is dropped as a copy. That is a drafting convention, not a legal opinion, and it should be checked by
    whoever advises on copyright.
-3. **A benchmark photo needs an upload kind of its own.** May we add one — a private photo of somebody else's product,
-   kept for comparison, never placed on a panel — with wording that says so, rather than reusing the artwork upload
-   and its rights statement?
+3. **Should a benchmark photo have an upload of its own?** Today a person uploads the picture where the Studio already
+   takes one ("Start from a sketch or photo") and names it on the benchmark screen. An upload on the benchmark screen
+   itself would need a file kind of its own — a private photo of somebody else's product, kept for comparison, never
+   placed on a panel — with wording that says so, because the artwork upload's rights statement would be a false
+   statement on that row. Is the kind worth adding?
 4. **Should a benchmark expire?** The spec does not say. A card is a fact about a page on a day; a year later it may be
    wrong in every line. We keep it until a member removes it, and the card carries the date it was read.
 5. **Who may read a brand's benchmarks?** Today every member of the brand, as with designs. A benchmark can say
@@ -157,4 +165,7 @@ The rulebook has no entries for either of these, and the plan forbids inventing 
   found, and everything going with the brand.
 - `apps/web/e2e/benchmarks.spec.ts`: making a comparison, taking review text in, correcting a card and seeing that the
   words are marked as the team's, two cards with a feature matrix, the mapping onto `JSY-SS-01` with `R-PAT-005` on the
-  drop tail and the side split listed as unavailable, a private address refused with nothing fetched, and axe.
+  drop tail and the side split listed as unavailable, the "Why?" link on a mapped feature, the empty states of the
+  list screen and of the photo tab, a private address refused with nothing fetched, and axe. A second describe runs
+  both screens on a 390 by 844 phone and holds them to the two rules `e2e/mobile.spec.ts` holds every key screen to:
+  no sideways scroll, and nothing serious from axe.

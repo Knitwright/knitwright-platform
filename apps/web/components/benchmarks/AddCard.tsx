@@ -154,7 +154,7 @@ export function AddCard({ benchmarkId, cards, pictures }: Readonly<{ benchmarkId
       <h2 id="add-card-heading" className="text-lg font-medium text-ink">
         Add a product
       </h2>
-      <div role="tablist" aria-label="How to add a product" className="mt-4 flex gap-2">
+      <div role="tablist" aria-label="How to add a product" className="mt-4 flex flex-wrap gap-2">
         {TABS.map((option) => (
           <button
             key={option.id}
