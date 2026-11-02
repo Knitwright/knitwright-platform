@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { toStackColours } from "../colours";
 import { drawKnown, renderFlat, repeatTile, type KnownPattern } from "../fixtures/known";
 import type { PatternInput } from "../pattern";
-import { createMatchBudget } from "./budget";
+import { createMatchBudget, MATCH_LIMITS } from "./budget";
 import { createPatternStage } from "./stage";
 
 // These run the real pattern matching on whole pictures, which is slower under coverage.
@@ -133,9 +133,26 @@ describe("pattern stage", () => {
     expect(out?.note).toMatch(/None of our styles could be read/);
   });
 
-  it("gives the same answer every time", async () => {
+  /*
+   * A stopped clock, not the real one. `createMatchBudget`'s third limit is `milliseconds`, and the
+   * search stops wherever that budget runs out — so on a loaded machine the two runs below stop at
+   * different points in the search and return two different, each perfectly valid, answers. This
+   * test failed exactly that way in CI while passing every time on an idle laptop, which made the
+   * algorithm look nondeterministic when what varies is the machine.
+   *
+   * Freezing the clock makes this test say what it means: *given the same budget*, the search is
+   * deterministic. The renders and comparisons limits still bind, so the budget is still tested.
+   * `budget.test.ts` injects a clock the same way, and is where the time limit itself is covered.
+   *
+   * Whether a person's match should depend on how fast their machine is -- two brands on different
+   * hardware get different patterns from the same photograph -- is a real question, and it belongs
+   * to the owner rather than to this test. Recorded as such.
+   */
+  it("gives the same answer every time, given the same budget", async () => {
+    const stopped = () => 0;
+    const same = () => createPatternStage({ budget: createMatchBudget(MATCH_LIMITS, stopped) });
     const flat = await flatOf(DOTS);
-    const [one, two] = [await fresh().find(inputFor(flat, RED_WHITE)), await fresh().find(inputFor(flat, RED_WHITE))];
+    const [one, two] = [await same().find(inputFor(flat, RED_WHITE)), await same().find(inputFor(flat, RED_WHITE))];
     expect(JSON.stringify(one)).toBe(JSON.stringify(two));
   });
 });
