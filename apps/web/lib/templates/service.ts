@@ -39,7 +39,7 @@ const unreadable = (cause: unknown): AppError => new AppError("internal", MESSAG
  * and this read parses every row against the design shape, so it asks for the design rows and no
  * others. Without that, the first `marketing`, `mockup_scene`, `video` or `flow` row seeded breaks
  * the design library page -- which is why the narrowing lands in the same change as the first such
- * seed (plan v5 wave 4; the marketing rows of L4, decision 0094).
+ * seed (the marketing rows of L4, decision 0094, and the mockup scenes of L2, decision 0092).
  */
 export async function loadLibrary(client: SupabaseClient): Promise<readonly TemplateSummary[]> {
   const { data, error } = await client.from("templates").select(SUMMARY_COLUMNS).eq("kind", "design").order("slug").limit(LIBRARY_READ_LIMIT);

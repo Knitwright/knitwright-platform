@@ -93,8 +93,11 @@ test.describe("the launch shell", () => {
     await page.keyboard.press("End");
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
+    // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
+    // than a placeholder. The other ten still name the workstream that will fill them.
     await panels.getByRole("tab", { name: "Mockups" }).click();
-    await expect(page.getByTestId("launch-panel-mockups")).toContainText("workstream L2");
+    await expect(page.getByTestId("mockups-panel")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {

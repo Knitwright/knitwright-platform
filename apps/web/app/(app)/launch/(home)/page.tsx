@@ -79,7 +79,7 @@ export default async function LaunchPage() {
         {home.presets.length === 0
           ? "No artboard size is on file yet, so a board starts at 1080 by 1080 pixels until one is added."
           : `${home.presets.length} artboard sizes are on file. Every one is a labelled default nobody has reviewed, and the inspector says so beside it.`}{" "}
-        <Link href="/studio" className="soft-link text-cobalt-soft">
+        <Link href="/studio" className="soft-link text-ink underline underline-offset-4">
           Back to your designs
         </Link>
       </p>

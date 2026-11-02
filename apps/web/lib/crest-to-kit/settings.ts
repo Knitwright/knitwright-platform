@@ -1,5 +1,5 @@
 /**
- * The settings and tables crest-to-kit works from (spec F-T2, plan v5 Z6, decision 0103).
+ * The settings and tables crest-to-kit works from (spec F-T2, plan v5 Z6, decision 0104).
  *
  * Nothing here is a literal buried in code: every limit, every feel and every rule id is a row in
  * this file, so the owner can change one without touching the engine, and every figure says whose

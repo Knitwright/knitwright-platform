@@ -1,5 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { accessible, openStudioSection } from "./chrome";
 import { createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
@@ -54,8 +55,13 @@ test.describe("brand workspace (W4-C)", () => {
     const projectId = await startDesign(page, "Fern hoodie");
     await freeze(email, projectId);
 
-    await page.getByRole("link", { name: "Brand", exact: true }).first().click();
+    // Brand is one of the sections the top bar lists in its overflow menu (decision 0103).
+    await openStudioSection(page, "Brand");
     await expect(page).toHaveURL(/\/brand$/);
+    // The first accessibility scan of this page, with the run builder still empty: its one line of
+    // prose holds a link that colour alone used to carry, which axe reads at 1.64:1 against the
+    // words around it (decision 0103).
+    await accessible(page);
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Fern hoodie" });
     await products.getByRole("button", { name: "Add to product list" }).click();
@@ -102,6 +108,9 @@ test.describe("brand workspace (W4-C)", () => {
     await expect(sent.getByText(/Fern hoodie · Brand run · 60 pieces/)).toBeVisible();
     await expect(sent.getByText(/in ops: submitted/)).toHaveCount(2);
     await expect(sent.getByText(/Sent with notes: No minimum order is set/)).toBeVisible();
+
+    // And again with the product list and its own links filled in.
+    await accessible(page);
   });
 
   test("both orders show in the ops queue for a platform admin", async ({ page }) => {

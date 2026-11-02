@@ -1,9 +1,26 @@
 "use client";
 
-import { useId, useState } from "react";
-import { BOARDS, PANEL_OF_KIND, type ArtboardPreset, type ArtboardUnit, type BoardKind, type BoardSelection, type ProjectColour, type Size } from "@/lib/launch";
+import { useId, useState, type ReactNode } from "react";
+import MockupBoardPanel from "@/components/mockups/MockupBoardPanel";
+import {
+  BOARDS,
+  PANEL_OF_KIND,
+  type ArtboardPreset,
+  type ArtboardUnit,
+  type BoardKind,
+  type BoardSelection,
+  type LaunchPanelId,
+  type LaunchPanelProps,
+  type ProjectColour,
+  type Size,
+} from "@/lib/launch";
 import { ArtboardSize } from "./ArtboardSize";
 import { PanelPlaceholder } from "./PanelPlaceholder";
+
+/** The board panels that are built, by their id. Everything else gets its placeholder. */
+const BUILT: Partial<Record<LaunchPanelId, (props: LaunchPanelProps) => ReactNode>> = {
+  "board-mockup": MockupBoardPanel,
+};
 
 type Props = Readonly<{
   projectName: string;
@@ -18,6 +35,8 @@ type Props = Readonly<{
   onSize: (size: Size) => void;
   onColours: (colours: readonly ProjectColour[]) => void;
   onAddBoard: (kind: BoardKind) => void;
+  /** What a board's own panel is given, and all it is given (`lib/launch/panels.ts`). */
+  panel: LaunchPanelProps;
 }>;
 
 const CHIP = "chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-3.5 text-[13px] text-ink";
@@ -70,8 +89,9 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard }: Pro
 
 type BoardPanelProps = Props & Readonly<{ selection: BoardSelection }>;
 
-function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize }: BoardPanelProps) {
-  const panel = PANEL_OF_KIND[selection.board.kind];
+function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, panel }: BoardPanelProps) {
+  const panelId = PANEL_OF_KIND[selection.board.kind];
+  const Built = panelId === null ? undefined : BUILT[panelId];
   const info = BOARDS[selection.board.kind];
   return (
     <>
@@ -85,7 +105,7 @@ function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize }
         </p>
       ) : null}
       <ArtboardSize board={selection.board} unit={unit} presets={presets} busy={busy} onUnit={onUnit} onSize={onSize} />
-      {panel ? <PanelPlaceholder id={panel} /> : null}
+      {Built ? <Built {...panel} /> : panelId ? <PanelPlaceholder id={panelId} /> : null}
     </>
   );
 }

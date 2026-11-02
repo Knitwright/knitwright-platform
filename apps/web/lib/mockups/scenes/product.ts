@@ -1,0 +1,136 @@
+import { at, centre, slot, type ScenePlan } from "./build";
+
+/**
+ * `07`'s first scene group, "Product shots (deterministic, free)", and F-L1's free list:
+ *
+ *   Front / back / three-quarter / side 3D renders · flat lay on white · flat lay on grass ·
+ *   hanger on wall · folded stack · ghost mannequin
+ *
+ * plus the **360° turntable** F-L1 names among the free mockups. Every one of them is drawn by this
+ * workstream from the design's own drawing: no model is called and nothing costs a credit.
+ */
+
+const ALL_SPORTS = ["football", "cricket", "training", "esports", "running-gym", "combat"];
+
+export const PRODUCT_SCENES: readonly ScenePlan[] = [
+  {
+    slug: "product-front",
+    title: "Front render",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, no shadow",
+    people: "none",
+    slots: [slot("front", "flat", "Hero front", "Eye level, straight on", centre(0.74, 0.8))],
+    sports: ALL_SPORTS,
+    moods: ["clean"],
+  },
+  {
+    slug: "product-back",
+    title: "Back render",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, no shadow",
+    people: "none",
+    slots: [slot("back", "flat", "Over-shoulder back", "Eye level, straight on", centre(0.74, 0.8))],
+    sports: ALL_SPORTS,
+    moods: ["clean"],
+  },
+  {
+    slug: "product-three-quarter",
+    title: "Three-quarter render",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, no shadow",
+    people: "none",
+    slots: [slot("three-quarter", "flat", "Hero front", "Eye level, turned 45°", centre(0.62, 0.8))],
+    sports: ALL_SPORTS,
+    moods: ["clean"],
+  },
+  {
+    slug: "product-side",
+    title: "Side render",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, no shadow",
+    people: "none",
+    slots: [slot("side", "flat", "Hero front", "Eye level, turned 90°", centre(0.4, 0.8))],
+    sports: ALL_SPORTS,
+    moods: ["clean"],
+  },
+  {
+    slug: "flat-lay-white",
+    title: "Flat lay on white",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Soft top light with a drop shadow",
+    people: "none",
+    slots: [slot("front", "flat", "Laid out flat", "Straight down from above", centre(0.78, 0.78))],
+    sports: ALL_SPORTS,
+    moods: ["clean", "understated"],
+  },
+  {
+    slug: "flat-lay-grass",
+    title: "Flat lay on grass",
+    group: "product",
+    source: "deterministic",
+    backdrop: "outfield",
+    lighting: "Open daylight with a soft shadow",
+    people: "none",
+    slots: [slot("front", "flat", "Laid out flat", "Straight down from above", centre(0.74, 0.74))],
+    sports: ["football", "cricket", "training"],
+    moods: ["bold", "clean"],
+  },
+  {
+    slug: "hanger-on-wall",
+    title: "Hanger on a wall",
+    group: "product",
+    source: "deterministic",
+    backdrop: "wall",
+    lighting: "Side light with a long soft shadow",
+    people: "none",
+    slots: [slot("front", "hanging", "Hung from the shoulders", "Eye level, straight on", at(0.15, 0.2, 0.7, 0.7))],
+    sports: ALL_SPORTS,
+    moods: ["understated", "clean"],
+  },
+  {
+    slug: "folded-stack",
+    title: "Folded stack",
+    group: "product",
+    source: "deterministic",
+    backdrop: "table",
+    lighting: "Soft top light with a drop shadow",
+    people: "none",
+    slots: [slot("front", "folded", "Folded in three", "Slightly above, straight on", centre(0.66, 0.5))],
+    sports: ALL_SPORTS,
+    moods: ["understated"],
+  },
+  {
+    slug: "ghost-mannequin",
+    title: "Ghost mannequin",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, inner shade at the neck",
+    people: "none",
+    slots: [slot("front", "ghost", "Filled out, nobody in it", "Eye level, straight on", centre(0.7, 0.82))],
+    sports: ALL_SPORTS,
+    moods: ["clean"],
+  },
+  {
+    slug: "turntable-360",
+    title: "360° turntable",
+    group: "product",
+    source: "deterministic",
+    backdrop: "white",
+    lighting: "Even studio light, no shadow",
+    people: "none",
+    slots: [slot("front", "turning", "Turning on the spot", "Eye level, straight on", centre(0.7, 0.8))],
+    sports: ALL_SPORTS,
+    moods: ["clean", "sharp"],
+  },
+];

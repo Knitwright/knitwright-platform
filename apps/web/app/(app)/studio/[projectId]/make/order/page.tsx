@@ -38,7 +38,7 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/st
         <>
           Pieces per product and size. The tier price is read across every piece in the order, so it changes as the quantities do. The order is
           handed to production; Knitwright invoices it outside this platform.{" "}
-          <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-cobalt-soft">Back to the product</Link>.
+          <Link href={`/studio/${projectId}/make` as Route} className="soft-link text-ink underline underline-offset-4">Back to the product</Link>.
         </>
       }
     >

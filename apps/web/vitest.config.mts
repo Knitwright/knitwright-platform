@@ -19,7 +19,7 @@ const PDF_TESTS = [
   "lib/projects/export-download.test.ts",
   // The production package writes a PDF for every size and reads several back (decision 0070).
   "lib/kpp/**/*.test.ts",
-  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0103).
+  // The quote is one PDF per test, read back page by page (plan v5 Z6, decision 0104).
   "lib/quotes/document.test.ts",
   // Each of these pushes a full-size picture (up to 6000 x 8000 px) through sharp and the whole
   // print pipeline, and says so in its own file: 270-310 s apiece under coverage on a shared
@@ -118,11 +118,11 @@ export default defineConfig({
         // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
         "lib/flows/server.ts",
         // Joins crest-to-kit to the catalogue and the picture decoder; the pipeline it hands over is tested on
-        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0103).
+        // its own, and the route test and the end-to-end test cover the joining (plan v5 Z6, decision 0104).
         "lib/crest-to-kit/server.ts",
         // Joins a quote to the factory rows: the tiers, the cut-off and the market rules. Every rule it hands
         // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
-        // decision 0103).
+        // decision 0104).
         "lib/quotes/server.ts",
       ],
       thresholds: {
@@ -185,6 +185,7 @@ export default defineConfig({
             "marketing",
             "media",
             "media-check",
+            "mockups",
             "moderation",
             "ops",
             "orders",
@@ -199,6 +200,7 @@ export default defineConfig({
             "releases",
             "rulebook",
             "settings",
+            "shell",
             "teamwear",
             "templates",
             "validation",
