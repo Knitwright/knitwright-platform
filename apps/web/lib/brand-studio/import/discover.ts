@@ -148,7 +148,12 @@ export function coloursOfStyles(styles: string): readonly string[] {
 }
 
 const QUOTED = /^['"]|['"]$/g;
-const GENERIC = /^(inherit|initial|unset|revert|serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|-apple-system|blinkmacsystemfont|segoe ui|roboto|helvetica|helvetica neue|arial|sans|emoji|math|fangsong)$/i;
+/**
+ * The families nobody chose as a brand font: the CSS generics, the system stack every reset names,
+ * and the faces a browser already has. A page that falls back to Georgia has not told us its font.
+ */
+const GENERIC =
+  /^(inherit|initial|unset|revert|serif|sans-serif|monospace|cursive|fantasy|system-ui|ui-[a-z-]+|-apple-system|blinkmacsystemfont|segoe ui|roboto|helvetica|helvetica neue|arial|sans|emoji|math|fangsong|georgia|times|times new roman|courier|courier new|verdana|tahoma|trebuchet ms|palatino|palatino linotype|lucida grande|noto sans|apple color emoji|segoe ui emoji|noto color emoji)$/i;
 
 /** One family name as written, trimmed of quotes. Null when it is a generic the page did not choose. */
 const familyName = (raw: string): string | null => {
