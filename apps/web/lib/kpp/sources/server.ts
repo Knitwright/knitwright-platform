@@ -25,6 +25,7 @@ import { buildKppInput, NOTHING_UNSOURCED, type KppRows } from "../input";
 import type { KppInput, KppSources } from "../model";
 import { recordPackageExport } from "../record";
 import { packageRefusal, packageResponse } from "./answer";
+import { bomConsumption, consumptionNote } from "./consumption";
 import { draftedPattern } from "./pattern";
 import { DRAFTED_BY, printSource } from "./print";
 import { designFactsOf, MADE_BY_KNITWRIGHT, MADE_BY_NOTE, marketsOf, moderationOf, printSettingsOf } from "./rows";
@@ -38,8 +39,11 @@ import { techPackPdfSource } from "./techpack";
  * environment and no clock (decision 0070 point 1).
  *
  * Nothing here invents a value. A value no row holds reaches the package as `needs_input`, and the F-G2 gate
- * refuses the package and names it; today that is the normal answer for a real design, because no table holds
- * the bill-of-materials consumption, the care-label wording or the AQL plan (0070 revision 2, "Still owed").
+ * refuses the package and names it. The three values 0070 revision 2 listed as holding no table now have one —
+ * the care-label wording and the AQL plan from Z8 (decision 0089), the bill-of-materials consumption from
+ * `bom_consumption` (decision 0101) — but each table holds only what a source really publishes, so for an
+ * article that publishes no consumption, or a market whose care wording is not written, a refusal is still the
+ * normal and correct answer.
  */
 
 export const WHERE = "GET /api/projects/[projectId]/production-package";
@@ -75,9 +79,14 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
   // The article and the map of its approved option codes (decision 0099) are read together: the tech pack's
   // option fields name a code only where a published source joins the design's own answer to one, and say so
   // plainly where nothing does, so a factory never reads a code the catalogue did not approve.
-  const [article, codes] = await Promise.all([
+  // The consumption figures are read beside them, from `bom_consumption` (decision 0101): what one garment
+  // consumes is what every bill-of-materials line was missing, and until it was read here the gate refused every
+  // real package for want of a quantity. A signed-in member may read the table, as they may read the catalogue,
+  // so the member's own client reads it and the server's key is not needed.
+  const [article, codes, consumption] = await Promise.all([
     getBaseArticle(clients.client, ref.baseArticleCode),
     optionCodeMap(clients.client, ref.baseArticleCode),
+    bomConsumption(clients.client, ref.baseArticleCode),
   ]);
   if (article === null) throw new AppError("conflict", NOT_ON_ARTICLE);
   // The fabric's catalogue code is not passed: nothing maps a design's own fabric to a programme code, so the
@@ -107,7 +116,7 @@ async function readRows(clients: Clients, who: Who, projectId: string): Promise<
       madeByKnitwright: MADE_BY_KNITWRIGHT,
       orders: [],
       personalisation: [],
-      unsourced: NOTHING_UNSOURCED,
+      unsourced: { ...NOTHING_UNSOURCED, consumption },
     },
   };
 }
@@ -158,7 +167,9 @@ export async function serveProductionPackage(who: Who, projectId: string): Promi
   const { rows, project, context } = await readRows(clients, who, projectId);
   const built = buildKppInput(rows);
   const { sources, notes } = await sourcesFor(clients, who, projectId, built, project, context);
-  const input: KppInput = { ...built, notes: [...built.notes, ...notes] };
+  // The consumption sentence goes on the package itself, so a reader is told how many of its quantities were
+  // quoted, from where, and that no factory has agreed any of them.
+  const input: KppInput = { ...built, notes: [...built.notes, ...notes, consumptionNote(rows.unsourced.consumption)] };
   const charging = creditCharge(packageGate, who, WHERE);
   const result = await exportPackage(input, sources, charging.charge);
   if (!result.ok) throw packageRefusal(result);
