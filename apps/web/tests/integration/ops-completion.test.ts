@@ -69,10 +69,14 @@ async function orderAt(status: "submitted" | "ready"): Promise<{ id: string; cut
  * True when a change to one of these tables was refused. The service role holds SELECT alone on every one of
  * them, so the missing privilege refuses an update before the append-only trigger is even reached; the trigger
  * is the second line of defence, for any role that is ever granted UPDATE by mistake. Either refusal counts,
- * and a change that went through counts as neither.
+ * and a change that went through counts as neither. PostgREST puts the missing privilege in `hint` and
+ * "permission denied for table …" in `message`, so both are read.
  */
-const refusedAsReadOnly = (error: { hint?: string | null; message?: string } | null, table: string): boolean =>
-  error !== null && (error.hint === "append_only" || (error.message ?? "").includes(`UPDATE ON public.${table}`));
+const refusedAsReadOnly = (error: { hint?: string | null; message?: string } | null, table: string): boolean => {
+  if (error === null) return false;
+  const said = `${error.hint ?? ""} ${error.message ?? ""}`;
+  return error.hint === "append_only" || said.includes(`UPDATE ON public.${table}`) || /permission denied/i.test(said);
+};
 
 const scheduled = (now: Date) => adminClient().rpc("ops_cut_scheduled", { p_now: now.toISOString() });
 /** A moment that many weeks back. Its cut-off is in the past, so a cut as of then cuts nothing. */

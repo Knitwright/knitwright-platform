@@ -221,8 +221,13 @@ alter table public.ops_shipments drop constraint ops_shipments_provider_check;
 alter table public.ops_shipments add constraint ops_shipments_provider_check
   check (provider in ('manual', 'courier'));
 alter table public.ops_shipments add column courier_code text references public.ops_couriers (code) on update cascade;
+-- Checked without a regular expression for the same reason as the template above, and for one more: a POSIX
+-- repetition count may not exceed 255, so `{1,320}` is not a pattern Postgres will even compile.
 alter table public.ops_shipments add column tracking_url text
-  check (tracking_url is null or tracking_url ~ '^https://[^ ]{1,320}$');
+  check (
+    tracking_url is null
+    or (tracking_url like 'https://%' and length(tracking_url) between 9 and 320 and tracking_url not like '% %')
+  );
 
 -- ---------------------------------------------------------------------------------------------
 -- F-O4. The commercial invoice as a record.
