@@ -43,7 +43,8 @@ const SLUG: readonly [(v: string) => boolean, string] = [(v) => /^[a-z0-9]+(-[a-
 const WHATSAPP: readonly [(v: string) => boolean, string] = [(v) => /^\+[1-9][0-9]{6,14}$/.test(v), "Give the number with its country code, such as +923001234567."];
 const HEX: readonly [(v: string) => boolean, string] = [(v) => /^#[0-9A-F]{6}$/.test(v), "Give a colour as # and six capital hex digits, such as #1F2A44."];
 const ZONE: readonly [(v: string) => boolean, string] = [isTimeZone, "Give a time zone such as Asia/Karachi."];
-const RULE: readonly [(v: string) => boolean, string] = [(v) => ruleIdSchema.safeParse(v).success, "Give a rule id such as R-SUB-005, or R-GAP-000 while none is written."];
+const TAX_NAME: readonly [(v: string) => boolean, string] = [(v) => v === "VAT" || v === "GST", "Write VAT or GST, or leave it blank while neither is recorded."];
+const RULE: readonly [(v: string) => boolean, string] =[(v) => ruleIdSchema.safeParse(v).success, "Give a rule id such as R-SUB-005, or R-GAP-000 while none is written."];
 
 /** "Which rule explains this", on every table that carries a range, an option or a term. */
 const ruleField = (table: FactoryTable): EditableField => f(table, "rule_id", "Rule that explains these values", "text", { check: RULE });
@@ -96,6 +97,12 @@ export const EDITABLE_FIELDS: readonly EditableField[] = [
   f("country_rules", "label_rules", "Label rules (JSON object)", "json"),
   f("country_rules", "freight_days", "Freight (calendar days)", "optionalNumber", { min: 0, max: 120 }),
   f("country_rules", "selling_enabled", "Selling open", "boolean"),
+  // The tax treatment of the market (decision 0102). The threshold is the sales figure above which the
+  // seller has to register, not the import low-value threshold above it.
+  f("country_rules", "tax_name", "Tax charged on a sale (VAT or GST, blank for neither)", "optionalText", { check: TAX_NAME }),
+  f("country_rules", "tax_registration_threshold_minor", "Register for that tax above (country currency)", "money"),
+  f("country_rules", "tax_registered", "Registered for that tax", "boolean"),
+  f("country_rules", "tax_source", "Where the tax figures came from", "optionalText"),
   ruleField("country_rules"),
   f("country_rules", "label", "Source", "text"),
 ];
