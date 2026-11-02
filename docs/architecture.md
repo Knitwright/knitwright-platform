@@ -112,8 +112,8 @@ Y3, Y4, Y5 and Y8 code against this file. It does not change without a loud note
 ### `apps/web/lib/launch/panels.ts` — the board panel contract (L1, decision 0091)
 
 The same shape one surface over. The launch shell owns the icon rail, the right inspector, the prompt
-pill and tool dock, undo and redo, the zoom, the credit balance and the canvas; the nineteen panels
-(twelve rail panels, six board inspectors, one flow-run summary) are built by L2 to L6 and each is given
+pill and tool dock, undo and redo, the zoom, the credit balance and the canvas; the eighteen panels
+(twelve rail panels, five board inspectors, one flow-run summary) are built by L2 to L6 and each is given
 exactly `LaunchPanelProps`. It follows `slots.ts` deliberately, including the same principle, and names
 the three invalid results it makes impossible:
 

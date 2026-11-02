@@ -37,6 +37,10 @@ question already appears there; otherwise answer against the record cited here.
 A question that could sit in two groups is filed under the one that unblocks it. A question asked by
 more than one workstream appears once, with every record that asked it.
 
+**Reading a citation.** A bare number is a decision record: "0089 q1" is question 1 of
+`../decisions/0089-compliance-and-pre-export.md`. A bare "questionnaire N" is the 2026-10-30 sheet,
+whose numbering starts at 21; the 2026-10-25 sheet is always named with its date.
+
 ---
 
 ## The six that block a real order

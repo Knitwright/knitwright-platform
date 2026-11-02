@@ -26,7 +26,10 @@ The `care_symbols` table is ready and holds only the five categories the standar
 citing `ISO 3758:2012` and nothing more, with `symbol_ref` and `words` null and `confirmed` false. The
 table's own database checks refuse words with no source behind them and refuse a `confirmed` row that
 is not a whole row, so the database cannot hold an unsourced care instruction even if someone tried to
-write one. An integration test asserts the rows stay empty.
+write one — `tests/integration/compliance.test.ts` proves both refusals against the real database. And
+`tests/integration/australia-and-translate.test.ts` asserts, in a test called "holds no care symbol, no
+care instruction and no words of the standard anywhere", that every row's symbol and words are still
+null.
 
 Three separate workstreams hit this and **none of them invented a symbol.** What it needs is a licensed
 copy, five to about twenty rows transcribed from it, and a name against them — or the wording from the
@@ -117,8 +120,9 @@ at start while it is unset).
 
 ## Your questions, all of them, in one place
 
-Thirty decision records each ended with questions for you. There are **252** of them, which is why
-they now live in one list rather than thirty files:
+Thirty decision records each ended with questions for you. There are **235** of them, in thirty files,
+which is why they now live in one list — plus the seventeen items of 2026-10-15, recovered, for **252**
+in all:
 
 ### → [`open-questions-v5.md`](open-questions-v5.md)
 

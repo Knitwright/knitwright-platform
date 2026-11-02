@@ -35,7 +35,7 @@ real order today** — and then the six reasons, each with the evidence in the f
 
 | | What | Evidence read |
 |---|---|---|
-| 1 | **ISO 3758 is a paid standard and is not in this repository**, so no care line prints for any market, so no label prints, so the production package is refused for every market | `care_symbols` holds the five categories and nothing else, `symbol_ref` and `words` null; the table's own checks refuse words with no source and refuse a partial `confirmed` row; `tests/integration/compliance.test.ts` asserts the rows stay empty; `lib/kpp/input/labels.ts` reads `label_rules.care`, which the seed leaves null, and `lib/kpp/gate.ts`'s `labelIssues` refuses `label.care.length === 0`. Decision 0089 |
+| 1 | **ISO 3758 is a paid standard and is not in this repository**, so no care line prints for any market, so no label prints, so the production package is refused for every market | `care_symbols` holds the five categories and nothing else, `symbol_ref` and `words` null; the table's own checks refuse words with no source and refuse a partial `confirmed` row; `tests/integration/compliance.test.ts` proves both refusals and `tests/integration/australia-and-translate.test.ts` asserts every row's symbol and words are still null; `lib/kpp/input/labels.ts` reads `label_rules.care`, which the seed leaves null, and `lib/kpp/gate.ts`'s `labelIssues` refuses `label.care.length === 0`. Decision 0089 |
 | 2 | **No AUD price exists** | `price_tiers.sell_aud_minor` null on all three tiers (`20261210030000_australia_and_translate.sql`); `tests/integration/store-contract.test.ts` asserts every row is null, and `lib/factory/view.test.ts` asserts an unpriced AUD row shows the empty string. Decision 0104 |
 | 3 | **QC days and freight days are both unset, so no delivery date can be shown anywhere** | `production.qc_days` has `fallback: null` with the help text "Leave empty while none is agreed: no delivery date is promised"; `country_rules.freight_days` is seeded null; `lib/factory/dates.ts` answers "not set" when any part is missing. Decision 0071 |
 | 4 | **No Pantone data ships** | `lib/crest-to-kit/palette.ts` says so in capitals; `lib/crest-to-kit/wording.test.ts` fails on any sentence matching `/\bpantone\s*[0-9]/i` across the surface. Decision 0105 |
@@ -103,7 +103,7 @@ written against them, and because they are the same idea twice:
 - **`apps/web/lib/editor/slots.ts`** (Y2, 0075): the seven editor slots, each given exactly `EditorSlotProps`. Every entry
   of `EditorCommands` is a request, never a write, so an unmanufacturable design is not something a panel is trusted not to
   make — it is something a panel has no way to express.
-- **`apps/web/lib/launch/panels.ts`** (L1, 0091): the nineteen launch panels, following `slots.ts` deliberately, and naming
+- **`apps/web/lib/launch/panels.ts`** (L1, 0091): the eighteen launch panels, following `slots.ts` deliberately, and naming
   the three invalid results it makes impossible — a disallowed connector, a paid run with no locked garment, a generated
   picture used as artwork.
 
