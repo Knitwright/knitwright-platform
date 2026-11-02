@@ -67,6 +67,30 @@ export const disconnectBoardsBody = z.object({ launchProjectId: z.uuid(), edgeId
 
 export const saveVersionBody = z.object({ launchProjectId: z.uuid() });
 
+/**
+ * What a panel hands the shell when a run finishes (`offerAsset` of the contract).
+ *
+ * The role and the provenance are both here, and the action puts them back through `acceptAsset`
+ * before anything is written: a body that says "generated" and "print_file" is refused there, in
+ * the service and again by the database's own constraint (spec decision 13).
+ */
+export const recordOutputBody = z.object({
+  launchProjectId: z.uuid(),
+  boardId: z.uuid(),
+  asset: z
+    .object({
+      role: z.enum(["scene", "panel_layer", "print_file"]),
+      provenance: z.enum(["deterministic", "golden_sample", "generated"]),
+      fileId: z.uuid(),
+      showsPerson: z.boolean().default(false),
+    })
+    .nullable(),
+  status: z.enum(["queued", "running", "ready", "failed"]),
+  /** Credits the run actually spent, from the meter. Null when nothing was charged. */
+  credits: z.number().int().min(0).max(1_000_000).nullable().default(null),
+});
+export type RecordOutputBody = z.output<typeof recordOutputBody>;
+
 /** The shape a saved version holds, so a version can be read back as a canvas and not as anything else. */
 export const snapshotSchema = z.object({
   kind: z.literal("launch-canvas"),
