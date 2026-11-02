@@ -1,6 +1,7 @@
 # 0057: Lifestyle images with scene replacement and virtual try-on
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-27
 Plan step: plans/platform-v4.md, workstream W3-B. Builds on 0054 (media sets), 0055 (generated-image checker), 0018 (photoreal images), 0012 (usage metering) and 0051 (credit gates).
 

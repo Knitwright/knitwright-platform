@@ -1,6 +1,7 @@
 # 0009: Flats: one geometry model, two renderers
 
 Status: Accepted. The drawings themselves wait for the owner (action A6).
+Index: Accepted; drawings wait for the owner
 Date: 2026-09-29
 Plan step: 7
 

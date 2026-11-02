@@ -1,6 +1,7 @@
 # 0020: Sketch and photo input
 
 Status: Accepted. The golden images (A8), their approval (A7) and the live run (A3) are owed.
+Index: Accepted; golden images and live run owed
 Date: 2026-09-29
 Plan step: 13
 

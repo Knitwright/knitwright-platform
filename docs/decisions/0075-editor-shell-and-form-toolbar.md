@@ -1,6 +1,7 @@
 # 0075: The editor shell and the Form toolbar
 
 Status: Proposed
+Index: Proposed; owner questions listed
 Date: 2026-10-30
 Plan step: `plans/platform-v5.md`, wave 2, workstream Y2 (spec F-S4 editor)
 

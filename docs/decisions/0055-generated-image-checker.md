@@ -1,6 +1,7 @@
 # 0055: Generated-image checker
 
 Status: Proposed (the thresholds are untuned defaults)
+Index: Proposed; thresholds are untuned defaults
 Date: 2026-10-25
 Plan step: platform v4, wave 3, W3-C (`plans/platform-v4.md`)
 

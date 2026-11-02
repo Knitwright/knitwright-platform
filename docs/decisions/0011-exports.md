@@ -1,6 +1,7 @@
 # 0011: Exports: PDF, Excel and SVG
 
 Status: Accepted locally. The deployed check of decision 0008 is owed.
+Index: Accepted locally; deployed check of 0008 owed
 Date: 2026-09-29
 Plan step: 9
 

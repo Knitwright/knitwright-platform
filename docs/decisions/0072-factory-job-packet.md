@@ -1,6 +1,7 @@
 # 0072: Factory job packet (a link, no account)
 
 Status: Proposed. Owner questions below. The database tests and the end-to-end test have not run in the sandbox
+Index: Proposed; owner questions listed
 that wrote this (no Docker); CI runs them.
 Date: 2026-10-29
 Plan step: platform v5, wave 1, workstream X7. Spec F-O2 (`docs/spec/02-features.md`),

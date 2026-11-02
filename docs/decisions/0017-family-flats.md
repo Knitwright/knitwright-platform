@@ -1,6 +1,7 @@
 # 0017: Flats for bottoms, outerwear and close-fitting
 
 Status: Accepted. The drawings wait for the owner (action A6).
+Index: Accepted; drawings wait for the owner
 Date: 2026-09-29
 Plan steps: 17 (bottoms), 20 (outerwear), 23 (close-fitting)
 
