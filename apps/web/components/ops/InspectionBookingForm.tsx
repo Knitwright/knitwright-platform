@@ -27,7 +27,7 @@ export function InspectionBookingForm({ orderId, place, today }: Readonly<{ orde
       <Field name="requestedOn" label="Day you asked" type="date" defaultValue={today} errors={fieldErrors("requestedOn")} />
       <Field name="place" label="Where the goods are" maxLength={120} defaultValue={place} errors={fieldErrors("place")} />
       <div className="sm:col-span-2">
-        <Field name="note" label="Note" maxLength={300} errors={fieldErrors("note")} />
+        <Field name="note" label="Note for the inspection house" maxLength={300} errors={fieldErrors("note")} />
       </div>
       <div>
         <Button type="submit" pending={pending}>

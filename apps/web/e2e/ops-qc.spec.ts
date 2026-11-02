@@ -102,14 +102,14 @@ test.describe("the ops console, quality control to shipped", () => {
 
     // Shipping: a part shipment needs an owner for the rest, then the rest completes the order.
     await page.goto(`/ops/orders/${orderId}/shipping`);
-    await page.getByLabel("Courier").fill("DHL");
+    await page.getByLabel("Courier", { exact: true }).fill("DHL");
     await page.getByLabel("Tracking number").fill("TRACK-1");
     await page.getByLabel("Shipped on").fill("2026-10-30");
     await page.getByLabel("Pieces sent, by size").fill("M 3");
     await page.getByRole("button", { name: "Record parcel" }).click();
     await expect(page.locator("[data-form-summary]")).toBeVisible();
     // The form is reset after an action, so the parcel is entered again with the owner of the rest.
-    await page.getByLabel("Courier").fill("DHL");
+    await page.getByLabel("Courier", { exact: true }).fill("DHL");
     await page.getByLabel("Tracking number").fill("TRACK-1");
     await page.getByLabel("Shipped on").fill("2026-10-30");
     await page.getByLabel("Pieces sent, by size").fill("M 3");
@@ -117,7 +117,7 @@ test.describe("the ops console, quality control to shipped", () => {
     await page.getByLabel("Due date for the rest").fill("2099-01-01");
     await page.getByRole("button", { name: "Record parcel" }).click();
     await expect(page.getByTestId("fulfilment")).toContainText("Part shipped");
-    await page.getByLabel("Courier").fill("DHL");
+    await page.getByLabel("Courier", { exact: true }).fill("DHL");
     await page.getByLabel("Shipped on").fill("2026-10-31");
     await page.getByLabel("Tracking number").fill("TRACK-2");
     await page.getByLabel("Pieces sent, by size").fill("L 2");
