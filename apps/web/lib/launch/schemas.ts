@@ -1,0 +1,117 @@
+import { z } from "zod";
+import { ARTBOARD_UNITS, MAX_ARTBOARD_PX, MIN_ARTBOARD_PX } from "./artboard";
+import { BOARD_KINDS } from "./boards";
+
+/**
+ * What the launch screens may send (plan v5 L1, decision 0091). The brand and the person are never
+ * in a body: they come from the session.
+ *
+ * Nothing here can ask for a generated picture to become artwork. `offerAsset` is the only way an
+ * output is recorded, and its role comes from `lib/launch/assets.ts`, where a generated asset has
+ * no role but "scene" (spec decision 13). This file carries zod, so it is deliberately left out of
+ * `index.ts`: a client component that imported it would ship zod to the browser.
+ */
+
+const name = z.string().trim().min(1).max(80);
+const canvas = z.number().int().min(-1_000_000).max(1_000_000);
+const side = z.number().int().min(MIN_ARTBOARD_PX).max(MAX_ARTBOARD_PX);
+const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a colour such as #0B1F4B.");
+
+export const projectColour = z.object({ hex, name: z.string().trim().min(1).max(60) });
+
+export const createLaunchProjectBody = z.object({
+  name,
+  units: z.enum(ARTBOARD_UNITS).default("px"),
+  /** The design the project is launching, when one is chosen on the way in. */
+  designProjectId: z.uuid().nullable().default(null),
+});
+export type CreateLaunchProjectBody = z.output<typeof createLaunchProjectBody>;
+
+export const saveLaunchProjectBody = z.object({
+  launchProjectId: z.uuid(),
+  name: name.nullable().default(null),
+  units: z.enum(ARTBOARD_UNITS).nullable().default(null),
+  colours: z.array(projectColour).max(48).nullable().default(null),
+});
+export type SaveLaunchProjectBody = z.output<typeof saveLaunchProjectBody>;
+
+export const removeLaunchProjectBody = z.object({ launchProjectId: z.uuid() });
+
+export const saveBoardBody = z.object({
+  launchProjectId: z.uuid(),
+  /** Null adds a board; an id moves, resizes or re-settings one. A kind never changes. */
+  boardId: z.uuid().nullable().default(null),
+  kind: z.enum(BOARD_KINDS),
+  name: z.string().trim().max(80).default(""),
+  x: canvas.default(0),
+  y: canvas.default(0),
+  width: side.default(1080),
+  height: side.default(1080),
+  /** The board's own prompt, model, aspect and style. The shell never reads inside it. */
+  settings: z.record(z.string().min(1).max(64), z.unknown()).default({}),
+  inputVersion: z.number().int().min(1).nullable().default(null),
+});
+export type SaveBoardBody = z.output<typeof saveBoardBody>;
+
+export const removeBoardBody = z.object({ launchProjectId: z.uuid(), boardId: z.uuid() });
+
+export const connectBoardsBody = z.object({
+  launchProjectId: z.uuid(),
+  fromBoardId: z.uuid(),
+  toBoardId: z.uuid(),
+  inputIndex: z.number().int().min(1).max(16).default(1),
+});
+export type ConnectBoardsBody = z.output<typeof connectBoardsBody>;
+
+export const disconnectBoardsBody = z.object({ launchProjectId: z.uuid(), edgeId: z.uuid() });
+
+export const saveVersionBody = z.object({ launchProjectId: z.uuid() });
+
+/**
+ * What a panel hands the shell when a run finishes (`offerAsset` of the contract).
+ *
+ * The role and the provenance are both here, and the action puts them back through `acceptAsset`
+ * before anything is written: a body that says "generated" and "print_file" is refused there, in
+ * the service and again by the database's own constraint (spec decision 13).
+ */
+export const recordOutputBody = z.object({
+  launchProjectId: z.uuid(),
+  boardId: z.uuid(),
+  asset: z
+    .object({
+      role: z.enum(["scene", "panel_layer", "print_file"]),
+      provenance: z.enum(["deterministic", "golden_sample", "generated"]),
+      fileId: z.uuid(),
+      showsPerson: z.boolean().default(false),
+    })
+    .nullable(),
+  status: z.enum(["queued", "running", "ready", "failed"]),
+  /** Credits the run actually spent, from the meter. Null when nothing was charged. */
+  credits: z.number().int().min(0).max(1_000_000).nullable().default(null),
+});
+export type RecordOutputBody = z.output<typeof recordOutputBody>;
+
+/** The shape a saved version holds, so a version can be read back as a canvas and not as anything else. */
+export const snapshotSchema = z.object({
+  kind: z.literal("launch-canvas"),
+  snapshotVersion: z.literal(1),
+  savedAt: z.string(),
+  units: z.enum(ARTBOARD_UNITS),
+  colours: z.array(projectColour),
+  boards: z.array(
+    z.object({
+      id: z.uuid(),
+      kind: z.enum(BOARD_KINDS),
+      name: z.string(),
+      x: z.number().int(),
+      y: z.number().int(),
+      width: z.number().int(),
+      height: z.number().int(),
+      settings: z.record(z.string(), z.unknown()),
+      inputVersion: z.number().int().nullable(),
+      status: z.string(),
+    }),
+  ),
+  edges: z.array(z.object({ fromBoardId: z.uuid(), toBoardId: z.uuid(), inputIndex: z.number().int() })),
+});
+export type LaunchSnapshot = z.output<typeof snapshotSchema>;
