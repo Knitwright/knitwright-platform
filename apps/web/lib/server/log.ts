@@ -26,12 +26,24 @@ const JOB_TOKEN = /(\/job\/)[A-Za-z0-9_-]{43}/g;
 /** Values that follow a telling name. The name stays, so the log still says what was there. */
 const LABELLED = /\b(Bearer\s+|(?:token_hash|access_token|refresh_token|code)=)[^\s&"',;]+/g;
 
-/** Removes keys and tokens from text that leaves the server: the log, and error monitoring. */
+/**
+ * Removes keys and tokens from text that leaves the server: the log, and error monitoring.
+ *
+ * **The specific patterns run before the generic ones, and the order is load-bearing.** A share or
+ * job token is 43 characters of base64url, so about one in thirteen thousand of them contains `sk-`
+ * followed by twenty more — and the generic provider-key pattern would eat that tail, leaving a
+ * fragment the `/s/` and `/job/` patterns no longer match. The token still did not reach the log, so
+ * nothing leaked; what broke was the path, and with it the only part of the line that says what was
+ * asked for. It surfaced as `job-packet/headers.test.ts` failing about once in thirteen thousand
+ * runs with a random token, which is exactly how long it takes to find a bug like this by accident.
+ *
+ * Every pattern still runs, so nothing redacted before is redacted less now.
+ */
 export const scrub = (text: string): string =>
-  SECRETS.reduce((cleaned, pattern) => cleaned.replace(pattern, "[removed]"), text)
-    .replace(LABELLED, "$1[removed]")
-    .replace(SHARE_TOKEN, "$1[removed]")
-    .replace(JOB_TOKEN, "$1[removed]");
+  SECRETS.reduce(
+    (cleaned, pattern) => cleaned.replace(pattern, "[removed]"),
+    text.replace(SHARE_TOKEN, "$1[removed]").replace(JOB_TOKEN, "$1[removed]"),
+  ).replace(LABELLED, "$1[removed]");
 
 type Described = Readonly<Record<string, unknown>>;
 
