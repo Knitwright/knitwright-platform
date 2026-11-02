@@ -39,7 +39,14 @@ export type IntakeFormProps = Readonly<{
   onSubmit: (values: IntakeValues) => void;
 }>;
 
-const CHIP = "flex h-11 cursor-pointer items-center rounded-full border px-4 text-[15px] transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cobalt-soft";
+/**
+ * A chip whose own radio or checkbox covers it: the control is the chip, so a click anywhere on it
+ * answers the question, the focus ring is drawn on the chip, and a screen reader reads the chip's
+ * words as the control's name. The input is transparent rather than `sr-only`, because a control
+ * clipped to a point is one a pointer, a touch and a browser test can all miss.
+ */
+const CHIP = "relative flex h-11 cursor-pointer items-center rounded-full border px-4 text-[15px] transition-colors focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-cobalt-soft";
+const CHIP_INPUT = "absolute inset-0 size-full cursor-pointer appearance-none rounded-full opacity-0";
 const CHIP_ON = "border-white/40 bg-white/15 text-ink";
 const CHIP_OFF = "border-white/15 text-muted hover:border-white/25";
 
@@ -67,7 +74,7 @@ function Chips<T extends string>({ legend, name, value, options, onChange }: Chi
               value={option.id}
               checked={option.id === value}
               onChange={() => onChange(option.id)}
-              className="sr-only"
+              className={CHIP_INPUT}
             />
             {option.label}
           </label>
@@ -93,7 +100,7 @@ function Colours({ swatches, chosen, onToggle }: Readonly<{ swatches: readonly S
           const on = chosen.includes(entry.swatch);
           return (
             <label key={entry.swatch} className={`${CHIP} gap-2 ${on ? CHIP_ON : CHIP_OFF}`}>
-              <input type="checkbox" checked={on} onChange={() => onToggle(entry.swatch)} className="sr-only" />
+              <input type="checkbox" checked={on} onChange={() => onToggle(entry.swatch)} className={CHIP_INPUT} />
               <span aria-hidden="true" className="size-4 rounded-full border border-white/30" style={{ backgroundColor: entry.swatch }} />
               {entry.name}
               {on ? <span className="sr-only">, chosen</span> : null}

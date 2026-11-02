@@ -86,12 +86,14 @@ describe("a quote priced from the seeded tiers", () => {
     expect(quote.totalNote).toContain("Socks");
   });
 
-  it("shows no delivery date, because the days for QC and the freight days are not on file", async () => {
-    const settings = await store().listCountryRules();
-    expect(settings.find((rule) => rule.country === "GB")?.freightDays).not.toBeNull();
-    // The freight days are set for the United Kingdom; the days for QC are not, and that is enough
-    // to leave the date unset. `lib/make/delivery.ts` is the one place those words are written.
+  it("can show no delivery date, because no market has freight days on file", async () => {
+    // This is why nothing in this workstream prints a date: not one market row carries freight
+    // days, and `promisedDate` (decision 0071) answers "not set" while any part of the sum is
+    // missing. `lib/make/delivery.ts` is the one place the words for that are written, and the
+    // quote prints exactly those.
+    for (const rule of await store().listCountryRules()) expect(rule.freightDays, rule.country).toBeNull();
     expect(NO_DATE_YET.text).toContain("No delivery date yet");
+    expect(NO_DATE_YET.text).toContain("the freight days");
   });
 });
 
