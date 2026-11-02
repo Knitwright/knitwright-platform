@@ -82,7 +82,7 @@ export const GROUP_LABELS: Readonly<Record<MarketingGroup, string>> = {
 export const MARKETING_FORMATS = ["social-square-1-1", "social-post-4-5", "story-9-16", "hero-banner-16-9", "a4-print"] as const;
 export type MarketingFormat = (typeof MARKETING_FORMATS)[number];
 
-export const FORMAT_LABELS: Readonly<Record<MarketingFormat, string>> = {
+export const MARKETING_FORMAT_LABELS: Readonly<Record<MarketingFormat, string>> = {
   "social-square-1-1": "Social square 1:1",
   "social-post-4-5": "Social post 4:5",
   "story-9-16": "Story 9:16",

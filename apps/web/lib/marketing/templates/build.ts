@@ -1,6 +1,6 @@
 import { MARKETING_RULE } from "../rules";
 import { buildLayouts } from "./plans";
-import { FORMAT_LABELS, SEED_LABEL, type MarketingLayout, type MarketingTemplate } from "./types";
+import { MARKETING_FORMAT_LABELS, SEED_LABEL, type MarketingLayout, type MarketingTemplate } from "./types";
 
 /**
  * The 50 `templates` rows of kind `marketing` (plan v5 L4; `07`'s launch count), built from the
@@ -27,7 +27,7 @@ export interface MarketingSnapshot {
 const rowsOfLayout = (layout: MarketingLayout): readonly MarketingTemplate[] =>
   layout.formats.map((format) => ({
     slug: `${layout.key}-${format}`,
-    title: `${layout.title} — ${FORMAT_LABELS[format]}`,
+    title: `${layout.title} — ${MARKETING_FORMAT_LABELS[format]}`,
     group: layout.group,
     lead: layout.lead,
     format,
