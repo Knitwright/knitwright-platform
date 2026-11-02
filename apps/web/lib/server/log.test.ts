@@ -129,6 +129,14 @@ describe("scrub", () => {
     const token = "ECxl0lFqlHu2x987PO-qI2j7bf92_gFdkBPlJTdLceI";
     expect(scrub(`GET https://app.knitwright.com/s/${token} failed`)).toBe("GET https://app.knitwright.com/s/[removed] failed");
   });
+
+  it("removes the token of a roster sign-up link too (plan v5 Z7)", async () => {
+    const { scrub } = await import("./log");
+    // Built rather than written out: a 43-character literal of the right shape is what the secret
+    // scan is for, and one allowance in `.gitleaksignore` is enough for this file.
+    const token = "x".repeat(43);
+    expect(scrub(`GET https://app.knitwright.com/join/${token} failed`)).toBe("GET https://app.knitwright.com/join/[removed] failed");
+  });
 });
 
 describe("AI provider keys", () => {
