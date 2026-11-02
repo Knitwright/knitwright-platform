@@ -530,7 +530,7 @@ describe("saving an action", () => {
 });
 
 /**
- * Review of plan v5, item D-5: a founder's own point of measure and callout used to live in a
+ * Review of plan v5 item D-5, decision 0121: a founder's own point of measure and callout used to live in a
  * panel's own memory, so a reload lost them. They are part of the design now. The reload here is
  * the real one: the change goes through `saveAction`, and the design is then READ AGAIN from the
  * database with `getProject`, which is what the page does when a person comes back to it.

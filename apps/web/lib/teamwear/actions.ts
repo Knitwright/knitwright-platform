@@ -61,7 +61,7 @@ export const saveKitAction = defineAction({
 
     // The base article the part sits on, and the form held to its approved ranges. Both go ONTO the
     // design, not only into the address: the form used to live in the address alone, so a reload of
-    // the editor lost it and neither validation nor the tech pack ever saw it (review item D-5).
+    // the editor lost it and neither validation nor the tech pack ever saw it (review item D-5, decision 0121).
     const article = part.articleCode === null ? null : await getBaseArticle(client, part.articleCode).catch(() => null);
     const form = article === null ? { options: {}, parameters: {} } : defaultsOver(article, { options: input.options, parameters: input.parameters });
     const setArticle: readonly SpecAction[] =

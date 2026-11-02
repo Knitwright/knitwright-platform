@@ -36,7 +36,7 @@ import { TabSections } from "./Sections";
  * The marks the Specs toolbar drew ARE part of the design and are read from it (`marksOf`), so a
  * reload shows them again. A point of measure typed in here with "+ Add measurement" is still this
  * panel's own state and a reload still loses it: it has no place on a panel, so none of the stored
- * shapes in `lib/garment/design-marks.ts` fits it. Named on the pull request (review item D-5).
+ * shapes in `lib/garment/design-marks.ts` fits it. An owner question in decision 0121.
  */
 
 /**

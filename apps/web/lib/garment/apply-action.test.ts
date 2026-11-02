@@ -267,7 +267,7 @@ describe("applyAction, wearer and type", () => {
 });
 
 /**
- * The founder's own marks and the base article the design sits on (review of plan v5, item D-5).
+ * The founder's own marks and the base article the design sits on (review of plan v5 item D-5, decision 0121).
  * What is proved here is that the design keeps them, and that reading a stored design back gives
  * them again: that is the reload a person does.
  */

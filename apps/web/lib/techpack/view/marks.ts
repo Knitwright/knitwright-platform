@@ -21,7 +21,7 @@ import type { ExtraPom } from "./measurements";
  *   covers founder-drawn points, and it is listed on the pull request as a gap.
  * - **A mark is part of the design.** It is read from the design's own `extraPoms` and `callouts`
  *   and written back with a stored-design action (`marksOf`, `saveMarkAction`, `removeMarkAction`),
- *   so what a person draws is still there after a reload (review of plan v5, item D-5).
+ *   so what a person draws is still there after a reload (review of plan v5 item D-5, decision 0121).
  */
 
 export const SPEC_TOOLS = ["select", "measure-point", "measure-line", "measure-edge", "callout"] as const;

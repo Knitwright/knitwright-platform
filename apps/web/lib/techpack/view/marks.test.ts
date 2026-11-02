@@ -138,7 +138,7 @@ describe("the marks that become points of measure", () => {
 });
 
 /**
- * A mark is part of the design (review of plan v5, item D-5). These are the two halves of that: the
+ * A mark is part of the design (review of plan v5 item D-5, decision 0121). These are the two halves of that: the
  * change that stores one, and the marks read back from a design that holds some.
  */
 describe("storing a mark on the design", () => {

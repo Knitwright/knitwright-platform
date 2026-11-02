@@ -16,7 +16,7 @@ import { provenanceSchema } from "./provenance";
  *
  * Both are kept here rather than in a panel's own memory, because a mark a person draws is their
  * work: it shows on the tech pack, goes into every export, and must still be there after a reload
- * (review of plan v5, item D-5). `lib/techpack/view/marks.ts` reads these back as the marks the
+ * (review of plan v5 item D-5, decision 0121). `lib/techpack/view/marks.ts` reads these back as the marks the
  * toolbar drew, so one mark is drawn, stored and shown from one shape.
  */
 

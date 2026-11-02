@@ -34,7 +34,7 @@ import { listenForPicks, pickingNote } from "./pick-bus";
  *
  * A mark is **part of the design**: "Keep the mark" saves it with `set-extra-pom` or `set-callout`,
  * and "Take off" removes it again, so a person's own point of measure and callout are still there
- * after a reload (review of plan v5, item D-5). The marks drawn on the design are read back with
+ * after a reload (review of plan v5 item D-5, decision 0121). The marks drawn on the design are read back with
  * `marksOf`, which is also what the tech pack view reads, so the two panels cannot disagree.
  *
  * One thing it says plainly rather than hiding: **no view reports a click yet** (`pick-bus.ts`).
