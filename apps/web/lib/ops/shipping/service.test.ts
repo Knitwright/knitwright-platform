@@ -1,13 +1,28 @@
 import { describe, expect, it, vi } from "vitest";
+import { listCouriers, manualCourier, toCourier, trackingUrlFor, selectCourierProvider, type Courier } from "./courier";
 import { recordShipment, type ParcelToRecord } from "./service";
 
 const parcel: ParcelToRecord = { orderId: "o", courier: " DHL ", trackingNumber: "T1 ", shippedOn: "2026-10-30", sizes: { M: 2 }, note: "", rest: null };
 
+const courierRow = {
+  code: "by-hand",
+  name: "Entered by hand",
+  provider: "manual",
+  tracking_url_template: null,
+  terms: "",
+  transit_days: null,
+  active: true,
+  rule_id: "R-GAP-000",
+  label: "The manual option",
+};
+
+const withTracking: Courier = { ...toCourier(courierRow), code: "a-courier", name: "A courier", trackingUrlTemplate: "https://track.example/{tracking}" };
+
 describe("recordShipment", () => {
-  it("sends the courier and number through the provider, and reads the answer", async () => {
+  it("books through the courier provider, sends what it answered, and reads the result", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: [{ shipment_id: "s1", shipped_pieces: 2, complete: false }], error: null });
-    expect(await recordShipment({ rpc } as never, "actor", parcel)).toEqual({ shipmentId: "s1", pieces: 2, complete: false });
-    expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_actor: "actor", p_courier: "DHL", p_tracking_number: "T1", p_owner: null, p_due_on: null }));
+    expect(await recordShipment({ rpc } as never, "actor", parcel)).toMatchObject({ shipmentId: "s1", pieces: 2, complete: false, trackingUrl: null });
+    expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_actor: "actor", p_courier: "DHL", p_tracking_number: "T1", p_owner: null, p_due_on: null, p_provider: "manual", p_courier_code: null, p_tracking_url: null }));
   });
 
   it("sends the owner and date for what is left behind", async () => {
@@ -16,30 +31,59 @@ describe("recordShipment", () => {
     expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_owner: "Sam", p_due_on: "2026-11-05" }));
   });
 
+  it("records the courier row and its tracking page when ops chose one", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: [{ shipment_id: "s1", shipped_pieces: 2, complete: true }], error: null });
+    const out = await recordShipment({ rpc } as never, "actor", { ...parcel, courierRow: withTracking });
+    expect(out.trackingUrl).toBe("https://track.example/T1");
+    expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_courier_code: "a-courier", p_tracking_url: "https://track.example/T1" }));
+  });
+
   it("says why the database refused, in words", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: null, error: { message: "raw", hint: "qc_not_passed" } });
     await expect(recordShipment({ rpc } as never, "actor", parcel)).rejects.toThrow(/not a pass/);
   });
 
-  it("uses the provider it is given", async () => {
+  it("refuses an answer with nothing in it", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: [], error: null });
+    await expect(recordShipment({ rpc } as never, "actor", parcel)).rejects.toThrow(/nothing/);
+  });
+
+  it("uses the provider it is given, so a real adapter has one seam", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: [{ shipment_id: "s1", shipped_pieces: 2, complete: true }], error: null });
-    const prepare = vi.fn().mockResolvedValue({ provider: "manual", courier: "Other", trackingNumber: "Z9", trackingUrl: null });
-    await recordShipment({ rpc } as never, "actor", parcel, { id: "manual", describe: "", prepare });
-    expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_courier: "Other", p_tracking_number: "Z9" }));
+    const book = vi.fn().mockResolvedValue({ provider: "courier", courier: "Other", courierCode: null, trackingNumber: "Z9", trackingUrl: null, outcome: "Booked" });
+    await recordShipment({ rpc } as never, "actor", parcel, { name: "x", describe: "", book });
+    expect(rpc).toHaveBeenCalledWith("ops_record_shipment", expect.objectContaining({ p_courier: "Other", p_tracking_number: "Z9", p_provider: "courier" }));
   });
 });
 
-describe("listShipments and an empty answer", () => {
-  it("reads parcels, and refuses a function that answers with nothing", async () => {
-    const { listShipments } = await import("./service");
-    const q: Record<string, unknown> = {};
-    for (const m of ["select", "eq", "order"]) q[m] = () => q;
-    const row = { id: "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11", order_id: "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a12", provider: "manual", courier: "DHL", tracking_number: "T", shipped_on: "2026-10-30", sizes: { M: 1 }, pieces: 1, note: "", at: "2026-10-30T09:00:00Z" };
-    q.limit = () => Promise.resolve({ data: [row], error: null });
-    expect((await listShipments({ from: () => q } as never, "o"))[0]).toMatchObject({ courier: "DHL", trackingNumber: "T" });
-    q.limit = () => Promise.resolve({ data: null, error: null });
-    expect(await listShipments({ from: () => q } as never, "o")).toEqual([]);
-    const rpc = vi.fn().mockResolvedValue({ data: [], error: null });
-    await expect(recordShipment({ rpc } as never, "a", parcel)).rejects.toThrow(/nothing/);
+describe("couriers as data", () => {
+  it("reads a courier row", () => {
+    expect(toCourier(courierRow)).toMatchObject({ code: "by-hand", trackingUrlTemplate: null, transitDays: null, terms: "" });
+  });
+
+  it("builds a tracking address only from a template on file, and escapes the number", () => {
+    expect(trackingUrlFor(withTracking, "T 1/2")).toBe("https://track.example/T%201%2F2");
+    expect(trackingUrlFor(toCourier(courierRow), "T1")).toBeNull();
+    expect(trackingUrlFor(null, "T1")).toBeNull();
+  });
+
+  it("falls back to the courier row's name when ops typed none", async () => {
+    expect(await manualCourier.book({ courier: withTracking, courierName: "  ", trackingNumber: "T1" })).toMatchObject({ courier: "A courier", courierCode: "a-courier" });
+  });
+
+  it("is the manual option whatever the environment says, because no courier adapter exists", () => {
+    expect(selectCourierProvider({}).name).toBe("manual");
+    expect(selectCourierProvider({ COURIER_PROVIDER: "someone" }).name).toBe("manual");
+  });
+
+  it("lists the couriers on file", async () => {
+    const limit = vi.fn().mockResolvedValue({ data: [courierRow], error: null });
+    const from = vi.fn(() => ({ select: () => ({ eq: () => ({ order: () => ({ limit }) }) }) }));
+    expect(await listCouriers({ from } as never)).toHaveLength(1);
+  });
+
+  it("refuses when the read fails", async () => {
+    const from = vi.fn(() => ({ select: () => ({ eq: () => ({ order: () => ({ limit: () => ({ data: null, error: { message: "raw", code: "P0002" } }) }) }) }) }));
+    await expect(listCouriers({ from } as never)).rejects.toThrow();
   });
 });
