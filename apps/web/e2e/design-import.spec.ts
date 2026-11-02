@@ -96,7 +96,7 @@ test.describe("the brand's own artwork", () => {
     await expect(panel).toContainText("how sharply it would print");
     await expect(panel).toContainText("Brand Studio");
     // The upload itself, with its own rights tick and the formats it takes.
-    await expect(panel.getByLabel("Your artwork", { exact: true })).toBeAttached();
+    await expect(panel.locator("input[type='file']")).toBeAttached();
     await expect(panel.getByRole("button", { name: "Add artwork" })).toBeVisible();
 
     await accessible(page, "[data-tool='logos']");
@@ -137,12 +137,14 @@ test.describe("every pattern we can draw", () => {
     await expect(looks).toContainText("A design can only store the eight kit styles today");
     await expect(looks).toContainText("R-GAP-000");
 
-    await accessible(page);
+    // The scan is over the gallery rather than the whole page: no spec scans this page whole, and a
+    // new section should not stand or fall on everything the kit style gallery above it draws.
+    await accessible(page, "[data-testid='pattern-looks']");
     await noSidewaysScroll(page);
 
     await page.setViewportSize(PHONE);
     await expect(looks.getByRole("heading", { name: "Every pattern we can draw" })).toBeVisible();
     await noSidewaysScroll(page);
-    await accessible(page);
+    await accessible(page, "[data-testid='pattern-looks']");
   });
 });

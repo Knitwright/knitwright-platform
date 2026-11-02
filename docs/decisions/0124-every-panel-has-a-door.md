@@ -202,10 +202,11 @@ every entry's reason is a sentence, and that every `in-flight` entry names a pul
 | No component, server action or API route is unreachable without a reason | `apps/web/tests/architecture/mounted.test.ts` |
 | The sweep itself works: it reaches what a page draws, misses what nothing imports, and names a route in a directory called `tests` | same |
 
-The editor page is the one screen whose axe scan is taken over the new panel rather than the whole
-page (`accessible(page, within)`): no spec scans that page whole today, and a new panel should not
-stand or fall on everything else it draws. The kit-styles page and the launch canvas are scanned
-whole.
+Three screens have their axe scan taken over the new part rather than the whole page
+(`accessible(page, within)`, the one addition to `e2e/chrome.ts`): the design workspace, the kit
+style gallery and the collection board. No spec scans any of the three whole today, and a panel
+landing on one should be held to the bar without standing or falling on everything else that screen
+already draws. The launch canvas and both new delete pages are scanned whole.
 
 ## Consequences
 

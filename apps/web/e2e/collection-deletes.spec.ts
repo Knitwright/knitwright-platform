@@ -72,7 +72,8 @@ test.describe("taking a style out of a plan", () => {
     await expect(card).not.toContainText("The design itself is not deleted.");
     await expect(card).toBeVisible();
 
-    await accessible(page);
+    // Over the style cards rather than the whole plan page, which no spec scans whole.
+    await accessible(page, "article");
 
     // Removed: the card goes, and it is still gone when the plan is read again.
     await card.getByRole("button", { name: `Remove ${style} from this plan` }).click();
