@@ -55,7 +55,7 @@ const addAndSelect = async (page: Page, kind: string, label: string): Promise<vo
   await board.getByRole("button", { name: `Select ${label}` }).click();
 };
 
-test.describe("the rail panels L4 filled", () => {
+test.describe("the rail panels L3 and L4 filled", () => {
   test("shows Text, Elements, Pattern fills, AI assistant and Layers, each with its own content", async ({ page }) => {
     await signedIn(page, "panels-rail");
     await startLaunch(page, "Rail panels kit");
@@ -72,6 +72,16 @@ test.describe("the rail panels L4 filled", () => {
       await expect(page.getByTestId(`marketing-panel-${id}`)).toBeVisible();
       await expect(page.getByTestId(`launch-panel-${id}`)).toHaveCount(0);
     }
+  });
+
+  test("shows L3's shoot ideas on the AI image panel", async ({ page }) => {
+    await signedIn(page, "panels-shoots");
+    await startLaunch(page, "Shoots panel kit");
+
+    await openRail(page, "AI image");
+
+    await expect(page.getByTestId("shoots-panel")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-ai-image")).toHaveCount(0);
   });
 
   test("says what each empty panel needs, and the Elements panel offers the shapes it draws", async ({ page }) => {
@@ -93,9 +103,10 @@ test.describe("the rail panels L4 filled", () => {
     await signedIn(page, "panels-placeholders");
     await startLaunch(page, "Placeholder kit");
 
+    // The four that are left. `components/launch/panel-mounting.test.ts` holds the same list
+    // against the maps, so the two cannot disagree about what is still to come.
     for (const [label, id, workstream] of [
       ["Templates", "templates", "workstream L8"],
-      ["AI image", "ai-image", "workstream L3"],
       ["Likes", "likes", "workstream L8"],
       ["Uploads", "uploads", "workstream L7"],
       ["Brand", "brand", "workstream L7"],
@@ -106,7 +117,16 @@ test.describe("the rail panels L4 filled", () => {
   });
 });
 
-test.describe("the board panels L4, L5 and L6 filled", () => {
+test.describe("the board panels L3, L4, L5 and L6 filled", () => {
+  test("opens the AI image board's own panel, with the cost in the button's own words", async ({ page }) => {
+    await signedIn(page, "panels-ai-image-board");
+    await startLaunch(page, "AI image board kit");
+    await addAndSelect(page, "ai_image", "AI image");
+
+    await expect(page.getByTestId("ai-image-panel")).toBeVisible();
+    await expect(page.getByTestId("launch-panel-board-ai-image")).toHaveCount(0);
+  });
+
   test("opens the marketing board's own panel, with its layouts", async ({ page }) => {
     await signedIn(page, "panels-marketing-board");
     await startLaunch(page, "Marketing board kit");
@@ -245,6 +265,7 @@ test.describe("accessibility of the panels, at both widths", () => {
   /** Puts a board of each newly mounted kind on the canvas, while nothing is selected. */
   const addBoards = async (page: Page): Promise<void> => {
     for (const [kind, label] of [
+      ["ai_image", "AI image"],
       ["marketing", "Marketing"],
       ["ai_video", "AI video"],
       ["info_card", "Info card"],
@@ -256,7 +277,7 @@ test.describe("accessibility of the panels, at both widths", () => {
 
   /** Opens each newly mounted panel in turn and scans the page with each one open. */
   const scanEveryPanel = async (page: Page): Promise<void> => {
-    for (const label of ["Text", "Elements", "Pattern fills", "AI assistant", "Layers", "Mockups", "Photos"]) {
+    for (const label of ["Text", "Elements", "Pattern fills", "AI assistant", "Layers", "AI image", "Mockups", "Photos"]) {
       await openRail(page, label);
       await accessible(page);
     }
@@ -264,7 +285,7 @@ test.describe("accessibility of the panels, at both widths", () => {
     // The run summary shows with nothing selected, so it is scanned before anything is.
     await expect(page.getByTestId("launch-panel-flow-run")).toBeVisible();
     await accessible(page);
-    for (const label of ["Marketing", "AI video", "Info card"]) {
+    for (const label of ["AI image", "Marketing", "AI video", "Info card"]) {
       await page.getByRole("article", { name: `${label} board` }).getByRole("button", { name: `Select ${label}` }).click();
       await expect(page.getByTestId("launch-inspector")).toContainText(label);
       await accessible(page);

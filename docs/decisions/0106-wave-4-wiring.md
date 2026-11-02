@@ -1,4 +1,4 @@
-# 0105: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
+# 0106: Wave 4 wired — the panels mounted, the 3D view answering, and L2's run loop closed
 
 Status: Proposed; the panels are on a screen and scanned by axe for the first time, L2's run loop is closed end to
 end, the carousel is still disabled for want of a second colourway in the viewer, owner questions listed
@@ -33,16 +33,30 @@ properties of a panel on a page rather than of a component in a unit test.
    is exactly the kind that would notice.
 
    Mounted: `text`, `elements`, `pattern-fills`, `assistant`, `layers` and `board-marketing` (L4);
-   `board-ai-video` (L5); `board-info-card` and `flow-run` (L6), beside L2's `mockups`, `photos` and `board-mockup`.
-   **Still placeholders, and still saying whose they are**: `templates` and `likes` (L8), `ai-image` and
-   `board-ai-image` (L3), `uploads` and `brand` (L7).
+   `ai-image` and `board-ai-image` (L3, decision 0093); `board-ai-video` (L5); `board-info-card` and
+   `flow-run` (L6), beside L2's `mockups`, `photos` and `board-mockup`. **Every board kind of the
+   contract now has a panel**, so a selected board never draws a placeholder.
+   **Still placeholders, and still saying whose they are**: `templates` and `likes` (L8), `uploads`
+   and `brand` (L7).
 
-2. **The run summary is mounted with nothing selected, because it is about the canvas and not about a board.**
+   `components/launch/panel-mounting.test.ts` reads both maps rather than trusting them: a lookup
+   that misses is silent -- the shell draws the labelled placeholder and nothing says the id and the
+   map disagree -- and a map key is a typo away. It holds the four that are left as a list, which is
+   the one place to look for what this wave has not finished, and the browser test holds the same
+   four.
+
+2. **The run summary is mounted with nothing selected, because it is about the canvas and not about a board**, and
+   it is wrapped in a `shrink-0` so it has a height.
    `flow-run` is the one panel of the contract that is neither a rail panel nor a board kind's inspector, so L1 left
    it with no place to be drawn. It goes in the inspector's project panel, under the colours and the tools, and only
    once the canvas has a board -- an empty canvas has no run to summarise. Run all goes through L6's own
    `runFlowAction` with the figure the person was shown, which that action checks against its own estimate, so the
    shell still never charges anything itself.
+
+   The `shrink-0` is not decoration: the inspector is a scrolling flex column and the run summary
+   carries its own `min-h-0`, so it was squeezed to **no height at all** once the colours and the
+   tools had taken the room. It rendered, axe could see it, and a person could not. The browser test
+   found it as `Received: hidden` against an element that was plainly in the markup.
 
 3. **L1's board list is replaced by L6's flow canvas.** Decision 0091 item 2 laid the boards out in a wrapping row
    and said the places, the curves and the dragging were for whoever owned the flow; 0096 built them, against the
@@ -54,6 +68,22 @@ properties of a panel on a page rather than of a component in a unit test.
    **One control was lost and is named here rather than quietly dropped**: L1's canvas had a "Select the picture"
    button on a finished board, which L6's card does not have. The picture is still selectable -- the task bar's own
    actions select it -- but a person who used that button will not find it.
+
+   **And the canvas did not work at all with a mouse until the browser tests said so.** Every control on a board
+   card -- Select, Regenerate, Run all downstream, Add…, Connect from here and the four arrows -- was dead to a
+   click, and sixteen browser tests failed on it, eight of them L1's and L2's own tests that had passed before this
+   change. The cause is one line of L6's drag: `onPointerDown` called `setPointerCapture` on the card's wrapper, and
+   a captured pointer sends its **compatibility mouse events to the capturing element**, so the `click` that follows
+   was dispatched at the wrapper and the button inside it never saw one. The keyboard path was unaffected, which is
+   why `lib/flows/canvas.ts`'s own tests -- which test the maths, not the DOM -- were all green.
+
+   The fix is to ask whose press it is: a pointer that went down on a control (`button, a, input, select, textarea,
+   summary, [role='button']`) belongs to that control and starts no drag, so nothing is captured and the click
+   arrives. A press on the card itself still captures, which is what L6's comment wanted it for -- a drag that ends
+   outside the 248 px card.
+
+   This is the clearest evidence for why this change exists: `components/flows/**` has no component tests, the panels
+   had never been opened in a browser, and a canvas nobody can click looked exactly like a canvas that works.
 
 4. **The inspector's Tools list is L6's `CANVAS_TOOLS`.** It was three kinds (`ai_image`, `ai_video`, `mockup`) and
    is now the five L6's canvas offers, in the spec's order. Two lists of what a person may add could disagree; one
@@ -146,8 +176,11 @@ properties of a panel on a page rather than of a component in a unit test.
   names held to the recorder's own and `sequenceVerdict` asked what each set of abilities may record.
 * `apps/web/e2e/launch-panels.spec.ts`: every newly mounted panel on a real page, the axe scan at both widths, and
   L2's renderer end to end with the stored file read back.
+* `apps/web/components/launch/panel-mounting.test.ts`: both mount maps read rather than trusted, every board kind
+  answered, and the four panels that are left held as one list.
 * `apps/web/e2e/launch.spec.ts`: L1's own suite, with exactly three assertions changed (the Text panel's placeholder,
-  the canvas's own region, and the Add… button's label) and the rest untouched.
+  the canvas's own region, and the Add… button's label) and the rest untouched. **Eight of its tests, and L2's,
+  failed on the first browser run and are what found the dead canvas of item 3.**
 
 ## Alternatives
 

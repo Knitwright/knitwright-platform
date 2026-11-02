@@ -6,6 +6,7 @@ import { CANVAS_TOOLS } from "@/components/flows/FlowCanvas";
 import InfoCardPanel from "@/components/flows/InfoCardPanel";
 import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupBoardPanel from "@/components/mockups/MockupBoardPanel";
+import AiImageBoardPanel from "@/components/shoots/AiImageBoardPanel";
 import AiVideoPanel from "@/components/video/AiVideoPanel";
 import type { FlowCostSource } from "@/lib/flows";
 import {
@@ -24,12 +25,14 @@ import { ArtboardSize } from "./ArtboardSize";
 import { PanelPlaceholder } from "./PanelPlaceholder";
 
 /**
- * The board panels this file mounts itself: L2's mockup board (decision 0092), L5's AI video board
- * (0095) and L6's info card (0096). L4's marketing board comes through `marketingPanel`, that
- * workstream's own registry (0094, item 16). `board-ai-image` is L3's and still a placeholder.
+ * The board panels this file mounts itself: L2's mockup board (decision 0092), L3's AI image board
+ * (0093), L5's AI video board (0095) and L6's info card (0096). L4's marketing board comes through
+ * `MARKETING_PANEL_COMPONENTS`, that workstream's own registry (0094, item 16). Every board kind of
+ * the contract now has a panel, so nothing in the inspector draws a placeholder any more.
  */
-const BUILT: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
+export const BOARD_PANELS: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
   "board-mockup": MockupBoardPanel,
+  "board-ai-image": AiImageBoardPanel,
   "board-ai-video": AiVideoPanel,
   "board-info-card": InfoCardPanel,
   ...MARKETING_PANEL_COMPONENTS,
@@ -109,7 +112,14 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard, panel
           Every one of them starts from a Design board, so the garment in the picture is the one the platform drew.
         </p>
       </section>
-      {panel.context.project.boards.length === 0 ? null : <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />}
+      {/* `shrink-0`, because the inspector is a scrolling flex column: the run summary carries its
+          own `min-h-0`, so without this it is squeezed to no height at all once the colours and the
+          tools have taken the room, and a panel of zero height is a panel nobody can read. */}
+      {panel.context.project.boards.length === 0 ? null : (
+        <div className="shrink-0">
+          <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />
+        </div>
+      )}
     </>
   );
 }
@@ -118,7 +128,7 @@ type BoardPanelProps = Props & Readonly<{ selection: BoardSelection }>;
 
 function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, panel }: BoardPanelProps) {
   const panelId = PANEL_OF_KIND[selection.board.kind];
-  const Built = panelId === null ? undefined : BUILT[panelId];
+  const Built = panelId === null ? undefined : BOARD_PANELS[panelId];
   const info = BOARDS[selection.board.kind];
   return (
     <>

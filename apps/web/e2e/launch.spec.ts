@@ -97,13 +97,13 @@ test.describe("the launch shell", () => {
     await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
 
     // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder. The five panels that still name a workstream are L3's, L7's and L8's.
+    // than a placeholder. The four panels that still name a workstream are L7's and L8's.
     await panels.getByRole("tab", { name: "Mockups" }).click();
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
 
-    await panels.getByRole("tab", { name: "AI image" }).click();
-    await expect(page.getByTestId("launch-panel-ai-image")).toContainText("workstream L3");
+    await panels.getByRole("tab", { name: "Templates" }).click();
+    await expect(page.getByTestId("launch-panel-templates")).toContainText("workstream L8");
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {

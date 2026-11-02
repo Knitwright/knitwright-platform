@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode } from "react";
 import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupsPanel from "@/components/mockups/MockupsPanel";
 import PhotosPanel from "@/components/mockups/PhotosPanel";
+import ShootsPanel from "@/components/shoots/ShootsPanel";
 import { panelPlaceholder, RAIL, RAIL_ITEMS, railPanelId, railTabId, type LaunchPanelId, type LaunchPanelProps, type RailId } from "@/lib/launch";
 import { PanelPlaceholder } from "./PanelPlaceholder";
 
@@ -12,14 +13,14 @@ import { PanelPlaceholder } from "./PanelPlaceholder";
  *
  * A panel another workstream has built is mounted here and given exactly `LaunchPanelProps`
  * (`lib/launch/panels.ts`); the rest still draw a labelled placeholder. **Mockups and Photos are
- * L2's** (decision 0092). **Text, Elements, Pattern fills, AI assistant and Layers are L4's**, and
- * come through that workstream's own registry rather than being listed again here (decision 0094,
- * item 16). What those five need from outside the canvas -- the brand's voice, the pictures the
- * platform drew, the export rows and "Write for me" -- reaches them through
- * `MarketingServicesProvider`, which `LaunchShell` wraps the whole shell in.
+ * L2's** (decision 0092), **AI image is L3's** (0093) and **Text, Elements, Pattern fills, AI
+ * assistant and Layers are L4's**, which come through that workstream's own registry rather than
+ * being listed again here (decision 0094, item 16). What those five need from outside the canvas --
+ * the brand's voice, the pictures the platform drew, the export rows and "Write for me" -- reaches
+ * them through `MarketingServicesProvider`, which `LaunchShell` wraps the whole shell in.
  *
- * Templates, AI image, Likes, Uploads and Brand still hold their placeholders: L8, L3 and L7 own
- * them and have not landed.
+ * Templates, Likes, Uploads and Brand still hold their placeholders: L8 and L7 own them and are
+ * being built separately.
  */
 
 /**
@@ -28,7 +29,8 @@ import { PanelPlaceholder } from "./PanelPlaceholder";
  * renders (`react-hooks/static-components`). The map's board panels are never reached from here,
  * because this file only ever indexes it by a `RailId`.
  */
-const BUILT: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
+export const RAIL_PANELS: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
+  "ai-image": ShootsPanel,
   mockups: MockupsPanel,
   photos: PhotosPanel,
   ...MARKETING_PANEL_COMPONENTS,
@@ -46,7 +48,7 @@ export function RailPanels({ open, panel }: Readonly<{ open: RailId; panel: Laun
 
 function RailPanel({ id, hidden, panel }: Readonly<{ id: RailId; hidden: boolean; panel: LaunchPanelProps }>): ReactNode {
   const placeholder = panelPlaceholder(id);
-  const Built = BUILT[id];
+  const Built = RAIL_PANELS[id];
   return (
     <div
       id={railPanelId(id)}
