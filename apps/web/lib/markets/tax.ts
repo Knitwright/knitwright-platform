@@ -5,7 +5,7 @@ import { GAP_RULE_ID } from "@/lib/factory/schemas";
 /**
  * What a market charges on a sale, and when the seller has to register for it (spec F-S8 and the
  * Checkout line of F-T5: "VAT is charged at checkout for the UK; GST for Australia once registered";
- * plan v5 O3, decision 0103).
+ * plan v5 O3, decision 0104).
  *
  * Every figure is a column of `country_rules`, never a literal here: the rate, the registration
  * threshold, whether Knitwright is registered, and where those came from. Two rules hold whatever the

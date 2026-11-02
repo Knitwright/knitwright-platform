@@ -1,5 +1,5 @@
 -- Australia and Translate (plans/platform-v5.md wave 5, workstream O3; spec docs/spec/06-build-plan.md
--- phase 3 items 12 and 13; decision 0103).
+-- phase 3 items 12 and 13; decision 0104).
 --
 -- Four things, none of them a number somebody made up:
 --
@@ -53,7 +53,7 @@ update public.price_tiers set
 where sell_gbp_minor is not null and sell_aud_minor is null;
 
 comment on column public.price_tiers.sell_aud_minor is
-  'What Knitwright sells at in Australia, per piece, in cents. Null: no AUD price has been agreed (decision 0103). Never computed from the GBP price: a market''s price is a commercial decision, not an exchange rate.';
+  'What Knitwright sells at in Australia, per piece, in cents. Null: no AUD price has been agreed (decision 0104). Never computed from the GBP price: a market''s price is a commercial decision, not an exchange rate.';
 
 -- ---------------------------------------------------------------------------------------------
 -- 2. The tax treatment of a market, as data rather than a literal in code.
@@ -168,7 +168,7 @@ create table public.translation_strings (
 );
 
 comment on table public.translation_strings is
-  'The fixed words of the platform in another language, one row per key per language, with who produced it and who read it against the English. Read by signed-in members, written by the server only (decision 0103).';
+  'The fixed words of the platform in another language, one row per key per language, with who produced it and who read it against the English. Read by signed-in members, written by the server only (decision 0104).';
 comment on column public.translation_strings.reviewed_by is
   'The person who read this translation against the English. Null: nobody has, and every page that shows it says so.';
 

@@ -11,7 +11,7 @@ import type { Safe } from "./typeset";
 /**
  * The pieces every page is built from. Each one is given the document's typeset (`typeset.ts`), which
  * makes its text drawable and says which font it is in and which way it reads, so one page set serves
- * the English document and the Urdu one (decision 0103).
+ * the English document and the Urdu one (decision 0104).
  */
 export type { Safe };
 

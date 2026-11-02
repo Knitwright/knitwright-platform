@@ -106,7 +106,7 @@ function convert(text: string, file: string): Converted {
 /**
  * The text with every character the font in `file` lacks shown as a question mark. It never throws.
  * Which characters those are depends on the font, so a document set in another font is made drawable
- * against that font and not against this one (decision 0103).
+ * against that font and not against this one (decision 0104).
  */
 export const drawableIn = (file: string, text: string): string => convert(text, file).text;
 

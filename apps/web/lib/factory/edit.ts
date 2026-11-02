@@ -97,7 +97,7 @@ export const EDITABLE_FIELDS: readonly EditableField[] = [
   f("country_rules", "label_rules", "Label rules (JSON object)", "json"),
   f("country_rules", "freight_days", "Freight (calendar days)", "optionalNumber", { min: 0, max: 120 }),
   f("country_rules", "selling_enabled", "Selling open", "boolean"),
-  // The tax treatment of the market (decision 0103). The threshold is the sales figure above which the
+  // The tax treatment of the market (decision 0104). The threshold is the sales figure above which the
   // seller has to register, not the import low-value threshold above it.
   f("country_rules", "tax_name", "Tax charged on a sale (VAT or GST, blank for neither)", "optionalText", { check: TAX_NAME }),
   f("country_rules", "tax_registration_threshold_minor", "Register for that tax above (country currency)", "money"),

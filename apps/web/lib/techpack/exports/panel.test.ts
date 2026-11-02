@@ -76,7 +76,7 @@ describe("what each tab would produce", () => {
   it("builds the tech pack from the export route, at the version and colourway the editor shows", () => {
     expect(addresses(techPackOutputs(input))).toEqual([
       `/api/projects/${PROJECT}/exports/pdf?version=3&colourway=home`,
-      // The same pack in Urdu, for the factory floor (decision 0103).
+      // The same pack in Urdu, for the factory floor (decision 0104).
       `/api/projects/${PROJECT}/exports/pdf?version=3&colourway=home&language=ur`,
       `/api/projects/${PROJECT}/exports/xlsx?version=3&colourway=home`,
     ]);

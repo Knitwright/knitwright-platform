@@ -7,7 +7,7 @@ import type { Market } from "@/lib/home/market";
 import { marketPhrase, taxTreatment, type TaxTreatment } from "./tax";
 
 /**
- * What choosing a market means, in one read (plan v5 O3, decision 0103; spec F-S8's market and currency
+ * What choosing a market means, in one read (plan v5 O3, decision 0104; spec F-S8's market and currency
  * selector).
  *
  * The selector on the catalogue and the article page used to change the currency a price was shown in
@@ -45,7 +45,7 @@ export interface MarketSummary {
   readonly labelLines: readonly LabelLineState[];
   /** The provenance label of the market's own row, so no figure can be read as agreed. */
   readonly rowLabel: string | null;
-  /** "Not set: the days for QC and the freight days." Never a date (decision 0103). */
+  /** "Not set: the days for QC and the freight days." Never a date (decision 0104). */
   readonly deliveryNote: string;
   /** Everything still missing for this market, each with the rule that explains it. */
   readonly gaps: readonly Readonly<{ note: string; ruleId: string }>[];

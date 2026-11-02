@@ -49,7 +49,7 @@ describe("the label the seeded rows give today", () => {
     expect(label.label).toContain("not reviewed by a factory");
   });
 
-  it("refuses the care line in the market's own words, where its row has written them (decision 0103)", () => {
+  it("refuses the care line in the market's own words, where its row has written them (decision 0104)", () => {
     const note = "ISO 3758 is a paid standard and is not in this repository, so no care symbol has been transcribed.";
     const rules = SEEDED_LABEL_RULES_GB as { lines: Record<string, unknown> };
     const withNote = destinationLabel(

@@ -127,7 +127,7 @@ export type SizeLine = WordingLine & Readonly<{ convention: typeof SIZE_CODE_CON
 
 /**
  * The care line. `gapNote` is the market's own words for why no care symbol is chosen, and `gapRuleId`
- * the rule that explains it, both added by O3 (decision 0103): the reason a care label is refused is a
+ * the rule that explains it, both added by O3 (decision 0104): the reason a care label is refused is a
  * fact about a standard nobody here holds a licence to, so it belongs in the row rather than in a
  * sentence in this directory, and a market whose position changes changes its row.
  */

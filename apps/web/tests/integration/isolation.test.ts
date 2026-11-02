@@ -2043,7 +2043,7 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     attempt: { scope: "run", inspect_every_piece: true, label: "Made directly" },
     change: { inspect_every_piece: false },
   },
-  // Plan v5 O3 (decision 0103): the fixed words of a document in another language, with the person who read
+  // Plan v5 O3 (decision 0104): the fixed words of a document in another language, with the person who read
   // each one against the English. A member reads them, because the Export panel offers the translated pack;
   // nobody writes them from a browser, so no translation can be changed without the server.
   translation_strings: {

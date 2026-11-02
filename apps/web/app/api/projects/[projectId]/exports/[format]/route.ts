@@ -46,7 +46,7 @@ export const GET = defineRoute({
             maxEmbeddedBytes: PRINT_MAX_EMBEDDED_BYTES,
           }),
         record: (entry) => recordDownload(adminClient(), session.userId, entry),
-        // The words of the language a PDF is asked for (decision 0103).
+        // The words of the language a PDF is asked for (decision 0104).
         translations: (language) => loadTranslations(client, language),
       },
       { projectId, format, query: input.query },

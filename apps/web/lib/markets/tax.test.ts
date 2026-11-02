@@ -6,7 +6,7 @@ import { marketPhrase, taxTreatment } from "./tax";
 
 /**
  * The GST trigger, against the only figure a source in this repository states, and against the rule that
- * nothing is shown as charged while nobody is registered (decision 0103).
+ * nothing is shown as charged while nobody is registered (decision 0104).
  */
 
 const MIGRATION = join(__dirname, "..", "..", "..", "..", "supabase", "migrations", "20261210030000_australia_and_translate.sql");

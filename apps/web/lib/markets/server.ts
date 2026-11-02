@@ -9,7 +9,7 @@ import { marketSummary, type MarketSummary } from "./view";
 
 /**
  * Joins the market summary to the market's own row, the production settings and the article's price
- * ladder (decision 0103). It holds no rules of its own: `view.ts` and `tax.ts` have those and are
+ * ladder (decision 0104). It holds no rules of its own: `view.ts` and `tax.ts` have those and are
  * tested, and the database and end-to-end tests cover the joining.
  *
  * A read that fails is a market with nothing shown, never a page that will not open: the summary says

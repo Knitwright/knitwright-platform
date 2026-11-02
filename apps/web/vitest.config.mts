@@ -118,7 +118,7 @@ export default defineConfig({
         // Join the market panel and the translated tech pack to the outside world: one gathers the market's
         // own row and the production settings, the other reads the translation library. The tax treatment,
         // the market summary and the dictionary are tested on their own, and the database and end-to-end
-        // tests cover the joining (plan v5 O3, decision 0103).
+        // tests cover the joining (plan v5 O3, decision 0104).
         "lib/markets/server.ts",
         "lib/translate/server.ts",
       ],
@@ -182,6 +182,7 @@ export default defineConfig({
             "markets",
             "media",
             "media-check",
+            "mockups",
             "moderation",
             "ops",
             "orders",
@@ -195,6 +196,7 @@ export default defineConfig({
             "releases",
             "rulebook",
             "settings",
+            "shell",
             "teamwear",
             "templates",
             "translate",

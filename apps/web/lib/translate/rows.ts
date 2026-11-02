@@ -4,7 +4,7 @@ import { TRANSLATION_KEYS } from "./keys";
 import { LANGUAGES } from "./languages";
 
 /**
- * `translation_strings` as the app sees it (decision 0103). Rows come from
+ * `translation_strings` as the app sees it (decision 0104). Rows come from
  * `20261210030000_australia_and_translate.sql`.
  *
  * The one field that matters most is `reviewedBy`. A translation is a claim about what a sentence means,

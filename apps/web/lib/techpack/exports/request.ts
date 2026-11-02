@@ -23,7 +23,7 @@ export const rawQuerySchema = z.record(z.string(), z.union([z.string(), z.array(
 
 /**
  * The query of an export. A drawing needs a view, and only a drawing takes one. The PDF is the one
- * format whose fixed words can be set in another language (decision 0103), so it is the one format
+ * format whose fixed words can be set in another language (decision 0104), so it is the one format
  * that takes a language. The version is optional and defaults to the current one. Unknown keys are
  * refused, so a typo is not ignored.
  */

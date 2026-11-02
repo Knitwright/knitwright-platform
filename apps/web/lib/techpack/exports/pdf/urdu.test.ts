@@ -26,7 +26,7 @@ const childrenOf = (element: ReactElement): readonly Part[] =>
 
 /**
  * The tech pack in Urdu (spec F-S6 "Translate", `docs/spec/06-build-plan.md` phase 3 item 12; plan v5
- * O3, decision 0103).
+ * O3, decision 0104).
  *
  * The three things that make this a translated document rather than English in another font: the words
  * are Urdu, the font draws every one of their characters, and the pages read right to left. The fourth

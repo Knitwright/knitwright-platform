@@ -14,7 +14,7 @@ import { drawableIn, hasUndrawableIn } from "../pdf-text";
 
 /**
  * How a document is set: the font, the reading direction, and the fixed words in the document's own
- * language (plan v5 O3, decision 0103).
+ * language (plan v5 O3, decision 0104).
  *
  * It is one callable value because the three cannot be separated. A character is drawable only in a
  * particular font, a font belongs to a script, and a script reads one way or the other; a PDF that

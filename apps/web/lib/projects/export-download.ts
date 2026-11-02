@@ -33,7 +33,7 @@ export interface ExportDeps {
   readonly now: () => Date;
   readonly brandName: string;
   /**
-   * The words of the language a PDF is asked for, from `translation_strings` (decision 0103). Left
+   * The words of the language a PDF is asked for, from `translation_strings` (decision 0104). Left
    * out, or failing, the document falls back to the labelled draft in the code, which says on every
    * page that nobody has read it — so a library that cannot be read never stops a download.
    */

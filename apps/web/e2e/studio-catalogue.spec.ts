@@ -186,7 +186,7 @@ test.describe("the article page", () => {
     await expect(market).toContainText("Prices are shown in AUD.");
     await expect(market).toContainText("Prices carry no GST: Knitwright is not registered for GST in Australia.");
     await expect(market).toContainText("No AUD price is set in any tier.");
-    // No date anywhere: QC days and freight days are both unset (decision 0103).
+    // No date anywhere: QC days and freight days are both unset (decision 0104).
     await expect(market).toContainText("No delivery date yet. Not set: the days for QC and the freight days.");
 
     const lines = market.getByRole("list", { name: "Label lines for Australia" });

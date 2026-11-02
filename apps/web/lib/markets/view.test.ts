@@ -7,7 +7,7 @@ import { labelLinesFor, marketSummary, type MarketSummaryInput } from "./view";
 
 /**
  * What choosing Australia shows beside the selector: the currency, the tax, the label lines and what is
- * still missing. Nothing is converted, assumed or worked out (decision 0103).
+ * still missing. Nothing is converted, assumed or worked out (decision 0104).
  */
 
 const AU = MARKETS.find((market) => market.id === "au")!;

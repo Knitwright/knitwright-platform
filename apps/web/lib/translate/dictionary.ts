@@ -4,7 +4,7 @@ import { reviewLine, type TranslationRow } from "./rows";
 import { DRAFT_STRINGS, ENGLISH, KNITWRIGHT_DRAFT, URDU_DRAFT_LABEL } from "./strings";
 
 /**
- * The fixed words of a document in one language, each carrying whether anybody has read it (decision 0103).
+ * The fixed words of a document in one language, each carrying whether anybody has read it (decision 0104).
  *
  * A dictionary is built from the rows of `translation_strings`, with the draft in `strings.ts` standing in
  * for a key the library has no row for. It is pure: the same rows give the same words and the same review

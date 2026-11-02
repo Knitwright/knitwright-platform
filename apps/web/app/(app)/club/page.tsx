@@ -59,13 +59,33 @@ export default async function ClubPage() {
         <MembersPanel members={members} invitations={invitations} me={userId} canManage={canManageMembers} />
       </PageSection>
 
-      <PageSection id="seasons" title="Seasons and rosters" description="One roster for each season, with a size for each player. Import a CSV, or start from last season.">
+      {/*
+        The one way into Collect (plan v5 Z7). It is here rather than in the top bar on Z7's own
+        recommendation: a section in the bar costs about 90 px, and this costs nothing.
+      */}
+      <PageSection
+        id="seasons"
+        title="Seasons and rosters"
+        description={
+          // A paragraph, not a bare fragment: `PageSection` puts its description in a div, and
+          // `mobile.spec.ts` exempts a link in running text only when that text is a p, li, dd, td
+          // or span.prose. Without the p this link is a 50 by 19 tap target on a phone and fails.
+          <p>
+            One roster for each season, with a size for each player. Import a CSV, or start from last season. Ask the
+            players themselves on{" "}
+            <Link href="/collect" className="soft-link text-ink underline underline-offset-4">
+              Collect
+            </Link>
+            .
+          </p>
+        }
+      >
         <SeasonsPanel seasons={seasons} canEdit={canEdit} />
       </PageSection>
 
       <PageSection id="designs" title="Designs" description={designs.total > DESIGNS_SHOWN ? `Your newest ${DESIGNS_SHOWN} of ${designs.total}.` : undefined}>
         {designs.projects.length === 0 ? (
-          <p className="text-[15px] text-muted">No designs yet. <Link href="/studio/new" className="soft-link text-cobalt-soft">Start one</Link>.</p>
+          <p className="text-[15px] text-muted">No designs yet. <Link href="/studio/new" className="soft-link text-ink underline underline-offset-4">Start one</Link>.</p>
         ) : (
           <ul className="flex flex-col divide-y divide-hairline">
             {designs.projects.map((design) => (
