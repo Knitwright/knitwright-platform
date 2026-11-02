@@ -104,7 +104,9 @@ describe("the ops console is for platform admins only", () => {
       .filter((line) => /^\s*"/.test(line))
       .map((line) => line.trim());
     for (const entry of entries) expect(entry, entry).not.toMatch(/\(ops\)|api\/ops/);
-    expect(entries.filter((entry) => /ops/.test(entry))).toEqual(['"app/api/cron/ops-cut-batches/route.ts#GET",']);
+    // `\bops` rather than `ops`, so an entry that merely holds those three letters inside a longer word —
+    // `app/api/store/drops`, the Store contract's drops endpoint (decision 0105) — is not read as an ops route.
+    expect(entries.filter((entry) => /\bops/.test(entry))).toEqual(['"app/api/cron/ops-cut-batches/route.ts#GET",']);
     expect(read("lib/server/public-pages.ts")).not.toMatch(/\(ops\)|\/ops/);
   });
 
