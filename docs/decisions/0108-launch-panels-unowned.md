@@ -201,9 +201,10 @@ requires, so what a minute of a real site costs still needs a deployment — unc
 
 - **No Likes panel.** Point 5. Nothing records a like.
 - **No picture upload from the import screen.** Point 6. It needs a proposal the server can trust.
-- **L3's two panels are not mounted.** `feat/v5-l3-ai-scenes` had not merged when this was written, so `ai-image` and
-  `board-ai-image` keep their placeholders and the browser test asserts that they still name L3. Mounting them is two
-  lines when it lands.
+- **L3's two panels are not mounted here.** L3's `ShootsPanel` and `AiImageBoardPanel` landed while this was being
+  written, and the wave-4 wiring change mounts them. This work leaves `ai-image` and `board-ai-image` alone and
+  asserts nothing about them in a browser test, because a test of this file saying they are still placeholders would
+  break on that merge.
 - **No panel for the library's other six kinds of template.** A marketing template, a mockup scene and a flow each
   already have their own picker, owned by L4, L2 and L6. Listing them again in the rail would be two places that can
   disagree about what a template is.

@@ -77,10 +77,8 @@ test.describe("the rail panels that had no workstream", () => {
 
     await openRail(page, "Likes");
     await expect(page.getByTestId("launch-panel-likes")).toContainText("Nothing in the platform records a like");
-
-    // L3's AI image panel has not landed, so that one still names its workstream.
-    await openRail(page, "AI image");
-    await expect(page.getByTestId("launch-panel-ai-image")).toContainText("workstream L3");
+    // Nothing is asserted here about `ai-image`. L3's panel exists and the wave-4 wiring change
+    // mounts it, so a test of this file saying it is still a placeholder would break on that merge.
   });
 
   test("lists the seeded templates, narrows them by a tag and finds one by name", async ({ page }) => {
