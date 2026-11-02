@@ -65,12 +65,20 @@ function readFormat12(view: DataView, start: number, covered: Set<number>): void
   }
 }
 
-let cached: ReadonlySet<number> | undefined;
+/** One set of code points per font file. Reading a font file is slow and its answer never changes. */
+const cached = new Map<string, ReadonlySet<number>>();
 
-const covered = (): ReadonlySet<number> => (cached ??= coveredCodePoints(readFileSync(PDF_FONT_FILE)));
+const covered = (file: string): ReadonlySet<number> => {
+  const found = cached.get(file) ?? coveredCodePoints(readFileSync(file));
+  cached.set(file, found);
+  return found;
+};
+
+/** True when the font in `file` draws this code point. */
+export const canDrawIn = (file: string, codePoint: number): boolean => covered(file).has(codePoint);
 
 /** True when the PDF font draws this code point. */
-export const canDraw = (codePoint: number): boolean => covered().has(codePoint);
+export const canDraw = (codePoint: number): boolean => canDrawIn(PDF_FONT_FILE, codePoint);
 
 const LINE_BREAKS = new RegExp(`[\t\n\r\v\f\x85${String.fromCharCode(0x2028, 0x2029)}]+`, "g");
 /** Controls, and marks with no shape, such as a zero width space or a change of direction. */
@@ -81,12 +89,12 @@ interface Converted {
   readonly replaced: number;
 }
 
-function convert(text: string): Converted {
+function convert(text: string, file: string): Converted {
   let replaced = 0;
   const kept: string[] = [];
   for (const character of text.normalize("NFC").replace(LINE_BREAKS, " ")) {
     if (INVISIBLE.test(character)) continue;
-    if (canDraw(character.codePointAt(0) as number)) kept.push(character);
+    if (canDrawIn(file, character.codePointAt(0) as number)) kept.push(character);
     else {
       kept.push(REPLACEMENT);
       replaced += 1;
@@ -95,8 +103,18 @@ function convert(text: string): Converted {
   return { text: kept.join(""), replaced };
 }
 
-/** The text with every character the font lacks shown as a question mark. It never throws. */
-export const drawable = (text: string): string => convert(text).text;
+/**
+ * The text with every character the font in `file` lacks shown as a question mark. It never throws.
+ * Which characters those are depends on the font, so a document set in another font is made drawable
+ * against that font and not against this one (decision 0102).
+ */
+export const drawableIn = (file: string, text: string): string => convert(text, file).text;
+
+/** The text with every character the PDF font lacks shown as a question mark. It never throws. */
+export const drawable = (text: string): string => drawableIn(PDF_FONT_FILE, text);
+
+/** True when the text holds a character the font in `file` will show as a question mark. */
+export const hasUndrawableIn = (file: string, text: string): boolean => convert(text, file).replaced > 0;
 
 /** True when the text holds a character that will be shown as a question mark. */
-export const hasUndrawable = (text: string): boolean => convert(text).replaced > 0;
+export const hasUndrawable = (text: string): boolean => hasUndrawableIn(PDF_FONT_FILE, text);
