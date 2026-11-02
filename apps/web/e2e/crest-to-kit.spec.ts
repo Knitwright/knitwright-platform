@@ -72,7 +72,10 @@ test.describe("crest to kit", () => {
     const palette = page.getByTestId("crest-to-kit-palette");
     await expect(palette).toContainText("#1b2a49");
     await expect(palette).toContainText("Navy");
-    await expect(palette).toContainText("not a colour match");
+    // The strip says in plain words that there is no Pantone number to give, because the platform
+    // holds none; the note under the kits says the sublimation figure is not a colour match.
+    await expect(palette).toContainText("no Pantone number can be given");
+    await expect(page.getByTestId("crest-to-kit")).toContainText("not a colour match");
 
     // No delivery date is shown anywhere, because no part of the sum is on file.
     await expect(page.getByTestId("crest-to-kit")).toContainText("No delivery date can be shown yet");
