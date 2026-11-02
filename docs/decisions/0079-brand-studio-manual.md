@@ -109,6 +109,21 @@ loss of the `club_kits` data a club has already entered.
 - A brand gets `/brand-studio` with the seven tabs of F-S9 as links, so each tab has its own address and the page works
   without scripts. The top bar gains a completion pill beside the brand name the header already showed; it reads the
   brand itself inside its own Suspense boundary, so the page shell never waits for it.
+- **The top bar had no room for that pill, and paying for it changed the header.** The bar is held to
+  `PAGE_WIDTH.content`, which is 1110 px of room at every desktop size, because the cap is `max-w-6xl` and a wider
+  screen does not widen it. The seven section pills take 625 px; the mark, the brand, the credits, the account, Settings
+  and Sign out take the rest. Measured at 1280 by 720 with a compiled copy of `globals.css` and the real Geist faces,
+  the row already ran **39 px past the glass before this branch** and **102 px past it** with the completion pill in.
+  Whatever hangs outside the glass is painted over the aurora instead, where `text-muted` is **3.35:1** — below AA — so
+  axe reported one colour-contrast fault on every signed-in page it scans at desktop width (`/studio`, `/catalogue`,
+  `/templates` and the guided flow), naming Sign out, because Sign out is last in the row. PRs 116, 117 and 120 fail on
+  the same node for the same reason; `main` passes only because it sits a few pixels the right side of the line.
+  So the row gives something back: the product name beside the mark is now for screen readers only, and the groups sit
+  three apart rather than six. That is 106 px, which pays for the pill and leaves the row **43 px roomier than before**.
+  The mark stays the visible way home and stays a 40 px target. This is a patch, not a fix — see owner question 5.
+- Two guards in `e2e/brand-studio.spec.ts`: the last control in the top bar must keep its words on the glass, and
+  `/brand-studio` is scanned by axe at desktop and at phone width. The scan is why every box in the Colours and
+  Pictures panels now carries a name; a placeholder is not a label, and axe counts an unnamed box as critical.
 - Wave 3's Z6 must import `extractPalette` from `lib/colour/palette.ts` rather than writing its own k-means, and wave
   4's L7 fills the same six tables from a URL instead of by hand.
 - Y3, Y8 and wave 4 reuse `<BrandTab>` and `brandTabColours` / `brandTabFonts`.
@@ -133,3 +148,11 @@ loss of the `club_kits` data a club has already entered.
    for it. Should Knitwright licence the TCX library, or keep asking brands to read their printed swatch book?
 4. **Sponsor and crest print widths.** The rulebook gives no width for either. Should the factory supply a standard
    chest-sponsor and crest width per article, so the DPI check can run without the brand typing a number?
+5. **The top bar is full, and Y6 only bought it 43 px.** Seven sections plus the mark, the brand, the credits, the
+   account, Settings and Sign out do not fit in 1110 px, and no screen is ever wider than that because the bar is
+   capped at the page width. Z3, Z5 and Z8 each add a section, and one section is about 90 px, so the next one spends
+   everything this change bought and the contrast fault comes back for all of them. Three ways out, and the choice is
+   the owner's: move the sections into an overflow menu beyond the first four; collapse the account cluster (email,
+   Settings, Sign out) into one account menu, reusing the `PhoneMenu` panel at every width; or let the bar be wider
+   than the page column it currently lines up with. Until one is picked, every workstream that wants a place in the top
+   bar is taking it from another.
