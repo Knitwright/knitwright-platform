@@ -6,17 +6,22 @@
 --
 --   * country_rules.label_rules is seeded with the parts a source in this repository states, and nothing else.
 --     The fibre line's language and order cite rulebook R-LAB-002 (draft); the origin sentence cites
---     docs/spec/04-production-package.md, section 07_labels ("Made in Pakistan"). The care symbols, the size
---     wording and whether a market requires an importer address are left null, because no source in this
---     repository states them, and lib/compliance refuses a label that is missing any of them.
+--     docs/spec/04-production-package.md, section 07_labels ("Made in Pakistan"); the size line carries
+--     Knitwright's own size-code convention, citing docs/sizing/starter-charts.md. The care symbols and
+--     whether a market requires an importer address are left null, because no source in this repository
+--     states either, and lib/compliance refuses a label that is missing either of them.
 --   * care_symbols holds the ISO 3758 care symbols. ISO 3758 is not in this repository, so no symbol and no
 --     care instruction is transcribed: the five rows are the five categories the standard is built from, with
 --     symbol_ref and words null. lib/compliance prints a care line only from a row that has a symbol, words and
 --     a source, so no seeded row can reach a label a factory reads.
---   * aql_plans holds the AQL plan, per factory or for every factory. One row is seeded: owner decision 19's
---     Class A sample, inspected piece by piece. No run plan is seeded, because no factory has agreed a level
---     and decision 0070 section 6 says docs/spec/04's "level II, AQL 0 critical / 2.5 major / 4.0 minor" is
---     never assumed on a factory's behalf.
+--   * aql_plans holds the AQL plan, per factory or for every factory. Two rows are seeded, both for every
+--     factory at once: owner decision 19's Class A sample, inspected piece by piece, and the run plan the
+--     rulebook's own entry R-QC-001 states ("Runs: AQL 0 critical / 2.5 major / 4.0 minor at level II",
+--     sourced there to the AQL standard ISO 2859-1). The run plan is seeded `confirmed false` and labelled as
+--     a placeholder, because no factory has agreed it: lib/compliance prints the plan with that label beside
+--     it and never as a figure a factory has signed up to. No per-factory row is seeded: the one factory on
+--     file ('sialkot-partner') is itself a placeholder row that has agreed nothing, so a row against its id
+--     would say it had. A factory's own plan replaces the row for every factory as soon as one is recorded.
 --
 -- Rights follow country_rules (decision 0071): catalogue data every signed-in member may read, written only by
 -- the server's key after the app has checked the caller is a platform admin. Each row keeps who changed it last.
@@ -129,10 +134,24 @@ insert into public.care_symbols (code, kind, source, source_kind, rule_id, label
   ('ISO3758-PROFESSIONAL', 'professional', 'ISO 3758:2012, the professional textile care category', 'standard', 'R-LAB-002',
    'Knitwright draft: the category only. ISO 3758 is not in this repository, so no symbol and no professional care instruction is transcribed.');
 
--- Seed: owner decision 19's Class A sample. No run plan, per decision 0070 section 6.
+-- Seed: owner decision 19's Class A sample.
 insert into public.aql_plans (factory_id, scope, inspect_every_piece, source, rule_id, label) values
   (null, 'class_a_sample', true, 'Owner decision 19 (plans/platform-v5.md) and decision 0070, section 6', 'R-QC-001',
-   'Knitwright draft from owner decision 19: a Class A sample is inspected piece by piece, whoever sews it. No run plan is seeded: no factory has agreed a level.');
+   'Knitwright draft from owner decision 19: a Class A sample is inspected piece by piece, whoever sews it.');
+
+-- Seed: the run plan, for every factory until one records its own. The level and the three limits are quoted
+-- from rulebook entry R-QC-001, which cites the AQL standard ISO 2859-1 and is itself in draft; docs/spec/04's
+-- QC checklist says the same. Nothing here is a figure a factory has agreed, so the row is not confirmed and
+-- its label says so wherever the plan is printed. Decision 0070 section 6 refused to assume the level on a
+-- factory's behalf, and this does not: the plan is quoted with its source and its draft label, and the QC
+-- checklist a factory reads prints both.
+insert into public.aql_plans
+  (factory_id, scope, inspect_every_piece, inspection_level, critical_aql, major_aql, minor_aql, source, rule_id, label)
+values
+  (null, 'run', false, 'II', 0, 2.5, 4.0,
+   'Rulebook R-QC-001 (draft), which cites the AQL standard ISO 2859-1; docs/spec/04-production-package.md, QC checklist',
+   'R-QC-001',
+   'Placeholder from rulebook R-QC-001, itself a draft: no factory has agreed this inspection level or these acceptance limits. Replace it with the factory''s own plan before a run is cut.');
 
 -- ---------------------------------------------------------------------------------------------
 -- Seed: the care-label wording per market. X6 left label_rules as {} with a note saying the wording was still
@@ -146,6 +165,12 @@ update public.country_rules set
     'version', 1,
     'label', 'Knitwright draft v0.1, not reviewed by a factory or a legal adviser',
     'origin', 'Made in Pakistan',
+    -- F-G3 names the United States and children's sizes, and no other market, so this market's position on
+    -- CPSIA is recorded as the spec states it rather than left for somebody to guess at. The children's-size
+    -- half of the rule is not affected: lib/compliance refuses a youth garment wherever it is sold until a
+    -- test certificate exists.
+    'cpsiaRequired', false,
+    'cpsiaSource', 'docs/spec/02-features.md, F-G3, which names the United States and children''s sizes and no other market',
     'lines', jsonb_build_object(
       'fibre', jsonb_build_object(
         'text', null, 'language', 'en', 'order', 'descending_percentage', 'confirmed', false,
@@ -154,11 +179,17 @@ update public.country_rules set
       'origin', jsonb_build_object(
         'text', 'Made in Pakistan', 'confirmed', false,
         'source', 'docs/spec/04-production-package.md, section 07_labels'),
-      'size', jsonb_build_object('text', null, 'confirmed', false, 'source', null),
+      -- The size line. No market's own size wording is written, so no sentence is put in the mouth of a
+      -- regulation; what is written is Knitwright's own convention, with the file that states it, and
+      -- lib/compliance prints the size run from it rather than a sentence. 'convention' is the only key
+      -- the label builder accepts in place of 'text', and 'size_code' the only value it understands.
+      'size', jsonb_build_object(
+        'text', null, 'convention', 'size_code', 'confirmed', false,
+        'source', 'Knitwright size runs, docs/sizing/starter-charts.md: the alpha size codes (XS to 3XL for men, XS to 2XL for women, YXS to YXL for youth). One label per size, carrying that size code.'),
       'importer', jsonb_build_object('text', null, 'required', null, 'confirmed', false, 'source', null)
     )
   ),
-  label = 'Placeholder, to confirm with a customs adviser. Label wording is a Knitwright draft (decision 0089); the care symbols, the size wording and the importer requirement are not written.',
+  label = 'Placeholder, to confirm with a customs adviser. Label wording is a Knitwright draft (decision 0089); the care symbols and the importer requirement are not written.',
   rule_id = 'R-LAB-002',
   updated_at = now()
 where country = 'GB';
@@ -168,6 +199,12 @@ update public.country_rules set
     'version', 1,
     'label', 'Knitwright draft v0.1, not reviewed by a factory or a legal adviser',
     'origin', 'Made in Pakistan',
+    -- F-G3 names the United States and children's sizes, and no other market, so this market's position on
+    -- CPSIA is recorded as the spec states it rather than left for somebody to guess at. The children's-size
+    -- half of the rule is not affected: lib/compliance refuses a youth garment wherever it is sold until a
+    -- test certificate exists.
+    'cpsiaRequired', false,
+    'cpsiaSource', 'docs/spec/02-features.md, F-G3, which names the United States and children''s sizes and no other market',
     'lines', jsonb_build_object(
       'fibre', jsonb_build_object(
         'text', null, 'language', 'en', 'order', 'descending_percentage', 'confirmed', false,
@@ -176,11 +213,17 @@ update public.country_rules set
       'origin', jsonb_build_object(
         'text', 'Made in Pakistan', 'confirmed', false,
         'source', 'docs/spec/04-production-package.md, section 07_labels'),
-      'size', jsonb_build_object('text', null, 'confirmed', false, 'source', null),
+      -- The size line. No market's own size wording is written, so no sentence is put in the mouth of a
+      -- regulation; what is written is Knitwright's own convention, with the file that states it, and
+      -- lib/compliance prints the size run from it rather than a sentence. 'convention' is the only key
+      -- the label builder accepts in place of 'text', and 'size_code' the only value it understands.
+      'size', jsonb_build_object(
+        'text', null, 'convention', 'size_code', 'confirmed', false,
+        'source', 'Knitwright size runs, docs/sizing/starter-charts.md: the alpha size codes (XS to 3XL for men, XS to 2XL for women, YXS to YXL for youth). One label per size, carrying that size code.'),
       'importer', jsonb_build_object('text', null, 'required', null, 'confirmed', false, 'source', null)
     )
   ),
-  label = 'Placeholder, to confirm with a customs adviser. Label wording is a Knitwright draft (decision 0089); the care symbols, the size wording and the importer requirement are not written.',
+  label = 'Placeholder, to confirm with a customs adviser. Label wording is a Knitwright draft (decision 0089); the care symbols and the importer requirement are not written.',
   rule_id = 'R-LAB-002',
   updated_at = now()
 where country = 'AU';
@@ -211,6 +254,8 @@ update public.country_rules set
   label_rules = jsonb_build_object(
     'version', 1,
     'label', 'Market closed at launch. No label wording is written: the languages a member state requires are not recorded anywhere here.',
+    'cpsiaRequired', false,
+    'cpsiaSource', 'docs/spec/02-features.md, F-G3, which names the United States and children''s sizes and no other market',
     'lines', jsonb_build_object(
       'fibre', jsonb_build_object('text', null, 'language', null, 'order', null, 'confirmed', false, 'source', null),
       'care', jsonb_build_object('symbolCodes', jsonb_build_array(), 'confirmed', false, 'source', null),

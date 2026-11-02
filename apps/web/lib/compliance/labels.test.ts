@@ -17,21 +17,30 @@ describe("the label the seeded rows give today", () => {
     fixtureLabelInput({ labelRules: SEEDED_LABEL_RULES_GB, careSymbols: SEEDED_CARE_SYMBOLS }),
   );
 
-  it("may not be used, because the care symbols, the size wording and the importer requirement are not written", () => {
+  it("may not be used, because the care symbols are not written", () => {
     expect(label.usable).toBe(false);
-    expect(codesOf(label)).toEqual(["cpsia_not_recorded", "care_symbols_missing", "size_wording_missing", "importer_requirement_unknown"]);
+    expect(codesOf(label)).toEqual(["care_symbols_missing", "importer_requirement_unknown"]);
+    // The market's row records its position on CPSIA from F-G3, so that is no longer an open question here.
+    expect(codesOf(label)).not.toContain("cpsia_not_recorded");
   });
 
-  it("does print the fibre content, because the fabric row states the blend and the market states the order", () => {
-    expect(label.lines.map((line) => line.kind)).toEqual(["fibre", "origin"]);
+  it("is stopped by the care line alone: the importer requirement is a note, because F-G2 does not ask for it", () => {
+    expect(label.findings.filter((found) => found.severity === "blocker").map((found) => found.code)).toEqual(["care_symbols_missing"]);
+    const note = label.findings.find((found) => found.code === "importer_requirement_unknown");
+    expect(note?.severity).toBe("warning");
+    expect(note?.message).toContain("record it on the market's row");
+  });
+
+  it("prints the fibre content, the origin and the size, each from a row that says where it came from", () => {
+    expect(label.lines.map((line) => line.kind)).toEqual(["fibre", "origin", "size"]);
     expect(label.lines[0]).toMatchObject({ text: "100% polyester", source: "programme_fabrics.blend for F-POLY-INT" });
+    // The size line is resolved from the garment's own size run, not stored as a sentence.
+    expect(label.lines[2]).toMatchObject({ text: "One label per size: S, M, L" });
+    expect(label.lines[2]?.source).toContain("starter-charts.md");
   });
 
   it("names the rulebook entry that asks for each missing line", () => {
-    expect(label.findings.filter((found) => found.ruleId === "R-LAB-002").map((found) => found.code)).toEqual([
-      "care_symbols_missing",
-      "size_wording_missing",
-    ]);
+    expect(label.findings.filter((found) => found.ruleId === "R-LAB-002").map((found) => found.code)).toEqual(["care_symbols_missing"]);
     // Nobody has taken a position on whether a market needs an importer address, so no entry explains it.
     expect(label.findings.find((found) => found.code === "importer_requirement_unknown")?.ruleId).toBe("R-GAP-000");
   });
@@ -40,7 +49,7 @@ describe("the label the seeded rows give today", () => {
     expect(label.label).toContain("not reviewed by a factory");
   });
 
-  it("hands a factory nothing, because a label missing its care and size lines is not a label", () => {
+  it("hands a factory nothing, because a label missing its care line is not a label", () => {
     expect(printableLines(label)).toEqual([]);
   });
 });

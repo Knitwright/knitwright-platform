@@ -1,6 +1,6 @@
 import { destinationGuards, oekoTexCertificate, type DestinationGuardInput, type FabricFacts, type Wearer } from "./guards";
-import { blocker, GAP_RULE_ID, listOf, RULE_CARE_LABEL, type ComplianceFinding } from "./model";
-import { labelRulesOf, type CareSymbol, type LabelRules } from "./rows";
+import { blocker, GAP_RULE_ID, listOf, RULE_CARE_LABEL, warning, type ComplianceFinding } from "./model";
+import { labelRulesOf, SIZE_CODE_CONVENTION, type CareSymbol, type LabelRules } from "./rows";
 
 /**
  * The label for one destination market (F-G3; `docs/spec/04-production-package.md`, section `07_labels`):
@@ -157,29 +157,59 @@ function wordingLine(
   return { line: line(kind, wording.text, wording.source, wording.confirmed, RULE_CARE_LABEL), findings: [] };
 }
 
-/** The size line. The market states the wording convention; the garment states which sizes it is printed for. */
+/**
+ * The size line. The market states the wording convention; the garment states which sizes it is printed for.
+ *
+ * A market may write the words itself, or name the one convention the builder understands: print the
+ * garment's own size code, one label per size. The convention is resolved here rather than stored as a
+ * sentence, because the sentence depends on the garment and a stored one would go stale the moment a size run
+ * changed. A market with neither words nor a convention is a gap, not a guess.
+ */
 function sizeLine(input: DestinationLabelInput, rules: LabelRules): Readonly<{ line: LabelLine | null; findings: readonly ComplianceFinding[] }> {
   const path = at(input.country, "size");
   if (input.sizes.length === 0) {
     return { line: null, findings: [blocker("size_run_missing", path, "The garment has no size run, so no size can be labelled.", RULE_CARE_LABEL)] };
   }
+  const { size } = rules;
+  if (size.text === null && size.convention === SIZE_CODE_CONVENTION && size.source !== null) {
+    const text = input.sizes.length === 1 ? input.sizes[0]! : `One label per size: ${input.sizes.join(", ")}`;
+    return { line: line("size", text, size.source, size.confirmed, RULE_CARE_LABEL), findings: [] };
+  }
   return wordingLine(
     "size",
     input,
-    rules.size,
+    size,
     "size_wording_missing",
-    `Nobody has written how a size is designated on a label for ${input.countryName}.`,
+    `Nobody has written how a size is designated on a label for ${input.countryName}, and the market names no size convention.`,
   );
 }
 
-/** The importer line, where the market requires one. A requirement nobody has recorded is a gap, not a pass. */
+/**
+ * The importer line, where the market requires one.
+ *
+ * A requirement nobody has recorded is a note, not a refusal, and the two reasons are worth writing down.
+ * F-G2's own list of what a label must carry is "fibre content, care, origin, size": the importer line is
+ * not on it, so an export stopped over the importer line would be stopped for something the checklist was
+ * never asked to check. And the platform's rule is that missing owner input never blocks — it leaves a
+ * labelled default and an owner question. So the label prints without the line, the finding names the one
+ * action that settles it, and the market's own draft label travels beside it.
+ *
+ * A market that *has* recorded a requirement is held to it: `required` true with no address is a refusal.
+ */
 function importerLine(input: DestinationLabelInput, rules: LabelRules): Readonly<{ line: LabelLine | null; findings: readonly ComplianceFinding[] }> {
   const path = at(input.country, "importer");
   const { importer } = rules;
   if (importer.required === null) {
     return {
       line: null,
-      findings: [blocker("importer_requirement_unknown", path, `Nobody has recorded whether ${input.countryName} needs an importer address on the label.`, GAP_RULE_ID)],
+      findings: [
+        warning(
+          "importer_requirement_unknown",
+          path,
+          `Nobody has recorded whether ${input.countryName} needs an importer address on the label. Ask a customs adviser, and record it on the market's row.`,
+          GAP_RULE_ID,
+        ),
+      ],
     };
   }
   if (!importer.required) return { line: null, findings: [] };

@@ -1,6 +1,16 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { destinationLabel, printableLines } from "@/lib/compliance/labels";
-import { AQL_PLAN_COLUMNS, CARE_SYMBOL_COLUMNS, toAqlPlan, toCareSymbol, type AqlPlan, type CareSymbol } from "@/lib/compliance/rows";
+import { planFindings, planFor, qualityPlanLine } from "@/lib/compliance/aql";
+import {
+  AQL_PLAN_COLUMNS,
+  CARE_SYMBOL_COLUMNS,
+  labelRulesOf,
+  SIZE_CODE_CONVENTION,
+  toAqlPlan,
+  toCareSymbol,
+  type AqlPlan,
+  type CareSymbol,
+} from "@/lib/compliance/rows";
 import { COUNTRY_COLUMNS, toCountryRule } from "@/lib/factory/rows";
 import type { CountryRule } from "@/lib/factory/schemas";
 import { adminClient, brandOf, must, person, type Person } from "./support";
@@ -69,21 +79,40 @@ describe("what the care symbol table refuses", () => {
   });
 });
 
-describe("the seeded AQL plan", () => {
-  it("is owner decision 19's Class A sample and nothing else", async () => {
+describe("the seeded AQL plans", () => {
+  it("are owner decision 19's Class A sample and the rulebook's run plan, both for every factory", async () => {
     const plans = await aqlPlans();
-    expect(plans).toHaveLength(1);
-    expect(plans[0]).toMatchObject({ scope: "class_a_sample", factoryId: null, inspectEveryPiece: true, confirmed: false, ruleId: "R-QC-001" });
+    expect(plans.map((plan) => plan.scope)).toEqual(["class_a_sample", "run"]);
+    for (const plan of plans) expect(plan.factoryId, plan.scope).toBeNull();
+    expect(plans[0]).toMatchObject({ inspectEveryPiece: true, inspectionLevel: null, confirmed: false, ruleId: "R-QC-001" });
     expect(plans[0]?.source).toContain("Owner decision 19");
   });
 
-  it("names no inspection level and no acceptance limit, because no factory has agreed one", async () => {
+  it("give the Class A sample no inspection level, because none applies to inspecting every piece", async () => {
     const [plan] = await aqlPlans();
-    expect(plan?.inspectionLevel).toBeNull();
     expect(plan?.criticalAql).toBeNull();
     expect(plan?.majorAql).toBeNull();
     expect(plan?.minorAql).toBeNull();
-    expect(plan?.label).toContain("No run plan is seeded");
+  });
+
+  it("quote the run plan's level and limits from rulebook R-QC-001, and confirm neither plan", async () => {
+    const plan = (await aqlPlans()).find((one) => one.scope === "run");
+    expect(plan).toMatchObject({ inspectEveryPiece: false, inspectionLevel: "II", criticalAql: 0, majorAql: 2.5, minorAql: 4, confirmed: false });
+    expect(plan?.source).toContain("Rulebook R-QC-001");
+    expect(plan?.label).toContain("no factory has agreed");
+  });
+
+  it("read as one sentence for the QC checklist, carrying the source and the placeholder label", async () => {
+    const line = qualityPlanLine(await aqlPlans(), { factoryId: null, scope: "run" }, { classASampleMadeByKnitwright: false });
+    expect(line).toContain("Inspection level II, AQL 0.0 critical, 2.5 major and 4.0 minor");
+    expect(line).toContain("ISO 2859-1");
+    expect(line).toContain("no factory has agreed");
+  });
+
+  it("warn rather than block: an unagreed plan is a note on the package, never a refusal", async () => {
+    const found = planFindings(await aqlPlans(), { factoryId: null, scope: "run" });
+    expect(found.map((one) => one.severity)).toEqual(["warning"]);
+    expect(found[0]?.ruleId).toBe("R-QC-001");
   });
 });
 
@@ -104,19 +133,53 @@ describe("what the AQL plan table refuses", () => {
       .insert({ scope: "class_a_sample", inspect_every_piece: true, label: "Test row" });
     expect(error).not.toBeNull();
   });
+
+  it("lets one factory record its own plan beside the one for every factory, and that plan wins", async () => {
+    const factoryId = String((must(await adminClient().from("factories").select("id").limit(1)) as { id: string }[])[0]?.id);
+    const row = {
+      factory_id: factoryId,
+      scope: "run" as const,
+      inspect_every_piece: false,
+      inspection_level: "II",
+      critical_aql: 0,
+      major_aql: 1.5,
+      minor_aql: 2.5,
+      source: "Agreed with the factory, for this test only",
+      confirmed: true,
+      rule_id: "R-QC-001",
+      label: "Test row, removed again by this test",
+    };
+    const { error } = await adminClient().from("aql_plans").insert(row);
+    try {
+      expect(error).toBeNull();
+      const plan = planFor(await aqlPlans(), { factoryId, scope: "run" });
+      expect(plan?.factoryId).toBe(factoryId);
+      expect(plan?.majorAql).toBe(1.5);
+      // A plan the factory has agreed carries no caution, and nothing warns about it.
+      expect(planFindings(await aqlPlans(), { factoryId, scope: "run" })).toEqual([]);
+    } finally {
+      await adminClient().from("aql_plans").delete().eq("factory_id", factoryId);
+    }
+  });
 });
 
 describe("the seeded label wording", () => {
-  it("writes an origin sentence and a fibre order for the two open markets, and nothing for the closed ones", async () => {
+  it("writes an origin, a fibre order and a size convention for the two open markets, and nothing for the closed ones", async () => {
     const rules = await countryRules();
     const byCountry = new Map(rules.map((rule) => [rule.country, rule]));
     for (const country of ["GB", "AU"]) {
-      const lines = byCountry.get(country)?.labelRules as { lines?: Record<string, Record<string, unknown>> };
-      expect(lines.lines?.origin?.text, country).toBe("Made in Pakistan");
-      expect(lines.lines?.fibre?.order, country).toBe("descending_percentage");
-      expect(lines.lines?.care?.symbolCodes, country).toEqual([]);
-      expect(lines.lines?.size?.text, country).toBeNull();
-      expect(lines.lines?.importer?.required, country).toBeNull();
+      const parsed = labelRulesOf(byCountry.get(country)!.labelRules);
+      expect(parsed.origin.text, country).toBe("Made in Pakistan");
+      expect(parsed.fibre.order, country).toBe("descending_percentage");
+      // ISO 3758 is not in the repository, so no market names a symbol and no label carries a care line.
+      expect(parsed.care.symbolCodes, country).toEqual([]);
+      // The size line is Knitwright's own convention, with the file that states it; no sentence is stored.
+      expect(parsed.size.text, country).toBeNull();
+      expect(parsed.size.convention, country).toBe(SIZE_CODE_CONVENTION);
+      expect(parsed.size.source, country).toContain("starter-charts.md");
+      // Nobody has recorded whether the market needs an importer address; F-G3 settles CPSIA for it.
+      expect(parsed.importer.required, country).toBeNull();
+      expect(parsed.cpsiaRequired, country).toBe(false);
     }
     expect((byCountry.get("US")?.labelRules as { cpsiaRequired?: unknown }).cpsiaRequired).toBe(true);
     expect((byCountry.get("EU")?.labelRules as { lines?: Record<string, Record<string, unknown>> }).lines?.fibre?.language).toBeNull();
@@ -152,6 +215,8 @@ describe("a label built from the rows the platform really holds", () => {
       expect(label.usable, rule.country).toBe(false);
       expect(printableLines(label), rule.country).toEqual([]);
       expect(label.findings.length, rule.country).toBeGreaterThan(0);
+      // The care line is what stops every market: ISO 3758 is not in the repository, so no symbol has words.
+      expect(label.findings.map((found) => found.code), rule.country).toContain("care_symbols_missing");
       for (const found of label.findings) expect(found.ruleId, `${rule.country} ${found.code}`).toMatch(/^R-[A-Z]+-[0-9]{3}$/);
     }
   });
@@ -172,7 +237,7 @@ describe("a label built from the rows the platform really holds", () => {
       cpsiaCertificate: null,
       careSymbols: symbols,
     });
-    expect(label.lines.map((line) => line.kind)).toEqual(["fibre", "origin"]);
+    expect(label.lines.map((line) => line.kind)).toEqual(["fibre", "origin", "size"]);
     for (const line of label.lines) {
       expect(line.source.trim(), line.kind).not.toBe("");
       expect(line.text.trim(), line.kind).not.toBe("");

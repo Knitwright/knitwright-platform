@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { SEEDED_AQL_PLAN, SEEDED_CARE_SYMBOLS, SEEDED_LABEL_RULES_GB, SEEDED_LABEL_RULES_US } from "./fixtures/rows";
-import { labelRulesOf, toAqlPlan, toCareSymbol, AQL_PLAN_COLUMNS, CARE_SYMBOL_COLUMNS } from "./rows";
+import { SEEDED_AQL_PLAN, SEEDED_CARE_SYMBOLS, SEEDED_LABEL_RULES_GB, SEEDED_LABEL_RULES_US, SEEDED_RUN_PLAN } from "./fixtures/rows";
+import { labelRulesOf, toAqlPlan, toCareSymbol, AQL_PLAN_COLUMNS, CARE_SYMBOL_COLUMNS, SIZE_CODE_CONVENTION } from "./rows";
 
 const sql = readFileSync(resolve(__dirname, "../../../../supabase/migrations/20261120070000_compliance.sql"), "utf8");
 
@@ -14,11 +14,25 @@ describe("the compliance migration", () => {
     expect(sql).not.toMatch(/insert into public\.care_symbols[^;]*symbol_ref/);
   });
 
-  it("seeds one AQL plan, the Class A sample, and names no inspection level", () => {
+  it("seeds the Class A sample with no inspection level, because none applies to it", () => {
     expect(sql).toContain("insert into public.aql_plans (factory_id, scope, inspect_every_piece, source, rule_id, label)");
     expect(sql.match(/'class_a_sample'/g)?.length).toBeGreaterThan(0);
-    // Decision 0070 section 6: the spec's level II / 2.5 / 4.0 is never assumed on a factory's behalf.
-    expect(sql).not.toMatch(/insert into public\.aql_plans[^;]*'II'/);
+  });
+
+  it("seeds the run plan with the level and limits rulebook R-QC-001 states, and its source", () => {
+    expect(sql).toContain(`'${SEEDED_RUN_PLAN.inspectionLevel}', 0, 2.5, 4.0`);
+    expect(sql).toContain("Rulebook R-QC-001 (draft), which cites the AQL standard ISO 2859-1");
+  });
+
+  it("confirms neither plan, and labels the run plan as a placeholder no factory has agreed", () => {
+    // `confirmed` is never named by either insert, so both rows take the column's default of false.
+    expect(sql).not.toMatch(/insert into public\.aql_plans[^;]*confirmed/);
+    expect(sql).toContain("no factory has agreed this inspection level or these acceptance limits");
+  });
+
+  it("seeds no per-factory plan, because the one factory on file has agreed nothing", () => {
+    expect(sql).not.toMatch(/insert into public\.aql_plans[^;]*factories/);
+    expect(sql).toContain("No per-factory row is seeded");
   });
 
   it("writes the fibre line's language and order with the rulebook entry that asks for them", () => {
@@ -26,10 +40,18 @@ describe("the compliance migration", () => {
     expect(sql).toContain("Rulebook R-LAB-002 (draft)");
   });
 
-  it("writes the origin sentence with the file it comes from, and leaves care, size and importer empty", () => {
+  it("writes the origin sentence with the file it comes from, and leaves care and importer empty", () => {
     expect(sql).toContain("'Made in Pakistan'");
     expect(sql).toContain("docs/spec/04-production-package.md, section 07_labels");
-    expect(sql).toContain("'size', jsonb_build_object('text', null, 'confirmed', false, 'source', null)");
+    expect(sql).toContain("'care', jsonb_build_object('symbolCodes', jsonb_build_array(), 'confirmed', false, 'source', null)");
+    expect(sql).toContain("'importer', jsonb_build_object('text', null, 'required', null, 'confirmed', false, 'source', null)");
+  });
+
+  it("writes the size line as Knitwright's own convention with the file that states it, and no sentence of its own", () => {
+    expect(sql).toContain(`'convention', '${SIZE_CODE_CONVENTION}'`);
+    expect(sql).toContain("docs/sizing/starter-charts.md");
+    // Two open markets carry it; the two closed ones write no size line at all.
+    expect(sql.match(/'convention', 'size_code'/g)?.length).toBe(2);
   });
 
   it("grants members a read and nobody a write", () => {
@@ -110,6 +132,7 @@ describe("toAqlPlan", () => {
 describe("labelRulesOf", () => {
   it("reads nothing out of an empty column, which is how X6 left it", () => {
     const rules = labelRulesOf({});
+    expect(rules.size).toEqual({ text: null, source: null, confirmed: false, convention: null });
     expect(rules.fibre).toEqual({ text: null, source: null, confirmed: false, language: null, order: null });
     expect(rules.care.symbolCodes).toEqual([]);
     expect(rules.origin.text).toBeNull();
@@ -117,7 +140,7 @@ describe("labelRulesOf", () => {
     expect(rules.cpsiaRequired).toBeNull();
   });
 
-  it("reads the seeded United Kingdom row: an origin and a fibre order, and nothing else", () => {
+  it("reads the seeded United Kingdom row: an origin, a fibre order and a size convention", () => {
     const rules = labelRulesOf(SEEDED_LABEL_RULES_GB);
     expect(rules.fibre.language).toBe("en");
     expect(rules.fibre.order).toBe("descending_percentage");
@@ -126,6 +149,8 @@ describe("labelRulesOf", () => {
     expect(rules.origin.source).toContain("04-production-package.md");
     expect(rules.care.symbolCodes).toEqual([]);
     expect(rules.size.text).toBeNull();
+    expect(rules.size.convention).toBe(SIZE_CODE_CONVENTION);
+    expect(rules.size.source).toContain("starter-charts.md");
     expect(rules.importer.required).toBeNull();
     expect(rules.label).toContain("not reviewed by a factory");
   });
@@ -143,6 +168,10 @@ describe("labelRulesOf", () => {
   it("reads nothing out of a column holding something it does not understand, rather than guessing", () => {
     expect(labelRulesOf({ lines: "a string" }).origin.text).toBeNull();
     expect(labelRulesOf({ lines: { fibre: 7 } }).fibre.text).toBeNull();
+  });
+
+  it("reads a size convention it does not understand as none, rather than printing a word it cannot resolve", () => {
+    expect(labelRulesOf({ lines: { size: { convention: "metric", source: "somewhere" } } }).size.convention).toBeNull();
   });
 
   it("treats whitespace as nothing written", () => {

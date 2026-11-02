@@ -22,6 +22,8 @@ export const SEEDED_LABEL_RULES_GB: Readonly<Record<string, unknown>> = {
   version: 1,
   label: "Knitwright draft v0.1, not reviewed by a factory or a legal adviser",
   origin: "Made in Pakistan",
+  cpsiaRequired: false,
+  cpsiaSource: "docs/spec/02-features.md, F-G3, which names the United States and children's sizes and no other market",
   lines: {
     fibre: {
       text: null,
@@ -32,7 +34,13 @@ export const SEEDED_LABEL_RULES_GB: Readonly<Record<string, unknown>> = {
     },
     care: { symbolCodes: [], confirmed: false, source: null },
     origin: { text: "Made in Pakistan", confirmed: false, source: "docs/spec/04-production-package.md, section 07_labels" },
-    size: { text: null, confirmed: false, source: null },
+    size: {
+      text: null,
+      convention: "size_code",
+      confirmed: false,
+      source:
+        "Knitwright size runs, docs/sizing/starter-charts.md: the alpha size codes (XS to 3XL for men, XS to 2XL for women, YXS to YXL for youth). One label per size, carrying that size code.",
+    },
     importer: { text: null, required: null, confirmed: false, source: null },
   },
 };
@@ -77,7 +85,7 @@ export const SEEDED_CARE_SYMBOLS: readonly CareSymbol[] = (
   label: "Knitwright draft: the category only. ISO 3758 is not in this repository, so no symbol and no instruction is transcribed.",
 }));
 
-/** Owner decision 19's Class A sample, the one AQL row the migration seeds. */
+/** Owner decision 19's Class A sample, the first of the two AQL rows the migration seeds. */
 export const SEEDED_AQL_PLAN: AqlPlan = {
   id: uuid(50),
   factoryId: null,
@@ -90,8 +98,44 @@ export const SEEDED_AQL_PLAN: AqlPlan = {
   source: "Owner decision 19 (plans/platform-v5.md) and decision 0070, section 6",
   confirmed: false,
   ruleId: "R-QC-001",
-  label: "Knitwright draft from owner decision 19: a Class A sample is inspected piece by piece, whoever sews it. No run plan is seeded: no factory has agreed a level.",
+  label: "Knitwright draft from owner decision 19: a Class A sample is inspected piece by piece, whoever sews it.",
 };
+
+/**
+ * The run plan the migration seeds for every factory: rulebook entry R-QC-001's own level and limits, not
+ * confirmed, and labelled as the placeholder it is.
+ */
+export const SEEDED_RUN_PLAN: AqlPlan = {
+  id: uuid(51),
+  factoryId: null,
+  scope: "run",
+  inspectEveryPiece: false,
+  inspectionLevel: "II",
+  criticalAql: 0,
+  majorAql: 2.5,
+  minorAql: 4.0,
+  source: "Rulebook R-QC-001 (draft), which cites the AQL standard ISO 2859-1; docs/spec/04-production-package.md, QC checklist",
+  confirmed: false,
+  ruleId: "R-QC-001",
+  label:
+    "Placeholder from rulebook R-QC-001, itself a draft: no factory has agreed this inspection level or these acceptance limits. Replace it with the factory's own plan before a run is cut.",
+};
+
+/** Both seeded rows, in the order the migration writes them. */
+export const SEEDED_AQL_PLANS: readonly AqlPlan[] = [SEEDED_AQL_PLAN, SEEDED_RUN_PLAN];
+
+/**
+ * A run plan a factory has agreed: the shape the row takes once the owner's question is answered. Nothing
+ * reads it but tests, and nothing in it is presented as a real factory's agreement.
+ */
+export const agreedRunPlan = (over: Partial<AqlPlan> = {}): AqlPlan => ({
+  ...SEEDED_RUN_PLAN,
+  id: uuid(91),
+  source: "Agreed with the factory in writing, for this test",
+  confirmed: true,
+  label: "Agreed with the factory for this test",
+  ...over,
+});
 
 /** A care symbol somebody has finished: a symbol, words and a source. */
 export const writtenCareSymbol = (over: Partial<CareSymbol> = {}): CareSymbol => ({

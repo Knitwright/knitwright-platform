@@ -112,6 +112,19 @@ export type FibreLine = WordingLine & Readonly<{ language: string | null; order:
 
 export type ImporterLine = WordingLine & Readonly<{ required: boolean | null }>;
 
+/**
+ * The only size convention the label builder understands: print the garment's own size code, one label per
+ * size. A market that writes its own `text` does not need it; a market with neither is a gap.
+ */
+export const SIZE_CODE_CONVENTION = "size_code";
+
+/**
+ * The size line. A market may write the words itself (`text`), or name a convention the builder resolves
+ * against the garment's size run. Any other convention is read as none, because the builder would not know
+ * what to print for it.
+ */
+export type SizeLine = WordingLine & Readonly<{ convention: typeof SIZE_CODE_CONVENTION | null }>;
+
 export type CareLine = Readonly<{ symbolCodes: readonly string[]; source: string | null; confirmed: boolean }>;
 
 /** `country_rules.label_rules`, as the label builder reads it. An empty object gives every line empty. */
@@ -119,7 +132,7 @@ export type LabelRules = Readonly<{
   fibre: FibreLine;
   care: CareLine;
   origin: WordingLine;
-  size: WordingLine;
+  size: SizeLine;
   importer: ImporterLine;
   /** True where the market needs CPSIA testing before anything is sold (spec F-G3). Null: not recorded. */
   cpsiaRequired: boolean | null;
@@ -149,7 +162,14 @@ const linesSchema = z.object({
     })
     .nullish(),
   origin: lineSchema.nullish(),
-  size: lineSchema.nullish(),
+  size: lineSchema
+    .extend({
+      convention: z
+        .string()
+        .nullish()
+        .transform((v) => (v === SIZE_CODE_CONVENTION ? SIZE_CODE_CONVENTION : null)),
+    })
+    .nullish(),
   importer: lineSchema.extend({ required: z.boolean().nullish().transform((v) => v ?? null) }).nullish(),
 });
 
@@ -179,7 +199,7 @@ export function labelRulesOf(stored: Readonly<Record<string, unknown>>): LabelRu
     care: lines?.care ?? { symbolCodes: [], source: null, confirmed: false },
     // The flat `origin` key and the `lines.origin` block describe one sentence; the block wins when both are set.
     origin: origin?.text !== undefined && origin?.text !== null ? origin : { ...EMPTY, text: value?.origin ?? null, source: origin?.source ?? null },
-    size: lines?.size ?? EMPTY,
+    size: { ...EMPTY, convention: null, ...(lines?.size ?? {}) },
     importer: { ...EMPTY, required: null, ...(lines?.importer ?? {}) },
     cpsiaRequired: value?.cpsiaRequired ?? null,
     cpsiaSource: value?.cpsiaSource ?? null,

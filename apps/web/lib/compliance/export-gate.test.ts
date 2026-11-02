@@ -39,8 +39,8 @@ describe("the Export panel over a checklist with something against it", () => {
   it("is shut by a label a market will not allow, and names the tab the label is on", () => {
     const gate = gateFor({ labels: [seededLabel()] });
     expect(gate.open).toBe(false);
-    expect(gate.items.map((item) => item.tab)).toEqual(["labelling", "labelling", "labelling"]);
-    expect(gate.items.map((item) => item.ruleId)).toEqual(["R-LAB-002", "R-LAB-002", "R-GAP-000"]);
+    expect(gate.items.map((item) => item.tab)).toEqual(["labelling"]);
+    expect(gate.items.map((item) => item.ruleId)).toEqual(["R-LAB-002"]);
   });
 
   it("is shut by a Class B design nobody has reviewed, with no tab to send the person to", () => {
