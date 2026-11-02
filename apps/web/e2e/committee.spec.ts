@@ -58,8 +58,6 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   return new URL(page.url()).pathname.split("/")[2] ?? "";
 };
 
-const projectOf = (path: string): string => path;
-
 test.describe("sharing a design with a committee", () => {
   test("a committee comments, votes and approves on a phone with no account, then the club locks it", async ({ page, browser }) => {
     // Unique per run, because CI retries a failed browser test once and a locator that filtered on a
@@ -70,7 +68,7 @@ test.describe("sharing a design with a committee", () => {
     await signIn(page, email);
     // signIn only presses the button; the session cookie arrives with the redirect (plan v5 Lessons).
     await expect(page).toHaveURL(/\/studio$/);
-    const projectId = projectOf(await startDesign(page, designName));
+    const projectId = await startDesign(page, designName);
     const { userId, brandId } = await idsOf(email);
     await markChecked(projectId, brandId, userId);
 
