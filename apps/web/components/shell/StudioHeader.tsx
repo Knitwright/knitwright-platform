@@ -34,7 +34,12 @@ export function StudioHeader({ email, brandName, credits }: StudioHeaderProps) {
   return (
     <div className={`sticky top-3 z-40 mx-auto w-full ${PAGE_WIDTH.content} px-3 pt-3 sm:px-5`}>
       <header className="glass-strong rise flex h-16 items-center gap-1 rounded-full pl-3 pr-2 sm:gap-3 sm:pl-6">
-        <Link href="/studio" className="flex min-h-10 shrink-0 items-center gap-2.5 rounded-full text-white no-underline">
+        {/*
+          `min-w-10` keeps the mark a 40 px target on a phone, where the name beside it is for
+          screen readers only and the mark's own drawing is 24 px wide: without it `mobile.spec.ts`
+          measures this link at 24 by 40 and fails on every signed-in page at once.
+        */}
+        <Link href="/studio" className="flex min-h-10 min-w-10 shrink-0 items-center justify-center gap-2.5 rounded-full text-white no-underline">
           <BrandMark />
           {/* On a phone the row has no room for the name, so there it is for screen readers only. */}
           <span className="text-[19px] font-medium tracking-[-0.02em] max-sm:sr-only">{PRODUCT.name}</span>

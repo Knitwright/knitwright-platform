@@ -132,6 +132,17 @@ test.describe("the top bar on a phone", () => {
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
 
+    /*
+     * The mark is a 40 px target even though its drawing is 24 px wide and the name beside it is
+     * for screen readers only here. `mobile.spec.ts` catches this on every signed-in page at once,
+     * but the browser tests are not on the pull-request gate, so the chrome asserts its own.
+     */
+    const home = bar(page).getByRole("link", { name: "Knitwright", exact: true });
+    const box = await home.boundingBox();
+    expect(box, "the top bar's way home has no box").not.toBeNull();
+    expect(Math.round(box?.width ?? 0), "the way home is this wide").toBeGreaterThanOrEqual(40);
+    expect(Math.round(box?.height ?? 0), "the way home is this tall").toBeGreaterThanOrEqual(40);
+
     // One menu, not two: the account menu of a desktop is not drawn at this width.
     await expect(bar(page).getByRole("button", { name: "Account", exact: true })).toBeHidden();
     const button = bar(page).getByRole("button", { name: "Menu", exact: true });

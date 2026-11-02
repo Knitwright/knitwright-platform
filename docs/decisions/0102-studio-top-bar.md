@@ -39,7 +39,7 @@ tolerance (positive is outside the glass):
 
 | Width | Bar | Sections | Spill | Last control |
 |---|---|---|---|---|
-| 390 | 366 | — (one menu) | −9 | Menu |
+| 390 | 366 | — (one menu) | **+4** | Menu |
 | 768 | 728 | 625 | **+374** | Sign out |
 | 1024 | 984 | 625 | **+118** | Sign out |
 | 1280 | 1112 | 625 | −9 | Sign out |
@@ -143,8 +143,9 @@ The bar after this change, same harness, same tolerance:
 | 1440 and wider | 1112 | **389** | −9 | Account |
 
 - **The sections went from 625 px to 389 px** and the account cluster from three controls to one, and the row is
-  inside its glass at every width for the first time. The 374 px and 118 px overflows are gone, and so is the
-  contrast fault they caused.
+  inside its glass at every width for the first time. The 374 px, 118 px and 4 px overflows are gone, and so is the
+  contrast fault they caused. The 4 px is a phone: `main` is outside its glass at 390 px too, by the width of
+  roughly one letter, and that is the width Settings paid for by standing in the row at every size.
 - **Ten sections now, where seven did not fit.** Three of them were wired in by this change and the next one costs
   the row nothing, so no workstream has to take width from another again.
 - **1024 px is the tightest width**, with about six pixels of slack, and it is the brand switcher that pays for it:
@@ -152,6 +153,11 @@ The bar after this change, same harness, same tolerance:
   and shows an ellipsis. Its `sr-only` label still reads the brand's name in full. `main` does this too **and**
   overflows, so this is strictly better, but it is not good, and owner question 1 asks about it. A six-figure credit
   balance at 1024 puts the row 7 px past the glass edge, inside the 12 px tolerance, with its words still on glass.
+- **The mark keeps `min-w-10`.** Giving the name back cost the mark its `justify-center` and its `min-w-10` in the
+  first draft of this change, and on a phone the name is `sr-only`, so the link measured 24 by 40 and
+  `mobile.spec.ts` failed it on every signed-in page at once. It is back, and it costs the row nothing: the figures
+  above are the same with it. `e2e/studio-chrome.spec.ts` now measures the mark itself at 390 px as well, because
+  `mobile.spec.ts` is not on the pull-request gate and this is the chrome's own rule to keep.
 - **Two specs reached `/brand` and `/club` by clicking a section pill** and now go through the overflow menu, by
   `openStudioSection`, which opens the menu only when the section is not a pill. `accounts.spec.ts` opens the account
   menu for the address and for Sign out.
