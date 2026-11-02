@@ -117,6 +117,7 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0099 | [The map from the registry's option keys to the catalogue's option codes](0099-option-code-map.md) | Proposed; every mapped row quotes a published source, six rows deliberately unmapped, owner questions listed |
 | 0100 | [Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard](0100-ops-completion.md) | Proposed; the AQL figures are seeded with no source cited, owner questions listed |
 | 0101 | [What one garment consumes, per bill-of-materials line](0101-bom-consumption.md) | Proposed; one article's five figures seeded, each quoted and labelled a Knitwright draft no factory has agreed, seven of eight articles deliberately hold nothing and are still refused, owner questions listed |
+| 0102 | [Brand import from a URL](0102-brand-import-from-url.md) | Proposed; nothing third-party is stored and a test proves it, only the bundled Geist faces can be matched, the screen is not wired because L7 owns no component path, four R-GAP-000 rules, owner questions listed |
 
 <!-- End of the generated table. -->
 | 0100 | [Ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails and the factory scorecard](0100-ops-completion.md) | Proposed; the AQL figures are seeded with no source cited, owner questions listed |
