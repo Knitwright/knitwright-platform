@@ -40,10 +40,19 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
 
    So `lib/flows/artwork.ts` asks it of the whole branch: **a board with a board a model drew anywhere behind it may
    not record its output as a layer on the garment or as part of a print file**, however many hops away. The run
-   engine refuses such an output and gives the credits back; a trigger on `public.boards` refuses the row whatever
-   wrote it; and a second trigger on `public.board_edges` refuses the *other* order of the same trick — making a
-   clean board's output a print file first and connecting an AI board into it afterwards, which changes no row the
-   first trigger watches. `garment-lock.test.ts` and `tests/integration/flows.test.ts` both walk the four-hop chain.
+   engine refuses such an output and gives the credits back, and the database refuses the row in **three** places,
+   one for each order the trick can be done in — because each order changes a different row, and a trigger only sees
+   the row that changed:
+
+   | order | what changes | what refuses it |
+   |---|---|---|
+   | record an artwork output on a board with an AI board behind it | `boards.output_role` | `boards_artwork_never_comes_through_a_generated_board` |
+   | make a clean board's output artwork first, then connect an AI board into it | `board_edges` | `board_edges_artwork_never_comes_through_a_generated_board` |
+   | leave a clean board feeding an artwork board, then mark it a model scene | `boards.settings` | `boards_a_model_scene_never_feeds_artwork` |
+
+   `garment-lock.test.ts` walks the four-hop chain in the application and `tests/integration/flows.test.ts` walks all
+   three orders in the database. Only the first was in the first draft of this workstream; the second and third were
+   found by reviewing the migration, which is the strongest argument for the review being part of the work.
 
 3. **A run is charged per board, and a board that fails gives its credits back before the next one starts.**
    `credit_spend` charges once per output kind and design version, which is right for a tech pack PDF and wrong for a
@@ -57,11 +66,25 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
    be free: the key would already be in the ledger and the second model call would cost nothing. Within one run the
    key does not change, so a retry inside a run is free, which is the promise the platform already makes.
 
-4. **The estimate comes first, and it is checked twice.** `estimateFlow` is shown on the button and at the top of the
-   run panel before anything is spent; a paid run asks again before it starts; and the action re-works the estimate
+   `credit_spend_output` also takes **how many** of its output the board makes, because an AI Image board asks for one
+   to four pictures (F-L1) and charging once for four would be a quote the ledger did not keep. The quantity is a
+   count, never a price: the price is only ever read from `credit_prices`.
+
+   And because a capability is another workstream's code reaching a model over a network, **a call into it is a value
+   and never an exception**. A rejection that escaped the run engine would leave a board charged with no refund made
+   and no row written, which is the worst thing this directory could do; `run-failures.test.ts` is the test for it.
+
+4. **The estimate comes first, and it is checked three times.** `estimateFlow` is shown on the button and at the top
+   of the run panel before anything is spent; a paid run asks again before it starts; the action re-works the estimate
    out from the canvas and the platform's own credit prices and **refuses a run that now costs more than the figure
-   the person was shown**. The panel has no price of its own: without a cost source it says the price could not be
-   read and Run all is off, because a zero would be a lie on the one screen that promises not to tell one.
+   the person was shown**; and — the one that holds when the other two have been got round — **the run refuses any
+   charge that came back larger than the figure that board was quoted**, gives it straight back and fails the board.
+   The figure on the button is the most that may ever be taken.
+
+   The panel has no price of its own: without a cost source it says the price could not be read and Run all is off,
+   because a zero would be a lie on the one screen that promises not to tell one. For the same reason a board's own
+   settings may only ever make it **more** expensive: `generation` is read from the kind first, so a written
+   `"deterministic"` on an AI board cannot make a paid model call free.
 
 5. **A Mockup board can cost credits, and the spec's own table says so** ("free if deterministic, credits if AI
    scene"). L1 prices a board by its kind, which would price three of the Club kit pack's scenes at nothing, so
@@ -107,7 +130,9 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
     writes a listing payload — which finished pictures a listing may use, their labels, and the true-colour picture to
     show beside each AI scene (F-L1's own rule) — into `flow_listings`, append-only, for wave 5's Store contract (O2)
     to collect, exactly as a collection drop is collected. `listing.test.ts` reads every field name in the payload and
-    fails on anything about price, cart, checkout, stock, payout, shipping or a storefront.
+    fails on anything about price, cart, checkout, stock, payout, shipping or a storefront. The one change an
+    append-only hand-off allows is being marked collected, and `collect_flow_listing` is the only thing that may make
+    it: the table grants nobody UPDATE, so without that function the exception in the trigger would be dead letter.
 
 12. **Export all is a zip with a folder per format, and the provenance travels with the files.** It carries no clock
     and sorts every entry, so the same outputs give the same bytes, as the job packet already does. It also holds
@@ -127,9 +152,9 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
 
 ## Evidence
 
-* `apps/web/lib/flows/**`: 268 tests over the six packs, the order, the estimate, the run, the refunds, the branch
+* `apps/web/lib/flows/**`: 278 tests over the six packs, the order, the estimate, the run, the refunds, the branch
   check on artwork, the three operations, the summary, the zip, the listing payload, the canvas maths and the keyboard
-  paths, and the reads and writes. 98% of statements, 93% of branches, 100% of functions and lines.
+  paths, and the reads and writes. 98% of statements, 93% of branches, 99% of functions and lines.
 * `apps/web/lib/flows/acceptance.test.ts`: the spec's own two tests. The Club kit pack makes **14 assets** with the
   stubs, and swapping the Design board's version and pressing Run all **regenerates all fourteen with not one prompt
   re-entered** — proved by comparing every board's settings across the two runs and every output file between them.
@@ -157,7 +182,8 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
   separate tables for kit bundles and tech packs costs one more table and breaks nothing.
 * **A pack applied through the panel contract.** Rejected: `addBoard` returns no id, so fan-in could not be wired.
 * **Downgrading an output that cannot be artwork to an asset.** Rejected: a print file that silently became an asset
-  is a surprise in a factory file later. The board fails, says why, and gives the credits back.
+  is a surprise in a factory file later. The board fails, says why, and gives the credits back. `roleWanted` says what
+  a picture asked for *and* the refusal, so a caller cannot take the quieter answer and ignore the loud one.
 * **A thumbnail image per pack.** Rejected: no third-party asset is committed, and a picture of a pack goes stale.
   The thumbnail is drawn from the pack's own shape, so it cannot.
 
@@ -171,8 +197,17 @@ had four parts: an order, a price, a refund, and a rule about what the output ma
 * **The panels are built but not wired.** `components/launch/{Inspector,RailPanels,BoardCanvas}.tsx` draw labelled
   placeholders where a panel goes, and those files belong to L1; the orchestrator wires `board-info-card`, `flow-run`
   and the flow canvas into them, as the plan says it will (Lesson 9). Nothing in this workstream depends on when.
-* The run summary is read back from `flow_runs`, so a reload shows the same panel. A run in flight is not resumable:
-  the server runs it to the end in one action, and a browser that goes away does not stop it.
+* The run summary is read back from `flow_runs`, so a reload shows the same panel, and **a board's row is written as
+  that board finishes** rather than after the run: a pack takes minutes, and a row written at the end would mean the
+  panel showed nothing while it ran and nothing at all if the action died with boards already charged. A run in
+  flight is still not resumable — the server runs it to the end in one action, and a browser that goes away does not
+  stop it — but what it did up to that point is on the record.
+* Each board's row names the credit ledger line it charged, so a charge is never unaccounted for, and keeps the kind
+  the board had when it ran, so a summary never has to guess it from a canvas read.
+* Two reviews of this workstream, one of the migration and one of the TypeScript, found nineteen problems between
+  them. Every one is fixed with a test. The two that mattered most were the second and third orders of the laundering
+  trick above, and a capability rejection escaping the run engine, which would have left a board charged with no
+  refund and no record.
 
 ## Dependencies
 
