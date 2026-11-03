@@ -5,9 +5,16 @@ workstream that hit it, in its decision record; this file gathers them so the sh
 seen at once, and **groups them by what kind of answer each needs**, because the answers come from
 different places and most of them can be chased in parallel.
 
-Written 2026-11-02 by the documentation pass (R4, decision 0115). The decision records are
-authoritative: this file is an index into them, one line per question, with the record cited. Where a
-record states what the platform does while the question is open, that sentence is in the record.
+Written 2026-11-02 by the documentation pass (R4, decision 0115) and extended 2026-11-03 with the
+eighteen questions the reviews and the wiring that followed them raised (decisions 0116, 0117, 0122,
+0123 and 0124) — group E's last subsection. The decision records are authoritative: this file is an
+index into them, one line per question, with the record cited. Where a record states what the platform
+does while the question is open, that sentence is in the record.
+
+**Three have been answered since, and are not in the list.** The clear space around a name is
+`R-SUB-004`'s 15 mm rather than a 10 mm default of ours (plan question 93, decision 0125); the
+best-practice card is reached from a six-part chooser beside the Ask box (0117 q1, decision 0126); and
+the editor's toolbar toggle stays upright (0117 q6, decision 0126).
 
 **Nothing here blocks the build.** Every one of these is already live behind a labelled default, and
 no page states a fact nobody has agreed; it names what is missing instead. Six of them do block a
@@ -22,7 +29,7 @@ question already appears there; otherwise answer against the record cited here.
 
 ## The groups
 
-**252 questions**: 235 from the v5 decision records, plus the 17 items of 2026-10-15 recovered in group P.
+**270 questions**: 235 from the v5 decision records, the 18 the reviews and the wiring after them raised, and the 17 items of 2026-10-15 recovered in group P.
 
 | Group | What kind of answer it needs | How many |
 |---|---|---|
@@ -30,7 +37,7 @@ question already appears there; otherwise answer against the record cited here.
 | [B](#b-a-factorys-or-a-suppliers-figure) | **A factory's or a supplier's figure**: the Sialkot partner's pattern master, its marker, its quote, the mill, the print house, the colour house | 59 |
 | [C](#c-a-licence-a-purchase-or-an-account) | **A licence, a purchase or an account**: a paid standard, a colour library, a font, a model's terms, an API tier | 20 |
 | [D](#d-a-lawyer-or-an-adviser) | **A lawyer or an adviser**: a legal position, a customs position, a copyright opinion, a retention rule | 17 |
-| [E](#e-a-product-decision-yours-alone) | **A product decision**: what Knitwright wants the platform to do | 112 |
+| [E](#e-a-product-decision-yours-alone) | **A product decision**: what Knitwright wants the platform to do | 130 |
 | [F](#f-a-name-against-something) | **A name against something**: a person who reads, confirms, reviews, translates or signs | 6 |
 | [P](#p-the-2026-10-15-items-p1-to-p17-recovered) | The seventeen items of 2026-10-15, recovered from `plans/production-outputs.md` | 17 |
 
@@ -43,10 +50,11 @@ whose numbering starts at 21; the 2026-10-25 sheet is always named with its date
 
 ---
 
-## The six that block a real order
+## The seven that block a real order
 
 These are the whole of what stands between the platform and a factory order. Four are purchases or
-decisions only the owner can make, and no further engineering moves any of them.
+decisions only the owner can make, and no further engineering moves any of them. The seventh is new and
+is the opposite shape: it is a decision about how strict to be, and either answer is one line of code.
 
 | | Question | Group | Record |
 |---|---|---|---|
@@ -56,6 +64,7 @@ decisions only the owner can make, and no further engineering moves any of them.
 | ⛔4 | **Decide whether Knitwright licenses Pantone.** No Pantone data ships, so no Pantone number is given anywhere and a wording test enforces that silence. | C2 | 0076 q2, 0079 q3, 0105 q1 |
 | ⛔5 | **Get the factory's data for the seven other base articles**: the pattern and size chart, the POM table with grades *and* tolerances, the construction table, seam allowances and thread, and each fabric's real code, weight and blend. Seven of the eight base articles publish no measurement at all, so their tech packs and size charts are refusals. | B30, B31 | 0090 q1, q6 |
 | ⛔6 | **Do the hosted deployment**, which is entirely owner actions: the Supabase project and its keys, Resend, Google OAuth, Turnstile, and the legal documents in `docs/legal/` approved with their `status` set before the sign-up switch may open. | — | [`README.md`](README.md), [`../launch/sign-up-switch.md`](../launch/sign-up-switch.md) |
+| ⛔7 | **Decide whether an unscreened picture blocks "Ready for the factory", or only warns.** It blocks today (`UNSCREENED_BLOCKS_HANDOFF`). Almost nothing was ever screened, so on the day this ships **every brand's existing artwork is unscreened**: anything added through any path but `POST /api/artwork` has to be added again before that brand can hand anything to a factory. Warning instead is one line, and the test holds both answers. | E113 | 0116 q1 |
 
 ---
 
@@ -426,6 +435,36 @@ sitting with that screen open.
 | # | Question | Record |
 |---|---|---|
 | E112 | Should Nastaliq be made to work — by pinning a `fontkit` that places its anchors, or another route — or does the Urdu tech pack stay in Naskh? | 0104 q6 |
+
+---
+
+### The wiring after the reviews (decisions 0116 to 0124)
+
+The four reviews of plan v5 and the wiring that followed them raised these. Every one is already live
+behind a labelled default or a stated refusal, as the rest of this file's are; none of them is a
+missing feature pretending to be a question. Two of the twenty are answered and listed at the top of
+this file instead.
+
+| | Question | Record |
+|---|---|---|
+| E113 | **Should an unscreened picture block "Ready for the factory", or only warn?** It blocks today. Almost nothing was ever screened, so every brand's existing artwork is unscreened and has to be added again through a screened path before that brand can hand anything over. ⛔ above. | 0116 q1 |
+| E114 | Is the moderation wiring complete enough for launch, or is the rest of it wave 6 with a date? Three upload paths are unscreened because there is nothing to screen — a size chart and a pattern DXF carry only a label, and the factory's job-packet photo arrives on a token-authenticated route with no session to meter a vision call against. | 0116 q2 |
+| E115 | Should a human review be about the frozen release, or about the design version? Both order paths carry a release uuid and the Class B check is written against it; a review of the design version would outlive the release and cover work the release never contained. | 0116 q3 |
+| E116 | **Two names-and-numbers editors exist and a person can meet either.** Decision 0027's controls are on the `Names` tool; Y8's F-S4 panel opens from the Design Summary. They write the same stored fields so they cannot disagree, but which one survives, and may the other be taken out with the journey that drives it? | 0117 q2 |
+| E117 | Where does the repeat maker belong? It is under the Library toolbar's Pattern fills, which is where a pattern is chosen rather than where one is made. | 0117 q3 |
+| E118 | Is the Specs toolbar the Ask box's place? It is scoped to the design it sits beside, which is right; whether Specs is the tab a person looks in for a question is not settled. | 0117 q4 |
+| E119 | What happens to the right-hand panel between 1024 px and 1279 px? That band is the one width the editor's shell was never designed for. | 0117 q5 |
+| E120 | **Should the production package's refusal reach a screen?** The F-G2 gate now names every gap in one answer, each sentence carrying its rule id — and the only way to reach it is the route the Store would call. The Export panel's own tab says the package is built "when the order is placed" and offers no download. No panel owns it (0108). | 0122 |
+| E121 | Should the turntable carousel wait, or should every page that draws a flat pay for the other colourways? Drawing them all is work on every page that shows a garment; drawing one is a carousel that cannot turn. | 0123 q1 |
+| E122 | Is "the upper chest" the right place to frame a crest? Nothing measured says so, and a mockup that frames it wrongly is a picture a brand may send to a club. | 0123 q2 |
+| E123 | Should a mockup of a chart scene draw the design's own size or colour chart, rather than a stand-in? The scene exists; what it shows is a choice. | 0123 q3 |
+| E124 | Should "Run all" be offered anywhere but the run summary? It is the one control that spends credits across several boards at once. | 0123 q4 |
+| E125 | **Should `DESIGN_IMPORT` be on?** The design-from-a-picture panel has a screen now and is dark behind that flag. P12 and the privacy paragraph about pictures sent to vision providers are unchanged. | 0124 q1 |
+| E126 | **Should a design be able to store a pattern layer, so the other nine drawable styles can be chosen?** 43 of the 51 looks in the gallery say they cannot be saved yet, because a design stores one kit pattern and not a layer. | 0124 q2 |
+| E127 | Should the studio home offer the step-by-step start? `/studio/start` is reached from `/templates` alone, and decision 0074 replaced the home's two tiles with F-S4's action cards. | 0124 q3 |
+| E128 | **Who is `/api/pattern-library/programmes` for, and when does the pattern library open?** The route is `auth: "member"` and refuses everyone with "The pattern library is not open yet" (`patternLibraryOpenTo`). Nothing in the repository says who the allow-list is for. | 0124 q4 |
+| E129 | Is "Use the suggestion" the right way back from a chosen pattern size? Nothing records that a brand once chose one, so putting the suggestion back loses the fact that a person had decided otherwise. | 0124 q5 |
+| E130 | **Who builds "apply this reading to this design"?** `acceptImport` keeps the read layers on the reading's row and the pictures as brand artwork; it does not write them onto the design the panel is open on. `designWithStack` is the function that would, and no import path calls it. The panel says so plainly rather than claiming otherwise (0038 item 6 deferred it). | 0124 q6 |
 
 ---
 
