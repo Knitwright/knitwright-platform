@@ -30,7 +30,8 @@ export const PANEL_TITLES: Readonly<Record<BuiltHere, string>> = {
 };
 
 export const PANEL_LEADS: Readonly<Record<BuiltHere, string>> = {
-  templates: "Ready-made sportswear designs to remix. Search them, or narrow them by sport, style, era, mood and colour.",
+  templates:
+    "Ready-made sportswear designs to remix, and the packs that turn one design into a whole launch. Search the designs, or narrow them by sport, style, era, mood and colour.",
   uploads: "The files you have uploaded to this brand, newest first, with the rights recorded on each one.",
   brand: "Your palettes, your type styles and the words that steer every picture made for you.",
 };
@@ -95,9 +96,13 @@ export const SHOWN_PER_COLLECTION = 4;
 export const OPENS_THE_EDITOR =
   "Starting a design from a template makes a new design in your brand and opens the editor on it. Your launch canvas is left exactly as it is.";
 
-/** Why the panel offers design templates and not the library's other six kinds. */
+/**
+ * Why the panel offers design templates and the flow packs, but not the library's other kinds. The
+ * packs are listed in this panel itself (`components/launch/panels/FlowPacks.tsx`), so this no
+ * longer sends anyone to the canvas to look for something no screen offered.
+ */
 export const OTHER_KINDS =
-  "Marketing templates open on a Marketing board, mockup scenes are in the Mockups panel, and a flow is started from the canvas, so none of them is listed twice here.";
+  "Marketing templates open on a Marketing board and mockup scenes are in the Mockups panel, so neither is listed twice here.";
 
 export const OPEN_MOCKUPS = "Open the Mockups panel";
 

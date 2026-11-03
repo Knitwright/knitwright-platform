@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { z } from "zod";
+import { ArtworkPanel } from "@/components/artwork/ArtworkPanel";
 import { BrandTabs } from "@/components/brand-studio/BrandTabs";
 import { ColoursPanel } from "@/components/brand-studio/ColoursPanel";
 import { DetailsForm } from "@/components/brand-studio/DetailsForm";
@@ -55,6 +56,22 @@ export default async function BrandStudioPage({ searchParams }: PageProps<"/bran
       {tab === "overview" ? (
         <PageSection id="details" title="Details" description="Your category, website, what the brand is about, and the words that describe how it sounds.">
           <DetailsForm profile={record.profile} canEdit={canEdit} part="details" />
+        </PageSection>
+      ) : null}
+
+      {/*
+       * The brand's own files (W7b, decision 0036), which every picture picker on this page chooses
+       * from and which had no screen at all until decision 0124. It sits on Overview because it is
+       * the one thing the other tabs cannot be filled without, and because it is the brand's, not
+       * one design's: `/api/artwork` answers for the brand.
+       */}
+      {tab === "overview" ? (
+        <PageSection
+          id="artwork"
+          title="Your artwork"
+          description="Your own crests, sponsor logos, badges and photographs. For each one you can see what the file is, how sharply it would print at the size you want, and whether a repeat of it would show a seam. Every picture here belongs to the brand, so any design can use it, and the Logos, Graphics and Sportswear tabs take theirs from this list."
+        >
+          <ArtworkPanel />
         </PageSection>
       ) : null}
 

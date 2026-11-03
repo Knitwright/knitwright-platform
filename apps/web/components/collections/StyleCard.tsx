@@ -5,10 +5,14 @@ import { formatMoney } from "@/lib/factory/pricing";
 import type { Style } from "@/lib/collections/types";
 import { unitsOf } from "@/lib/collections/board";
 import { pieces, STYLE_STATUS_LABELS } from "@/lib/collections/vocabulary";
+import { RemoveStyle } from "./RemoveStyle";
 
 type Props = Readonly<{
   style: Style;
+  collectionId: string;
   currency: string;
+  /** Owners, admins and kit managers may take a style out of the plan; everyone else only reads it. */
+  canEdit: boolean;
   /** The design's render, streamed in by the page. */
   art: ReactNode;
 }>;
@@ -20,7 +24,7 @@ type Props = Readonly<{
  * The retail price is the RRP the founder typed, in minor units. A price nobody has set reads "No RRP
  * yet", never £0.00.
  */
-export function StyleCard({ style, currency, art }: Props) {
+export function StyleCard({ style, collectionId, currency, canEdit, art }: Props) {
   const planned = unitsOf(style);
   const sizes = style.sizes.filter((size) => size.qty > 0);
   return (
@@ -51,6 +55,7 @@ export function StyleCard({ style, currency, art }: Props) {
           Open the design
         </Link>
       )}
+      {canEdit ? <RemoveStyle collectionId={collectionId} styleId={style.id} name={style.name} /> : null}
     </article>
   );
 }

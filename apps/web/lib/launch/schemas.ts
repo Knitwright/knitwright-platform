@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { confirmField } from "@/lib/deletion/schemas";
 import { ARTBOARD_UNITS, MAX_ARTBOARD_PX, MIN_ARTBOARD_PX } from "./artboard";
 import { BOARD_KINDS } from "./boards";
 
@@ -35,7 +36,12 @@ export const saveLaunchProjectBody = z.object({
 });
 export type SaveLaunchProjectBody = z.output<typeof saveLaunchProjectBody>;
 
-export const removeLaunchProjectBody = z.object({ launchProjectId: z.uuid() });
+/**
+ * Removing a launch project. Its boards, its connectors, its saved versions, its shoots, its flow
+ * runs and anything waiting for the Store to collect all go with it, so the word is typed first,
+ * exactly as deleting a design asks for it (`lib/deletion/schemas.ts`).
+ */
+export const removeLaunchProjectBody = z.object({ launchProjectId: z.uuid(), confirm: confirmField });
 
 export const saveBoardBody = z.object({
   launchProjectId: z.uuid(),

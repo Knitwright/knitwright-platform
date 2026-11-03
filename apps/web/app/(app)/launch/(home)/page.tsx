@@ -56,10 +56,13 @@ export default async function LaunchPage() {
                 <th scope="col" className="px-4 py-3 font-medium">Launch</th>
                 <th scope="col" className="px-4 py-3 font-medium">Boards</th>
                 <th scope="col" className="px-4 py-3 font-medium">Units</th>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  <span className="sr-only">Delete</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-hairline">
-              {home.projects.map((one) => (
+              {home.projects.map((one, at) => (
                 <tr key={one.id}>
                   <th scope="row" className="px-4 py-3 font-medium">
                     <Link href={launchProjectPath(one.id) as Route} className="soft-link text-cobalt-soft">
@@ -68,6 +71,20 @@ export default async function LaunchPage() {
                   </th>
                   <td className="px-4 py-3 text-muted">{one.boards === 1 ? "1 board" : `${one.boards} boards`}</td>
                   <td className="px-4 py-3 text-muted">{UNIT_LABELS[one.units]}</td>
+                  <td className="px-4 py-3 text-right">
+                    {/*
+                     * "Delete row 3", not "Delete <the launch's name>": the row is already named by
+                     * its header, and a link whose name contains the row's own name makes every
+                     * other link in that row ambiguous -- which is how this one broke the launch
+                     * list's own test. The roster table names its per-row Remove the same way
+                     * (`components/production/orders/RosterTable.tsx`).
+                     */}
+                    {canEdit ? (
+                      <Link href={`${launchProjectPath(one.id)}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
+                        Delete<span className="sr-only"> row {at + 1}</span>
+                      </Link>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>
