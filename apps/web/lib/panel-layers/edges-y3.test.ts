@@ -180,8 +180,10 @@ describe("the sheet's distances", () => {
     expect(rules.safeZone.note).toMatch(/15 mm/);
   });
 
-  it("say the default is Knitwright's own when nothing is passed", () => {
-    expect(sheetRules().safeZone.note).toMatch(/not reviewed by a factory|Knitwright/i);
+  it("say the clear space is the rulebook's figure when nothing is passed, not Knitwright's own", () => {
+    // It used to say Knitwright's own, because the figure was a 10 mm default while the check cited a rule that
+    // asks for 15. `lib/guardrails/safe-zone-rule.test.ts` holds the three together.
+    expect(sheetRules().safeZone.note).toBe("Safe zone 15 mm (from rule R-SUB-004).");
   });
 });
 
