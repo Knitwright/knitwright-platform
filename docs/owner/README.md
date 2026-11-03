@@ -128,8 +128,9 @@ at start while it is unset).
 ## Your questions, all of them, in one place
 
 Thirty decision records each ended with questions for you. There are **235** of them, in thirty files,
-which is why they now live in one list — plus the seventeen items of 2026-10-15, recovered, for **252**
-in all:
+which is why they now live in one list — plus the seventeen items of 2026-10-15, recovered, and the
+eighteen the four reviews and the wiring after them raised, for **270** in all (three more were asked
+and answered on 2026-11-03, and the list says which):
 
 ### → [`open-questions-v5.md`](open-questions-v5.md)
 
