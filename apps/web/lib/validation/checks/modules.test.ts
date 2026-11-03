@@ -63,22 +63,23 @@ describe("moderation clear", () => {
   });
 
   /**
-   * H3 of the v5 security review (decision 0116). An unscreened picture holds "Ready for the
-   * factory" shut and names itself, because shipping unmoderated artwork to a factory is the risk
-   * X8 exists to prevent. `UNSCREENED_BLOCKS_HANDOFF` is the one setting that softens it; this
-   * test holds the strict answer, and the one below holds the soft one.
+   * H3 of the v5 security review (decision 0116), answered as owner question E113 on 2026-11-03
+   * (decision 0128): an unscreened picture **warns** and names itself, rather than holding
+   * "Ready for the factory" shut, because almost nothing in the platform has ever been screened.
+   * `UNSCREENED_BLOCKS_HANDOFF` is the one setting; this test holds the answer in force, and the
+   * one below holds the strict one.
    */
-  it("blocks the hand-off for a picture nobody has screened, and names which picture", () => {
+  it("warns about a picture nobody has screened, and names which picture", () => {
     const [found] = moderationClear.run(design({ moderation: [status("pending")] }), profile);
-    expect(found).toMatchObject({ code: "moderation-pending", severity: "blocker" });
+    expect(found).toMatchObject({ code: "moderation-pending", severity: "warning" });
     expect(found?.message).toBe("Club crest has not been through the content review, so nobody has looked at it yet.");
     expect(found?.ruleId).toBeTruthy();
   });
 
-  it("is the one setting away from warning instead, which is the whole of the softer launch policy", () => {
+  it("is the one setting away from blocking the hand-off instead, which is the whole of the strict policy", () => {
     // Read here rather than asserted on a second code path: flipping the constant changes the
     // severity of this one finding and nothing else about the check.
-    expect(UNSCREENED_BLOCKS_HANDOFF).toBe(true);
+    expect(UNSCREENED_BLOCKS_HANDOFF).toBe(false);
     const [found] = moderationClear.run(design({ moderation: [status("pending")] }), profile);
     expect(found?.severity).toBe(UNSCREENED_BLOCKS_HANDOFF ? "blocker" : "warning");
     expect(moderationClear.run(design({ moderation: [status("flagged")] }), profile)[0]?.severity).toBe("blocker");

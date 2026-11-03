@@ -129,7 +129,7 @@ at start while it is unset).
 
 Thirty decision records each ended with questions for you. There are **235** of them, in thirty files,
 which is why they now live in one list — plus the seventeen items of 2026-10-15, recovered, and the
-eighteen the four reviews and the wiring after them raised, for **270** in all (three more were asked
+seventeen the four reviews and the wiring after them raised, for **269** in all (four more were asked
 and answered on 2026-11-03, and the list says which):
 
 ### → [`open-questions-v5.md`](open-questions-v5.md)
@@ -143,7 +143,7 @@ and nearly all of it can be chased in parallel:
 | B | A factory's or a supplier's figure | 59 |
 | C | A licence, a purchase or an account | 20 |
 | D | A lawyer or an adviser | 17 |
-| E | A product decision, yours alone | 112 |
+| E | A product decision, yours alone | 129 |
 | F | A name against something | 6 |
 | P | The seventeen items of 2026-10-15 | 17 |
 

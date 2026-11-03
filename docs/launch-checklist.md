@@ -10,7 +10,7 @@ the line says what changed. It does not replace the detail:
 
 - **What is actually in the way of a real order**: [`owner/README.md`](owner/README.md) — read this first
 - **Every open owner question, grouped by what kind of answer it needs**:
-  [`owner/open-questions-v5.md`](owner/open-questions-v5.md), 270 of them
+  [`owner/open-questions-v5.md`](owner/open-questions-v5.md), 269 of them
 - The sign-up switch and its "Before opening" list: [`launch/sign-up-switch.md`](launch/sign-up-switch.md)
 - Acceptance criteria M1 to M7: [`launch/evidence.md`](launch/evidence.md)
 - Security findings: [`launch/security-review.md`](launch/security-review.md),
@@ -89,7 +89,7 @@ Nothing below depends on a file being found.
 
 Nothing here blocks the build. Each item replaces a labelled placeholder.
 
-**The full list is [`owner/open-questions-v5.md`](owner/open-questions-v5.md)** — 270 questions grouped
+**The full list is [`owner/open-questions-v5.md`](owner/open-questions-v5.md)** — 269 questions grouped
 by what kind of answer each needs. What follows is only what bears on opening sign-up.
 
 ### The six that stop a real order
