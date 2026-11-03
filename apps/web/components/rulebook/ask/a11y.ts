@@ -24,3 +24,21 @@ export const bestPracticeProps = (part: string, label: string) => ({
   "aria-label": `Best practice: ${label}`,
   "data-testid": `best-practice-${part}`,
 });
+
+export const BEST_PRACTICE_HEADING_ID = "best-practice-heading";
+
+/**
+ * The best-practice picker. The card arrives after the page has rendered, as an Ask answer does, so it lands in
+ * a live region and the chosen part is announced by the card's own name rather than by a state on a button: a
+ * submit button is not a toggle, and `aria-pressed` on one would say something untrue about what pressing does.
+ */
+export const bestPracticePickerProps = (pending: boolean) => ({
+  headingId: BEST_PRACTICE_HEADING_ID,
+  groupProps: { role: "group" as const, "aria-labelledby": BEST_PRACTICE_HEADING_ID },
+  cardProps: {
+    role: "status" as const,
+    "aria-live": "polite" as const,
+    "aria-busy": pending,
+    "data-testid": "best-practice-result",
+  },
+});

@@ -182,6 +182,39 @@ test.describe("the panels the shell never mounted", () => {
   });
 
   /**
+   * The other half of F-S5 v2, which had no door at all (decision 0117 owner question 1, answered: a part
+   * chooser beside the Ask box). `BestPracticeCard` and `bestPracticeAction` were built, tested and reachable
+   * by nobody, so this is the first time either runs in a browser.
+   *
+   * What a part's card says depends on what the rulebook holds, which is a seeded table and not this test's to
+   * assert. What is asserted is the door: six parts, exactly the six the action accepts, and a card that names
+   * the part it is about and carries a rule id -- the rulebook's own best practice, or `R-GAP-000` saying
+   * plainly that nothing is written for that part yet. Both are honest answers and the card has to be one.
+   */
+  test("puts the best-practice card behind a part chooser, beside the Ask box", async ({ page }) => {
+    await signedIn(page, "panels-best-practice");
+    await startJersey(page, "Best practice kit");
+    await openToolbar(page, "Specs");
+
+    const form = page.getByTestId("best-practice-form");
+    await expect(page.getByRole("heading", { name: "What good looks like" })).toBeVisible();
+    const parts = ["Collar and neck", "Sleeves", "Body", "Artwork and print", "Names and numbers", "Labels"];
+    for (const part of parts) await expect(form.getByRole("button", { name: part, exact: true })).toBeVisible();
+    await expect(form.getByRole("group")).toBeVisible();
+
+    await form.getByRole("button", { name: "Artwork and print", exact: true }).click();
+    const card = page.getByTestId("best-practice-result");
+    await expect(card.getByRole("group", { name: "Best practice: Artwork and print" })).toBeVisible();
+    await expect(card).toContainText("Best practice · Artwork and print");
+    await expect(card).toContainText(/R-[A-Z]+-[0-9]{3}/);
+
+    // A second part replaces the first, so the card is never about two things at once.
+    await form.getByRole("button", { name: "Labels", exact: true }).click();
+    await expect(card.getByRole("group", { name: "Best practice: Labels" })).toBeVisible();
+    await expect(card.getByRole("group", { name: "Best practice: Artwork and print" })).toHaveCount(0);
+  });
+
+  /**
    * Y5's panel, and the one thing the review said the route had to supply with it: the Excel
    * download. The gate is open for a fresh jersey — the drafter raises warnings, not blockers — and
    * the panel still says that the Review tab has not checked this version.
