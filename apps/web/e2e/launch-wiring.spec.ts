@@ -129,6 +129,36 @@ test.describe("the board panels L3, L4, L5 and L6 filled", () => {
     await expect(page.getByTestId("launch-panel-board-ai-image")).toHaveCount(0);
   });
 
+  /**
+   * Flatten, Upscale and Reframe (spec F-L4). The contextual task bar has offered these three since
+   * L6 and handed them to "the board's own panel" -- and that panel, `components/flows/BoardActions
+   * .tsx`, was mounted nowhere, which decision 0124 reported and 0127 closes. This is the first time
+   * any of the three is drawn in a browser.
+   *
+   * Nothing is pressed. A fresh board has not been run, so all three are refused with the one thing
+   * to do, and that refusal is what this asserts: pressing an operation that *is* allowed starts a
+   * real run, which is a paid call and never a test's to make.
+   */
+  test("offers a board's own Flatten, Upscale and Reframe, each saying why it is off", async ({ page }) => {
+    await signedIn(page, "panels-board-actions");
+    await startLaunch(page, "Board actions kit");
+    await addAndSelect(page, "ai_image", "AI image");
+
+    const actions = page.getByTestId("flow-board-actions");
+    await expect(actions.getByRole("heading", { name: "This board" })).toBeVisible();
+    for (const id of ["flatten", "upscale", "reframe"]) {
+      await expect(actions.getByTestId(`flow-op-${id}`)).toBeVisible();
+      await expect(actions.getByTestId(`flow-op-${id}`)).toBeDisabled();
+    }
+    await expect(actions).toContainText("Run this board first");
+
+    // Upscale's own choice of how much bigger is there whether or not Upscale can be used.
+    await expect(actions.getByRole("group", { name: "How much bigger" })).toBeAttached();
+    await expect(actions.getByTestId("flow-upscale-2")).toHaveAttribute("aria-pressed", "true");
+
+    await accessible(page);
+  });
+
   test("opens the marketing board's own panel, with its layouts", async ({ page }) => {
     await signedIn(page, "panels-marketing-board");
     await startLaunch(page, "Marketing board kit");

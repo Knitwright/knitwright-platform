@@ -67,21 +67,9 @@ const COMPONENT_GROUPS: readonly Group[] = [
     pr: null,
     paths: ["components/video/sample-frames.ts"],
   },
-  {
-    kind: "reported",
-    why: "Flatten, Upscale and Reframe for a selected board. Its door is the inspector's board panel -- components/launch/{Inspector,LaunchShell,useLaunchShell} -- which are L1's files and which PR #140 has just rewritten in that very place, adding the `flow` prop that carries the FlowCostSource these three need. Decision 0124 names the three lines it takes and whose files they are; this branch reports the seam rather than reaching into another workstream's shell.",
-    pr: null,
-    paths: ["components/flows/BoardActions.tsx"],
-  },
 ];
 
 const ACTION_GROUPS: readonly Group[] = [
-  {
-    kind: "reported",
-    why: "The three board operations behind the task bar's More. Same door and same reason as components/flows/BoardActions.tsx: the shell that would call it is L1's, and decision 0124 names the lines it takes. The task bar already offers Flatten, Upscale and Reframe and hands them to the board's own panel, so what is missing is that panel, not the bar.",
-    pr: null,
-    paths: ["lib/flows/actions.ts: flowOperationAction"],
-  },
   {
     kind: "helper",
     why: "The Store hand-off, and deliberately not ours: owner decision 1 keeps the Store out of this platform. 'Publish to store' publishes nothing -- the action appends a listing payload to flow_listings for wave 5's Store contract (O2) to collect, as a collection drop is collected. The door belongs to that contract, so no button in this repository may call it, and this entry is here so the next sweep does not re-find it as a bug.",

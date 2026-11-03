@@ -40,7 +40,8 @@ import {
   saveLaunchProjectAction,
   saveLaunchVersionAction,
 } from "@/lib/launch/actions";
-import { runFlowAction } from "@/lib/flows/actions";
+import { flowOperationAction, runFlowAction } from "@/lib/flows/actions";
+import type { OperationId } from "@/lib/flows";
 import { freePlace } from "./placing";
 
 /**
@@ -329,7 +330,20 @@ export function useLaunchShell(input: ShellInput) {
     [input.launchProjectId, send],
   );
 
-  return { state, stack, commands, note, saveVersion, runCanvas, prompt, setPrompt, setNote, busy: pending };
+  /**
+   * Flatten, Upscale and Reframe on one board (spec F-L4). Each is a change to that board's own
+   * settings followed by a rerun, so L6's `flowOperationAction` does the charging, the refund and
+   * the record; this shell only carries the ask and shows a refusal in its own note, exactly as
+   * `runCanvas` does. The board id is a parameter rather than read from `state`, so the panel that
+   * draws these cannot act on a board other than the one it is showing.
+   */
+  const runOperation = useCallback(
+    (boardId: string, operation: OperationId, options: Readonly<{ factor?: number; presetKey?: string }>) =>
+      send(() => flowOperationAction({ launchProjectId: input.launchProjectId, boardId, operation, ...options })),
+    [input.launchProjectId, send],
+  );
+
+  return { state, stack, commands, note, saveVersion, runCanvas, runOperation, prompt, setPrompt, setNote, busy: pending };
 }
 
 export type LaunchShellState = ReturnType<typeof useLaunchShell>;

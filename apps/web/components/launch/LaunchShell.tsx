@@ -238,7 +238,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
               busy={busy}
               lockNote={page.lockNote}
               panel={panel}
-              flow={{ costs: flowCostSource(costs), onRunAll: shell.runCanvas }}
+              flow={{ costs: flowCostSource(costs), onRunAll: shell.runCanvas, graph, onOperation: shell.runOperation }}
               onUnit={shell.commands.setUnit}
               onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
               onColours={shell.commands.setProjectColours}

@@ -8,7 +8,8 @@ import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupBoardPanel from "@/components/mockups/MockupBoardPanel";
 import AiImageBoardPanel from "@/components/shoots/AiImageBoardPanel";
 import AiVideoPanel from "@/components/video/AiVideoPanel";
-import type { FlowCostSource } from "@/lib/flows";
+import { BoardActions } from "@/components/flows/BoardActions";
+import type { FlowCostSource, OperationId } from "@/lib/flows";
 import {
   BOARDS,
   PANEL_OF_KIND,
@@ -16,6 +17,7 @@ import {
   type ArtboardUnit,
   type BoardKind,
   type BoardSelection,
+  type Graph,
   type LaunchPanelId,
   type LaunchPanelProps,
   type ProjectColour,
@@ -43,6 +45,14 @@ export type FlowRun = Readonly<{
   costs: FlowCostSource;
   /** Runs the whole canvas through L6's own action. The shell itself still makes no paid call. */
   onRunAll: (shownCredits: number) => void;
+  /**
+   * The canvas as L6 reads it. `BoardActions` needs it to say what each of its three operations
+   * would do and what it would cost before it is pressed, which it works out from what the board is
+   * connected to rather than from the board alone.
+   */
+  graph: Graph;
+  /** Flatten, Upscale or Reframe on one board (spec F-L4), through L6's own action. */
+  onOperation: (boardId: string, id: OperationId, options: Readonly<{ factor?: number; presetKey?: string }>) => void;
 }>;
 
 type Props = Readonly<{
@@ -126,7 +136,7 @@ function ProjectPanel({ projectName, colours, busy, onColours, onAddBoard, panel
 
 type BoardPanelProps = Props & Readonly<{ selection: BoardSelection }>;
 
-function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, panel }: BoardPanelProps) {
+function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, panel, flow }: BoardPanelProps) {
   const panelId = PANEL_OF_KIND[selection.board.kind];
   const Built = panelId === null ? undefined : BOARD_PANELS[panelId];
   const info = BOARDS[selection.board.kind];
@@ -153,6 +163,22 @@ function BoardPanel({ selection, unit, presets, busy, lockNote, onUnit, onSize, 
       ) : panelId ? (
         <PanelPlaceholder id={panelId} />
       ) : null}
+      {/*
+       * Flatten, Upscale and Reframe (spec F-L4). The contextual task bar already offers these three
+       * and hands them to the board's own panel (`lib/launch/task-bar.ts`), and this is that panel:
+       * until now the bar offered them and nothing drew them, which decision 0124 reported as a seam
+       * with these exact lines. It goes last because it acts on the board the panel above describes.
+       */}
+      <div className="shrink-0">
+        <BoardActions
+          graph={flow.graph}
+          board={selection.board}
+          source={flow.costs}
+          presets={presets}
+          busy={busy}
+          onOperation={(id, options) => flow.onOperation(selection.board.id, id, options)}
+        />
+      </div>
     </>
   );
 }
