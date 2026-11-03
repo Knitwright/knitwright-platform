@@ -60,8 +60,13 @@ export interface UsedColour {
 
 export interface Setting<T> {
   readonly value: T;
-  /** Where it came from: the print house's own, or the default label. */
-  readonly source: "print-house" | "knitwright-default";
+  /**
+   * Where it came from: the print house's own, a rule of the rulebook, or Knitwright's own default.
+   *
+   * `rulebook` exists because a figure a rule states is not a default anybody at Knitwright chose, and saying
+   * "Knitwright default" of it would be untrue on the screen that shows it. `sourceNote` names the rule.
+   */
+  readonly source: "print-house" | "rulebook" | "knitwright-default";
 }
 
 export interface GuardrailSettings {

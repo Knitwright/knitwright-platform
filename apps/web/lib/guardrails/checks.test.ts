@@ -57,6 +57,8 @@ describe("minDpi", () => {
     const [f] = minDpiCheck([raster(1000, 254)], DEFAULT_SETTINGS);
     expect(f).toMatchObject({ code: "min-dpi", check: "dpi", severity: "warning" });
     expect(f?.message).toContain("100 dpi");
+    // The dpi minimum really is Knitwright's own default and still says so. Only the clear space moved to a
+    // rule's figure; see the safeZone block below and `safe-zone-rule.test.ts`.
     expect(f?.message).toContain("Knitwright default, not from your print house");
   });
   it("is a blocker below half the minimum", () => {
@@ -113,7 +115,9 @@ describe("safeZone", () => {
   it("warns when a mark is closer to the seam than the clear space", () => {
     const [f] = safeZoneCheck(panel, [mark({ x0: 150, y0: 15, x1: 350, y1: 200 })], DEFAULT_SETTINGS);
     expect(f).toMatchObject({ code: "safe-zone", check: "safe_zone", severity: "warning" });
-    expect(f?.message).toContain("Knitwright default, not from your print house");
+    // The clear space is the figure R-SUB-004 states, so the sentence names that rule rather than calling it
+    // ours (`safe-zone-rule.ts`). Saying "Knitwright default" of a rule's own figure was the fault.
+    expect(f?.message).toContain("it needs 15 mm of clear space (from rule R-SUB-004)");
   });
   it("is a blocker when the mark leaves the panel", () => {
     expect(safeZoneCheck(panel, [mark({ x0: 400, y0: 200, x1: 560, y1: 300 })], DEFAULT_SETTINGS)[0]?.severity).toBe("blocker");
@@ -131,8 +135,10 @@ describe("safeZone", () => {
         const box = { x0, y0, x1: x0 + 100, y1: y0 + 100 };
         const inside = box.x1 < 490 && box.y1 < 690;
         fc.pre(inside);
+        // The two 10s are the panel's own sewn edge (x 10..490, y 10..690). The clear space is read from the
+        // setting, so this property cannot go stale the way it did when the figure moved from 10 mm to 15.
         const margin = Math.min(x0 - 10, y0 - 10, 490 - box.x1, 690 - box.y1);
-        expect(safeZoneCheck(panel, [mark(box)], DEFAULT_SETTINGS).length === 0).toBe(margin >= 10);
+        expect(safeZoneCheck(panel, [mark(box)], DEFAULT_SETTINGS).length === 0).toBe(margin >= DEFAULT_SETTINGS.safeZoneMm.value);
       }),
     );
   });

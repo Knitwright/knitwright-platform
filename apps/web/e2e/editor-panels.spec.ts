@@ -222,7 +222,15 @@ test.describe("the panels the shell never mounted", () => {
      * rather than needing a rewrite.
      */
     await expect(card).toContainText(/R-[A-Z]+-[0-9]{3}|has no best practice written for/);
-    await expect(card.getByRole("button", { name: /^Why\? R-|^What this means$/ })).toBeVisible();
+    /*
+     * And it explains itself to a screen reader by naming its rule, whichever reading it is.
+     *
+     * `whyButtonProps` sets `aria-label` to `Why? Rulebook <ruleId>`, which *overrides* the visible text --
+     * so the accessible name carries the rule id even where the words say "What this means". That is the
+     * stronger invariant and the one worth holding: a person who cannot see the card is still told which rule
+     * the answer comes from, and `R-GAP-000` names the gap just as plainly as a real rule names itself.
+     */
+    await expect(card.getByRole("button", { name: /^Why\? Rulebook R-[A-Z]+-[0-9]{3}$/ })).toBeVisible();
 
     // A second part replaces the first, so the card is never about two things at once.
     await form.getByRole("button", { name: "Labels", exact: true }).click();
