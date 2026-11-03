@@ -3,13 +3,16 @@ import { RULEBOOK_MD } from "@/lib/rulebook/fixtures/files";
 import { familyOf, parseRulebookMarkdown, SHARED_FAMILIES } from "@/lib/rulebook/markdown";
 import { SCOPE_NOT_REVIEWED, SUBLIMATION } from "@/lib/rulebook/scope";
 import type { RuleSource } from "@/lib/rulebook/constants";
+import { waitsFor } from "@/lib/rulebook/sign-off";
 import { misfiledAsFactory, sourceOf } from "@/lib/rulebook/sources";
 import { resolveRule } from "@/lib/rulebook/store";
 import { adminClient, anonClient, must, person, type Person } from "./support";
 
 /**
- * The rulebook (decision 0067, with the revision of owner decisions 11 to 14): the 45 JSY-SS-01 rules are seeded
- * word for word as drafts, with R-GAP-000; an edit adds a version and never overwrites; only a platform admin edits
+ * The rulebook (decision 0067, with the revision of owner decisions 11 to 14, and the first sign-off of decision
+ * 0130): the 45 JSY-SS-01 rules are seeded word for word, with R-GAP-000, and the 29 that rest on Knitwright's own
+ * words or a published standard are confirmed while the 16 whose Source column still defers stay drafts;
+ * an edit adds a version and never overwrites; only a platform admin edits
  * or confirms; members read the rules but not which account recorded a confirmation; gaps are counted and hidden
  * from browsers. The four shared families are scoped to the sublimation method, nothing is filed as the factory's
  * word that the factory did not say, a confirmation names the factory person, and a "Why?" resolves to the newest
@@ -50,7 +53,12 @@ beforeAll(async () => {
 });
 
 describe("the seed", () => {
-  it("holds all 45 rules of the JSY-SS-01 rulebook word for word, as version 1 drafts", async () => {
+  /**
+   * Decision 0130: the words are still the rulebook's, word for word; what the sign-off changed is the status of
+   * the 29 that wait for nobody. The expected status is read from the rule's own Source column here, so this test
+   * says which rules should be signed off rather than repeating a list the migration also holds.
+   */
+  it("holds all 45 rules of the JSY-SS-01 rulebook word for word, signed off where nobody else is owed a say", async () => {
     const rules = parseRulebookMarkdown(RULEBOOK_MD, "JSY-SS-01");
     const rows = must(
       await adminClient().from("rulebook_entries").select("*").in("rule_id", rules.map((r) => r.ruleId)).eq("version", 1),
@@ -72,12 +80,19 @@ describe("the seed", () => {
         // Owner decision 13: the note is unchanged, word for word; the kind it is filed under is the one in force.
         source: sourceOf(r.sourceNote),
         source_note: r.sourceNote,
-        status: "draft",
-        confirmed_at: null,
-        confirmed_name: null,
-        confirmed_role: null,
+        ...(waitsFor(r.sourceNote) === null
+          ? {
+              status: "confirmed",
+              confirmed_name: "The factory's pattern master",
+              confirmed_role: "person not named",
+              // No account recorded it: a migration did (decision 0130).
+              confirmed_by: null,
+            }
+          : { status: "draft", confirmed_at: null, confirmed_name: null, confirmed_role: null }),
       });
+      if (waitsFor(r.sourceNote) === null) expect(row?.confirmed_at, r.ruleId).not.toBeNull();
     }
+    expect(rules.filter((r) => waitsFor(r.sourceNote) !== null)).toHaveLength(16);
   });
 
   it("holds R-GAP-000 with the plan's words, claiming no scope at all", async () => {
@@ -295,8 +310,10 @@ describe("who may write", () => {
 
 describe("reading", () => {
   it("shows a signed-in member every rule, but not who wrote or confirmed it", async () => {
+    // R-SUB-004 rests on sublimation practice, so the first sign-off confirmed it (decision 0130). What this
+    // test is about is which COLUMNS a member may read, and the two below are not among them.
     const rows = must(await member.client.from("rulebook_entries").select("rule_id, rule, status").eq("rule_id", "R-SUB-004")) as Row[];
-    expect(rows[0]).toMatchObject({ rule_id: "R-SUB-004", status: "draft" });
+    expect(rows[0]).toMatchObject({ rule_id: "R-SUB-004", status: "confirmed" });
 
     expect((await member.client.from("rulebook_entries").select("confirmed_by")).error).not.toBeNull();
     expect((await member.client.from("rulebook_entries").select("created_by")).error).not.toBeNull();

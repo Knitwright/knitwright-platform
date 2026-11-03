@@ -31,14 +31,19 @@ test.describe("the rulebook", () => {
     await page.goto("/admin/rulebook");
     await expect(page.getByRole("heading", { name: "Rulebook", exact: true })).toBeVisible();
 
-    // A seeded rule, word for word, marked as a draft.
-    const why = page.getByTestId("rule-R-SUB-004").getByRole("button", { name: "Why? Rulebook R-SUB-004" });
+    /*
+     * A seeded rule, word for word, still a draft. R-SUB-003 rather than R-SUB-004 because the first sign-off
+     * (decision 0130) confirmed the 29 rules that wait for nobody, and R-SUB-004 is one of them: this one's own
+     * Source column says "Factory to confirm their RIP settings", so it is one of the sixteen still waiting and
+     * it is the draft path this test is here to cover. Both are of a shared family, so the scope is the same.
+     */
+    const why = page.getByTestId("rule-R-SUB-003").getByRole("button", { name: "Why? Rulebook R-SUB-003" });
     await expect(why).toHaveAttribute("aria-expanded", "false");
     await why.click();
     const popover = page.getByRole("dialog");
-    await expect(popover).toContainText("Artwork that crosses a seam can be offset by up to 3 mm after sewing");
+    await expect(popover).toContainText("150 DPI at 1:1, sRGB, not mirrored");
     await expect(popover).toContainText("Draft, not yet confirmed by the factory");
-    await expect(popover).toContainText("Sublimation practice");
+    await expect(popover).toContainText("Factory to confirm their RIP settings");
     // Owner decision 12: a shared rule reaches as far as the sublimation method, never "every article".
     await expect(popover).toContainText("Covers: the sublimation method (scope not reviewed by a factory)");
     await expect(popover).not.toContainText("every article");
@@ -47,6 +52,11 @@ test.describe("the rulebook", () => {
     await page.keyboard.press("Escape");
     await expect(popover).toBeHidden();
     await expect(why).toBeFocused();
+
+    // And the other side of the first sign-off: a rule that waits for nobody reads as signed off, by the role
+    // the owner gave and with no person named (decision 0130).
+    await expect(page.getByTestId("status-R-SUB-004")).toContainText("Reviewed by The factory's pattern master, person not named, on 2026-11-03");
+    await expect(page.getByTestId("rule-R-SUB-004")).not.toContainText("Draft, not yet confirmed by the factory");
 
     // An id with no rule shows the gap text and is counted for the team.
     const missing = `R-NONE-${three()}`;

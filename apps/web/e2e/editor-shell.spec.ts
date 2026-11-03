@@ -155,8 +155,9 @@ test.describe("the editor shell", () => {
 
     await collar.getByRole("button", { name: "Why? Rulebook R-CON-004" }).click();
 
-    // Owner decision 11: no factory has confirmed a rule yet, so the popover names the rule and
-    // says the words are not shown rather than reading out a draft.
+    // Owner decision 11: a member sees only confirmed words. R-CON-004's own Source column says "Factory to
+    // confirm rib source", so it is one of the sixteen the first sign-off held back (decision 0130) and is still
+    // a draft -- the popover names the rule and says the words are not shown rather than reading out a draft.
     await expect(page.getByTestId("why-panel")).toContainText("R-CON-004");
     await expect(page.getByTestId("why-panel")).toContainText("not yet confirmed by the factory");
   });
