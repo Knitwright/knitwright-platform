@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { ConfirmRule } from "@/components/rulebook/ConfirmRule";
 import { RuleEditor } from "@/components/rulebook/RuleEditor";
+import { SignOff } from "@/components/rulebook/SignOff";
 import { WhyLink } from "@/components/rulebook/WhyLink";
 import { WhyPreview } from "@/components/rulebook/WhyPreview";
 import { pageFrame } from "@/components/shell/page-width";
 import { adminGroups, stamp, type AdminRule } from "@/lib/rulebook/admin-view";
+import { signOffPlan } from "@/lib/rulebook/sign-off";
 import { loadEntries, loadGaps } from "@/lib/rulebook/store";
 import { adminClient } from "@/lib/server/deps";
 import { requirePlatformAdmin } from "@/lib/server/page-guards";
@@ -56,6 +58,7 @@ export default async function RulebookPage() {
   const [entries, gaps] = await Promise.all([loadEntries(admin, true), loadGaps(admin)]);
   const names = await loadNames(admin, entries.flatMap((e) => (e.confirmedBy ? [e.confirmedBy] : [])));
   const groups = adminGroups(entries, names);
+  const plan = signOffPlan(entries);
 
   return (
     <main id="main" className={`rise ${pageFrame("content")} flex-1 py-10`}>
@@ -69,6 +72,20 @@ export default async function RulebookPage() {
       <section aria-labelledby="try" className="mt-8">
         <h2 id="try" className="text-xl font-semibold text-ink">Try a Why? link</h2>
         <div className="mt-4"><WhyPreview /></div>
+      </section>
+
+      {/*
+       * The sign-off (decision 0129). Every seeded rule is a draft, so a member's "Why?" says "nothing confirmed
+       * yet" for all of them, and the per-rule form below means the same two names typed 45 times. This takes the
+       * name once. It is above the rules themselves because signing off is what the page is for today.
+       */}
+      <section aria-labelledby="sign-off" className="mt-10">
+        <h2 id="sign-off" className="text-xl font-semibold text-ink">Sign off the drafts</h2>
+        {plan.owned.length + plan.waiting.length === 0 ? (
+          <p className="mt-3 text-[15px] text-ink-2">Every rule has been signed off. An edit saves the next version as a draft, and it appears here.</p>
+        ) : (
+          <div className="mt-4"><SignOff plan={plan} /></div>
+        )}
       </section>
 
       <section aria-labelledby="gaps" className="mt-10">

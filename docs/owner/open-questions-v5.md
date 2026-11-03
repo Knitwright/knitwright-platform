@@ -477,7 +477,7 @@ settled until somebody with a name says so.
 |---|---|---|
 | F1 | **An Urdu speaker — the factory's own floor supervisor is the obvious person — to read the 29 translated strings**, so each one records who read it, their role and the day. Until then no string is shown as reviewed. | 0104 q7 |
 | F2 | **Who confirms the ISO 3758 care symbols** once they are transcribed? The table refuses a `confirmed` row that is not a whole row, so a name is part of the data. | 0089 q1 |
-| F3 | Should a rulebook confirmation record the factory person's name — pattern master, production manager — as the rulebook's sign-off column asks? | 0067 q4 |
+| F3 | **Name the person who signs off the rulebook, and their role.** Decision 14 settled that a confirmation records a person; decision 0129 built the session that takes the name once and confirms every rule they reviewed in one press, with the 29 that rest on Knitwright's own words or a published standard offered ticked and the 16 that defer to a factory, a supplier or a lawyer offered unticked. Until a name is given, all 45 stay drafts and every "Why?" and best-practice card in the Studio says nothing is written yet. | 0067 q4, 0129 |
 | F4 | **What makes a template `reviewed` — a factory, or Knitwright?** Every one of the 60 is `not_reviewed` and says so on its card. It is not written down anywhere. | 0098 q6 |
 | F5 | **Who reads the Ask gap list, and how often?** The feature's value depends on gaps becoming rules. There is no alert, only the list on `/admin/rulebook`. | 0083 q4 |
 | F6 | **Who signs**: names and roles for pattern, print, production and club sign-off. Sign-off records accept any member with a typed role today. | P10 |

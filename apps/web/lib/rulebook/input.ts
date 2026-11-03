@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CHOICE, parseChoice } from "./sign-off";
 import { misfiledAsFactory } from "./sources";
 import { RULE_ID, SOURCES, TOPICS } from "./types";
 
@@ -69,6 +70,28 @@ export const confirmSchema = z.object({
 });
 
 export type ConfirmInput = z.output<typeof confirmSchema>;
+
+/**
+ * A sign-off session: one name, one role, and every rule that person reviewed (`lib/rulebook/sign-off.ts`).
+ * The same two names would otherwise be typed into one form per rule, 45 times.
+ *
+ * A checkbox sends one value when one is ticked and a list when several are, so both shapes are read. Each value
+ * carries the rule and the version it was offered at; a version that has moved on since the page was drawn
+ * confirms nothing, which is the point of carrying it.
+ */
+export const signOffSchema = z.object({
+  confirmedName: text("name of the person who reviewed the rules", 120),
+  confirmedRole: text("role of that person, for example pattern master", 120),
+  rules: z
+    .union([z.string(), z.array(z.string())])
+    .default([])
+    .transform((raw) => (Array.isArray(raw) ? raw : [raw]))
+    .refine((list) => list.length > 0, "Tick at least one rule to confirm.")
+    .refine((list) => list.every((one) => CHOICE.test(one.trim())), "One of those is not a rule of the rulebook.")
+    .transform((list) => list.flatMap((one) => parseChoice(one) ?? [])),
+});
+
+export type SignOffInput = z.output<typeof signOffSchema>;
 
 export const explainSchema = z.object({
   ruleId: z.string().trim().min(1).max(40),
