@@ -14,3 +14,9 @@ export const RESEED_MIGRATION = readFileSync(
   join(REPO, "supabase", "migrations", "20261101080000_rulebook_supplier_source.sql"),
   "utf8",
 );
+
+/** The migration that records the rulebook's first sign-off (decision 0130). */
+export const FIRST_SIGN_OFF_MIGRATION = readFileSync(
+  join(REPO, "supabase", "migrations", "20261215030000_rulebook_first_sign_off.sql"),
+  "utf8",
+);

@@ -3,7 +3,10 @@ import { askRulebook } from "@/lib/rulebook/ask/ask";
 import { COVERED, DESIGN, UNCOVERED } from "@/lib/rulebook/ask/fixtures/questions";
 import { stubModel } from "@/lib/rulebook/ask/fixtures/stub";
 import { databaseRetrieval, searchRulebook, shortlist } from "@/lib/rulebook/ask/retrieve";
+import { RULEBOOK_MD } from "@/lib/rulebook/fixtures/files";
+import { parseRulebookMarkdown } from "@/lib/rulebook/markdown";
 import { SUBLIMATION } from "@/lib/rulebook/scope";
+import { waitsFor } from "@/lib/rulebook/sign-off";
 import { logGap } from "@/lib/rulebook/store";
 import { adminClient, anonClient, must, person, type Person } from "./support";
 
@@ -102,12 +105,38 @@ describe("asking against the real rulebook", () => {
     reader,
   });
 
-  it("answers a member nothing while every seeded rule is still a draft (owner decision 11)", async () => {
+  /**
+   * The sixteen rules whose own Source column still defers to a factory, a supplier or a lawyer, read off the
+   * rulebook rather than listed here. The first sign-off left exactly these as drafts (decision 0130), so these
+   * are the ids owner decision 11 keeps away from a member.
+   */
+  const WAITING = new Set(
+    parseRulebookMarkdown(RULEBOOK_MD, "JSY-SS-01")
+      .filter((rule) => waitsFor(rule.sourceNote) !== null)
+      .map((rule) => rule.ruleId),
+  );
+
+  it("answers a member out of the signed-off rules (decision 0130), which it could not do while all 45 were drafts", async () => {
     const result = await askRulebook(deps("member"), { question: COVERED[0].question, scope: DESIGN });
-    expect(result.kind).toBe("not_covered");
+    expect(result.kind).toBe("answer");
+    if (result.kind !== "answer") return;
+    expect(result.rules.length).toBeGreaterThan(0);
   });
 
-  it("answers the Knitwright team out of those drafts, every sentence citing a rule that was retrieved", async () => {
+  it("never puts one of the sixteen rules still waiting in front of a member (owner decision 11)", async () => {
+    // `COVERED` is filtered from a list whose `expect` may be null, which the filter does not narrow.
+    const aimed = COVERED.filter((item) => item.expect !== null && WAITING.has(item.expect)).slice(0, 4);
+    expect(aimed.length).toBeGreaterThan(0);
+    const leaked: string[] = [];
+    for (const item of aimed) {
+      const result = await askRulebook(deps("member"), { question: item.question, scope: DESIGN });
+      const shown = "rules" in result ? result.rules.map((rule) => rule.ruleId) : [];
+      leaked.push(...shown.filter((id) => WAITING.has(id)).map((id) => `${item.question} showed ${id}`));
+    }
+    expect(leaked).toEqual([]);
+  }, 30_000);
+
+  it("answers the Knitwright team out of every version, drafts included, each sentence citing a rule that was retrieved", async () => {
     const result = await askRulebook(deps("ops"), { question: "How far from a seam should a crest sit?", scope: DESIGN });
     expect(result.kind).toBe("answer");
     if (result.kind !== "answer") return;

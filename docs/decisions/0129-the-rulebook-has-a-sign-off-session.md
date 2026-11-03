@@ -3,7 +3,8 @@
 Status: Accepted. `/admin/rulebook` takes one name and one role and confirms every rule that person reviewed in
 one press. The 29 rules that rest on Knitwright's own words or a published standard are offered ticked; the 16
 whose own Source column still defers to a factory, a supplier or a lawyer are offered unticked, with the note
-shown. **Nothing is confirmed by this record**: the sign-off waits on a name, which is owner question F3.
+shown. **Nothing was confirmed by this record**: it waited on a name. The owner gave one on the same day — the
+factory's pattern master, no person named — and decision 0130 recorded the sign-off of those 29 rules.
 Index: Accepted; one name, one role and one press confirms the rules Knitwright owns, and the sixteen that defer to a factory, a supplier or a lawyer are offered unticked
 Index title: The rulebook has a sign-off session, and it will not credit a review nobody did
 Date: 2026-11-03
