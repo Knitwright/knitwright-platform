@@ -140,5 +140,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0126 | [The best-practice card has a door, and it is a part chooser](0126-the-best-practice-card-has-a-door.md) | Accepted; F-S5 v2's best-practice card is reached from a six-part chooser under the Specs toolbar, and 0117's toggle stays upright |
 | 0127 | [A board's own Flatten, Upscale and Reframe have a door](0127-a-boards-own-actions-have-a-door.md) | Accepted; the inspector's board panel draws Flatten, Upscale and Reframe, closing the last seam 0124 reported |
 | 0128 | [An unscreened picture warns; it does not hold the factory door shut](0128-an-unscreened-picture-warns.md) | Accepted; an unscreened picture warns and names itself rather than holding "Ready for the factory" shut |
+| 0129 | [The rulebook has a sign-off session, and it will not credit a review nobody did](0129-the-rulebook-has-a-sign-off-session.md) | Accepted; one name, one role and one press confirms the rules Knitwright owns, and the sixteen that defer to a factory, a supplier or a lawyer are offered unticked |
 
 <!-- End of the generated table. -->

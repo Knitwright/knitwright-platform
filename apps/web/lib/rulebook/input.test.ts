@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { confirmSchema, explainSchema, parseArticleCodes, parseMethods, ruleInputSchema } from "./input";
+import { confirmSchema, explainSchema, parseArticleCodes, parseMethods, ruleInputSchema, signOffSchema } from "./input";
 
 const typed = {
   ruleId: " r-sub-009 ",
@@ -87,6 +87,23 @@ describe("the other inputs", () => {
   it("takes any short id to explain, so an unknown one can be logged", () => {
     expect(explainSchema.parse({ ruleId: "R-NONE-999" })).toEqual({ ruleId: "R-NONE-999", context: "" });
     expect(explainSchema.safeParse({ ruleId: "" }).success).toBe(false);
+  });
+
+  it("reads a sign-off session whether one rule is ticked or many (one checkbox sends a string)", () => {
+    const person = { confirmedName: "Ana Lima", confirmedRole: "pattern master" };
+    expect(signOffSchema.parse({ ...person, rules: "R-SUB-004@1" }).rules).toEqual([{ ruleId: "R-SUB-004", version: 1 }]);
+    expect(signOffSchema.parse({ ...person, rules: ["R-SUB-004@1", "R-PAT-002@3"] }).rules).toEqual([
+      { ruleId: "R-SUB-004", version: 1 },
+      { ruleId: "R-PAT-002", version: 3 },
+    ]);
+  });
+
+  it("refuses a session with nothing ticked, with something that is not a rule, or with nobody named", () => {
+    const person = { confirmedName: "Ana Lima", confirmedRole: "pattern master" };
+    expect(signOffSchema.safeParse({ ...person }).error?.issues[0]?.message).toBe("Tick at least one rule to confirm.");
+    expect(signOffSchema.safeParse({ ...person, rules: [] }).error?.issues[0]?.message).toBe("Tick at least one rule to confirm.");
+    expect(signOffSchema.safeParse({ ...person, rules: ["R-SUB-004"] }).error?.issues[0]?.message).toBe("One of those is not a rule of the rulebook.");
+    expect(signOffSchema.safeParse({ confirmedName: " ", confirmedRole: "pattern master", rules: "R-SUB-004@1" }).success).toBe(false);
   });
 
   it("splits article codes and methods on commas and spaces, once each", () => {
