@@ -124,7 +124,8 @@ describe("asking against the real rulebook", () => {
   });
 
   it("never puts one of the sixteen rules still waiting in front of a member (owner decision 11)", async () => {
-    const aimed = COVERED.filter((item) => WAITING.has(item.expect)).slice(0, 4);
+    // `COVERED` is filtered from a list whose `expect` may be null, which the filter does not narrow.
+    const aimed = COVERED.filter((item) => item.expect !== null && WAITING.has(item.expect)).slice(0, 4);
     expect(aimed.length).toBeGreaterThan(0);
     const leaked: string[] = [];
     for (const item of aimed) {
