@@ -53,9 +53,9 @@ test.describe("the rulebook", () => {
     await expect(popover).toBeHidden();
     await expect(why).toBeFocused();
 
-    // And the other side of the first sign-off: a rule that waits for nobody reads as signed off, by the role
-    // the owner gave and with no person named (decision 0130).
-    await expect(page.getByTestId("status-R-SUB-004")).toContainText("Reviewed by The factory's pattern master, person not named, on 2026-11-03");
+    // And the other side of the first sign-off: a rule that waits for nobody reads as signed off, by the title
+    // the owner gave and with no person in the line at all (decision 0130).
+    await expect(page.getByTestId("status-R-SUB-004")).toContainText("Reviewed by The pattern master on 2026-11-03");
     await expect(page.getByTestId("rule-R-SUB-004")).not.toContainText("Draft, not yet confirmed by the factory");
 
     // An id with no rule shows the gap text and is counted for the team.

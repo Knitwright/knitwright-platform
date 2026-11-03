@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { FIRST_SIGN_OFF_MIGRATION, RULEBOOK_MD } from "./fixtures/files";
+import { FIRST_SIGN_OFF_MIGRATION, RULEBOOK_MD, SIGN_OFF_TITLE_MIGRATION } from "./fixtures/files";
 import { parseRulebookMarkdown } from "./markdown";
 import { waitsFor } from "./sign-off";
+import { statusLabel } from "./view";
 
 /**
  * The first sign-off migration against the sign-off screen's own reading (decision 0130).
@@ -62,5 +63,56 @@ describe("the first sign-off migration", () => {
       "R-PAT-001", "R-PAT-003", "R-PAT-008",
       "R-SUB-003", "R-SUB-005", "R-SUB-006", "R-SUB-008",
     ]);
+  });
+});
+
+/**
+ * The correction of the same day (decision 0130): the owner asked for the title alone, so the two strings the
+ * first migration wrote are replaced. What this test holds is that the correction cannot reach anything but
+ * those rows, that it leaves the append-only guard on, and that the words it writes are words `statusLabel`
+ * says once rather than twice.
+ */
+describe("the correction to the title alone", () => {
+  /** The migration with its comments taken out, so a word in a comment can satisfy nothing below. */
+  const sql = SIGN_OFF_TITLE_MIGRATION.split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n");
+
+  /** What the UPDATE sets, read out of the statement rather than the file. */
+  const update = /\bupdate\b([\s\S]*?);/i.exec(sql)?.[1] ?? "";
+  const written = (column: string): string => {
+    const found = new RegExp(`set[\\s\\S]*?\\b${column} = '([^']*)'`).exec(update);
+    if (!found?.[1]) throw new Error(`The correction no longer sets ${column}.`);
+    return found[1];
+  };
+
+  it("touches only the rows the first sign-off wrote, by the exact strings it set", () => {
+    expect(update).toContain("confirmed_name = 'The factory''s pattern master'");
+    expect(update).toContain("confirmed_role = 'person not named'");
+    expect(update).toContain("status = 'confirmed'");
+  });
+
+  it("moves nothing about which rules were signed off, or when", () => {
+    expect(update).not.toMatch(/\bconfirmed_at\b|\brule_id\b|\bsource_note\b|\bstatus = 'draft'/);
+    expect(sql.split(";").filter((part) => /\bupdate\b/i.test(part))).toHaveLength(1);
+  });
+
+  it("switches the append-only guard off for the one statement and straight back on", () => {
+    const off = sql.indexOf("disable trigger rulebook_entries_are_versioned");
+    const on = sql.indexOf("enable trigger rulebook_entries_are_versioned");
+    expect(off).toBeGreaterThan(-1);
+    expect(on).toBeGreaterThan(off);
+    expect(sql.slice(off, on)).toContain("update public.rulebook_entries");
+  });
+
+  it("writes words a reader is shown once, with no person in the line", () => {
+    expect(
+      statusLabel({
+        status: "confirmed",
+        confirmedAt: "2026-11-03T00:00:00.000Z",
+        confirmedName: written("confirmed_name"),
+        confirmedRole: written("confirmed_role"),
+      }),
+    ).toBe("Reviewed by The pattern master on 2026-11-03");
   });
 });

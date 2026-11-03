@@ -141,6 +141,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0127 | [A board's own Flatten, Upscale and Reframe have a door](0127-a-boards-own-actions-have-a-door.md) | Accepted; the inspector's board panel draws Flatten, Upscale and Reframe, closing the last seam 0124 reported |
 | 0128 | [An unscreened picture warns; it does not hold the factory door shut](0128-an-unscreened-picture-warns.md) | Accepted; an unscreened picture warns and names itself rather than holding "Ready for the factory" shut |
 | 0129 | [The rulebook has a sign-off session, and it will not credit a review nobody did](0129-the-rulebook-has-a-sign-off-session.md) | Accepted; one name, one role and one press confirms the rules Knitwright owns, and the sixteen that defer to a factory, a supplier or a lawyer are offered unticked |
-| 0130 | [The rulebook's first sign-off names a role, because no person was given](0130-the-rulebooks-first-sign-off.md) | Accepted; the 29 rules Knitwright owns are signed off as the factory's pattern master with no person named, and the 16 that defer stay drafts |
+| 0130 | [The rulebook's first sign-off names a title, because no person was given](0130-the-rulebooks-first-sign-off.md) | Accepted; the 29 rules Knitwright owns are signed off as "The pattern master" with no person named, and the 16 that defer stay drafts |
 
 <!-- End of the generated table. -->

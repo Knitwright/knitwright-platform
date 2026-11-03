@@ -1,17 +1,18 @@
 # 0130: The rulebook's first sign-off names a role, because no person was given
 
-Status: Accepted. The owner signed off the 29 rules that rest on Knitwright's own words or a published
-standard, and asked for the sign-off to be recorded as the factory's pattern master with **no individual
-named**. It is recorded exactly as given — `confirmed_name = 'The factory's pattern master'`,
-`confirmed_role = 'person not named'` — so a member reads *"Reviewed by The factory's pattern master, person
-not named, on 2026-11-03"*. The 16 rules whose own Source column still defers to a factory, a supplier or a
-lawyer stay drafts, and so does `R-GAP-000`. Owner question F3 stays open for the name.
-Index: Accepted; the 29 rules Knitwright owns are signed off as the factory's pattern master with no person named, and the 16 that defer stay drafts
-Index title: The rulebook's first sign-off names a role, because no person was given
+Status: Accepted, with a correction of the same day in "What the line says". The owner signed off the 29 rules
+that rest on Knitwright's own words or a published standard, as **the pattern master, with no person named**.
+The line reads *"Reviewed by The pattern master on 2026-11-03"*: the owner asked for the title alone, so the
+first recording's "person not named" was taken out and `statusLabel` no longer repeats a name and a role that
+say the same thing. The 16 rules whose own Source column still defers to a factory, a supplier or a lawyer stay
+drafts, and so does `R-GAP-000`. Owner question F3 stays open for the name.
+Index: Accepted; the 29 rules Knitwright owns are signed off as "The pattern master" with no person named, and the 16 that defer stay drafts
+Index title: The rulebook's first sign-off names a title, because no person was given
 Date: 2026-11-03
 Plan step: platform v5, review and hardening (`plans/platform-v5.md`). Carries out owner decision 14 and
 answers the acting half of owner question F3, on the session built by decision 0129.
-Migration: `20261215030000_rulebook_first_sign_off.sql`.
+Migration: `20261215030000_rulebook_first_sign_off.sql`, corrected by
+`20261215040000_rulebook_sign_off_title.sql`.
 
 ## Context
 
@@ -31,30 +32,54 @@ a choice about how to write it down, and only one of the options is honest.
 
 ## Decision
 
-### 1. What is written
+### 1. What the line says
+
+**The correction, made the same day.** The sign-off was first recorded as
+`confirmed_name = 'The factory''s pattern master'` with `confirmed_role = 'person not named'`, which read
+*"Reviewed by The factory's pattern master, person not named, on 2026-11-03"*. Asked to look at it, the owner
+said the title alone and nothing else. So:
+
+| | `confirmed_name` | `confirmed_role` | What a reader sees |
+|---|---|---|---|
+| First recorded | `The factory's pattern master` | `person not named` | Reviewed by The factory's pattern master, person not named, on 2026-11-03 |
+| **In force** | `The pattern master` | `pattern master` | **Reviewed by The pattern master on 2026-11-03** |
+
+**The absence of a person is now said by the absence of a name**, which is the plainer way to say it and the
+one the owner asked for. `statusLabel` gained one rule to make it read properly: where the name and the role
+mean the same thing, allowing for the article in front of it, the line says it once — otherwise the record
+would have read "The pattern master, pattern master", one word twice with nothing learned from the second. A
+name and a role that differ are both still shown, so a person is never lost.
+
+**Why an update and not a new version.** A confirmed version is append-only and the proper way to change what
+a rule *says* is a new version — but no rule's words changed here. Twenty-nine new versions carrying identical
+text, to correct a label, would make the version history lie about what happened. These two strings are the
+migrations' own data, written hours earlier the same day and never read outside one machine, because the
+hosted database does not exist yet; decision 0067's own follow-up migration corrected its seed the same way
+and for the same reason. The guard is switched off for the one statement and straight back on, and the
+statement can only match the exact pair of strings the first migration set.
+
+### 2. What is written
+
+The sign-off, in `20261215030000_rulebook_first_sign_off.sql`:
 
 ```sql
 update public.rulebook_entries e
    set status = 'confirmed',
        confirmed_at = '2026-11-03T00:00:00Z'::timestamptz,
-       confirmed_name = 'The factory''s pattern master',
-       confirmed_role = 'person not named'
+       confirmed_name = …, confirmed_role = …          -- the words of item 1
  where e.version = 1 and e.status = 'draft' and e.rule_id <> 'R-GAP-000'
    and e.source_note !~* '\mfactor(y|ies)\M|\msupplier\M|\mpartner\M|legal consult|\mlawyer\M|after a sample';
 ```
 
-`statusLabel` renders that, unchanged, as
-
-> Reviewed by The factory's pattern master, person not named, on 2026-11-03
-
-**The second half is the point.** Owner decision 14 wanted a confirmation to be auditable. This one says what
-it is: a sign-off by a role, with the person left for later. A member can see that at a glance, and nothing
-about it reads as more settled than it is.
+**Which rules, on what date, and by what role is the whole of the record**, and the correction of item 1 moved
+none of it: the second migration's `WHERE` names the exact two strings the first one set, so it can reach
+nothing but those rows and reaches them once.
 
 `confirmed_by` stays null, because no account did this: a migration did, and the admin page shows "recorded
-by" only when it knows who.
+by" only when it knows who. Owner decision 14 wanted a confirmation to be auditable, and this one is: a role
+signed these words off on a named day, and the line does not pretend a person did.
 
-### 2. Which rules, and why not all 45
+### 3. Which rules, and why not all 45
 
 29 of them. The 16 the rulebook's own Source column still defers for stay drafts — "Factory to confirm their
 RIP settings", "Knitwright draft; replace with factory block values", "Regulation trend; supplier
@@ -66,7 +91,7 @@ offers ticked, and `lib/rulebook/first-sign-off.test.ts` reads both and fails if
 rules. Two readings in two languages that cannot import each other is exactly where a silent disagreement
 would live.
 
-### 3. Why a migration rather than the screen
+### 4. Why a migration rather than the screen
 
 The screen is the way this is done from now on, and it is where the other 16 will be signed off. But the
 local database is reset routinely and the hosted one does not exist yet, so a sign-off made through the

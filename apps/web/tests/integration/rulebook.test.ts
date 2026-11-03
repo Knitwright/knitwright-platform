@@ -83,8 +83,9 @@ describe("the seed", () => {
         ...(waitsFor(r.sourceNote) === null
           ? {
               status: "confirmed",
-              confirmed_name: "The factory's pattern master",
-              confirmed_role: "person not named",
+              // Decision 0130, corrected the same day: the title alone, which `statusLabel` says once.
+              confirmed_name: "The pattern master",
+              confirmed_role: "pattern master",
               // No account recorded it: a migration did (decision 0130).
               confirmed_by: null,
             }

@@ -52,14 +52,25 @@ const day = (iso: string): string => iso.slice(0, 10);
 
 type Signed = Pick<RulebookEntry, "status" | "confirmedAt" | "confirmedName" | "confirmedRole">;
 
+/** The same thing said twice, allowing for the article in front of it: "The pattern master" and "pattern master". */
+const bare = (text: string): string => text.trim().toLowerCase().replace(/^(?:the|a|an)\s+/, "");
+
 /**
- * Owner decision 14: a confirmation names the factory person who reviewed the rule, their role and the date, so it
- * can be audited. A version with nobody against it reads as a draft, whatever its status column says.
+ * Owner decision 14: a confirmation names the person who reviewed the rule, their role and the date, so it can be
+ * audited. A version with nobody against it reads as a draft, whatever its status column says.
+ *
+ * Where the name and the role say the same thing, the line says it once: the first sign-off was given as a title
+ * rather than a person (decision 0130), and "Reviewed by The pattern master, pattern master, on …" would have
+ * been the same word twice with nothing learned from the second. What a reader sees instead is a line with no
+ * person in it, which is the honest shape of a sign-off by a role.
  */
-export const statusLabel = (entry: Signed): string =>
-  entry.status === "confirmed" && entry.confirmedAt && entry.confirmedName && entry.confirmedRole
-    ? `Reviewed by ${entry.confirmedName}, ${entry.confirmedRole}, on ${day(entry.confirmedAt)}`
-    : DRAFT_LABEL;
+export const statusLabel = (entry: Signed): string => {
+  const { confirmedName: name, confirmedRole: role, confirmedAt: at } = entry;
+  if (entry.status !== "confirmed" || !at || !name || !role) return DRAFT_LABEL;
+  return bare(name) === bare(role)
+    ? `Reviewed by ${name} on ${day(at)}`
+    : `Reviewed by ${name}, ${role}, on ${day(at)}`;
+};
 
 const sourceLine = (entry: RulebookEntry): string =>
   entry.sourceNote ? `${SOURCE_LABELS[entry.source]}: ${entry.sourceNote}` : SOURCE_LABELS[entry.source];
