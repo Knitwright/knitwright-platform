@@ -147,12 +147,25 @@ jobs:
   # Keeps the one name to require. `checks` must pass. `e2e` must pass when it ran, and a skip is
   # not a pass smuggled in: `skipped` is accepted only because the job is deliberately not part of
   # the pull-request gate (see its comment), while `failure` and `cancelled` still fail the gate.
+  #
+  # `!cancelled()` rather than `always()`, and the difference is not cosmetic. Opening a pull
+  # request fires this workflow twice within seconds -- once for the push, once for the pull request
+  # -- and the concurrency group above cancels the first. Under `always()` the cancelled run's gate
+  # ran anyway, found its needs cancelled and posted a FAILURE against the same commit as the live
+  # run. `gh pr checks` then lists a red "Standard gate" beside the live run's pending jobs, and the
+  # only way to tell them apart is to compare `started_at` through the API. That false red was read
+  # as a real one four times on 2026-11-02 alone.
+  #
+  # `!cancelled()` keeps everything `always()` was there for: the gate still runs when `checks`
+  # fails, so a broken pull request still gets a red gate, and it still runs when `e2e` is skipped,
+  # because overriding the default "all needs succeeded" rule is what both expressions do. It only
+  # stays quiet when the run itself was cancelled, which is the one case where it had nothing to say.
   gate:
     name: Standard gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [checks, e2e]
-    if: always()
+    if: ${{ !cancelled() }}
     steps:
       - name: Checks passed, and the browser tests passed if they ran
         run: |
