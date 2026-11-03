@@ -1,7 +1,9 @@
 # 0125: The clear space around a name is the rule's figure, not ours
 
-Status: Accepted. The owner answered plan v5 question 93: `R-SUB-004`'s 15 mm wins. The setting is reseeded from the
-rule, labelled as the rule's, and a test ties the figure, the citation and the rulebook's own row together.
+Status: Accepted, with a correction of 2026-11-03 in item 3. The owner answered plan v5 question 93:
+`R-SUB-004`'s 15 mm wins. The setting is reseeded from the rule, labelled as the rule's, and a test ties the
+figure, the citation and the rulebook's own row together. The console override this record offered as a
+mitigation does not reach the checks; nothing calls `loadGuardrailSettings`.
 Index: Accepted; the safe zone is R-SUB-004's 15 mm, labelled as the rule's figure rather than a Knitwright default
 Index title: The clear space around a name is the rule's figure, not ours
 Date: 2026-11-03
@@ -58,11 +60,31 @@ So the warning now reads:
 
 The dpi minimum and the bleed are untouched: those really are Knitwright's own defaults and still say so.
 
-### 3. A league or a print house still decides for itself
+### 3. A league or a print house still decides for itself — on paper
 
 `guardrails.safe_zone_mm` (`lib/settings/registry.ts`) overrides it, as it always did, and the fix line on the
 finding still says "A league may ask for a different clear space". What is gone is the platform quietly
 disagreeing with the rule in its own citation.
+
+**CORRECTION, 2026-11-03: that override does not reach the checks, and this record said it did.** When this
+decision was written it offered the setting as the reason reseeding was safe — "a league that wants 10 can still
+have it". It cannot. `loadGuardrailSettings` (`lib/settings/read.ts`) applies the stored value through
+`guardrailSettingsWith`, and **nothing outside `lib/settings` calls it**: the only caller in the repository is
+its own test. The checks take `DEFAULT_SETTINGS` directly, so what this change reseeded is what every brand
+gets, with no way to set another figure from the console.
+
+Decision 0056 recorded this when the console was built, under "Honest limits": *"Not done: guardrail callers.
+`loadGuardrailSettings` exists and is tested, but the checks that default to `DEFAULT_SETTINGS`
+(`lib/variants/generate.ts`, `lib/panel-layers/guardrail-input.ts`) are other workstreams' files and take it
+synchronously; they still use the defaults until a later change passes the loaded value in."*
+`docs/launch-checklist.md` carries it as a known gap and still calls it "Still true". Both were right and this
+record did not check either before claiming otherwise.
+
+**Nothing about the decision changes.** 15 mm is the figure `R-SUB-004` states and the figure the check cites, so
+it is the right default whether or not it can be overridden. What changes is the mitigation: there is none today.
+A league that needs 10 mm needs the settings wired first, and that is not a one-line change — the value has to be
+loaded on the server and threaded into `layerChecks` and `guardrailInputOf`, across a client boundary, in files
+two other workstreams own. It is written up as a gap rather than done quietly here.
 
 ## What this changes for work already done
 

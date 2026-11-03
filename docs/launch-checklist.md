@@ -3,28 +3,32 @@
 The one list to read before sign-up opens. It gathers what is built, what waits for the owner and what
 lives outside this repository.
 
-**Checked against the files on 2026-11-02**, after all thirty workstreams of plan v5 merged. Every
-"built" line below was opened and read; where an earlier version of this list was wrong, the line says
-what changed. It does not replace the detail:
+**Checked against the files on 2026-11-02**, after all thirty workstreams of plan v5 merged, and
+**brought up to date on 2026-11-03**, after the four reviews of that plan and the wiring that followed
+them. Every "built" line below was opened and read; where an earlier version of this list was wrong,
+the line says what changed. It does not replace the detail:
 
 - **What is actually in the way of a real order**: [`owner/README.md`](owner/README.md) — read this first
 - **Every open owner question, grouped by what kind of answer it needs**:
-  [`owner/open-questions-v5.md`](owner/open-questions-v5.md), 252 of them
+  [`owner/open-questions-v5.md`](owner/open-questions-v5.md), 270 of them
 - The sign-up switch and its "Before opening" list: [`launch/sign-up-switch.md`](launch/sign-up-switch.md)
 - Acceptance criteria M1 to M7: [`launch/evidence.md`](launch/evidence.md)
-- Security findings: [`launch/security-review.md`](launch/security-review.md) and
-  [`reviews/security-v4.md`](reviews/security-v4.md) (workstream W5-A). Plan v5's review is R1 and lands
-  as `reviews/security-v5.md`.
+- Security findings: [`launch/security-review.md`](launch/security-review.md),
+  [`reviews/security-v4.md`](reviews/security-v4.md) (workstream W5-A) and
+  [`reviews/security-v5.md`](reviews/security-v5.md) (R1), whose four HIGH findings are closed
+  (decision 0116).
 - Dependency licences: [`launch/licences.md`](launch/licences.md)
 - Hosted setup: [`runbooks/supabase-hosted.md`](runbooks/supabase-hosted.md)
 - The payload the separate Store reads: [`store-contract-v2.md`](store-contract-v2.md)
 - How the repository is worked on: [`architecture.md#how-this-repository-is-worked-on`](architecture.md#how-this-repository-is-worked-on)
 
 **Where this list is weaker than the sources.** "Built" means the code and its tests exist and the
-decision record says so. **71 of the 107 records have status `Proposed`**, which means the orchestrator
-or the owner has not accepted them yet; 34 are `Accepted`, one is `Trial` and one is `Open`. Several
+decision record says so. **79 of the 120 records have status `Proposed`**, which means the orchestrator
+or the owner has not accepted them yet; 39 are `Accepted`, one is `Trial` and one is `Open`. Several
 records say their database and browser tests first ran in CI. The coverage and journey report is
-[`reviews/coverage-v4.md`](reviews/coverage-v4.md) (W5-C); plan v5's is R3's `reviews/coverage-v5.md`.
+[`reviews/coverage-v4.md`](reviews/coverage-v4.md) (W5-C) and, for plan v5,
+[`reviews/coverage-v5.md`](reviews/coverage-v5.md) (R3) — whose own finding, that the production
+package never reached its F-G2 gate, is closed (decision 0122).
 Nothing here says a launch gate has passed; the gate is the sign-up switch checklist, which the owner
 signs.
 
@@ -85,7 +89,7 @@ Nothing below depends on a file being found.
 
 Nothing here blocks the build. Each item replaces a labelled placeholder.
 
-**The full list is [`owner/open-questions-v5.md`](owner/open-questions-v5.md)** — 252 questions grouped
+**The full list is [`owner/open-questions-v5.md`](owner/open-questions-v5.md)** — 270 questions grouped
 by what kind of answer each needs. What follows is only what bears on opening sign-up.
 
 ### The six that stop a real order
@@ -164,9 +168,14 @@ Set out in full, with the evidence for each, at the top of [`owner/README.md`](o
 
 Each of these was opened and read. Three are unchanged, one has changed.
 
-- **Still true.** The guardrail settings saved in the console do not change the editor checks.
-  `lib/settings/read.ts` exports `loadGuardrailSettings` and **nothing outside `lib/settings` calls it**
-  (decision 0056, "Honest limits").
+- **Still true, and it now matters more.** The guardrail settings saved in the console do not change the
+  editor checks. `lib/settings/read.ts` exports `loadGuardrailSettings` and **nothing outside
+  `lib/settings` calls it** — its only caller in the repository is its own test (decision 0056, "Honest
+  limits"). Until 2026-11-03 this was a console that did nothing; since the clear space was reseeded from
+  `R-SUB-004` to 15 mm (decision 0125) it is also the only way a league could ask for a different figure,
+  and that way does not work. Wiring it means loading the value on the server and threading it into
+  `layerChecks` and `guardrailInputOf`, across a client boundary — not a one-line change, which is why
+  0056 left it and 0125 records the correction rather than claiming the override works.
 - **Still true.** A per-brand daily cap on paid media generation is stored and nothing reads it. The key
   is `media.daily_cap_per_brand` (`lib/settings/registry.ts`); its only other appearances are in that
   file's own test. *(Earlier versions of this list called it "Media sets per brand per day", which is not
