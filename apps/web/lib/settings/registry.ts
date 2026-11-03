@@ -2,6 +2,7 @@ import { z } from "zod";
 import { OUTPUT_KINDS } from "@/lib/credits/kinds";
 import { EXTENSION_SETTINGS } from "./extensions";
 import type { SettingDef } from "./types";
+import { SAFE_ZONE_RULE } from "@/lib/guardrails/safe-zone-rule";
 
 /**
  * Every setting a platform admin can change, with its schema, its in-code default and the owner question it
@@ -100,11 +101,11 @@ export const CORE_SETTINGS: readonly SettingDef[] = [
     key: "guardrails.safe_zone_mm",
     group: "guardrails",
     label: "Clear space around names and numbers (mm)",
-    help: "Distance kept from seams and edges.",
+    help: "Distance kept from seams and edges. Rule R-SUB-004 asks for 15 mm; a league may ask for more.",
     question: 15,
     input: "number",
     schema: wholeNumber(0, 50),
-    fallback: 10,
+    fallback: SAFE_ZONE_RULE.mm,
   },
   {
     key: "media.daily_cap_per_brand",
