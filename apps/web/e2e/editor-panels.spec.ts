@@ -206,7 +206,23 @@ test.describe("the panels the shell never mounted", () => {
     const card = page.getByTestId("best-practice-result");
     await expect(card.getByRole("group", { name: "Best practice: Artwork and print" })).toBeVisible();
     await expect(card).toContainText("Best practice · Artwork and print");
-    await expect(card).toContainText(/R-[A-Z]+-[0-9]{3}/);
+
+    /*
+     * AND WHAT IT SAYS TODAY IS THAT NOTHING IS WRITTEN FOR THIS PART.
+     *
+     * Every rule the rulebook migration seeds is `status = 'draft'` -- the four `'confirmed'`
+     * strings in that file are its schema and its functions, not its rows -- and owner decision 11
+     * keeps a draft's words from a member: `inForce` shows a member only a confirmed version. So a
+     * member sees the gap line for all six parts until somebody confirms rules in `/admin/rulebook`.
+     *
+     * That is the honest answer and not a hole: `R-GAP-000` is the id for "no entry says this yet",
+     * and the card carries its "Why?" so a person can read what the gap means. The assertion is
+     * written as the two readings this card has -- the rulebook's own lines, each with its rule id,
+     * or the gap line -- so confirming a print rule makes this test pass for the better reason
+     * rather than needing a rewrite.
+     */
+    await expect(card).toContainText(/R-[A-Z]+-[0-9]{3}|has no best practice written for/);
+    await expect(card.getByRole("button", { name: /^Why\? R-|^What this means$/ })).toBeVisible();
 
     // A second part replaces the first, so the card is never about two things at once.
     await form.getByRole("button", { name: "Labels", exact: true }).click();

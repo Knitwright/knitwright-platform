@@ -76,9 +76,26 @@ matches the tool rail beneath it and the launch shell's icon rail, and the panel
 - `e2e/editor-panels.spec.ts` — the first time either half of this pair runs in a browser: six parts under the
   Specs toolbar, a card that names the part and carries a rule id, and a second part replacing the first.
 
-What a given part's card says depends on what the `rulebook_entries` table holds, which is seeded data and not a
-test's to assert. The card is honest either way: the rulebook's own best practice per rule, or one line saying
-nothing is written for that part yet with `R-GAP-000` beside it, which is how the team learns the card is wanted.
+## What this card says today, which the owner should know before opening it
+
+**For every one of the six parts, a member sees the gap line.** Not because the rulebook is empty — the rulebook
+migration seeds the whole of `docs/spec/articles/JSY-SS-01/rulebook.md`, `R-SUB-004` among them — but because
+every seeded row is `status = 'draft'`, and owner decision 11 keeps a draft's words from a member: `inForce`
+shows a member only a *confirmed* version of a rule. Nothing in the seed is confirmed. So the card reads
+
+> Knitwright's rulebook has no best practice written for artwork and print yet.
+
+with `R-GAP-000`'s "What this means" beside it.
+
+That is the truthful answer and not a hole — it is exactly what `R-GAP-000` is for, and it is how the team learns
+which parts want writing. But it means **opening this door does not by itself show anybody a best practice**: the
+rules have to be confirmed in `/admin/rulebook` first, one version at a time, by someone who can stand behind the
+words. Whoever does that will see this card fill in, part by part, with no further code.
+
+The end-to-end test is written as the two readings the card has — the rulebook's own lines each with their rule
+id, or the gap line — so confirming a print rule makes it pass for the better reason rather than needing a
+rewrite. It was written the other way first, asserting a rule id outright, and that assertion would have failed
+in CI for exactly this reason.
 
 ## Consequences
 
