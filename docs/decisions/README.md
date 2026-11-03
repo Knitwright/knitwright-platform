@@ -138,5 +138,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0124 | [Every panel has a door, and a test that says so](0124-every-panel-has-a-door.md) | Proposed; the design-import, artwork, pattern-look and launch-pack panels mounted (artwork on Brand Studio, not in the editor, because two rights consents in one panel is worse than none), three deletes and the size-map undo given doors, `components/home/StartWays.tsx` deleted as superseded, and a three-way sweep (components, server actions, API routes) added as an architecture test with a reasoned allow-list |
 | 0125 | [The clear space around a name is the rule's figure, not ours](0125-the-safe-zone-is-the-rules-figure.md) | Accepted; the safe zone is R-SUB-004's 15 mm, labelled as the rule's figure rather than a Knitwright default |
 | 0126 | [The best-practice card has a door, and it is a part chooser](0126-the-best-practice-card-has-a-door.md) | Accepted; F-S5 v2's best-practice card is reached from a six-part chooser under the Specs toolbar, and 0117's toggle stays upright |
+| 0127 | [A board's own Flatten, Upscale and Reframe have a door](0127-a-boards-own-actions-have-a-door.md) | Accepted; the inspector's board panel draws Flatten, Upscale and Reframe, closing the last seam 0124 reported |
 
 <!-- End of the generated table. -->
