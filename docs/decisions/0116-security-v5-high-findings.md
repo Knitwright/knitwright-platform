@@ -1,8 +1,9 @@
 # 0116: The four HIGH findings of the v5 security review
 
 Status: Proposed. All four are closed, each with a test that fails without the fix. H3 changes what blocks a factory
-hand-off, which is a policy change, and owner question 1 below asks whether that block should be softer at launch.
-Index: Proposed; H1 the garment lock's provenance moved to `public.files`, H2 the credit key digested, H3 moderation wired to every generation and order path with an unscreened target blocking the hand-off, H4 a viewer may not spend credits; three owner questions
+hand-off, which is a policy change; the owner answered question 1 of this record on 2026-11-03 in the softer
+direction, so an unscreened target **warns** (decision 0128), and `UNSCREENED_BLOCKS_HANDOFF` is `false`.
+Index: Proposed; H1 the garment lock's provenance moved to `public.files`, H2 the credit key digested, H3 moderation wired to every generation and order path with an unscreened target warning (owner answer, 0128), H4 a viewer may not spend credits; two owner questions open
 Index title: The four HIGH findings of the v5 security review
 Date: 2026-11-02
 Plan step: none of its own. Closes the four HIGH findings of `docs/reviews/security-v5.md` (decision 0109, PR #147),
@@ -203,12 +204,13 @@ A viewer on a credit-gated route now gets a raw refusal rather than a sentence, 
 
 ## Owner questions
 
-1. **Should an unscreened target block "Ready for the factory", or warn?** It blocks
-   (`UNSCREENED_BLOCKS_HANDOFF = true`). Shipping unmoderated artwork to a factory is precisely the risk X8 exists to
-   prevent, so the strict answer is the right default — but every existing picture is unscreened, so on the day this
-   ships a brand has to re-upload artwork to clear the gate. Setting that constant to `false` makes it a warning
-   instead; it is one line, it changes the severity of that one finding and nothing else, and the test holds both
-   answers. This is the review's own M9 question, answered for now in the strict direction.
+1. ~~**Should an unscreened target block "Ready for the factory", or warn?**~~ **Answered 2026-11-03: it warns**
+   (decision 0128). `UNSCREENED_BLOCKS_HANDOFF` is `false`, so an unscreened picture names itself in the readiness
+   list and the hand-off still opens; a **flagged or blocked** picture blocks as it always did, which is the part X8
+   exists for. The reason the softer answer won is the one this record named: only `POST /api/artwork` screens
+   anything on the way in, so every brand's existing artwork reads as unscreened, and the strict answer would have
+   made a first order start with re-adding artwork. It remains one line, and `modules.test.ts` still holds both
+   answers. This was the review's own M9 question.
 2. **Is the moderation wiring now complete enough for launch, or is the rest of it wave 6 with a date?** Every
    generation path, both order paths, the Class B review and the two laundering upload paths are wired here. The three
    label-only or sessionless upload paths named above are not, and `runShoot` and the flow engine's capabilities still

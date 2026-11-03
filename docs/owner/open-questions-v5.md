@@ -11,10 +11,12 @@ eighteen questions the reviews and the wiring that followed them raised (decisio
 index into them, one line per question, with the record cited. Where a record states what the platform
 does while the question is open, that sentence is in the record.
 
-**Three have been answered since, and are not in the list.** The clear space around a name is
+**Four have been answered since, and are not in the list.** The clear space around a name is
 `R-SUB-004`'s 15 mm rather than a 10 mm default of ours (plan question 93, decision 0125); the
-best-practice card is reached from a six-part chooser beside the Ask box (0117 q1, decision 0126); and
-the editor's toolbar toggle stays upright (0117 q6, decision 0126).
+best-practice card is reached from a six-part chooser beside the Ask box (0117 q1, decision 0126); the
+editor's toolbar toggle stays upright (0117 q6, decision 0126); and an unscreened picture **warns**
+rather than holding "Ready for the factory" shut (0116 q1, decision 0128), which is why the list of
+what blocks a real order is back to six.
 
 **Nothing here blocks the build.** Every one of these is already live behind a labelled default, and
 no page states a fact nobody has agreed; it names what is missing instead. Six of them do block a
@@ -29,7 +31,7 @@ question already appears there; otherwise answer against the record cited here.
 
 ## The groups
 
-**270 questions**: 235 from the v5 decision records, the 18 the reviews and the wiring after them raised, and the 17 items of 2026-10-15 recovered in group P.
+**269 questions**: 235 from the v5 decision records, the 17 the reviews and the wiring after them raised, and the 17 items of 2026-10-15 recovered in group P.
 
 | Group | What kind of answer it needs | How many |
 |---|---|---|
@@ -37,7 +39,7 @@ question already appears there; otherwise answer against the record cited here.
 | [B](#b-a-factorys-or-a-suppliers-figure) | **A factory's or a supplier's figure**: the Sialkot partner's pattern master, its marker, its quote, the mill, the print house, the colour house | 59 |
 | [C](#c-a-licence-a-purchase-or-an-account) | **A licence, a purchase or an account**: a paid standard, a colour library, a font, a model's terms, an API tier | 20 |
 | [D](#d-a-lawyer-or-an-adviser) | **A lawyer or an adviser**: a legal position, a customs position, a copyright opinion, a retention rule | 17 |
-| [E](#e-a-product-decision-yours-alone) | **A product decision**: what Knitwright wants the platform to do | 130 |
+| [E](#e-a-product-decision-yours-alone) | **A product decision**: what Knitwright wants the platform to do | 129 |
 | [F](#f-a-name-against-something) | **A name against something**: a person who reads, confirms, reviews, translates or signs | 6 |
 | [P](#p-the-2026-10-15-items-p1-to-p17-recovered) | The seventeen items of 2026-10-15, recovered from `plans/production-outputs.md` | 17 |
 
@@ -50,11 +52,10 @@ whose numbering starts at 21; the 2026-10-25 sheet is always named with its date
 
 ---
 
-## The seven that block a real order
+## The six that block a real order
 
 These are the whole of what stands between the platform and a factory order. Four are purchases or
-decisions only the owner can make, and no further engineering moves any of them. The seventh is new and
-is the opposite shape: it is a decision about how strict to be, and either answer is one line of code.
+decisions only the owner can make, and no further engineering moves any of them.
 
 | | Question | Group | Record |
 |---|---|---|---|
@@ -64,7 +65,6 @@ is the opposite shape: it is a decision about how strict to be, and either answe
 | ⛔4 | **Decide whether Knitwright licenses Pantone.** No Pantone data ships, so no Pantone number is given anywhere and a wording test enforces that silence. | C2 | 0076 q2, 0079 q3, 0105 q1 |
 | ⛔5 | **Get the factory's data for the seven other base articles**: the pattern and size chart, the POM table with grades *and* tolerances, the construction table, seam allowances and thread, and each fabric's real code, weight and blend. Seven of the eight base articles publish no measurement at all, so their tech packs and size charts are refusals. | B30, B31 | 0090 q1, q6 |
 | ⛔6 | **Do the hosted deployment**, which is entirely owner actions: the Supabase project and its keys, Resend, Google OAuth, Turnstile, and the legal documents in `docs/legal/` approved with their `status` set before the sign-up switch may open. | — | [`README.md`](README.md), [`../launch/sign-up-switch.md`](../launch/sign-up-switch.md) |
-| ⛔7 | **Decide whether an unscreened picture blocks "Ready for the factory", or only warns.** It blocks today (`UNSCREENED_BLOCKS_HANDOFF`). Almost nothing was ever screened, so on the day this ships **every brand's existing artwork is unscreened**: anything added through any path but `POST /api/artwork` has to be added again before that brand can hand anything to a factory. Warning instead is one line, and the test holds both answers. | E113 | 0116 q1 |
 
 ---
 
@@ -447,7 +447,6 @@ this file instead.
 
 | | Question | Record |
 |---|---|---|
-| E113 | **Should an unscreened picture block "Ready for the factory", or only warn?** It blocks today. Almost nothing was ever screened, so every brand's existing artwork is unscreened and has to be added again through a screened path before that brand can hand anything over. ⛔ above. | 0116 q1 |
 | E114 | Is the moderation wiring complete enough for launch, or is the rest of it wave 6 with a date? Three upload paths are unscreened because there is nothing to screen — a size chart and a pattern DXF carry only a label, and the factory's job-packet photo arrives on a token-authenticated route with no session to meter a vision call against. | 0116 q2 |
 | E115 | Should a human review be about the frozen release, or about the design version? Both order paths carry a release uuid and the Class B check is written against it; a review of the design version would outlive the release and cover work the release never contained. | 0116 q3 |
 | E116 | **Two names-and-numbers editors exist and a person can meet either.** Decision 0027's controls are on the `Names` tool; Y8's F-S4 panel opens from the Design Summary. They write the same stored fields so they cannot disagree, but which one survives, and may the other be taken out with the journey that drives it? | 0117 q2 |
