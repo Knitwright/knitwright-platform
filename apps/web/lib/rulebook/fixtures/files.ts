@@ -20,3 +20,9 @@ export const FIRST_SIGN_OFF_MIGRATION = readFileSync(
   join(REPO, "supabase", "migrations", "20261215030000_rulebook_first_sign_off.sql"),
   "utf8",
 );
+
+/** The migration that corrects what the first sign-off says, to the title alone (decision 0130, corrected). */
+export const SIGN_OFF_TITLE_MIGRATION = readFileSync(
+  join(REPO, "supabase", "migrations", "20261215040000_rulebook_sign_off_title.sql"),
+  "utf8",
+);

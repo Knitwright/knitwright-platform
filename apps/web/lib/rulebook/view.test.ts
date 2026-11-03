@@ -85,4 +85,22 @@ describe("statusLabel", () => {
     expect(statusLabel({ ...reviewed, confirmedRole: null })).toBe(DRAFT_LABEL);
     expect(statusLabel(reviewed)).toBe("Reviewed by Ana Lima, pattern master, on 2026-11-03");
   });
+
+  /**
+   * Decision 0130: the first sign-off was given as a title rather than a person, so the name and the role on
+   * those 29 rows are the same thing. The line says it once -- "Reviewed by The pattern master, pattern master,
+   * on …" would be one word twice with nothing learned from the second.
+   */
+  it("says a name and a role that mean the same thing only once, article or no article", () => {
+    const title = { ...reviewed, confirmedName: "The pattern master", confirmedRole: "pattern master" };
+    expect(statusLabel(title)).toBe("Reviewed by The pattern master on 2026-11-03");
+    expect(statusLabel({ ...title, confirmedName: "pattern master" })).toBe("Reviewed by pattern master on 2026-11-03");
+    expect(statusLabel({ ...title, confirmedRole: "The Pattern Master" })).toBe("Reviewed by The pattern master on 2026-11-03");
+  });
+
+  it("still says both when they are different things, so a person is never lost", () => {
+    expect(statusLabel({ ...reviewed, confirmedName: "The pattern master", confirmedRole: "production manager" })).toBe(
+      "Reviewed by The pattern master, production manager, on 2026-11-03",
+    );
+  });
 });
