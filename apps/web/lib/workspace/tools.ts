@@ -18,6 +18,7 @@ export type ToolId = RailToolId | JourneyToolId;
 export type SectionId =
   | "options"
   | "picture"
+  | "design-import"
   | "details"
   | "colours"
   | "kit-styles"
@@ -56,7 +57,7 @@ export const TOOLS: Readonly<Record<ToolId, ToolInfo>> = {
     label: "Garment",
     title: "Garment and options",
     lead: "Choose the fit, neck, sleeves and every other option, or start from a picture.",
-    sections: ["options", "picture", "details"],
+    sections: ["options", "picture", "design-import", "details"],
   },
   colours: {
     id: "colours",

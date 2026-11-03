@@ -13,8 +13,34 @@ import { SideBySide } from "./SideBySide";
 const STAGE_TEXT = { uploading: "Uploading the picture...", reading: "Reading the picture...", working: "Working..." } as const;
 
 /**
+ * What accepting really does today, said before the person accepts and again afterwards. Putting an
+ * accepted reading onto the design it was read for is not built, so neither sentence says it is.
+ */
+export const NOT_APPLIED_YET =
+  "Accepting keeps the reading and keeps the pictures cut from yours in your artwork. It does not change this design: putting an accepted reading onto the design it was read for is not built yet, so your design is left as it was.";
+
+/**
+ * A reading is kept on the server the moment it is made, and this panel does not look for one when
+ * it opens, so leaving the screen and coming back starts from the picture again -- and reading a
+ * picture again is another reading, which costs. The person is told that before they start, rather
+ * than finding out by losing one. `GET /api/design-import` already lists a brand's readings, so
+ * finding the last one again is a small piece of work nobody has owned yet (decision 0124).
+ */
+export const RELOAD_STARTS_AGAIN =
+  "Leave this screen before you accept and the panel starts again from the picture. Your reading is kept, but this panel does not find it again, and reading a picture a second time is a second reading.";
+
+const KEPT_NOT_APPLIED = "Accepted. The reading is kept and its pictures are in your artwork. This design is unchanged.";
+
+/**
  * Hand over a mockup, a flat, a photo of a kit or a sketch and see a close reading of it beside the picture. Nothing is kept
- * as your design until you accept. The panel is shown only while the feature is switched on (the routes answer 404 otherwise).
+ * until you accept. The panel is shown only while the feature is switched on (the routes answer 404 otherwise).
+ *
+ * WHAT ACCEPTING DOES, AND WHAT IT DOES NOT DO. `acceptImport` keeps the chosen layers on the reading's own row and keeps
+ * the pictures cut from the picture as the brand's artwork. **It does not write them onto the design this panel is open
+ * on**: decision 0038 item 6 left applying an accepted stack to a project's design to the step after it, and nothing in
+ * the repository does it yet (`designWithStack` is the function that would, and no import path calls it). So the panel
+ * says that in its own words, where the person deciding can read it, rather than letting "Saved" imply a design changed.
+ * When that step is built, this note and the sentence after an accept are what change.
  */
 export function DesignImportPanel() {
   const [state, dispatch] = useReducer(screenReducer, initialScreen);
@@ -68,7 +94,8 @@ export function DesignImportPanel() {
     const result = await accept(state.importId, acceptBody(state, layerIds).layerIds);
     if (!result.ok) return dispatch({ type: "failed", message: result.message });
     const own = result.data.needsOwnFile.length;
-    dispatch({ type: "done", message: own > 0 ? `Saved. ${own} ${own === 1 ? "layer was" : "layers were"} redrawn from your picture: replace ${own === 1 ? "it" : "them"} with your own file.` : "Saved. The layers you chose are now part of your design." });
+    const redrawn = own > 0 ? ` ${own} ${own === 1 ? "layer was" : "layers were"} redrawn from your picture: replace ${own === 1 ? "it" : "them"} with your own file.` : "";
+    dispatch({ type: "done", message: `${KEPT_NOT_APPLIED}${redrawn}` });
   };
 
   const thrown = async () => {
@@ -80,8 +107,11 @@ export function DesignImportPanel() {
   return (
     <div className="flex flex-col gap-4" data-testid="design-import">
       <p className="text-[15px] leading-relaxed text-muted">
-        Hand over a mockup, a flat, a photo of a kit or a sketch. You get a close reading of your picture to look at beside it. Nothing is saved as your design until you accept it.
+        Hand over a mockup, a flat, a photo of a kit or a sketch. You get a close reading of your picture to look at beside it. Nothing is kept until you accept it.
       </p>
+      <Notice>
+        {NOT_APPLIED_YET} {RELOAD_STARTS_AGAIN}
+      </Notice>
       <label className="flex items-start gap-3 text-sm text-ink">
         <input type="checkbox" className="mt-1 size-4" checked={rights} disabled={busy} onChange={(event) => setRights(event.target.checked)} />
         <span>

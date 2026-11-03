@@ -13,12 +13,19 @@ const localEnv = existsSync(localEnvFile) ? parseEnv(readFileSync(localEnvFile, 
 // AI_PROVIDER_STUB answers the assistant with a stand-in that never reaches the network
 // (lib/providers/stand-in.ts); the environment check refuses it on any deploy. The 3D trial
 // is off by default (decision 0027), and the tests check that default whatever .env.local says.
+//
+// DESIGN_IMPORT is the switch of decision 0038 item 7: off or unset, the design-import routes all
+// answer 404 and the workspace draws no door at all. The browser tests are the only place that
+// switch is on, because the panel cannot be reached otherwise and a feature nothing can reach is
+// what `tests/architecture/mounted.test.ts` exists to catch. No model is called: a reading goes
+// through the stand-in provider like every other call here.
 const env = {
   ...localEnv,
   ...process.env,
   NEXT_PUBLIC_SITE_URL: baseURL,
   AI_PROVIDER_STUB: "on",
   SHOW_3D: "false",
+  DESIGN_IMPORT: "on",
 } as Record<
   string,
   string

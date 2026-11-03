@@ -160,13 +160,18 @@ test.describe("Brand Studio (Y6)", () => {
     expect(data).toEqual([]);
   });
 
+  /**
+   * The offer used to be "a design's artwork", which was a screen nobody had built: the panel it
+   * named existed and no page imported it. It is on this page's own Overview tab now (decision
+   * 0124), so the empty state offers something a person can really open.
+   */
   test("a brand with no uploads is told where to put its logos first", async ({ page }) => {
     await signIn(page, await createAccount("bs-logos"));
     await expect(page).toHaveURL(/\/studio$/);
     await page.goto("/brand-studio?tab=logos");
     const logos = page.getByRole("region", { name: "Logos", exact: true });
-    await expect(logos).toContainText("Upload your logo in a design's artwork first");
+    await expect(logos).toContainText("Add your logo to your artwork first");
     // An empty state offers the one thing that fills it, and the offer is not a dead link.
-    await expect(logos.getByRole("link", { name: "Open a design" })).toHaveAttribute("href", "/studio");
+    await expect(logos.getByRole("link", { name: "Your artwork" })).toHaveAttribute("href", "/brand-studio?tab=overview#artwork");
   });
 });

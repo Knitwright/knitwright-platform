@@ -1,10 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { FormDone, FormSummary } from "@/components/forms/FormSummary";
 import { useSendForm } from "@/components/forms/useSendForm";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { addFabricAction, addFabricTestAction, saveSizeMapAction } from "@/lib/fabrics/actions";
+import { resetPatternSize } from "@/lib/fabrics/size-map-client";
 
 const NUMBER = { type: "number", inputMode: "decimal", step: "any" } as const;
 
@@ -66,23 +69,70 @@ export function AddTestForm({ fabricId, fabricName }: Readonly<{ fabricId: strin
   );
 }
 
-type Entry = Readonly<{ label: string; wearer: string; cut: string; patternSize: string }>;
+type Entry = Readonly<{ label: string; wearer: string; cut: string; patternSize: string; source: string }>;
 
-/** One size label and the pattern size it is cut from. */
+/**
+ * One size label and the pattern size it is cut from, with a way back to the suggestion.
+ *
+ * The form is named for the size label ("Size label M"), not for the field inside it: a form called
+ * "Pattern size for M" contains the name of its own "Pattern size" input, which makes every lookup
+ * by label in that row match two things at once.
+ *
+ * Saving goes through this page's own action. Putting it back goes through
+ * `DELETE /api/fabrics/size-map`, which is where that undo lives and which nothing called until now
+ * (decision 0124): a brand that typed a pattern size by mistake could not take it off again, and a
+ * value nobody chose must never be left reading as one somebody did.
+ */
 export function SizeMapRowForm({ entry }: Readonly<{ entry: Entry }>) {
   const { form, state, onSubmit, pending, summary, fieldErrors } = useSendForm(saveSizeMapAction);
   return (
-    <form ref={form} onSubmit={onSubmit} className="flex items-end gap-2" noValidate aria-label={`Pattern size for ${entry.label}`}>
-      <input type="hidden" name="label" value={entry.label} />
-      <input type="hidden" name="wearer" value={entry.wearer} />
-      <input type="hidden" name="cut" value={entry.cut} />
-      <input type="hidden" name="source" value="user-edited" />
-      <Field name="patternSize" label="Pattern size" defaultValue={entry.patternSize} maxLength={16} errors={fieldErrors("patternSize")} />
-      <Button type="submit" pending={pending}>
-        {pending ? "Saving" : "Save"}
+    <div className="flex flex-col gap-1">
+      <form ref={form} onSubmit={onSubmit} className="flex items-end gap-2" noValidate aria-label={`Size label ${entry.label}`}>
+        <input type="hidden" name="label" value={entry.label} />
+        <input type="hidden" name="wearer" value={entry.wearer} />
+        <input type="hidden" name="cut" value={entry.cut} />
+        <input type="hidden" name="source" value="user-edited" />
+        <Field name="patternSize" label="Pattern size" defaultValue={entry.patternSize} maxLength={16} errors={fieldErrors("patternSize")} />
+        <Button type="submit" pending={pending}>
+          {pending ? "Saving" : "Save"}
+        </Button>
+        {state.result?.success ? <span role="status" className="text-sm text-muted">Saved.</span> : null}
+        {summary ? <span role="alert" className="text-sm text-warn">{summary}</span> : null}
+      </form>
+      {entry.source === "suggested" ? null : <UseTheSuggestion entry={entry} />}
+    </div>
+  );
+}
+
+/**
+ * Takes the brand's own choice off one label, so Knitwright's suggestion stands again. Its name is
+ * "Use the suggestion for M" for the same reason the form's is "Size label M": nothing in this row
+ * may carry the name of the field beside it, or a lookup by label finds both at once.
+ */
+function UseTheSuggestion({ entry }: Readonly<{ entry: Entry }>) {
+  const router = useRouter();
+  const [problem, setProblem] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+
+  const putBack = () => {
+    setProblem(null);
+    start(async () => {
+      const answer = await resetPatternSize((input, init) => fetch(input, init), { label: entry.label, wearer: entry.wearer, cut: entry.cut });
+      if (!answer.ok) return setProblem(answer.reason);
+      router.refresh();
+    });
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button type="button" variant="quiet" pending={pending} onClick={putBack} aria-label={`Use the suggestion for ${entry.label}`}>
+        {pending ? "Putting it back" : "Use the suggestion"}
       </Button>
-      {state.result?.success ? <span role="status" className="text-sm text-muted">Saved.</span> : null}
-      {summary ? <span role="alert" className="text-sm text-warn">{summary}</span> : null}
-    </form>
+      {problem ? (
+        <span role="alert" className="text-sm text-warn">
+          {problem}
+        </span>
+      ) : null}
+    </div>
   );
 }

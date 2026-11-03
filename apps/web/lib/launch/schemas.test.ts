@@ -38,7 +38,10 @@ describe("starting and changing a canvas", () => {
   });
 
   it("takes an id to remove a canvas, a board, a connector or to save a version", () => {
-    expect(removeLaunchProjectBody.parse({ launchProjectId: ID })).toEqual({ launchProjectId: ID });
+    // Removing the whole canvas also asks for the typed word, as deleting a design does.
+    expect(removeLaunchProjectBody.parse({ launchProjectId: ID, confirm: "delete" })).toEqual({ launchProjectId: ID, confirm: "delete" });
+    expect(removeLaunchProjectBody.safeParse({ launchProjectId: ID }).success).toBe(false);
+    expect(removeLaunchProjectBody.safeParse({ launchProjectId: ID, confirm: "yes" }).success).toBe(false);
     expect(removeBoardBody.parse({ launchProjectId: ID, boardId: OTHER })).toEqual({ launchProjectId: ID, boardId: OTHER });
     expect(disconnectBoardsBody.parse({ launchProjectId: ID, edgeId: OTHER })).toEqual({ launchProjectId: ID, edgeId: OTHER });
     expect(saveVersionBody.parse({ launchProjectId: ID })).toEqual({ launchProjectId: ID });

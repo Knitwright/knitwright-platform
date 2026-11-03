@@ -41,6 +41,8 @@ export default async function CollectionPlanPage({ params, searchParams }: PageP
       <StyleCard
         key={style.id}
         style={style}
+        collectionId={plan.id}
+        canEdit={canEdit}
         currency={plan.currency}
         art={
           <Suspense fallback={<GarmentOutline />}>

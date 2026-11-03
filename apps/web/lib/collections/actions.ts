@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
 import { checkSampleRequest } from "@/lib/make/sample";
 import { loadMake } from "@/lib/make/server";
@@ -76,6 +77,12 @@ export const removeStyleAction = defineAction({
   },
 });
 
+/**
+ * Deleting a whole plan, from `/studio/collections/[collectionId]/delete`. The typed word is part
+ * of the body, so the box on that screen is the thing that lets this run. It ends on the list of
+ * plans, as deleting a design ends on the list of designs: the page it was pressed on no longer
+ * names anything.
+ */
 export const removeCollectionAction = defineAction({
   auth: "member",
   rateLimit: LIMITS.clubWrite,
@@ -84,7 +91,7 @@ export const removeCollectionAction = defineAction({
     requireAbility(session, "manageKit");
     await removeCollection(adminClient(), whoOf(session), input.collectionId);
     revalidatePath("/studio/collections");
-    return { removed: input.collectionId };
+    redirect("/studio/collections");
   },
 });
 

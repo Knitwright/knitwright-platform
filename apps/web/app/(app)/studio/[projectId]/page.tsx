@@ -1,6 +1,7 @@
 import { countryOptions } from "@/lib/leads/organisation";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { DesignImportPanel } from "@/components/design-import/DesignImportPanel";
 import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
 import { QuoteRequest } from "@/components/leads/QuoteRequest";
 import { EditorShell } from "@/components/studio/editor/EditorShell";
@@ -16,6 +17,7 @@ import { latestImages } from "@/lib/images/service";
 import { colourwayParam } from "@/lib/projects/colour-controls";
 import { loadArtworkImages } from "@/lib/projects/artwork-images";
 import { assistantAvailable } from "@/lib/projects/assistant";
+import { designImportEnabled } from "@/lib/design-import/switch";
 import { conversationFor } from "@/lib/projects/chat-history";
 import { buildEditorData } from "@/lib/projects/editor-data";
 import { getProject, listVersions } from "@/lib/projects/service";
@@ -92,6 +94,8 @@ export default async function DesignPage({ params, searchParams }: PageProps<"/s
         share: <ShareSection brandId={brand.id} projectId={projectId} currentVersion={project.currentVersion} />,
         quote: <QuoteRequest projectId={projectId} version={project.currentVersion} firstDate={leads.firstDate} earlier={leads.quotes} />,
         organisation: leads.askDetails ? <OrganisationPrompt details={leads.details} countries={countryOptions()} /> : null,
+        // Decision 0038 item 7: with the switch off the routes answer 404, so no door is drawn.
+        designImport: designImportEnabled() ? <DesignImportPanel /> : null,
       }}
     />
   );

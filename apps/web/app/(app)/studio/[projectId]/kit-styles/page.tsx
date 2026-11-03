@@ -1,10 +1,12 @@
 import type { Metadata, Route } from "next";
 import { notFound } from "next/navigation";
 import { KitStyleGallery } from "@/components/kit-styles/KitStyleGallery";
+import { PatternLooks } from "@/components/kit-styles/PatternLooks";
 import { brandChartSet } from "@/lib/charts/service";
 import { guideAddress } from "@/lib/guided/flow";
 import { GALLERY_FROM, kitStyleTiles, type GalleryFrom } from "@/lib/kit-styles/gallery";
-import { clubColoursFrom, readClubColours } from "@/lib/kit-styles/presets";
+import { clubColoursFrom, kitStylesFor, readClubColours } from "@/lib/kit-styles/presets";
+import { galleryTiles } from "@/lib/pattern-generators/gallery";
 import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
@@ -35,15 +37,24 @@ export default async function KitStylesPage({ params, searchParams }: PageProps<
   const tiles = kitStyleTiles(project.spec, colours, charts);
   if (tiles.length === 0) notFound();
 
+  // The club's own colours: the main colour is the cloth the pattern is drawn on, the other one or
+  // two are its inks. A generator given fewer colours than it can take uses what it is given.
+  const inks = [colours.second, colours.third].filter((ink): ink is string => ink !== null);
+  const looks = galleryTiles(inks, colours.main);
+  const offered = kitStylesFor(project.spec.typeId).map((style) => style.id);
+
   return (
-    <KitStyleGallery
-      projectId={projectId}
-      version={project.currentVersion}
-      typeLabel={project.garmentLabel}
-      tiles={tiles}
-      colours={colours}
-      from={from}
-      backHref={backHref}
-    />
+    <div className="flex flex-col gap-10">
+      <KitStyleGallery
+        projectId={projectId}
+        version={project.currentVersion}
+        typeLabel={project.garmentLabel}
+        tiles={tiles}
+        colours={colours}
+        from={from}
+        backHref={backHref}
+      />
+      <PatternLooks tiles={looks} offered={offered} />
+    </div>
   );
 }

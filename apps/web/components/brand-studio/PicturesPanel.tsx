@@ -73,14 +73,15 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
 
   const setRow = (at: number, patch: Partial<Row>) => setRows(rows.map((row, index) => (index === at ? { ...row, ...patch } : row)));
 
-  // The empty state names the one thing that fills it. A brand's pictures are its designs' own
-  // uploads (decision 0036), so there is nothing to choose here until a design has artwork on it.
+  // The empty state names the one thing that fills it, and now that thing is on this very page:
+  // "Your artwork" on the Overview tab is where a brand's files are added (decisions 0036 and 0124).
+  // It used to send people to "a design's artwork", which was a screen that did not exist.
   if (uploads.length === 0) {
     return (
       <Notice>
-        Upload your {ASSET_KIND_LABELS[kind].toLowerCase()} in a design&apos;s artwork first, then choose it here.{" "}
-        <Link href="/studio" className="soft-link text-ink underline underline-offset-4">
-          Open a design
+        Add your {ASSET_KIND_LABELS[kind].toLowerCase()} to your artwork first, then choose it here.{" "}
+        <Link href="/brand-studio?tab=overview#artwork" className="soft-link text-ink underline underline-offset-4">
+          Your artwork
         </Link>
         .
       </Notice>
