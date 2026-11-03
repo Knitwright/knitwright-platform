@@ -74,6 +74,10 @@ type Entry = Readonly<{ label: string; wearer: string; cut: string; patternSize:
 /**
  * One size label and the pattern size it is cut from, with a way back to the suggestion.
  *
+ * The form is named for the size label ("Size label M"), not for the field inside it: a form called
+ * "Pattern size for M" contains the name of its own "Pattern size" input, which makes every lookup
+ * by label in that row match two things at once.
+ *
  * Saving goes through this page's own action. Putting it back goes through
  * `DELETE /api/fabrics/size-map`, which is where that undo lives and which nothing called until now
  * (decision 0124): a brand that typed a pattern size by mistake could not take it off again, and a
@@ -83,7 +87,7 @@ export function SizeMapRowForm({ entry }: Readonly<{ entry: Entry }>) {
   const { form, state, onSubmit, pending, summary, fieldErrors } = useSendForm(saveSizeMapAction);
   return (
     <div className="flex flex-col gap-1">
-      <form ref={form} onSubmit={onSubmit} className="flex items-end gap-2" noValidate aria-label={`Pattern size for ${entry.label}`}>
+      <form ref={form} onSubmit={onSubmit} className="flex items-end gap-2" noValidate aria-label={`Size label ${entry.label}`}>
         <input type="hidden" name="label" value={entry.label} />
         <input type="hidden" name="wearer" value={entry.wearer} />
         <input type="hidden" name="cut" value={entry.cut} />
@@ -100,7 +104,11 @@ export function SizeMapRowForm({ entry }: Readonly<{ entry: Entry }>) {
   );
 }
 
-/** Takes the brand's own choice off one label, so Knitwright's suggestion stands again. */
+/**
+ * Takes the brand's own choice off one label, so Knitwright's suggestion stands again. Its name is
+ * "Use the suggestion for M" for the same reason the form's is "Size label M": nothing in this row
+ * may carry the name of the field beside it, or a lookup by label finds both at once.
+ */
 function UseTheSuggestion({ entry }: Readonly<{ entry: Entry }>) {
   const router = useRouter();
   const [problem, setProblem] = useState<string | null>(null);
@@ -117,7 +125,7 @@ function UseTheSuggestion({ entry }: Readonly<{ entry: Entry }>) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button type="button" variant="quiet" pending={pending} onClick={putBack} aria-label={`Use the suggested pattern size for ${entry.label}`}>
+      <Button type="button" variant="quiet" pending={pending} onClick={putBack} aria-label={`Use the suggestion for ${entry.label}`}>
         {pending ? "Putting it back" : "Use the suggestion"}
       </Button>
       {problem ? (

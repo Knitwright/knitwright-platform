@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { panelsFor } from "@/lib/garment";
 import type { EditorData } from "@/lib/projects/editor-data";
 import type { SectionId } from "@/lib/workspace/tools";
-import { ArtworkPanel } from "@/components/artwork/ArtworkPanel";
 import { CommentsPanel } from "@/components/comments/CommentsPanel";
 import { MediaScreen } from "@/components/media/screen/MediaScreen";
 import { VariantsPanel } from "@/components/variants/VariantsPanel";
@@ -119,8 +118,6 @@ function sectionBody(section: SectionId, context: SectionContext): ReactNode {
       return <FabricSummary projectId={data.projectId} spec={data.spec} />;
     case "trims":
       return <TrimSummary projectId={data.projectId} spec={data.spec} />;
-    case "own-artwork":
-      return <ArtworkPanel />;
     case "artwork":
       return (
         <ArtworkControls

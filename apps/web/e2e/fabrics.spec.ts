@@ -61,7 +61,7 @@ test.describe("fabrics", () => {
     const row = page.getByRole("row", { name: /Men's cut M/ });
     await expect(row).toContainText("Suggested by Knitwright");
     // Nothing to put back while the row is only a suggestion.
-    await expect(row.getByRole("button", { name: /Use the suggested pattern size/ })).toHaveCount(0);
+    await expect(row.getByRole("button", { name: /^Use the suggestion/ })).toHaveCount(0);
 
     await row.getByLabel("Pattern size").fill("50");
     await row.getByRole("button", { name: "Save" }).click();
@@ -72,7 +72,7 @@ test.describe("fabrics", () => {
     await expect(chosen).toContainText("Typed in by you");
     await expect(chosen.getByLabel("Pattern size")).toHaveValue("50");
 
-    await chosen.getByRole("button", { name: "Use the suggested pattern size for M" }).click();
+    await chosen.getByRole("button", { name: "Use the suggestion for M" }).click();
     await expect(page.getByRole("row", { name: /Men's cut M/ })).toContainText("Suggested by Knitwright");
     await page.reload();
     const back = page.getByRole("row", { name: /Men's cut M/ });

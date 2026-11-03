@@ -8,12 +8,10 @@ import { TOOLS } from "@/lib/workspace/tools";
 import { PanelSection, type SectionContext, type WorkspaceSlots } from "./PanelSections";
 
 /**
- * The two sections this branch added to the design workspace (decision 0124): the design-import
- * panel in the Garment tool and the brand's own artwork in the Logos tool.
- *
- * Both are rendered the way the tool panel renders them, with no browser, so what is checked is
- * what a person would see: the panel's own words, and -- for design import -- nothing at all while
- * the feature is switched off, since the slot is filled on the server (decision 0038 item 7).
+ * The section this branch added to the design workspace (decision 0124): the design-import panel in
+ * the Garment tool, rendered the way the tool panel renders it, with no browser. What is checked is
+ * what a person would see -- and nothing at all while the feature is switched off, since the slot is
+ * filled on the server (decision 0038 item 7).
  */
 
 const project: OpenProject = {
@@ -69,17 +67,14 @@ describe("the design-import section of the Garment tool", () => {
   });
 });
 
+/**
+ * The brand's own artwork was tried here and taken out again (decision 0124): the Logos tool
+ * already carries the older per-design logo upload, so the screen offered two uploads and two
+ * rights consents for the same crest. Its screen is Brand Studio's Overview, where every picker
+ * chooses from those same rows. This holds the tool to its one upload.
+ */
 describe("the artwork section of the Logos tool", () => {
-  it("comes after the logos a person places on this design", () => {
-    expect([...TOOLS.logos.sections]).toEqual(["artwork", "own-artwork"]);
-  });
-
-  it("draws the brand's own artwork, saying what it is for and where else it is used", () => {
-    const html = render("own-artwork");
-    expect(html).toContain("Your artwork");
-    expect(html).toContain("Brand Studio");
-    // The tool panel's title is the h2 above it, so the panel's own heading is an h3.
-    expect(html).toContain("<h3");
-    expect(html).not.toContain("<h2");
+  it("is the logos a person places on this design, and nothing else", () => {
+    expect([...TOOLS.logos.sections]).toEqual(["artwork"]);
   });
 });

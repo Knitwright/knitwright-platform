@@ -48,7 +48,9 @@ const addStyle = async (page: Page, name: string): Promise<void> => {
   await page.getByLabel(/^Wholesale price/).fill("42.00");
   await page.getByLabel(/^RRP/).fill("80.00");
   await page.getByLabel("Wholesale share (%)", { exact: true }).fill("60");
-  await page.getByLabel("Sizes and pieces", { exact: true }).fill("S 10, M 20, L 10");
+  // The form reads sizes as "S:10, M:20" (`lib/collections/entry.ts`); "S 10" is unreadable and the
+  // style is never added, which is how this helper failed before.
+  await page.getByLabel("Sizes and pieces", { exact: true }).fill("S:10, M:20, L:10");
   await page.getByRole("button", { name: "Add this style" }).click();
   await expect(page.getByText(`${name} is on the board`)).toBeVisible();
 };

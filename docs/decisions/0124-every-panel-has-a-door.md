@@ -1,7 +1,7 @@
 # 0124: Every panel has a door, and a test that says so
 
-Status: Proposed. Four panels, three deletes and one undo are reachable from a screen a person is already looking at; one panel and one action are reported rather than wired, because the file they mount from belongs to an open pull request; `tests/architecture/mounted.test.ts` fails CI for the next one.
-Index: Proposed; the design-import, artwork, pattern-look and launch-pack panels mounted, three deletes and the size-map undo given doors, `components/home/StartWays.tsx` deleted as superseded, and a three-way sweep (components, server actions, API routes) added as an architecture test with a reasoned allow-list
+Status: Proposed. Four panels, three deletes and one undo are reachable from a screen a person is already looking at; one panel and one action are reported rather than wired, because the file they mount from is another workstream's shell; `tests/architecture/mounted.test.ts` fails CI for the next one. The browser tests moved the artwork panel from the design workspace to Brand Studio and renamed two controls that carried their neighbours' names.
+Index: Proposed; the design-import, artwork, pattern-look and launch-pack panels mounted (artwork on Brand Studio, not in the editor, because two rights consents in one panel is worse than none), three deletes and the size-map undo given doors, `components/home/StartWays.tsx` deleted as superseded, and a three-way sweep (components, server actions, API routes) added as an architecture test with a reasoned allow-list
 Index title: Every panel has a door, and a test that says so
 Date: 2026-11-02
 Plan step: platform v5, review and hardening (`plans/platform-v5.md`, "R1–R4"), closing the last of
@@ -42,13 +42,34 @@ named beside it:
 | Panel | Door | What says so |
 |---|---|---|
 | Design import | the Garment tool of the design workspace, section `design-import` | decision 0038's own consequence: "a line in `lib/workspace/tools.ts` to mount `DesignImportPanel`" |
-| Your artwork | the Logos tool, section `own-artwork`, under the logos placed on this design | `components/brand-studio/PicturesPanel.tsx`'s empty state: "Upload your crest in a design's artwork first, then choose it here" (decisions 0036 and 0079) |
+| Your artwork | **Brand Studio's Overview tab**, as its own section (see item 1a) | every picture picker on that page chooses from exactly these rows: `listUploads` reads `user_artworks`, which is what `/api/artwork` writes (decisions 0036 and 0079) |
 | Every pattern we can draw | `/studio/[projectId]/kit-styles`, under the kit styles, reached from the Colours tool's own link | plan W7c: "Gallery component for the editor" (decision 0037) |
 | Launch packs | the Templates panel of the launch rail | L1's own contract: the `templates` panel is for "Marketing, kit-bundle and **flow** templates" (`lib/launch/panels.ts`); decision 0096's owner question 6 ("reached inside the launch shell") |
 
 **No navigation was added.** The owner's top bar is settled (decision 0103), so every one of these is
-reached from a screen a person is already on: a tool on the rail, a link in a panel, or a tab in the
-launch rail.
+reached from a screen a person is already on: a tool on the rail, a section of a page, a link in a
+panel, or a tab in the launch rail.
+
+### 1a. "Your artwork" belongs to the brand, so it belongs on Brand Studio
+
+It was mounted in the design workspace's Logos tool first, because that is what Brand Studio's empty
+state pointed at ("Upload your crest in a design's artwork first"). **The browser tests refused it,
+and they were right.** That tool already carries the older per-design logo upload (W7b "adds a new
+path beside" it, decision 0036), so the screen then offered **two uploads and two rights consents
+for the same crest** — `e2e/flats.spec.ts` could no longer tell the two consent boxes apart, and
+neither could a person. A door that confuses the screen it opens onto is worse than the hole it
+filled.
+
+The panel is **brand-scoped**: `/api/artwork` answers for the brand, not for one design, and
+`listUploads` — which fills Brand Studio's Logos, Graphics and Sportswear pickers — reads the very
+rows it writes. So its screen is Brand Studio's Overview tab, where it is the one upload on the page
+and the one thing the other tabs cannot be filled without. The panel draws no heading of its own now:
+the section names it, so it can sit in any section.
+
+`PicturesPanel`'s empty state is corrected with it: it used to send a brand to "a design's artwork",
+a screen nobody had built, and now offers "Your artwork" on the same page. The design workspace's
+Logos tool is exactly as it was, which is what `e2e/flats.spec.ts` asks for, and a test of this
+branch's own holds it to **one** rights consent.
 
 ### 2. `StartWays` is deleted, not mounted
 
@@ -254,7 +275,8 @@ every entry's reason is a sentence, and that every `in-flight` entry names a pul
 | The design-import panel is a section of the Garment tool, with its own heading, and draws nothing while the switch is off | `components/studio/workspace/panel-sections.test.ts`, `apps/web/e2e/design-import.spec.ts` |
 | The panel's own words are on screen — a close reading, nothing kept until accepted — and the picture cannot be chosen before the rights tick | `apps/web/e2e/design-import.spec.ts` |
 | The panel says, before anyone accepts, that accepting keeps the reading and leaves this design unchanged | same, and `components/design-import/not-applied.test.ts` |
-| "Your artwork" is in the Logos tool, says what it is for, and is the screen Brand Studio sends a brand to | same |
+| "Your artwork" is a section of Brand Studio, with one rights consent on the page, and is where its own empty state sends a brand | `apps/web/e2e/design-import.spec.ts`, `apps/web/e2e/brand-studio.spec.ts` |
+| The design workspace's Logos tool keeps one upload and one consent, as it had before | `apps/web/e2e/design-import.spec.ts`, `components/studio/workspace/panel-sections.test.ts`, and `e2e/flats.spec.ts` unchanged |
 | Every pattern style and preset has a labelled picture, and every one says what can be done with it, with its rule id | `components/kit-styles/pattern-looks.test.ts`, `apps/web/e2e/design-import.spec.ts` |
 | The six packs are in the Templates panel, open onto the canvas in one save, and spend nothing | `components/launch/panels/flow-packs.test.ts`, `components/launch/panels/placing-packs.test.ts`, `apps/web/e2e/launch-packs.spec.ts` |
 | A pack dropped beside what is already on the canvas does not land on it | `components/launch/panels/placing-packs.test.ts` |
@@ -270,6 +292,25 @@ Three screens have their axe scan taken over the new part rather than the whole 
 style gallery and the collection board. No spec scans any of the three whole today, and a panel
 landing on one should be held to the bar without standing or falling on everything else that screen
 already draws. The launch canvas and both new delete pages are scanned whole.
+
+## What the browser found, and what it changed
+
+`Checks` passed on the first full run and the browser suite failed eight tests, which is the whole
+argument for having both. None of them was a scan to narrow; all three causes were real:
+
+1. **Two rights consents in one panel** (`e2e/flats.spec.ts`, three tests). Item 1a: the artwork
+   panel moved to Brand Studio and the Logos tool went back to what it was.
+2. **A link named after its own row** (`e2e/launch.spec.ts`, a spec that was passing). "Delete
+   <project name>" in the launch list contained the name of the row's own link, so a lookup for the
+   project matched two links. It is "Delete row 3" now, which is how the roster table names its own
+   per-row Remove (`components/production/orders/RosterTable.tsx`), and the list's own spec needed no
+   change. A control may not carry the name of the thing beside it.
+3. **A form named after the field inside it** (`e2e/fabrics.spec.ts`). "Pattern size for M" contains
+   "Pattern size", so every lookup by label in that row matched twice. The form is "Size label M" and
+   the button is "Use the suggestion for M". `exact: true` in the test would have hidden it.
+
+The fourth failure was mine and plainly mine: the collection spec typed sizes as "S 10, M 20" where
+the form reads "S:10, M:20", so no style was ever added and the test failed three lines later.
 
 ## Consequences
 

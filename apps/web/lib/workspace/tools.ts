@@ -27,7 +27,6 @@ export type SectionId =
   | "fabrics"
   | "trims"
   | "artwork"
-  | "own-artwork"
   | "names-numbers"
   | "labelling"
   | "variants"
@@ -86,7 +85,7 @@ export const TOOLS: Readonly<Record<ToolId, ToolInfo>> = {
     label: "Logos",
     title: "Logos and text",
     lead: "Add a crest, a sponsor or words, and place them on the drawing.",
-    sections: ["artwork", "own-artwork"],
+    sections: ["artwork"],
   },
   names: {
     id: "names",

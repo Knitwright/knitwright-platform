@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { accessible, settled } from "./chrome";
 import { createAccount, signIn, test } from "./support";
 
@@ -34,6 +34,18 @@ const startLaunch = async (page: Page, label: string): Promise<string> => {
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   return name;
 };
+
+/**
+ * The Delete of this project's row in the launch list. The link is named for the row's position
+ * ("Delete row 1"), never for the project: a link whose name contains the row's own name makes
+ * every other link in that row ambiguous, which is how the first version of this screen broke the
+ * launch list's own spec.
+ */
+const deleteRow = (page: Page, name: string): Locator =>
+  page
+    .getByRole("row")
+    .filter({ has: page.getByRole("link", { name, exact: true }) })
+    .getByRole("link", { name: /^Delete row/ });
 
 const openTemplates = async (page: Page): Promise<void> => {
   await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Templates", exact: true }).click();
@@ -109,7 +121,7 @@ test.describe("deleting a launch project", () => {
     const name = await startLaunch(page, "Doomed launch");
 
     await page.goto("/launch");
-    await page.getByRole("link", { name: `Delete ${name}` }).click();
+    await deleteRow(page, name).click();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
     await expect(page.getByText(/This deletes the canvas, which has nothing on it yet/)).toBeVisible();
     await expect(page.getByText(/The design it launches is not touched/)).toBeVisible();
@@ -119,15 +131,15 @@ test.describe("deleting a launch project", () => {
     await page.getByRole("button", { name: "Delete this launch project" }).click();
     await expect(page.getByText('Type "delete" to confirm.')).toBeVisible();
     await page.goto("/launch");
-    await expect(page.getByRole("link", { name })).toBeVisible();
+    await expect(page.getByRole("link", { name, exact: true })).toBeVisible();
 
-    await page.getByRole("link", { name: `Delete ${name}` }).click();
+    await deleteRow(page, name).click();
     await accessible(page);
     await page.getByLabel('Type "delete" to confirm').fill("delete");
     await page.getByRole("button", { name: "Delete this launch project" }).click();
 
     await expect(page).toHaveURL(/\/launch$/);
-    await expect(page.getByRole("link", { name })).toHaveCount(0);
+    await expect(page.getByRole("link", { name, exact: true })).toHaveCount(0);
   });
 
   test("keeps it when the way back is taken", async ({ page }) => {
@@ -135,7 +147,7 @@ test.describe("deleting a launch project", () => {
     const name = await startLaunch(page, "Kept launch");
 
     await page.goto("/launch");
-    await page.getByRole("link", { name: `Delete ${name}` }).click();
+    await deleteRow(page, name).click();
     await page.getByRole("link", { name: "Keep it and go back" }).click();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
     await expect(page.getByTestId("launch-shell")).toBeVisible();

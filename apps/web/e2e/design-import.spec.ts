@@ -93,35 +93,50 @@ test.describe("reading a design from a picture", () => {
   });
 });
 
+/**
+ * It was mounted in the design workspace's Logos tool first, and the browser tests said no: that
+ * tool already carries the older per-design logo upload, so the screen offered two uploads and two
+ * rights consents for the same crest (`e2e/flats.spec.ts` could no longer tell them apart, and
+ * neither could a person). It is brand-scoped -- `/api/artwork` answers for the brand -- and every
+ * picture picker on Brand Studio chooses from exactly these rows, so Brand Studio is its screen.
+ */
 test.describe("the brand's own artwork", () => {
-  test("opens from the Logos tool, beside the logos placed on this design", async ({ page }) => {
+  test("is a section of Brand Studio's Overview, with the upload and what it says about a file", async ({ page }) => {
     await signedIn(page, "artwork-door");
-    await startDesign(page, "Artwork shirt");
-
-    await openTool(page, "Logos");
-    const heading = page.getByRole("heading", { name: "Your artwork" });
-    await expect(heading).toBeVisible();
+    await page.goto("/brand-studio");
 
     const panel = page.getByRole("region", { name: "Your artwork" });
-    // What the panel is for, and the promise Brand Studio's empty state makes about it.
+    await expect(panel.getByRole("heading", { name: "Your artwork" })).toBeVisible();
     await expect(panel).toContainText("how sharply it would print");
-    await expect(panel).toContainText("Brand Studio");
+    await expect(panel).toContainText("belongs to the brand");
     // The upload itself, with its own rights tick and the formats it takes.
     await expect(panel.locator("input[type='file']")).toBeAttached();
     await expect(panel.getByRole("button", { name: "Add artwork" })).toBeVisible();
+    // And one rights consent on the page, not two.
+    expect(await page.getByLabel("I own this logo or have permission to use it on garments.").count()).toBe(1);
 
-    await accessible(page, "[data-tool='logos']");
+    await accessible(page);
     await noSidewaysScroll(page);
   });
 
-  test("is the screen Brand Studio sends a brand to for its crest", async ({ page }) => {
+  test("is where Brand Studio sends a brand that has no crest to choose", async ({ page }) => {
     await signedIn(page, "artwork-brand-studio");
     await page.goto("/brand-studio?tab=logos");
 
-    // With no upload yet, Brand Studio names the one thing that fills it: a design's artwork.
-    await expect(page.getByText(/Upload your logo in a design's artwork first/)).toBeVisible();
-    await page.getByRole("link", { name: "Open a design" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    // The empty state offers the section that fills it, on this same page.
+    await expect(page.getByText(/Add your logo to your artwork first/)).toBeVisible();
+    await page.getByRole("link", { name: "Your artwork" }).click();
+    await expect(page.getByRole("region", { name: "Your artwork" }).getByRole("button", { name: "Add artwork" })).toBeVisible();
+  });
+
+  test("leaves the design workspace's Logos tool with one upload, not two", async ({ page }) => {
+    await signedIn(page, "artwork-one-upload");
+    await startDesign(page, "One upload shirt");
+
+    await openTool(page, "Logos");
+    const logos = page.locator("[data-tool='logos']");
+    expect(await logos.getByLabel("I own this logo or have permission to use it on garments.").count()).toBe(1);
+    await expect(logos.getByRole("heading", { name: "Your artwork" })).toHaveCount(0);
   });
 });
 
