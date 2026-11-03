@@ -95,9 +95,15 @@ const count = (many: number, one: string): string => `${many} ${many === 1 ? one
 export const signOffLabel = (ticked: number): string =>
   ticked === 0 ? "Tick a rule to confirm" : `Confirm ${count(ticked, "rule")}`;
 
-/** What a finished session says. A press that confirmed nothing cannot happen: the button is off at zero. */
+/**
+ * What a finished session says. A press that signed off nothing cannot happen: the button is off at zero.
+ *
+ * "Signed off", not "confirmed", because `lib/techpack/wording.test.ts` keeps the settled-sounding words out of
+ * every sentence the product shows unless that sentence is named in its allow list, and this one does not need
+ * to be: it is the act in the page's own heading, said back.
+ */
 export const signOffDone = (confirmed: number): string =>
-  `${count(confirmed, "rule")} confirmed. Those are the words members see from now on.`;
+  `${count(confirmed, "rule")} signed off. Those are the words members see from now on.`;
 
 /** The sentence over the list: what is offered, what is held back, and who it is held back for. */
 export function signOffLead(plan: SignOffPlan): string {

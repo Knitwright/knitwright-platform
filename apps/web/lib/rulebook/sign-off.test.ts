@@ -109,7 +109,7 @@ describe("what the form says", () => {
     expect(signOffLabel(0)).toBe("Tick a rule to confirm");
     expect(signOffLabel(1)).toBe("Confirm 1 rule");
     expect(signOffLabel(29)).toBe("Confirm 29 rules");
-    expect(signOffDone(29)).toBe("29 rules confirmed. Those are the words members see from now on.");
+    expect(signOffDone(29)).toBe("29 rules signed off. Those are the words members see from now on.");
   });
 
   it("says what is ticked, what is not, and who the rest wait for", () => {
