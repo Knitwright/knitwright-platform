@@ -408,7 +408,9 @@ POM or a callout be saved at all (Y2's question 1, Y4's question 1): all orchest
     `guardrails.safe_zone_mm` is a **10 mm** Knitwright default, and the 2D view draws the setting and names the rule beside
     it. **These two disagree on `main` today**: a design that keeps 10 mm passes the guardrail and does not meet the rule the
     guardrail cites. Reseed the setting to 15 mm against `R-SUB-004`, or say where the 10 mm came from. (Y3, decision 0076
-    question 1.)
+    question 1.) **ANSWERED: the rule's figure wins, decision 0125.** The setting is reseeded from `R-SUB-004`, labelled
+    as the rule's figure rather than a Knitwright default, and a test reads the figure out of `rulebook.md` so the number
+    a check runs on and the rule a check cites cannot drift apart again. Where the 10 mm came from is still unknown.
 94. **Which decoration methods does each factory run?** Heat transfer, screen print and embroidery stay locked in the Library
     toolbar until the factory model records them, so sublimation is the only method the platform offers. Should
     `factory_capabilities` gain a methods column, or is sublimation the only method for now? (Y3, decision 0076 question 3.)
