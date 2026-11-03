@@ -44,12 +44,6 @@ type Group = Readonly<{
 
 const COMPONENT_GROUPS: readonly Group[] = [
   {
-    kind: "reported",
-    why: "The best-practice half of spec F-S5 v2, left unmounted on purpose by decision 0117, whose owner question 1 asks whether the editor gains a part chooser beside the Ask box, whether the Specs toolbar's panel selection is mapped to one of the rulebook's six parts, or whether the card waits for decision 0053's piece mapper so a click on the canvas means a part. All three are doors; which one is the owner's to pick, not a branch's.",
-    pr: null,
-    paths: ["components/rulebook/ask/BestPracticeCard.tsx"],
-  },
-  {
     kind: "helper",
     why: "Builders for the media screen's own tests: plain objects in the shape the API sends, imported by tests only.",
     pr: null,
@@ -82,12 +76,6 @@ const COMPONENT_GROUPS: readonly Group[] = [
 ];
 
 const ACTION_GROUPS: readonly Group[] = [
-  {
-    kind: "reported",
-    why: "The best-practice half of spec F-S5 v2, left unmounted on purpose by decision 0117, whose owner question 1 asks whether the editor gains a part chooser beside the Ask box, whether the Specs toolbar's panel selection is mapped to one of the rulebook's six parts, or whether the card waits for decision 0053's piece mapper so a click on the canvas means a part. All three are doors; which one is the owner's to pick, not a branch's.",
-    pr: null,
-    paths: ["lib/rulebook/ask/actions.ts: bestPracticeAction"],
-  },
   {
     kind: "reported",
     why: "The three board operations behind the task bar's More. Same door and same reason as components/flows/BoardActions.tsx: the shell that would call it is L1's, and decision 0124 names the lines it takes. The task bar already offers Flatten, Upscale and Reframe and hands them to the board's own panel, so what is missing is that panel, not the bar.",

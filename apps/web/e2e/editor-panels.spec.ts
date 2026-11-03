@@ -182,6 +182,63 @@ test.describe("the panels the shell never mounted", () => {
   });
 
   /**
+   * The other half of F-S5 v2, which had no door at all (decision 0117 owner question 1, answered: a part
+   * chooser beside the Ask box). `BestPracticeCard` and `bestPracticeAction` were built, tested and reachable
+   * by nobody, so this is the first time either runs in a browser.
+   *
+   * What a part's card says depends on what the rulebook holds, which is a seeded table and not this test's to
+   * assert. What is asserted is the door: six parts, exactly the six the action accepts, and a card that names
+   * the part it is about and carries a rule id -- the rulebook's own best practice, or `R-GAP-000` saying
+   * plainly that nothing is written for that part yet. Both are honest answers and the card has to be one.
+   */
+  test("puts the best-practice card behind a part chooser, beside the Ask box", async ({ page }) => {
+    await signedIn(page, "panels-best-practice");
+    await startJersey(page, "Best practice kit");
+    await openToolbar(page, "Specs");
+
+    const form = page.getByTestId("best-practice-form");
+    await expect(page.getByRole("heading", { name: "What good looks like" })).toBeVisible();
+    const parts = ["Collar and neck", "Sleeves", "Body", "Artwork and print", "Names and numbers", "Labels"];
+    for (const part of parts) await expect(form.getByRole("button", { name: part, exact: true })).toBeVisible();
+    await expect(form.getByRole("group")).toBeVisible();
+
+    await form.getByRole("button", { name: "Artwork and print", exact: true }).click();
+    const card = page.getByTestId("best-practice-result");
+    await expect(card.getByRole("group", { name: "Best practice: Artwork and print" })).toBeVisible();
+    await expect(card).toContainText("Best practice · Artwork and print");
+
+    /*
+     * AND WHAT IT SAYS TODAY IS THAT NOTHING IS WRITTEN FOR THIS PART.
+     *
+     * Every rule the rulebook migration seeds is `status = 'draft'` -- the four `'confirmed'`
+     * strings in that file are its schema and its functions, not its rows -- and owner decision 11
+     * keeps a draft's words from a member: `inForce` shows a member only a confirmed version. So a
+     * member sees the gap line for all six parts until somebody confirms rules in `/admin/rulebook`.
+     *
+     * That is the honest answer and not a hole: `R-GAP-000` is the id for "no entry says this yet",
+     * and the card carries its "Why?" so a person can read what the gap means. The assertion is
+     * written as the two readings this card has -- the rulebook's own lines, each with its rule id,
+     * or the gap line -- so confirming a print rule makes this test pass for the better reason
+     * rather than needing a rewrite.
+     */
+    await expect(card).toContainText(/R-[A-Z]+-[0-9]{3}|has no best practice written for/);
+    /*
+     * And it explains itself to a screen reader by naming its rule, whichever reading it is.
+     *
+     * `whyButtonProps` sets `aria-label` to `Why? Rulebook <ruleId>`, which *overrides* the visible text --
+     * so the accessible name carries the rule id even where the words say "What this means". That is the
+     * stronger invariant and the one worth holding: a person who cannot see the card is still told which rule
+     * the answer comes from, and `R-GAP-000` names the gap just as plainly as a real rule names itself.
+     */
+    await expect(card.getByRole("button", { name: /^Why\? Rulebook R-[A-Z]+-[0-9]{3}$/ })).toBeVisible();
+
+    // A second part replaces the first, so the card is never about two things at once.
+    await form.getByRole("button", { name: "Labels", exact: true }).click();
+    await expect(card.getByRole("group", { name: "Best practice: Labels" })).toBeVisible();
+    await expect(card.getByRole("group", { name: "Best practice: Artwork and print" })).toHaveCount(0);
+  });
+
+  /**
    * Y5's panel, and the one thing the review said the route had to supply with it: the Excel
    * download. The gate is open for a fresh jersey — the drafter raises warnings, not blockers — and
    * the panel still says that the Review tab has not checked this version.

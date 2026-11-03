@@ -2,6 +2,7 @@
 
 import { InspirationPanel } from "@/components/inspiration/InspirationPanel";
 import { AskBox } from "@/components/rulebook/ask/AskBox";
+import { BestPractice } from "@/components/rulebook/ask/BestPractice";
 import type { EditorSlotProps, RailSegment } from "@/lib/editor";
 import { SEGMENTS, segmentPanelId, segmentTabId } from "@/lib/editor";
 import LibraryToolbar from "./library/LibraryToolbar";
@@ -102,6 +103,14 @@ function SpecsBody({ slot }: Readonly<{ slot: EditorSlotProps }>) {
          * the design's method would be a guess, so the question is scoped to the article alone.
          */}
         <AskBox {...(code ? { articleCode: code } : {})} />
+        {/*
+         * The other half of F-S5 v2, beside the half that was already here. Decision 0117's owner question 1
+         * asked how a part gets selected -- a chooser here, a mapping from the Specs toolbar's panel selection,
+         * or decision 0053's piece mapper making a click on the canvas mean a part. The owner chose the chooser.
+         * A mapping was the one option to avoid: the Specs toolbar picks a *pattern panel*, which is a different
+         * vocabulary covering three of the rulebook's six parts at best, so it would have been a guess.
+         */}
+        <BestPractice {...(code ? { articleCode: code } : {})} />
       </div>
     </>
   );

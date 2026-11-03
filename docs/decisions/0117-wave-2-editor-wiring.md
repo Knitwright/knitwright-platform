@@ -245,6 +245,10 @@ worse than an honest absence.
    piece mapper (decision 0053) that would make a click on the canvas mean a part? Until this is
    answered, `BestPracticeCard` and `bestPracticeAction` stay built and unmounted on purpose — the
    half of Ask that spec F-S5 asks for and that no one can reach.
+   **ANSWERED: a part chooser beside the Ask box, decision 0126.** The mapping was the option to
+   avoid — the Specs toolbar picks a pattern panel, a different vocabulary covering three of the six
+   parts at best — and the piece mapper is still worth building; the chooser is six buttons and is
+   deleted in one commit if it arrives.
 2. **Two names-and-numbers editors.** Decision 0027's controls are on the `Names` tool and Y8's
    F-S4 panel opens from the Design Summary. They write the same stored fields, so they cannot
    disagree, but a person can meet either. Which one survives, and may the other be taken out with
@@ -270,3 +274,7 @@ worse than an honest absence.
    spare: widening the icon column narrows the canvas, and spanning the toggle across the rail
    takes 3.75rem of height off the toolbar panel, which is already enough to push a lazily loaded
    tool panel out of sight. Three words in a gutter, a wider rail, or shorter labels — which?
+   **ANSWERED: it stays upright, decision 0126.** Neither horizontal route is worth what it costs —
+   the canvas is the point of that screen, and the spanning version was proved in CI to strand the
+   Media tool's panel below the fold. The departure from the spec's wording is deliberate and
+   recorded.
