@@ -24,7 +24,7 @@ const PLACES = [
   { label: "Templates", url: /\/templates$/, heading: null },
   { label: "Mockups", url: /\/mockups$/, heading: "Mockups" },
   { label: "Marketing", url: /\/marketing$/, heading: "Marketing" },
-  { label: "Products", url: /\/catalogue$/, heading: null },
+  { label: "Products", url: /\/products$/, heading: null },
   { label: "Projects", url: /\/studio$/, heading: null },
   { label: "Orders", url: /\/orders$/, heading: "Orders" },
   { label: "Store", url: /\/store$/, heading: "Store" },
@@ -147,7 +147,7 @@ test.describe("the shell's menus", () => {
 test.describe("the route map", () => {
   test("the v3.9 addresses a v2.2 page serves, and /brand, redirect", async ({ page }) => {
     await signedIn(page, "shell-redirects");
-    for (const [from, to] of [["/projects", /\/studio$/], ["/products", /\/catalogue$/], ["/team", /\/club$/], ["/brand", /\/brand-studio$/]] as const) {
+    for (const [from, to] of [["/projects", /\/studio$/], ["/team", /\/club$/], ["/brand", /\/brand-studio$/]] as const) {
       await page.goto(from);
       await expect(page).toHaveURL(to);
     }

@@ -136,14 +136,13 @@ test.describe("the founder journey (R3)", () => {
     const email = await signedIn(page, "r3-founder", `Founder Athletic ${id}`);
 
     // The catalogue of base articles: every one the platform can make.
-    await page.goto("/catalogue");
-    await expect(page.getByRole("heading", { level: 1, name: "Base products and templates" })).toBeVisible();
+    await page.goto("/products/all");
     await expect(page.getByRole("list", { name: "Base products" }).locator("> li")).toHaveCount(8);
 
     // The base article this journey is made from. TEE-TR-01 is one of the seven that publish no
     // measurement at all (decision 0090), and the size chart says so instead of showing a table.
-    await page.goto("/catalogue/TEE-TR-01");
-    await expect(page.getByRole("region", { name: "Size chart" })).toContainText(
+    await page.goto("/products/TEE-TR-01");
+    await expect(page.getByRole("region", { name: "Size guide" })).toContainText(
       "This article has no measurements on file yet. The build pack gives them for the worked article only.",
     );
     // Wall 2, where a founder meets it first: the market panel has a Delivery row and no date in it.
@@ -156,18 +155,13 @@ test.describe("the founder journey (R3)", () => {
     await expect(market).toContainText("ISO 3758 is a paid standard and is not in this repository");
     await expect(market).not.toContainText(/Delivery 20\d\d-/);
 
-    // The hand-off into the editor. It is a sentence and a plain link: no article code is carried
-    // over, so the founder picks the garment again by its name on the next screen.
-    const start = page.getByRole("region", { name: "Start a design from this base" });
-    await expect(start).toContainText('Choose "Crew neck tee" on the next screen.');
-    await start.getByRole("link", { name: "New design" }).click();
-    await expect(page).toHaveURL(/\/studio\/new$/);
-
-    const name = `Founder tee ${id}`;
-    await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
-    await page.getByLabel("Made for").selectOption({ label: "Women" });
-    await page.getByLabel("Design name").fill(name);
-    await page.getByRole("button", { name: "Create design" }).click();
+    // The hand-off into the editor (plan v6 P4, decision 0142): Design this opens the configurator on this
+    // base, and Create my design makes the design on its garment type and opens the editor.
+    const name = "Training tee, stock-colour fabric";
+    await page.getByRole("button", { name: "Design this" }).click();
+    const configurator = page.getByRole("dialog", { name });
+    await configurator.getByRole("button", { name: "Made for: Women" }).click();
+    await configurator.getByRole("button", { name: /^Create my design/ }).click();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
     const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
     expect(projectId).not.toBe("");

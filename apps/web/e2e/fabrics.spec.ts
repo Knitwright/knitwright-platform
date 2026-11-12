@@ -7,7 +7,7 @@ test.describe("fabrics", () => {
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
 
-    await page.goto("/brands/fabrics");
+    await page.goto("/products/fabrics");
     await expect(page.getByRole("heading", { name: "Fabrics and sizes" })).toBeVisible();
 
     // The three benchmark fabrics are there with nothing set, so nothing is scaled.
@@ -41,7 +41,7 @@ test.describe("fabrics", () => {
     const email = await createAccount("size-map");
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brands/fabrics");
+    await page.goto("/products/fabrics");
 
     await expect(page.getByText("size labels have a suggested pattern size only")).toBeVisible();
     await expect(page.getByRole("row", { name: /Junior cut 16/ })).toContainText("Suggested by Knitwright");
@@ -56,7 +56,7 @@ test.describe("fabrics", () => {
     const email = await createAccount("size-map-undo");
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brands/fabrics");
+    await page.goto("/products/fabrics");
 
     const row = page.getByRole("row", { name: /Men's cut M/ });
     await expect(row).toContainText("Suggested by Knitwright");

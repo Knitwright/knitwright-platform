@@ -10,7 +10,7 @@ const APP = new URL("../../app/(app)/", import.meta.url);
 
 const pageAt = (address: string): boolean => {
   const folder = address.replace(/^\//, "").replace(/:code/, "[slug]");
-  return existsSync(new URL(`${folder}/page.tsx`, APP));
+  return [`${folder}/page.tsx`, `${folder}/(home)/page.tsx`].some((file) => existsSync(new URL(file, APP)));
 };
 
 describe("the moved pages", () => {

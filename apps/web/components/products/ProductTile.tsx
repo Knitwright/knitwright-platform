@@ -33,6 +33,7 @@ export function ProductTile({ card }: Readonly<{ card: ProductCardView }>) {
           {card.price.label}
         </p>
       ) : null}
+      {card.price.note ? <p className="text-micro font-medium text-warn">{card.price.note}</p> : null}
       <p className="text-caption text-muted">{card.proPrice}</p>
       <p className="text-caption text-muted">{card.spread}</p>
     </article>
