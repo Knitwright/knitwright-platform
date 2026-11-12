@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
+import { orderValidationGate } from "@/lib/make/order-gate";
 import { humanReviewGate, orderGate } from "@/lib/moderation/server";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -45,11 +46,22 @@ export const orderRunAction = defineAction({
   schema: runBody,
   handler: async ({ input, session }) => {
     const who = whoOf(session);
-    const sent = await placeOrder({ client: await sessionClient(), admin: adminClient() }, who, session.brand.role, input, {
-      // Before every order (spec F-G1; security review v5 H3, decision 0116).
-      order: orderGate({ brandId: who.brandId, userId: who.userId }, "brand run order"),
-      humanReview: humanReviewGate(),
-    });
+    const client = await sessionClient();
+    const admin = adminClient();
+    const sent = await placeOrder(
+      { client, admin },
+      who,
+      session.brand.role,
+      input,
+      {
+        // Before every order (spec F-G1; security review v5 H3, decision 0116).
+        order: orderGate({ brandId: who.brandId, userId: who.userId }, "brand run order"),
+        humanReview: humanReviewGate(),
+      },
+      // The version's own checks and the F-G2 checklist (plan v6 D1, decision 0132). The brand workspace
+      // works in GBP, so its pieces are labelled for the United Kingdom.
+      orderValidationGate({ client, admin, who, brandName: session.brand.name, country: "GB" }),
+    );
     revalidatePath("/brand");
     return sent;
   },
