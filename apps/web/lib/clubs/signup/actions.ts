@@ -45,7 +45,7 @@ import { isVisitorKey } from "@/lib/share/token";
  * check, and screened by moderation before anything is kept.
  */
 
-const refresh = (): void => revalidatePath("/collect");
+const refresh = (): void => revalidatePath("/team");
 
 /** The player's visitor key from their cookie, or a new one set in it. Scoped to /join. */
 const visitorKey = async (): Promise<string> => {

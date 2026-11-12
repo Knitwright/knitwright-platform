@@ -20,15 +20,18 @@ export const metadata: Metadata = { title: PAGE_TITLE };
  * record. The run itself is a server action the panel calls, because an import takes about a minute
  * and reads a site that may refuse us -- neither of which a page render should wait on.
  */
-export default async function BrandImportPage() {
+export default async function BrandImportPage({ searchParams }: PageProps<"/brand/import">) {
   const { brand } = await requireMember();
   const record = await loadRecord(await sessionClient(), brand);
+  // The address typed on the Brand page's empty state (decision 0144). Nothing runs until Read my site.
+  const typed = (await searchParams).url;
+  const initialUrl = typeof typed === "string" ? typed.slice(0, 2048) : "";
 
   return (
     <div className="flex flex-col gap-8">
-      <PageIntro eyebrow={`Brand Studio · you are ${ROLE_LABELS[brand.role].toLowerCase()}`} title={PAGE_TITLE} lead={PAGE_LEAD} />
+      <PageIntro eyebrow={`Brand · you are ${ROLE_LABELS[brand.role].toLowerCase()}`} title={PAGE_TITLE} lead={PAGE_LEAD} />
       <PageSection id="import" title="Read one page of your site" description="Nothing is taken into your brand until you choose it, row by row.">
-        <ImportPanel completion={completionView(record)} canEdit={can(brand.role, "manageKit")} />
+        <ImportPanel completion={completionView(record)} canEdit={can(brand.role, "manageKit")} initialUrl={initialUrl} />
       </PageSection>
     </div>
   );
