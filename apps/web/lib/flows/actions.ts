@@ -2,18 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
-import { launchProjectPath } from "@/lib/launch";
+import { launchProjectPath, type Graph } from "@/lib/launch";
 import { loadLaunchCanvas } from "@/lib/launch/server";
 import { generatedOutputFiles, saveBoard } from "@/lib/launch/service";
 import { refuseIfBlocked, screenText } from "@/lib/moderation/hooks";
 import { moderationDeps } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
+import type { MemberSession } from "@/lib/server/core/guard";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { listingPayload, listingVerdict } from "./listing";
 import { planOperation } from "./operations";
-import { applyFlowTemplateBody, flowOperationBody, publishFlowListingBody, runFlowBody } from "./schemas";
+import { productionRegistry } from "./real/server";
+import { planRemix } from "./remix";
+import { applyFlowTemplateBody, flowOperationBody, publishFlowListingBody, remixFlowBoardBody, runFlowBody } from "./schemas";
 import { applyFlowTemplate, publishFlowListing } from "./service";
 import { runFlowForBrand } from "./server";
 import { estimateFlow, flowCostSource } from "./cost";
@@ -31,6 +34,19 @@ import { estimateFlow, flowCostSource } from "./cost";
 const refresh = (launchProjectId: string): void => {
   revalidatePath(launchProjectPath(launchProjectId));
 };
+
+/**
+ * What every run is handed: the admin client, the person, and the real registry (decision 0133), so
+ * no action can run a board on the stub again. The registry is built from the graph the run uses.
+ */
+async function runDeps(session: MemberSession, launchProjectId: string, graph: Graph, route: string) {
+  const who = whoOf(session);
+  return {
+    admin: adminClient(),
+    who,
+    registry: productionRegistry({ client: await sessionClient(), who, launchProjectId, route }, graph),
+  };
+}
 
 /** The canvas, or a refusal. A canvas of another brand is a canvas that does not exist. */
 async function canvasOf(brandId: string, launchProjectId: string) {
@@ -76,10 +92,13 @@ export const runFlowAction = defineAction({
         `This run now costs ${estimate.credits} credits, not ${input.shownCredits}. Nothing has been spent; open the run panel to see the new figure.`,
       );
     }
-    const outcome = await runFlowForBrand(
-      { admin: adminClient(), who: whoOf(session) },
-      { launchProjectId: input.launchProjectId, graph, scope, template: null, costs },
-    );
+    const outcome = await runFlowForBrand(await runDeps(session, input.launchProjectId, graph, "runFlowAction"), {
+      launchProjectId: input.launchProjectId,
+      graph,
+      scope,
+      template: null,
+      costs,
+    });
     refresh(input.launchProjectId);
     return { runId: outcome.runId, assets: outcome.report.assets, spent: outcome.report.spent, refunded: outcome.report.refunded };
   },
@@ -119,18 +138,64 @@ export const flowOperationAction = defineAction({
       inputVersion: board.inputVersion,
     });
     const after = await canvasOf(session.brand.id, input.launchProjectId);
-    const outcome = await runFlowForBrand(
-      { admin: adminClient(), who: whoOf(session) },
-      {
-        launchProjectId: input.launchProjectId,
-        graph: { boards: after.project.boards, edges: after.project.edges },
-        scope: { from: board.id, scope: "board" },
-        template: null,
-        costs: flowCostSource(after.costs),
-      },
-    );
+    const graph = { boards: after.project.boards, edges: after.project.edges };
+    const outcome = await runFlowForBrand(await runDeps(session, input.launchProjectId, graph, "flowOperationAction"), {
+      launchProjectId: input.launchProjectId,
+      graph,
+      scope: { from: board.id, scope: "board" },
+      template: null,
+      costs: flowCostSource(after.costs),
+    });
     refresh(input.launchProjectId);
     return { credits: outcome.report.spent, refunded: outcome.report.refunded, state: outcome.report.state, note: plan.note };
+  },
+});
+
+/**
+ * Remix (decision 0133): the selected generated picture, made again with a new attempt. The count is
+ * saved on the board and the board is rerun, so it is charged, refunded and recorded like any run,
+ * and the figure the person was shown is held to the server's own estimate, as Run is.
+ */
+export const remixFlowBoardAction = defineAction({
+  auth: "member",
+  rateLimit: LIMITS.clubWrite,
+  schema: remixFlowBoardBody,
+  handler: async ({ input, session }) => {
+    requireAbility(session, "manageKit");
+    const canvas = await canvasOf(session.brand.id, input.launchProjectId);
+    const board = canvas.project.boards.find((one) => one.id === input.boardId);
+    if (!board) throw new AppError("not_found", "That board does not exist.");
+    const plan = planRemix(board);
+    if (!plan.ok) throw new AppError("conflict", plan.reason);
+    const scope = { from: board.id, scope: "board" as const };
+    const estimate = estimateFlow({ boards: canvas.project.boards, edges: canvas.project.edges }, scope, flowCostSource(canvas.costs));
+    if (estimate.credits > input.shownCredits) {
+      throw new AppError("conflict", `A remix now costs ${estimate.credits} credits, not ${input.shownCredits}. Nothing has been spent.`);
+    }
+    await saveBoard(adminClient(), whoOf(session), {
+      launchProjectId: input.launchProjectId,
+      boardId: board.id,
+      kind: board.kind,
+      name: board.name,
+      x: board.at.x,
+      y: board.at.y,
+      width: board.size.width,
+      height: board.size.height,
+      settings: plan.settings,
+      inputVersion: board.inputVersion,
+    });
+    const after = await canvasOf(session.brand.id, input.launchProjectId);
+    const graph = { boards: after.project.boards, edges: after.project.edges };
+    const outcome = await runFlowForBrand(await runDeps(session, input.launchProjectId, graph, "remixFlowBoardAction"), {
+      launchProjectId: input.launchProjectId,
+      graph,
+      scope,
+      template: null,
+      costs: flowCostSource(after.costs),
+    });
+    refresh(input.launchProjectId);
+    const line = outcome.report.lines.find((one) => one.boardId === board.id) ?? null;
+    return { state: outcome.report.state, spent: outcome.report.spent, refunded: outcome.report.refunded, reason: line?.reason ?? null };
   },
 });
 
