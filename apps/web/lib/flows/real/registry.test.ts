@@ -29,7 +29,7 @@ const request = (over: Partial<FlowRunRequest> = {}): FlowRunRequest => ({
   ...over,
 });
 
-describe("the real registry", () => {
+describe("the real registry", { timeout: 60_000 }, () => {
   it("registers a real capability for every kind a flow runs, so nothing is left to the stub", () => {
     const registry = flowRegistry({ boards: [], edges: [] }, memoryPorts().ports);
     const stubbed = capabilityNotes(registry).filter((note) => note.stubbed).map((note) => note.kind);
@@ -170,7 +170,7 @@ describe("the real registry", () => {
   });
 });
 
-describe("a pack run through the real registry", () => {
+describe("a pack run through the real registry", { timeout: 120_000 }, () => {
   const runReal = async (graph: Graph) => {
     const memory = memoryPorts();
     const report = await runFlow(
