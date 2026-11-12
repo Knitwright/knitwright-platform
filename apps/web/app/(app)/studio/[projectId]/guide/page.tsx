@@ -16,6 +16,8 @@ import { requireMember } from "@/lib/server/page-guards";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 import { lengthUnitFrom } from "@/lib/units/length";
+import { toCmOrIn } from "@/lib/units/preference";
+import { preferredLengthUnit } from "@/lib/units/server";
 
 export const metadata: Metadata = { title: "Guided design" };
 
@@ -27,7 +29,7 @@ const orNotFound = (error: unknown): never => {
 
 /** Plan step 15: one path from start to download, with the drawing and measurements always in view. */
 export default async function GuidePage({ params, searchParams }: PageProps<"/studio/[projectId]/guide">) {
-  const { brand } = await requireMember();
+  const { brand, userId } = await requireMember();
   const { projectId } = await params;
   const query = await searchParams;
   const client = await sessionClient();
@@ -49,7 +51,8 @@ export default async function GuidePage({ params, searchParams }: PageProps<"/st
       step={stepFrom(query.step)}
       from={startMethodFrom(query.from)}
       say={say}
-      unit={lengthUnitFrom(query.unit)}
+      // The address wins; without one, the person's unit from Settings (decision 0144).
+      unit={query.unit === undefined ? toCmOrIn(await preferredLengthUnit(userId)) : lengthUnitFrom(query.unit)}
       assistant={{ available: assistantAvailable(), conversation }}
       show3d={getEnv().SHOW_3D}
     />

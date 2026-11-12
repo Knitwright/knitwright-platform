@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type KeyboardEvent } from "react";
+import { usePreferredLengthUnit } from "@/components/units/LengthUnitContext";
 import { autoDesignName, type EditorSlotProps } from "@/lib/editor";
 import {
   LENGTH_UNITS,
@@ -55,7 +56,9 @@ const headerOf = (design: EditorSlotProps["design"]): OverviewHeader => ({
 
 export default function TechPackView({ design, commands }: EditorSlotProps) {
   const [tab, setTab] = useState<TechPackTabId>("overview");
-  const [unit, setUnit] = useState<LengthUnit>("mm");
+  // The person's unit from Settings (decision 0144); the toggle changes only this view.
+  const preferred = usePreferredLengthUnit();
+  const [unit, setUnit] = useState<LengthUnit>(preferred);
   const [mode, setMode] = useState<MeasurementMode>("measurement");
   const [extras, setExtras] = useState<readonly ExtraPom[]>([]);
   const tabs = useRef(new Map<TechPackTabId, HTMLButtonElement>());

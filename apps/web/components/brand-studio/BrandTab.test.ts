@@ -103,14 +103,14 @@ describe("an empty tab", () => {
   it("says what is missing and offers the brand page", () => {
     const html = render({ subject: "colour", colours: [] });
     expect(html).toContain("This brand has no palette yet.");
-    expect(html).toContain("/brand-studio");
+    expect(html).toContain("/brand");
     expect(html).toContain("Set up your brand");
   });
 
   it("says the same for fonts, and takes the caller's own words and link", () => {
     expect(render({ subject: "font", fonts: [] })).toContain("This brand has no font set yet.");
-    const html = render({ subject: "font", fonts: [], emptyMessage: "Nothing here.", manageHref: "/brand-studio?tab=fonts" });
+    const html = render({ subject: "font", fonts: [], emptyMessage: "Nothing here.", manageHref: "/brand?tab=fonts" });
     expect(html).toContain("Nothing here.");
-    expect(html).toContain("/brand-studio?tab=fonts");
+    expect(html).toContain("/brand?tab=fonts");
   });
 });

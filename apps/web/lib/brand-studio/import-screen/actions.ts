@@ -42,8 +42,8 @@ import { FONT_ROLES, STYLE_FIELDS } from "../words";
  * uploading from an address the browser chose.
  */
 
-const BRAND_STUDIO_PATH = "/brand-studio";
-const IMPORT_PATH = "/brand-studio/import";
+const BRAND_STUDIO_PATH = "/brand";
+const IMPORT_PATH = "/brand/import";
 
 /** The same roles that may change the club kit may change the brand record (decision 0042). */
 const who = (session: MemberSession) => {

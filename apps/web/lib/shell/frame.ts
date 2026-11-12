@@ -16,6 +16,10 @@ export const FULL_WIDTH: readonly string[] = [
   "/dev/ai-studio",
   "/templates",
   "/dev/pages",
+  "/team",
+  "/brand",
+  "/settings",
+  "/dev/p6",
 ];
 
 export type Frame = "full" | "column";

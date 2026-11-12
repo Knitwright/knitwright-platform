@@ -26,7 +26,7 @@ export interface ClubKitFacts {
 }
 
 /** Said on everything read through, so nobody edits it in the wrong place. */
-export const CLUB_KIT_NOTE = "From your club kit. Change it on the Club page.";
+export const CLUB_KIT_NOTE = "From your club kit. Change it on the Sportswear tab.";
 
 export const CLUB_KIT_PALETTE_ID = "club-kit";
 
