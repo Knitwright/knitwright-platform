@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { PRODUCT } from "@/lib/config/product";
 import { helpHref } from "@/lib/shell/menus";
 import type { Workspace } from "@/lib/shell/nav";
+import { PlansHost } from "@/components/plans/PlansHost";
 import { HelpBubble } from "./HelpBubble";
 import { Rail } from "./Rail";
 import { ShellMain } from "./ShellMain";
@@ -30,6 +31,8 @@ export function AppShell({ data, children }: Readonly<{ data: ShellData; childre
         <ShellMain>{children}</ShellMain>
       </div>
       <HelpBubble href={help} />
+      {/* The plans modal Upgrade and every ♛ gate open (decision 0144). */}
+      <PlansHost />
     </div>
   );
 }

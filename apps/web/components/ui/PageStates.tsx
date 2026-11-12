@@ -5,6 +5,7 @@ import { cx } from "./cx";
 import { Icon } from "./Icon";
 import { PremiumMark } from "./Marks";
 import { PRODUCT } from "@/lib/config/product";
+import { openPlans, planIdFromName } from "@/lib/plans/modal-store";
 
 /**
  * The page and data states of docs/spec/10-design-system.md §9. Loading is `SkeletonPage` and
@@ -113,7 +114,8 @@ export function NoPermission({
 
 /**
  * Premium-gated (§9): the control stays visible with ♛ top right; pressing it opens the plan
- * modal on the plan named. The feature is never hidden.
+ * modal on the plan named. The feature is never hidden. With no `onUpgrade` it opens the shell's
+ * plans modal (decision 0144) with that plan ringed.
  */
 export function PremiumGate({
   label,
@@ -124,7 +126,7 @@ export function PremiumGate({
 }: Readonly<{ label: string; plan: string; onUpgrade?: () => void; icon?: ReactNode; className?: string }>) {
   return (
     <span className={cx("relative inline-flex", className)}>
-      <Button variant="secondary" icon={icon} onClick={onUpgrade} aria-label={`${label}, needs ${plan}`} data-plan={plan}>
+      <Button variant="secondary" icon={icon} onClick={onUpgrade ?? (() => openPlans({ kind: "plans", plan: planIdFromName(plan) }))} aria-label={`${label}, needs ${plan}`} data-plan={plan}>
         {label}
       </Button>
       <PremiumMark label={`Needs ${plan}`} className="pointer-events-none absolute -top-1.5 -right-1.5 grid size-5 rounded-full bg-bg shadow-e1" />

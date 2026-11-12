@@ -211,6 +211,7 @@ export default defineConfig({
             "parametric",
             "pattern-library",
             "pattern-service",
+            "plans",
             "print",
             "production",
             "proofs",
