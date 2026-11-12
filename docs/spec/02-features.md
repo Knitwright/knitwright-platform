@@ -1,5 +1,7 @@
 # 02 · Features
 
+> **v3.0 (6 Nov 2026): UI is superseded.** All screens now copy Kittl's interface, following `08-ui-kittl-shell.md` and `prototype/index.html`. Use this file for **behaviour, data, rules and acceptance tests only**. Ignore its layouts and wireframes wherever they differ from `08`. In particular, the Fabra-style editor layout in F-S4 is replaced by the Kittl canvas with a Garment board (`08` §5.2).
+
 Each feature has an ID used in the build plan (`06-build-plan.md`), the data it touches (`03-data-model.md`) and acceptance tests. Wireframes are layout guides, not visual design. "Ref" points to rows and screenshots in `references/REFERENCES.md`.
 
 Feature groups:
