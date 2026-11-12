@@ -142,6 +142,12 @@ export default defineConfig({
         // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
         // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0106).
         "lib/store-contract/server.ts",
+        // Join the Templates, Mockups and Marketing pages to the library rows, the brand's designs and the
+        // mockup renderer; the rows, categories, cards and concepts they hand over are tested on their own, and
+        // the end-to-end tests cover the joining (plan v6 P2, decision 0140).
+        "lib/templates/feed/server.ts",
+        "lib/mockups/gallery/server.ts",
+        "lib/marketing/gallery/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -203,6 +209,7 @@ export default defineConfig({
             "job-packet",
             "launch",
             "launch-panels",
+            "launch-start",
             "make",
             "marketing",
             "markets",
