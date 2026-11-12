@@ -27,8 +27,8 @@ const signedIn = async (page: Page, label: string): Promise<string> => {
 
 const startPlan = async (page: Page, label: string): Promise<string> => {
   const name = `${label} ${randomUUID().slice(0, 8)}`;
-  await page.goto("/studio/collections");
-  await expect(page.getByRole("heading", { level: 1, name: "Collection plans" })).toBeVisible();
+  await page.goto("/orders/plans");
+  await expect(page.getByRole("heading", { level: 2, name: "Collection plans" })).toBeVisible();
   await page.getByLabel("Name this plan").fill(name);
   await page.getByLabel("Landed in").selectOption({ label: "United Kingdom (GBP)" });
   await page.getByRole("button", { name: "Start the plan" }).click();
@@ -105,7 +105,7 @@ test.describe("deleting a collection plan", () => {
     await page.getByLabel('Type "delete" to confirm').fill("delete");
     await page.getByRole("button", { name: "Delete this plan" }).click();
 
-    await expect(page).toHaveURL(/\/studio\/collections$/);
+    await expect(page).toHaveURL(/\/orders\/plans$/);
     await expect(page.getByRole("link", { name })).toHaveCount(0);
   });
 
@@ -116,7 +116,7 @@ test.describe("deleting a collection plan", () => {
     await page.getByRole("link", { name: "Delete this plan" }).click();
     await page.getByRole("link", { name: "Keep it and go back" }).click();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-    await page.goto("/studio/collections");
+    await page.goto("/orders/plans");
     await expect(page.getByRole("link", { name })).toBeVisible();
   });
 });

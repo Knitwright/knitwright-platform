@@ -32,8 +32,8 @@ const snapshot = (specVersion: number) => ({
 
 /** Starts a plan from the collections page and returns its id. */
 const startPlan = async (page: Page, name: string): Promise<string> => {
-  await page.goto("/studio/collections");
-  await expect(page.getByRole("heading", { level: 1, name: "Collection plans" })).toBeVisible();
+  await page.goto("/orders/plans");
+  await expect(page.getByRole("heading", { level: 2, name: "Collection plans" })).toBeVisible();
   await page.getByLabel("Name this plan").fill(name);
   // The United Kingdom explicitly: the seeded ladder carries GBP prices, and Australia sorts first.
   await page.getByLabel("Landed in").selectOption({ label: "United Kingdom (GBP)" });
@@ -41,7 +41,7 @@ const startPlan = async (page: Page, name: string): Promise<string> => {
   await expect(page.getByText(new RegExp(`${name} is ready`))).toBeVisible();
   await page.getByRole("link", { name }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  const id = /\/studio\/collections\/([0-9a-f-]{36})/.exec(page.url())?.[1];
+  const id = /\/orders\/plan\/([0-9a-f-]{36})/.exec(page.url())?.[1];
   if (!id) throw new Error(`No plan id in ${page.url()}`);
   return id;
 };
@@ -113,7 +113,11 @@ test.describe("the collection board", () => {
 
     // The studio sidebar now opens the plan (plan v5 Z4): no dead entry.
     await page.getByRole("navigation", { name: "Studio sections" }).getByRole("link", { name: "Collections" }).click();
-    await expect(page).toHaveURL(/\/studio\/collections$/);
+    await expect(page).toHaveURL(/\/orders\/plans$/);
+    // The plans moved from the studio to Orders (decision 0143); the old address answers with a 308.
+    const moved = await page.request.get("/studio/collections", { maxRedirects: 0 });
+    expect(moved.status()).toBe(308);
+    expect(moved.headers().location).toMatch(/\/orders\/plans$/);
 
     const name = `Spring drop ${randomUUID().slice(0, 8)}`;
     await page.getByLabel("Name this plan").fill(name);
@@ -154,8 +158,8 @@ test.describe("the line plan", () => {
     const planId = await startPlan(page, `Line plan ${randomUUID().slice(0, 8)}`);
     await addStyle(page, { name: "Tier jersey", colourway: "Navy", sizes: "M:19" });
 
-    await page.getByRole("navigation", { name: "How to see this plan" }).getByRole("link", { name: "Line plan" }).click();
-    await expect(page).toHaveURL(new RegExp(`/studio/collections/${planId}\\?view=line-plan$`));
+    await page.getByRole("navigation", { name: "How to see this plan" }).getByRole("link", { name: "List", exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/orders/plan/${planId}\\?view=list$`));
     await expect(page.getByText(/Unit cost is the Knitwright price tier/)).toBeVisible();
 
     // 19 pieces sit in the 10-19 tier: £29.00 the piece, plus £1.20 freight and 12% duty is not set for this

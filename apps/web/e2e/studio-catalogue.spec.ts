@@ -39,7 +39,7 @@ test.describe("the studio home", () => {
     await expect(sidebar.getByRole("link", { name: /^Products/ })).toHaveAttribute("href", "/studio");
     await expect(sidebar.getByRole("link", { name: "Base products" })).toHaveAttribute("href", "/catalogue");
     // Collections opens the collection plan of F-S10 (plan v5 Z4, decision 0085).
-    await expect(sidebar.getByRole("link", { name: "Collections" })).toHaveAttribute("href", "/studio/collections");
+    await expect(sidebar.getByRole("link", { name: "Collections" })).toHaveAttribute("href", "/orders/plans");
     // A Projects section that is not built still says so, and is not a link.
     await expect(sidebar.getByText("Moodboards", { exact: true })).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Moodboards" })).toHaveCount(0);

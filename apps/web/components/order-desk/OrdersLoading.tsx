@@ -1,7 +1,11 @@
 import { Skeleton, SkeletonPage } from "@/components/ui/Skeleton";
 
-/** The Orders area while it loads (10 §9): the title, the banner, the strip, the tabs and the table's rows. */
-export default function OrdersLoading() {
+/**
+ * An Orders tab while it loads (10 §9): the title, the banner, the strip, the tabs and the table's
+ * rows. Each tab's `loading.tsx` draws it; the order page and the plan page have none, so an address
+ * of another brand answers 404 before anything is sent.
+ */
+export function OrdersLoading() {
   return (
     <SkeletonPage label="Loading your orders" className="flex flex-col gap-5 pt-6">
       <Skeleton className="h-9 w-40" />
