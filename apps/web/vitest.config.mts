@@ -162,6 +162,8 @@ export default defineConfig({
         // The committee link and the roster sign-up are public pages a club's own people use without an
         // account, so they are held to the same mark (plan v5 Z7, decision 0087).
         "lib/clubs/signup/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
+        // The roster purge removes players' names on a schedule (plan v6 D5, decision 0136).
+        "lib/clubs/roster-retention/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
           [

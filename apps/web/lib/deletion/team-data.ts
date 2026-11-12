@@ -65,14 +65,19 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   { table: "roster_signup_links", holds: "no names: a token fingerprint and who made the link", erasableAlone: false },
   { table: "roster_signup_requests", holds: "a player's name and, when the manager has them, their phone number and email address", erasableAlone: false },
   { table: "roster_signup_entries", holds: "the name a player wants on the shirt, their number and their size", erasableAlone: false },
+  // Found by the name sweep (plan v6 D5, decision 0136). Both always went with their design or brand
+  // through their keys; they were simply never written down here.
+  { table: "share_responses", holds: "the name a visitor to a share link typed, their vote and their comment", erasableAlone: false },
+  { table: "pattern_reviews", holds: "the name and role of the technician who reviewed a pattern, and their note", erasableAlone: false },
 ];
 
 /**
- * Tables that hold an email address or a phone number and are deliberately NOT in the register
- * above, with the reason. The test beside this file requires every other table in every migration
- * that has such a column to be registered, so a new one cannot hold an address unnoticed.
+ * Tables that hold an email address, a phone number or a person's name and are deliberately NOT in
+ * the register above, with the reason. The test beside this file requires every other table in every
+ * migration that has such a column to be registered, or listed in NAMES_OF_THINGS, so a new one
+ * cannot hold an address or a name unnoticed.
  */
-export const ADDRESS_HOLDERS_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
+export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
   {
     table: "access_requests",
     why: "A request to be let in, made before any brand exists. It belongs to no brand, so no brand's deletion can take it; it is erased through the platform-admin screen instead.",
@@ -81,4 +86,25 @@ export const ADDRESS_HOLDERS_OUTSIDE_THE_REGISTER: readonly { table: string; why
     table: "takedown_notices",
     why: "A third party's report that a brand is using their mark. Erasing it with the brand would destroy the record of the complaint and of what was decided. Retention is an owner decision (security-v5, M3).",
   },
+  {
+    table: "designer_profiles",
+    why: "The name a designer chose to be credited by on their templates. It belongs to the person, not to a brand, and goes with their account (user_id on delete cascade).",
+  },
+  {
+    table: "rulebook_entries",
+    why: "The platform's rulebook, which names the factory person who reviewed a rule as its attribution (owner decision 14). It belongs to no brand; a reviewer's name is replaced by a new version of the rule.",
+  },
+];
+
+/**
+ * Tables with a `name` or `*_name` column that names a thing, not a person: a brand, a design, a
+ * fabric, a colour, a file, a tax, a season. Each was read before it was put here (decision 0136).
+ * A table that is brand data still goes with its brand; it is not personal data on its own.
+ */
+export const NAMES_OF_THINGS: readonly string[] = [
+  "brands", "projects", "pattern_blocks", "base_fabrics", "league_rule_sets", "user_artworks",
+  "factory_profiles", "brand_products", "base_articles", "package_exports", "programme_fabrics",
+  "programme_fabric_colours", "factories", "country_rules", "brand_palettes", "brand_colours", "brand_assets",
+  "golden_sample_colour_readings", "collections", "collection_frames", "collection_styles", "launch_projects",
+  "boards", "flow_template_steps", "ops_couriers",
 ];

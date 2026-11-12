@@ -40,6 +40,15 @@ pnpm exec supabase link --project-ref <ref>
 pnpm exec supabase db push
 ```
 
+Then fill the template library (starter designs, kit bundles, tech pack templates and marketing
+templates), with `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SECRET_KEY` set to the hosted project's:
+
+```
+pnpm --filter web seed:templates
+```
+
+Run it after every `db push`. Running it again adds nothing and leaves reviewed templates alone.
+
 ## 3. Authentication settings
 
 | Setting | Value | Why |

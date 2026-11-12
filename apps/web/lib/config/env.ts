@@ -100,7 +100,7 @@ const envSchema = z.object({
   // Paid video from fal runs only when this is exactly "true" and FAL_KEY is set (lib/media/video/select.ts).
   MEDIA_VIDEO_LIVE: z.string().regex(/^\S{1,20}$/).optional(),
   // The scheduler's own secret, sent as a bearer token to the weekly cut (app/api/cron/ops-cut-batches,
-  // decision 0100). Optional and server only: without it the route answers 503 and cuts nothing, because an
+  // decision 0100) and the daily roster purge (app/api/cron/roster-purge, decision 0136). Optional and server only: without it the route answers 503 and cuts nothing, because an
   // open cut is worse than a cut that never happens. Read from the process environment, like WHATSAPP_TOKEN.
   CRON_SECRET: z.string().min(16).optional(),
   // The secret the separate Store signs its reads with (app/api/store, decision 0106). Optional and server
