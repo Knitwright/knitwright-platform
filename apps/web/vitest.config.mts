@@ -213,6 +213,7 @@ export default defineConfig({
             "pattern-service",
             "print",
             "production",
+            "projects-page",
             "proofs",
             "quotes",
             "releases",
