@@ -63,7 +63,7 @@ function DiscountBanner({ discounts }: Readonly<{ discounts: readonly TierDiscou
  * is true today rather than showing a choice nobody made.
  */
 const SETTINGS = [
-  { label: "Order approval", value: "Checked by Knitwright ops" },
+  { label: "Order approval", value: "Handled by Knitwright ops" },
   { label: "Default shipping", value: "Not set yet" },
   { label: "Customs", value: "Not set yet" },
   { label: "Notifications", value: "Email from Knitwright ops" },

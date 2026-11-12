@@ -2592,6 +2592,9 @@ const CALLABLE = {
   "public.signup_is_open()": { anon: true, authenticated: true },
   "public.create_brand(p_name text)": { anon: false, authenticated: true },
   "public.rename_brand(p_brand_id uuid, p_name text)": { anon: false, authenticated: true },
+  // Decision 0143: an order's QC date, parcels and shared QC photos, for a member of the order's brand only.
+  "public.customer_order_milestones(p_order_ids uuid[])": { anon: false, authenticated: true },
+  "public.customer_order_tracking(p_order_id uuid)": { anon: false, authenticated: true },
   // Names of the caller's own brand's members, for "Made by" (tests/integration/member-names.test.ts).
   "public.brand_member_names(p_brand_id uuid)": { anon: false, authenticated: true },
   // Decision 0042: the caller's own club's members, and the invitations that name the caller's address.
