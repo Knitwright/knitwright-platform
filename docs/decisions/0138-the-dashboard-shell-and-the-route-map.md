@@ -31,6 +31,10 @@ wave 2 builds them.
    - **Phone** (below 768 px): the rail is hidden and the top bar starts with one Menu holding Create's entries, every
      place, the workspace pages and Help. `10` §4 asks the dashboard to work down to 1024 px with the rail kept; the
      phone layout is for the club and parent journeys that pass through signed-in pages.
+   - **Canvas** (the design editor and the launch canvas, `/studio/<id>/…` and `/launch/<id>/…`): no rail and no
+     help bubble at any width, and the top bar's Menu holds the places. `10` §4 gives the editor its own chrome and a
+     1280 px minimum, and with the rail beside it the launch canvas's centre column fell to 360 px at 1280, so its
+     dock covered its own boards (the first CI run of this change showed it). E1 replaces this with the editor's rail.
 2. **Menus.** Create, ⋯, the workspace avatar, ⊕, the account avatar and the phone Menu are one component,
    `ShellMenu`: U1's `Menu` (panel, keys, dismissal) with a caller-drawn trigger and link entries, so a place opens
    by ordinary navigation. Enter, Space and ↓ open on the first entry, ↑ on the last; the arrows, Home and End move

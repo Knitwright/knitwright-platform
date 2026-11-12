@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/Icon";
 import { KwCoin } from "@/components/ui/Marks";
+import { isCanvas } from "@/lib/shell/help";
 import { brandIsCurrent, type Workspace } from "@/lib/shell/nav";
 import { PhoneMenu } from "./PhoneMenu";
 import { TOP_SLOT_ID } from "./TopBarSlot";
@@ -34,7 +35,7 @@ export function TopBar(props: TopBarProps) {
 export function TopBarView({ path, email, brandName, workspace, credits, helpHref }: TopBarProps & Readonly<{ path: string }>) {
   return (
     <header className="flex h-19 shrink-0 items-center gap-4 px-4 md:pr-9 md:pl-10">
-      <PhoneMenu path={path} workspace={workspace} helpHref={helpHref} className="md:hidden" />
+      <PhoneMenu path={path} workspace={workspace} helpHref={helpHref} className={isCanvas(path) ? undefined : "md:hidden"} />
       <BrandPill name={brandName} isNew={!workspace.setUp} current={brandIsCurrent(path)} />
       <div id={TOP_SLOT_ID} className="flex min-w-0 flex-1 justify-center max-md:hidden" />
       <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-4">

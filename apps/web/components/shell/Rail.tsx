@@ -7,6 +7,7 @@ import { useId, useState } from "react";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/Icon";
 import { LogoTile } from "@/components/ui/Marks";
+import { isCanvas } from "@/lib/shell/help";
 import { WORKSPACE_ITEMS, initialOf } from "@/lib/shell/menus";
 import { RAIL, currentId, groupFor, groupStartsOpen, moreFor, type ShellPlace, type Workspace } from "@/lib/shell/nav";
 import { MenuItemLink } from "./MenuItems";
@@ -30,6 +31,8 @@ export function Rail({ workspace, brandName, helpHref }: RailProps) {
 /** The rail for a given address. Apart from `Rail` so it can be drawn with no router (tests, `/dev/shell`). */
 export function RailView({ path, workspace, brandName, helpHref }: RailProps & Readonly<{ path: string }>) {
   const current = currentId(path, workspace);
+  // A canvas has its own chrome (10 §4); the top bar's Menu holds the places there.
+  if (isCanvas(path)) return null;
   return (
     <nav
       aria-label="Main"
@@ -89,14 +92,14 @@ function RailGroup({ places, current, startsOpen }: RailGroupProps) {
 function WorkspaceMenu({ brandName }: Readonly<{ brandName: string }>) {
   return (
     <ShellMenu
-      label={`Workspace: ${brandName}`}
+      label="Workspace"
       side="right"
       align="end"
       header={<p className="truncate px-3 pt-1 pb-2 text-small text-muted">{brandName}</p>}
       trigger={(props) => (
         <button
           {...props}
-          aria-label={`Workspace: ${brandName}`}
+          aria-label="Workspace"
           className="grid size-10 place-items-center rounded-md bg-link text-body font-bold text-on-dark"
         >
           {initialOf(brandName)}

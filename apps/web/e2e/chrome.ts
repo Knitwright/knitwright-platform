@@ -106,7 +106,7 @@ export const openShellPlace = async (page: Page, label: string): Promise<void> =
   const nav = rail(page);
   if (!(await nav.isVisible())) {
     await page.locator("header").getByRole("button", { name: "Menu", exact: true }).click();
-    await page.getByRole("menu", { name: "Menu" }).getByRole("menuitem", { name: label, exact: true }).click();
+    await page.getByRole("menu", { name: "Menu", exact: true }).getByRole("menuitem", { name: label, exact: true }).click();
     return;
   }
   const link = nav.getByRole("link", { name: label, exact: true });

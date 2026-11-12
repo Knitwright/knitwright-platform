@@ -57,6 +57,11 @@ describe("the rail", () => {
     expect(rail("/studio", BRAND)).not.toContain('data-rail="team"');
   });
 
+  it("is not drawn on a canvas, which has its own chrome", () => {
+    expect(rail("/studio/0b5c3e4a-1111-4222-8333-944445555666")).toBe("");
+    expect(bar("/studio/0b5c3e4a-1111-4222-8333-944445555666")).toMatch(/<div class="relative"><button[^>]*aria-label="Menu"/);
+  });
+
   it("names the current page on ⋯ when it is one of its own", () => {
     expect(rail("/teamwear")).toContain('aria-label="More, current: Teamwear"');
     expect(rail("/studio")).toContain('aria-label="More"');

@@ -134,7 +134,7 @@ test.describe("the shell's menus", () => {
 
   test("the workspace avatar switches brands, and ⊕ invites or adds credits", async ({ page }) => {
     await signedIn(page, "shell-workspace");
-    await rail(page).getByRole("button", { name: /^Workspace: / }).click();
+    await rail(page).getByRole("button", { name: "Workspace", exact: true }).click();
     await page.getByRole("menuitem", { name: "Switch brand" }).click();
     await expect(page).toHaveURL(/\/brands$/);
 
@@ -171,7 +171,7 @@ test.describe("the shell on a phone", () => {
     await expect(rail(page)).toBeHidden();
     const button = page.locator("header").getByRole("button", { name: "Menu", exact: true });
     await button.click();
-    const menu = page.getByRole("menu", { name: "Menu" });
+    const menu = page.getByRole("menu", { name: "Menu", exact: true });
     for (const label of ["New kit design", "AI Studio", "Projects", "Orders", "Launch", "Switch brand", "Help"]) {
       await expect(menu.getByRole("menuitem", { name: label, exact: true })).toBeVisible();
     }
