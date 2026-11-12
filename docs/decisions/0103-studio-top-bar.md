@@ -1,8 +1,8 @@
 # 0103: The studio top bar — one account menu, an overflow menu, and room to grow
 
-Status: Proposed; the owner's choice of both ways out of decision 0079 owner question 5, measured offline and in the
+Status: Superseded by decision 0138 (the dashboard shell replaces this top bar). Was: Proposed; the owner's choice of both ways out of decision 0079 owner question 5, measured offline and in the
 browser tests; Benchmarks keeps its sidebar entry as well; owner questions listed
-Index: Proposed; the bar's sections go from 625 px to 389 px and the account cluster from three controls to one, Teamwear, Launch and Benchmarks get the entry each workstream was waiting for, Collect deliberately gets none and is reached from the club page instead, the inline-link contrast pattern swept and five pages scanned for the first time, owner questions listed
+Index: Superseded by 0138; was proposed; the bar's sections go from 625 px to 389 px and the account cluster from three controls to one, Teamwear, Launch and Benchmarks get the entry each workstream was waiting for, Collect deliberately gets none and is reached from the club page instead, the inline-link contrast pattern swept and five pages scanned for the first time, owner questions listed
 Index title: The studio top bar: one account menu, an overflow menu, and room to grow
 Date: 2026-11-02
 Pull request: #134
