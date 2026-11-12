@@ -32,7 +32,7 @@ stay legible on the light theme.
    (`e2e/dev-ui.spec.ts`).
 4. **The compatibility block** (one marked section at the end of `globals.css`) gives every v2.2 name a light value:
    `canvas`, `surface`, `surface-solid` become white; `shell` soft; `ink` text; `ink-2` text-2; `muted` and `faint`
-   muted; `hairline` border; `tile` #F7F8FA (lighter than `soft`, so muted text on it still reads 4.55:1); `tile-2`
+   muted; `hairline` border; `tile` #F7F8FA (a little lighter than `soft`); `tile-2`
    soft-2; `chalk` text; `cobalt` navy; `cobalt-soft` link; `cobalt-wash` electric-soft; the `-wash` fills the §2
    status fills; the thread gradient link-to-navy. `glass` is a white card with a 1 px border; `chip-cta` a navy
    primary; `chip-btn` a white secondary; `lift` a shadow lift. In v2.2 classes "white" meant "the colour that stands
