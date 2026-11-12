@@ -100,7 +100,10 @@ export const runFlowAction = defineAction({
       costs,
     });
     refresh(input.launchProjectId);
-    return { runId: outcome.runId, assets: outcome.report.assets, spent: outcome.report.spent, refunded: outcome.report.refunded };
+    // The first board that did not finish, in its own words, so the shell can say why (decision 0133).
+    const stopped = outcome.report.lines.find((line) => line.state !== "ready" && line.reason !== null) ?? null;
+    const reason = stopped === null ? null : `${stopped.name || "A board"}: ${stopped.reason}`;
+    return { runId: outcome.runId, assets: outcome.report.assets, spent: outcome.report.spent, refunded: outcome.report.refunded, reason };
   },
 });
 

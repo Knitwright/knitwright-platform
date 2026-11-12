@@ -15,6 +15,7 @@ export * from "./info-card";
 export * from "./listing";
 export * from "./operations";
 export * from "./remix";
+export * from "./task-actions";
 export * from "./run";
 export * from "./stub";
 export * from "./summary";
