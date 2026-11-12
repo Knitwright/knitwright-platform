@@ -45,7 +45,7 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
     ]);
     await expect(cards.getByRole("link", { name: /^Browse products and templates/ })).toHaveAttribute("href", "/catalogue");
     // The range plan opens the collection plan of F-S10 (plan v5 Z4, decision 0085).
-    await expect(cards.getByRole("link", { name: /^Range plan/ })).toHaveAttribute("href", "/studio/collections");
+    await expect(cards.getByRole("link", { name: /^Range plan/ })).toHaveAttribute("href", "/orders/plans");
     // A card that is not built still says so, and is not a link.
     await expect(cards.getByRole("link", { name: /^Mood board/ })).toHaveCount(0);
     await expect(cards.getByText("Coming in a later release").first()).toBeVisible();
