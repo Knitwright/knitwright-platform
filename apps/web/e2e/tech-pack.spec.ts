@@ -29,7 +29,7 @@ const SECTIONS: readonly (readonly [string, readonly string[]])[] = [
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const startDesign = async (page: Page, type: string, name = "Tech pack test"): Promise<void> => {
@@ -137,7 +137,7 @@ test.describe("the tech pack page", () => {
     const email = await createAccount("pack-flats");
     await leaveWithoutChart(email, "crew-tee", "women");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Crew neck tee");
     await openTechPack(page);
     await section(page, "Flats");
@@ -351,7 +351,7 @@ test.describe("isolation between brands", () => {
     try {
       const stranger = await other.newPage();
       await signIn(stranger, await createAccount("pack-stranger"));
-      await expect(stranger).toHaveURL(/\/studio$/);
+      await expect(stranger).toHaveURL(/\/projects\/recent$/);
 
       const response = await stranger.goto(path);
 

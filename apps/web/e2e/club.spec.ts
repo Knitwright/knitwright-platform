@@ -19,18 +19,19 @@ const admin = () =>
 test.describe("club workspace (V4)", () => {
   test("a season is made, a roster is imported, and next season starts with the same sizes", async ({ page }) => {
     await signIn(page, await createAccount("club"));
-    await expect(page).toHaveURL(/\/studio$/);
-    // A brand that has not said it is a club reaches its club page from the rail's ⋯ (decision 0138).
-    await openShellPlace(page, "Club and members");
-    await expect(page).toHaveURL(/\/club$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
+    // A brand that has not said it is a club reaches Team from the rail's ⋯ (decisions 0138, 0144).
+    await openShellPlace(page, "Team and rosters");
+    await expect(page).toHaveURL(/\/team$/);
     // The first accessibility scan of this page. With no design yet, the Designs section is one
     // line of prose holding a link that colour alone used to carry (decision 0103).
     await accessible(page);
 
+    await page.getByRole("navigation", { name: "Team" }).getByRole("link", { name: "Seasons" }).click();
+    await expect(page).toHaveURL(/\/team\?tab=seasons$/);
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
-    // The one way into Collect, which has no section of its own in the top bar on Z7's own
-    // recommendation: a section there costs about 90 px and this costs nothing (decision 0103).
-    await expect(seasons.getByRole("link", { name: "Collect", exact: true })).toHaveAttribute("href", "/collect");
+    // The sign-up link, which Collect held until decision 0144, is Team's own.
+    await expect(seasons.getByRole("link", { name: "player sign-up link", exact: true })).toHaveAttribute("href", "/team?view=signup");
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();
     await expect(seasons.getByText("The season is made.")).toBeVisible();
@@ -53,8 +54,8 @@ test.describe("club workspace (V4)", () => {
 
   test("erasing a season removes its players", async ({ page }) => {
     await signIn(page, await createAccount("club-erase"));
-    await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/club");
+    await expect(page).toHaveURL(/\/projects\/recent$/);
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("Gone");
     await seasons.getByRole("button", { name: "Make season" }).click();
@@ -74,8 +75,8 @@ test.describe("club workspace (V4)", () => {
     expect(error).toBeNull();
 
     await signIn(page, ownerEmail);
-    await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/club");
+    await expect(page).toHaveURL(/\/projects\/recent$/);
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();
@@ -86,21 +87,22 @@ test.describe("club workspace (V4)", () => {
     const other = await browser.newContext();
     const viewerPage = await other.newPage();
     await signIn(viewerPage, viewerEmail);
-    await expect(viewerPage).toHaveURL(/\/studio$/);
-    await viewerPage.goto("/club");
+    await expect(viewerPage).toHaveURL(/\/projects\/recent$/);
+    await viewerPage.goto("/team?tab=seasons");
     const theirs = viewerPage.getByRole("region", { name: "Seasons and rosters" });
     // The newest season opens by itself.
     await expect(theirs.getByLabel("Name, player 1")).toBeDisabled();
     await expect(theirs.getByRole("button", { name: "Save roster" })).toHaveCount(0);
     await expect(theirs.getByLabel("New season")).toHaveCount(0);
+    await viewerPage.goto("/brand?tab=sportswear");
     await expect(viewerPage.getByText("Your role can look at the kit but not change it.")).toBeVisible();
     await other.close();
   });
 
   test("an owner saves the kit", async ({ page }) => {
     await signIn(page, await createAccount("club-kit"));
-    await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/club");
+    await expect(page).toHaveURL(/\/projects\/recent$/);
+    await page.goto("/brand?tab=sportswear");
     const kit = page.getByRole("region", { name: "Club kit" });
     await kit.getByLabel("Main colour, pick").fill("#0b3d91");
     await kit.getByRole("button", { name: "Add a sponsor" }).click();

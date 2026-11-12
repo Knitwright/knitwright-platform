@@ -21,7 +21,7 @@ const admin = () =>
 async function startDesignWithPattern(page: Page, name: string): Promise<{ projectId: string; email: string }> {
   const email = await createAccount("print-files");
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   await page.goto("/studio/new");
   await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
   await page.getByLabel("Made for").selectOption({ label: "Women" });

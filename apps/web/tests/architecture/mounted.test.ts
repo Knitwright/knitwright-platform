@@ -142,9 +142,9 @@ describe("every component has a door", () => {
   });
 
   it("reaches a component a page really draws, and does not reach one nothing imports", () => {
-    // The traversal works: the studio home draws these, through two and three hops.
+    // The traversal works: Recent (the old studio home) draws these, through two and three hops.
     expect(sweep.reached.has("components/home/DesignCard.tsx")).toBe(true);
-    expect(sweep.reached.has("components/studio/home/ActionCards.tsx")).toBe(true);
+    expect(sweep.reached.has("components/projects/v3/StartCards.tsx")).toBe(true);
     // And it can tell: a test builder nothing mounts is not reachable.
     expect(sweep.reached.has("components/media/screen/fixtures.ts")).toBe(false);
   });
@@ -160,6 +160,12 @@ describe("every component has a door", () => {
       "components/flows/FlowThumbnail.tsx",
       "components/collections/RemoveStyle.tsx",
       "components/deletion/DeleteForm.tsx",
+      // The v3.9 Templates, Mockups and Marketing pages (plan v6 P2, decision 0140).
+      "components/templates/v3/TemplatesView.tsx",
+      "components/templates/v3/UseDesignTemplate.tsx",
+      "components/mockups/v3/MockupsView.tsx",
+      "components/marketing/v3/MarketingView.tsx",
+      "components/launch-start/StartLaunch.tsx",
     ]) {
       expect(sweep.reached.has(path), path).toBe(true);
     }
@@ -189,6 +195,9 @@ describe("every server action has a caller", () => {
     expect(sweep.unused).not.toContain("lib/collections/actions.ts: removeStyleAction");
     expect(sweep.unused).not.toContain("lib/launch/actions.ts: removeLaunchProjectAction");
     expect(sweep.unused).not.toContain("lib/flows/actions.ts: applyFlowTemplateAction");
+    // The dashboard pages' one door to a new launch canvas (decision 0140).
+    expect(sweep.unused).not.toContain("lib/launch-start/actions.ts: startLaunchAction");
+    expect(sweep.unused).not.toContain("lib/templates/actions.ts: useTemplateAction");
   });
 
   it("leaves no action uncalled but the ones named below, each with its reason", () => {
@@ -211,6 +220,11 @@ describe("every API route is a door somebody knocks on", () => {
   it("sees the undo this branch gave a brand: the size-map route has a caller now", () => {
     expect(sweep.routes).toContain("/api/fabrics/size-map");
     expect(sweep.unfetched).not.toContain("/api/fabrics/size-map");
+  });
+
+  it("sees the Mockups page's download: its cards write the address down (decision 0140)", () => {
+    expect(sweep.routes).toContain("/api/mockups/download");
+    expect(sweep.unfetched).not.toContain("/api/mockups/download");
   });
 
   it("finds the address a screen writes down, whether plainly or around an id", () => {

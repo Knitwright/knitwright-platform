@@ -14,7 +14,7 @@ const signedIn = async (page: Page, label: string): Promise<string> => {
   const email = await createAccount(label);
   await signIn(page, email);
   // signIn only presses the button: the session cookie arrives with the redirect.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   return email;
 };
 
@@ -23,9 +23,9 @@ const PLACES = [
   { label: "AI Studio", url: /\/ai-studio$/, heading: "AI Studio" },
   { label: "Templates", url: /\/templates$/, heading: null },
   { label: "Mockups", url: /\/mockups$/, heading: "Mockups" },
-  { label: "Marketing", url: /\/marketing$/, heading: "Marketing" },
+  { label: "Marketing", url: /\/marketing$/, heading: "Never run out of ideas for kit launches" },
   { label: "Products", url: /\/products$/, heading: null },
-  { label: "Projects", url: /\/studio$/, heading: null },
+  { label: "Projects", url: /\/projects$/, heading: "Projects" },
   { label: "Orders", url: /\/orders$/, heading: "Orders" },
   { label: "Store", url: /\/store$/, heading: "Store" },
 ] as const;
@@ -68,7 +68,7 @@ test.describe("the rail", () => {
     await signedIn(page, "shell-more");
     await rail(page).getByRole("button", { name: "More", exact: true }).click();
     const menu = page.getByRole("menu", { name: "More places" });
-    await expect(menu.getByRole("menuitem")).toHaveText(["Launch", "Teamwear", "Size charts", "Benchmarks", "Designer", "Club and members"]);
+    await expect(menu.getByRole("menuitem")).toHaveText(["Launch", "Teamwear", "Size charts", "Benchmarks", "Designer", "Team and rosters"]);
     await menu.getByRole("menuitem", { name: "Teamwear" }).click();
     await expect(page).toHaveURL(/\/teamwear/);
     // The button names the current page when it is one of its own.
@@ -82,12 +82,12 @@ test.describe("the rail", () => {
     await page.getByRole("radio", { name: "Club", exact: true }).check();
     await page.getByLabel("Club name").fill("Shell Rovers FC");
     await page.getByRole("button", { name: "Set up your club" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await openShellPlace(page, "Team");
-    await expect(page).toHaveURL(/\/club$/);
+    await expect(page).toHaveURL(/\/team$/);
     await rail(page).getByRole("button", { name: "More", exact: true }).click();
-    await expect(page.getByRole("menu", { name: "More places" }).getByRole("menuitem", { name: "Club and members" })).toHaveCount(0);
+    await expect(page.getByRole("menu", { name: "More places" }).getByRole("menuitem", { name: "Team and rosters" })).toHaveCount(0);
   });
 });
 
@@ -140,14 +140,22 @@ test.describe("the shell's menus", () => {
 
     await page.locator("header").getByRole("button", { name: "Invite or add credits" }).click();
     await page.getByRole("menuitem", { name: "Invite people" }).click();
-    await expect(page).toHaveURL(/\/club#members$/);
+    await expect(page).toHaveURL(/\/settings#members$/);
   });
 });
 
 test.describe("the route map", () => {
-  test("the v3.9 addresses a v2.2 page serves, and /brand, redirect", async ({ page }) => {
+  test("the v3.9 addresses a v2.2 page serves redirect, and a moved page's old address follows it", async ({ page }) => {
     await signedIn(page, "shell-redirects");
-    for (const [from, to] of [["/projects", /\/studio$/], ["/team", /\/club$/], ["/brand", /\/brand-studio$/]] as const) {
+    const moves = [
+      ["/studio", /\/projects\/recent$/],
+      ["/catalogue", /\/products$/],
+      ["/club", /\/team$/],
+      ["/collect", /\/team\?tab=approvals$/],
+      ["/brand-studio?tab=fonts", /\/brand\?tab=fonts$/],
+      ["/brand-studio/import", /\/brand\/import$/],
+    ] as const;
+    for (const [from, to] of moves) {
       await page.goto(from);
       await expect(page).toHaveURL(to);
     }

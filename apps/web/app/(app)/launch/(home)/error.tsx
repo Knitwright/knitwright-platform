@@ -20,7 +20,7 @@ export default function LaunchError({ error, reset }: Readonly<{ error: Error & 
         <Button type="button" onClick={reset}>
           Try again
         </Button>
-        <Link href={"/studio" as Route} className="soft-link text-cobalt-soft">
+        <Link href={"/projects/recent" as Route} className="soft-link text-cobalt-soft">
           Back to your designs
         </Link>
       </div>

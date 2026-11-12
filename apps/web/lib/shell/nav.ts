@@ -59,14 +59,14 @@ export const RAIL: readonly ShellPlace[] = [
   { id: "marketing", label: "Marketing", href: "/marketing", icon: "megaphone", owns: ["/marketing"] },
   // Products (plan v6 P4, decision 0142). `/catalogue` redirects here (lib/products/redirects.ts).
   { id: "products", label: "Products", href: "/products", icon: "package", owns: ["/products"] },
-  // The studio home serves Projects until P1 moves it.
-  { id: "projects", label: "Projects", href: "/studio", icon: "folder", owns: ["/studio", "/projects"] },
+  // Projects (P1, decision 0139): its own pages, and the design editor under /studio.
+  { id: "projects", label: "Projects", href: "/projects", icon: "folder", owns: ["/projects", "/studio"] },
 ];
 
 const ORDERS: ShellPlace = { id: "orders", label: "Orders", href: "/orders", icon: "truck", owns: ["/orders"] };
 const STORE: ShellPlace = { id: "store", label: "Store", href: "/store", icon: "store", owns: ["/store"] };
-// The club page serves Team until P6 moves it. Collect is reached from the club page's seasons.
-const TEAM: ShellPlace = { id: "team", label: "Team", href: "/club", icon: "users", owns: ["/club", "/team", "/collect"] };
+// Team (decision 0144): the roster, the committee's approvals and the seasons.
+const TEAM: ShellPlace = { id: "team", label: "Team", href: "/team", icon: "users", owns: ["/team"] };
 
 /** The ⌄ group: Orders, Store, and Team for a club workspace only. */
 export const groupFor = (workspace: Workspace): readonly ShellPlace[] =>
@@ -79,7 +79,7 @@ export const moreFor = (workspace: Workspace): readonly ShellPlace[] => [
   { id: "charts", label: "Size charts", href: "/studio/charts", icon: "ruler", owns: ["/studio/charts"] },
   { id: "benchmarks", label: "Benchmarks", href: "/studio/benchmarks", icon: "chart", owns: ["/studio/benchmarks"] },
   { id: "designer", label: "Designer", href: "/designer", icon: "pen", owns: ["/designer"] },
-  ...(workspace.isClub ? [] : [{ ...TEAM, id: "club", label: "Club and members" }]),
+  ...(workspace.isClub ? [] : [{ ...TEAM, id: "club", label: "Team and rosters" }]),
 ];
 
 /** Where a place is drawn: on the rail, in the ⌄ group, or in ⋯. */
@@ -125,5 +125,5 @@ export const groupStartsOpen = (path: string, workspace: Workspace): boolean => 
 /** True when ⋯ should read as current: the current page is one of its own. */
 export const moreIsCurrent = (path: string, workspace: Workspace): boolean => locate(path, workspace)?.where === "more";
 
-/** True when the brand pill is the current place: Brand Studio and the brand switcher are its pages. */
-export const brandIsCurrent = (path: string): boolean => ["/brand-studio", "/brands"].some((prefix) => inside(path, prefix));
+/** True when the brand pill is the current place: the Brand page and the brand switcher are its pages. */
+export const brandIsCurrent = (path: string): boolean => ["/brand", "/brands"].some((prefix) => inside(path, prefix));

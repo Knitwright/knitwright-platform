@@ -53,7 +53,7 @@ test.describe("marketing email consent", () => {
   test("the choice can be changed in Settings, and each change is a new record", async ({ page }) => {
     const email = await createAccount("consent-settings");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/settings");
     const box = page.getByLabel(BOX);

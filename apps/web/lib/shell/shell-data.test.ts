@@ -5,7 +5,7 @@ import { showsHelpBubble } from "./help";
 import { ACCOUNT_ITEMS, ADD_ITEMS, CREATE_ITEMS, WORKSPACE_ITEMS, helpHref, initialOf } from "./menus";
 import { closeFor, openAtFor, startIndex } from "./menu-keys";
 import { besideTrigger } from "./placement";
-import { ROUTE_ALIASES } from "./redirects";
+import { MOVED_PAGES, ROUTE_ALIASES } from "./redirects";
 import { AI_STUDIO_TABS, ORDERS_TABS } from "./tabs";
 import { UNKNOWN_WORKSPACE, loadWorkspace, workspaceOf } from "./workspace";
 
@@ -15,7 +15,7 @@ const APP = new URL("../../app/(app)/", import.meta.url);
 
 /** True when a page answers at this address: a folder under `app/(app)` holding a page.tsx. */
 const hasPage = (address: string): boolean => {
-  const folder = address.replace(/^\//, "").replace(/#.*$/, "").replace(/:(\w+)/g, "[$1]");
+  const folder = address.replace(/^\//, "").replace(/[?#].*$/, "").replace(/:(\w+)/g, "[$1]");
   const candidates = [new URL(`${folder}/page.tsx`, APP)];
   // Pages inside a route group, such as `studio/(home)`.
   for (const group of ["(home)", "(list)"]) candidates.push(new URL(`${folder}/${group}/page.tsx`, APP));
@@ -86,14 +86,21 @@ describe("the small helpers", () => {
 });
 
 describe("the redirects", () => {
-  it("are temporary, so a wave-2 page can take its address back", () => {
-    expect(ROUTE_ALIASES.every((alias) => alias.permanent === false)).toBe(true);
+  it("are temporary while a v2.2 page serves a v3.9 address, so a wave-2 page can take its address back", () => {
+    const aliases = ROUTE_ALIASES.filter((alias) => !alias.permanent);
+    for (const alias of aliases) expect(hasPage(alias.destination), alias.destination).toBe(true);
+    expect(aliases.map((alias) => alias.source)).not.toContain("/team");
+    expect(aliases.map((alias) => alias.source)).not.toContain("/brand");
   });
 
-  it("send /brand to Brand Studio, now that runs live under Orders", () => {
-    expect(ROUTE_ALIASES).toContainEqual({ source: "/brand", destination: "/brand-studio", permanent: false });
+  it("are permanent for a page that moved for good: the club page, Collect and Brand Studio (decision 0144)", () => {
+    expect(ROUTE_ALIASES).toContainEqual({ source: "/club", destination: "/team", permanent: true });
+    expect(ROUTE_ALIASES).toContainEqual({ source: "/collect", destination: "/team?tab=approvals", permanent: true });
+    expect(ROUTE_ALIASES).toContainEqual({ source: "/brand-studio", destination: "/brand", permanent: true });
+    expect(ROUTE_ALIASES).toContainEqual({ source: "/brand-studio/import", destination: "/brand/import", permanent: true });
     expect(hasPage("/orders/runs")).toBe(true);
-    expect(hasPage("/brand")).toBe(false);
+    expect(hasPage("/brand")).toBe(true);
+    expect(hasPage("/team")).toBe(true);
   });
 
   it("each lands on a page that exists, from an address that has none", () => {
@@ -101,6 +108,15 @@ describe("the redirects", () => {
       expect(hasPage(alias.destination), alias.destination).toBe(true);
       expect(hasPage(alias.source), alias.source).toBe(false);
     }
+  });
+
+  it("move a rebuilt page for good: /studio is Recent on Projects (decision 0139)", () => {
+    expect(MOVED_PAGES).toContainEqual({ source: "/studio", destination: "/projects/recent", permanent: true });
+    for (const moved of MOVED_PAGES) {
+      expect(hasPage(moved.destination), moved.destination).toBe(true);
+      expect(hasPage(moved.source), moved.source).toBe(false);
+    }
+    expect(ROUTE_ALIASES.map((alias) => alias.source)).not.toContain("/projects");
   });
 });
 

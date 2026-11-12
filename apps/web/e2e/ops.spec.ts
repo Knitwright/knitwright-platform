@@ -36,7 +36,7 @@ test.describe("the ops console", () => {
     for (const path of PATHS) expect((await page.goto(path))?.status(), path).toBe(404);
     const email = await createAccount("ops-member");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     for (const path of PATHS) expect((await page.goto(path))?.status(), path).toBe(404);
     const api = await page.request.get("/api/ops/batches/6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11/factory-sheet");
     expect(api.status()).toBe(404);
@@ -45,7 +45,7 @@ test.describe("the ops console", () => {
   test("is not linked from the studio", async ({ page }) => {
     const email = await createAccount("ops-nolink");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/studio");
     await expect(page.locator('a[href^="/ops"]')).toHaveCount(0);
   });
@@ -56,7 +56,7 @@ test.describe("the ops console", () => {
     const ref = `E2E-${Date.now()}`;
     await submitOrder(email, ref);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/ops");
     await expect(page.getByRole("heading", { name: "Batches", exact: true })).toBeVisible();

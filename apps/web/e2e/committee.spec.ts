@@ -67,14 +67,14 @@ test.describe("sharing a design with a committee", () => {
     const email = await createAccount("committee-owner", { brand: `Committee FC ${run}` });
     await signIn(page, email);
     // signIn only presses the button; the session cookie arrives with the redirect (plan v5 Lessons).
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, designName);
     const { userId, brandId } = await idsOf(email);
     await markChecked(projectId, brandId, userId);
 
-    // The club makes the link on Collect.
-    await page.goto("/collect");
-    await expect(page.getByRole("heading", { level: 1, name: "Ask your committee and your squad" })).toBeVisible();
+    // The club makes the link on Team › Approvals (Collect until decision 0144).
+    await page.goto("/team?tab=approvals");
+    await expect(page.getByRole("navigation", { name: "Team" }).getByRole("link", { name: "Approvals" })).toHaveAttribute("aria-current", "page");
     const design = page.getByRole("listitem").filter({ hasText: designName }).first();
     await expect(design.getByText("No committee link yet. Make one and send it to the people who decide.")).toBeVisible();
     await design.getByRole("button", { name: "Make a committee link" }).click();
@@ -158,10 +158,10 @@ test.describe("sharing a design with a committee", () => {
     const designName = `Withdrawn kit ${run}`;
     const email = await createAccount("committee-revoker", { brand: `Withdrawn FC ${run}` });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, designName);
 
-    await page.goto("/collect");
+    await page.goto("/team?tab=approvals");
     const design = page.getByRole("listitem").filter({ hasText: designName }).first();
     await design.getByRole("button", { name: "Make a committee link" }).click();
     const address = await page.getByTestId("committee-link-address").inputValue();

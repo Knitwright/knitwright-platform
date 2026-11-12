@@ -5,7 +5,7 @@ test.describe("fabrics", () => {
   test("adding a fabric test changes the print scale and says where the numbers came from", async ({ page }) => {
     const email = await createAccount("fabrics");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/products/fabrics");
     await expect(page.getByRole("heading", { name: "Fabrics and sizes" })).toBeVisible();
@@ -40,7 +40,7 @@ test.describe("fabrics", () => {
   test("the size labels are shown as suggested until the brand chooses", async ({ page }) => {
     const email = await createAccount("size-map");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/products/fabrics");
 
     await expect(page.getByText("size labels have a suggested pattern size only")).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("fabrics", () => {
   test("a brand can choose a pattern size for a label and then put the suggestion back", async ({ page }) => {
     const email = await createAccount("size-map-undo");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/products/fabrics");
 
     const row = page.getByRole("row", { name: /Men's cut M/ });

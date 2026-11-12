@@ -38,7 +38,7 @@ const waitForSet = async (page: Page, url: string): Promise<SetView> => {
 test.describe("media sets (W3-A)", () => {
   test("makes front, back and flat lay, serves them watermarked, then clean after the unlock", async ({ page }) => {
     await signIn(page, await createAccount("media", { brand: "Media Rovers" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startJersey(page);
     const url = `/api/projects/${projectId}/media`;
 
@@ -78,7 +78,7 @@ test.describe("media sets (W3-A)", () => {
 
   test("another brand cannot see the set or its pictures", async ({ page, browser }) => {
     await signIn(page, await createAccount("media-owner", { brand: "Media Owners" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startJersey(page);
     const url = `/api/projects/${projectId}/media`;
     await page.request.post(url, { data: {} });
@@ -88,7 +88,7 @@ test.describe("media sets (W3-A)", () => {
     await standInForBotCheck(context);
     const stranger = await context.newPage();
     await signIn(stranger, await createAccount("media-stranger", { brand: "Media Strangers" }));
-    await expect(stranger).toHaveURL(/\/studio$/);
+    await expect(stranger).toHaveURL(/\/projects\/recent$/);
     expect((await stranger.request.get(`${url}/${set.id}`)).status()).toBe(404);
     expect((await stranger.request.get(set.items[0]?.href ?? "")).status()).toBe(404);
     expect((await stranger.request.post(`${url}/${set.id}/unlock`, { data: {} })).status()).not.toBe(200);

@@ -26,9 +26,9 @@ export const CREATE_ITEMS: readonly MenuLink[] = [
   { id: "blank", label: "Blank canvas", href: "/studio/new", icon: "layers" },
 ];
 
-/** ⊕ in the top bar: invite people, or add credits. Members and roles are on the club page today. */
+/** ⊕ in the top bar: invite people, or add credits. Members and roles are in Settings (decision 0144). */
 export const ADD_ITEMS: readonly MenuLink[] = [
-  { id: "invite", label: "Invite people", href: "/club#members" as Route, icon: "user-plus" },
+  { id: "invite", label: "Invite people", href: "/settings#members" as Route, icon: "user-plus" },
   { id: "credits", label: "Add credits", href: "/credits", icon: "coins" },
 ];
 
@@ -37,7 +37,7 @@ export const ACCOUNT_ITEMS: readonly MenuLink[] = [{ id: "settings", label: "Set
 
 /** The rail's square avatar is the workspace: its Brand Studio, the brand switcher and its credits. */
 export const WORKSPACE_ITEMS: readonly MenuLink[] = [
-  { id: "brand-studio", label: "Brand Studio", href: "/brand-studio", icon: "palette" },
+  { id: "brand-studio", label: "Brand", href: "/brand", icon: "palette" },
   { id: "brands", label: "Switch brand", href: "/brands", icon: "swap" },
   { id: "credits", label: "Credits", href: "/credits", icon: "coins" },
 ];

@@ -91,7 +91,7 @@ const recordAndUpload = (page: Page, uploadUrl: string): Promise<Outcome> =>
 test.describe("turntable recording (W3-D)", () => {
   test("records a turntable in the browser and finds it in the media set", async ({ page }) => {
     await signIn(page, await createAccount("turntable", { brand: "Turntable Rovers" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startJersey(page);
     const url = `/api/projects/${projectId}/media`;
     await page.request.post(url, { data: {} });

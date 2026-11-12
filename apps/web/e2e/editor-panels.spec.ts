@@ -26,7 +26,7 @@ import { createAccount, signIn, test } from "./support";
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
   // The session cookie arrives with the redirect: follow it before going anywhere else.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 /** A team jersey is the worked base article JSY-SS-01, so it drafts and has approved options. */

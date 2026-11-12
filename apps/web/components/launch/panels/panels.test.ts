@@ -255,7 +255,7 @@ describe("the brand panel", () => {
 
   it("offers the way into the import screen as an underlined ink link, never the dimmed cobalt", () => {
     const html = render(createElement(BrandPanel, props()));
-    expect(html).toContain("/brand-studio/import");
+    expect(html).toContain("/brand/import");
     expect(html).toContain("underline");
     expect(html).not.toContain("text-cobalt-soft\"");
   });

@@ -52,7 +52,7 @@ test.describe("ops completion", () => {
     const id = "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11";
     const email = await createAccount("o1-member");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto("/ops/scorecard"))?.status()).toBe(404);
     expect((await page.request.get(`/api/ops/orders/${id}/commercial-invoice`)).status()).toBe(404);
   });
@@ -69,7 +69,7 @@ test.describe("ops completion", () => {
     const ref = `E2E-O1-${Date.now()}`;
     const orderId = await readyOrder(email, ref);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto(`/ops/orders/${orderId}/qc`);
     // Z8's own plan row decides the level and the limits, and its sentence is what ops reads first.
@@ -101,7 +101,7 @@ test.describe("ops completion", () => {
     const ref = `E2E-O1I-${Date.now()}`;
     const orderId = await readyOrder(email, ref);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto(`/ops/orders/${orderId}/shipping`);
     // The factory of this order is not on file, so the invoice names the gate instead of guessing an origin.
@@ -127,7 +127,7 @@ test.describe("ops completion", () => {
     // golden sample, which is exactly the state F-O6 calls "not active".
     const name = "Sialkot partner";
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/ops/scorecard");
     await expect(page.getByRole("heading", { level: 1, name: "Factory scorecard" })).toBeVisible();
     const card = page.getByTestId("scorecard").filter({ hasText: name });

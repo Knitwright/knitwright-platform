@@ -13,7 +13,7 @@ import { createAccount, passBotCheck, signIn, standInForBotCheck, test } from ".
  */
 
 const makeSeason = async (page: Page, name: string): Promise<void> => {
-  await page.goto("/club");
+  await page.goto("/team?tab=seasons");
   const seasons = page.getByRole("region", { name: "Seasons and rosters" });
   await seasons.getByLabel("New season").fill(name);
   await seasons.getByRole("button", { name: "Make season" }).click();
@@ -49,10 +49,10 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
     const email = await createAccount("signup-manager", { brand: `Signup FC ${run}` });
     await signIn(page, email);
     // signIn only presses the button; the session cookie arrives with the redirect (plan v5 Lessons).
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await makeSeason(page, seasonName);
 
-    await page.goto("/collect");
+    await page.goto("/team?view=signup");
     const season = page.getByRole("listitem").filter({ hasText: seasonName }).first();
     // The empty state names the one action that fills it.
     await expect(season.getByTestId("collect-summary")).toContainText("Paste your squad's names, one per line");
@@ -99,7 +99,7 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
     await after.getByRole("button", { name: "Put the answers in the roster" }).click();
     await expect(after.getByTestId("signup-applied")).toContainText("2 added.");
 
-    await page.goto("/club");
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     // The newest season opens by itself, and its roster now holds what the players sent.
     await expect(seasons.getByLabel("Name, player 1")).toHaveValue("Alex Morgan");
@@ -113,10 +113,10 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
     const seasonName = `Refused ${run}`;
     const email = await createAccount("signup-refused", { brand: `Refused FC ${run}` });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await makeSeason(page, seasonName);
 
-    await page.goto("/collect");
+    await page.goto("/team?view=signup");
     const season = page.getByRole("listitem").filter({ hasText: seasonName }).first();
     await season.getByLabel("Sport").selectOption("football");
     await season.getByRole("button", { name: "Make a sign-up link" }).click();

@@ -33,7 +33,7 @@ const crest = async (): Promise<Buffer> => {
 
 const openCrestToKit = async (page: Page, email: string): Promise<void> => {
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   await page.goto("/crest-to-kit");
   await expect(page.getByTestId("crest-to-kit")).toBeVisible();
 };

@@ -25,7 +25,7 @@ import { createAccount, signIn, test } from "./support";
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
   // The session cookie arrives with the redirect: follow it before going anywhere else.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 /** A launch project with nothing behind it, which is enough to open every panel of the rail. */
@@ -130,7 +130,7 @@ test.describe("the rail panels that had no workstream", () => {
     await openRail(page, "Brand");
     await expect(page.getByTestId("launch-brand-empty")).toContainText("Your brand is empty");
     await expect(page.getByTestId("launch-brand-action")).toBeVisible();
-    await expect(page.getByTestId("launch-brand-import")).toHaveAttribute("href", "/brand-studio/import");
+    await expect(page.getByTestId("launch-brand-import")).toHaveAttribute("href", "/brand/import");
   });
 
   test("keeps each new panel free of serious accessibility problems, and never scrolls sideways", async ({ page }) => {
@@ -174,7 +174,7 @@ test.describe("the rail panels on a phone", () => {
 test.describe("the brand import screen", () => {
   test("says what the import is for, and names the one action that starts it", async ({ page }) => {
     await signedIn(page, "import-empty");
-    await page.goto("/brand-studio/import");
+    await page.goto("/brand/import");
 
     await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
     await expect(page.getByRole("heading", { level: 2, name: "Import your brand from your own site" })).toBeVisible();
@@ -193,7 +193,7 @@ test.describe("the brand import screen", () => {
    */
   test("says why a site could not be read, and what to do about it", async ({ page }) => {
     await signedIn(page, "import-refusal");
-    await page.goto("/brand-studio/import");
+    await page.goto("/brand/import");
 
     await page.getByLabel("Your site's address").fill("http://example.com");
     await page.getByTestId("import-run").click();
@@ -207,7 +207,7 @@ test.describe("the brand import screen", () => {
 
   test("says that a word address is not a web address at all", async ({ page }) => {
     await signedIn(page, "import-bad-url");
-    await page.goto("/brand-studio/import");
+    await page.goto("/brand/import");
 
     await page.getByLabel("Your site's address").fill("not an address");
     await page.getByTestId("import-run").click();
@@ -217,7 +217,7 @@ test.describe("the brand import screen", () => {
 
   test("keeps the import screen free of serious accessibility problems", async ({ page }) => {
     await signedIn(page, "import-axe");
-    await page.goto("/brand-studio/import");
+    await page.goto("/brand/import");
     await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
 
     await accessible(page);
@@ -227,7 +227,7 @@ test.describe("the brand import screen", () => {
   test("is reachable and readable on a phone", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signedIn(page, "import-phone");
-    await page.goto("/brand-studio/import");
+    await page.goto("/brand/import");
     await expect(page.getByRole("heading", { level: 1, name: "Import your brand" })).toBeVisible();
 
     await expect(page.getByLabel("Your site's address")).toBeVisible();

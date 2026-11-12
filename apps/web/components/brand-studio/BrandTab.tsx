@@ -154,7 +154,7 @@ export function BrandTab({
   fonts = [],
   selectedKey = null,
   onPick,
-  manageHref = "/brand-studio",
+  manageHref = "/brand",
   emptyMessage,
   showGamut = true,
 }: BrandTabProps) {

@@ -35,7 +35,7 @@ import { allowClassBRun, createAccount, makePlatformAdmin, passBotCheck, signIn,
  *
  * HOUSE RULES these tests follow (plan v5, lesson 11):
  *   * `signIn` only presses the button and the cookie arrives with the redirect, so every call is
- *     followed by `expect(page).toHaveURL(/\/studio$/)` before anything navigates.
+ *     followed by `expect(page).toHaveURL(/\/projects\/recent$/)` before anything navigates.
  *   * Every account, brand, design name, order reference and **fabric key** is unique per run,
  *     because CI retries a failed browser test once and `ops_cut_batches` groups by factory,
  *     fabric, article and cut-off and reuses a batch it has already cut.
@@ -72,7 +72,7 @@ const ownAddress = (): Record<string, string> => ({
 const signedIn = async (page: Page, label: string, brand: string): Promise<string> => {
   const email = await createAccount(label, { brand });
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   return email;
 };
 
@@ -310,9 +310,9 @@ test.describe("the club journey (R3)", () => {
     await expect(page.getByTestId("teamwear-handoff-note")).toContainText(/reference: [0-9a-f-]{36}@v\d/);
     await expect(page.getByTestId("teamwear-footer")).not.toContainText("Add to cart");
 
-    // The committee link, made on Collect. The design is the only one this club has.
-    await page.goto("/collect");
-    await expect(page.getByRole("heading", { level: 1, name: "Ask your committee and your squad" })).toBeVisible();
+    // The committee link, made on Team › Approvals. The design is the only one this club has.
+    await page.goto("/team?tab=approvals");
+    await expect(page.getByRole("navigation", { name: "Team" }).getByRole("link", { name: "Approvals" })).toHaveAttribute("aria-current", "page");
     const design = page.getByRole("listitem").filter({ hasText: brand }).first();
     await design.getByRole("button", { name: "Make a committee link" }).click();
     const address = await page.getByTestId("committee-link-address").inputValue();
@@ -356,7 +356,7 @@ test.describe("the club journey (R3)", () => {
     await phone.close();
 
     // The roster. A season, then the squad's own names, numbers and sizes.
-    await page.goto("/club");
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill(`2026 ${id}`);
     await seasons.getByRole("button", { name: "Make season" }).click();
@@ -366,8 +366,8 @@ test.describe("the club journey (R3)", () => {
     await expect(seasons.getByText("Saved 3 players.")).toBeVisible();
 
     // And the half a squad fills in itself, on a link with no account behind it. The sign-up link
-    // belongs to a season, so it is made inside that season's own row on Collect.
-    await page.goto("/collect");
+    // belongs to a season, so it is made on Team's sign-up view for the newest season.
+    await page.goto("/team?view=signup");
     const season = page.getByRole("listitem").filter({ hasText: `2026 ${id}` }).first();
     await season.getByLabel("Sport").selectOption("football");
     await season.getByRole("button", { name: "Make a sign-up link" }).click();
@@ -394,7 +394,7 @@ test.describe("the club journey (R3)", () => {
     await squadPhone.close();
 
     // The club sees the answer come in and folds it into the season's own roster.
-    await page.goto("/collect");
+    await page.goto("/team?view=signup");
     const filled = page.getByRole("listitem").filter({ hasText: `2026 ${id}` }).first();
     await expect(filled.getByTestId("collect-row").filter({ hasText: "OKONKWO" })).toBeVisible();
     await filled.getByRole("button", { name: "Put the answers in the roster" }).click();
@@ -469,7 +469,7 @@ test.describe("the ops journey (R3)", () => {
     const { orderId, cutoffAt } = await storeOrder(email, ref, `r3-factory-${id}`, `r3-fabric-${id}`);
 
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // The batch screen, before the cut. The order is waiting, and no due date is promised to it.
     await page.goto("/ops");

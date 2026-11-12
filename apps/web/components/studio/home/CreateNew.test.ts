@@ -3,8 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CreateNew } from "./CreateNew";
 import { FOCUSABLE, modalProps, newButtonProps } from "./create-new-a11y";
-import { ActionCards } from "./ActionCards";
-import { StudioSidebar } from "./Sidebar";
+import { StartCards } from "@/components/projects/v3/StartCards";
 
 /**
  * Decision 0074: the accessibility of the create-new modal, and the rule that no entry of the home
@@ -46,21 +45,9 @@ describe("the + New button and its modal", () => {
 
 describe("the home's links", () => {
   it("never writes an empty address: an unbuilt section says it is coming later instead", () => {
-    for (const markup of [renderToStaticMarkup(createElement(StudioSidebar)), renderToStaticMarkup(createElement(ActionCards))]) {
-      expect(markup).not.toMatch(/href="(#|)"/);
-      expect(markup).toContain("Coming in a later release");
-    }
+    const markup = renderToStaticMarkup(createElement(StartCards));
+    expect(markup).not.toMatch(/href="(#|)"/);
+    expect(markup).toContain("Coming in a later release");
   });
 
-  it("names the sidebar and spells out the entries that are not built", () => {
-    const markup = renderToStaticMarkup(createElement(StudioSidebar));
-    expect(markup).toContain('aria-label="Studio sections"');
-    expect(markup).toContain('href="/products"');
-    // An unbuilt entry is plain text with the sentence beside it: aria-disabled is not allowed on a
-    // span or a div, and axe reports it as a serious fault.
-    expect(markup).not.toContain("aria-disabled");
-    for (const label of ["Collections", "Moodboards", "Pattern fills", "Mockups", "Flows", "Trash"]) {
-      expect(markup, label).toContain(label);
-    }
-  });
 });

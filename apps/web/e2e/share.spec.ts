@@ -19,7 +19,7 @@ const startDesign = async (page: Page, name: string): Promise<void> => {
 test.describe("sharing a design with a committee", () => {
   test("make a link, answer it without an account, see the tally, revoke it", async ({ page, browser }) => {
     await signIn(page, await createAccount("share-owner", { brand: "Northside Hockey Club" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Home kit 2027");
 
     // Share is pinned to the top of the workspace and opens its panel in place.

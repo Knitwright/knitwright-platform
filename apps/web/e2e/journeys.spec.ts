@@ -63,7 +63,7 @@ test.describe("role journeys (W5-C)", () => {
   test("a club kit manager goes from a template to a shipped order through ops", async ({ page, browser }) => {
     const email = await createAccount("journey-club", { brand: "Journey FC" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // A starter template becomes the club's design, at version 1.
     await page.goto("/templates?sport=football&article=team-jersey");
@@ -73,7 +73,7 @@ test.describe("role journeys (W5-C)", () => {
     const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
 
     // The season's roster is read from a file and saved.
-    await page.goto("/club");
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();
@@ -99,7 +99,7 @@ test.describe("role journeys (W5-C)", () => {
 
     const opsPage = await (await browser.newContext()).newPage();
     await signIn(opsPage, adminEmail);
-    await expect(opsPage).toHaveURL(/\/studio$/);
+    await expect(opsPage).toHaveURL(/\/projects\/recent$/);
     await opsPage.goto("/ops");
     await opsPage.getByRole("link", { name: /crew-tee, mesh-140/ }).first().click();
     await expect(opsPage.getByTestId("batch-order").filter({ hasText: ref })).toBeVisible();
@@ -142,7 +142,7 @@ test.describe("role journeys (W5-C)", () => {
     // Ops cuts the batches at the end, which only a platform admin may do.
     await makePlatformAdmin(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Journey hoodie");
     await freeze(email, projectId, "Round 1");
     // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
@@ -219,7 +219,7 @@ test.describe("role journeys (W5-C)", () => {
 
   test("a designer offers a design and it is accepted into the library", async ({ page, browser }) => {
     await signIn(page, await createAccount("journey-designer"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/designer");
     await page.getByLabel("Name to show on your templates").fill("Ida Journey");
     await page.getByRole("button", { name: "Become a designer" }).click();
@@ -249,7 +249,7 @@ test.describe("role journeys (W5-C)", () => {
     const adminEmail = await createAccount("journey-designer-admin");
     await makePlatformAdmin(adminEmail);
     await signIn(adminPage, adminEmail);
-    await expect(adminPage).toHaveURL(/\/studio$/);
+    await expect(adminPage).toHaveURL(/\/projects\/recent$/);
     await adminPage.goto("/admin/templates");
     const queued = adminPage.getByTestId("queue-entry").filter({ hasText: TITLE });
     await expect(queued).toContainText("Rights statement made");
