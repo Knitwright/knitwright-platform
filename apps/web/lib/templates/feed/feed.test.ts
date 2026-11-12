@@ -3,7 +3,7 @@ import { FLOW_TEMPLATES } from "@/lib/flows/templates";
 import { VIDEO_TEMPLATES } from "@/lib/media/video/social-frames";
 import type { TemplateSummary } from "../filters";
 import { designItem, matchesWords, packItem, socialItems, techpackItem, videoItem, withPicture, type FeedItem } from "./items";
-import { discoverRows, feedView, filteredView, forYou, itemsOfTab, ROW_LIMIT, shownDesignIds } from "./rows";
+import { discoverRows, feedView, filteredView, forYou, itemsOfTab, ROW_LIMIT, shownDesignIds, withDrawn } from "./rows";
 import { isSportTab, searchFromQuery, sportTabsOf, tabFromQuery, tabHref, TEMPLATE_TABS, TEMPLATE_TAB_LABELS } from "./tabs";
 
 const summary = (id: string, sport: TemplateSummary["sport"], over: Partial<TemplateSummary> = {}): TemplateSummary => ({
@@ -14,7 +14,7 @@ const summary = (id: string, sport: TemplateSummary["sport"], over: Partial<Temp
   articleId: "team-jersey",
   style: "plain",
   styleTags: ["plain"],
-  colourFamily: "navy",
+  colourFamily: "blue",
   reviewState: "not_reviewed",
   ...over,
 });
@@ -152,6 +152,14 @@ describe("the template rows", () => {
   it("keeps the older filter address working as one grid of designs", () => {
     const view = filteredView(all, new Set(["a", "c", "pack-x"]), "");
     expect(view.layout === "grid" && view.items.map((item) => item.id)).toEqual(["a", "c"]);
+  });
+
+  it("swaps in the drawn items, in rows and in a grid", () => {
+    const drawn = [withPicture(designs[0]!, { src: "data:a", alt: "A" })];
+    const rows = withDrawn(feedView(all, "discover", ""), drawn);
+    expect(rows.layout === "rows" && rows.rows[0]!.items[0]!.picture.type).toBe("drawing");
+    const grid = withDrawn(feedView(all, "football", ""), drawn);
+    expect(grid.layout === "grid" && grid.items.map((item) => item.picture.type)).toEqual(["drawing", "tile"]);
   });
 
   it("draws only the designs a view shows", () => {

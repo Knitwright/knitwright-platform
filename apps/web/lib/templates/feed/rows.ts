@@ -100,6 +100,13 @@ export function filteredView(items: readonly FeedItem[], keep: ReadonlySet<strin
   return { layout: "grid", title: "Filtered templates", items: found };
 }
 
+/** The view with each of its items swapped for the same item from `drawn`, which carries its picture. */
+export function withDrawn(view: FeedView, drawn: readonly FeedItem[]): FeedView {
+  const byId = new Map(drawn.map((item) => [item.id, item]));
+  const swap = (items: readonly FeedItem[]) => items.map((item) => byId.get(item.id) ?? item);
+  return view.layout === "rows" ? { layout: "rows", rows: view.rows.map((entry) => ({ ...entry, items: swap(entry.items) })) } : { ...view, items: swap(view.items) };
+}
+
 /** The designs a view shows, so only those are drawn. */
 export function shownDesignIds(view: FeedView): readonly string[] {
   const items = view.layout === "rows" ? view.rows.flatMap((entry) => entry.items) : view.items;

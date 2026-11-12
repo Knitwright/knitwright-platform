@@ -1,6 +1,7 @@
 import type { FlowTemplateSpec } from "@/lib/flows/types";
 import type { VideoTemplate } from "@/lib/media/video/social-frames";
 import { GROUP_LABELS, MARKETING_FORMAT_LABELS, type MarketingFormat, type MarketingGroup } from "@/lib/marketing/templates/types";
+import { REVIEW_LABELS } from "../catalogue";
 import type { TemplateSummary } from "../filters";
 import type { TemplatePreview } from "../preview";
 import { sportTabsOf, type SportTab } from "./tabs";
@@ -41,6 +42,8 @@ export interface FeedItem {
   /** The marketing layout's key, or null. */
   readonly layoutKey: string | null;
   readonly searchText: string;
+  /** "Reviewed by a factory", for a design a factory reviewed; null otherwise. */
+  readonly reviewed: string | null;
   readonly picture: FeedPicture;
   readonly use: FeedUse;
 }
@@ -67,6 +70,7 @@ export function designItem({ summary, sportTags }: DesignRow): FeedItem {
     group: null,
     layoutKey: null,
     searchText: lower(summary.title, author, summary.sport, ...sportTags, ...summary.styleTags, summary.colourFamily),
+    reviewed: summary.reviewState === "reviewed" ? REVIEW_LABELS.reviewed : null,
     picture: { type: "tile", label: "Kit" },
     use: { type: "design", templateId: summary.id },
   };
@@ -83,6 +87,7 @@ export function packItem(spec: FlowTemplateSpec): FeedItem {
     group: null,
     layoutKey: null,
     searchText: lower(spec.title, spec.lead, "launch pack"),
+    reviewed: null,
     picture: { type: "tile", label: `${spec.assets} assets` },
     use: { type: "launch", source: "flow", slug: spec.slug },
   };
@@ -113,6 +118,7 @@ export function socialItems(rows: readonly SocialRow[]): readonly FeedItem[] {
         group: row.group,
         layoutKey: row.layoutKey,
         searchText: lower(row.title, GROUP_LABELS[row.group], "social"),
+        reviewed: null,
         picture: { type: "tile" as const, label: MARKETING_FORMAT_LABELS[row.format] },
         use: { type: "launch" as const, source: "marketing" as const, slug: row.slug },
       },
@@ -135,6 +141,7 @@ export function videoItem(template: VideoTemplate, studioHref: string, waiting: 
     group: null,
     layoutKey: null,
     searchText: lower(template.label, "video"),
+    reviewed: null,
     picture: { type: "tile", label: `${template.seconds} s` },
     use: waiting === null ? { type: "link", href: studioHref } : { type: "unavailable", reason: waiting },
   };
@@ -156,6 +163,7 @@ export const techpackItem = (row: TechpackRow): FeedItem => ({
   group: null,
   layoutKey: null,
   searchText: lower(row.title, "tech pack"),
+    reviewed: null,
   picture: { type: "tile", label: "Tech pack" },
   use: { type: "link", href: "/studio/start" },
 });
