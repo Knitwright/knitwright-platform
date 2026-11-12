@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { ArrowMark } from "./ArrowMark";
 import { cx } from "./cx";
 import { Spinner } from "./Icon";
@@ -80,6 +80,7 @@ export function ButtonInner({
 
 type ButtonProps = Readonly<
   ButtonHTMLAttributes<HTMLButtonElement> & {
+    ref?: Ref<HTMLButtonElement>;
     variant?: ButtonVariant;
     size?: ButtonSize;
     /** Shows progress and blocks a second press. Same as `loading`. */
