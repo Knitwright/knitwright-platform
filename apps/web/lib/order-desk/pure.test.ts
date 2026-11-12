@@ -51,7 +51,8 @@ describe("the words and figures", () => {
     expect(shortDate("2026-11-02T10:00:00Z")).toBe("2 Nov");
     expect(money(62500, "GBP")).toBe("£625.00");
     expect(money(100, "XX")).toBe("XX 1.00");
-    expect(sizesText({ L: 8, M: 9, S: 4 })).toBe("L8 · M9 · S4");
+    expect(sizesText({ L: 8, M: 9, S: 4 })).toBe("S4 · M9 · L8");
+    expect(sizesText({ "30": 2, "28": 1, XL: 1 })).toBe("XL1 · 281 · 302");
   });
 });
 

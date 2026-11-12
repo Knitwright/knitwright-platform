@@ -17,9 +17,15 @@ export function money(minor: number, currency: string): string {
   }
 }
 
-/** "S4 · M9 · L8": sizes in size order with their pieces. */
+const LETTER_SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "3XL", "4XL", "5XL"];
+const rank = (size: string): number => {
+  const at = LETTER_SIZES.indexOf(size.toUpperCase());
+  return at === -1 ? LETTER_SIZES.length : at;
+};
+
+/** "S4 · M9 · L8": letter sizes small to large, then any other label in natural order. */
 export const sizesText = (sizes: Readonly<Record<string, number>>): string =>
   Object.entries(sizes)
-    .sort(([a], [b]) => a.localeCompare(b, "en", { numeric: true }))
+    .sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b, "en", { numeric: true }))
     .map(([size, n]) => `${size}${n}`)
     .join(" · ");
