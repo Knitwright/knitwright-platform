@@ -129,6 +129,28 @@ const teamPost = (workflowId: string, answers: Answers, presets: readonly Artboa
   return [DESIGN, mockup("render", "Front render", "render-front"), marketingBoard(layout, answers.format ?? "", words, presets, ["render"])];
 };
 
+const imageGenerator = (answers: Answers, count: number): readonly PlannedBoard[] => {
+  const person = answers.model !== undefined && answers.model !== "none";
+  const settings = {
+    ...SHOOT_DEFAULTS,
+    style: (answers.style ?? SHOOT_DEFAULTS.style) as typeof SHOOT_DEFAULTS.style,
+    aspect: (answers.format ?? "1:1") as ShootAspect,
+    count,
+    prompt: answers.prompt ?? "",
+    modelSource: person ? ("preset" as const) : ("none" as const),
+    modelPresetKey: person ? (answers.model ?? null) : null,
+  };
+  return [DESIGN, { key: "image", kind: "ai_image", name: "Image", size: SQUARE, settings: writeShootSettings(settings), feeds: ["design"] }];
+};
+
+const videoGenerator = (answers: Answers): readonly PlannedBoard[] => {
+  const seconds = Number(answers.seconds ?? VIDEO_DEFAULTS.seconds);
+  const end = answers.end === "render-back" ? [mockup("end", "End frame", "render-back")] : [];
+  const settings = { ...VIDEO_DEFAULTS, modelKey: answers.model ?? null, presetKey: isPresetKey(answers.preset) ? answers.preset : null, prompt: answers.prompt ?? "", seconds, audio: answers.audio === "on" };
+  const clip: PlannedBoard = { key: "clip", kind: "ai_video", name: "Video", size: { width: 1080, height: 1920 }, settings: writeVideoSettings(settings), feeds: ["frame", ...end.map((one) => one.key)] };
+  return [DESIGN, mockup("frame", "First frame", "render-front"), ...end, clip];
+};
+
 /** One mockup per screen size a platform admin keeps, so the design is drawn again at each shape. */
 const resize = (presets: readonly ArtboardPreset[]): readonly PlannedBoard[] => [
   DESIGN,
@@ -154,6 +176,10 @@ export function planCanvas(workflowId: string, answers: Answers, count: number, 
       return { boards: storePromo(answers, presets) };
     case "resize-for-all-socials":
       return { boards: resize(presets) };
+    case "image-generator":
+      return { boards: imageGenerator(answers, count) };
+    case "video-generator":
+      return { boards: videoGenerator(answers) };
     default:
       return TEAM_LAYOUTS[workflowId] ? { boards: teamPost(workflowId, answers, presets) } : null;
   }

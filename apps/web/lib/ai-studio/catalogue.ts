@@ -309,8 +309,42 @@ function teamPost(key: "matchday" | "new-signing" | "fixtures-list" | "sponsor-t
   };
 }
 
+/** The Image and Video generator tabs (`09` screens 5–6): the workflow format, but not cards of the hub. */
+export const GENERATORS: readonly Workflow[] = [
+  {
+    id: "image-generator",
+    title: "Image generator",
+    category: "product-scenes",
+    lead: "Generate scenes around your locked garment, or images for posts. The garment is the picture the platform drew.",
+    steps: ["Reference", "Prompt", "Style", "Model", "Aspect"],
+    output: "1–4 images",
+    cost: "credits",
+    poweredBy: SHOOTS,
+    engine: "canvas",
+    gate: "aiImage",
+    tone: "pitch",
+  },
+  {
+    id: "video-generator",
+    title: "Video generator",
+    category: "ugc",
+    lead: "Animate any kit or mockup. The first frame is the garment the platform drew.",
+    steps: ["Reference", "End frame", "Prompt", "Preset", "Model", "Duration", "Audio"],
+    output: "A 3–15 s clip",
+    cost: "credits-per-second",
+    poweredBy: "Knitwright video, garment-locked first frame",
+    engine: "canvas",
+    gate: "aiVideo",
+    tone: "pitch",
+    video: true,
+  },
+];
+
 /** One workflow by its id, or null. An id that is not here is a page that does not exist. */
 export const workflowById = (id: string): Workflow | null => WORKFLOWS.find((one) => one.id === id) ?? null;
+
+/** A workflow or a generator tab, for the action that sets either one's canvas up. */
+export const runnableById = (id: string): Workflow | null => workflowById(id) ?? GENERATORS.find((one) => one.id === id) ?? null;
 
 /** The page of a workflow, or the page a link card opens. */
 export const workflowHref = (workflow: Workflow): string => workflow.href ?? `/ai-studio/workflow/${workflow.id}`;

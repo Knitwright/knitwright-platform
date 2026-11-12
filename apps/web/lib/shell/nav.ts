@@ -77,7 +77,7 @@ export const moreFor = (workspace: Workspace): readonly ShellPlace[] => [
   { id: "launch", label: "Launch", href: "/launch", icon: "rocket", owns: ["/launch"] },
   { id: "teamwear", label: "Teamwear", href: "/teamwear", icon: "shirt", owns: ["/teamwear"] },
   { id: "charts", label: "Size charts", href: "/studio/charts", icon: "ruler", owns: ["/studio/charts"] },
-  { id: "benchmarks", label: "Benchmarks", href: "/studio/benchmarks", icon: "chart", owns: ["/studio/benchmarks"] },
+  { id: "benchmarks", label: "Benchmarks", href: "/ai-studio/workflow/benchmark-products" as Route, icon: "chart", owns: ["/studio/benchmarks"] },
   { id: "designer", label: "Designer", href: "/designer", icon: "pen", owns: ["/designer"] },
   ...(workspace.isClub ? [] : [{ ...TEAM, id: "club", label: "Club and members" }]),
 ];

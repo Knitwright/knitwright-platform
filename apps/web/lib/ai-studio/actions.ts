@@ -13,7 +13,7 @@ import { LIMITS } from "@/lib/server/limits";
 import { checkAnswers } from "./answers";
 import { availabilityOf } from "./availability";
 import { planCanvas } from "./canvas-plan";
-import { workflowById } from "./catalogue";
+import { runnableById } from "./catalogue";
 import { formOf } from "./forms";
 import { recolourKit, retroRemix } from "./remix";
 import { makeVariants, saveVariant, type VariantMaker } from "./remix-service";
@@ -34,7 +34,7 @@ export const startWorkflowAction = defineAction({
   schema: startWorkflowBody,
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
-    const workflow = workflowById(input.workflowId);
+    const workflow = runnableById(input.workflowId);
     const form = formOf(input.workflowId);
     if (!workflow || !form) throw new AppError("not_found", "That workflow does not exist.");
     const available = availabilityOf(workflow, LIVE());

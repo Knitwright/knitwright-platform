@@ -88,7 +88,7 @@ export const CREATE_WAYS: readonly HomeCard[] = [
     text: "Your club's colours, crest and sponsors, put on a design in one press.",
     // Crest to kit is the screen F-T2 asks for. It opened the club page while that screen was
     // being built (plan v5 Z6, decision 0105); it is live now, so the card goes straight there.
-    target: page("/crest-to-kit"),
+    target: page("/ai-studio/workflow/crest-to-kit"),
     feature: "F-T2",
   },
   {

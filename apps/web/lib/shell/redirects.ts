@@ -21,3 +21,21 @@ export const ROUTE_ALIASES: readonly Alias[] = [
   alias("/team", "/club"),
   alias("/brand", "/brand-studio"),
 ];
+
+/**
+ * Screens a v3.9 workstream MOVED for good (308): the old address keeps working for a bookmark, and
+ * the screen, its actions and its tests live at the new one. One line per move, owned by the mover.
+ */
+export interface Move {
+  readonly source: string;
+  readonly destination: string;
+  readonly permanent: true;
+}
+
+const move = (source: string, destination: string): Move => ({ source, destination, permanent: true });
+
+export const MOVED_ROUTES: readonly Move[] = [
+  // P3 AI Studio (decision 0141): crest to kit and the benchmarks list are workflow pages now.
+  move("/crest-to-kit", "/ai-studio/workflow/crest-to-kit"),
+  move("/studio/benchmarks", "/ai-studio/workflow/benchmark-products"),
+];

@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/PlaceholderPage";
+import { StudioHome } from "@/components/ai-studio/StudioHome";
 import { requireMember } from "@/lib/server/page-guards";
-import { AI_STUDIO_TABS } from "@/lib/shell/tabs";
 
 export const metadata: Metadata = { title: "AI Workflows" };
 
-/** A placeholder of the v3.9 route map (decision 0138): its page is built by a later workstream. */
+/** AI Workflows (`09` screen 3), the same screen AI Studio opens on (decision 0141). */
 export default async function AiWorkflowsPage() {
   await requireMember();
-  return (
-    <PlaceholderPage
-      title="AI Workflows"
-      icon="sparkle"
-      heading="AI workflows are on their way"
-      action={{ href: "/crest-to-kit", label: "Open crest to kit" }}
-      tabs={{ label: "AI Studio", items: AI_STUDIO_TABS }}
-    >
-      Crest to kit already draws kits from your crest and colours. The other workflows arrive with AI Studio.
-    </PlaceholderPage>
-  );
+  return <StudioHome />;
 }

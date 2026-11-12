@@ -82,6 +82,10 @@ const teamForm = (id: string): WorkflowForm | null => {
 const FORMS: Readonly<Record<string, WorkflowForm>> = {
   "colourway-set": { fields: [PRODUCT], count: null },
   "resize-for-all-socials": { fields: [PRODUCT], count: null },
+  "remove-background": {
+    fields: [{ kind: "fixed", id: "picture", label: "Upload a picture", value: "A PNG or JPEG of your own. The cut-out comes back as a new upload; the original is kept." }],
+    count: null,
+  },
   "on-model-try-on": {
     fields: [
       { ...PRODUCT, label: "Choose product (garment locked)" },
@@ -123,6 +127,32 @@ const FORMS: Readonly<Record<string, WorkflowForm>> = {
   },
   "shopify-listing-set": {
     fields: [PRODUCT, { kind: "fixed", id: "background", label: "Background", value: "White, as marketplaces ask, with a flat lay, a hanger and a ghost mannequin." }],
+    count: null,
+  },
+  // The Image and Video generator tabs (`09` screens 5–6), in the same format.
+  "image-generator": {
+    fields: [
+      { ...PRODUCT, label: "Reference (garment locked)" },
+      text("prompt", "Prompt", "Kit on a player warming up on a frosty morning pitch…", true, 400),
+      choice("style", "Style", optionsOf(SHOOT_STYLES, SHOOT_STYLE_LABELS)),
+      choice("model", "Model", [{ value: "none", label: "No person" }, ...MODEL_PRESET_CATALOGUE.map((one) => ({ value: one.key, label: one.label }))]),
+      choice("format", "Aspect", SHOT_FORMATS),
+    ],
+    count: { min: 1, max: 4 },
+  },
+  "video-generator": {
+    fields: [
+      { ...PRODUCT, label: "Reference (garment-locked first frame)" },
+      choice("end", "End frame", [
+        { value: "none", label: "No end frame" },
+        { value: "render-back", label: "Back render" },
+      ]),
+      text("prompt", "Prompt", "Player walks out of the tunnel toward camera, stadium lights flare…", false, 400),
+      choice("preset", "Preset", VIDEO_PRESETS.map((one) => ({ value: one.key, label: one.label }))),
+      choice("model", "Model", VIDEO_MODELS.map((one) => ({ value: one.key, label: one.label }))),
+      choice("seconds", "Duration", ["3", "5", "8", "10", "15"].map((value) => ({ value, label: `${value} s` }))),
+      { kind: "toggle", id: "audio", label: "Audio", hint: "Sound, where the model makes its own" },
+    ],
     count: null,
   },
 };
