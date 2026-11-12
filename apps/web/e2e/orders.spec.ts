@@ -34,7 +34,7 @@ async function shippedOrder(memberEmail: string, opsEmail: string, design: strin
   const placed = ok(await db.from("ops_orders").select("id, cutoff_at").eq("external_ref", ref).single()) as { id: string; cutoff_at: string };
   ok(await db.rpc("ops_cut_batches", { p_actor: actor, p_now: new Date(Date.parse(placed.cutoff_at) + 1000).toISOString() }));
   for (const to of ["received", "in_production", "ready"]) ok(await db.rpc("ops_set_order_status", { p_actor: actor, p_order_id: placed.id, p_to: to }));
-  const inspected = ok(await db.rpc("ops_record_inspection", { p_actor: actor, p_order_id: placed.id, p_checklist: CHECKLIST, p_measurements: [], p_sample_size: 5, p_defect_count: 0, p_photo_file_ids: [randomUUID()] })) as { inspection_id: string }[];
+  const inspected = ok(await db.rpc("ops_record_inspection", { p_actor: actor, p_order_id: placed.id, p_checklist: CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 522, toleranceMm: 5 }], p_sample_size: 5, p_defect_count: 0, p_photo_file_ids: [randomUUID()] })) as { inspection_id: string }[];
   ok(await db.rpc("ops_share_qc_photos", { p_actor: actor, p_inspection_id: inspected[0]!.inspection_id, p_shared: true }));
   ok(await db.rpc("ops_record_shipment", { p_actor: actor, p_order_id: placed.id, p_courier: "DHL", p_tracking_number: "TRACK-E2E-1", p_shipped_on: "2026-11-02", p_sizes: { M: 3, L: 2 } }));
   return placed.id;

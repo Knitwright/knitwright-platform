@@ -34,7 +34,7 @@ async function shippedOrder(): Promise<{ orderId: string; inspectionId: string }
   const orderId = rows[0]!.order_id;
   must(await rpc("ops_cut_batches", { p_now: new Date(Date.parse(rows[0]!.cutoff_at) + 1000).toISOString() }));
   for (const to of ["received", "in_production", "ready"]) must(await rpc("ops_set_order_status", { p_order_id: orderId, p_to: to }));
-  const inspected = must(await rpc("ops_record_inspection", { p_order_id: orderId, p_checklist: CHECKLIST, p_measurements: [], p_sample_size: 2, p_defect_count: 0, p_photo_file_ids: [PHOTO] })) as { inspection_id: string }[];
+  const inspected = must(await rpc("ops_record_inspection", { p_order_id: orderId, p_checklist: CHECKLIST, p_measurements: [{ point: "Chest", specMm: 520, measuredMm: 522, toleranceMm: 5 }], p_sample_size: 2, p_defect_count: 0, p_photo_file_ids: [PHOTO] })) as { inspection_id: string }[];
   must(await rpc("ops_record_shipment", { p_order_id: orderId, p_courier: "DHL", p_tracking_number: "TRACK1", p_shipped_on: "2026-11-02", p_sizes: { M: 2 } }));
   return { orderId, inspectionId: inspected[0]!.inspection_id };
 }
