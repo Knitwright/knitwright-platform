@@ -25,8 +25,8 @@ describe("the rail", () => {
     expect(RAIL.map((place) => place.label)).toEqual(["AI Studio", "Templates", "Mockups", "Marketing", "Products", "Projects"]);
   });
 
-  it("points Products at the v2.2 page that serves it for now, and Projects at its own page", () => {
-    expect(RAIL.find((place) => place.id === "products")?.href).toBe("/catalogue");
+  it("points Products and Projects at their own pages", () => {
+    expect(RAIL.find((place) => place.id === "products")?.href).toBe("/products");
     expect(RAIL.find((place) => place.id === "projects")?.href).toBe("/projects");
   });
 });
@@ -65,7 +65,7 @@ describe("⋯", () => {
 describe("which place an address is in", () => {
   it("finds a rail place by its own address and the pages under it", () => {
     expect(currentId("/templates", BRAND)).toBe("templates");
-    expect(currentId("/catalogue/JSY-SS-01", BRAND)).toBe("products");
+    expect(currentId("/products/JSY-SS-01", BRAND)).toBe("products");
     expect(currentId("/studio/0b5c3e4a-1111-4222-8333-944445555666/tech-pack", BRAND)).toBe("projects");
     expect(currentId("/ai-studio/workflow/crest-to-kit", BRAND)).toBe("ai-studio");
   });

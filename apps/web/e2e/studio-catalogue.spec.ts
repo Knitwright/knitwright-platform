@@ -4,8 +4,8 @@ import { createAccount, signIn, test } from "./support";
 
 /**
  * Workstream Y1 acceptance (plan v5, decision 0074): the studio home of spec F-S4 — its sidebar,
- * its action cards and its create-new modal with no blank canvas — and the catalogue and article
- * page of F-S4 and F-S8, with every price shown as the placeholder it is.
+ * its action cards and its create-new modal with no blank canvas. The catalogue and the article page
+ * moved to /products in plan v6 P4 (decision 0142); their tests are in `e2e/products.spec.ts`.
  *
  * Needs local Supabase (`pnpm db:start`). The catalogue is platform data seeded by the migrations,
  * so nothing here creates a row another spec could pick up.
@@ -43,7 +43,7 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
       "Range plan",
       "Repeat print",
     ]);
-    await expect(cards.getByRole("link", { name: /^Browse products and templates/ })).toHaveAttribute("href", "/catalogue");
+    await expect(cards.getByRole("link", { name: /^Browse products and templates/ })).toHaveAttribute("href", "/products");
     // The range plan opens the collection plan of F-S10 (plan v5 Z4, decision 0085).
     await expect(cards.getByRole("link", { name: /^Range plan/ })).toHaveAttribute("href", "/orders/plans");
     // A card that is not built still says so, and is not a link.
@@ -52,17 +52,6 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
     await accessible(page);
   });
 
-  test("keeps the studio sidebar on the catalogue, with Products opening Projects", async ({ page }) => {
-    await signedIn(page, "y1-sidebar");
-    await page.goto("/catalogue");
-    const sidebar = page.getByRole("navigation", { name: "Studio sections" });
-    await expect(sidebar.getByRole("link", { name: /^Products/ })).toHaveAttribute("href", "/projects");
-    await expect(sidebar.getByRole("link", { name: "Base products" })).toHaveAttribute("href", "/catalogue");
-    await expect(sidebar.getByRole("link", { name: "Collections" })).toHaveAttribute("href", "/orders/plans");
-    await expect(sidebar.getByRole("link", { name: "Trash" })).toHaveAttribute("href", "/projects/trash");
-    await expect(sidebar.getByText("Moodboards", { exact: true })).toBeVisible();
-    await expect(sidebar.getByRole("link", { name: "Moodboards" })).toHaveCount(0);
-  });
 
   test("opens the create-new modal, which offers no blank canvas, holds Tab and gives focus back", async ({ page }) => {
     await signedIn(page, "y1-modal");
@@ -74,8 +63,8 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
     await expect(dialog).toHaveAttribute("aria-modal", "true");
     await expect(opener).toHaveAttribute("aria-expanded", "true");
     await expect(dialog.getByRole("heading", { level: 3 })).toHaveText(["Knitwright library", "Your own"]);
-    await expect(dialog.getByRole("link", { name: /^Base products/ })).toHaveAttribute("href", "/catalogue");
-    await expect(dialog.getByRole("link", { name: /^Templates/ })).toHaveAttribute("href", "/catalogue?tab=templates");
+    await expect(dialog.getByRole("link", { name: /^Base products/ })).toHaveAttribute("href", "/products");
+    await expect(dialog.getByRole("link", { name: /^Templates/ })).toHaveAttribute("href", "/templates");
     await expect(dialog.getByText("Your team")).toBeVisible();
     await expect(dialog.getByRole("link", { name: /Your team/ })).toHaveCount(0);
     await expect(dialog).toContainText("There is no blank canvas");
@@ -96,132 +85,5 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
     await expect(page).toHaveURL(/\/projects\/recent\?jump=moodboards$/);
     await expect(page.getByText("Moodboards: coming in a later release.")).toBeVisible();
     await expect(page.getByRole("list", { name: /^Designs of / })).toHaveCount(0);
-  });
-});
-
-test.describe("the catalogue", () => {
-  test("lists the base products with a placeholder price, and filters them", async ({ page }) => {
-    await signedIn(page, "y1-catalogue");
-    await page.goto("/catalogue");
-    await expect(page.getByRole("heading", { level: 1, name: "Base products and templates" })).toBeVisible();
-
-    // Each card carries a list of tags, so the cards are the grid's own children, not every listitem.
-    const grid = page.getByRole("list", { name: "Base products" });
-    await expect(grid.locator("> li")).toHaveCount(8);
-    const jersey = grid.locator("> li").filter({ hasText: "JSY-SS-01" });
-    await expect(jersey).toContainText("From £22.00 · from 1 pc");
-    await expect(jersey).toContainText("Placeholder club price from the build pack, not a factory quote");
-    await expect(jersey).toContainText("Priced from 10 pcs; no price is set for 1 pc yet.");
-    await expect(jersey).toContainText("Edit this product's form");
-    await expect(jersey).toContainText("Render, not photo");
-    await expect(jersey).toContainText("Draft, not reviewed by a factory");
-
-    await page.getByLabel("Production class").selectOption({ label: "Class B (2)" });
-    await page.getByRole("button", { name: "Show products" }).click();
-    await expect(page.getByRole("list", { name: "Base products" }).locator("> li")).toHaveCount(2);
-    await expect(page.getByText("2 base products")).toBeVisible();
-    await accessible(page);
-  });
-
-  test("says no Australian price is set when the market changes", async ({ page }) => {
-    await signedIn(page, "y1-market");
-    await page.goto("/catalogue");
-    await page.getByRole("navigation", { name: "Market and currency" }).getByRole("link", { name: "AU | AUD" }).click();
-    await expect(page).toHaveURL(/market=au/);
-    const jersey = page.getByRole("list", { name: "Base products" }).locator("> li").filter({ hasText: "JSY-SS-01" });
-    await expect(jersey).toContainText("No AUD price is set yet");
-    await expect(jersey).not.toContainText("£");
-  });
-
-  test("shows the templates tab with its own two filters", async ({ page }) => {
-    await signedIn(page, "y1-templates");
-    await page.goto("/catalogue?tab=templates");
-    await expect(page.getByRole("navigation", { name: "Catalogue sections" }).getByRole("link", { name: "Templates" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-    const filters = page.getByRole("form", { name: "Filter the templates" });
-    await expect(filters.getByLabel("Sport")).toBeVisible();
-    await expect(filters.getByLabel("Style")).toBeVisible();
-    await expect(page.getByText("Article type, fit, gender, production class and fabric filter base products, not templates.")).toBeVisible();
-  });
-});
-
-test.describe("the article page", () => {
-  test("shows the ladder, the fabrics, the size chart and the lead time, each with a Why?", async ({ page }) => {
-    await signedIn(page, "y1-article");
-    await page.goto("/catalogue/JSY-SS-01");
-    await expect(page.getByRole("heading", { level: 1, name: /Short-sleeve sublimated jersey/ })).toBeVisible();
-    await expect(page.getByText("Knitwright draft v0.1, not reviewed by a factory")).toBeVisible();
-
-    const photos = page.getByRole("region", { name: "Pictures" });
-    await expect(photos).toContainText("Render, not photo");
-    await expect(photos).toContainText("No sample of this article has been photographed.");
-
-    const prices = page.getByRole("region", { name: "Price ladder" });
-    await expect(prices.getByRole("row")).toHaveCount(4);
-    await expect(prices).toContainText("£29.00");
-    await expect(prices).toContainText("£22.00");
-
-    const fabrics = page.getByRole("region", { name: "Fabrics" });
-    await expect(fabrics).toContainText("Polyester interlock");
-    await expect(fabrics).toContainText("140–160 g/m²");
-    await expect(fabrics).toContainText("This fabric is not one of the fabric programme's rows yet");
-
-    const sizes = page.getByRole("region", { name: "Size chart" });
-    await expect(sizes).toContainText("The sample size is M.");
-    await expect(sizes.getByRole("row")).toHaveCount(13);
-
-    const notes = page.getByRole("region", { name: "Fit, care and lead time" });
-    await expect(notes).toContainText("8 working days from the weekly cut-off, before QC and freight.");
-    await expect(notes).toContainText("No care wording is on file.");
-    await expect(notes).toContainText("-30 to 40 mm · Not yet sampled");
-
-    await accessible(page);
-
-    // Every row explains itself: the first Why? opens the rule behind that price.
-    await prices.getByRole("button", { name: "Why? Rulebook R-COST-003" }).first().click();
-    await expect(page.getByRole("dialog").first()).toBeVisible();
-  });
-
-  test("says what choosing Australia means: the currency, the GST, the label lines and what is missing", async ({ page }) => {
-    await signedIn(page, "o3-market");
-    await page.goto("/catalogue/JSY-SS-01?market=au");
-
-    const market = page.getByRole("region", { name: "Selling in Australia" });
-    await expect(market).toContainText("Prices are shown in AUD.");
-    await expect(market).toContainText("Prices carry no GST: Knitwright is not registered for GST in Australia.");
-    await expect(market).toContainText("No AUD price is set in any tier.");
-    // No date anywhere: QC days and freight days are both unset (decision 0104).
-    await expect(market).toContainText("No delivery date yet. Not set: the days for QC and the freight days.");
-
-    const lines = market.getByRole("list", { name: "Label lines for Australia" });
-    await expect(lines.getByRole("listitem")).toHaveCount(5);
-    await expect(lines).toContainText("Made in Pakistan");
-    await expect(lines).toContainText("ISO 3758 is a paid standard and is not in this repository");
-    await expect(market.getByRole("list", { name: "Still missing for AU | AUD" }).getByRole("listitem").first()).toBeVisible();
-
-    // The ladder beside it is in the same currency, with no converted figure in it.
-    const prices = page.getByRole("region", { name: "Price ladder" });
-    await expect(prices).toContainText("No AUD price is set yet");
-    await expect(prices).not.toContainText("£");
-
-    await accessible(page);
-  });
-
-  test("shows the United Kingdom's own tax treatment when that market is chosen", async ({ page }) => {
-    await signedIn(page, "o3-market-uk");
-    await page.goto("/catalogue/JSY-SS-01?market=uk");
-
-    const market = page.getByRole("region", { name: "Selling in the United Kingdom" });
-    await expect(market).toContainText("Prices are shown in GBP.");
-    await expect(market).toContainText("Prices carry no VAT: Knitwright is not registered for VAT in the United Kingdom.");
-    await expect(market).toContainText("Every tier has a GBP price.");
-  });
-
-  test("answers not found for a code the catalogue does not hold", async ({ page }) => {
-    await signedIn(page, "y1-missing");
-    const answer = await page.goto("/catalogue/ZZZ-ZZ-99");
-    expect(answer?.status()).toBe(404);
   });
 });

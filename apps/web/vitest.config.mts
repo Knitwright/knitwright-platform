@@ -141,6 +141,10 @@ export default defineConfig({
         // Joins the Orders area to the factory rows; the discounts, the delivery date and the summary are tested
         // on their own, and the database and end-to-end tests cover the joining (plan v6 P5, decision 0143).
         "lib/order-desk/server.ts",
+        // Joins the Products pages to the catalogue's rows, the factory model and the production settings; every
+        // rule it hands over is pure and tested on its own, and the end-to-end tests cover the joining (plan v6 P4,
+        // decision 0142).
+        "lib/products/server.ts",
         // Join the Templates, Mockups and Marketing pages to the library rows, the brand's designs and the
         // mockup renderer; the rows, categories, cards and concepts they hand over are tested on their own, and
         // the end-to-end tests cover the joining (plan v6 P2, decision 0140).
@@ -225,6 +229,7 @@ export default defineConfig({
             "plans",
             "print",
             "production",
+            "products",
             "projects-page",
             "proofs",
             "quotes",

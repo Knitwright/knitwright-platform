@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { MOVED_TO_ORDERS } from "./lib/order-desk/moved";
+import { PRODUCTS_MOVED } from "./lib/products/redirects";
 import { MOVED_PAGES, ROUTE_ALIASES } from "./lib/shell/redirects";
 
 /**
@@ -87,8 +88,9 @@ const nextConfig: NextConfig = {
     // run time, so the host cannot see them in the code. Ship the canvas binaries and the PDF reader's own fonts.
     "/api/artwork": ["../../node_modules/.pnpm/@napi-rs+canvas{,-linux-x64-gnu}@*/node_modules/@napi-rs/canvas{,-linux-x64-gnu}/*.{js,cjs,mjs,json,node}", "./node_modules/pdfjs-dist/standard_fonts/**"],
   },
-  // The v3.9 addresses a v2.2 page still serves, and /brand while P6 builds it (decision 0138).
-  redirects: async () => [...ROUTE_ALIASES, ...MOVED_PAGES, ...MOVED_TO_ORDERS].map((redirect) => ({ ...redirect })),
+  // The pages Products replaced, permanently (decision 0142); the v3.9 addresses a v2.2 page still serves; and the
+  // pages wave 2 moved for good (decisions 0139, 0143, 0144).
+  redirects: async () => [...PRODUCTS_MOVED.map(({ has, ...moved }) => (has ? { ...moved, has: has.map((rule) => ({ ...rule })) } : { ...moved })), ...[...ROUTE_ALIASES, ...MOVED_PAGES, ...MOVED_TO_ORDERS].map((redirect) => ({ ...redirect }))],
   headers: async () => [
     { source: "/:path*", headers: SECURITY_HEADERS },
     { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },

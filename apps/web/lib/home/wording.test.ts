@@ -27,7 +27,13 @@ const listed = (dir: string, pattern: RegExp): string[] =>
     .filter((entry) => entry.isFile() && pattern.test(entry.name) && !/\.test\./.test(entry.name))
     .map((entry) => join(entry.parentPath, entry.name));
 
-const SOURCES = [...listed("lib/home", /\.ts$/), ...listed("components/studio/home", /\.tsx?$/)];
+const SOURCES = [
+  ...listed("lib/home", /\.ts$/),
+  ...listed("components/studio/home", /\.tsx?$/),
+  // The Products area that replaced the catalogue and the article page (plan v6 P4, decision 0142).
+  ...listed("lib/products", /\.ts$/),
+  ...listed("components/products", /\.tsx?$/),
+];
 
 /** Every string, template and piece of text in a source file. Comments and names are not included. */
 function sentencesIn(path: string): string[] {
@@ -61,14 +67,14 @@ describe("the words that would make the home or the catalogue look settled", () 
   it("says a price is a placeholder wherever one is shown", () => {
     const price = readFileSync(join(ROOT, "lib/home/price.ts"), "utf8");
     expect(price).toMatch(/placeholder/i);
-    const card = readFileSync(join(ROOT, "components/studio/home/ArticleCard.tsx"), "utf8");
+    const card = readFileSync(join(ROOT, "components/products/ProductTile.tsx"), "utf8");
     expect(card).toContain("card.price.label");
   });
 
   it("labels every picture a render rather than a photograph", () => {
     const view = readFileSync(join(ROOT, "lib/home/article-view.ts"), "utf8");
     expect(view).toContain("Render, not photo");
-    for (const path of ["components/studio/home/ArticleCard.tsx", "components/studio/home/ArticleSections.tsx"]) {
+    for (const path of ["components/products/ProductParts.tsx"]) {
       expect(readFileSync(join(ROOT, path), "utf8"), path).toContain("RENDER_NOTICE");
     }
   });

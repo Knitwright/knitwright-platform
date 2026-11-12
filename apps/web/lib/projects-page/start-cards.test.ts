@@ -9,7 +9,7 @@ describe("the start cards of Recent", () => {
 
   it("open the create-new modal, a real page, or nothing yet", () => {
     expect(START_CARDS[0]!.target.kind).toBe("new-design");
-    expect(START_CARDS.map((card) => hrefOf(card.target))).toEqual([null, "/catalogue", null, "/orders/plans", null]);
+    expect(START_CARDS.map((card) => hrefOf(card.target))).toEqual([null, "/products", null, "/orders/plans", null]);
   });
 
   it("never call a base factory-approved, since every base is a draft until a factory reviews it", () => {
