@@ -1126,6 +1126,19 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (ownerId) => ({ user_id: ownerId, display_name: "Made directly" }),
     change: { display_name: "Changed by a stranger" },
   },
+  // Plan v6 P6 (decision 0144): the unit a person reads garment lengths in. A person reads their own row; only
+  // set_length_unit writes it.
+  person_preferences: {
+    privileges: ["SELECT"],
+    brandColumn: "user_id",
+    ownedBy: "user",
+    seed: async (_brandId, ownerId) => {
+      must(await adminClient().rpc("set_length_unit", { p_user_id: ownerId, p_unit: "cm" }));
+      return { user_id: ownerId };
+    },
+    attempt: (ownerId) => ({ user_id: ownerId, length_unit: "in" }),
+    change: { length_unit: "in" },
+  },
   template_submissions: {
     privileges: ["SELECT"],
     brandColumn: "designer_id",

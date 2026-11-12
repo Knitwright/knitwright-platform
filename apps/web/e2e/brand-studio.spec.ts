@@ -32,15 +32,21 @@ const runId = () => Math.random().toString(36).slice(2, 10);
  * measured at each of `SHELL_WIDTHS` by `shellFitsAtEveryWidth`.
  */
 
-test.describe("Brand Studio (Y6)", () => {
+test.describe("Brand (Y6, moved by P6)", () => {
   test("a brand is filled in by hand, and the top bar's New goes once its details are saved", async ({ page }) => {
     await signIn(page, await createAccount("bs-details"));
     await expect(page).toHaveURL(/\/studio$/);
     // The way in is the top bar's brand pill, with a gold New until the brand is set up (decision 0138).
     await expect(page.getByTestId("brand-new")).toBeVisible();
-    await page.locator("header").getByRole("link", { name: /^Brand: .* Open Brand Studio\.$/ }).click();
-    await expect(page).toHaveURL(/\/brand-studio$/);
+    await page.locator("header").getByRole("link", { name: /^Brand: .* Open Brand\.$/ }).click();
+    await expect(page).toHaveURL(/\/brand$/);
 
+    // Nothing saved yet: the empty state (09 screen 18, d16) offers the import or Create new.
+    await expect(page.getByRole("heading", { level: 1, name: "Your club or brand, applied everywhere" })).toBeVisible();
+    await expect(page.getByLabel("Your website or Instagram link")).toBeVisible();
+    await accessible(page);
+    await page.getByRole("link", { name: "Create new" }).click();
+    await expect(page).toHaveURL(/\/brand\?tab=overview$/);
     await expect(page.getByTestId("brand-completion")).toHaveText("0% complete");
 
     const details = page.getByRole("region", { name: "Details", exact: true });
@@ -52,10 +58,11 @@ test.describe("Brand Studio (Y6)", () => {
     await details.getByRole("button", { name: "Save brand" }).click();
     await expect(details.getByText("Your brand is saved.")).toBeVisible();
 
-    await page.reload();
+    // Saved once, the page opens on the Kittl layout with no tab in the address.
+    await page.goto("/brand");
     await expect(page.getByTestId("brand-completion")).not.toHaveText("0% complete");
     await expect(page.getByTestId("brand-new")).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "Overview", exact: true }).getByText("Community")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Overview", exact: true }).getByRole("definition").filter({ hasText: "Community" })).toBeVisible();
 
     // One h1, the page's own landmark, and the shell inside the window at every width it supports,
     // not only at the browser tests' own 1280.
@@ -68,7 +75,7 @@ test.describe("Brand Studio (Y6)", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, await createAccount("bs-phone"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=colours");
+    await page.goto("/brand?tab=colours");
 
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     // The tabs wrap rather than cut off, so every one of the seven is still reachable.
@@ -81,7 +88,7 @@ test.describe("Brand Studio (Y6)", () => {
   test("a palette is saved, and a colour the estimate refuses says so and names its rule", async ({ page }) => {
     await signIn(page, await createAccount("bs-colours"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=colours");
+    await page.goto("/brand?tab=colours");
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
     await editor.getByPlaceholder("Palette name, such as Primary or Kit colours").fill(`Primary ${runId()}`);
@@ -99,14 +106,14 @@ test.describe("Brand Studio (Y6)", () => {
     await editor.getByRole("button", { name: "Save palette" }).click();
     await expect(editor.getByText("The palette is saved.")).toBeVisible();
 
-    await page.goto("/brand-studio");
+    await page.goto("/brand");
     await expect(page.getByTestId("brand-findings")).toContainText("Knitwright's own estimate");
   });
 
   test("a colour the estimate accepts carries no warning", async ({ page }) => {
     await signIn(page, await createAccount("bs-in-gamut"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=colours");
+    await page.goto("/brand?tab=colours");
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
     await editor.getByLabel("Colour", { exact: true }).fill("#0b1f4b");
@@ -116,7 +123,7 @@ test.describe("Brand Studio (Y6)", () => {
   test("only a font whose licence is on file can be chosen", async ({ page }) => {
     await signIn(page, await createAccount("bs-fonts"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=fonts");
+    await page.goto("/brand?tab=fonts");
 
     const fonts = page.getByRole("region", { name: "Fonts", exact: true });
     for (const role of ["Headline", "Subheadline", "Body", "Accent", "Name & number"]) {
@@ -145,10 +152,10 @@ test.describe("Brand Studio (Y6)", () => {
 
     await signIn(page, email);
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=colours");
+    await page.goto("/brand?tab=colours");
 
     const readThrough = page.getByRole("region", { name: "Club kit", exact: true });
-    await expect(readThrough).toContainText("From your club kit. Change it on the Club page.");
+    await expect(readThrough).toContainText("From your club kit. Change it on the Sportswear tab.");
     await expect(readThrough).toContainText("#0b3d91");
     await expect(readThrough.getByRole("button", { name: "Save palette" })).toBeHidden();
 
@@ -165,10 +172,10 @@ test.describe("Brand Studio (Y6)", () => {
   test("a brand with no uploads is told where to put its logos first", async ({ page }) => {
     await signIn(page, await createAccount("bs-logos"));
     await expect(page).toHaveURL(/\/studio$/);
-    await page.goto("/brand-studio?tab=logos");
+    await page.goto("/brand?tab=logos");
     const logos = page.getByRole("region", { name: "Logos", exact: true });
     await expect(logos).toContainText("Add your logo to your artwork first");
     // An empty state offers the one thing that fills it, and the offer is not a dead link.
-    await expect(logos.getByRole("link", { name: "Your artwork" })).toHaveAttribute("href", "/brand-studio?tab=overview#artwork");
+    await expect(logos.getByRole("link", { name: "Your artwork" })).toHaveAttribute("href", "/brand?tab=overview#artwork");
   });
 });

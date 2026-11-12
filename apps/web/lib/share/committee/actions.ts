@@ -36,7 +36,7 @@ import {
 
 const refreshDesign = (projectId: string): void => {
   revalidatePath(`/studio/${projectId}`);
-  revalidatePath("/collect");
+  revalidatePath("/team");
 };
 
 /** The visitor's key from their cookie, or a new one set in it. The same cookie a share page uses. */

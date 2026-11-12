@@ -68,8 +68,8 @@ export const EMPTY_BODIES: Readonly<Record<BuiltHere, string>> = {
 /** One action per empty state, and the address it opens. Every one of them exists today. */
 export const EMPTY_ACTIONS: Readonly<Record<BuiltHere, Readonly<{ label: string; href: Route }>>> = {
   templates: { label: "Open the template library", href: "/templates" },
-  uploads: { label: "Upload a picture", href: "/brand-studio?tab=logos" },
-  brand: { label: "Set up your brand", href: "/brand-studio" },
+  uploads: { label: "Upload a picture", href: "/brand?tab=logos" },
+  brand: { label: "Set up your brand", href: "/brand" },
 };
 
 /* ---------------------------------------------------------------------------------------------
