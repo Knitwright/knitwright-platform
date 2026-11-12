@@ -19,6 +19,8 @@ const hasPage = (address: string): boolean => {
   const candidates = [new URL(`${folder}/page.tsx`, APP)];
   // Pages inside a route group, such as `studio/(home)`.
   for (const group of ["(home)", "(list)"]) candidates.push(new URL(`${folder}/${group}/page.tsx`, APP));
+  // A page behind a dynamic segment, such as `ai-studio/workflow/[id]` (decision 0141).
+  candidates.push(new URL(`${folder.replace(/\/[^/]+$/, "")}/[id]/page.tsx`, APP));
   return candidates.some((url) => existsSync(url));
 };
 

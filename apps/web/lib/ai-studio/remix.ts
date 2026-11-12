@@ -6,6 +6,9 @@ import { guardrailFindings, structureKept } from "@/lib/variants/generate";
 import { hexFromLch, lchOf } from "@/lib/variants/lab";
 import { shortHash } from "@/lib/variants/random";
 import type { Variant, VariantFinding, VariantGate } from "@/lib/variants/types";
+import { ERA_LABELS, type Era } from "./eras";
+
+export { ERAS, ERA_LABELS, isEra, type Era } from "./eras";
 
 /**
  * RETRO KIT REMIX AND CHANGE KIT COLOUR (decision 0141): variants of a design from its own
@@ -19,10 +22,6 @@ import type { Variant, VariantFinding, VariantGate } from "@/lib/variants/types"
  * than four can come back, and the page says why when none does.
  */
 
-export const ERAS = ["70s", "80s", "90s", "00s"] as const;
-export type Era = (typeof ERAS)[number];
-
-export const ERA_LABELS: Readonly<Record<Era, string>> = { "70s": "70s", "80s": "80s", "90s": "90s", "00s": "00s" };
 
 /**
  * How an era moves a colour, in LCH: lightness added, chroma multiplied, hue turned. A Knitwright
@@ -143,5 +142,3 @@ export function recolourKit(spec: GarmentSpec, ask: RecolourAsk, gate?: VariantG
 
 /** The era's one line, for the form. */
 export const eraLead = (era: Era): string => ERA_SHIFTS[era].lead;
-
-export const isEra = (value: unknown): value is Era => typeof value === "string" && (ERAS as readonly string[]).includes(value);

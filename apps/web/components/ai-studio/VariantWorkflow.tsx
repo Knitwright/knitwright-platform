@@ -8,7 +8,7 @@ import { TextInput } from "@/components/ui/Inputs";
 import { useToast } from "@/components/ui/Toast";
 import { applyKitVariantAction, recolourKitAction, remixKitAction } from "@/lib/ai-studio/actions";
 import type { Option } from "@/lib/ai-studio/forms";
-import { ERAS, type Era } from "@/lib/ai-studio/remix";
+import { ERAS, type Era } from "@/lib/ai-studio/eras";
 import type { VariantTile } from "@/lib/variants/tiles";
 import { FAILED_TOAST, type FramedWorkflow } from "./CanvasWorkflow";
 import { FormField, type ProductOption } from "./Fields";

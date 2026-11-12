@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ERAS } from "./remix";
+import { ERAS } from "./eras";
 
 /** The bodies of the AI Studio actions (decision 0141). Answers are checked again against the form. */
 

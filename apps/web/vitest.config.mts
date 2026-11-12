@@ -57,6 +57,10 @@ export default defineConfig({
         // Join the design's reads to the checks and the version save; the end-to-end test of the Ideas panel covers them.
         "lib/variants/gate.ts",
         "lib/variants/service.ts",
+        // Join the AI Studio pages to the session's reads and the variants' gate (decision 0141); the workflow
+        // engines they hand over are tested on their own, and the end-to-end test of AI Studio covers the joins.
+        "lib/ai-studio/server.ts",
+        "lib/ai-studio/remix-service.ts",
         // Joins the gate to the flag, the ledger and the log; the route tests and the end-to-end tests cover it.
         "lib/credits-gate/server.ts",
         // Join the media tables, storage and the design's reads to the media code; the database tests and the end-to-end test cover them.
@@ -171,6 +175,7 @@ export default defineConfig({
         "lib/share/committee/**": { lines: 90, functions: 90, branches: 90, statements: 90 },
         ...Object.fromEntries(
           [
+            "ai-studio",
             "artwork-intake",
             "artwork-stack",
             "benchmarks",
