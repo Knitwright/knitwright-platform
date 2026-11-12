@@ -32,6 +32,9 @@ export const AI_LINE = "AI scene · uses credits";
 export const AI_DOWNLOAD = "An AI scene is made on a launch canvas, where its cost is shown before it runs. Use Edit.";
 export const CHART_DOWNLOAD = "A chart card is drawn from the design's own measurements on a launch canvas. Use Edit.";
 
+/** The renderer's own sentence (`../garment.ts`), here too so the page can say it without loading the renderer. */
+export const NO_DRAWING_LINE = "There is no drawing of this garment type yet, so a mockup cannot be built from it.";
+
 /** The most scenes one download may hold. */
 export const DOWNLOAD_LIMIT = 12;
 

@@ -14,7 +14,9 @@ import {
   downloadHref,
   FREE_LINE,
   mockupsHref,
+  NO_DRAWING_LINE,
 } from "./cards";
+import { NO_DRAWING_LINE as RENDERER_LINE } from "../garment";
 
 const scene = (slug: string) => ALL_MOCKUP_SCENES.find((one) => one.slug === slug)!;
 const slugsOf = (category: (typeof MOCKUP_CATEGORIES)[number]) => cardsFor(ALL_MOCKUP_SCENES, category).map((card) => card.slug);
@@ -47,6 +49,10 @@ describe("the mockup categories", () => {
 });
 
 describe("the mockup cards", () => {
+  it("says the renderer's own sentence when a garment cannot be drawn", () => {
+    expect(NO_DRAWING_LINE).toBe(RENDERER_LINE);
+  });
+
   it("marks a free scene free and lets it be downloaded", () => {
     const card = cardOf(scene("product-back"));
     expect(card).toMatchObject({ line: FREE_LINE, premium: false, view: "back", cannotDownload: null, chart: null });
