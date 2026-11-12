@@ -34,7 +34,7 @@ describe("the rail", () => {
 
   it("marks exactly one place current, the one the address is in", () => {
     expect(currentLinks(rail("/templates"))).toEqual(["templates"]);
-    expect(currentLinks(rail("/catalogue/JSY-SS-01"))).toEqual(["products"]);
+    expect(currentLinks(rail("/products/JSY-SS-01"))).toEqual(["products"]);
     expect(currentLinks(rail("/settings"))).toEqual([]);
   });
 

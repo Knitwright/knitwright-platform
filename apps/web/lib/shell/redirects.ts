@@ -16,8 +16,6 @@ const alias = (source: string, destination: string): Alias => ({ source, destina
 
 export const ROUTE_ALIASES: readonly Alias[] = [
   alias("/projects", "/studio"),
-  alias("/products", "/catalogue"),
-  alias("/products/:code", "/catalogue/:code"),
   alias("/team", "/club"),
   alias("/brand", "/brand-studio"),
 ];

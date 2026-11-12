@@ -55,7 +55,7 @@ describe("the home's links", () => {
   it("names the sidebar and spells out the entries that are not built", () => {
     const markup = renderToStaticMarkup(createElement(StudioSidebar));
     expect(markup).toContain('aria-label="Studio sections"');
-    expect(markup).toContain('href="/catalogue"');
+    expect(markup).toContain('href="/products"');
     // An unbuilt entry is plain text with the sentence beside it: aria-disabled is not allowed on a
     // span or a div, and axe reports it as a serious fault.
     expect(markup).not.toContain("aria-disabled");

@@ -1,4 +1,3 @@
-import { z } from "zod";
 import type { BaseArticle, OptionDef, ParameterDef } from "@/lib/catalogue/types";
 import { NOT_YET_SAMPLED } from "@/lib/catalogue/vocabulary";
 import { groupLabel } from "@/lib/home/catalogue-view";
@@ -97,7 +96,6 @@ export const defaultChoices = (groups: readonly ChipGroup[]): Readonly<Record<st
     }),
   );
 
-export const chosenOptionsSchema = z.record(z.string().regex(/^[a-z][a-z_]{0,39}$/), z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/));
 
 export type ChoiceCheck = Readonly<{ ok: true }> | Readonly<{ ok: false; reason: string }>;
 

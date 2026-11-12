@@ -74,7 +74,7 @@ const toRow = (product: ProductView): ProductRow => ({
   updated: shortDate(product.runs[0]?.createdAt ?? product.createdAt),
   channel: CHANNEL_NONE,
   editHref: `/studio/${product.projectId}` as Route,
-  runsHref: "/orders/runs" as Route,
+  runsHref: `/orders/runs?product=${product.id}` as Route,
 });
 
 /** The rows for the chosen stage and search words. */

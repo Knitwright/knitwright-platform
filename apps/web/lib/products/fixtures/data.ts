@@ -8,11 +8,8 @@ import type { CardContext } from "../cards";
 
 /** The launch catalogue and the factory test rows, for the Products tests and the /dev/products fixture page. */
 
-export const summaryOf = (article: BaseArticle): BaseArticleSummary => {
-  const { hsCode: _h, origin: _o, sourceVersion: _v, sourceNote: _n, glbModelKey: _g, uvPanelMap: _u, parametricScriptId: _p, parametricScriptVersion: _s,
-    seamAllowances: _a, thread: _t, poms: _m, parameters: _r, options: _x, construction: _c, fabrics, ...rest } = article;
-  return { ...rest, fabricCodes: fabrics.map((fabric) => fabric.code) };
-};
+/** A whole article read as the catalogue's summary of it (the summary is the article less its detail, plus codes). */
+export const summaryOf = (article: BaseArticle): BaseArticleSummary => ({ ...article, fabricCodes: article.fabrics.map((fabric) => fabric.code) });
 
 export const articles = (): readonly BaseArticle[] => catalogue();
 export const summaries = (): readonly BaseArticleSummary[] => articles().map(summaryOf);

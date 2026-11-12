@@ -4,7 +4,10 @@ import { ARTICLE_CODE } from "@/lib/catalogue/vocabulary";
 import { WEARERS, type Wearer } from "@/lib/garment";
 import type { OptionCodeMapping } from "@/lib/option-codes";
 import { AppError } from "@/lib/server/core/errors";
-import { checkChoices, chosenOptionsSchema, registryChoicesFor } from "./configurator";
+import { checkChoices, registryChoicesFor } from "./configurator";
+
+/** The chosen option codes, by group: `{ collar: "C01" }`. */
+export const chosenOptionsSchema = z.record(z.string().regex(/^[a-z][a-z_]{0,39}$/), z.string().regex(/^[A-Z][A-Z0-9]{1,9}$/));
 
 /**
  * "Design this" and CREATE MY DESIGN (09 screens 11 and 28): a new design on this base, with the options chosen in

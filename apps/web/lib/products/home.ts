@@ -88,7 +88,7 @@ function priceAnswer(input: FaqInput): string {
 export const faqs = (input: FaqInput): readonly Faq[] => [
   { question: "What is the minimum order?", answer: minimumAnswer(input) },
   { question: "How long do production and delivery take?", answer: timeAnswer(input) },
-  { question: "Are these prices final?", answer: priceAnswer(input) },
+  { question: "Are these prices settled?", answer: priceAnswer(input) },
   { question: "What do Class A and Class B mean?", answer: CLASS_NOTE },
 ];
 

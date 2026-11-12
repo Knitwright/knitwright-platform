@@ -26,7 +26,7 @@ export function decorations(fabrics: readonly FabricCard[], productionClass: str
     if (method !== "Sublimation") return { method, line: `${method} is not agreed with the factory for this base yet.`, offered: false };
     if (sublimates) return { method, line: "All-over print in any colour, dyed into the fabric.", offered: true };
     return productionClass === "A"
-      ? { method, line: "Class A is sublimated. The fabric programme has not confirmed this fabric takes the print yet.", offered: true }
+      ? { method, line: "Class A is sublimated. The fabric programme does not say yet whether this fabric takes the print.", offered: true }
       : { method, line: "Not on file for this fabric.", offered: false };
   });
 }

@@ -100,7 +100,7 @@ describe("the product page", () => {
     expect(methods.map((one) => one.offered)).toEqual([true, false, false, false]);
     expect(methods[0]!.line).toBe("All-over print in any colour, dyed into the fabric.");
     expect(methods[1]!.line).toBe("Embroidery is not agreed with the factory for this base yet.");
-    expect(decorations([], "A")[0]!.line).toContain("has not confirmed");
+    expect(decorations([], "A")[0]!.line).toContain("does not say yet");
     expect(decorations([], "B")[0]).toEqual({ method: "Sublimation", line: "Not on file for this fabric.", offered: false });
   });
 

@@ -19,7 +19,7 @@ import { productHref } from "./routes";
 export const NOT_SET_YET = "Not set yet";
 export const PRO_NOT_SET = "Studio Pro price not set yet";
 
-export type Badge = Readonly<{ label: string; tone: "ok" | "info" | "beta" }>;
+export type Badge = Readonly<{ label: string; tone: "ok" | "info" }>;
 
 export interface ProductCardView {
   readonly code: string;

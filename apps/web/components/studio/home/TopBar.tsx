@@ -13,7 +13,7 @@ export function StudioTopBar({ defaultSearch = "" }: Readonly<{ defaultSearch?: 
       {/* On a phone the search takes a whole row: squeezed beside the chip its field was 34px wide. */}
       <form
         method="get"
-        action="/catalogue"
+        action="/products/all"
         role="search"
         aria-label="Search the library"
         className="flex min-w-0 flex-1 basis-full items-center gap-2 sm:basis-auto"

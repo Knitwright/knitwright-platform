@@ -138,6 +138,10 @@ export default defineConfig({
         // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
         // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0106).
         "lib/store-contract/server.ts",
+        // Joins the Products pages to the catalogue's rows, the factory model and the production settings; every
+        // rule it hands over is pure and tested on its own, and the end-to-end tests cover the joining (plan v6 P4,
+        // decision 0142).
+        "lib/products/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -213,6 +217,7 @@ export default defineConfig({
             "pattern-service",
             "print",
             "production",
+            "products",
             "proofs",
             "quotes",
             "releases",

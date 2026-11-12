@@ -2,25 +2,30 @@ import type { Metadata } from "next";
 import { AddFabricForm } from "@/components/production/fabrics/FabricForms";
 import { FabricList } from "@/components/production/fabrics/FabricLibrary";
 import { SizeMapTable } from "@/components/production/fabrics/SizeMapTable";
-import { PageIntro } from "@/components/shell/PageIntro";
+import { ProductsHeader } from "@/components/products/ProductsHeader";
 import { PageSection } from "@/components/shell/PageSection";
 import { loadFabricLibrary } from "@/lib/fabrics/library";
+import { FABRICS_PATH } from "@/lib/products/routes";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "Fabrics and sizes" };
 
+/**
+ * The Fabrics tab of Products (plan v6 P4, decision 0142), moved from `/brands/fabrics` with its behaviour kept:
+ * the brand's fabrics with their tests, the add-a-fabric form, and the size labels and pattern sizes.
+ */
 export default async function FabricsPage() {
   const { brand, userId } = await requireMember();
   const library = await loadFabricLibrary(await sessionClient(), adminClient(), { brandId: brand.id, userId });
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageIntro
-        eyebrow={brand.name}
-        title="Fabrics and sizes"
-        lead="The fabrics you make with, what is known about how they stretch and shrink, and which pattern size each size label is cut from. A number with no test behind it is shown as not set, and nothing is scaled for it."
-      />
+    <div className="flex flex-col gap-8 pb-16">
+      <ProductsHeader title="Fabrics and sizes" current={FABRICS_PATH} />
+      <p className="max-w-180 text-body text-text-2">
+        The fabrics you make with, what is known about how they stretch and shrink, and which pattern size each size label is cut from. A number with no test behind it is
+        shown as not set, and nothing is scaled for it.
+      </p>
 
       <PageSection
         id="fabrics"
