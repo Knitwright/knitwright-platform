@@ -15,7 +15,7 @@
 --      validation result of that version against the order's factory profile must not have failed:
 --      a result with `passed = false` (a blocker among its checks) refuses the order with hint
 --      `validation_blockers`. The newest, not any: the app runs the checks again immediately before
---      every order it sends and stores them (lib/make/order-checks.ts), so the newest row is what the
+--      every order it sends and stores them (lib/validation/order-gate.ts), so the newest row is what the
 --      person was just told, and an older row the rulebook has since moved on from does not decide.
 --
 --      A version with no stored result at all is let through, unchanged from before. Every save

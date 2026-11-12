@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Finding } from "@/lib/production/contract";
@@ -42,7 +43,7 @@ export function FindingList({ findings, projectId, why }: Props) {
             <span className="mt-1 flex flex-wrap items-center gap-3 text-[13px]">
               {why ? why(ruleOf(f), `validation ${f.code}`) : null}
               {href === null ? null : (
-                <Link href={href} className="inline-flex min-h-10 items-center font-medium text-ink underline" data-testid="finding-fix">
+                <Link href={href as Route} className="inline-flex min-h-10 items-center font-medium text-ink underline" data-testid="finding-fix">
                   Fix<span className="sr-only">: {f.fix.action}</span>
                 </Link>
               )}
