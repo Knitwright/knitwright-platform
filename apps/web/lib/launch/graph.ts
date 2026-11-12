@@ -1,4 +1,4 @@
-import { BOARDS, LAUNCH_GAP_RULE, type BoardKind } from "./boards";
+import { BOARDS, isGarmentKind, isLinkedKind, LAUNCH_GAP_RULE, type BoardKind } from "./boards";
 import type { BoardLink, BoardView } from "./types";
 
 /**
@@ -56,7 +56,7 @@ export function garmentSource(graph: Graph, boardId: string): GarmentSource {
     seen.add(id);
     const board = boardById(graph, id);
     if (!board) continue;
-    if (board.kind === "design") {
+    if (isGarmentKind(board.kind)) {
       return { locked: true, boardId: board.id, designProjectId: designProjectOf(board), version: board.inputVersion };
     }
     for (const edge of inputsOf(graph, id)) queue.push(edge.fromBoardId);
@@ -129,6 +129,10 @@ export function runnable(graph: Graph, boardId: string): RunVerdict {
   const board = boardById(graph, boardId);
   if (!board) return { canRun: false, reason: "That board is not on this canvas.", ruleId: LAUNCH_GAP_RULE };
   const info = BOARDS[board.kind];
+  // A tech pack or an order is a view of its garment (decision 0145): it is opened, never run.
+  if (isLinkedKind(board.kind)) {
+    return { canRun: false, reason: sentence(`${named(board.kind)} follows its garment; open it rather than run it.`), ruleId: LAUNCH_GAP_RULE };
+  }
   if (info.maxInputs === 0) {
     return { canRun: false, reason: sentence(`${named(board.kind)} holds what you put in it; there is nothing to run.`), ruleId: LAUNCH_GAP_RULE };
   }

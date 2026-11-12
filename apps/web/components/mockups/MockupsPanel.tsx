@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import type { LaunchPanelProps } from "@/lib/launch";
+import { isGarmentKind, type LaunchPanelProps } from "@/lib/launch";
 import {
   ALL_MOCKUP_SCENES,
   ARTICLE_FILTER_GAP,
@@ -65,7 +65,7 @@ export default function MockupsPanel({ context, commands }: LaunchPanelProps) {
   const collections = useMemo(() => collectionsOf(scenes, filters, expanded), [scenes, filters, expanded]);
   const countGap = specCountGap(scenes);
 
-  const design = context.project.boards.find((board) => board.kind === "design") ?? null;
+  const design = context.project.boards.find((board) => isGarmentKind(board.kind)) ?? null;
   const selected = context.selection?.board ?? null;
 
   /**

@@ -33,8 +33,9 @@ describe("the real registry", { timeout: 60_000 }, () => {
   it("registers a real capability for every kind a flow runs, so nothing is left to the stub", () => {
     const registry = flowRegistry({ boards: [], edges: [] }, memoryPorts().ports);
     const stubbed = capabilityNotes(registry).filter((note) => note.stubbed).map((note) => note.kind);
-    // Design and artboard boards are never run: they are the garment and the empty page.
-    expect(stubbed.sort()).toEqual(["artboard", "design"]);
+    // Design and artboard boards are never run: they are the garment and the empty page. Nor are the
+    // one canvas's garment, tech pack and order boards (decision 0145): they are views of the design.
+    expect(stubbed.sort()).toEqual(["artboard", "design", "garment", "order", "tech_pack"]);
   });
 
   it("says in the run panel's note which kinds are live", () => {

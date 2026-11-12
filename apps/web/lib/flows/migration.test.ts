@@ -167,10 +167,14 @@ describe("the flow templates in the database and the flow templates in TypeScrip
 });
 
 describe("what the flow tables hold", () => {
-  it("names the same board kinds L1's board table names", () => {
+  it("names the same board kinds L1's board table named, which a template step may be", () => {
+    // The one canvas (decision 0145) added garment, tech pack and order boards. No flow template
+    // makes one yet, so a template step is still one of the seven launch kinds; a run's own record
+    // of a board (flow_run_boards) takes all ten, in 20261224010000.
     const column = /kind text not null check \(kind in \(([^)]+)\)\)/.exec(sql);
     expect(column).not.toBeNull();
-    expect([...column![1]!.matchAll(/'([a-z_]+)'/g)].map((found) => found[1])).toEqual([...BOARD_KINDS]);
+    const e1 = new Set<string>(["garment", "tech_pack", "order"]);
+    expect([...column![1]!.matchAll(/'([a-z_]+)'/g)].map((found) => found[1])).toEqual(BOARD_KINDS.filter((kind) => !e1.has(kind)));
   });
 
   it("names the same two ways a picture is made, and the same four formats", () => {

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { FlowTemplates } from "@/components/flows/FlowTemplates";
 import { Notice } from "@/components/ui/Notice";
-import type { LaunchPanelProps } from "@/lib/launch";
+import { isGarmentKind, type LaunchPanelProps } from "@/lib/launch";
 import { applyFlowTemplateAction } from "@/lib/flows/actions";
 import { dropOrigin } from "./placing-packs";
 
@@ -31,7 +31,7 @@ export function FlowPacks({ context }: LaunchPanelProps) {
   const [note, setNote] = useState<Readonly<{ tone: "ok" | "warn"; text: string }> | null>(null);
   const [pending, start] = useTransition();
   const { project } = context;
-  const designBoard = project.boards.find((board) => board.kind === "design") ?? null;
+  const designBoard = project.boards.find((board) => isGarmentKind(board.kind)) ?? null;
 
   const open = (template: string) => {
     setNote(null);

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
-import { launchProjectPath, type Graph } from "@/lib/launch";
+import { isGarmentKind, launchProjectPath, type Graph } from "@/lib/launch";
 import { loadLaunchCanvas } from "@/lib/launch/server";
 import { generatedOutputFiles, saveBoard } from "@/lib/launch/service";
 import { refuseIfBlocked, screenText } from "@/lib/moderation/hooks";
@@ -209,7 +209,7 @@ export const publishFlowListingAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const canvas = await canvasOf(session.brand.id, input.launchProjectId);
-    const design = canvas.project.boards.find((one) => one.kind === "design") ?? null;
+    const design = canvas.project.boards.find((one) => isGarmentKind(one.kind)) ?? null;
     // The spec's "AI-generated" label is mandatory on the hand-off, so it is taken from the files
     // themselves as well as from the shape of the canvas (security review v5 H1, decision 0116).
     const generatedFileIds = await generatedOutputFiles(
