@@ -116,6 +116,6 @@ test.describe("AI Studio", () => {
     await expect(page.getByText("1. Reference (garment locked)")).toBeVisible();
     await page.goto("/ai-studio/video");
     await expect(page.getByRole("heading", { level: 1, name: "Video generator" })).toBeVisible();
-    await expect(page.getByRole("button", { name: /credits/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Generate · \d+ credits$/ })).toBeVisible();
   });
 });
