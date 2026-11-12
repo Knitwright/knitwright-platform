@@ -17,7 +17,7 @@ const COLOURS = [
   ["dot", "bg-dot", "#D5D9E0"],
   ["text", "bg-text", "#111318"],
   ["text-2", "bg-text-2", "#374151"],
-  ["muted", "bg-muted", "#6B7280"],
+  ["muted", "bg-muted", "#5F6672"],
   ["muted-2", "bg-muted-2", "#9CA3AF"],
 ] as const;
 

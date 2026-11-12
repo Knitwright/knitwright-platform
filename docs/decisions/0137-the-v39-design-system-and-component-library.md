@@ -26,9 +26,10 @@ stay legible on the light theme.
    Outlines, fills and the focus ring keep the exact `electric`; blue *text* uses `link` (#2558E8, 5.7:1 on white,
    5.1:1 on `electric-soft`). `10` itself requires 4.5:1 for body text, so this keeps both rules. For the same reason
    `bad` text on its own `bad-soft` fill (4.0:1) uses `bad-strong` (#B42318, 5.5:1) in pills and tags; `bad` stays
-   for icons, borders, the measurement marks and text on white. `muted` on `soft` is 4.4:1, so the library puts
-   `text-2` on `soft` and `gold-soft` fills (the segmented control's other segments, a locked cell in the highlighted
-   column). `/dev/ui` passes axe with no serious finding (`e2e/dev-ui.spec.ts`).
+   for icons, borders, the measurement marks and text on white. `10`'s `muted` (#6B7280) is 4.4:1 on its own `soft`
+   and 4.1:1 on `soft-2`, so muted captions on grey sections failed AA in the browser tests; `muted` is #5F6672
+   (5.8:1 on white, 4.9:1 on `soft-2`, 5.1:1 on `electric-soft`). `/dev/ui` passes axe with no serious finding
+   (`e2e/dev-ui.spec.ts`).
 4. **The compatibility block** (one marked section at the end of `globals.css`) gives every v2.2 name a light value:
    `canvas`, `surface`, `surface-solid` become white; `shell` soft; `ink` text; `ink-2` text-2; `muted` and `faint`
    muted; `hairline` border; `tile` #F7F8FA (lighter than `soft`, so muted text on it still reads 4.55:1); `tile-2`

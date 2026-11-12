@@ -42,7 +42,8 @@ const SPEC: Readonly<Record<string, string>> = {
   dot: "#d5d9e0",
   text: "#111318",
   "text-2": "#374151",
-  muted: "#6b7280",
+  // §2 says #6B7280; darkened for AA on the grey fills (decision 0137).
+  muted: "#5f6672",
   "muted-2": "#9ca3af",
   ok: "#067647",
   "ok-soft": "#e7f8ef",

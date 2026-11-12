@@ -14,11 +14,13 @@
  *   - Elevation is `shadow-e1 … shadow-e4`. Motion is `duration-fast|base|slow|canvas` with
  *     `ease-standard`. Spacing keeps Tailwind's 4 px scale, which holds every §4 value.
  *
- * Contrast (WCAG AA on white): text 18.6:1, text-2 10.3:1, muted 4.8:1, link 5.7:1, ok 5.7:1,
+ * Contrast (WCAG AA on white): text 18.6:1, text-2 10.3:1, muted 5.8:1, link 5.7:1, ok 5.7:1,
  * warn 5.4:1, bad 4.8:1. White on navy is 16:1; navy on gold is 8.8:1. `electric` itself is
  * 4.499:1 on white, a hair under AA, so text in that blue uses `text-link` (#2558E8); outlines,
- * fills and focus rings keep the exact `electric`. `muted-2` is for placeholders and disabled
- * text only, never information.
+ * fills and focus rings keep the exact `electric`. `10`'s muted (#6B7280) is 4.4:1 on its own
+ * `soft` and 4.1:1 on `soft-2`, so muted text on a grey section failed AA; `muted` is #5F6672
+ * (4.9:1 on soft-2, 5.1:1 on electric-soft). `muted-2` is for placeholders and disabled text
+ * only, never information. Both deviations are in decision 0137.
  *
  * Screen code uses these names only: no raw hex, px or shadows outside this file (§11).
  */
@@ -45,7 +47,7 @@
   --color-dot: #d5d9e0;
   --color-text: #111318;
   --color-text-2: #374151;
-  --color-muted: #6b7280;
+  --color-muted: #5f6672;
   --color-muted-2: #9ca3af;
   --color-on-dark: #ffffff;
   --color-scrim: rgba(17, 19, 24, 0.45);
@@ -428,7 +430,7 @@ body {
  *                                                                                          *
  *   --canvas, --surface, --surface-solid -> bg (white)        --shell -> soft              *
  *   --ink -> text   --ink-2 -> text-2   --muted, --faint -> muted   --hairline -> border   *
- *   --tile -> #F7F8FA (lighter than soft, so muted text on it still reads 4.55:1)          *
+ *   --tile -> #F7F8FA, a little lighter than soft                                          *
  *   --tile-2 -> soft-2   --chalk -> text   --chalk-muted -> muted                          *
  *   --cobalt -> navy   --cobalt-hover -> navy-2   --cobalt-soft -> link (#2558E8)          *
  *   --cobalt-wash -> electric-soft   --ok, --warn (+ -wash) -> status text and fill        *
@@ -450,13 +452,13 @@ body {
   --shell: #f3f4f6;
   --ink: #111318;
   --ink-2: #374151;
-  --muted: #6b7280;
-  --faint: #6b7280;
+  --muted: #5f6672;
+  --faint: #5f6672;
   --hairline: #e5e7eb;
   --tile: #f7f8fa;
   --tile-2: #eceef2;
   --chalk: #111318;
-  --chalk-muted: #6b7280;
+  --chalk-muted: #5f6672;
   --cobalt: #0b1f4b;
   --cobalt-soft: #2558e8;
   --cobalt-wash: #eaf0ff;
@@ -517,7 +519,7 @@ body {
 .bg-tile {
   --color-white: #111318;
   --chalk: #111318;
-  --chalk-muted: #6b7280;
+  --chalk-muted: #5f6672;
 }
 /* Two panels of the teamwear configurator and one label hard-coded dark-theme colours. */
 .bg-\[\#10131a\],
@@ -526,6 +528,17 @@ body {
 }
 .text-\[\#dfe4ff\] {
   color: var(--color-link);
+}
+/* The guided flow's current step was a pale chip with near-black text. */
+.bg-chalk {
+  background-color: var(--color-soft-2);
+}
+/*
+ * A v2.2 link inside a sentence was told apart from the text by colour alone; the link blue is
+ * too close to the text on white for that (axe link-in-text-block), so it is underlined.
+ */
+a.text-cobalt-soft {
+  text-decoration-line: underline;
 }
 
 /* A glass panel became a white card with a hairline border. */
