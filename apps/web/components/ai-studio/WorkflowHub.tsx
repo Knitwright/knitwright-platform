@@ -91,7 +91,7 @@ export function WorkflowHub({ styles }: Readonly<{ styles: readonly Option[] }>)
             setTab(id as HubTab);
             setCategory(null);
           }}
-          className="flex-1 overflow-x-auto"
+          className="flex-1 overflow-x-auto overflow-y-hidden"
         />
         <div className="flex items-center gap-2 lg:w-110">
           <Button variant="secondary" icon={<Icon icon={Palette} />} onClick={() => setDrawer(true)}>

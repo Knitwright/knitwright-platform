@@ -68,9 +68,9 @@ export function WorkflowFrame({ title, lead, tone, poweredBy, example = 6, back 
           AI Studio
         </Link>
       ) : null}
-      <div className={cx("grid overflow-hidden rounded-3xl border border-border bg-bg", !wide && "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]")}>
-        <section aria-labelledby="workflow-title" className={cx("flex min-w-0 flex-col border-border", !wide && "lg:border-r")}>
-          <div className="flex flex-col gap-6 px-6 pt-10 pb-8 md:px-15">
+      <div className={cx("grid overflow-hidden rounded-3xl border border-border bg-bg", !wide && "lg:h-[calc(100dvh-11rem)] lg:min-h-150 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]")}>
+        <section aria-labelledby="workflow-title" className={cx("flex min-w-0 flex-col border-border", !wide && "lg:min-h-0 lg:border-r")}>
+          <div className={cx("flex flex-col gap-6 px-6 pt-10 pb-8 md:px-15", !wide && "lg:min-h-0 lg:flex-1 lg:overflow-y-auto")}>
             <header className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-4">
                 <h1 id="workflow-title" className="text-h1 text-text">
@@ -83,10 +83,10 @@ export function WorkflowFrame({ title, lead, tone, poweredBy, example = 6, back 
             </header>
             {children}
           </div>
-          {footer ? <div className="sticky bottom-0 mt-auto border-t border-border bg-bg px-6 py-4 md:px-9">{footer}</div> : null}
+          {footer ? <div className="mt-auto border-t border-border bg-bg px-6 py-4 md:px-9">{footer}</div> : null}
         </section>
         {wide ? null : (
-          <aside aria-label="Output example" className="flex min-w-0 flex-col items-center justify-center gap-4 p-6 md:p-10">
+          <aside aria-label="Output example" className="flex min-w-0 flex-col items-center justify-center gap-4 p-6 md:p-10 lg:min-h-0">
             <OutputExample tone={tone} count={example} />
             <Powered by={poweredBy} />
           </aside>
@@ -132,20 +132,23 @@ type FooterProps = Readonly<{
 export function GenerateFooter({ count, label, cost, blocked, pending, onGenerate }: FooterProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-16 shrink-0 items-center gap-2 rounded-xl border border-border px-4 text-text-2">
+      <div className="flex h-16 w-36 shrink-0 items-center gap-2 rounded-xl border border-border px-4 text-text-2">
         <Icon icon={Images} />
         {count ? (
-          <NumberInput label="How many" unit="" value={count.value} min={count.min} max={count.max} onChange={count.onChange} className="w-20" />
+          <NumberInput label="How many" unit="" value={count.value} min={count.min} max={count.max} onChange={count.onChange} className="min-w-0 flex-1" />
         ) : (
           <span className="text-body-lg" aria-label="Makes one set">
             1
           </span>
         )}
       </div>
-      <Button variant="primary" size="lg" className="h-16 flex-1 text-h3" pending={pending} disabledReason={blocked ?? undefined} onClick={onGenerate}>
-        {label} · {cost}
-        <KwCoin />
-      </Button>
+      {/* The tooltip of a disabled button wraps it, so the width is held by this box (10 §8). */}
+      <div className="flex min-w-0 flex-1 [&>*]:w-full">
+        <Button variant="primary" size="lg" className="h-16 w-full text-h3" pending={pending} disabledReason={blocked ?? undefined} onClick={onGenerate}>
+          {label} · {cost}
+          <KwCoin />
+        </Button>
+      </div>
     </div>
   );
 }

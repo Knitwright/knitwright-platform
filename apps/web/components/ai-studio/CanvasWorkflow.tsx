@@ -40,7 +40,7 @@ type Props = Readonly<{
 }>;
 
 /** The cost on the button: "Free", or the credits the runs will cost (10 §9: shown before running). */
-export const costLabel = (creditsPer: number, count: number): string => (creditsPer <= 0 ? "Free" : `${creditsPer * count} credits`);
+export const costLabel = (creditsPer: number, count: number): string => (creditsPer <= 0 ? "Free" : creditsPer * count === 1 ? "1 credit" : `${creditsPer * count} credits`);
 
 const blockedReason = (availability: Availability, ok: boolean, first: string | undefined): string | null => {
   if (!availability.available) return availability.title;
