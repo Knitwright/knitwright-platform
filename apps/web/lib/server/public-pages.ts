@@ -34,4 +34,7 @@ export const PUBLIC_PAGES = [
   // the only key: the page reads through the sign-up functions, which check it, and shows only the club's name, the
   // season's name, the sport's number range and the size guide. It shows no other player's answer and no roster.
   "app/join/[token]/page.tsx",
+  // The component library's fixture page (decision 0137): every component in every state, with made-up
+  // labels and no data. A production build answers 404 unless DEV_UI_ROUTES is "on" (app/dev/dev-routes.ts).
+  "app/dev/ui/page.tsx",
 ] as const;
