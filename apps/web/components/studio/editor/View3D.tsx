@@ -2,9 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import type { EditorModel } from "@/lib/editor";
+import type { EditorDesign, EditorModel } from "@/lib/editor";
 import { LOADING_LABEL } from "@/lib/garment3d/viewer";
 import type { FlatPreviewData } from "@/lib/projects/flat-preview";
+import { atlasAsk, usePanelPictures } from "./usePanelPictures";
 
 // three.js and the model reader are fetched only when the 3D view is on the canvas.
 const ModelViewer = dynamic(() => import("@/components/gltf/ModelViewer"), {
@@ -18,6 +19,8 @@ type Props = Readonly<{
   flat: FlatPreviewData | null;
   /** Why there is no model, in the drafter's own words. */
   reason: string | null;
+  /** The design the model was drafted from, so its islands can be painted from its print files. */
+  design: EditorDesign | null;
 }>;
 
 const NO_PICTURES = "The 3D view needs the design's drawing, and this garment has none yet.";
@@ -30,10 +33,12 @@ const NO_PICTURES = "The 3D view needs the design's drawing, and this garment ha
  * There is no `SHOW_3D` switch here: for a base article the drafter can draw, 3D is simply on
  * (decision 0075). The older trial under the drawing is unchanged and still behind that switch.
  */
-export function View3D({ model, flat, reason }: Props) {
+export function View3D({ model, flat, reason, design }: Props) {
   const front = flat?.views.find((view) => view.view === "front")?.src;
   const back = flat?.views.find((view) => view.view === "back")?.src;
   const pictures = useMemo(() => (front && back ? { front, back } : null), [front, back]);
+  // Principle 3: the texture is the print file. The islands are painted with the print files' own art.
+  const panelPictures = usePanelPictures(atlasAsk(design, model !== null));
 
   if (!model) {
     return (
@@ -54,7 +59,7 @@ export function View3D({ model, flat, reason }: Props) {
       <p className="text-xs text-ink-2">
         Shape: {model.label}. It shows where the panels are, not how the garment hangs.
       </p>
-      <ModelViewer model={model.model} layout={model.layout} panelPictures={{}} shape={flat.shape} pictures={pictures} />
+      <ModelViewer model={model.model} layout={model.layout} panelPictures={panelPictures} shape={flat.shape} pictures={pictures} />
     </div>
   );
 }

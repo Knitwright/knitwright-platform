@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { modelForDraft, type EditorDesign } from "@/lib/editor";
 import { LOADING_LABEL } from "@/lib/garment3d/viewer";
 import { flatPreview } from "@/lib/projects/flat-preview";
+import { atlasAsk, usePanelPictures } from "../usePanelPictures";
 
 // three.js and the model reader are fetched only once the panel is open and there is a model.
 const ModelViewer = dynamic(() => import("@/components/gltf/ModelViewer"), {
@@ -19,12 +20,16 @@ const NO_DRAWING = "This garment has no drawing yet, so there is nothing to prev
  *
  * It is built from the design the slot was handed and from nothing else: the drawings come from
  * `flatPreview` and the shape from the drafted panels, so the preview changes with the design and
- * the panel never fetches (the slot contract, `lib/editor/slots.ts`). A design the drafter cannot
+ * the panel fetches no design data (the slot contract, `lib/editor/slots.ts`). The one read it makes
+ * is the panel pictures for the model's islands (plan v6 D3): the art of this version's print files,
+ * which only the server can draw. Until they arrive the islands show their material colour. A design the drafter cannot
  * draw shows its two drawings instead of a shape nobody drafted.
  */
 export function Preview({ design }: Readonly<{ design: EditorDesign }>) {
   const flat = useMemo(() => flatPreview(design.spec, new Map(), undefined, null, design.colourwayId), [design.spec, design.colourwayId]);
   const model = useMemo(() => modelForDraft(design.draft), [design.draft]);
+  // Principle 3: the texture is the print file. The islands are painted with the print files' own art.
+  const panelPictures = usePanelPictures(atlasAsk(design, model !== null));
   const front = flat?.views.find((view) => view.view === "front");
   const back = flat?.views.find((view) => view.view === "back");
 
@@ -39,7 +44,7 @@ export function Preview({ design }: Readonly<{ design: EditorDesign }>) {
     <div className="flex flex-col gap-2" data-testid="export-preview">
       {model ? (
         <>
-          <ModelViewer model={model.model} layout={model.layout} panelPictures={{}} shape={flat.shape} pictures={{ front: front.src, back: back.src }} />
+          <ModelViewer model={model.model} layout={model.layout} panelPictures={panelPictures} shape={flat.shape} pictures={{ front: front.src, back: back.src }} />
           <p className="text-xs text-ink-2">Shape: {model.label}. It shows where the panels are, not how the garment hangs.</p>
         </>
       ) : (
