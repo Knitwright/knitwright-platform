@@ -36,4 +36,7 @@ export interface Moved {
 export const MOVED_PAGES: readonly Moved[] = [
   // P1 (decision 0139): the studio home is Recent on the Projects page.
   { source: "/studio", destination: "/projects/recent", permanent: true },
+  // P3 AI Studio (decision 0141): crest to kit and the benchmarks list are workflow pages now.
+  { source: "/crest-to-kit", destination: "/ai-studio/workflow/crest-to-kit", permanent: true },
+  { source: "/studio/benchmarks", destination: "/ai-studio/workflow/benchmark-products", permanent: true },
 ];

@@ -19,7 +19,7 @@ export interface MenuLink {
 export const CREATE_ITEMS: readonly MenuLink[] = [
   // Templates first, then a blank garment: the guided start (decision 0074's create-new flow).
   { id: "kit-design", label: "New kit design", href: "/studio/start", icon: "shirt" },
-  { id: "crest", label: "Kit from crest", href: "/crest-to-kit", icon: "wand" },
+  { id: "crest", label: "Kit from crest", href: "/ai-studio/workflow/crest-to-kit" as Route, icon: "wand" },
   // A launch canvas is where social posts, mockups, scenes and clips are made today.
   { id: "social", label: "Social post", href: "/launch", icon: "megaphone" },
   { id: "templates", label: "Explore templates", href: "/templates", icon: "templates" },

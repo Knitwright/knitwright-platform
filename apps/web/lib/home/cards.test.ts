@@ -61,7 +61,7 @@ describe("the ways into a new design", () => {
   });
 
   it("sends the crest way to crest to kit, the screen F-T2 asks for", () => {
-    expect(hrefOf(CREATE_WAYS[2]!.target)).toBe("/crest-to-kit");
+    expect(hrefOf(CREATE_WAYS[2]!.target)).toBe("/ai-studio/workflow/crest-to-kit");
   });
 
   it("marks shared team designs as coming later rather than opening nothing", () => {

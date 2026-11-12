@@ -31,7 +31,7 @@ export default async function BenchmarkPage({ params, searchParams }: PageProps<
   return (
     <>
       <header>
-        <Link href="/studio/benchmarks" className="font-mono text-xs uppercase tracking-wider text-muted">
+        <Link href="/ai-studio/workflow/benchmark-products" className="font-mono text-xs uppercase tracking-wider text-muted">
           Benchmarks
         </Link>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink">{screen.benchmark.title}</h1>

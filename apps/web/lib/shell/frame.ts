@@ -8,7 +8,6 @@
  */
 export const FULL_WIDTH: readonly string[] = [
   "/ai-studio",
-  "/templates",
   "/mockups",
   "/marketing",
   "/orders",
@@ -18,6 +17,8 @@ export const FULL_WIDTH: readonly string[] = [
   "/projects",
   "/dev/projects",
   "/dev/shell",
+  "/dev/ai-studio",
+  "/templates",
   "/team",
   "/brand",
   "/settings",

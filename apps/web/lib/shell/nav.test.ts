@@ -47,7 +47,7 @@ describe("the ⌄ group", () => {
 describe("⋯", () => {
   it("keeps a door to every v2.2 page with no rail item", () => {
     const hrefs = moreFor(BRAND).map((place) => place.href);
-    expect(hrefs).toEqual(["/launch", "/teamwear", "/studio/charts", "/studio/benchmarks", "/designer", "/team"]);
+    expect(hrefs).toEqual(["/launch", "/teamwear", "/studio/charts", "/ai-studio/workflow/benchmark-products", "/designer", "/team"]);
   });
 
   it("does not list the club page twice for a club, whose rail already has Team", () => {
