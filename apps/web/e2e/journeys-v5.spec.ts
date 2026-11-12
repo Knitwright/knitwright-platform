@@ -35,7 +35,7 @@ import { allowClassBRun, createAccount, makePlatformAdmin, passBotCheck, signIn,
  *
  * HOUSE RULES these tests follow (plan v5, lesson 11):
  *   * `signIn` only presses the button and the cookie arrives with the redirect, so every call is
- *     followed by `expect(page).toHaveURL(/\/studio$/)` before anything navigates.
+ *     followed by `expect(page).toHaveURL(/\/projects\/recent$/)` before anything navigates.
  *   * Every account, brand, design name, order reference and **fabric key** is unique per run,
  *     because CI retries a failed browser test once and `ops_cut_batches` groups by factory,
  *     fabric, article and cut-off and reuses a batch it has already cut.
@@ -72,7 +72,7 @@ const ownAddress = (): Record<string, string> => ({
 const signedIn = async (page: Page, label: string, brand: string): Promise<string> => {
   const email = await createAccount(label, { brand });
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   return email;
 };
 
@@ -473,7 +473,7 @@ test.describe("the ops journey (R3)", () => {
     const { orderId, cutoffAt } = await storeOrder(email, ref, `r3-factory-${id}`, `r3-fabric-${id}`);
 
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // The batch screen, before the cut. The order is waiting, and no due date is promised to it.
     await page.goto("/ops");

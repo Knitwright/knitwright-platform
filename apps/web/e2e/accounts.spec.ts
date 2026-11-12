@@ -45,7 +45,7 @@ test.describe("accounts", () => {
     await page.getByRole("radio", { name: "Club", exact: true }).check();
     await page.getByLabel("Club name").fill("Northfield FC");
     await page.getByRole("button", { name: "Set up your club" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
 
     // The address signed in, Settings and Sign out are the top bar's avatar menu (decisions 0103, 0138).
@@ -55,7 +55,7 @@ test.describe("accounts", () => {
     await expect(page).toHaveURL(/\/sign-in$/);
 
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
   });
 
   test("the landing page leads to sign-up, where someone not invited can ask for access", async ({ page }) => {
@@ -100,7 +100,7 @@ test.describe("accounts", () => {
 
     await page.goto(await linkFromMail(email, /sign in/i));
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
   });
 
   test("a wrong password is refused and the address stays in the form", async ({ page }) => {
@@ -145,12 +145,12 @@ test.describe("accounts", () => {
     await expect(page).toHaveURL(/\/reset-password$/);
     await page.getByLabel("New password").fill(newPassword);
     await page.getByRole("button", { name: "Save password" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await signOutFromShell(page);
     await expect(page).toHaveURL(/\/sign-in$/);
     await signIn(page, email, newPassword);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
   });
 
   test("a link that was already used is refused with an explanation", async ({ page }) => {

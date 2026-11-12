@@ -226,6 +226,7 @@ export default defineConfig({
             "plans",
             "print",
             "production",
+            "projects-page",
             "proofs",
             "quotes",
             "releases",

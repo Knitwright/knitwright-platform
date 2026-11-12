@@ -5,7 +5,7 @@ import { createAccount, signIn, standInForBotCheck, test } from "./support";
 
 const startDesign = async (page: Page): Promise<void> => {
   await signIn(page, await createAccount("design-diff"));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   await page.goto("/studio/new");
   await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
   await page.getByLabel("Made for").selectOption({ label: "Women" });

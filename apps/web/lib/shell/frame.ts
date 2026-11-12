@@ -16,6 +16,8 @@ export const FULL_WIDTH: readonly string[] = [
   "/dev/ai-studio",
   "/templates",
   "/dev/pages",
+  "/projects",
+  "/dev/projects",
   "/team",
   "/brand",
   "/settings",

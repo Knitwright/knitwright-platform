@@ -38,7 +38,7 @@ test.describe("the ops console, quality control to shipped", () => {
     const id = "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11";
     const email = await createAccount("ops-qc-member");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     for (const path of ["/ops/exceptions", `/ops/orders/${id}/qc`, `/ops/orders/${id}/packing`, `/ops/orders/${id}/shipping`]) {
       expect((await page.goto(path))?.status(), path).toBe(404);
     }
@@ -51,7 +51,7 @@ test.describe("the ops console, quality control to shipped", () => {
     const ref = `E2E-QC-${Date.now()}`;
     const orderId = await readyOrder(email, ref);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // Nothing is inspected yet, so shipping says so.
     await page.goto(`/ops/orders/${orderId}/shipping`);
@@ -131,7 +131,7 @@ test.describe("the ops console, quality control to shipped", () => {
     await makePlatformAdmin(email);
     await readyOrder(email, `E2E-HOME-${Date.now()}`);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/ops");
     await expect(page.getByText("Orders this week")).toBeVisible();
     await expect(page.getByText("Next cut-off")).toBeVisible();

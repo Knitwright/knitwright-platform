@@ -35,7 +35,7 @@ test.describe("the pattern service", () => {
     await makePlatformAdmin(email);
     const projectId = await shortsDesign(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto(`/studio/${projectId}/pattern-service`);
     await expect(page.getByTestId("pattern-price")).toContainText("Knitwright will confirm the price.");
@@ -75,7 +75,7 @@ test.describe("the pattern service", () => {
     const projectId = await shortsDesign(owner);
     const other = await createAccount("pattern-other");
     await signIn(page, other);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto(`/studio/${projectId}/pattern-service`))?.status()).toBe(404);
     expect((await page.goto("/ops/pattern-requests"))?.status()).toBe(404);
     const id = "6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11";

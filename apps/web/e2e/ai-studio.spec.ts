@@ -13,7 +13,7 @@ import { createAccount, signIn, test } from "./support";
 const signedIn = async (page: Page, label: string): Promise<void> => {
   const email = await createAccount(label);
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const newDesign = async (page: Page, name: string): Promise<void> => {

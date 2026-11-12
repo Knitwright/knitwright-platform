@@ -6,7 +6,7 @@ import { createAccount, createColleagueOf, openTool, signIn, standInForBotCheck,
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const startDesign = async (page: Page, type: string, name = "Home shirt"): Promise<string> => {
@@ -296,7 +296,7 @@ test.describe("the editor", () => {
   test("tells the person when someone else changed the design, and reloads on request", async ({ page, browser }) => {
     const email = await createAccount("conflict");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const path = await startDesign(page, "Crew neck tee");
 
     // A colleague in the same brand saves a change from their own browser. A save by the
@@ -308,7 +308,7 @@ test.describe("the editor", () => {
     try {
       const other = await elsewhere.newPage();
       await signIn(other, await createColleagueOf(email, "conflict-colleague"));
-      await expect(other).toHaveURL(/\/studio$/);
+      await expect(other).toHaveURL(/\/projects\/recent$/);
       await other.goto(path);
       await choice(other, "Fit", /^Slim/).check();
       await saved(other, 2);
@@ -537,7 +537,7 @@ test.describe("isolation between brands", () => {
     try {
       const stranger = await other.newPage();
       await signIn(stranger, await createAccount("stranger"));
-      await expect(stranger).toHaveURL(/\/studio$/);
+      await expect(stranger).toHaveURL(/\/projects\/recent$/);
 
       const response = await stranger.goto(path);
 

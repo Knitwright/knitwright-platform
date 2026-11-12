@@ -53,7 +53,7 @@ const savedOrRefused = (outcome: SaveOutcome) => {
 const refreshDesign = (projectId: string): void => {
   revalidatePath(`/studio/${projectId}`);
   revalidatePath(`/studio/${projectId}/tech-pack`);
-  revalidatePath("/studio");
+  revalidatePath("/projects/recent");
 };
 
 export const createProjectAction = defineAction({
@@ -67,7 +67,7 @@ export const createProjectAction = defineAction({
       ...input,
       charts: await brandChartSet(await sessionClient(), session.brand.id),
     });
-    revalidatePath("/studio");
+    revalidatePath("/projects/recent");
     redirect(`/studio/${id}`);
   },
 });
@@ -98,7 +98,7 @@ export const startGuidedAction = defineAction({
     await setProjectBuyerKind(adminClient(), { projectId: id, userId: session.userId, buyerKind: input.buyerKind }).catch(
       (error: unknown) => log({ level: "warn", message: "The buyer kind could not be saved", where: "action create-project", error }),
     );
-    revalidatePath("/studio");
+    revalidatePath("/projects/recent");
     redirect(guideAddress(id, "start", plan.next) as Route);
   },
 });

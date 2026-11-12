@@ -19,7 +19,7 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
 test.describe("design comments (W4-D)", () => {
   test("comment on a panel, reply, resolve, and a member of another brand sees nothing", async ({ page, browser }) => {
     await signIn(page, await createAccount("comments-owner", { brand: "Comment Club" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Comments test");
 
     await openTool(page, "Comments");
@@ -58,7 +58,7 @@ test.describe("design comments (W4-D)", () => {
     await other.setExtraHTTPHeaders({ "x-real-ip": `10.251.${Math.floor(Math.random() * 256)}.${1 + Math.floor(Math.random() * 254)}` });
     const stranger = await other.newPage();
     await signIn(stranger, await createAccount("comments-stranger", { brand: "Other Club" }));
-    await expect(stranger).toHaveURL(/\/studio$/);
+    await expect(stranger).toHaveURL(/\/projects\/recent$/);
     const url = `/api/projects/${projectId}/comments`;
     const read = await stranger.request.get(url);
     expect(read.status()).toBe(404);

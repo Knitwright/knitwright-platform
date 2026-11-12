@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { CreateNew } from "./CreateNew";
 import { FOCUSABLE, modalProps, newButtonProps } from "./create-new-a11y";
-import { ActionCards } from "./ActionCards";
+import { StartCards } from "@/components/projects/v3/StartCards";
 import { StudioSidebar } from "./Sidebar";
 
 /**
@@ -46,7 +46,7 @@ describe("the + New button and its modal", () => {
 
 describe("the home's links", () => {
   it("never writes an empty address: an unbuilt section says it is coming later instead", () => {
-    for (const markup of [renderToStaticMarkup(createElement(StudioSidebar)), renderToStaticMarkup(createElement(ActionCards))]) {
+    for (const markup of [renderToStaticMarkup(createElement(StudioSidebar)), renderToStaticMarkup(createElement(StartCards))]) {
       expect(markup).not.toMatch(/href="(#|)"/);
       expect(markup).toContain("Coming in a later release");
     }

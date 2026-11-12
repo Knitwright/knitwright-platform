@@ -56,7 +56,7 @@ test.describe("the Media tool (W3-E)", () => {
     const watch = createStopwatch();
     watch.mark("start");
     await signIn(page, await createAccount("media-screen", { brand: "Media Screen Rovers" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startJersey(page);
 
     await openTool(page, "Media");
@@ -128,7 +128,7 @@ test.describe("the Media tool (W3-E)", () => {
 
   test("the page never carries a path to a clean file", async ({ page }) => {
     await signIn(page, await createAccount("media-screen-b", { brand: "Media Screen Two" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startJersey(page);
     await openTool(page, "Media");
     const screen = page.getByTestId("media-screen");

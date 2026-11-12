@@ -4,14 +4,17 @@
  */
 
 export const SIGN_IN_PATH = "/sign-in";
-export const HOME_AFTER_SIGN_IN = "/studio";
+/** Recent on the Projects page, which the v2.2 studio home became (decision 0139). */
+export const HOME_AFTER_SIGN_IN = "/projects/recent";
 export const CHOOSE_PASSWORD_PATH = "/reset-password";
 /** Where someone with no brand yet is sent to create their first. */
 export const WELCOME_PATH = "/welcome";
 const BRANDS_PATH = "/brands";
 
 const NEEDS_SESSION = [
-  HOME_AFTER_SIGN_IN,
+  "/projects",
+  // The design editor, the size charts and the other studio pages.
+  "/studio",
   CHOOSE_PASSWORD_PATH,
   WELCOME_PATH,
   BRANDS_PATH,

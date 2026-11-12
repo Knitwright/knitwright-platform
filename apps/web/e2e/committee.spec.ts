@@ -67,7 +67,7 @@ test.describe("sharing a design with a committee", () => {
     const email = await createAccount("committee-owner", { brand: `Committee FC ${run}` });
     await signIn(page, email);
     // signIn only presses the button; the session cookie arrives with the redirect (plan v5 Lessons).
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, designName);
     const { userId, brandId } = await idsOf(email);
     await markChecked(projectId, brandId, userId);
@@ -158,7 +158,7 @@ test.describe("sharing a design with a committee", () => {
     const designName = `Withdrawn kit ${run}`;
     const email = await createAccount("committee-revoker", { brand: `Withdrawn FC ${run}` });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, designName);
 
     await page.goto("/team?tab=approvals");

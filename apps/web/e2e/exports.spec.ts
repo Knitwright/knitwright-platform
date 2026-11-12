@@ -10,7 +10,7 @@ import { createAccount, downloadRecords, openTool, signIn, standInForBotCheck, t
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const startDesign = async (page: Page, name: string): Promise<void> => {
@@ -201,7 +201,7 @@ test.describe("downloading the tech pack (T12)", () => {
       const stranger = await other.newPage();
       await stranger.setExtraHTTPHeaders({ "x-real-ip": "10.99.0.7" });
       await signIn(stranger, await createAccount("dl-stranger"));
-      await expect(stranger).toHaveURL(/\/studio$/);
+      await expect(stranger).toHaveURL(/\/projects\/recent$/);
 
       for (const format of ["pdf", "xlsx", "svg?view=front"]) {
         const refused = await stranger.request.get(`/api/projects/${projectId}/exports/${format}`);

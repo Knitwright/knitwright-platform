@@ -16,7 +16,7 @@ const upload = async (page: Page, file: Buffer, type = "image/png"): Promise<API
 const signedIn = async (page: Page, label: string, brand?: string | null): Promise<string> => {
   const email = await createAccount(label, { brand });
   await signIn(page, email);
-  await expect(page).toHaveURL(brand === null ? /\/welcome$/ : /\/studio$/);
+  await expect(page).toHaveURL(brand === null ? /\/welcome$/ : /\/projects\/recent$/);
   return email;
 };
 
@@ -31,7 +31,7 @@ test.describe("brands", () => {
     // Before a type is chosen the words are general.
     await page.getByLabel("Name of your club, school or brand").fill("Harbour Rowing Club");
     await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Harbour Rowing Club");
   });
 
@@ -40,7 +40,7 @@ test.describe("brands", () => {
 
     await page.goto("/welcome");
 
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
   });
 
   test("a brand name that is empty is refused beside the field", async ({ page }) => {
@@ -78,12 +78,12 @@ test.describe("brands", () => {
 
     await page.getByLabel("Name of the new brand").fill("Second String");
     await page.getByRole("button", { name: "Create brand" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Second String");
 
     await page.goto("/brands");
     await page.getByRole("button", { name: "Work in this brand: First Eleven FC!" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await expect(page.getByTestId("active-brand")).toHaveText("First Eleven FC!");
   });
 
@@ -117,7 +117,7 @@ test.describe("brands", () => {
       await page.goto("/brands");
       await page.getByLabel("Name of the new brand").fill(name);
       await page.getByRole("button", { name: "Create brand" }).click();
-      await expect(page).toHaveURL(/\/studio$/);
+      await expect(page).toHaveURL(/\/projects\/recent$/);
     }
 
     await page.goto("/brands");
@@ -173,7 +173,7 @@ test.describe("files", () => {
       const stranger = await other.newPage();
       await stranger.setExtraHTTPHeaders({ "x-real-ip": "10.99.0.1" });
       await signIn(stranger, await createAccount("stranger"));
-      await expect(stranger).toHaveURL(/\/studio$/);
+      await expect(stranger).toHaveURL(/\/projects\/recent$/);
 
       const refused = await stranger.request.get(`/api/files/${file.id}/link`);
 

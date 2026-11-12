@@ -17,7 +17,7 @@ const startJersey = async (page: Page): Promise<string> => {
 test.describe("inspiration variants (W2-A)", () => {
   test("shows 8 to 12 tiles and applies one as version 2", async ({ page }) => {
     await signIn(page, await createAccount("variants"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startJersey(page);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
 
@@ -35,7 +35,7 @@ test.describe("inspiration variants (W2-A)", () => {
 
   test("pressing the same alternative twice on one version makes one new version", async ({ page }) => {
     await signIn(page, await createAccount("variants-twice"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startJersey(page);
     const url = `/api/projects/${projectId}/variants`;
 

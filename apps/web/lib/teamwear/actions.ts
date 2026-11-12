@@ -79,7 +79,7 @@ export const saveKitAction = defineAction({
     });
     if (!outcome.ok) throw new AppError("invalid_input", outcome.reason);
 
-    revalidatePath("/studio");
+    revalidatePath("/projects/recent");
     revalidatePath(`/studio/${id}`);
 
     const next =

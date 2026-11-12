@@ -18,7 +18,7 @@ test.describe("the rulebook", () => {
   test("does not exist for a visitor or a member", async ({ page }) => {
     expect((await page.goto("/admin/rulebook"))?.status()).toBe(404);
     await signIn(page, await createAccount("rulebook-member"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto("/admin/rulebook"))?.status()).toBe(404);
   });
 
@@ -26,7 +26,7 @@ test.describe("the rulebook", () => {
     const email = await createAccount("rulebook-admin");
     await makePlatformAdmin(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/admin/rulebook");
     await expect(page.getByRole("heading", { name: "Rulebook", exact: true })).toBeVisible();

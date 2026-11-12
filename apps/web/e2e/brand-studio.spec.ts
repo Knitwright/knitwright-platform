@@ -35,7 +35,7 @@ const runId = () => Math.random().toString(36).slice(2, 10);
 test.describe("Brand (Y6, moved by P6)", () => {
   test("a brand is filled in by hand, and the top bar's New goes once its details are saved", async ({ page }) => {
     await signIn(page, await createAccount("bs-details"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     // The way in is the top bar's brand pill, with a gold New until the brand is set up (decision 0138).
     await expect(page.getByTestId("brand-new")).toBeVisible();
     await page.locator("header").getByRole("link", { name: /^Brand: .* Open Brand\.$/ }).click();
@@ -74,7 +74,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
   test("the phone layout holds the tabs and the panels without scrolling sideways", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await signIn(page, await createAccount("bs-phone"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=colours");
 
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
@@ -87,7 +87,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
 
   test("a palette is saved, and a colour the estimate refuses says so and names its rule", async ({ page }) => {
     await signIn(page, await createAccount("bs-colours"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=colours");
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
@@ -112,7 +112,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
 
   test("a colour the estimate accepts carries no warning", async ({ page }) => {
     await signIn(page, await createAccount("bs-in-gamut"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=colours");
 
     const editor = page.getByRole("region", { name: "New palette", exact: true });
@@ -122,7 +122,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
 
   test("only a font whose licence is on file can be chosen", async ({ page }) => {
     await signIn(page, await createAccount("bs-fonts"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=fonts");
 
     const fonts = page.getByRole("region", { name: "Fonts", exact: true });
@@ -151,7 +151,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
     expect(error).toBeNull();
 
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=colours");
 
     const readThrough = page.getByRole("region", { name: "Club kit", exact: true });
@@ -171,7 +171,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
    */
   test("a brand with no uploads is told where to put its logos first", async ({ page }) => {
     await signIn(page, await createAccount("bs-logos"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/brand?tab=logos");
     const logos = page.getByRole("region", { name: "Logos", exact: true });
     await expect(logos).toContainText("Add your logo to your artwork first");

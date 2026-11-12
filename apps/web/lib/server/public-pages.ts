@@ -42,6 +42,8 @@ export const PUBLIC_PAGES = [
   "app/dev/shell/page.tsx",
   // AI Studio with made-up data (decision 0141), for the comparisons with d07–d12. Same switch as /dev/ui.
   "app/dev/ai-studio/page.tsx",
+  // The Projects page with made-up data (decision 0139), for the comparison with d01–d06. Same switch as /dev/ui.
+  "app/dev/projects/page.tsx",
   // The Templates, Mockups and Marketing pages with made-up data from the code's own library (decision 0140),
   // for the comparisons with d13-d15. Same switch as /dev/ui.
   "app/dev/pages/page.tsx",

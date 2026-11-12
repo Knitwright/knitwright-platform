@@ -16,7 +16,7 @@ const startDesign = async (page: Page, name: string): Promise<void> => {
 test.describe("validation gate (V1)", () => {
   test("a design with no fabric test shows the named blocker and cannot be recorded", async ({ page }) => {
     await signIn(page, await createAccount("validation"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Validation test");
     await page.goto(`${page.url().split("?")[0]}?tool=production`);
 
