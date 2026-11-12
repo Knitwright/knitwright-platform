@@ -15,6 +15,7 @@ import {
 import { UNWIRED_ARTICLES, UNWIRED_INSPIRATION_PORTS, UNWIRED_LIBRARY, UNWIRED_MOOD, UNWIRED_SCREEN } from "./ports";
 import { libraryProvider } from "./sources/library";
 import { stubCard } from "./sources/stubs";
+import { cardView } from "./view";
 
 /**
  * The real ports of the inspiration board (plan v6 D4, decision 0135): the base article catalogue for the sport tags,
@@ -167,6 +168,14 @@ describe("the card screen", () => {
   it("keeps a card that only names a brand: a competitor's product is what the link-preview row is for", async () => {
     const product = stubCard("link-preview", "d", { title: "Inspired by Nike: a dupe of the home shirt" });
     expect(await cardScreen.screen([product])).toEqual([product]);
+  });
+});
+
+describe("a card's Suggest button, now that library cards reach the panel", () => {
+  it("names the card in words that start with the button's visible text (axe label-content-name-mismatch)", () => {
+    const label = cardView(stubCard("knitwright-library", "x", { title: "Navy hoops" })).suggestLabel;
+    expect(label.startsWith("Suggest from this")).toBe(true);
+    expect(label).toContain("Navy hoops");
   });
 });
 
