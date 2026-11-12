@@ -4,6 +4,7 @@ import { FULL_WIDTH, frameFor } from "./frame";
 import { showsHelpBubble } from "./help";
 import { ACCOUNT_ITEMS, ADD_ITEMS, CREATE_ITEMS, WORKSPACE_ITEMS, helpHref, initialOf } from "./menus";
 import { closeFor, openAtFor, startIndex } from "./menu-keys";
+import { besideTrigger } from "./placement";
 import { ROUTE_ALIASES } from "./redirects";
 import { AI_STUDIO_TABS, ORDERS_TABS } from "./tabs";
 import { UNKNOWN_WORKSPACE, loadWorkspace, workspaceOf } from "./workspace";
@@ -124,5 +125,18 @@ describe("the workspace", () => {
     expect(report).toHaveBeenCalledOnce();
     const ok = () => Promise.resolve({ organisationType: "club", kind: "brand" as const, detailsDone: true });
     await expect(loadWorkspace(ok, report)).resolves.toEqual({ isClub: true, setUp: true });
+  });
+});
+
+describe("where a rail menu opens", () => {
+  it("sits 8 px right of its trigger, level with its top or, at the rail's foot, its bottom", () => {
+    const trigger = { top: 84, right: 92, bottom: 128 };
+    expect(besideTrigger(trigger, "start", 900)).toEqual({ left: 100, top: 84 });
+    expect(besideTrigger(trigger, "end", 900)).toEqual({ left: 100, bottom: 772 });
+  });
+
+  it("never leaves the window, even for a trigger scrolled half out of it", () => {
+    expect(besideTrigger({ top: -20, right: 92, bottom: 24 }, "start", 900).top).toBe(8);
+    expect(besideTrigger({ top: 880, right: 92, bottom: 940 }, "end", 900).bottom).toBe(8);
   });
 });

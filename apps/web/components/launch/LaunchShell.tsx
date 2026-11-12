@@ -50,7 +50,7 @@ export type LaunchShellProps = Readonly<{
 /* The breakout, as the editor shell has it: from lg up the shell is wider than the page column and
  * fills the screen below the studio header, so nothing scrolls but the panels. */
 const FRAME =
-  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(100vw_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(50vw_-_1.25rem,48rem))] lg:pb-0";
+  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(var(--shell-vw,100vw)_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(var(--shell-vw,100vw)/2_-_1.25rem,48rem))] lg:pb-0";
 
 /*
  * Four columns from lg up: the rail, the open rail panel, the canvas with its task bar and dock,

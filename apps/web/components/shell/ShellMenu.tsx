@@ -6,6 +6,7 @@ import { cx } from "@/components/ui/cx";
 import { moveIndex } from "@/components/ui/keys";
 import { useDismiss } from "@/components/ui/use-dismiss";
 import { closeFor, openAtFor, startIndex, type OpenAt } from "@/lib/shell/menu-keys";
+import { besideTrigger, type FixedPlace } from "@/lib/shell/placement";
 
 /**
  * A menu of the shell (decision 0138): the Create popover, ⋯, Help, ⊕ and the avatar menu.
@@ -43,10 +44,10 @@ type ShellMenuProps = Readonly<{
 
 const ITEM = '[role="menuitem"]:not([disabled])';
 
-const PLACE = {
-  right: { start: "left-[calc(100%+8px)] top-0", end: "left-[calc(100%+8px)] bottom-0" },
-  below: { start: "left-0 top-[calc(100%+8px)]", end: "right-0 top-[calc(100%+8px)]" },
-} as const;
+/** Below its trigger, in the top bar. A rail menu is fixed to the window instead (`besideTrigger`). */
+const BELOW = { start: "absolute left-0 top-[calc(100%+8px)]", end: "absolute right-0 top-[calc(100%+8px)]" } as const;
+
+type Opened = Readonly<{ at: string; start: OpenAt; place: FixedPlace | null }>;
 
 const itemsOf = (panel: HTMLElement | null): HTMLElement[] => (panel ? [...panel.querySelectorAll<HTMLElement>(ITEM)] : []);
 
@@ -54,11 +55,16 @@ export function ShellMenu({ label, trigger, side = "below", align = "start", hea
   const id = useId();
   const path = usePathname();
   // The address the menu was opened at: a new address closes it with no effect to run.
-  const [opened, setOpened] = useState<Readonly<{ at: string; start: OpenAt }> | null>(null);
+  const [opened, setOpened] = useState<Opened | null>(null);
   const open = opened !== null && opened.at === path;
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpened(null), []);
+  const openAt = (start: OpenAt) => {
+    const box = button.current?.getBoundingClientRect();
+    const place = side === "right" && box ? besideTrigger(box, align, window.innerHeight) : null;
+    setOpened({ at: path, start, place });
+  };
   const [inside] = useState(() => [panel, button]);
   useDismiss(open, close, inside, button);
 
@@ -73,7 +79,7 @@ export function ShellMenu({ label, trigger, side = "below", align = "start", hea
     const at = openAtFor(event.key);
     if (at === null || open) return;
     event.preventDefault();
-    setOpened({ at: path, start: at });
+    openAt(at);
   };
 
   const onPanelKey = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -95,7 +101,7 @@ export function ShellMenu({ label, trigger, side = "below", align = "start", hea
         "aria-haspopup": "menu",
         "aria-expanded": open,
         "aria-controls": open ? id : undefined,
-        onClick: () => (open ? close() : setOpened({ at: path, start: "first" })),
+        onClick: () => (open ? close() : openAt("first")),
         onKeyDown: onTriggerKey,
       })}
       {open ? (
@@ -103,9 +109,10 @@ export function ShellMenu({ label, trigger, side = "below", align = "start", hea
           ref={panel}
           id={id}
           onKeyDown={onPanelKey}
+          style={opened?.place ?? undefined}
           className={cx(
-            "absolute z-[70] flex max-h-[calc(100dvh-96px)] min-w-60 flex-col overflow-y-auto rounded-2xl border border-border bg-bg p-2 text-left shadow-e3 motion-safe:pop-in",
-            PLACE[side][align],
+            "z-[70] flex max-h-[calc(100dvh-96px)] min-w-60 flex-col overflow-y-auto rounded-2xl border border-border bg-bg p-2 text-left shadow-e3 motion-safe:pop-in",
+            opened?.place ? "fixed" : BELOW[align],
           )}
         >
           {header}

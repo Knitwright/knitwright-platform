@@ -37,4 +37,7 @@ export const PUBLIC_PAGES = [
   // The component library's fixture page (decision 0137): every component in every state, with made-up
   // labels and no data. A production build answers 404 unless DEV_UI_ROUTES is "on" (app/dev/dev-routes.ts).
   "app/dev/ui/page.tsx",
+  // The dashboard shell with made-up data (decision 0138), for the comparison with its reference image.
+  // Same switch as /dev/ui.
+  "app/dev/shell/page.tsx",
 ] as const;

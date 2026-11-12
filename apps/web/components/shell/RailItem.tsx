@@ -10,7 +10,7 @@ import { ICONS } from "./icons";
  * a 12 px label under it. The active item's square is grey (`soft-2`); hover is `soft`.
  */
 
-export const RAIL_ITEM = "group flex w-22 flex-col items-center gap-1 rounded-lg py-1.5 text-caption font-medium text-text-2 no-underline";
+export const RAIL_ITEM = "group flex w-22 shrink-0 flex-col items-center gap-1 rounded-lg py-1.5 text-caption font-medium text-text-2 no-underline";
 
 export const railSquare = (active: boolean, extra?: string): string =>
   cx(

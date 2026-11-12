@@ -33,9 +33,9 @@ export function RailView({ path, workspace, brandName, helpHref }: RailProps & R
   return (
     <nav
       aria-label="Main"
-      className="sticky top-0 hidden h-dvh w-24 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-border bg-bg pt-4.5 pb-3.5 [scrollbar-width:none] md:flex"
+      className="sticky top-0 z-40 hidden h-dvh w-24 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-border bg-bg pt-4.5 pb-3.5 [scrollbar-width:none] md:flex"
     >
-      <Link href="/studio" aria-label="Knitwright home" className="mb-3.5 rounded-lg">
+      <Link href="/studio" className="mb-3.5 shrink-0 rounded-lg">
         <LogoTile className="pointer-events-none" />
       </Link>
       <CreateMenu />
@@ -43,7 +43,7 @@ export function RailView({ path, workspace, brandName, helpHref }: RailProps & R
         <RailLink key={place.id} place={place} active={place.id === current} />
       ))}
       <RailGroup places={groupFor(workspace)} current={current} startsOpen={groupStartsOpen(path, workspace)} />
-      <div className="mt-auto flex flex-col items-center gap-2.5 pt-3">
+      <div className="mt-auto flex shrink-0 flex-col items-center gap-2.5 pt-3">
         <a href={helpHref} className={RAIL_ITEM}>
           <span className={railSquare(false)}>
             <Icon icon={CircleHelp} size={22} />
@@ -72,11 +72,11 @@ function RailGroup({ places, current, startsOpen }: RailGroupProps) {
         aria-controls={id}
         aria-label={open ? "Fewer places" : "Orders, Store and more"}
         onClick={() => setChosen(!open)}
-        className="my-1 grid size-10 place-items-center rounded-full border border-border bg-bg text-text-2 live:hover:bg-soft"
+        className="my-1 grid size-10 shrink-0 place-items-center rounded-full border border-border bg-bg text-text-2 live:hover:bg-soft"
       >
         <Icon icon={ChevronDown} size={16} className={cx("transition-transform duration-fast", open && "rotate-180")} />
       </button>
-      <div id={id} hidden={!open} className="flex flex-col items-center gap-0.5">
+      <div id={id} hidden={!open} className="flex shrink-0 flex-col items-center gap-0.5">
         {places.map((place) => (
           <RailLink key={place.id} place={place} active={place.id === current} />
         ))}
