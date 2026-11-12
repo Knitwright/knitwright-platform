@@ -104,7 +104,7 @@ export default function BrandPanel({ context, commands }: LaunchPanelProps) {
 
       <footer className="flex flex-col items-start gap-1.5 border-t border-white/10 pt-2">
         <p className="text-[12px] leading-relaxed text-ink-2">
-          <Link href="/brand-studio/import" className={INLINE_LINK} data-testid="launch-brand-import">
+          <Link href="/brand/import" className={INLINE_LINK} data-testid="launch-brand-import">
             {OPEN_IMPORT}
           </Link>
         </p>

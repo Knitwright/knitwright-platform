@@ -73,7 +73,7 @@ test.describe("role journeys (W5-C)", () => {
     const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
 
     // The season's roster is read from a file and saved.
-    await page.goto("/club");
+    await page.goto("/team?tab=seasons");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("2026");
     await seasons.getByRole("button", { name: "Make season" }).click();

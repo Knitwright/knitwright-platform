@@ -104,10 +104,10 @@ test.describe("brands", () => {
   test("the brand pill in the top bar says what it is and where it goes", async ({ page }) => {
     await signedIn(page, "link-name", "Harbour Rowing Club");
 
-    // The brand pill opens Brand Studio (decision 0138); the switcher is in the rail's workspace menu.
-    const pill = page.getByRole("link", { name: /^Brand: Harbour Rowing Club\..* Open Brand Studio\.$/ });
+    // The brand pill opens the Brand page (decisions 0138, 0144); the switcher is in the rail's workspace menu.
+    const pill = page.getByRole("link", { name: /^Brand: Harbour Rowing Club\..* Open Brand\.$/ });
     await expect(pill).toBeVisible();
-    await expect(pill).toHaveAttribute("href", "/brand-studio");
+    await expect(pill).toHaveAttribute("href", "/brand");
     await expect(page.getByTestId("active-brand")).toHaveText("Harbour Rowing Club");
   });
 

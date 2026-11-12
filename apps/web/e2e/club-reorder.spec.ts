@@ -47,7 +47,7 @@ const seedRelease = async (email: string, projectId: string, rows: readonly Reco
 };
 
 const saveSeason = async (page: Page, csv: string): Promise<void> => {
-  await page.goto("/club");
+  await page.goto("/team?tab=seasons");
   const seasons = page.getByRole("region", { name: "Seasons and rosters" });
   await seasons.getByLabel("New season").fill("2027");
   await seasons.getByRole("button", { name: "Make season" }).click();

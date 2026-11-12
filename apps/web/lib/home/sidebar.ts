@@ -39,7 +39,7 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     label: "Yours",
     items: [
       { id: "products", label: "Products", target: page("/projects"), hint: "Your designs" },
-      { id: "brand-kit", label: "Brand kit", target: page("/brand-studio") },
+      { id: "brand-kit", label: "Brand kit", target: page("/brand") },
     ],
   },
   {

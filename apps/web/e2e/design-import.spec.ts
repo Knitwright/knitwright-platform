@@ -103,7 +103,7 @@ test.describe("reading a design from a picture", () => {
 test.describe("the brand's own artwork", () => {
   test("is a section of Brand Studio's Overview, with the upload and what it says about a file", async ({ page }) => {
     await signedIn(page, "artwork-door");
-    await page.goto("/brand-studio");
+    await page.goto("/brand?tab=overview");
 
     const panel = page.getByRole("region", { name: "Your artwork" });
     await expect(panel.getByRole("heading", { name: "Your artwork" })).toBeVisible();
@@ -121,7 +121,7 @@ test.describe("the brand's own artwork", () => {
 
   test("is where Brand Studio sends a brand that has no crest to choose", async ({ page }) => {
     await signedIn(page, "artwork-brand-studio");
-    await page.goto("/brand-studio?tab=logos");
+    await page.goto("/brand?tab=logos");
 
     // The empty state offers the section that fills it, on this same page.
     await expect(page.getByText(/Add your logo to your artwork first/)).toBeVisible();

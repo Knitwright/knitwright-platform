@@ -39,7 +39,7 @@ describe("the ⌄ group", () => {
 
   it("starts open when the page is inside it", () => {
     expect(groupStartsOpen("/orders/runs", BRAND)).toBe(true);
-    expect(groupStartsOpen("/club", CLUB)).toBe(true);
+    expect(groupStartsOpen("/team", CLUB)).toBe(true);
     expect(groupStartsOpen("/studio", BRAND)).toBe(false);
   });
 });
@@ -47,17 +47,17 @@ describe("the ⌄ group", () => {
 describe("⋯", () => {
   it("keeps a door to every v2.2 page with no rail item", () => {
     const hrefs = moreFor(BRAND).map((place) => place.href);
-    expect(hrefs).toEqual(["/launch", "/teamwear", "/studio/charts", "/studio/benchmarks", "/designer", "/club"]);
+    expect(hrefs).toEqual(["/launch", "/teamwear", "/studio/charts", "/studio/benchmarks", "/designer", "/team"]);
   });
 
   it("does not list the club page twice for a club, whose rail already has Team", () => {
-    expect(moreFor(CLUB).map((place) => place.href)).not.toContain("/club");
+    expect(moreFor(CLUB).map((place) => place.href)).not.toContain("/team");
   });
 
   it("reads as current when the page is one of its own", () => {
     expect(moreIsCurrent("/teamwear", BRAND)).toBe(true);
-    expect(moreIsCurrent("/club", BRAND)).toBe(true);
-    expect(moreIsCurrent("/club", CLUB)).toBe(false);
+    expect(moreIsCurrent("/team", BRAND)).toBe(true);
+    expect(moreIsCurrent("/team", CLUB)).toBe(false);
     expect(moreIsCurrent("/templates", BRAND)).toBe(false);
   });
 });
@@ -80,9 +80,9 @@ describe("which place an address is in", () => {
     expect(currentId("/settings", BRAND)).toBeNull();
   });
 
-  it("puts Collect with Team, where its door is", () => {
-    expect(currentId("/collect", CLUB)).toBe("team");
-    expect(currentId("/collect", BRAND)).toBe("club");
+  it("puts Team in the group for a club and in ⋯ for a brand (decision 0144)", () => {
+    expect(currentId("/team", CLUB)).toBe("team");
+    expect(currentId("/team", BRAND)).toBe("club");
   });
 
   it("lists every place once", () => {
@@ -94,11 +94,11 @@ describe("which place an address is in", () => {
 });
 
 describe("the brand pill", () => {
-  it("is current on Brand Studio and the brand switcher, and nowhere else", () => {
-    expect(brandIsCurrent("/brand-studio")).toBe(true);
-    expect(brandIsCurrent("/brand-studio/import")).toBe(true);
+  it("is current on the Brand page and the brand switcher, and nowhere else", () => {
+    expect(brandIsCurrent("/brand")).toBe(true);
+    expect(brandIsCurrent("/brand/import")).toBe(true);
     expect(brandIsCurrent("/brands")).toBe(true);
-    expect(brandIsCurrent("/brand")).toBe(false);
+    expect(brandIsCurrent("/brandish")).toBe(false);
     expect(brandIsCurrent("/studio")).toBe(false);
   });
 });

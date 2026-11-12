@@ -94,7 +94,8 @@ test.describe("the key screens on a phone", () => {
     await checkPage(page, design);
     await checkPage(page, `${design}/tech-pack`);
     await checkPage(page, "/templates");
-    await checkPage(page, "/club");
+    await checkPage(page, "/team");
+    await checkPage(page, "/team?tab=seasons");
     await checkPage(page, "/credits");
   });
 

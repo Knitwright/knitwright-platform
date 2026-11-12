@@ -79,11 +79,11 @@ export const changesOf = (proposal: ImportProposal) => ({
 const savesNothing = (changes: ReturnType<typeof changesOf>): boolean =>
   changes.style === null && changes.colours.length === 0 && changes.fonts.length === 0;
 
-type Props = Readonly<{ completion: CompletionView; canEdit: boolean }>;
+type Props = Readonly<{ completion: CompletionView; canEdit: boolean; /** The address typed on the Brand page's empty state. */ initialUrl?: string }>;
 
-export function ImportPanel({ completion, canEdit }: Props) {
+export function ImportPanel({ completion, canEdit, initialUrl = "" }: Props) {
   const urlId = useId();
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(initialUrl);
   const [proposal, setProposal] = useState<ImportProposal | null>(null);
   const [refusal, setRefusal] = useState<ImportRefusal | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -286,7 +286,7 @@ function Completion({ completion }: Readonly<{ completion: CompletionView }>) {
       )}
       <p className="text-[13px] leading-relaxed text-ink-2">
         Everything here is also on{" "}
-        <Link href="/brand-studio" className="font-medium text-ink underline underline-offset-4">
+        <Link href="/brand" className="font-medium text-ink underline underline-offset-4">
           your Brand Studio page
         </Link>
         , where you can type it in by hand.
