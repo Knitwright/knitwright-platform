@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/Icon";
-import { KwCoin } from "@/components/ui/Marks";
+import { UpgradeButton } from "@/components/plans/UpgradeButton";
 import { isCanvas } from "@/lib/shell/help";
 import { brandIsCurrent, type Workspace } from "@/lib/shell/nav";
 import { PhoneMenu } from "./PhoneMenu";
@@ -40,14 +40,8 @@ export function TopBarView({ path, email, brandName, workspace, credits, helpHre
       <div id={TOP_SLOT_ID} className="flex min-w-0 flex-1 justify-center max-md:hidden" />
       <div className="ml-auto flex shrink-0 items-center gap-2 md:gap-4">
         <AddMenu credits={credits} />
-        {/* The plans modal is P6's (decision 0144); until it lands Upgrade opens the credits page. */}
-        <Link
-          href="/credits"
-          className="hidden h-11 items-center gap-2.5 rounded-md bg-navy px-5 text-body-lg font-bold text-on-dark no-underline transition-colors duration-fast live:hover:bg-navy-2 sm:inline-flex"
-        >
-          <KwCoin />
-          Upgrade
-        </Link>
+        {/* Upgrade opens Choose Your Plan (decision 0144), which the shell mounts once. */}
+        <UpgradeButton />
         <AccountMenu email={email} />
       </div>
     </header>
@@ -56,11 +50,11 @@ export function TopBarView({ path, email, brandName, workspace, credits, helpHre
 
 type BrandPillProps = Readonly<{ name: string; isNew: boolean; current: boolean }>;
 
-/** The brand pill: a briefcase, the brand's name, and a gold "New" until the brand is set up. Opens Brand Studio. */
+/** The brand pill: a briefcase, the brand's name, and a gold "New" until the brand is set up. Opens the Brand page (decision 0144). */
 function BrandPill({ name, isNew, current }: BrandPillProps) {
   return (
     <Link
-      href="/brand-studio"
+      href="/brand"
       aria-current={current ? "page" : undefined}
       className="group flex min-h-10 min-w-0 items-center gap-2.5 rounded-lg text-title text-muted no-underline live:hover:text-text"
     >
@@ -68,7 +62,7 @@ function BrandPill({ name, isNew, current }: BrandPillProps) {
         <Icon icon={Briefcase} />
       </span>
       <span className="sr-only">
-        Brand: {name}.{isNew ? " New, not set up yet." : ""} Open Brand Studio.
+        Brand: {name}.{isNew ? " New, not set up yet." : ""} Open Brand.
       </span>
       <span aria-hidden="true" data-testid="active-brand" className="truncate">
         {name}

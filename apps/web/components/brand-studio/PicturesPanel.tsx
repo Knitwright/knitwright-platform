@@ -80,7 +80,7 @@ export function PicturesPanel({ kind, assets, uploads, canEdit }: Props) {
     return (
       <Notice>
         Add your {ASSET_KIND_LABELS[kind].toLowerCase()} to your artwork first, then choose it here.{" "}
-        <Link href="/brand-studio?tab=overview#artwork" className="soft-link text-ink underline underline-offset-4">
+        <Link href="/brand?tab=overview#artwork" className="soft-link text-ink underline underline-offset-4">
           Your artwork
         </Link>
         .

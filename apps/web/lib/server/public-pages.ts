@@ -43,4 +43,6 @@ export const PUBLIC_PAGES = [
   // The Templates, Mockups and Marketing pages with made-up data from the code's own library (decision 0140),
   // for the comparisons with d13-d15. Same switch as /dev/ui.
   "app/dev/pages/page.tsx",
+  // Same switch: P6's Team, Brand, Settings and plans fixtures (decision 0144).
+  "app/dev/p6/page.tsx",
 ] as const;
