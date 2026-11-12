@@ -6,7 +6,7 @@
  * them, so none of them stretches across a wide screen meanwhile. A workstream that rebuilds a page
  * adds its prefix here.
  */
-export const FULL_WIDTH: readonly string[] = ["/ai-studio", "/mockups", "/marketing", "/orders", "/store", "/dev/shell", "/products"];
+export const FULL_WIDTH: readonly string[] = ["/ai-studio", "/mockups", "/marketing", "/orders", "/store", "/dev/shell", "/products", "/dev/products"];
 
 export type Frame = "full" | "column";
 

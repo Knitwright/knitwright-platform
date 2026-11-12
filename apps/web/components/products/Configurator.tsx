@@ -1,7 +1,8 @@
 "use client";
 
 import { Lock, Pencil } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState, useSyncExternalStore, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { FilterChip } from "@/components/ui/Chips";
 import { Icon } from "@/components/ui/Icon";
@@ -28,18 +29,30 @@ type Props = Readonly<{
   /** Why a design cannot start here (a base with no garment yet), or null. */
   blocked: string | null;
   label?: string;
+  /** Opens with the modal showing, for the /dev/products fixture. */
+  defaultOpen?: boolean;
 }>;
 
-export function DesignThis({ label = "Design this", blocked, ...props }: Props) {
-  const [open, setOpen] = useState(false);
+const noSubscription = () => () => undefined;
+
+export function DesignThis({ label = "Design this", blocked, defaultOpen = false, ...props }: Props) {
+  const [open, setOpen] = useState(defaultOpen);
+  // The modal is drawn into the body: the page's entry animation leaves a transform on the content, which would
+  // otherwise make the modal's fixed frame the content's box rather than the window.
+  const body = useSyncExternalStore(noSubscription, () => document.body, () => null);
   return (
     <>
-      <Button size="lg" icon={<Icon icon={Pencil} size={20} />} disabledReason={blocked ?? undefined} onClick={() => setOpen(true)} className="w-full">
+      <Button size="lg" icon={<Icon icon={Pencil} size={20} />} disabledReason={blocked ?? undefined} onClick={() => setOpen(true)}>
         {label}
       </Button>
-      <Modal open={open} onClose={() => setOpen(false)} title={props.name} size="lg">
-        <ConfiguratorBody {...props} blocked={blocked} />
-      </Modal>
+      {body
+        ? createPortal(
+            <Modal open={open} onClose={() => setOpen(false)} title={props.name} size="lg">
+              <ConfiguratorBody {...props} blocked={blocked} />
+            </Modal>,
+            body,
+          )
+        : null}
     </>
   );
 }

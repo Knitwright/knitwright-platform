@@ -1,8 +1,8 @@
 import { Plus, Store } from "lucide-react";
 import type { Metadata } from "next";
 import { NoProducts, ProductSearch, ProductTable, StageChips } from "@/components/products/MyProducts";
+import { LockedButton } from "@/components/products/LockedButton";
 import { ProductsHeader } from "@/components/products/ProductsHeader";
-import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { listProducts } from "@/lib/brand-runs/service";
@@ -35,9 +35,9 @@ export default async function MyProductsPage({ searchParams }: PageProps<"/produ
         current={MY_PRODUCTS_PATH}
         actions={
           <>
-            <Button variant="secondary" icon={<Icon icon={Store} size={20} />} disabledReason={CHANNELS_COMING}>
+            <LockedButton icon={<Icon icon={Store} size={20} />} reason={CHANNELS_COMING}>
               Connect a store
-            </Button>
+            </LockedButton>
             <LinkButton href="/orders/runs" icon={<Icon icon={Plus} size={20} />}>
               Create product
             </LinkButton>

@@ -29,7 +29,7 @@ export function CategoryTiles({ categories, typeOf }: Readonly<{ categories: rea
               className="flex h-full flex-col items-center gap-3 rounded-lg bg-soft px-3 pt-4 pb-3 text-small font-semibold text-text no-underline transition-shadow duration-fast ease-out hover:shadow-e2"
             >
               <span className="grid h-20 w-full place-items-center">
-                <ProductRender typeId={typeOf(category.slug)} className="max-h-20 w-auto" />
+                <ProductRender typeId={typeOf(category.slug)} className="h-20 w-auto" />
               </span>
               <span>
                 {category.label} <span className="font-medium text-muted">· {category.count}</span>

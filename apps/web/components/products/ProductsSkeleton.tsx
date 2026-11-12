@@ -4,7 +4,7 @@ import { Skeleton, SkeletonPage } from "@/components/ui/Skeleton";
  * The loading state of the Products pages (10 §9 "Loading"): `soft` blocks in the shape of the page that is coming,
  * the title and tabs, then a grid of square cards or a list of rows.
  */
-export function ProductsSkeleton({ label, shape = "grid" }: Readonly<{ label: string; shape?: "grid" | "rows" | "detail" }>) {
+export function ProductsSkeleton({ label, shape = "grid" }: Readonly<{ label: string; shape?: "grid" | "rows" }>) {
   return (
     <SkeletonPage label={label} className="flex flex-col gap-6 pt-6">
       <Skeleton className="h-9 w-56" />
@@ -19,20 +19,11 @@ export function ProductsSkeleton({ label, shape = "grid" }: Readonly<{ label: st
             </div>
           ))}
         </div>
-      ) : shape === "rows" ? (
+      ) : (
         <div className="flex flex-col gap-3">
           {Array.from({ length: 5 }, (_, index) => (
             <Skeleton key={index} className="h-16 w-full" />
           ))}
-        </div>
-      ) : (
-        <div className="grid gap-8 lg:grid-cols-2">
-          <Skeleton className="aspect-square w-full rounded-2xl" />
-          <div className="flex flex-col gap-3">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-40 w-full rounded-xl" />
-          </div>
         </div>
       )}
     </SkeletonPage>

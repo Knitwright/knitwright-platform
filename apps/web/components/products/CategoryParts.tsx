@@ -8,6 +8,7 @@ import type { Category, SubCategory } from "@/lib/products/categories";
 import type { CategoryView } from "@/lib/products/category";
 import { UNAVAILABLE_FILTERS } from "@/lib/products/category";
 import { categoryHref, PRODUCTS_PATH } from "@/lib/products/routes";
+import { LockedButton } from "./LockedButton";
 import { ProductRender } from "./ProductRender";
 
 /** The parts of a category page (09 screen 22; prototype p02). */
@@ -99,9 +100,9 @@ export function FilterBar({ slug, view }: Readonly<{ slug: string; view: Categor
         </label>
       ))}
       {UNAVAILABLE_FILTERS.map((filter) => (
-        <Button key={filter.label} variant="ghost" disabledReason={filter.reason}>
+        <LockedButton key={filter.label} variant="ghost" reason={filter.reason}>
           {filter.label}
-        </Button>
+        </LockedButton>
       ))}
       <label className="ml-auto flex items-center gap-2 text-small font-medium text-text-2">
         Sort

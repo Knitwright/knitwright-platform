@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { LockedButton } from "./LockedButton";
 import { Icon } from "@/components/ui/Icon";
 import { SearchInput } from "@/components/ui/Inputs";
 import { ALL_CATEGORY } from "@/lib/products/routes";
@@ -13,9 +13,9 @@ export const SWATCH_BOOK_COMING = "Swatch books can be ordered once checkout arr
 
 export function SwatchBookButton({ size = "md" }: Readonly<{ size?: "md" | "lg" }>) {
   return (
-    <Button variant="secondary" size={size} icon={<Icon icon={BookOpen} size={20} />} disabledReason={SWATCH_BOOK_COMING}>
+    <LockedButton size={size} icon={<Icon icon={BookOpen} size={20} />} reason={SWATCH_BOOK_COMING}>
       Order swatch book
-    </Button>
+    </LockedButton>
   );
 }
 
