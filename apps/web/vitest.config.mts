@@ -117,6 +117,10 @@ export default defineConfig({
         // order, the estimate, the refunds, the artwork check and the summary are tested on their
         // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).
         "lib/flows/server.ts",
+        // Joins the flow capabilities to the design reads, the bucket, the usage meter and the moderation
+        // screen; the capabilities and the registry are tested on their own with memory ports
+        // (`lib/flows/real/registry.test.ts`), and the end-to-end tests cover the joining (decision 0133).
+        "lib/flows/real/server.ts",
         // Join the market panel and the translated tech pack to the outside world: one gathers the market's
         // own row and the production settings, the other reads the translation library. The tax treatment,
         // the market summary and the dictionary are tested on their own, and the database and end-to-end

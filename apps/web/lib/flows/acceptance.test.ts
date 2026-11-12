@@ -6,7 +6,7 @@ import { runFlow, type FlowRunReport } from "./run";
 import { STUB_COSTS, stubCapability, stubMeter, stubRecorder } from "./stub";
 import { runnableIds } from "./topology";
 import { capabilityOf } from "./capabilities";
-import { memoryPorts } from "./real/fixtures";
+import { memoryPorts } from "./fixtures/real-ports";
 import { RECORDED_VIDEO_LINE } from "./real/mockup";
 import { flowRegistry } from "./real/registry";
 

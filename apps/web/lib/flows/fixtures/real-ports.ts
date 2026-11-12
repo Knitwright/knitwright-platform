@@ -6,7 +6,7 @@ import { buildReference } from "@/lib/media/lifestyle/reference";
 import { stubBoardVideoProvider } from "@/lib/media/video/board-provider";
 import { stubShootProvider } from "@/lib/shoots/stub";
 import { DEFAULT_CHART_SET } from "@/lib/sizing";
-import type { RegistryPorts } from "./registry";
+import type { RegistryPorts } from "../real/registry";
 
 /**
  * The ports of a real run, with a memory for a bucket and a database (tests only). Everything that

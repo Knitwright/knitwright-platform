@@ -5,7 +5,7 @@ import { capabilityNotes, capabilityOf } from "../capabilities";
 import { canvasOfTemplate, withBoard } from "../fixtures/canvas";
 import { runFlow, type FlowRunRequest } from "../run";
 import { STUB_COSTS, stubMeter, stubRecorder } from "../stub";
-import { memoryPorts } from "./fixtures";
+import { memoryPorts } from "../fixtures/real-ports";
 import { layoutOfBoard } from "./marketing";
 import { RECORDED_VIDEO_LINE } from "./mockup";
 import { INFO_CARD_LINE, flowRegistry, registryNote } from "./registry";
