@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { InspectionBookingForm } from "@/components/ops/InspectionBookingForm";
 import { QcForm } from "@/components/ops/QcForm";
+import { ShareQcPhotos } from "@/components/ops/ShareQcPhotos";
 import { planSentence } from "@/lib/compliance/aql";
 import { describeAql, describeLevel, describePlan, UNSOURCED_PLAN_NOTE } from "@/lib/ops/aql/plan";
 import { factoryIdOf, loadAqlPlans, samplingFor } from "@/lib/ops/aql/from-plan";
@@ -157,6 +158,11 @@ export default async function QcPage({ params }: PageProps<"/ops/orders/[orderId
               <li key={i.id} className="py-2" data-testid="inspection">
                 <span className="font-medium text-ink">{i.result === "pass" ? "Pass" : "Fail"}</span> · {formatDateTime(i.at)} · {i.defectCount} of {i.sampleSize} pieces
                 with a defect · {i.photoFileIds.length} photos{i.aqlCodeLetter ? ` · code letter ${i.aqlCodeLetter}` : " · no sampling plan on file"}
+                {i.result === "pass" && i.photoFileIds.length > 0 ? (
+                  <span className="mt-1 block">
+                    <ShareQcPhotos orderId={order.id} inspectionId={i.id} shared={i.photosShared} />
+                  </span>
+                ) : null}
                 <ul className="mt-1 text-muted">
                   {i.checklist.map((c) => (
                     <li key={c.key}>

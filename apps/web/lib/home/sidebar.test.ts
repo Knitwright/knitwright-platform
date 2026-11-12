@@ -52,7 +52,7 @@ describe("the studio sidebar", () => {
     expect(hrefOf(sidebarItem("fabrics")!.target)).toBe("/brands/fabrics");
     expect(hrefOf(sidebarItem("size-charts")!.target)).toBe("/studio/charts");
     // The collection plan of F-S10 is built (plan v5 Z4, decision 0085), so the entry is a link.
-    expect(hrefOf(sidebarItem("collections")!.target)).toBe("/studio/collections");
+    expect(hrefOf(sidebarItem("collections")!.target)).toBe("/orders/plans");
   });
 
   it("marks the Projects sections that are not built as coming later, never as a link", () => {

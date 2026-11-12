@@ -18,8 +18,13 @@ export const AI_STUDIO_TABS: readonly AreaTab[] = [
   { href: "/ai-studio/video", label: "Video Generator" },
 ];
 
-/** Orders, and the product runs that moved here from `/brand`. */
+/**
+ * Orders' four tabs (09 screen 15, decision 0143), drawn in the page under the banner as the
+ * prototype has them. Product runs (`/orders/runs`) is reached from the Orders header.
+ */
 export const ORDERS_TABS: readonly AreaTab[] = [
   { href: "/orders", label: "Orders" },
-  { href: "/orders/runs", label: "Product runs" },
+  { href: "/orders/samples", label: "Samples" },
+  { href: "/orders/plans", label: "Collection plans", owns: ["/orders/plan"] },
+  { href: "/orders/quotes", label: "Quotes" },
 ];

@@ -1,22 +1,34 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/PlaceholderPage";
+import { OrderFilters } from "@/components/order-desk/OrderFilters";
+import { OrdersArea } from "@/components/order-desk/OrdersArea";
+import { NoOrders, OrdersTable } from "@/components/order-desk/OrdersTable";
+import { marketOf } from "@/lib/make/market";
+import { loadFactoryFacts } from "@/lib/order-desk/server";
+import { listOrders } from "@/lib/order-desk/service";
+import { filterOf } from "@/lib/order-desk/status";
+import { filterOrders } from "@/lib/order-desk/views";
+import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { ORDERS_TABS } from "@/lib/shell/tabs";
 
 export const metadata: Metadata = { title: "Orders" };
 
-/** A placeholder of the v3.9 route map (decision 0138): its page is built by a later workstream. */
-export default async function OrdersPage() {
-  await requireMember();
+/**
+ * Orders (09 screen 15, p09/p10; decision 0143): every order of the brand that reached production,
+ * filtered by status chip and search. The statuses are F-T7's, read from the ops states, the QC
+ * inspections and the parcels; "Paid" waits for checkout (C1) and shows as "Placed" until then.
+ */
+export default async function OrdersPage({ searchParams }: PageProps<"/orders">) {
+  const { brand } = await requireMember();
+  const params = await searchParams;
+  const filter = filterOf(params.status);
+  const query = typeof params.q === "string" ? params.q : "";
+  const [orders, facts] = await Promise.all([listOrders(await sessionClient(), brand.id), loadFactoryFacts(marketOf(params.market))]);
+  const shown = filterOrders(orders, filter, query, brand.name);
+
   return (
-    <PlaceholderPage
-      title="Orders"
-      icon="truck"
-      heading="Your orders will be listed here"
-      action={{ href: "/orders/runs", label: "Open product runs" }}
-      tabs={{ label: "Orders", items: ORDERS_TABS }}
-    >
-      Samples and runs are planned on Product runs today, and each one shows where its order is.
-    </PlaceholderPage>
+    <OrdersArea current="/orders" discounts={facts.discounts}>
+      <OrderFilters filter={filter} query={query} />
+      {shown.length === 0 ? <NoOrders filtered={orders.length > 0 || filter !== "all" || query !== ""} /> : <OrdersTable orders={shown} customer={brand.name} />}
+    </OrdersArea>
   );
 }

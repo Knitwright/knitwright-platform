@@ -22,14 +22,14 @@ export const metadata: Metadata = { title: "Delete collection plan" };
  * the plan, its groups, its style cards with their sizes and quantities, and any drop payload
  * waiting for the Store to collect.
  */
-export default async function DeleteCollectionPage({ params }: PageProps<"/studio/collections/[collectionId]/delete">) {
+export default async function DeleteCollectionPage({ params }: PageProps<"/orders/plan/[collectionId]/delete">) {
   const { brand } = await requireMember();
   const { collectionId } = await params;
   const found = await loadPlanView(await sessionClient(), brand.id, collectionId);
   if (found === null) notFound();
   const { plan } = found;
   const units = plan.styles.reduce((sum, style) => sum + style.sizes.reduce((count, size) => count + size.qty, 0), 0);
-  const back = `/studio/collections/${plan.id}` as Route;
+  const back = `/orders/plan/${plan.id}` as Route;
 
   return (
     <div className="flex flex-col gap-8">
