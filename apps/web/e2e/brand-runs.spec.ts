@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, openStudioSection } from "./chrome";
+import { accessible, openShellPlace } from "./chrome";
 import { allowClassBRun, createAccount, createColleagueOf, makePlatformAdmin, signIn, test, userIdOf } from "./support";
 
 /**
@@ -60,9 +60,12 @@ test.describe("brand workspace (W4-C)", () => {
     // allowance are themselves the thing being tested.
     await allowClassBRun(projectId, "brand-runs-reviewer");
 
-    // Brand is one of the sections the top bar lists in its overflow menu (decision 0103).
-    await openStudioSection(page, "Brand");
-    await expect(page).toHaveURL(/\/brand$/);
+    // Product runs moved from /brand to Orders (decision 0138): the rail's ⌄ opens Orders, whose
+    // empty state opens the runs.
+    await openShellPlace(page, "Orders");
+    await expect(page).toHaveURL(/\/orders$/);
+    await page.getByRole("link", { name: "Open product runs" }).click();
+    await expect(page).toHaveURL(/\/orders\/runs$/);
     // The first accessibility scan of this page, with the run builder still empty: its one line of
     // prose holds a link that colour alone used to carry, which axe reads at 1.64:1 against the
     // words around it (decision 0103).
@@ -70,7 +73,7 @@ test.describe("brand workspace (W4-C)", () => {
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Fern hoodie" });
     await products.getByRole("button", { name: "Add to product list" }).click();
-    await expect(page).toHaveURL(/\/brand\?product=/);
+    await expect(page).toHaveURL(/\/orders\/runs\?product=/);
     await expect(products.getByText("Idea ·")).toBeVisible();
 
     // A run is not possible before a sample.
@@ -129,7 +132,7 @@ test.describe("brand workspace (W4-C)", () => {
     const userId = await userIdOf(email);
     const brand = await db.from("projects").select("brand_id").eq("id", projectId).single();
     const brandId = brand.data?.brand_id as string;
-    await page.goto("/brand");
+    await page.goto("/orders/runs");
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Birch tee" });
     await products.getByRole("button", { name: "Add to product list" }).click();
@@ -160,11 +163,11 @@ test.describe("brand workspace (W4-C)", () => {
     const db = service();
     const demoted = await db.from("memberships").update({ role: "viewer" }).eq("user_id", await userIdOf(viewerEmail));
     expect(demoted.error).toBeNull();
-    await page.goto("/brand");
+    await page.goto("/orders/runs");
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Cedar tee" });
     await products.getByRole("button", { name: "Add to product list" }).click();
-    await expect(page).toHaveURL(/\/brand\?product=/);
+    await expect(page).toHaveURL(/\/orders\/runs\?product=/);
     const productUrl = page.url();
 
     const other = await browser.newContext();

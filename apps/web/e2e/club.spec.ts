@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, openStudioSection } from "./chrome";
+import { accessible, openShellPlace } from "./chrome";
 import { createAccount, createColleagueOf, signIn, test, userIdOf } from "./support";
 
 /**
@@ -20,8 +20,8 @@ test.describe("club workspace (V4)", () => {
   test("a season is made, a roster is imported, and next season starts with the same sizes", async ({ page }) => {
     await signIn(page, await createAccount("club"));
     await expect(page).toHaveURL(/\/studio$/);
-    // Club is one of the sections the top bar lists in its overflow menu (decision 0103).
-    await openStudioSection(page, "Club");
+    // A brand that has not said it is a club reaches its club page from the rail's ⋯ (decision 0138).
+    await openShellPlace(page, "Club and members");
     await expect(page).toHaveURL(/\/club$/);
     // The first accessibility scan of this page. With no design yet, the Designs section is one
     // line of prose holding a link that colour alone used to carry (decision 0103).

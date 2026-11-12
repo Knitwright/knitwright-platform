@@ -101,10 +101,13 @@ test.describe("brands", () => {
     expect((await page.goto("/legal/no-such-document"))?.status()).toBe(404);
   });
 
-  test("the brand link in the header says what it is and where it goes", async ({ page }) => {
+  test("the brand pill in the top bar says what it is and where it goes", async ({ page }) => {
     await signedIn(page, "link-name", "Harbour Rowing Club");
 
-    await expect(page.getByRole("link", { name: "Brand: Harbour Rowing Club. Change brand." })).toBeVisible();
+    // The brand pill opens Brand Studio (decision 0138); the switcher is in the rail's workspace menu.
+    const pill = page.getByRole("link", { name: /^Brand: Harbour Rowing Club\..* Open Brand Studio\.$/ });
+    await expect(pill).toBeVisible();
+    await expect(pill).toHaveAttribute("href", "/brand-studio");
     await expect(page.getByTestId("active-brand")).toHaveText("Harbour Rowing Club");
   });
 
