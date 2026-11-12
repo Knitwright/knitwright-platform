@@ -118,7 +118,7 @@ export function VariantWorkflow({ workflow, mode, products, families }: Props) {
             <ColourField number={3} label="New second colour" value={second} onChange={setSecond} />
           </>
         )}
-        <p className="text-small text-muted">Only colours and the kit pattern change, from the options the base article offers. Every variant is checked against the factory rules before you see it.</p>
+        <p className="text-small text-muted">Only colours and the kit pattern change, from the options the base article offers. A variant that breaks a factory rule is never shown.</p>
       </div>
     </WorkflowFrame>
   );

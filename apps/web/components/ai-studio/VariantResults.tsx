@@ -34,7 +34,7 @@ export function VariantResults({ tiles, pending, saving, onUse }: Props) {
   if (tiles === null) return null;
   if (tiles.length === 0) {
     return (
-      <EmptyState icon={<Icon icon={ShirtIcon} size={22} />} title="No variant passed the checks">
+      <EmptyState icon={<Icon icon={ShirtIcon} size={22} />} title="No variant fits the factory rules">
         Every candidate for this design broke a factory rule or repeated another, so none is shown. Try another era, pattern or colour.
       </EmptyState>
     );
