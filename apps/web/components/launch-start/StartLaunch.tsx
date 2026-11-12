@@ -37,7 +37,7 @@ export function StartLaunch({ source, slug, designProjectId, colourwayId, childr
       <input type="hidden" name="slug" value={slug ?? ""} />
       <input type="hidden" name="designProjectId" value={designProjectId ?? ""} />
       <input type="hidden" name="colourwayId" value={colourwayId ?? ""} />
-      <Button type="submit" variant={variant} size={size} icon={icon} pending={pending} aria-label={label} className={pill ? "w-full rounded-full" : "w-full"}>
+      <Button type="submit" variant={variant} size={size} icon={icon} pending={pending} aria-label={label} className={pill ? "w-full rounded-full!" : "w-full"}>
         {children}
       </Button>
       <FormSummary message={summary} />

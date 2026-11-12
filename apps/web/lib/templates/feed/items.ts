@@ -1,5 +1,6 @@
 import type { FlowTemplateSpec } from "@/lib/flows/types";
 import type { VideoTemplate } from "@/lib/media/video/social-frames";
+import { layoutTitle } from "@/lib/marketing/gallery/concepts";
 import { GROUP_LABELS, MARKETING_FORMAT_LABELS, type MarketingFormat, type MarketingGroup } from "@/lib/marketing/templates/types";
 import { REVIEW_LABELS } from "../catalogue";
 import type { TemplateSummary } from "../filters";
@@ -111,7 +112,7 @@ export function socialItems(rows: readonly SocialRow[]): readonly FeedItem[] {
       {
         id: `social-${row.slug}`,
         kind: "social" as const,
-        title: row.title,
+        title: layoutTitle(row.title),
         author: KNITWRIGHT,
         premium: false,
         sports: [],

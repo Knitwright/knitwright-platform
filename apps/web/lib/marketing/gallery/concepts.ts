@@ -45,13 +45,19 @@ const SHAPES: Readonly<Record<MarketingFormat, ConceptShape>> = {
   "a4-print": "a4",
 };
 
+/**
+ * A layout's own name, without the format the library's row adds after a dash
+ * (`../templates/build.ts`: "Matchday — Social square 1:1"). One card stands for every format.
+ */
+export const layoutTitle = (title: string): string => title.split(" — ")[0]!.trim();
+
 /** One concept per layout, in the library's order. */
 export function photoConcepts(rows: readonly LayoutRow[]): readonly Concept[] {
   const seen = new Set<string>();
   return rows.flatMap((row) => {
     if (seen.has(row.layoutKey)) return [];
     seen.add(row.layoutKey);
-    return [{ id: row.layoutKey, title: row.title, kind: "photo" as const, group: row.group, shape: SHAPES[row.format], premium: false, use: { type: "launch" as const, slug: row.slug } }];
+    return [{ id: row.layoutKey, title: layoutTitle(row.title), kind: "photo" as const, group: row.group, shape: SHAPES[row.format], premium: false, use: { type: "launch" as const, slug: row.slug } }];
   });
 }
 

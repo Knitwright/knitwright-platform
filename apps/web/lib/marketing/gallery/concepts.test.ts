@@ -9,6 +9,7 @@ import {
   galleryConcepts,
   galleryFilterFromQuery,
   galleryHref,
+  layoutTitle,
   photoConcepts,
   videoConcept,
   type LayoutRow,
@@ -35,6 +36,11 @@ describe("the marketing concepts", () => {
       ["a4-poster", "a4"],
     ]);
     expect(photos[0]!.use).toEqual({ type: "launch", slug: "matchday-square" });
+  });
+
+  it("names a concept by its layout, without the format the row adds", () => {
+    expect(layoutTitle("Matchday — Social square 1:1")).toBe("Matchday");
+    expect(layoutTitle("Web banner")).toBe("Web banner");
   });
 
   it("offers a video the platform draws and says why an AI clip waits, with its crown", () => {

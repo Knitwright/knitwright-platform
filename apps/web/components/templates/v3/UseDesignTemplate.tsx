@@ -16,7 +16,7 @@ export function UseDesignTemplate({ templateId, title }: Readonly<{ templateId: 
   return (
     <form ref={form} action={submit} className="flex flex-col gap-2">
       <input type="hidden" name="templateId" value={templateId} />
-      <Button type="submit" variant="secondary" size="sm" pending={pending} aria-label={`Use this template: ${title}`} className="w-full rounded-full">
+      <Button type="submit" variant="secondary" size="sm" pending={pending} aria-label={`Use this template: ${title}`} className="w-full rounded-full!">
         {pending ? "Making your copy" : "Use template"}
       </Button>
       <FormSummary message={summary} />

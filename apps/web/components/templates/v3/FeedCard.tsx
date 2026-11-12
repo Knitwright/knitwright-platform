@@ -2,7 +2,7 @@ import { Clapperboard, FileText, Layers, LayoutTemplate, Shirt } from "lucide-re
 import type { Route } from "next";
 import type { LucideIcon } from "lucide-react";
 import { StartLaunch } from "@/components/launch-start/StartLaunch";
-import { Button } from "@/components/ui/Button";
+import { Unavailable } from "@/components/launch-start/Unavailable";
 import { StatusPill } from "@/components/ui/Chips";
 import { Icon } from "@/components/ui/Icon";
 import { LinkButton } from "@/components/ui/LinkButton";
@@ -52,15 +52,15 @@ function UseButton({ item }: Readonly<{ item: FeedItem }>) {
       );
     case "link":
       return (
-        <LinkButton href={use.href as Route} variant="secondary" size="sm" className="w-full rounded-full">
+        <LinkButton href={use.href as Route} variant="secondary" size="sm" className="w-full rounded-full!">
           Use template<span className="sr-only">: {item.title}</span>
         </LinkButton>
       );
     default:
       return (
-        <Button variant="secondary" size="sm" disabledReason={use.reason} className="w-full rounded-full" aria-label={named}>
+        <Unavailable reason={use.reason} label={named} className="w-full rounded-full!">
           Use template
-        </Button>
+        </Unavailable>
       );
   }
 }

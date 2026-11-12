@@ -20,7 +20,7 @@ export function TemplatesHeader({ tab, search }: Readonly<{ tab: TemplateTab; se
         </label>
         <SearchInput id="template-search" name="q" defaultValue={search} placeholder={'Try "retro football kit" or "matchday poster"'} />
       </form>
-      <nav aria-label="Template categories" className="-mx-2 flex max-w-full gap-6 overflow-x-auto px-2">
+      <nav aria-label="Template categories" className="-mx-2 flex max-w-full gap-6 self-stretch overflow-x-auto px-2">
         {TEMPLATE_TABS.map((one) => (
           <Link
             key={one}

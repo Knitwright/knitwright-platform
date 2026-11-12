@@ -1,7 +1,7 @@
 import { Play } from "lucide-react";
 import type { Route } from "next";
 import { StartLaunch } from "@/components/launch-start/StartLaunch";
-import { Button } from "@/components/ui/Button";
+import { Unavailable } from "@/components/launch-start/Unavailable";
 import { Icon } from "@/components/ui/Icon";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { PremiumMark } from "@/components/ui/Marks";
@@ -52,9 +52,9 @@ export function ConceptUse({ concept }: Readonly<{ concept: Concept }>) {
     );
   }
   return (
-    <Button size="sm" disabledReason={use.reason} aria-label={named} className="w-full">
+    <Unavailable variant="primary" reason={use.reason} label={named} className="w-full">
       Use this concept
-    </Button>
+    </Unavailable>
   );
 }
 
