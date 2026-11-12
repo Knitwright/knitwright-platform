@@ -924,6 +924,18 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ season_id: randomUUID(), brand_id: brandId, position: 1, name: "X", number: "1", size_label: "M", wearer_group: "mens" }),
     change: { name: "Changed by a stranger" },
   },
+  // Plan v6 D5 (decision 0136): whether a club keeps rosters older than two seasons. A member reads it; only
+  // set_roster_retention writes it.
+  club_roster_retention: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("set_roster_retention", { p_brand_id: brandId, p_user_id: ownerId, p_keep: true }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, keep_old_rosters: false }),
+    change: { keep_old_rosters: false },
+  },
   // Plan V6 (decision 0044): a brand's credits. A member reads the lines; only the server writes, through
   // functions, and a line is never changed.
   credit_ledger: {
