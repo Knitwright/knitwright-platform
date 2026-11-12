@@ -222,6 +222,7 @@ export default defineConfig({
             "shell",
             "shoots",
             "store-contract",
+            "team",
             "teamwear",
             "templates",
             "translate",

@@ -81,9 +81,10 @@ describe("the rail", () => {
 describe("the top bar", () => {
   it("carries the brand pill, ⊕, Upgrade and the account avatar", () => {
     const html = bar("/studio");
-    expect(html).toContain("Brand: Northfield FC. Open Brand Studio.");
+    expect(html).toContain("Brand: Northfield FC. Open Brand.");
     expect(html).toContain('aria-label="Invite or add credits"');
-    expect(html).toMatch(/href="\/credits"[^>]*>.*Upgrade<\/a>/);
+    // Upgrade opens the plans modal (decision 0144), a button rather than a link to the credits page.
+    expect(html).toMatch(/<button[^>]*aria-haspopup="dialog"[^>]*>.*Upgrade<\/button>/);
     expect(html).toContain('aria-label="Account"');
   });
 
@@ -93,8 +94,8 @@ describe("the top bar", () => {
     expect(bar("/studio", BRAND)).not.toContain('data-testid="brand-new"');
   });
 
-  it("marks the brand pill current on Brand Studio", () => {
-    expect(bar("/brand-studio")).toMatch(/<a [^>]*aria-current="page"[^>]*href="\/brand-studio"|<a [^>]*href="\/brand-studio"[^>]*aria-current="page"/);
+  it("marks the brand pill current on the Brand page", () => {
+    expect(bar("/brand")).toMatch(/<a [^>]*aria-current="page"[^>]*href="\/brand"|<a [^>]*href="\/brand"[^>]*aria-current="page"/);
     expect(bar("/studio")).not.toContain('aria-current="page"');
   });
 
