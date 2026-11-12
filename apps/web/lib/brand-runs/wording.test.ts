@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 const SETTLED = /\b(checked|verified|approved|confirmed|final|production[- ]ready|passed|validated|certified)\b/i;
 const ROOT = join(__dirname, "..", "..");
 const files = (dir: string) => readdirSync(join(ROOT, dir)).filter((n) => /\.tsx?$/.test(n) && !/\.test\./.test(n)).map((n) => join(ROOT, dir, n));
-const SOURCES = [...files("lib/brand-runs"), ...files("components/brand-runs"), join(ROOT, "app/(app)/brand/page.tsx")];
+const SOURCES = [...files("lib/brand-runs"), ...files("components/brand-runs"), join(ROOT, "app/(app)/orders/runs/page.tsx")];
 
 function sentencesIn(path: string): string[] {
   const source = ts.createSourceFile(path, readFileSync(path, "utf8"), ts.ScriptTarget.Latest, true, path.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);

@@ -16,7 +16,7 @@ export default async function AiStudioPage() {
       action={{ href: "/crest-to-kit", label: "Open crest to kit" }}
       tabs={{ label: "AI Studio", items: AI_STUDIO_TABS }}
     >
-      Crest to kit already builds validated kits from your crest and colours. The other workflows arrive with AI Studio.
+      Crest to kit already draws kits from your crest and colours. The other workflows arrive with AI Studio.
     </PlaceholderPage>
   );
 }
