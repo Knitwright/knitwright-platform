@@ -31,7 +31,6 @@ export function IdeaTile({ tile, preview }: Readonly<{ tile: Tile; preview: Read
       <button
         type="submit"
         disabled={pending}
-        aria-label={`Start a design from ${tile.title}`}
         className={cx(
           "relative flex w-full flex-col items-center justify-center gap-4 overflow-hidden rounded-xl p-6 transition-shadow duration-fast ease-out hover:shadow-e2 disabled:cursor-wait",
           HEIGHTS[tile.height],
@@ -41,7 +40,10 @@ export function IdeaTile({ tile, preview }: Readonly<{ tile: Tile; preview: Read
         {/* A data address drawn by our own renderer. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         {preview ? <img src={preview.src} alt="" className="h-28 w-auto rounded-md bg-bg p-2" /> : null}
-        <span className="text-h3 uppercase">{tile.title}</span>
+        <span className="text-h3 uppercase">
+          <span className="sr-only">Start a design from </span>
+          {tile.title}
+        </span>
         <span className="text-small">{tile.caption}</span>
         {pending ? <Spinner size={20} className="absolute top-4 right-4" /> : null}
       </button>
