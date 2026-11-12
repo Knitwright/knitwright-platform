@@ -47,12 +47,13 @@ describe("contrast helper", () => {
   });
 });
 
-describe("native form controls on the dark theme", () => {
-  it("asks the browser for its dark controls", () => {
-    expect(/:root\s*\{[^}]*color-scheme:\s*dark/.test(CSS)).toBe(true);
+describe("native form controls on the light theme (decision 0137)", () => {
+  it("asks the browser for its light controls, and never for dark ones", () => {
+    expect(/:root\s*\{[^}]*color-scheme:\s*light/.test(CSS)).toBe(true);
+    expect(/color-scheme:\s*dark/.test(CSS)).toBe(false);
   });
 
-  it("gives every choice of a list an opaque dark background with ink text", () => {
+  it("gives every choice of a list an opaque background with ink text", () => {
     for (const selector of ["option", "optgroup"]) {
       const rule = ruleFor(selector);
       expect(rule, selector).toContain("background-color: var(--surface-solid)");

@@ -24,7 +24,7 @@ export function CheckboxField({ label, hint, errors = [], ...rest }: CheckboxFie
           type="checkbox"
           aria-invalid={errors.length > 0 || undefined}
           aria-describedby={describedBy}
-          className="mt-0.5 size-5 shrink-0 accent-cobalt-soft"
+          className="mt-0.5 size-4.5 shrink-0 accent-navy"
         />
         <label htmlFor={id} className="text-[15px] leading-snug text-ink">
           {label}
@@ -36,7 +36,7 @@ export function CheckboxField({ label, hint, errors = [], ...rest }: CheckboxFie
         </p>
       ) : null}
       {errorId ? (
-        <p id={errorId} className="pl-8 text-sm text-warn">
+        <p id={errorId} className="pl-8 text-caption text-bad">
           {errors.join(" ")}
         </p>
       ) : null}

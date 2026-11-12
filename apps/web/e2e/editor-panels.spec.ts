@@ -297,9 +297,14 @@ test.describe("the panels the shell never mounted", () => {
 
     await eachPanel(page, async (where) => {
       // The rail writes the address in a router transition, and axe reports `document-title`
-      // against a page whose <title> that transition is still replacing. Wait for it to land.
-      await expect(page).toHaveTitle(/\S/);
-      await accessible(page);
+      // against a page whose <title> that transition is still replacing. Wait for it to land,
+      // and scan again if the transition replaced it between the wait and the scan: the shorter
+      // v3.9 motion (decision 0137) settles the page sooner, inside that window. A real problem
+      // still fails once the retries run out.
+      await expect(async () => {
+        await expect(page).toHaveTitle(/\S/);
+        await accessible(page);
+      }).toPass({ timeout: 15_000 });
       await noSidewaysScroll(page, where);
     });
   });
@@ -315,9 +320,14 @@ test.describe("the editor panels on a phone", () => {
 
     await eachPanel(page, async (where) => {
       // The rail writes the address in a router transition, and axe reports `document-title`
-      // against a page whose <title> that transition is still replacing. Wait for it to land.
-      await expect(page).toHaveTitle(/\S/);
-      await accessible(page);
+      // against a page whose <title> that transition is still replacing. Wait for it to land,
+      // and scan again if the transition replaced it between the wait and the scan: the shorter
+      // v3.9 motion (decision 0137) settles the page sooner, inside that window. A real problem
+      // still fails once the retries run out.
+      await expect(async () => {
+        await expect(page).toHaveTitle(/\S/);
+        await accessible(page);
+      }).toPass({ timeout: 15_000 });
       await noSidewaysScroll(page, where);
     });
   });

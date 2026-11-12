@@ -41,7 +41,7 @@ export function Pagination({ path, page, totalPages, label }: PaginationProps) {
                 href={href(mark)}
                 aria-current={mark === page ? "page" : undefined}
                 aria-label={`Page ${mark}`}
-                className={mark === page ? `${PILL} bg-white text-[#0b0c0e] hover:bg-white hover:text-[#0b0c0e]` : `${PILL} text-ink`}
+                className={mark === page ? `${PILL} bg-navy text-on-dark hover:bg-navy-2` : `${PILL} text-ink`}
               >
                 {mark}
               </Link>

@@ -39,7 +39,7 @@ export function Field({ name, label, hint, errors = [], ...rest }: FieldProps) {
         </p>
       ) : null}
       {errorId ? (
-        <p id={errorId} className="text-sm text-warn">
+        <p id={errorId} className="text-caption text-bad">
           {errors.join(" ")}
         </p>
       ) : null}

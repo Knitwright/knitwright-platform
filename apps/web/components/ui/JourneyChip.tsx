@@ -2,10 +2,10 @@ import { JOURNEY_STEPS, journeyIndex, type JourneyStepId } from "@/lib/home/jour
 
 /** The colours of each step's chip: the design in cobalt, the committee in amber, the quote in green. */
 const CHIP: Readonly<Record<JourneyStepId, string>> = {
-  design: "bg-cobalt-wash text-[#c9d2ff]",
-  "factory-file": "bg-white/10 text-ink",
-  committee: "bg-warn-wash text-warn",
-  quote: "bg-ok-wash text-ok",
+  design: "bg-electric-soft text-link",
+  "factory-file": "bg-soft text-text-2",
+  committee: "bg-warn-soft text-warn",
+  quote: "bg-ok-soft text-ok",
 };
 
 /**

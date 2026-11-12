@@ -146,5 +146,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0134 | [The 3D texture is the print file](0134-the-3d-texture-is-the-print-file.md) | Accepted; the editor's 3D view and the export preview paint each UV island with the art of that panel's print file, made on the server |
 | 0135 | [Inspiration ports wired](0135-inspiration-ports-wired.md) | Proposed; the board's actions and the suggestion checker pass live ports, and Pinterest is off by a setting |
 | 0136 | [Privacy and deploy housekeeping](0136-privacy-and-deploy-housekeeping.md) | Accepted; the erasure sweep reads name columns, rosters older than two seasons are purged by a daily cron, and `pnpm --filter web seed:templates` seeds the whole library |
+| 0137 | [The v3.9 design system and component library](0137-the-v39-design-system-and-component-library.md) | Accepted; light tokens from `10`, Inter, lucide-react, the component library in components/ui, /dev/ui, and one compatibility block for the v2.2 names |
 
 <!-- End of the generated table. -->
