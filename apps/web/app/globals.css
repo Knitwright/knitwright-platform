@@ -1,108 +1,190 @@
 @import "tailwindcss";
 
 /*
- * Design tokens, taken from knitwright.com. See plans/design-reference.md, section
- * "Finish and motion". The studio uses the dark side of the system throughout: glass
- * panels over a drifting aurora, cobalt as the one accent, the thread gradient used
- * sparingly. The token names are the light theme's names, so `bg-surface`, `text-ink`
- * and `border-hairline` keep working; only their values changed.
+ * Design tokens: build pack v3.9, docs/spec/10-design-system.md (decision 0137). That file wins
+ * on every exact value. Kittl's calm, white, rounded interface: light theme only (§2 "Dark mode:
+ * none in v1"). The canvas and the garment stage may still use dark backgrounds as content.
  *
- * Contrast (WCAG AA, on --canvas #07080a): ink 16.6:1, ink-2 12.4:1, muted 10:1,
- * faint 6:1, cobalt-soft 6.6:1, ok 11:1, warn 11.6:1. White on --cobalt is 6.2:1.
+ * How to use them:
+ *   - Colours are Tailwind colours: `bg-navy`, `text-text-2`, `border-border`, `bg-soft`,
+ *     `text-ok bg-ok-soft`. `text-on-dark` is white that never changes (see the legacy block).
+ *   - Type is `text-display | h1 | h2 | h3 | title | body-lg | body | small | caption | micro`,
+ *     each with its own line height, tracking and weight. `overline` adds the micro uppercase.
+ *   - Radius is `rounded-xs … rounded-3xl` and `rounded-full`, re-valued to §5.
+ *   - Elevation is `shadow-e1 … shadow-e4`. Motion is `duration-fast|base|slow|canvas` with
+ *     `ease-standard`. Spacing keeps Tailwind's 4 px scale, which holds every §4 value.
  *
- * Tailwind owns the radius, spacing, font and color namespaces, so our own names never
- * start with those prefixes outside the @theme block.
+ * Contrast (WCAG AA on white): text 18.6:1, text-2 10.3:1, muted 4.8:1, link 5.7:1, ok 5.7:1,
+ * warn 5.4:1, bad 4.8:1. White on navy is 16:1; navy on gold is 8.8:1. `electric` itself is
+ * 4.499:1 on white, a hair under AA, so text in that blue uses `text-link` (#2558E8); outlines,
+ * fills and focus rings keep the exact `electric`. `muted-2` is for placeholders and disabled
+ * text only, never information.
+ *
+ * Screen code uses these names only: no raw hex, px or shadows outside this file (§11).
  */
-:root {
-  color-scheme: dark;
-
-  --canvas: #07080a;
-  /* Glass. Translucent, so it reads the aurora behind it. */
-  --surface: rgba(12, 13, 18, 0.42);
-  /* An opaque surface, for things that float over other content (menus, popovers). */
-  --surface-solid: #111217;
-  --shell: rgba(255, 255, 255, 0.06);
-  --ink: #e9eaee;
-  --ink-2: #c9ccd3;
-  --muted: #b5b8c0;
-  --faint: #8b8f99;
-  --hairline: rgba(255, 255, 255, 0.13);
-  --tile: #17181b;
-  --tile-2: #222429;
-  --chalk: #e9eaee;
-  --chalk-muted: #9a9ea8;
-  --cobalt: #2b46f0;
-  --cobalt-soft: #8296ff;
-  --cobalt-wash: rgba(130, 150, 255, 0.16);
-  --cobalt-hover: #3d57ff;
-  --ok: #7fe0bb;
-  --ok-wash: rgba(79, 199, 155, 0.16);
-  --warn: #f3c27a;
-  --warn-wash: rgba(224, 162, 74, 0.16);
-  --thread: linear-gradient(
-    95deg,
-    #b9c4ff 0%,
-    #fff1c2 28%,
-    #ffd3e6 52%,
-    #c7f0e4 74%,
-    #9fb0ff 100%
-  );
-
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --spring: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-@theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  --color-canvas: var(--canvas);
-  --color-surface: var(--surface);
-  --color-surface-solid: var(--surface-solid);
-  --color-shell: var(--shell);
-  --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
-  --color-muted: var(--muted);
-  --color-faint: var(--faint);
-  --color-hairline: var(--hairline);
-  --color-tile: var(--tile);
-  --color-tile-2: var(--tile-2);
-  --color-chalk: var(--chalk);
-  --color-chalk-muted: var(--chalk-muted);
-  --color-cobalt: var(--cobalt);
-  --color-cobalt-soft: var(--cobalt-soft);
-  --color-cobalt-wash: var(--cobalt-wash);
-  --color-cobalt-hover: var(--cobalt-hover);
-  --color-ok: var(--ok);
-  --color-ok-wash: var(--ok-wash);
-  --color-warn: var(--warn);
-  --color-warn-wash: var(--warn-wash);
+  /* §2 brand and neutrals */
+  --color-navy: #0b1f4b;
+  --color-navy-2: #142c63;
+  --color-navy-3: #06132f;
+  --color-electric: #2f6bff;
+  --color-electric-soft: #eaf0ff;
+  --color-link: #2558e8;
+  --color-gold: #f2b705;
+  --color-gold-2: #e0a800;
+  --color-gold-3: #c99a00;
+  --color-gold-soft: #fff4cc;
+  --color-bg: #ffffff;
+  --color-soft: #f3f4f6;
+  --color-soft-2: #eceef2;
+  --color-border: #e5e7eb;
+  --color-border-strong: #d0d5dd;
+  --color-dot: #d5d9e0;
+  --color-text: #111318;
+  --color-text-2: #374151;
+  --color-muted: #6b7280;
+  --color-muted-2: #9ca3af;
+  --color-on-dark: #ffffff;
+  --color-scrim: rgba(17, 19, 24, 0.45);
+
+  /* §2 status: text on its own fill */
+  --color-ok: #067647;
+  --color-ok-soft: #e7f8ef;
+  --color-warn: #b54708;
+  --color-warn-soft: #fef0c7;
+  --color-bad: #d92d20;
+  --color-bad-soft: #fee4e2;
+  --color-info: #2f6bff;
+  --color-info-soft: #eaf0ff;
+
+  /* §2 tech pack marks. Never swap them: factories read red as "measure here". */
+  --color-mark-measure: #d92d20;
+  --color-mark-callout: #2f6bff;
+
+  /* §3 type scale */
+  --text-display: 48px;
+  --text-display--line-height: 56px;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-h1: 30px;
+  --text-h1--line-height: 38px;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h1--font-weight: 700;
+  --text-h2: 24px;
+  --text-h2--line-height: 32px;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 700;
+  --text-h3: 20px;
+  --text-h3--line-height: 28px;
+  --text-h3--font-weight: 700;
+  --text-title: 17px;
+  --text-title--line-height: 24px;
+  --text-title--font-weight: 600;
+  --text-body-lg: 15px;
+  --text-body-lg--line-height: 22px;
+  --text-body-lg--font-weight: 500;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-small: 13px;
+  --text-small--line-height: 18px;
+  --text-small--font-weight: 500;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-caption--font-weight: 500;
+  --text-micro: 11px;
+  --text-micro--line-height: 14px;
+  --text-micro--letter-spacing: 0.04em;
+  --text-micro--font-weight: 600;
+
+  /* §5 radius */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-btn-xs: 7px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-prompt: 18px;
+  --radius-3xl: 22px;
+
+  /* §5 elevation */
+  --shadow-e1: 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-e2: 0 4px 16px rgba(16, 24, 40, 0.1), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-e3: 0 16px 40px rgba(16, 24, 40, 0.22);
+  --shadow-e4: 0 24px 60px rgba(16, 24, 40, 0.3);
+
+  /* §7 motion */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root {
+  color-scheme: light;
+
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 260ms;
+  --motion-canvas: 200ms;
+  --ease-fast: ease-out;
+  --ease: var(--ease-standard);
+  --spring: var(--ease-standard);
+}
+
+/*
+ * `live:hover:…` styles a control's hover and pressed states only while it can be used: not
+ * when it is disabled, and not when it is aria-disabled (a disabled button that still takes
+ * focus so its tooltip can say why, §8).
+ */
+@custom-variant live (&:not(:disabled, [aria-disabled="true"]));
+
+/* `duration-fast` and friends, so components never write a raw millisecond value. */
+@utility duration-fast {
+  transition-duration: var(--motion-fast);
+}
+@utility duration-base {
+  transition-duration: var(--motion-base);
+}
+@utility duration-slow {
+  transition-duration: var(--motion-slow);
+}
+@utility duration-canvas {
+  transition-duration: var(--motion-canvas);
+}
+
+/* The micro overline of §3: "KNITWRIGHT LIBRARY". */
+@utility overline {
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 body {
-  background: var(--canvas);
-  color: var(--ink);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: var(--font-sans);
+  /* Straight-legged digits (§3). Tables add tabular-nums. */
+  font-feature-settings: "cv11", "ss01";
 }
 
 ::selection {
-  background: rgba(130, 150, 255, 0.35);
-  color: #fff;
+  background: var(--color-electric-soft);
+  color: var(--color-text);
 }
 
+/* §8: a 2 px electric ring, 2 px offset, keyboard only. */
 :focus-visible {
-  outline: 2px solid var(--cobalt-soft);
-  outline-offset: 3px;
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
 }
 
-/* ---------- Native form controls on the dark theme ---------- */
+/* ---------- Native form controls ---------- */
 
 @layer base {
-  /*
-   * The list a <select> opens is drawn by the browser, not the page. On Windows it takes the
-   * field's see-through glass as white and keeps the light text: white on white. An opaque
-   * dark background on each choice keeps it readable. ink on surface-solid is 15:1.
-   */
+  /* The list a <select> opens is drawn by the browser: an opaque background and ink text. */
   option,
   optgroup {
     background-color: var(--surface-solid);
@@ -112,10 +194,7 @@ body {
     color: var(--faint);
   }
 
-  /*
-   * Autofill paints its own pale background, which the light text cannot be read on. An inset
-   * shadow covers that background and the text keeps the ink colour.
-   */
+  /* Autofill paints its own background; an inset shadow covers it and the text keeps ink. */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus,
@@ -127,7 +206,6 @@ body {
     transition: background-color 600000s 0s;
   }
 
-  /* color-scheme: dark (above) already draws the calendar button of a date field light. */
   ::-webkit-calendar-picker-indicator {
     cursor: pointer;
   }
@@ -144,261 +222,43 @@ body {
   legend + * {
     clear: both;
   }
-  /*
-   * Clearing the float swallows the top margin of whatever follows the legend, so in a plain
-   * (block) fieldset the legend keeps the gap itself. In a flex or grid fieldset the legend is
-   * an ordinary item and the gap utilities space it. A margin utility on a legend still wins.
-   */
+  /* Clearing swallows the next element's top margin, so a plain fieldset's legend keeps the gap. */
   fieldset:not(.flex, .grid, .inline-flex, .inline-grid) > legend {
     margin-bottom: 0.75rem;
   }
 }
 
-/* ---------- Surfaces ---------- */
+/* ---------- Motion (§7) ---------- */
 
-/* A glass panel. The inset line is the glossy top edge. */
-@utility glass {
-  backdrop-filter: blur(28px) saturate(1.6);
-  -webkit-backdrop-filter: blur(28px) saturate(1.6);
-  background: rgba(12, 13, 18, 0.42);
-  border: 1px solid var(--glass-edge, rgba(255, 255, 255, 0.14));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 30px 80px -30px rgba(0, 0, 0, 0.6);
+/* Menus and popovers: fade and a 4 px rise. */
+@utility pop-in {
+  animation: kw-pop-in var(--motion-base) var(--ease-standard) both;
+}
+/* Modals: fade and 0.98 → 1 scale. */
+@utility modal-in {
+  animation: kw-modal-in var(--motion-slow) var(--ease-standard) both;
+}
+/* Flyout panels: slide 12 px. */
+@utility panel-in {
+  animation: kw-panel-in var(--motion-slow) var(--ease-standard) both;
+}
+@utility fade-in {
+  animation: kw-fade-in var(--motion-base) var(--ease-standard) both;
+}
+@utility spin {
+  animation: kw-spin 800ms linear infinite;
 }
 
-/* The header pill: a darker glass that settles in over 450 ms. */
-@utility glass-strong {
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  background: rgba(23, 24, 27, 0.52);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 24px 60px -30px rgba(0, 0, 0, 0.7);
-  transition:
-    background-color 450ms var(--ease),
-    border-color 450ms var(--ease),
-    box-shadow 450ms var(--ease);
-}
-
-/* A 1.5 px border painted with the thread gradient. */
-@utility thread-ring {
-  position: relative;
-  isolation: isolate;
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1.5px;
-    background: var(--thread);
-    pointer-events: none;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box exclude,
-      linear-gradient(#000 0 0);
-  }
-}
-
-@utility thread-text {
-  background: var(--thread);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.thread-line {
-  height: 2px;
-  background: var(--thread);
-}
-
-.tile-dots {
-  background-color: var(--tile);
-  background-image: radial-gradient(#ffffff17 1px, #0000 1.2px);
-  background-size: 14px 14px;
-  box-shadow:
-    inset 0 2px 30px #0009,
-    inset 0 -1px #ffffff0f;
-}
-
-/* The fine dot grid behind a flat drawing, on glass. */
-@utility dot-grid {
-  background-image: radial-gradient(circle at 1px 1px, rgba(233, 234, 238, 0.07) 1px, transparent 0);
-  background-size: 14px 14px;
-}
-
-/* ---------- Pressable things ---------- */
-
-@layer components {
-  /*
-   * The primary call to action: a white chip-fill grows from the arrow disc, the label
-   * turns ink and the disc turns 45 degrees. Markup: .chip-cta > .chip-fill + .chip-label + .chip-disc?
-   */
-  .chip-cta {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    --fill-at: calc(100% - 26px) 50%;
-  }
-  .chip-fill {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: #fff;
-    clip-path: circle(0 at var(--fill-at, 50% 50%));
-    transition: clip-path 600ms var(--ease);
-  }
-  .chip-label {
-    transition: color 500ms var(--ease);
-  }
-  .chip-disc {
-    display: grid;
-    place-items: center;
-    flex: none;
-    border-radius: 999px;
-    background: var(--thread);
-    color: #0f1012;
-    transition: transform 500ms var(--ease);
-  }
-  .chip-cta:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) .chip-fill {
-    clip-path: circle(150% at var(--fill-at, 50% 50%));
-  }
-  .chip-cta:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) .chip-label {
-    color: #0f1012;
-  }
-  .chip-cta:not(:disabled):is(:hover, :focus-visible) .chip-disc,
-  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .chip-disc {
-    transform: rotate(45deg);
-  }
-
-  /*
-   * A glass chip whose white fill rises from the bottom on hover; the text turns ink.
-   * Used for secondary buttons and small choice chips.
-   */
-  .chip-btn {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    transition:
-      color 400ms var(--ease),
-      border-color 400ms var(--ease);
-  }
-  .chip-btn::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: #fff;
-    clip-path: circle(0 at 50% 100%);
-    transition: clip-path 500ms var(--ease);
-  }
-  .chip-btn:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) {
-    color: #0f1012;
-    border-color: #fff;
-  }
-  .chip-btn:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible)::after {
-    clip-path: circle(150% at 50% 100%);
-  }
-
-  /*
-   * A card that lifts on hover while a cobalt fill grows from the pointer, or from the
-   * bottom centre. Put a .fill-layer span first inside it. Set --fx and --fy to move the origin.
-   */
-  .lift {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    transition:
-      transform 600ms var(--spring),
-      border-color 500ms var(--ease);
-  }
-  .lift:is(:hover, :focus-visible, :has(:focus-visible)) {
-    transform: translateY(-4px);
-    border-color: rgba(255, 255, 255, 0.32);
-    --glass-edge: rgba(255, 255, 255, 0.32);
-  }
-  .fill-layer {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    background: var(--cobalt);
-    clip-path: circle(0 at var(--fx, 50%) var(--fy, 100%));
-    transition: clip-path 700ms var(--ease);
-    pointer-events: none;
-  }
-  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .fill-layer {
-    clip-path: circle(160% at var(--fx, 50%) var(--fy, 100%));
-  }
-  /* A caption that slides up and fades in as its card is hovered. */
-  .lift-caption {
-    transition:
-      transform 600ms var(--spring),
-      opacity 600ms var(--spring);
-  }
-  .lift .lift-caption {
-    transform: translateY(8px);
-  }
-  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-caption {
-    transform: none;
-  }
-  .lift .lift-art {
-    transition: transform 800ms var(--spring);
-  }
-  .lift:is(:hover, :focus-visible, :has(:focus-visible)) .lift-art {
-    transform: scale(1.06) rotate(-2deg);
-  }
-
-  /* A pill link in the header and the page list. */
-  .nav-pill {
-    transition:
-      background-color 300ms var(--ease),
-      color 300ms var(--ease);
-  }
-  .nav-pill:hover {
-    background: rgba(233, 234, 238, 0.1);
-    color: #fff;
-  }
-
-  /* Small links settle from .9 to full opacity. */
-  .soft-link {
-    opacity: 0.9;
-    transition: opacity 150ms var(--ease);
-  }
-  .soft-link:hover {
-    opacity: 1;
-  }
-}
-
-/* ---------- Motion ---------- */
-
-/* An entrance: rises 18 px and settles. Stagger siblings with style={{ "--i": n }}. */
+/* An entrance: rises 8 px and settles. Stagger siblings with style={{ "--i": n }}. */
 @utility rise {
-  animation: kw-rise 900ms var(--spring) both;
-  animation-delay: calc(var(--i, 0) * 80ms);
+  animation: kw-rise var(--motion-slow) var(--ease-standard) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
 }
-
-/* A headline that grows up from its baseline with a small overshoot. */
 @utility morph-reveal {
   display: inline-block;
-  transform-origin: 50% 100%;
-  animation: kw-morph 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
 }
-
-/* A side panel's content sliding in when its tab is chosen. */
-@utility panel-in {
-  animation: kw-panel-in 550ms var(--spring) both;
-}
-
-/* A drawing settling in after it changes. */
 @utility flat-in {
-  animation: kw-flat-in 700ms var(--spring) both;
+  animation: kw-fade-in var(--motion-slow) var(--ease-standard) both;
 }
 
 /* A status dot with a ring that pulses out. Set the colour with bg-*. */
@@ -419,107 +279,94 @@ body {
   }
 }
 
-/*
- * A loading placeholder: a soft white bar on glass. `shimmer` sweeps a faint light across it;
- * use it as `motion-safe:shimmer`, so a person who asks for less motion sees a still bar.
- */
+/* §9 loading: `soft` blocks, r-md, a 1.2 s shimmer. Use `motion-safe:shimmer`. */
 @utility skeleton-bar {
-  background-color: rgba(233, 234, 238, 0.07);
-  border-radius: 999px;
+  background-color: var(--color-soft);
+  border-radius: var(--radius-md);
 }
 @utility shimmer {
   background-image: linear-gradient(
     100deg,
     rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.7) 50%,
     rgba(255, 255, 255, 0) 70%
   );
   background-size: 220% 100%;
   background-repeat: no-repeat;
-  animation: kw-shimmer 1.6s var(--ease) infinite;
+  animation: kw-shimmer 1.2s ease-in-out infinite;
 }
-
-/* A loading screen fades in after a short wait, so a quick page never flashes it. */
+/* §9: show nothing for the first 300 ms, so a quick page never flashes its skeleton. */
 @utility skeleton-in {
-  animation: kw-skeleton-in 300ms var(--ease) 150ms both;
+  animation: kw-fade-in var(--motion-base) var(--ease-standard) 300ms both;
 }
 
-/*
- * The line across the top of the window while the next page loads: it appears after a short
- * wait and creeps towards the end. With less motion it shows still, most of the way across.
- */
+/* The line across the top of the window while the next page loads. */
 @utility nav-progress {
-  background: var(--thread);
+  background: var(--color-electric);
   transform-origin: 0 50%;
   animation: kw-nav-progress 12s cubic-bezier(0.1, 0.7, 0.2, 1) 120ms both;
 }
 
-/* The slow drift of the background. */
-@utility hero-drift {
-  animation: kw-hero-drift 24s ease-in-out infinite alternate;
+/* §8 canvas: `soft-2` with a `dot` grid every 24 px. */
+@utility canvas-dots {
+  background-color: var(--color-soft-2);
+  background-image: radial-gradient(circle at 1px 1px, var(--color-dot) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
-/* The blurred thread-colour aurora that sits behind the glass. */
-.aurora {
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  filter: blur(90px) saturate(1.2);
-  opacity: 0.55;
-}
-.aurora > i {
-  position: absolute;
-  border-radius: 50%;
-}
-
-@keyframes kw-rise {
-  0% {
+@keyframes kw-pop-in {
+  from {
     opacity: 0;
-    transform: translateY(18px) scale(0.985);
+    transform: translateY(4px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: none;
   }
 }
-
-@keyframes kw-morph {
-  0% {
+@keyframes kw-modal-in {
+  from {
     opacity: 0;
-    transform: scaleY(0) scaleX(0.8);
+    transform: scale(0.98);
   }
-  60% {
-    opacity: 0.9;
-    transform: scaleY(1.05) scaleX(1.02);
-  }
-  100% {
+  to {
     opacity: 1;
     transform: none;
   }
 }
-
 @keyframes kw-panel-in {
-  0% {
+  from {
     opacity: 0;
-    transform: translateX(-14px);
+    transform: translateX(-12px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: none;
   }
 }
-
-@keyframes kw-flat-in {
-  0% {
+@keyframes kw-fade-in {
+  from {
     opacity: 0;
-    transform: translateY(10px) scale(0.96);
   }
-  100% {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes kw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes kw-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
     opacity: 1;
     transform: none;
   }
 }
-
 @keyframes kw-pulse-ring {
   0% {
     opacity: 0.7;
@@ -530,7 +377,6 @@ body {
     transform: scale(1.9);
   }
 }
-
 @keyframes kw-shimmer {
   0% {
     background-position: 120% 0;
@@ -539,16 +385,6 @@ body {
     background-position: -120% 0;
   }
 }
-
-@keyframes kw-skeleton-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 @keyframes kw-nav-progress {
   0% {
     opacity: 0;
@@ -560,15 +396,6 @@ body {
   100% {
     opacity: 1;
     transform: scaleX(0.92);
-  }
-}
-
-@keyframes kw-hero-drift {
-  0% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1.1) translate(-1.5%, -1%);
   }
 }
 
@@ -588,3 +415,249 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ======================================================================================== *
+ * LEGACY COMPATIBILITY: the v2.2 names on the v3.9 light theme (decision 0137).            *
+ *                                                                                          *
+ * The v2.2 screens were written for a dark glass theme. Until waves 2-4 rebuild them on    *
+ * the component library, this block keeps every one of them legible on white by giving    *
+ * the old names new values. It is the only place that knows the old names; delete it piece *
+ * by piece as the last screen using each one is rebuilt. New code never uses it.           *
+ *                                                                                          *
+ *   --canvas, --surface, --surface-solid -> bg (white)        --shell -> soft              *
+ *   --ink -> text   --ink-2 -> text-2   --muted, --faint -> muted   --hairline -> border   *
+ *   --tile -> #F7F8FA (lighter than soft, so muted text on it still reads 4.55:1)          *
+ *   --tile-2 -> soft-2   --chalk -> text   --chalk-muted -> muted                          *
+ *   --cobalt -> navy   --cobalt-hover -> navy-2   --cobalt-soft -> link (#2558E8)          *
+ *   --cobalt-wash -> electric-soft   --ok, --warn (+ -wash) -> status text and fill        *
+ *   --thread -> link to navy                                                               *
+ *   glass, glass-strong -> white card, 1 px border; tile-dots, dot-grid -> light dots;     *
+ *   chip-cta -> a navy primary; chip-btn -> a white secondary; lift -> e2 lift, no fill.   *
+ *                                                                                          *
+ * "white" in a v2.2 class meant "the colour that stands out from the surface". So on light *
+ * surfaces --color-white is ink: `text-white` reads dark, `bg-white/12` is a grey tint and *
+ * `border-white/20` a grey line. On the dark fills the old screens still use (bg-cobalt,   *
+ * bg-ink, bg-black/35 and darker) it is white again, as is --chalk. New code uses the      *
+ * fixed `text-on-dark` instead.                                                            *
+ * ======================================================================================== */
+
+:root {
+  --canvas: #ffffff;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --shell: #f3f4f6;
+  --ink: #111318;
+  --ink-2: #374151;
+  --muted: #6b7280;
+  --faint: #6b7280;
+  --hairline: #e5e7eb;
+  --tile: #f7f8fa;
+  --tile-2: #eceef2;
+  --chalk: #111318;
+  --chalk-muted: #6b7280;
+  --cobalt: #0b1f4b;
+  --cobalt-soft: #2558e8;
+  --cobalt-wash: #eaf0ff;
+  --cobalt-hover: #142c63;
+  --ok-wash: #e7f8ef;
+  --warn-wash: #fef0c7;
+  --thread: linear-gradient(95deg, #2558e8 0%, #0b1f4b 100%);
+
+  --color-white: #111318;
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-solid: var(--surface-solid);
+  --color-shell: var(--shell);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-faint: var(--faint);
+  --color-hairline: var(--hairline);
+  --color-tile: var(--tile);
+  --color-tile-2: var(--tile-2);
+  --color-chalk: var(--chalk);
+  --color-chalk-muted: var(--chalk-muted);
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-soft: var(--cobalt-soft);
+  --color-cobalt-wash: var(--cobalt-wash);
+  --color-cobalt-hover: var(--cobalt-hover);
+  --color-ok-wash: var(--ok-wash);
+  --color-warn-wash: var(--warn-wash);
+}
+
+/* Dark fills: "white" is white again inside them. */
+.bg-cobalt,
+.bg-ink,
+.bg-black,
+.bg-black\/35,
+.bg-black\/40,
+.bg-black\/55,
+.bg-black\/60,
+.bg-black\/70,
+.aria-pressed\:bg-ink[aria-pressed="true"],
+.chip-cta {
+  --color-white: #ffffff;
+  --chalk: #ffffff;
+  --chalk-muted: rgba(255, 255, 255, 0.78);
+}
+/* `bg-white` paints a drawing's paper: it stays white. */
+.bg-white {
+  --color-white: #ffffff;
+}
+/* Light surfaces inside a dark one (a dialog over its backdrop) flip back. */
+.glass,
+.glass-strong,
+.bg-surface,
+.bg-surface-solid,
+.bg-canvas,
+.bg-tile {
+  --color-white: #111318;
+  --chalk: #111318;
+  --chalk-muted: #6b7280;
+}
+/* Two panels of the teamwear configurator and one label hard-coded dark-theme colours. */
+.bg-\[\#10131a\],
+.bg-\[\#0c0f14\]\/95 {
+  background-color: var(--color-bg);
+}
+.text-\[\#dfe4ff\] {
+  color: var(--color-link);
+}
+
+/* A glass panel became a white card with a hairline border. */
+@utility glass {
+  background: var(--color-bg);
+  border: 1px solid var(--glass-edge, var(--color-border));
+  box-shadow: var(--shadow-e1);
+}
+@utility glass-strong {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-e2);
+}
+
+/* A 1 px border painted with the thread gradient (now link blue to navy). */
+@utility thread-ring {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--thread);
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+}
+@utility thread-text {
+  background: var(--thread);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.thread-line {
+  height: 2px;
+  background: var(--thread);
+}
+.tile-dots {
+  background-color: var(--color-soft);
+  background-image: radial-gradient(var(--color-dot) 1px, transparent 1.2px);
+  background-size: 14px 14px;
+}
+@utility dot-grid {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-dot) 1px, transparent 0);
+  background-size: 14px 14px;
+}
+
+/* The v2.2 primary call to action: now a navy button whose fill darkens on hover. */
+.chip-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--color-navy);
+  color: var(--color-on-dark);
+}
+.chip-cta::before {
+  display: none;
+}
+.chip-fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--color-navy-2);
+  opacity: 0;
+  transition: opacity var(--motion-fast) ease-out;
+}
+.chip-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.chip-disc {
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-navy);
+}
+.chip-cta:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) .chip-fill {
+  opacity: 1;
+}
+
+/* The v2.2 secondary chip: a white button with a border that turns `soft` on hover. */
+.chip-btn {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out;
+}
+.chip-btn:not(:disabled):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+  background-color: var(--color-soft);
+  border-color: var(--color-border-strong);
+}
+
+/* A card that lifts on hover: now the §8 lift to e2, without the colour fill. */
+.lift {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    box-shadow var(--motion-fast) ease-out,
+    border-color var(--motion-fast) ease-out;
+}
+.lift:is(:hover, :focus-visible, :has(:focus-visible)) {
+  box-shadow: var(--shadow-e2);
+  border-color: var(--color-border-strong);
+  --glass-edge: var(--color-border-strong);
+}
+.fill-layer {
+  display: none;
+}
+
+.nav-pill {
+  transition:
+    background-color var(--motion-fast) ease-out,
+    color var(--motion-fast) ease-out;
+}
+.nav-pill:hover {
+  background: var(--color-soft);
+  color: var(--color-text);
+}
+.soft-link {
+  transition: color var(--motion-fast) ease-out;
+}
+.soft-link:hover {
+  color: var(--color-text);
+}
+

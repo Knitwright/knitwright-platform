@@ -1,10 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
-import { Aurora } from "@/components/shell/Aurora";
 import { NavigationProgress } from "@/components/shell/NavigationProgress";
+import { ToastProvider } from "@/components/ui/Toast";
 import { PRODUCT } from "@/lib/config/product";
 import "./globals.css";
+
+/** The interface font (docs/spec/10-design-system.md §3), self-hosted by next/font at build time. */
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -15,19 +18,16 @@ export const metadata: Metadata = {
     "Describe a garment or upload a sketch. Get a tech pack a factory can build from.",
 };
 
+/** Light theme only: the build pack has no dark mode (decision 0137). */
 export const viewport: Viewport = {
-  themeColor: "#07080a",
-  colorScheme: "dark",
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} ${GeistMono.variable} h-full antialiased`}>
       <body className="relative isolate flex min-h-full flex-col">
-        <Aurora />
         <NavigationProgress />
         <a
           href="#main"
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

@@ -2,13 +2,13 @@ import type { CSSProperties, ReactNode } from "react";
 
 /**
  * Placeholders shown while a page loads (the loading.tsx files). They copy the shape of the
- * page they stand in for, on the same glass, with a faint light sweeping across each bar. A
+ * page they stand in for, as `soft` blocks with a 1.2 s shimmer (docs/spec/10-design-system.md §9). A
  * person who asks for less motion sees still bars.
  *
  * The API is small on purpose, and other screens build on it:
  * - `Skeleton`: one bar or block. Size it with `className` (h-*, w-*, rounded-*).
  * - `SkeletonText`: a few lines of text, the last one shorter.
- * - `SkeletonPanel`: a glass panel, the shape of a section or card.
+ * - `SkeletonPanel`: a card, the shape of a section or card.
  * - `SkeletonPage`: the wrapper of a whole loading screen. It tells screen readers the page is
  *   loading, fades in after a short wait so a quick page never flashes it, and carries
  *   `data-skeleton`, which the navigation timing script and tests look for.
@@ -37,7 +37,7 @@ export function SkeletonText({ lines = 3, className = "" }: ClassName & Readonly
 
 export function SkeletonPanel({ className = "", children }: ClassName & Readonly<{ children?: ReactNode }>) {
   return (
-    <div aria-hidden="true" className={`glass flex flex-col gap-4 rounded-[1.75rem] p-6 ${className}`}>
+    <div aria-hidden="true" className={`flex flex-col gap-4 rounded-xl border border-border bg-bg p-6 ${className}`}>
       {children ?? (
         <>
           <Skeleton className="h-5 w-40" />
