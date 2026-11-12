@@ -63,7 +63,7 @@ function ViewBody({ id, data, show3d, draft, model, slot }: BodyProps) {
   if (id === "3d") {
     return (
       <div className="glass dot-grid flex min-h-0 flex-1 flex-col overflow-y-auto rounded-[2rem] p-4">
-        <View3D model={model} flat={data.flat} reason={draftReason(draft)} />
+        <View3D model={model} flat={data.flat} reason={draftReason(draft)} design={slot.design} />
       </div>
     );
   }
