@@ -62,7 +62,7 @@ test.describe("Brand (Y6, moved by P6)", () => {
     await page.goto("/brand");
     await expect(page.getByTestId("brand-completion")).not.toHaveText("0% complete");
     await expect(page.getByTestId("brand-new")).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "Overview", exact: true }).getByText("Community")).toBeVisible();
+    await expect(page.getByRole("region", { name: "Overview", exact: true }).getByRole("definition").filter({ hasText: "Community" })).toBeVisible();
 
     // One h1, the page's own landmark, and the shell inside the window at every width it supports,
     // not only at the browser tests' own 1280.

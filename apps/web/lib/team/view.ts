@@ -64,7 +64,7 @@ export function rosterRows(players: readonly StoredPlayer[], grid: Grid | null):
 
 export interface ApprovalSummary {
   readonly line: string;
-  /** "3 of 5 approved", against the versions shown; or null before anyone answered. */
+  /** "3 approvals from 5", against everyone who answered; or null before anyone answered. */
   readonly pill: string | null;
   readonly locked: boolean;
 }
@@ -87,7 +87,7 @@ export function approvalSummary(links: readonly CommitteeLink[], lockedVersion: 
   const approved = link.approvals.length;
   return {
     line: [...votes, plural(link.pins.length, "comment", "comments"), expiry].join(" · "),
-    pill: voters + approved === 0 ? null : `${approved} of ${Math.max(voters, approved)} approved`,
+    pill: voters + approved === 0 ? null : `${plural(approved, "approval", "approvals")} from ${Math.max(voters, approved)}`,
     locked: lockedVersion !== null,
   };
 }

@@ -80,9 +80,9 @@ function CreditsBox({ plan }: Readonly<{ plan: PlanRow }>) {
         <strong className="font-bold text-text">{credits.amount}</strong>
         <span className="text-muted">{credits.per}</span>
         <Tooltip content="Credits pay for AI images, videos and paid exports. Credits used on a design come back as order credit.">
-          <span tabIndex={0} className="ml-auto inline-flex rounded-xs text-muted" aria-label="About credits">
+          <button type="button" className="ml-auto inline-flex rounded-xs text-muted" aria-label="About credits">
             <Icon icon={Info} size={16} />
-          </span>
+          </button>
         </Tooltip>
       </p>
       <p className="text-small text-text-2">{credits.makes}</p>

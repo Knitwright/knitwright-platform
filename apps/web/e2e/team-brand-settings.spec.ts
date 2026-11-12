@@ -89,7 +89,7 @@ test.describe("Team", () => {
     await page.goto("/team");
     await expect(tabs.getByRole("link", { name: "Roster 2026/27" })).toHaveAttribute("aria-current", "page");
     await expect(page.getByText("No players in 2026/27 yet")).toBeVisible();
-    await page.getByRole("link", { name: "Add player" }).click();
+    await page.getByRole("link", { name: "Add player", exact: true }).click();
     await expect(page).toHaveURL(/\/team\?view=edit$/);
     await expect(page.getByRole("region", { name: "Edit the 2026/27 roster" }).getByRole("button", { name: "Add a player" })).toBeVisible();
   });

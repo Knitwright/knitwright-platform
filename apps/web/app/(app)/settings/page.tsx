@@ -50,7 +50,7 @@ export default async function SettingsPage() {
   ]);
   const name = profileNameOf(data.user?.user_metadata);
   const marketing = currentMarketingChoice(events)?.granted === true;
-  const secondary = buttonClasses("secondary", false, "", "sm");
+  const secondary = buttonClasses("secondary");
 
   return (
     <div className="flex flex-col gap-6 pt-4 pb-16">
@@ -58,7 +58,7 @@ export default async function SettingsPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <SettingsCard title="Plan & billing" summary={currentPlanLine(credits)}>
-          <LinkButton href="/credits" variant="secondary" size="sm">
+          <LinkButton href="/credits" variant="secondary">
             Get more credits
           </LinkButton>
           <UpgradeButton className={secondary}>See plans</UpgradeButton>
@@ -70,7 +70,7 @@ export default async function SettingsPage() {
           title="Get more credits"
           summary={PLAN_SETTINGS.isPlaceholder ? "Credit packs arrive with checkout. Your balance and history are on the credits page." : "Top up your balance."}
         >
-          <LinkButton href="/credits" variant="secondary" size="sm">
+          <LinkButton href="/credits" variant="secondary">
             Open credits
           </LinkButton>
         </SettingsCard>

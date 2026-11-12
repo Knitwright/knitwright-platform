@@ -40,4 +40,6 @@ export const PUBLIC_PAGES = [
   // The dashboard shell with made-up data (decision 0138), for the comparison with its reference image.
   // Same switch as /dev/ui.
   "app/dev/shell/page.tsx",
+  // Same switch: P6's Team, Brand, Settings and plans fixtures (decision 0144).
+  "app/dev/p6/page.tsx",
 ] as const;

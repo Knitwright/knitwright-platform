@@ -70,7 +70,7 @@ function Team() {
       </header>
       <LinkTabs label="Team" current="roster" tabs={[{ id: "roster", href: "/dev/p6" as Route, label: "Roster 2026/27" }, { id: "a", href: "/dev/p6" as Route, label: "Approvals" }, { id: "s", href: "/dev/p6" as Route, label: "Seasons" }]} />
       <RosterTable rows={rows} season="2026/27" signupHref={"/dev/p6" as Route} editHref={"/dev/p6" as Route} canEdit />
-      <ApprovalCard design="Home kit" href={"/dev/p6" as Route} summary={{ line: "Version 3 3 votes · Version 4 1 vote · 4 comments · link expires in 26 days", pill: "3 of 5 approved", locked: false }} />
+      <ApprovalCard design="Home kit" href={"/dev/p6" as Route} summary={{ line: "Version 3 3 votes · Version 4 1 vote · 4 comments · link expires in 26 days", pill: "3 approvals from 5", locked: false }} />
     </div>
   );
 }

@@ -88,7 +88,7 @@ describe("approvalSummary", () => {
       now,
     );
     expect(summary.line).toBe("Version 3 2 votes · Version 4 1 vote · 1 comment · link expires in 26 days");
-    expect(summary.pill).toBe("1 of 3 approved");
+    expect(summary.pill).toBe("1 approval from 3");
   });
 
   it("says when the link has expired", () => {

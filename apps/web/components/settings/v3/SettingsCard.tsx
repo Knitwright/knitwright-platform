@@ -13,7 +13,7 @@ export function SettingsCard({
 }: Readonly<{ title: string; summary: ReactNode; children?: ReactNode; href?: string }>) {
   return (
     <section className="flex min-h-32 flex-col gap-2 rounded-2xl border border-border bg-bg p-5">
-      <h2 className="text-title text-text">{href ? <a href={href} className="no-underline live:hover:underline">{title}</a> : title}</h2>
+      <h2 className="text-title text-text">{href ? <a href={href} className="inline-flex min-h-10 items-center no-underline live:hover:underline">{title}</a> : title}</h2>
       <p className="text-body text-text-2">{summary}</p>
       {children ? <div className="mt-auto flex flex-wrap gap-2 pt-2">{children}</div> : null}
     </section>
