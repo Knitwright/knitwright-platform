@@ -18,7 +18,7 @@ import { cardById } from "./board";
 import { applySchema, boardSchema, removeItemSchema, saveItemSchema, steerSchema, suggestSchema } from "./input";
 import { itemFor } from "./moodboard";
 import { pixelBreach } from "./no-pixels";
-import { boardFor, designChecker, elementReader } from "./server";
+import { boardFor, designChecker, elementReader, productionPorts } from "./server";
 import { readMoodboard, removeItem, saveItem, writeSteer } from "./store";
 import { meteredReader, suggestCostMicrodollars } from "./suggest/metered";
 import { suggestFromCard } from "./suggest/suggest";
@@ -44,7 +44,7 @@ export const inspirationBoardAction = defineAction({
     const who = { brandId: session.brand.id, userId: session.userId };
     const project = await getProject(client, who.brandId, input.projectId);
     const [board, items] = await Promise.all([
-      boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: input.withMoodImage }),
+      boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: input.withMoodImage, ports: productionPorts(client) }),
       readMoodboard(client, who.brandId, input.projectId),
     ]);
     return { board: boardView(board), moodboard: moodboardView(items), version: project.currentVersion };
@@ -71,7 +71,7 @@ export const saveToMoodboardAction = defineAction({
     const client = await sessionClient();
     const who = { brandId: session.brand.id, userId: session.userId };
     const project = await getProject(client, who.brandId, input.projectId);
-    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false });
+    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false, ports: productionPorts(client) });
     const card = cardById(board, input.cardId);
     if (card === null) throw new AppError("not_found", NO_CARD);
     const item = itemFor(card);
@@ -102,7 +102,7 @@ export const suggestFromCardAction = defineAction({
     const reader = elementReader();
     if (reader === null) throw new AppError("conflict", NO_MODEL);
     const project = await getProject(client, who.brandId, input.projectId);
-    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false });
+    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false, ports: productionPorts(client) });
     const card = cardById(board, input.cardId);
     if (card === null) throw new AppError("not_found", NO_CARD);
     const charts = await brandChartSet(client, who.brandId);
@@ -130,7 +130,7 @@ export const applySuggestionAction = defineAction({
     if (reader === null) throw new AppError("conflict", NO_MODEL);
     const project = await getProject(client, who.brandId, input.projectId);
     if (project.currentVersion !== input.expectedVersion) throw new AppError("conflict", CONFLICT_MESSAGE);
-    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false });
+    const board = await boardFor(client, who, input.projectId, project.spec, { productLinks: input.productLinks, withMoodImage: false, ports: productionPorts(client) });
     const card = cardById(board, input.cardId);
     if (card === null) throw new AppError("not_found", NO_CARD);
     const profile = await loadFactoryProfile(client);
