@@ -27,7 +27,7 @@ export function TemplatesHeader({ tab, search }: Readonly<{ tab: TemplateTab; se
             href={tabHref(one) as Route}
             aria-current={one === tab ? "page" : undefined}
             className={cx(
-              "border-b-2 pt-2 pb-4 text-body-lg font-semibold whitespace-nowrap no-underline transition-colors duration-fast",
+              "inline-flex min-w-10 justify-center border-b-2 pt-2 pb-4 text-body-lg font-semibold whitespace-nowrap no-underline transition-colors duration-fast",
               one === tab ? "border-text text-text" : "border-transparent text-muted live:hover:text-text",
             )}
           >

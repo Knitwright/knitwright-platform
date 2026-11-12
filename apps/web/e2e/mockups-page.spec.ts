@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { seedMockupScenes } from "../lib/mockups/seed";
 import { seedTemplates } from "../lib/templates/seed/seed";
 import { createAccount, signIn, test } from "./support";
 
@@ -18,6 +19,8 @@ const serviceClient = () =>
 
 test.beforeAll(async () => {
   await seedTemplates(serviceClient());
+  // The scene rows: a database reset leaves the library empty, and the page lists what is there.
+  await seedMockupScenes(serviceClient());
 });
 
 const signedIn = async (page: Page, label: string): Promise<void> => {

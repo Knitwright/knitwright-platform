@@ -18,7 +18,7 @@ export const MARKETING_TABS = [
 
 /** The three networks a concept is sized for, as plain letter marks of our own: no network's logo. */
 const NETWORKS = [
-  { mark: "IG", name: "Instagram", tone: "bg-electric" },
+  { mark: "IG", name: "Instagram", tone: "bg-navy" },
   { mark: "f", name: "Facebook", tone: "bg-link" },
   { mark: "TT", name: "TikTok", tone: "bg-text" },
 ] as const;

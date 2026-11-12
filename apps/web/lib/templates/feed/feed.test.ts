@@ -81,6 +81,15 @@ describe("the template cards", () => {
     expect(designs[0]!.use).toEqual({ type: "design", templateId: "a" });
   });
 
+  it("says who made a designer's template and whether a factory reviewed it, and marks a reviewed starter", () => {
+    expect(designs[3]!.note).toEqual({ text: "By Ada, not reviewed by a factory", reviewed: false });
+    expect(designs[0]!.note).toBeNull();
+    const reviewed = (attribution?: string) =>
+      designItem({ summary: summary("r", "football", { reviewState: "reviewed", ...(attribution ? { attribution } : {}) }), sportTags: [] }).note;
+    expect(reviewed()).toEqual({ text: "Reviewed by a factory", reviewed: true });
+    expect(reviewed("Bo")).toEqual({ text: "By Bo, reviewed by a factory", reviewed: true });
+  });
+
   it("shows one social card per layout, opening a launch canvas on its first format", () => {
     expect(social.map((item) => item.title)).toEqual(["Order your kit", "Matchday", "Size chart image"]);
     expect(social[0]!.use).toEqual({ type: "launch", source: "marketing", slug: "order-your-kit-1" });

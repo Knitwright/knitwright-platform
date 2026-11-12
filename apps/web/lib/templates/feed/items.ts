@@ -43,8 +43,11 @@ export interface FeedItem {
   /** The marketing layout's key, or null. */
   readonly layoutKey: string | null;
   readonly searchText: string;
-  /** "Reviewed by a factory", for a design a factory reviewed; null otherwise. */
-  readonly reviewed: string | null;
+  /**
+   * What the card says about who made it and whether a factory reviewed it: a designer's template
+   * always says both, a starter says so only once a factory has reviewed it. Null otherwise.
+   */
+  readonly note: Readonly<{ text: string; reviewed: boolean }> | null;
   readonly picture: FeedPicture;
   readonly use: FeedUse;
 }
@@ -59,6 +62,13 @@ export interface DesignRow {
   readonly sportTags: readonly string[];
 }
 
+/** The v2.2 card's own words for a designer's template, and the review label for a reviewed starter. */
+function noteOf(summary: TemplateSummary): FeedItem["note"] {
+  const reviewed = summary.reviewState === "reviewed";
+  if (summary.attribution) return { text: `By ${summary.attribution}, ${reviewed ? "reviewed by a factory" : "not reviewed by a factory"}`, reviewed };
+  return reviewed ? { text: REVIEW_LABELS.reviewed, reviewed } : null;
+}
+
 export function designItem({ summary, sportTags }: DesignRow): FeedItem {
   const author = summary.attribution ?? KNITWRIGHT;
   return {
@@ -71,7 +81,7 @@ export function designItem({ summary, sportTags }: DesignRow): FeedItem {
     group: null,
     layoutKey: null,
     searchText: lower(summary.title, author, summary.sport, ...sportTags, ...summary.styleTags, summary.colourFamily),
-    reviewed: summary.reviewState === "reviewed" ? REVIEW_LABELS.reviewed : null,
+    note: noteOf(summary),
     picture: { type: "tile", label: "Kit" },
     use: { type: "design", templateId: summary.id },
   };
@@ -88,7 +98,7 @@ export function packItem(spec: FlowTemplateSpec): FeedItem {
     group: null,
     layoutKey: null,
     searchText: lower(spec.title, spec.lead, "launch pack"),
-    reviewed: null,
+    note: null,
     picture: { type: "tile", label: `${spec.assets} assets` },
     use: { type: "launch", source: "flow", slug: spec.slug },
   };
@@ -119,7 +129,7 @@ export function socialItems(rows: readonly SocialRow[]): readonly FeedItem[] {
         group: row.group,
         layoutKey: row.layoutKey,
         searchText: lower(row.title, GROUP_LABELS[row.group], "social"),
-        reviewed: null,
+        note: null,
         picture: { type: "tile" as const, label: MARKETING_FORMAT_LABELS[row.format] },
         use: { type: "launch" as const, source: "marketing" as const, slug: row.slug },
       },
@@ -142,7 +152,7 @@ export function videoItem(template: VideoTemplate, studioHref: string, waiting: 
     group: null,
     layoutKey: null,
     searchText: lower(template.label, "video"),
-    reviewed: null,
+    note: null,
     picture: { type: "tile", label: `${template.seconds} s` },
     use: waiting === null ? { type: "link", href: studioHref } : { type: "unavailable", reason: waiting },
   };
@@ -164,7 +174,7 @@ export const techpackItem = (row: TechpackRow): FeedItem => ({
   group: null,
   layoutKey: null,
   searchText: lower(row.title, "tech pack"),
-    reviewed: null,
+    note: null,
   picture: { type: "tile", label: "Tech pack" },
   use: { type: "link", href: "/studio/start" },
 });

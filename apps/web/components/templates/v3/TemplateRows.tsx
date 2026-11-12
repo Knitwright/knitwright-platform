@@ -23,7 +23,7 @@ export function TemplateRow({ row }: Readonly<{ row: FeedRow }>) {
             <span className="text-small text-muted">{row.total}</span>
           </>
         ) : (
-          <Link href={tabHref(row.more) as Route} className="group inline-flex items-baseline gap-2 text-text no-underline">
+          <Link href={tabHref(row.more) as Route} className="group inline-flex min-h-10 items-center gap-2 text-text no-underline">
             {row.title}
             <span className="inline-flex items-center text-small text-muted group-hover:text-text">
               {row.total}

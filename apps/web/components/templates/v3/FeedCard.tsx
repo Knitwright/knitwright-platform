@@ -46,19 +46,19 @@ function UseButton({ item }: Readonly<{ item: FeedItem }>) {
       return <UseDesignTemplate templateId={use.templateId} title={item.title} />;
     case "launch":
       return (
-        <StartLaunch source={use.source} slug={use.slug} label={named} pill>
+        <StartLaunch source={use.source} slug={use.slug} label={named} size="md" pill>
           Use template
         </StartLaunch>
       );
     case "link":
       return (
-        <LinkButton href={use.href as Route} variant="secondary" size="sm" className="w-full rounded-full!">
+        <LinkButton href={use.href as Route} variant="secondary" className="w-full rounded-full!">
           Use template<span className="sr-only">: {item.title}</span>
         </LinkButton>
       );
     default:
       return (
-        <Unavailable reason={use.reason} label={named} className="w-full rounded-full!">
+        <Unavailable reason={use.reason} label={named} size="md" className="w-full rounded-full!">
           Use template
         </Unavailable>
       );
@@ -80,7 +80,7 @@ export function FeedCard({ item }: Readonly<{ item: FeedItem }>) {
           {item.title}
         </span>
       </p>
-      {item.reviewed ? <StatusPill tone="ok" className="w-fit">{item.reviewed}</StatusPill> : null}
+      {item.note ? <StatusPill tone={item.note.reviewed ? "ok" : "neutral"} className="w-fit">{item.note.text}</StatusPill> : null}
     </article>
   );
 }

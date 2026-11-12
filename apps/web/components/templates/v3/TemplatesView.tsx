@@ -27,7 +27,7 @@ function FiltersPanel({ filters, articles }: Pick<TemplatesViewProps, "filters" 
   const open = Object.keys(filters).length > 0;
   return (
     <details open={open} className="group">
-      <summary className={buttonClasses("secondary", false, "cursor-pointer list-none [&::-webkit-details-marker]:hidden", "sm")}>
+      <summary className={buttonClasses("secondary", false, "cursor-pointer list-none [&::-webkit-details-marker]:hidden", "md")}>
         <Icon icon={SlidersHorizontal} size={16} />
         Filters
       </summary>
@@ -59,7 +59,7 @@ export function TemplatesView(props: TemplatesViewProps) {
       <TemplatesHeader tab={props.tab} search={props.search} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <FiltersPanel filters={props.filters} articles={props.articles} />
-        <LinkButton href="/studio/start" variant="secondary" size="sm">
+        <LinkButton href="/studio/start" variant="secondary">
           Start from a blank canvas
         </LinkButton>
       </div>
