@@ -77,7 +77,7 @@ function Choices() {
         <Toggle label="Safe zone" checked={!on} onChange={(value) => setOn(!value)} />
         <Toggle label="Snap to grid" checked={false} onChange={() => undefined} disabled />
       </Row>
-      <Row label="Checkbox and radio: checked, unchecked, disabled">
+      <Row label="Checkbox and radio: ticked, clear, disabled">
         <Checkbox label="Include sizes" defaultChecked />
         <Checkbox label="Add names" />
         <Checkbox label="Locked by QC" disabled defaultChecked />

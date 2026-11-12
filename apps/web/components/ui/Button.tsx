@@ -40,7 +40,7 @@ const VARIANTS: Readonly<Record<ButtonVariant, string>> = {
   secondary: "border border-border bg-bg text-text live:hover:bg-soft live:active:bg-soft-2",
   premium: "bg-gold text-navy live:hover:bg-gold-2 live:active:bg-gold-3",
   ghost: "bg-transparent text-text-2 live:hover:bg-soft live:active:bg-soft-2",
-  danger: "border border-border bg-bg text-bad live:hover:bg-bad-soft live:active:border-bad live:active:bg-bad-soft",
+  danger: "border border-border bg-bg text-bad live:hover:bg-bad-soft live:hover:text-bad-strong live:active:border-bad live:active:bg-bad-soft live:active:text-bad-strong",
   link: "bg-transparent text-link underline-offset-2 live:hover:underline",
   quiet: "bg-transparent text-muted live:hover:text-text",
 };

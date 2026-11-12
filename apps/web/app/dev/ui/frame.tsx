@@ -16,7 +16,7 @@ export function Section({ id, title, children }: Readonly<{ id: string; title: s
 export function Row({ label, children }: Readonly<{ label: string; children: ReactNode }>) {
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="overline text-muted">{label}</p>
+      <p className="eyebrow text-muted">{label}</p>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </div>
   );
@@ -25,7 +25,7 @@ export function Row({ label, children }: Readonly<{ label: string; children: Rea
 /** A grey stand-in for a picture: the gallery shows no artwork. */
 export function Placeholder({ label }: Readonly<{ label: string }>) {
   return (
-    <span aria-hidden="true" className="grid size-full place-items-center text-caption text-muted">
+    <span aria-hidden="true" className="grid size-full place-items-center text-caption text-text-2">
       {label}
     </span>
   );

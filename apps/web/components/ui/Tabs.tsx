@@ -110,7 +110,7 @@ export function Segmented({ options, value, onChange, label, className }: Segmen
             onKeyDown={roving.onKeyDown(index)}
             className={cx(
               "h-8 rounded-sm px-3 text-small font-medium transition-colors duration-fast ease-out disabled:cursor-not-allowed disabled:opacity-40",
-              on ? "bg-bg text-text shadow-e1" : "text-muted live:hover:text-text",
+              on ? "bg-bg text-text shadow-e1" : "text-text-2 live:hover:text-text",
             )}
           >
             {option.label}

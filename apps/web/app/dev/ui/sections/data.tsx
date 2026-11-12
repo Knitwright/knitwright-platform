@@ -81,7 +81,7 @@ function MeasurementTable() {
 
 function Loading() {
   return (
-    <Row label="Loading: skeletons in the final layout, after 300 ms">
+    <Row label="Loading: skeletons shaped like the page, after 300 ms">
       <SkeletonPage label="Loading the examples" className="grid w-full gap-4 sm:grid-cols-3">
         <SkeletonPanel />
         <div className="flex flex-col gap-2">

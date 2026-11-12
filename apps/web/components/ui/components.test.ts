@@ -140,7 +140,7 @@ describe("toasts, chips, toggles and page states", () => {
     const chip = renderToStaticMarkup(h(FilterChip, { label: "Size", count: 3, selected: true }));
     expect(chip).toContain('aria-pressed="true"');
     expect(chip).toContain(">· 3</span>");
-    expect(renderToStaticMarkup(h(StatusPill, { tone: "ok" }, "Approved"))).toContain("text-ok");
+    expect(renderToStaticMarkup(h(StatusPill, { tone: "ok", children: "Approved" }))).toContain("text-ok");
   });
 
   it("make a toggle a switch", () => {
@@ -148,7 +148,7 @@ describe("toasts, chips, toggles and page states", () => {
   });
 
   it("give a page error its request ID and a support link that carries it", () => {
-    const html = renderToStaticMarkup(h(ErrorState, { requestId: "req_1", onRetry: () => undefined }, "We could not load your orders."));
+    const html = renderToStaticMarkup(h(ErrorState, { requestId: "req_1", onRetry: () => undefined, children: "We could not load your orders." }));
     expect(html).toContain('role="alert"');
     expect(html).toContain(">Retry<");
     expect(html).toContain("req_1");

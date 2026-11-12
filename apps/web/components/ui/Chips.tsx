@@ -15,7 +15,7 @@ export type Tone = "ok" | "warn" | "bad" | "info" | "neutral";
 const TONES: Readonly<Record<Tone, string>> = {
   ok: "bg-ok-soft text-ok",
   warn: "bg-warn-soft text-warn",
-  bad: "bg-bad-soft text-bad",
+  bad: "bg-bad-soft text-bad-strong",
   info: "bg-info-soft text-link",
   neutral: "bg-soft text-text-2",
 };

@@ -24,7 +24,7 @@ const COLOURS = [
 const STATUS = [
   ["ok", "bg-ok-soft text-ok"],
   ["warn", "bg-warn-soft text-warn"],
-  ["bad", "bg-bad-soft text-bad"],
+  ["bad", "bg-bad-soft text-bad-strong"],
   ["info", "bg-info-soft text-link"],
 ] as const;
 
@@ -38,7 +38,7 @@ const TYPE = [
   ["body", "text-body"],
   ["small", "text-small"],
   ["caption", "text-caption"],
-  ["micro", "overline"],
+  ["micro", "eyebrow"],
 ] as const;
 
 const RADII = ["rounded-xs", "rounded-sm", "rounded-md", "rounded-lg", "rounded-xl", "rounded-2xl", "rounded-3xl", "rounded-full"] as const;
@@ -79,7 +79,7 @@ function Shapes() {
     <>
       <Row label="Radius (§5)">
         {RADII.map((radius) => (
-          <span key={radius} className={`grid h-16 w-24 place-items-center border border-border bg-soft text-caption text-muted ${radius}`}>
+          <span key={radius} className={`grid h-16 w-24 place-items-center border border-border bg-soft text-caption text-text-2 ${radius}`}>
             {radius.replace("rounded-", "r-")}
           </span>
         ))}

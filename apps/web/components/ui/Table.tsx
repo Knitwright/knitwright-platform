@@ -59,7 +59,8 @@ export function Td({ numeric, highlight, lockedReason, className, children, ...r
         "h-11 px-3",
         numeric && "text-right tabular-nums",
         highlight && "bg-gold-soft font-semibold",
-        lockedReason && "text-muted",
+        // `muted` is 4.4:1 on the highlighted column's gold-soft, so a locked value there is text-2.
+        lockedReason && (highlight ? "text-text-2" : "text-muted"),
         className,
       )}
     >

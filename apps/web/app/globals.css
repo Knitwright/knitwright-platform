@@ -9,7 +9,7 @@
  *   - Colours are Tailwind colours: `bg-navy`, `text-text-2`, `border-border`, `bg-soft`,
  *     `text-ok bg-ok-soft`. `text-on-dark` is white that never changes (see the legacy block).
  *   - Type is `text-display | h1 | h2 | h3 | title | body-lg | body | small | caption | micro`,
- *     each with its own line height, tracking and weight. `overline` adds the micro uppercase.
+ *     each with its own line height, tracking and weight. `eyebrow` adds the micro uppercase.
  *   - Radius is `rounded-xs … rounded-3xl` and `rounded-full`, re-valued to §5.
  *   - Elevation is `shadow-e1 … shadow-e4`. Motion is `duration-fast|base|slow|canvas` with
  *     `ease-standard`. Spacing keeps Tailwind's 4 px scale, which holds every §4 value.
@@ -57,6 +57,8 @@
   --color-warn-soft: #fef0c7;
   --color-bad: #d92d20;
   --color-bad-soft: #fee4e2;
+  /* `bad` on `bad-soft` is 4.0:1; text on that fill uses this (5.5:1). */
+  --color-bad-strong: #b42318;
   --color-info: #2f6bff;
   --color-info-soft: #eaf0ff;
 
@@ -154,7 +156,7 @@
 }
 
 /* The micro overline of §3: "KNITWRIGHT LIBRARY". */
-@utility overline {
+@utility eyebrow {
   font-size: var(--text-micro);
   line-height: var(--text-micro--line-height);
   font-weight: 600;

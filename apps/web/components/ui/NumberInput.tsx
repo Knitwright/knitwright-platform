@@ -74,7 +74,7 @@ export function NumberInput({ value, onChange, unit, label, id, min, max, step =
         onKeyDown={onKeyDown}
         className={cx(FIELD_CONTROL, "w-full pr-12 text-right tabular-nums")}
       />
-      <span aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-body text-muted">
+      <span aria-hidden="true" className={cx("pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-body", disabled ? "text-text-2" : "text-muted")}>
         {unit}
       </span>
     </span>

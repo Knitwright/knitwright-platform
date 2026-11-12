@@ -26,7 +26,7 @@ export function Gallery() {
       <header className="flex items-center gap-4">
         <LogoTile />
         <div className="flex flex-col">
-          <p className="overline text-muted">Knitwright design system</p>
+          <p className="eyebrow text-muted">Knitwright design system</p>
           <h1 className="text-h1 text-text">Component library</h1>
         </div>
       </header>
