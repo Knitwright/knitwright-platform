@@ -287,7 +287,7 @@ test.describe("the club journey (R3)", () => {
     await signedIn(page, "r3-club", brand);
 
     // Crest to kit. There is no door to it in the top bar (decision 0105), so it is opened directly.
-    await page.goto("/crest-to-kit");
+    await page.goto("/ai-studio/workflow/crest-to-kit");
     await expect(page.getByRole("heading", { level: 1, name: "Crest to kit" })).toBeVisible();
     await page.getByLabel("Your club crest").setInputFiles({ name: "crest.png", mimeType: "image/png", buffer: await crest() });
     await page.getByRole("button", { name: /Show me kits/ }).click();

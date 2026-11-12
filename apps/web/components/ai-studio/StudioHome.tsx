@@ -13,7 +13,7 @@ export function StudioHome() {
   return (
     <>
       <TopBarTabs label="AI Studio" tabs={AI_STUDIO_TABS} />
-      <h1 className="sr-only">AI Workflows</h1>
+      <h1 className="sr-only">AI Studio</h1>
       <div className="flex flex-col gap-12 pt-2">
         <section aria-labelledby="hero-heading" className="studio-hero flex flex-col items-center gap-14 rounded-3xl px-6 pt-16 pb-20">
           <h2 id="hero-heading" className="text-center text-display text-on-dark">

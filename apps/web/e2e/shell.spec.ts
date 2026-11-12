@@ -58,8 +58,8 @@ test.describe("the rail", () => {
     }
 
     await page.goto("/ai-studio/workflow/retro-kit-remix");
-    await expect(page.getByRole("heading", { level: 1, name: "Workflow" })).toBeAttached();
-    await page.getByRole("link", { name: "Back to AI Studio" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Retro kit remix" })).toBeAttached();
+    await page.getByRole("main").getByRole("link", { name: "AI Studio", exact: true }).click();
     await expect(page).toHaveURL(/\/ai-studio$/);
     await accessible(page);
   });
@@ -116,7 +116,7 @@ test.describe("the shell's menus", () => {
 
     await create.click();
     await page.getByRole("menu", { name: "Create" }).getByRole("menuitem", { name: "Kit from crest" }).click();
-    await expect(page).toHaveURL(/\/crest-to-kit$/);
+    await expect(page).toHaveURL(/\/ai-studio\/workflow\/crest-to-kit$/);
   });
 
   test("the avatar holds the address, Settings and Sign out", async ({ page }) => {

@@ -88,9 +88,10 @@ export function CreativeAgent({ brandName, initialKind, quickStarts, history, sa
       {showHistory ? <AgentHistory entries={history} /> : null}
 
       <section aria-labelledby="agent-heading" className="mx-auto flex w-full max-w-285 flex-col items-center gap-4 text-center">
-        <h1 id="agent-heading" className="text-display text-text">
+        <h1 className="sr-only">Creative Agent</h1>
+        <h2 id="agent-heading" className="text-display text-text">
           What do you want to create today?
-        </h1>
+        </h2>
         <p className="text-h3 font-medium text-text-2">Your sportswear design agent: describe a kit, a drop or a campaign and it builds it with you.</p>
         {agent.kind === "" ? (
           <label className="flex items-center gap-3 text-body text-text-2">
