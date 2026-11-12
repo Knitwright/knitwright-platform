@@ -5,6 +5,10 @@ import { canvasOfTemplate, withBoard } from "./fixtures/canvas";
 import { runFlow, type FlowRunReport } from "./run";
 import { STUB_COSTS, stubCapability, stubMeter, stubRecorder } from "./stub";
 import { runnableIds } from "./topology";
+import { capabilityOf } from "./capabilities";
+import { memoryPorts } from "./real/fixtures";
+import { RECORDED_VIDEO_LINE } from "./real/mockup";
+import { flowRegistry } from "./real/registry";
 
 /**
  * THE TWO ACCEPTANCE TESTS OF F-L4, word for word:
@@ -141,6 +145,58 @@ describe("swapping the design and pressing Run all", () => {
     expect(downstream.lines.every((line) => line.state === "ready")).toBe(true);
     expect(settingsOf(after)).toEqual(settingsOf(graph));
   });
+});
+
+/**
+ * THE SAME PACK, RUN FOR REAL (decision 0133).
+ *
+ * The tests above prove the engine with the stub. These prove the production registry: the free
+ * renders and the posts are drawn by the platform's own renderers from a real garment, the three
+ * teamwear scenes go through L3's shoot (with its own stub provider, so nothing is called), and
+ * every file a board names is a file that was stored. The one board that does not finish is the
+ * turntable, which is recorded in the browser from the 3D view and says so.
+ */
+describe("the Club kit launch pack, run through the real registry", () => {
+  const runReal = async (graph: Graph) => {
+    const memory = memoryPorts();
+    const report = await runFlow(
+      { capability: capabilityOf(flowRegistry(graph, memory.ports)), meter: stubMeter({ balance: 500 }), recorder: stubRecorder() },
+      graph,
+      { from: null, scope: "all" },
+      STUB_COSTS,
+    );
+    return { report, memory };
+  };
+
+  it("draws the six renders and the four posts for real, makes the three scenes, and names the one it cannot make", async () => {
+    const { graph } = canvasOfTemplate("club-kit-launch-pack");
+    const { report, memory } = await runReal(graph);
+
+    const ready = report.lines.filter((line) => line.state === "ready");
+    expect(ready).toHaveLength(13);
+    expect(report.assets).toBe(13);
+    for (const line of ready) {
+      const stored = memory.files.get(line.fileId!);
+      expect(stored, line.boardId).toBeDefined();
+      // The platform's own boards are the platform's pictures; a scene is the model's, labelled.
+      expect([line.boardId, stored?.provenance]).toEqual([line.boardId, line.kind === "ai_image" ? "generated" : "deterministic"]);
+    }
+    const turntable = report.lines.find((line) => line.boardId === "turntable");
+    expect(turntable).toMatchObject({ state: "failed", reason: RECORDED_VIDEO_LINE, credits: 0 });
+  }, 120_000);
+
+  it("swapping the design and pressing Run all redraws every board from the new version, with no prompt entered again", async () => {
+    const { graph } = canvasOfTemplate("club-kit-launch-pack", { designVersion: 7 });
+    const first = await runReal(graph);
+    const swapped = withBoard(graphWithOutputs(graph, first.report), "design", { inputVersion: 8 });
+    const second = await runReal(swapped);
+
+    expect(settingsOf(swapped)).toEqual(settingsOf(graph));
+    expect(second.report.assets).toBe(13);
+    // Every render was drawn from version 8: the renderer wrote the version it really drew from.
+    expect(second.memory.versions.map((one) => one.version)).toEqual(first.memory.versions.map(() => 8));
+    expect(first.memory.versions.every((one) => one.version === 7)).toBe(true);
+  }, 120_000);
 });
 
 describe("every one of the six packs", () => {
