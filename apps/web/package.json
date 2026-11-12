@@ -12,7 +12,8 @@
     "test:db": "vitest run --project db",
     "test:cov": "vitest run --coverage",
     "e2e": "playwright test",
-    "eval:intake": "tsx scripts/eval-intake.mts"
+    "eval:intake": "tsx scripts/eval-intake.mts",
+    "seed:templates": "tsx --env-file-if-exists=.env.local lib/templates/seed/run.mts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",

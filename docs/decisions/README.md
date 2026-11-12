@@ -145,5 +145,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0131 | [Build pack v3.9 and the Store comes in](0131-build-pack-v39-and-the-store-comes-in.md) | Accepted; the v2.2 UI is replaced by the Kittl shell of build pack v3.9, and checkout, team stores, storefronts, channels and payouts are built here; supersedes v5 owner decision 1 |
 | 0132 | [Validation gates ordering](0132-validation-gates-ordering.md) | Accepted; every order path and the order function refuse a version whose checks hold a blocker, and mark it ordered |
 | 0134 | [The 3D texture is the print file](0134-the-3d-texture-is-the-print-file.md) | Accepted; the editor's 3D view and the export preview paint each UV island with the art of that panel's print file, made on the server |
+| 0136 | [Privacy and deploy housekeeping](0136-privacy-and-deploy-housekeeping.md) | Accepted; the erasure sweep reads name columns, rosters older than two seasons are purged by a daily cron, and `pnpm --filter web seed:templates` seeds the whole library |
 
 <!-- End of the generated table. -->
