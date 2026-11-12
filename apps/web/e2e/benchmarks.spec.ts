@@ -27,7 +27,7 @@ const signedIn = async (page: Page, label: string): Promise<string> => {
 
 /** A new comparison, and the address of its own page. */
 const newBenchmark = async (page: Page, title: string): Promise<void> => {
-  await page.goto("/studio/benchmarks");
+  await page.goto("/ai-studio/workflow/benchmark-products");
   await page.getByLabel("What are you comparing?").fill(title);
   await page.getByRole("button", { name: "Make the benchmark" }).click();
   await expect(page).toHaveURL(/\/studio\/benchmarks\/[0-9a-f-]{36}$/);
@@ -42,7 +42,7 @@ const pasteReviews = async (page: Page): Promise<void> => {
 
 test.describe("benchmarks", () => {
   test("is not a page for somebody with no session", async ({ page }) => {
-    await page.goto("/studio/benchmarks");
+    await page.goto("/ai-studio/workflow/benchmark-products");
     await expect(page).toHaveURL(/\/sign-in/);
   });
 
@@ -50,7 +50,7 @@ test.describe("benchmarks", () => {
     await signedIn(page, "benchmark-reviews");
 
     // A brand with nothing yet is told the one thing that fills the screen, not just that it is empty.
-    await page.goto("/studio/benchmarks");
+    await page.goto("/ai-studio/workflow/benchmark-products");
     await expect(page.getByText("Name what you are comparing below to make the first one")).toBeVisible();
 
     await newBenchmark(page, "Running shorts, 5 inch");
@@ -184,7 +184,7 @@ test.describe("benchmarks on a phone", () => {
     await newBenchmark(page, "Shorts on a phone");
     await pasteReviews(page);
 
-    for (const path of ["/studio/benchmarks", new URL(page.url()).pathname]) {
+    for (const path of ["/ai-studio/workflow/benchmark-products", new URL(page.url()).pathname]) {
       await page.goto(path);
       await settled(page);
       const sideways = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

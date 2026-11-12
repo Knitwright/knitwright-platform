@@ -1,22 +1,29 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/shell/PlaceholderPage";
+import { GeneratorPage } from "@/components/ai-studio/GeneratorPage";
+import { availabilityOf } from "@/lib/ai-studio/availability";
+import { GENERATORS } from "@/lib/ai-studio/catalogue";
+import { IMAGE_STYLES } from "@/lib/ai-studio/forms";
+import { creditsPerOutput, liveSwitches, loadProducts } from "@/lib/ai-studio/server";
+import { MODEL_PRESET_CATALOGUE } from "@/lib/shoots/models";
 import { requireMember } from "@/lib/server/page-guards";
-import { AI_STUDIO_TABS } from "@/lib/shell/tabs";
 
 export const metadata: Metadata = { title: "Image Generator" };
 
-/** A placeholder of the v3.9 route map (decision 0138): its page is built by a later workstream. */
-export default async function ImageGeneratorPage() {
-  await requireMember();
+/** The Image generator (`09` screen 5; decision 0141). `?style=` comes from the Browse styles drawer. */
+export default async function ImageGeneratorPage({ searchParams }: PageProps<"/ai-studio/image">) {
+  const { brand } = await requireMember();
+  const query = await searchParams;
+  const generator = GENERATORS[0]!;
+  const style = IMAGE_STYLES.find((one) => one.value === query.style)?.value;
+  const model = query.model === "preset" ? MODEL_PRESET_CATALOGUE[0]?.key : undefined;
+  const initial = { ...(style ? { style } : {}), ...(model ? { model } : {}) };
   return (
-    <PlaceholderPage
-      title="Image Generator"
-      icon="sparkle"
-      heading="Scenes are made on a launch canvas today"
-      action={{ href: "/launch", label: "Open launch" }}
-      tabs={{ label: "AI Studio", items: AI_STUDIO_TABS }}
-    >
-      The image generator arrives with AI Studio. A launch canvas already makes scenes around any design, with the garment locked.
-    </PlaceholderPage>
+    <GeneratorPage
+      generator={generator}
+      products={await loadProducts(brand.id)}
+      availability={availabilityOf(generator, liveSwitches())}
+      creditsPer={creditsPerOutput(generator)}
+      initial={initial}
+    />
   );
 }

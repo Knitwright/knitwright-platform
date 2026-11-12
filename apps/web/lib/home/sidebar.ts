@@ -67,7 +67,7 @@ export const SIDEBAR: readonly SidebarGroup[] = [
       // width for an eighth section; decision 0103 gave the bar an overflow menu, where a section costs no width,
       // and Benchmarks is listed there as well. This one carries the hint, and 0103 owner question 2 asks the
       // owner whether to keep both.
-      { id: "benchmarks", label: "Benchmarks", target: page("/studio/benchmarks"), hint: "Compare products" },
+      { id: "benchmarks", label: "Benchmarks", target: page("/ai-studio/workflow/benchmark-products"), hint: "Compare products" },
     ],
   },
   {
