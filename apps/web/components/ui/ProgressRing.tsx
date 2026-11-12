@@ -19,12 +19,12 @@ export function ProgressRing({ percent, label, size = 64 }: ProgressRingProps) {
     <svg width={size} height={size} viewBox="0 0 36 36" role="img" aria-label={label} className="shrink-0">
       <defs>
         <linearGradient id={gradient} x1="0" x2="1">
-          <stop offset="0" stopColor="#b9c4ff" />
-          <stop offset=".5" stopColor="#ffd3e6" />
-          <stop offset="1" stopColor="#c7f0e4" />
+          <stop offset="0" stopColor="var(--color-electric)" />
+          <stop offset=".5" stopColor="var(--color-link)" />
+          <stop offset="1" stopColor="var(--color-navy)" />
         </linearGradient>
       </defs>
-      <circle cx="18" cy="18" r={RADIUS} fill="none" stroke="var(--tile-2)" strokeWidth="4" />
+      <circle cx="18" cy="18" r={RADIUS} fill="none" stroke="var(--color-soft-2)" strokeWidth="4" />
       {share > 0 ? (
         <circle
           cx="18"

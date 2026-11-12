@@ -42,6 +42,10 @@ export const PUBLIC_ENTRY_POINTS = [
   // the secret set the route answers 503 and cuts nothing; a wrong secret answers 404. It takes no input, and
   // all it can do is put orders whose cut-off has passed into their batch, which is idempotent per cut-off.
   "app/api/cron/ops-cut-batches/route.ts#GET",
+  // The roster purge, run by the scheduler once a day (spec 05 security, decision 0136). The same door as the cut:
+  // the deploy's own CRON_SECRET in constant time, 503 without it, 404 for a wrong one. It takes no input, and all
+  // it can do is remove rosters older than two seasons for clubs that did not opt in to keep them. Idempotent.
+  "app/api/cron/roster-purge/route.ts#GET",
   // The Store contract (plan v5 O2, decision 0106). The separate Store is a service, not a person: there is no
   // session, and the only door is a token signed with the deploy's own STORE_SERVICE_TOKEN over the payload kind
   // and the call's query, compared in constant time. Without the secret set every one answers 503 and reads

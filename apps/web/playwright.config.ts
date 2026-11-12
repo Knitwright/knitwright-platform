@@ -26,6 +26,8 @@ const env = {
   AI_PROVIDER_STUB: "on",
   SHOW_3D: "false",
   DESIGN_IMPORT: "on",
+  // The component library page at /dev/ui (decision 0137): a production build serves it only with this on.
+  DEV_UI_ROUTES: "on",
 } as Record<
   string,
   string

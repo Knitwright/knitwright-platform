@@ -5,8 +5,9 @@ import type { ContextQuery } from "./types";
 
 /**
  * What the inspiration board reads from the workstreams built beside it (plan v5 Lessons 9). Each is the smallest
- * interface this library needs, with an unwired version that says "nothing known" and raises nothing. The orchestrator
- * wires the real ones; nothing here imports another workstream's unmerged directory.
+ * interface this library needs, with an unwired version that says "nothing known" and raises nothing. The real ones
+ * are in `live-ports.ts` (plan v6 D4, decision 0135), and every server action passes them; the unwired set is what the
+ * unit tests use, never a production default.
  */
 
 /** The base article of the design, as the catalogue (X1) knows it. */
@@ -32,6 +33,8 @@ export type LibraryItem = Readonly<{
   tags: readonly string[];
   /** What kind of thing it is, for the card's words: "Template", "Past design", "Sample photo". */
   kindLabel: string;
+  /** Why a card of this item cannot be saved to a moodboard, when its picture is drawn on request and not served. */
+  unsaveable?: string;
 }>;
 
 /**

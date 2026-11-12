@@ -11,6 +11,7 @@ describe("brandRunFailure", () => {
     ["need_sample_order", "conflict"],
     ["request_key_conflict", "conflict"],
     ["external_ref_conflict", "conflict"],
+    ["validation_blockers", "conflict"],
     ["invalid_sizes", "invalid_input"],
     ["invalid_input", "invalid_input"],
   ])("reads hint %s as %s", (hint, code) => {

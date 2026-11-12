@@ -12,7 +12,8 @@
     "test:db": "vitest run --project db",
     "test:cov": "vitest run --coverage",
     "e2e": "playwright test",
-    "eval:intake": "tsx scripts/eval-intake.mts"
+    "eval:intake": "tsx scripts/eval-intake.mts",
+    "seed:templates": "tsx --env-file-if-exists=.env.local lib/templates/seed/run.mts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.9.0",
@@ -22,6 +23,7 @@
     "delaunator": "5.1.0",
     "fabric": "7.4.0",
     "geist": "^1.9.0",
+    "lucide-react": "1.72.0",
     "next": "16.4.3",
     "pdfjs-dist": "^6.4.299",
     "react": "19.3.1",

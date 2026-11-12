@@ -32,6 +32,7 @@ export function libraryProvider(reader: LibraryReader, brandId: string): CardPro
           previewUrl: item.previewUrl,
           owned: true,
           attribution: { creator: null, creatorUrl: null, provider: "Knitwright", providerUrl: null, notice: `${item.kindLabel} from the Knitwright library` },
+          ...(item.unsaveable === undefined ? {} : { unsaveable: item.unsaveable }),
         }),
       );
     },
