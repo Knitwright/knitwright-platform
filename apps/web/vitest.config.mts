@@ -141,6 +141,12 @@ export default defineConfig({
         // Joins the Orders area to the factory rows; the discounts, the delivery date and the summary are tested
         // on their own, and the database and end-to-end tests cover the joining (plan v6 P5, decision 0143).
         "lib/order-desk/server.ts",
+        // Join the Templates, Mockups and Marketing pages to the library rows, the brand's designs and the
+        // mockup renderer; the rows, categories, cards and concepts they hand over are tested on their own, and
+        // the end-to-end tests cover the joining (plan v6 P2, decision 0140).
+        "lib/templates/feed/server.ts",
+        "lib/mockups/gallery/server.ts",
+        "lib/marketing/gallery/server.ts",
       ],
       thresholds: {
         lines: 80,
@@ -201,6 +207,7 @@ export default defineConfig({
             "job-packet",
             "launch",
             "launch-panels",
+            "launch-start",
             "make",
             "marketing",
             "markets",
