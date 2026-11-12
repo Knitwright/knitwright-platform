@@ -26,7 +26,7 @@ export function JumpBackIn({ chip, path, children }: Readonly<{ chip: JumpChip; 
                 href={chipHref(path, view.id) as Route}
                 aria-current={view.id === chip ? "true" : undefined}
                 className={cx(
-                  "inline-flex h-9 items-center rounded-full border px-4 text-body font-medium no-underline transition-colors duration-fast",
+                  "inline-flex h-10 items-center rounded-full border px-4 text-body font-medium no-underline transition-colors duration-fast",
                   view.id === chip ? "border-navy bg-navy text-on-dark" : "border-border bg-bg text-text-2 hover:bg-soft",
                 )}
               >

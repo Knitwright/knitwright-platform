@@ -122,6 +122,7 @@ test.describe("the Projects page", () => {
     await expect(tile(page, name)).toBeVisible();
 
     await choose(page, name, "Move to Trash");
+    await expect(tile(page, name)).toHaveCount(0);
     await page.goto("/projects/trash");
     await choose(page, name, "Delete for good");
     const dialog = page.getByRole("dialog", { name: `Delete ${name} for good?` });

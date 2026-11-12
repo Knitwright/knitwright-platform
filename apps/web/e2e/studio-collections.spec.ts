@@ -111,8 +111,8 @@ test.describe("the collection board", () => {
     await signIn(page, email);
     await expect(page).toHaveURL(/\/projects\/recent$/);
 
-    // The studio sidebar now opens the plan (plan v5 Z4): no dead entry.
-    await page.getByRole("navigation", { name: "Studio sections" }).getByRole("link", { name: "Collections" }).click();
+    // Recent's Range plan card opens the plan (plan v5 Z4; decision 0139): no dead entry.
+    await page.getByRole("region", { name: "Start here" }).getByRole("link", { name: /^Range plan/ }).click();
     await expect(page).toHaveURL(/\/studio\/collections$/);
 
     const name = `Spring drop ${randomUUID().slice(0, 8)}`;
