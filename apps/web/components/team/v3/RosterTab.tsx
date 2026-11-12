@@ -95,7 +95,12 @@ async function SignupSection({ brand, season, grid, signup, canEdit }: SignupPro
       <p className="text-body text-muted">
         Paste your squad, send one link, and each player gives their shirt name, number and size with the size guide in front of them. Chase whoever is missing on WhatsApp or by email.
       </p>
-      <SignupPanel season={collect} rules={rules} templates={templates} clubName={brand.name} />
+      <ul>
+        <li className="flex flex-col gap-3">
+          <h3 className="sr-only">{season.name}</h3>
+          <SignupPanel season={collect} rules={rules} templates={templates} clubName={brand.name} />
+        </li>
+      </ul>
     </section>
   );
 }

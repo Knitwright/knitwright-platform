@@ -78,7 +78,7 @@ export function BrandTabPanels({ tab, brand, record, kitFonts, uploads, checked,
               <PicturesPanel kind={kind} assets={record.assets} uploads={uploads} canEdit={canEdit} />
             </PageSection>
           ))}
-          {record.profile.kind === "club" ? <KitSection brand={brand} /> : null}
+          <KitSection brand={brand} />
         </div>
       );
   }
