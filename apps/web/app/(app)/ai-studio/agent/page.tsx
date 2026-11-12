@@ -13,7 +13,7 @@ export default async function CreativeAgentPage() {
       title="Creative Agent"
       icon="sparkle"
       heading="The Creative Agent is on its way"
-      action={{ href: "/studio", label: "Open your projects" }}
+      action={{ href: "/projects", label: "Open your projects" }}
       tabs={{ label: "AI Studio", items: AI_STUDIO_TABS }}
     >
       Until it arrives, ask about a design from the Ask panel inside the editor.

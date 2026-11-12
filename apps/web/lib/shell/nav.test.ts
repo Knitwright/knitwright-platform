@@ -25,9 +25,9 @@ describe("the rail", () => {
     expect(RAIL.map((place) => place.label)).toEqual(["AI Studio", "Templates", "Mockups", "Marketing", "Products", "Projects"]);
   });
 
-  it("points Products and Projects at the v2.2 pages that serve them for now", () => {
+  it("points Products at the v2.2 page that serves it for now, and Projects at its own page", () => {
     expect(RAIL.find((place) => place.id === "products")?.href).toBe("/catalogue");
-    expect(RAIL.find((place) => place.id === "projects")?.href).toBe("/studio");
+    expect(RAIL.find((place) => place.id === "projects")?.href).toBe("/projects");
   });
 });
 

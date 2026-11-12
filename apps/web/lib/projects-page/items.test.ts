@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cardLine,
   folderCounts,
   isProjectKind,
   itemHref,
@@ -98,5 +99,15 @@ describe("folders", () => {
     expect(visibleFolders(folders, { search: "", sort: "oldest" }).map((f) => f.id)).toEqual(["f1", "f2"]);
     expect(visibleFolders(folders, { search: "", sort: "name" }).map((f) => f.id)).toEqual(["f2", "f1"]);
     expect(visibleFolders(folders, { search: "home", sort: "recent" }).map((f) => f.id)).toEqual(["f1"]);
+  });
+});
+
+describe("the line under a card", () => {
+  const when = (iso: string) => (iso === "2026-11-10T00:00:00Z" ? "Yesterday" : "4 Dec 2026");
+  const now = new Date("2026-11-11T00:00:00Z");
+
+  it("says what it is and when it changed, mid-sentence", () => {
+    expect(cardLine(ITEMS[3]!, now, when)).toBe("Crew tee · Moved to the Trash yesterday");
+    expect(cardLine(ITEMS[2]!, now, when)).toBe("Launch pack · Edited 4 Dec 2026");
   });
 });

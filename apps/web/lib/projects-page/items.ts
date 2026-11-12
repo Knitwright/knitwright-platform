@@ -118,5 +118,14 @@ export const visibleFolders = (folders: readonly FolderSummary[], view: Pick<Lis
   return found.toSorted((a, b) => (view.sort === "oldest" ? a.createdAt.localeCompare(b.createdAt) : b.createdAt.localeCompare(a.createdAt)));
 };
 
+/** "Just now" becomes "just now"; "2 hours ago" and "4 Dec 2026" are kept as they are. */
+const inSentence = (words: string): string => (/^[A-Z][a-z]/.test(words) ? `${words[0]!.toLowerCase()}${words.slice(1)}` : words);
+
+/** The line under a card's name: what it is and when it last changed, or when it went to the Trash. */
+export const cardLine = (item: ProjectItem, now: Date, when: (iso: string, now: Date) => string): string =>
+  item.trashedAt !== null
+    ? `${item.detail} · Moved to the Trash ${inSentence(when(item.trashedAt, now))}`
+    : `${item.detail} · Edited ${inSentence(when(item.updatedAt, now))}`;
+
 /** "1 project", "6 projects". */
 export const projectCount = (count: number): string => (count === 1 ? "1 project" : `${count} projects`);

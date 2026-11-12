@@ -142,9 +142,9 @@ describe("every component has a door", () => {
   });
 
   it("reaches a component a page really draws, and does not reach one nothing imports", () => {
-    // The traversal works: the studio home draws these, through two and three hops.
+    // The traversal works: Recent (the old studio home) draws these, through two and three hops.
     expect(sweep.reached.has("components/home/DesignCard.tsx")).toBe(true);
-    expect(sweep.reached.has("components/studio/home/ActionCards.tsx")).toBe(true);
+    expect(sweep.reached.has("components/projects/v3/StartCards.tsx")).toBe(true);
     // And it can tell: a test builder nothing mounts is not reachable.
     expect(sweep.reached.has("components/media/screen/fixtures.ts")).toBe(false);
   });

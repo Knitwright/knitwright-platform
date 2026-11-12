@@ -40,7 +40,7 @@ describe("the rail", () => {
 
   it("gives the current place the grey square and its label the weight", () => {
     const html = rail("/studio");
-    expect(html).toMatch(/data-rail="projects" href="\/studio"><span class="[^"]*bg-soft-2/);
+    expect(html).toMatch(/data-rail="projects" href="\/projects"><span class="[^"]*bg-soft-2/);
   });
 
   it("keeps Orders and Store behind ⌄ until it is opened, and opens it for a page inside", () => {

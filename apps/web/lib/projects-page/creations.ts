@@ -1,5 +1,4 @@
 import type { Route } from "next";
-import { z } from "zod";
 
 /**
  * AI Creations (09 screen 14): the pictures the brand's AI runs made, newest first, as a masonry
@@ -38,22 +37,23 @@ export interface Creation {
   readonly label: string;
 }
 
-export const shootRow = z.object({
-  id: z.uuid(),
-  launch_project_id: z.uuid(),
-  aspect: z.string(),
-  output_file_id: z.uuid(),
-  finished_at: z.string(),
-});
+/** A ready shoot, as `rows.ts` reads it. Kept free of zod: the chips that use this file run in the browser. */
+export interface ShootRow {
+  readonly id: string;
+  readonly launch_project_id: string;
+  readonly aspect: string;
+  readonly output_file_id: string;
+  readonly finished_at: string;
+}
 
-export const lifestyleRow = z.object({
-  id: z.uuid(),
-  file_id: z.uuid(),
-  width: z.number().nullable(),
-  height: z.number().nullable(),
-  created_at: z.string(),
-  media_sets: z.object({ project_id: z.uuid() }),
-});
+export interface LifestyleRow {
+  readonly id: string;
+  readonly file_id: string;
+  readonly width: number | null;
+  readonly height: number | null;
+  readonly created_at: string;
+  readonly media_sets: Readonly<{ project_id: string }>;
+}
 
 const ASPECTS: Readonly<Record<string, Shape>> = { "1:1": "square", "4:5": "portrait", "9:16": "tall", "16:9": "wide", match: "portrait" };
 
@@ -67,7 +67,7 @@ export const shapeOf = (width: number | null, height: number | null): Shape => {
   return "square";
 };
 
-export const sceneOf = (row: z.output<typeof shootRow>): Creation => ({
+export const sceneOf = (row: ShootRow): Creation => ({
   id: row.id,
   source: "scene",
   fileId: row.output_file_id,
@@ -78,7 +78,7 @@ export const sceneOf = (row: z.output<typeof shootRow>): Creation => ({
   label: "AI scene",
 });
 
-export const lifestyleOf = (row: z.output<typeof lifestyleRow>): Creation => ({
+export const lifestyleOf = (row: LifestyleRow): Creation => ({
   id: row.id,
   source: "lifestyle",
   fileId: row.file_id,
@@ -90,7 +90,7 @@ export const lifestyleOf = (row: z.output<typeof lifestyleRow>): Creation => ({
 });
 
 /** The creations one filter shows, newest first. */
-export const visibleCreations = (creations: readonly Creation[], filter: CreationFilter): readonly Creation[] =>
+export const visibleCreations = <T extends Creation>(creations: readonly T[], filter: CreationFilter): readonly T[] =>
   creations
     .filter((creation) => {
       if (filter === "scenes") return creation.source === "scene";

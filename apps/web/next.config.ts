@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { ROUTE_ALIASES } from "./lib/shell/redirects";
+import { MOVED_PAGES, ROUTE_ALIASES } from "./lib/shell/redirects";
 
 /**
  * Sent with every response. A full content security policy for scripts, with a nonce
@@ -87,7 +87,7 @@ const nextConfig: NextConfig = {
     "/api/artwork": ["../../node_modules/.pnpm/@napi-rs+canvas{,-linux-x64-gnu}@*/node_modules/@napi-rs/canvas{,-linux-x64-gnu}/*.{js,cjs,mjs,json,node}", "./node_modules/pdfjs-dist/standard_fonts/**"],
   },
   // The v3.9 addresses a v2.2 page still serves, and /brand while P6 builds it (decision 0138).
-  redirects: async () => ROUTE_ALIASES.map((alias) => ({ ...alias })),
+  redirects: async () => [...ROUTE_ALIASES, ...MOVED_PAGES].map((redirect) => ({ ...redirect })),
   headers: async () => [
     { source: "/:path*", headers: SECURITY_HEADERS },
     { source: "/api/projects/:projectId/exports/:format", headers: EXPORT_HEADERS },

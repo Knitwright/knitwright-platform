@@ -2,9 +2,9 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { LINK_LIFETIME_SECONDS } from "@/lib/storage/links";
-import { lifestyleOf, lifestyleRow, sceneOf, shootRow, type Creation } from "./creations";
+import { lifestyleOf, sceneOf, type Creation } from "./creations";
 import { folderCounts, type FolderSummary, type ProjectItem } from "./items";
-import { designRow, folderRow, itemsOf, launchRow, placementRow, sharedOf, sharedRow, trashRow, type SharedItem } from "./rows";
+import { designRow, folderRow, itemsOf, launchRow, lifestyleRow, placementRow, sharedOf, sharedRow, shootRow, trashRow, type SharedItem } from "./rows";
 
 /**
  * What the Projects page reads (decision 0139). Every read goes through the signed-in member's own

@@ -15,9 +15,23 @@ export interface Alias {
 const alias = (source: string, destination: string): Alias => ({ source, destination, permanent: false });
 
 export const ROUTE_ALIASES: readonly Alias[] = [
-  alias("/projects", "/studio"),
   alias("/products", "/catalogue"),
   alias("/products/:code", "/catalogue/:code"),
   alias("/team", "/club"),
   alias("/brand", "/brand-studio"),
+];
+
+/**
+ * A v2.2 page that a wave-2 workstream has moved into its v3.9 home, for good (308). The old address
+ * keeps working, with its query, and every link to it lands on the new page.
+ */
+export interface Moved {
+  readonly source: string;
+  readonly destination: string;
+  readonly permanent: true;
+}
+
+export const MOVED_PAGES: readonly Moved[] = [
+  // P1 (decision 0139): the studio home is Recent on the Projects page.
+  { source: "/studio", destination: "/projects/recent", permanent: true },
 ];

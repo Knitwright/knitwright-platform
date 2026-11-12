@@ -35,7 +35,26 @@ export const trashRow = z.object({
   trashed_at: z.string(),
 });
 
-export const folderRow = z.object({ id: z.uuid(), name: z.string(), created_at: z.string() });
+/** A ready shoot of AI Creations (creations.ts). */
+export const shootRow = z.object({
+  id: z.uuid(),
+  launch_project_id: z.uuid(),
+  aspect: z.string(),
+  output_file_id: z.uuid(),
+  finished_at: z.string(),
+});
+
+/** A lifestyle picture of AI Creations, with the design its media set belongs to. */
+export const lifestyleRow = z.object({
+  id: z.uuid(),
+  file_id: z.uuid(),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  created_at: z.string(),
+  media_sets: z.object({ project_id: z.uuid() }),
+});
+
+export const folderRow =z.object({ id: z.uuid(), name: z.string(), created_at: z.string() });
 
 export const sharedRow = z.object({
   invite_id: z.uuid(),
