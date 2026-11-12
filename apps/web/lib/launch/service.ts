@@ -44,6 +44,9 @@ const boardRow = z.object({
   status: z.enum(BOARD_STATUSES),
   last_cost_credits: z.number().int().nullable(),
   rule_id: z.string(),
+  // The design a garment board shows, at its current version (decision 0145): a garment board is
+  // live-linked, so its version is read with it rather than stored on it.
+  garment: z.object({ current_version: z.number().int() }).nullable().optional(),
 });
 
 const edgeRow = z.object({ id: z.uuid(), from_board_id: z.uuid(), to_board_id: z.uuid(), input_index: z.number().int() });
@@ -82,7 +85,7 @@ const presetRow = z.object({
 const versionRow = z.object({ id: z.uuid(), version: z.number().int(), created_at: z.string(), snapshot: z.unknown() });
 
 const BOARD_COLUMNS =
-  "id, kind, name, x, y, width, height, settings, input_version, output_file_id, output_role, status, last_cost_credits, rule_id";
+  "id, kind, name, x, y, width, height, settings, input_version, output_file_id, output_role, status, last_cost_credits, rule_id, garment:projects(current_version)";
 
 const PROJECT_SELECT = [
   "id, brand_id, name, units, colours, design_project_id, updated_at",
@@ -97,7 +100,7 @@ const boardOf = (row: z.output<typeof boardRow>): BoardView => ({
   at: { x: row.x, y: row.y },
   size: { width: row.width, height: row.height },
   settings: row.settings,
-  inputVersion: row.input_version,
+  inputVersion: row.kind === "garment" && row.garment ? row.garment.current_version : row.input_version,
   outputFileId: row.output_file_id,
   outputRole: row.output_role,
   status: row.status,
@@ -133,6 +136,8 @@ export async function listLaunchProjects(client: SupabaseClient, brandId: string
     .from("launch_projects")
     .select("id, name, units, updated_at, boards(id)")
     .eq("brand_id", brandId)
+    // A studio design's home canvas is listed as the design itself (decision 0145).
+    .is("studio_project_id", null)
     .order("updated_at", { ascending: false })
     .limit(100);
   if (error) throw unreadable(error);

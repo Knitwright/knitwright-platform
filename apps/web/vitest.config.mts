@@ -191,6 +191,7 @@ export default defineConfig({
             "benchmarks",
             "brand-runs",
             "brand-studio",
+            "canvas",
             "catalogue",
             "collections",
             "colour",

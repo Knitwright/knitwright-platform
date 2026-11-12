@@ -17,7 +17,7 @@ export type FakeSetup = Readonly<{
 
 const builder = (answer: Answer) => {
   const chain: Record<string, unknown> = {};
-  for (const name of ["select", "eq", "in", "not", "order", "limit"]) chain[name] = () => chain;
+  for (const name of ["select", "eq", "is", "in", "not", "order", "limit"]) chain[name] = () => chain;
   chain.maybeSingle = async () => ({ data: Array.isArray(answer.data) ? (answer.data[0] ?? null) : answer.data, error: answer.error });
   chain.then = (resolve: (value: Answer) => unknown) => Promise.resolve(answer).then(resolve);
   return chain;

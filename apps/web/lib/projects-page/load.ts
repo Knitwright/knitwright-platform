@@ -29,7 +29,7 @@ const parsed = <T>(schema: z.ZodType<T>, data: unknown, error: Failing, what: st
 export async function loadProjectItems(client: SupabaseClient, brandId: string): Promise<readonly ProjectItem[]> {
   const [designs, launches, placements, trash] = await Promise.all([
     client.from("projects").select("id, name, garment_type, created_at, updated_at").eq("brand_id", brandId).order("updated_at", { ascending: false }).limit(ITEMS_READ),
-    client.from("launch_projects").select("id, name, created_at, updated_at, boards(id)").eq("brand_id", brandId).order("updated_at", { ascending: false }).limit(ITEMS_READ),
+    client.from("launch_projects").select("id, name, created_at, updated_at, boards(id)").eq("brand_id", brandId).is("studio_project_id", null).order("updated_at", { ascending: false }).limit(ITEMS_READ),
     client.from("project_folder_items").select("folder_id, project_id, launch_project_id").eq("brand_id", brandId).limit(ITEMS_READ * 2),
     client.from("project_trash").select("project_id, launch_project_id, trashed_at").eq("brand_id", brandId).limit(ITEMS_READ * 2),
   ]);
