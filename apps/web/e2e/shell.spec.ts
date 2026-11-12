@@ -23,7 +23,7 @@ const PLACES = [
   { label: "AI Studio", url: /\/ai-studio$/, heading: "AI Studio" },
   { label: "Templates", url: /\/templates$/, heading: null },
   { label: "Mockups", url: /\/mockups$/, heading: "Mockups" },
-  { label: "Marketing", url: /\/marketing$/, heading: "Marketing" },
+  { label: "Marketing", url: /\/marketing$/, heading: "Never run out of ideas for kit launches" },
   { label: "Products", url: /\/catalogue$/, heading: null },
   { label: "Projects", url: /\/projects$/, heading: "Projects" },
   { label: "Orders", url: /\/orders$/, heading: "Orders" },

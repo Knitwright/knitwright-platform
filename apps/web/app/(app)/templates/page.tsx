@@ -1,60 +1,38 @@
 import type { Metadata } from "next";
-import { TemplateCard } from "@/components/templates/TemplateCard";
-import { TemplateFilters } from "@/components/templates/TemplateFilters";
-import { TemplatePager } from "@/components/templates/TemplatePager";
-import { PageIntro } from "@/components/shell/PageIntro";
-import { LinkButton } from "@/components/ui/LinkButton";
-import { readPage } from "@/lib/pagination/pages";
+import { TemplatesView } from "@/components/templates/v3/TemplatesView";
+import { listProjects } from "@/lib/projects/service";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { filtersFromQuery, listTemplates } from "@/lib/templates/filters";
+import { applyFilters, filtersFromQuery } from "@/lib/templates/filters";
+import { feedView, filteredView, shownDesignIds, withDrawn } from "@/lib/templates/feed/rows";
+import { loadDesignRows, loadFeed, withPictures } from "@/lib/templates/feed/server";
+import { searchFromQuery, tabFromQuery } from "@/lib/templates/feed/tabs";
 import { articleChoices } from "@/lib/templates/library";
-import { previewOf } from "@/lib/templates/preview";
-import { loadLibrary, loadSnapshots } from "@/lib/templates/service";
 
 export const metadata: Metadata = { title: "Templates" };
 
-/** The template library: finished designs to start from, filtered, one page at a time. A blank canvas is the exception. */
+/**
+ * The template library (09 screen 7, decision 0140): Discover rows, a tab per sport and per kind,
+ * and a search. Each card reaches the flow that already exists for it: a design is copied and
+ * opened in the editor, a launch pack or a social layout opens a launch canvas, a video opens the
+ * design's 3D view. The older filter address (`?sport=&article=…`) still works, as one grid.
+ */
 export default async function TemplatesPage({ searchParams }: PageProps<"/templates">) {
   const { brand } = await requireMember();
   const query = await searchParams;
+  const tab = tabFromQuery(query.tab);
+  const search = searchFromQuery(query.q);
   const filters = filtersFromQuery(query);
   const client = await sessionClient();
-  const all = await loadLibrary(client);
-  const found = listTemplates(all, filters, readPage(query.page));
-  const snapshots = await loadSnapshots(client, found.rows.map((row) => row.id));
 
-  return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageIntro
-          eyebrow={brand.name}
-          title="Templates"
-          lead="Start from a finished design and change anything. Using a template makes your own copy; the template stays as it is."
-        />
-        <LinkButton href="/studio/start" variant="secondary">
-          Start from a blank canvas
-        </LinkButton>
-      </div>
-      <TemplateFilters filters={filters} articles={articleChoices(all)} />
-      <p className="font-mono text-[13px] text-muted" aria-live="polite">
-        {found.total === 1 ? "1 template" : `${found.total} templates`}
-        {found.totalPages > 1 ? `, page ${found.page} of ${found.totalPages}` : ""}
-      </p>
-      {found.rows.length === 0 ? (
-        <p className="glass rounded-[1.75rem] p-6 text-[15px] text-ink-2">
-          No template matches those filters. Clear a filter, or start from a blank canvas.
-        </p>
-      ) : (
-        <ul aria-label="Templates" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {found.rows.map((template) => (
-            <li key={template.id}>
-              <TemplateCard template={template} preview={previewOf(snapshots.get(template.id))} />
-            </li>
-          ))}
-        </ul>
-      )}
-      <TemplatePager path="/templates" filters={filters} page={found.page} totalPages={found.totalPages} />
-    </div>
-  );
+  const [designs, newest] = await Promise.all([loadDesignRows(client), listProjects(client, brand.id, 1)]);
+  const items = await loadFeed(client, designs, newest.projects[0]?.id ?? null);
+  const summaries = designs.map((row) => row.summary);
+  const view =
+    Object.keys(filters).length > 0
+      ? filteredView(items, new Set(applyFilters(summaries, filters).map((one) => one.id)), search)
+      : feedView(items, tab, search);
+  const drawn = withDrawn(view, await withPictures(client, items, shownDesignIds(view)));
+
+  return <TemplatesView tab={tab} search={search} view={drawn} filters={filters} articles={articleChoices(summaries)} empty={items.length === 0} />;
 }
