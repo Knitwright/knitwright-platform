@@ -13,7 +13,7 @@ export function BrandSideCard({
   percent,
 }: Readonly<{ name: string; about: string; website: string | null; percent: number }>) {
   return (
-    <aside className="flex flex-col gap-4 rounded-2xl border border-border bg-bg p-5 lg:sticky lg:top-4" aria-label="Your brand">
+    <aside className="flex flex-col gap-4 rounded-2xl border border-border bg-bg p-5 xl:sticky xl:top-4" aria-label="Your brand">
       <div className="flex items-start justify-between gap-3">
         <span aria-hidden="true" className="grid size-18 place-items-center rounded-lg bg-navy text-h2 font-extrabold text-gold">
           {initialsOf(name)}

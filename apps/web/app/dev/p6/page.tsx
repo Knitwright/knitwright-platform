@@ -77,7 +77,7 @@ function Team() {
 
 function Brand() {
   return (
-    <div className="grid items-start gap-6 pt-2 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
+    <div className="grid items-start gap-6 pt-2 xl:grid-cols-[minmax(0,19rem)_minmax(0,1fr)]">
       <h1 className="sr-only">Brand</h1>
       <BrandSideCard name="Northfield FC" about={RECORD.profile.about} website={null} percent={80} />
       <div className="flex min-w-0 flex-col gap-6">
