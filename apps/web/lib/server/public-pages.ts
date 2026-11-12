@@ -40,6 +40,9 @@ export const PUBLIC_PAGES = [
   // The dashboard shell with made-up data (decision 0138), for the comparison with its reference image.
   // Same switch as /dev/ui.
   "app/dev/shell/page.tsx",
+  // The Orders area with made-up data (decision 0143), for the comparison with p09, p10, p11 and p13.
+  // Same switch as /dev/ui.
+  "app/dev/orders/page.tsx",
   // AI Studio with made-up data (decision 0141), for the comparisons with d07–d12. Same switch as /dev/ui.
   "app/dev/ai-studio/page.tsx",
   // The Products pages with fixture data (decision 0142), for the comparison with their reference images.

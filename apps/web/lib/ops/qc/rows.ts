@@ -15,6 +15,7 @@ const inspectionRow = z.object({
   note: z.string(),
   exception_id: z.uuid().nullable(),
   aql_code_letter: z.string().nullable().default(null),
+  photos_shared: z.boolean().default(false),
   at: z.string(),
 });
 
@@ -32,6 +33,8 @@ export interface Inspection {
   readonly exceptionId: string | null;
   /** The sample size code letter the plan gave, or null when no sampling plan was on file. */
   readonly aqlCodeLetter: string | null;
+  /** Whether the customer sees this inspection's photos on their order page (decision 0143). */
+  readonly photosShared: boolean;
   /** ISO time. */
   readonly at: string;
 }
@@ -51,6 +54,7 @@ export const toInspection = (data: unknown): Inspection => {
     note: r.note,
     exceptionId: r.exception_id,
     aqlCodeLetter: r.aql_code_letter,
+    photosShared: r.photos_shared,
     at: new Date(r.at).toISOString(),
   };
 };

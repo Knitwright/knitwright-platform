@@ -52,3 +52,12 @@ describe("listInspections", () => {
     await expect(recordInspection({ rpc } as never, "a", input)).rejects.toThrow(/nothing/);
   });
 });
+
+describe("shareQcPhotos", () => {
+  it("sends the actor, the inspection and the choice", async () => {
+    const { shareQcPhotos } = await import("./service");
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    await shareQcPhotos({ rpc } as never, "actor", { inspectionId: "i1", shared: true });
+    expect(rpc).toHaveBeenCalledWith("ops_share_qc_photos", { p_actor: "actor", p_inspection_id: "i1", p_shared: true });
+  });
+});

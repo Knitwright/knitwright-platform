@@ -71,7 +71,7 @@ describe("the mockup capability's refusals", () => {
   });
 });
 
-describe("the marketing capability's refusals and fallbacks", () => {
+describe("the marketing capability's refusals and fallbacks", { timeout: 30_000 }, () => {
   it("picks a layout by size when the board names no aspect, and its own layout when it names one", () => {
     expect(layoutOfBoard({}, { width: 1000, height: 1000 })?.formats).toContain("social-square-1-1");
     expect(layoutOfBoard({}, { width: 1920, height: 1080 })?.formats).toContain("hero-banner-16-9");
@@ -142,7 +142,9 @@ describe("the AI scene capability's refusals", () => {
   });
 });
 
-describe("the AI clip capability", () => {
+// These build real pictures and run slowly under coverage on a busy runner (they timed out at 5 s on three
+// pull requests), so they get more room than the default.
+describe("the AI clip capability", { timeout: 30_000 }, () => {
   const withSampler = (ports: ReturnType<typeof memoryPorts>["ports"]["video"]) => ({
     ...ports,
     sample: async () => [],

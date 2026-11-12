@@ -25,8 +25,8 @@ import { createCollection, exportDrop, removeCollection, removeStyle, saveFrame,
  */
 
 const refresh = (collectionId: string): void => {
-  revalidatePath("/studio/collections");
-  revalidatePath(`/studio/collections/${collectionId}`);
+  revalidatePath("/orders/plans");
+  revalidatePath(`/orders/plan/${collectionId}`);
 };
 
 export const createCollectionAction = defineAction({
@@ -36,7 +36,7 @@ export const createCollectionAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const id = await createCollection(adminClient(), whoOf(session), input);
-    revalidatePath("/studio/collections");
+    revalidatePath("/orders/plans");
     return { id };
   },
 });
@@ -78,7 +78,7 @@ export const removeStyleAction = defineAction({
 });
 
 /**
- * Deleting a whole plan, from `/studio/collections/[collectionId]/delete`. The typed word is part
+ * Deleting a whole plan, from `/orders/plan/[collectionId]/delete`. The typed word is part
  * of the body, so the box on that screen is the thing that lets this run. It ends on the list of
  * plans, as deleting a design ends on the list of designs: the page it was pressed on no longer
  * names anything.
@@ -90,8 +90,8 @@ export const removeCollectionAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     await removeCollection(adminClient(), whoOf(session), input.collectionId);
-    revalidatePath("/studio/collections");
-    redirect("/studio/collections");
+    revalidatePath("/orders/plans");
+    redirect("/orders/plans");
   },
 });
 

@@ -6,7 +6,7 @@ import { toColourReading, toInspection, type Inspection, type RecordedColourRead
 
 type Admin = Pick<SupabaseClient, "rpc">;
 
-const COLUMNS = "id, order_id, factory_profile_id, result, checklist, measurements, sample_size, defect_count, photo_file_ids, note, exception_id, aql_code_letter, at";
+const COLUMNS = "id, order_id, factory_profile_id, result, checklist, measurements, sample_size, defect_count, photo_file_ids, note, exception_id, aql_code_letter, photos_shared, at";
 
 const READING_COLUMNS = "id, inspection_id, colour_name, delta_e, limit_delta_e, method, instrument, white_point, observer, rule_id, at";
 
@@ -75,4 +75,10 @@ export async function recordInspection(admin: Admin, actor: string, input: Inspe
   const row = (Array.isArray(data) ? data[0] : data) as { inspection_id: string; result: "pass" | "fail"; exception_id: string | null } | undefined;
   if (!row) throw new Error("ops_record_inspection answered with nothing");
   return { inspectionId: row.inspection_id, result: row.result, exceptionId: row.exception_id };
+}
+
+/** Shows or hides one inspection's photos on the customer's order page (decision 0143). Platform admins only. */
+export async function shareQcPhotos(admin: Admin, actor: string, input: Readonly<{ inspectionId: string; shared: boolean }>): Promise<void> {
+  const { error } = await admin.rpc("ops_share_qc_photos", { p_actor: actor, p_inspection_id: input.inspectionId, p_shared: input.shared });
+  throwIfQcFailed(error);
 }
