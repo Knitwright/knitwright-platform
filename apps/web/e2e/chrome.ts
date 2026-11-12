@@ -2,12 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
- * Helpers for the shared chrome every signed-in page carries: the studio top bar and the
- * accessibility scan of the page under it (decision 0103).
+ * Helpers for the shared chrome every signed-in page carries: the dashboard shell (the rail, the
+ * top bar and its menus, decision 0138) and the accessibility scan of the page inside it.
  *
- * They were written in `e2e/brand-studio.spec.ts`, where the top bar's first guard went, and sit
- * here rather than in `e2e/support.ts` because five specs want them at once and that file is
- * already the longest in the folder.
+ * They sit here rather than in `e2e/support.ts` because many specs want them at once and that file
+ * is already the longest in the folder.
  */
 
 /**
@@ -15,12 +14,12 @@ import { expect, type Locator, type Page } from "@playwright/test";
  *
  * `globals.css`'s `kw-rise` runs for 900 ms and starts at `translateY(18px) scale(0.985)`, so
  * anything measured while it plays is up to 1.5% small and up to 18 px high: a 40 px tap target
- * measures 39.4, which rounds to 39 and fails a 40 px floor. That is how
- * `studio-chrome.spec.ts`'s "the way home is this wide" failed on a loaded runner while passing
- * everywhere else -- the assertion was right and the moment was wrong.
+ * measures 39.4, which rounds to 39 and fails a 40 px floor. That is how the v2.2 top bar's "the way
+ * home is this wide" failed on a loaded runner while passing everywhere else -- the assertion was
+ * right and the moment was wrong.
  *
- * The drifting aurora never ends, so only the animations that finish are waited for. Text still
- * fading in also fails the contrast rule for a moment, which is why `accessible` waits too.
+ * Only the animations that finish are waited for. Text still fading in also fails the contrast rule
+ * for a moment, which is why `accessible` waits too.
  */
 export const settled = async (page: Page): Promise<void> => {
   await page.waitForFunction(() =>
@@ -47,78 +46,76 @@ export const accessible = async (page: Page, within?: string): Promise<void> => 
   expect(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map(where).join("; ")})`)).toEqual([]);
 };
 
-/** A control's own side padding: anything up to this still keeps its words on the glass. */
-const CONTROL_PADDING = 12;
+/**
+ * The widths the shell supports: a phone, where the rail is hidden and the top bar starts with its
+ * Menu; a tablet; 10 §4's 1024 px floor for the dashboard; the browser tests' own desktop; and the
+ * 1440 px of the reference images.
+ */
+export const SHELL_WIDTHS = [390, 768, 1024, 1280, 1440] as const;
 
 /**
- * Nothing in the top bar hangs outside its glass pill. What overflows is drawn over the aurora
- * instead, where `text-muted` is 3.35:1 and fails the accessibility scan of every studio page.
- * The last control of the row is the first to go, whichever control that is at this width.
+ * The page does not scroll sideways and nothing in the top bar runs past the window's right edge.
+ * The v2.2 bar overflowed its glass at 768 and 1024 for months because nothing measured it there
+ * (decision 0103); the shell is measured at every width it supports (decision 0138).
  */
-export const headerFits = async (page: Page, where = ""): Promise<void> => {
-  // Settled first, or the entrance's inward scale pulls the last control back inside the glass and
-  // a real spill measures as none: this guard was weaker than it read while the animation played.
+export const shellFits = async (page: Page, where = ""): Promise<void> => {
   await settled(page);
   const measured = await page.evaluate(() => {
     const bar = document.querySelector("header");
-    if (bar === null) return null;
-    const shown = (element: Element): boolean => {
-      const style = getComputedStyle(element);
-      if (style.visibility === "hidden" || style.display === "none") return false;
-      const box = element.getBoundingClientRect();
-      return box.width > 0 && box.height > 0;
-    };
-    const controls = [...bar.querySelectorAll("a[href], button, summary")].filter(shown);
-    const last = controls.at(-1);
-    if (last === undefined) return null;
-    return {
-      spill: Math.round(last.getBoundingClientRect().right - bar.getBoundingClientRect().right),
-      last: (last.textContent ?? "").trim().slice(0, 40),
-    };
+    const width = document.documentElement.clientWidth;
+    const controls = bar ? [...bar.querySelectorAll("a[href], button")] : [];
+    const right = Math.max(0, ...controls.map((element) => element.getBoundingClientRect().right));
+    return { sideways: document.documentElement.scrollWidth - width, spill: Math.round(right - width) };
   });
-  expect(measured, `the top bar has no controls to measure ${where}`).not.toBeNull();
-  expect(
-    measured?.spill ?? 0,
-    `the top bar's last control ("${measured?.last}") hangs outside the glass pill ${where} by this many pixels`,
-  ).toBeLessThanOrEqual(CONTROL_PADDING);
+  expect(measured.sideways, `the page scrolls sideways ${where} by this many pixels`).toBeLessThanOrEqual(0);
+  expect(measured.spill, `the top bar runs past the window ${where} by this many pixels`).toBeLessThanOrEqual(0);
 };
 
-/**
- * The widths the bar supports: a phone; the band nothing had ever measured, where the bar before
- * decision 0103 ran 374 px past its glass at 768 and 118 px at 1024; the browser tests' own
- * desktop; and a wide screen, where the bar is no wider at all, because it is capped at the page
- * width.
- */
-export const BAR_WIDTHS = [390, 768, 1024, 1280, 1440] as const;
-
-/** The bar keeps its words on the glass at every width it supports. Leaves the viewport as it was. */
-export const headerFitsAtEveryWidth = async (page: Page): Promise<void> => {
+/** The shell fits at every width it supports. Leaves the viewport as it was. */
+export const shellFitsAtEveryWidth = async (page: Page): Promise<void> => {
   const was = page.viewportSize();
-  for (const width of BAR_WIDTHS) {
-    await page.setViewportSize({ width, height: 844 });
-    await headerFits(page, `at ${width} px`);
+  for (const width of SHELL_WIDTHS) {
+    await page.setViewportSize({ width, height: 900 });
+    await shellFits(page, `at ${width} px`);
   }
   if (was !== null) await page.setViewportSize(was);
 };
 
-/**
- * Opens the top bar's menu holding the address signed in, Settings and Sign out. Below 1024 px
- * that is the one `Menu` the bar has always had on a phone; above it, the `Account` menu.
- */
+/** Opens the top bar's avatar menu: the address signed in, Settings and Sign out (decisions 0103, 0138). */
 export const openAccountMenu = async (page: Page): Promise<Locator> => {
-  const button = page.locator("header").getByRole("button", { name: /^(Account|Menu)$/ });
+  const button = page.locator("header").getByRole("button", { name: "Account", exact: true });
   await button.click();
   await expect(button).toHaveAttribute("aria-expanded", "true");
   return button;
 };
 
+/** Sign out, from the avatar menu. */
+export const signOutFromShell = async (page: Page): Promise<void> => {
+  await openAccountMenu(page);
+  await page.getByRole("menu", { name: "Account" }).getByRole("menuitem", { name: "Sign out" }).click();
+};
+
+/** The rail. Hidden below 768 px, where the top bar's Menu holds the same places. */
+export const rail = (page: Page): Locator => page.getByRole("navigation", { name: "Main" });
+
 /**
- * Opens a studio section from the top bar, through the overflow menu when the section is one of
- * those listed there rather than one of the four pills.
+ * Opens a place from the shell the way a person would (decision 0138): a rail item; Orders, Store
+ * and Team behind ⌄; the v2.2 pages with no rail item in ⋯; and on a phone, the top bar's Menu.
  */
-export const openStudioSection = async (page: Page, label: string): Promise<void> => {
-  const bar = page.locator("header");
-  const pill = bar.getByRole("link", { name: label, exact: true });
-  if ((await pill.count()) === 0) await bar.getByRole("button", { name: /^(More|Menu)\b/ }).click();
-  await bar.getByRole("link", { name: label, exact: true }).click();
+export const openShellPlace = async (page: Page, label: string): Promise<void> => {
+  const nav = rail(page);
+  if (!(await nav.isVisible())) {
+    await page.locator("header").getByRole("button", { name: "Menu", exact: true }).click();
+    await page.getByRole("menu", { name: "Menu", exact: true }).getByRole("menuitem", { name: label, exact: true }).click();
+    return;
+  }
+  const link = nav.getByRole("link", { name: label, exact: true });
+  if (await link.isVisible()) return link.click();
+  const group = nav.getByRole("button", { name: "Orders, Store and more" });
+  if (await group.isVisible()) {
+    await group.click();
+    if (await link.isVisible()) return link.click();
+  }
+  await nav.getByRole("button", { name: /^More\b/ }).click();
+  await page.getByRole("menu", { name: "More places" }).getByRole("menuitem", { name: label, exact: true }).click();
 };

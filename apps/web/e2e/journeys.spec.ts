@@ -150,11 +150,11 @@ test.describe("role journeys (W5-C)", () => {
     // durable records; `e2e/make.spec.ts` tests the refusal and the allowance themselves.
     await allowClassBRun(projectId, "journey-reviewer");
 
-    await page.goto("/brand");
+    await page.goto("/orders/runs");
     const products = page.getByRole("region", { name: "Product list" });
     await products.getByLabel("Design to list").selectOption({ label: "Journey hoodie" });
     await products.getByRole("button", { name: "Add to product list" }).click();
-    await expect(page).toHaveURL(/\/brand\?product=/);
+    await expect(page).toHaveURL(/\/orders\/runs\?product=/);
 
     const builder = page.getByRole("region", { name: "Run builder" });
     const sizeBoxes = builder.getByPlaceholder("0");

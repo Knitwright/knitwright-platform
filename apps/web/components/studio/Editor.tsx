@@ -30,7 +30,7 @@ type EditorProps = Readonly<{
  * the screen below the studio header, so nothing scrolls but the panels themselves.
  */
 const FRAME =
-  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(100vw_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(50vw_-_1.25rem,48rem))] lg:pb-0";
+  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(var(--shell-vw,100vw)_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(var(--shell-vw,100vw)/2_-_1.25rem,48rem))] lg:pb-0";
 
 const columns = (dockOpen: boolean): string =>
   `flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_21rem_minmax(0,1fr)] ${

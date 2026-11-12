@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
-import { accessible, headerFitsAtEveryWidth } from "./chrome";
+import { accessible, shellFitsAtEveryWidth } from "./chrome";
 import { createAccount, signIn, test, userIdOf } from "./support";
 
 /**
@@ -27,24 +27,21 @@ const brandOf = async (email: string): Promise<string> => {
 const runId = () => Math.random().toString(36).slice(2, 10);
 
 /*
- * `headerFits` and `accessible` were written here and now live in `e2e/support.ts`, because
- * decision 0103 rebuilt the top bar and five specs wanted both at once. `headerFits` still asserts
- * exactly what it did — the last control of the row keeps its words on the glass, with the
- * control's own 12 px of padding as the tolerance — but it finds that control at whatever width it
- * is measured at, since Sign out is no longer last and no longer in the row at all, and
- * `headerFitsAtEveryWidth` runs it at each of `BAR_WIDTHS`.
+ * The top bar's first guard was written here and lives in `e2e/chrome.ts`. Since decision 0138 it is
+ * `shellFits`: the page never scrolls sideways and no control of the top bar runs past the window,
+ * measured at each of `SHELL_WIDTHS` by `shellFitsAtEveryWidth`.
  */
 
 test.describe("Brand Studio (Y6)", () => {
-  test("a brand is filled in by hand, and the top bar says how far it has got", async ({ page }) => {
+  test("a brand is filled in by hand, and the top bar's New goes once its details are saved", async ({ page }) => {
     await signIn(page, await createAccount("bs-details"));
     await expect(page).toHaveURL(/\/studio$/);
-    // F-S9 puts the way in in the top bar: the completion pill is the brand switcher's own link.
-    await expect(page.getByTestId("brand-completion-pill")).toBeVisible();
-    await page.goto("/brand-studio");
+    // The way in is the top bar's brand pill, with a gold New until the brand is set up (decision 0138).
+    await expect(page.getByTestId("brand-new")).toBeVisible();
+    await page.locator("header").getByRole("link", { name: /^Brand: .* Open Brand Studio\.$/ }).click();
+    await expect(page).toHaveURL(/\/brand-studio$/);
 
     await expect(page.getByTestId("brand-completion")).toHaveText("0% complete");
-    await expect(page.getByTestId("brand-completion-pill")).toHaveText("0%");
 
     const details = page.getByRole("region", { name: "Details", exact: true });
     await details.getByLabel("Category").selectOption({ label: "Club" });
@@ -57,13 +54,13 @@ test.describe("Brand Studio (Y6)", () => {
 
     await page.reload();
     await expect(page.getByTestId("brand-completion")).not.toHaveText("0% complete");
-    await expect(page.getByTestId("brand-completion-pill")).not.toHaveText("0%");
+    await expect(page.getByTestId("brand-new")).toHaveCount(0);
     await expect(page.getByRole("region", { name: "Overview", exact: true }).getByText("Community")).toBeVisible();
 
-    // One h1, the page's own landmark, and the top bar still inside its glass with the pill in it
-    // at every width the bar supports, not only at the browser tests' own 1280.
+    // One h1, the page's own landmark, and the shell inside the window at every width it supports,
+    // not only at the browser tests' own 1280.
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-    await headerFitsAtEveryWidth(page);
+    await shellFitsAtEveryWidth(page);
     await accessible(page);
   });
 

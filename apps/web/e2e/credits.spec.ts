@@ -11,8 +11,10 @@ test.describe("credits", () => {
     await signIn(page, await createAccount("credits-new", { brand: "Credit Rovers" }));
     await expect(page).toHaveURL(/\/studio$/);
 
+    // The balance is beside "Add credits" in the top bar's ⊕ menu (decision 0138).
+    await page.locator("header").getByRole("button", { name: "Invite or add credits" }).click();
     const chip = page.getByTestId("credit-balance");
-    await expect(chip).toContainText(/\d+/);
+    await expect(chip).toContainText(/\d+ left/);
     await chip.click();
 
     await expect(page).toHaveURL(/\/credits$/);

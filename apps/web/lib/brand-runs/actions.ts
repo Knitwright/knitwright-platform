@@ -23,7 +23,7 @@ export const addProductAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const id = await createProduct(adminClient(), whoOf(session), input);
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return { id };
   },
 });
@@ -35,7 +35,7 @@ export const confirmStageAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const stage = await confirmStage(adminClient(), whoOf(session), input.productId, input.to);
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return { stage };
   },
 });
@@ -62,7 +62,7 @@ export const orderRunAction = defineAction({
       // works in GBP, so its pieces are labelled for the United Kingdom.
       orderValidationGate({ client, admin, who, brandName: session.brand.name, country: "GB" }),
     );
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return sent;
   },
 });

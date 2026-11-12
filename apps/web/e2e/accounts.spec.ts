@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { openAccountMenu } from "./chrome";
+import { openAccountMenu, signOutFromShell } from "./chrome";
 import {
   accountExists,
   createAccount,
@@ -48,10 +48,10 @@ test.describe("accounts", () => {
     await expect(page).toHaveURL(/\/studio$/);
     await expect(page.getByTestId("active-brand")).toHaveText("Northfield FC");
 
-    // The address signed in, Settings and Sign out are one account menu now (decision 0103).
+    // The address signed in, Settings and Sign out are the top bar's avatar menu (decisions 0103, 0138).
     await openAccountMenu(page);
     await expect(page.getByTestId("account-email")).toHaveText(email);
-    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.getByRole("menu", { name: "Account" }).getByRole("menuitem", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/sign-in$/);
 
     await signIn(page, email);
@@ -147,8 +147,7 @@ test.describe("accounts", () => {
     await page.getByRole("button", { name: "Save password" }).click();
     await expect(page).toHaveURL(/\/studio$/);
 
-    await openAccountMenu(page);
-    await page.getByRole("button", { name: "Sign out" }).click();
+    await signOutFromShell(page);
     await expect(page).toHaveURL(/\/sign-in$/);
     await signIn(page, email, newPassword);
     await expect(page).toHaveURL(/\/studio$/);
