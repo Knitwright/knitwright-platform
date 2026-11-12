@@ -7,7 +7,7 @@ import { LIMITS } from "@/lib/server/limits";
 import { fabricFormSchema, fabricTestFormSchema, sizeMapEntrySchema } from "./schemas";
 import { addFabricTest, createFabric, saveSizeMap } from "./service";
 
-const PAGE = "/brands/fabrics";
+const PAGE = "/products/fabrics";
 
 /** The add-a-fabric form on the fabric library page. */
 export const addFabricAction = defineAction({

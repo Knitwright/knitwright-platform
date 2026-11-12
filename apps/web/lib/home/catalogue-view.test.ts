@@ -50,7 +50,7 @@ describe("a grid card", () => {
   it("shows the code, the class, the status and the price line of the worked article", () => {
     const card = articleCard(jersey, { ladder: LADDER, moq: 1 }, "GBP");
     expect(card.code).toBe("JSY-SS-01");
-    expect(card.href).toBe("/catalogue/JSY-SS-01");
+    expect(card.href).toBe("/products/JSY-SS-01");
     expect(card.tags).toEqual([
       { label: "Class A", tone: "class" },
       { label: "Draft, not reviewed by a factory", tone: "status" },

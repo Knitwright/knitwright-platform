@@ -57,8 +57,8 @@ export const RAIL: readonly ShellPlace[] = [
   { id: "templates", label: "Templates", href: "/templates", icon: "templates", owns: ["/templates"] },
   { id: "mockups", label: "Mockups", href: "/mockups", icon: "shirt", owns: ["/mockups"] },
   { id: "marketing", label: "Marketing", href: "/marketing", icon: "megaphone", owns: ["/marketing"] },
-  // The catalogue serves Products until P4 moves it (decision 0138's route table).
-  { id: "products", label: "Products", href: "/catalogue", icon: "package", owns: ["/catalogue", "/products"] },
+  // Products (plan v6 P4, decision 0142). `/catalogue` redirects here (lib/products/redirects.ts).
+  { id: "products", label: "Products", href: "/products", icon: "package", owns: ["/products"] },
   // Projects (P1, decision 0139): its own pages, and the design editor under /studio.
   { id: "projects", label: "Projects", href: "/projects", icon: "folder", owns: ["/projects", "/studio"] },
 ];

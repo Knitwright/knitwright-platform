@@ -14,7 +14,7 @@ export interface StartCard {
 
 export const START_CARDS: readonly StartCard[] = [
   { id: "new-design", title: "Start a new design", text: "Begin from a Knitwright base, a template or your crest.", target: newDesign },
-  { id: "browse", title: "Browse products and templates", text: "Start from a Knitwright base or a ready-made kit.", target: page("/catalogue") },
+  { id: "browse", title: "Browse products and templates", text: "Start from a Knitwright base or a ready-made kit.", target: page("/products") },
   { id: "mood-board", title: "Mood board", text: "Collect kit ideas before and while you design.", target: later },
   { id: "range-plan", title: "Range plan", text: "Plan a season's collection with its costs and margins.", target: page("/studio/collections") },
   { id: "repeat-print", title: "Repeat print", text: "Make a seamless pattern for stripes, camo or fades.", target: later },

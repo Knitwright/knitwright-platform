@@ -30,7 +30,7 @@ export const ACTION_CARDS: readonly HomeCard[] = [
     id: "browse",
     title: "Browse bases and templates",
     text: "Every base article and template, with its fabrics, sizes and prices.",
-    target: page("/catalogue"),
+    target: page("/products"),
     feature: "F-S8",
   },
   {
@@ -72,14 +72,14 @@ export const CREATE_WAYS: readonly HomeCard[] = [
     id: "base-products",
     title: "Base products",
     text: "Start from a Knitwright base article. Each one is a draft until a factory reviews it.",
-    target: page("/catalogue"),
+    target: page("/products"),
     feature: "F-S4",
   },
   {
     id: "templates",
     title: "Templates",
     text: "Ready-made sportswear designs to remix.",
-    target: page("/catalogue?tab=templates"),
+    target: page("/templates"),
     feature: "F-S4",
   },
   {

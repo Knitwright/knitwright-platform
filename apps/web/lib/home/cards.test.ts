@@ -24,7 +24,7 @@ describe("the action cards", () => {
 
   it("opens the modal from the first card and the catalogue from the second", () => {
     expect(ACTION_CARDS[0]!.target).toEqual({ kind: "new-design" });
-    expect(hrefOf(ACTION_CARDS[1]!.target)).toBe("/catalogue");
+    expect(hrefOf(ACTION_CARDS[1]!.target)).toBe("/products");
   });
 
   it("marks the four cards whose features are not built as coming later", () => {
@@ -56,8 +56,8 @@ describe("the ways into a new design", () => {
   });
 
   it("sends Base products and Templates to the catalogue's two tabs", () => {
-    expect(hrefOf(CREATE_WAYS[0]!.target)).toBe("/catalogue");
-    expect(hrefOf(CREATE_WAYS[1]!.target)).toBe("/catalogue?tab=templates");
+    expect(hrefOf(CREATE_WAYS[0]!.target)).toBe("/products");
+    expect(hrefOf(CREATE_WAYS[1]!.target)).toBe("/templates");
   });
 
   it("sends the crest way to crest to kit, the screen F-T2 asks for", () => {

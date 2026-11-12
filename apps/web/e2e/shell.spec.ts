@@ -24,7 +24,7 @@ const PLACES = [
   { label: "Templates", url: /\/templates$/, heading: null },
   { label: "Mockups", url: /\/mockups$/, heading: "Mockups" },
   { label: "Marketing", url: /\/marketing$/, heading: "Never run out of ideas for kit launches" },
-  { label: "Products", url: /\/catalogue$/, heading: null },
+  { label: "Products", url: /\/products$/, heading: null },
   { label: "Projects", url: /\/projects$/, heading: "Projects" },
   { label: "Orders", url: /\/orders$/, heading: "Orders" },
   { label: "Store", url: /\/store$/, heading: "Store" },
@@ -149,7 +149,7 @@ test.describe("the route map", () => {
     await signedIn(page, "shell-redirects");
     const moves = [
       ["/studio", /\/projects\/recent$/],
-      ["/products", /\/catalogue$/],
+      ["/catalogue", /\/products$/],
       ["/club", /\/team$/],
       ["/collect", /\/team\?tab=approvals$/],
       ["/brand-studio?tab=fonts", /\/brand\?tab=fonts$/],

@@ -100,7 +100,7 @@ export function articleCard(article: BaseArticle, source: PriceSource, currency:
   return {
     code: article.code,
     name: article.name,
-    href: `/catalogue/${article.code}`,
+    href: `/products/${article.code}`,
     tags: [
       { label: `Class ${article.productionClass}`, tone: "class" },
       { label: STATUS_LABELS[article.status], tone: "status" },
