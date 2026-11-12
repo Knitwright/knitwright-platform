@@ -15,6 +15,13 @@ describe("redirectFor", () => {
     expect(redirectFor("/brands", true)).toBeNull();
   });
 
+  it("sends a visitor who is not signed in away from the Projects page, where they land once signed in", () => {
+    expect(HOME_AFTER_SIGN_IN).toBe("/projects/recent");
+    expect(redirectFor("/projects", false)).toBe(SIGN_IN_PATH);
+    expect(redirectFor("/projects/trash", false)).toBe(SIGN_IN_PATH);
+    expect(redirectFor("/projects/recent", true)).toBeNull();
+  });
+
   it("lets a signed-in user into the studio", () => {
     expect(redirectFor("/studio", true)).toBeNull();
     expect(redirectFor("/reset-password", true)).toBeNull();

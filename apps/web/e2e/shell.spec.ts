@@ -14,7 +14,7 @@ const signedIn = async (page: Page, label: string): Promise<string> => {
   const email = await createAccount(label);
   await signIn(page, email);
   // signIn only presses the button: the session cookie arrives with the redirect.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   return email;
 };
 
@@ -25,7 +25,7 @@ const PLACES = [
   { label: "Mockups", url: /\/mockups$/, heading: "Mockups" },
   { label: "Marketing", url: /\/marketing$/, heading: "Never run out of ideas for kit launches" },
   { label: "Products", url: /\/catalogue$/, heading: null },
-  { label: "Projects", url: /\/studio$/, heading: null },
+  { label: "Projects", url: /\/projects$/, heading: "Projects" },
   { label: "Orders", url: /\/orders$/, heading: "Orders" },
   { label: "Store", url: /\/store$/, heading: "Store" },
 ] as const;
@@ -82,7 +82,7 @@ test.describe("the rail", () => {
     await page.getByRole("radio", { name: "Club", exact: true }).check();
     await page.getByLabel("Club name").fill("Shell Rovers FC");
     await page.getByRole("button", { name: "Set up your club" }).click();
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await openShellPlace(page, "Team");
     await expect(page).toHaveURL(/\/team$/);
@@ -148,7 +148,7 @@ test.describe("the route map", () => {
   test("the v3.9 addresses a v2.2 page serves redirect, and a moved page's old address follows it", async ({ page }) => {
     await signedIn(page, "shell-redirects");
     const moves = [
-      ["/projects", /\/studio$/],
+      ["/studio", /\/projects\/recent$/],
       ["/products", /\/catalogue$/],
       ["/club", /\/team$/],
       ["/collect", /\/team\?tab=approvals$/],

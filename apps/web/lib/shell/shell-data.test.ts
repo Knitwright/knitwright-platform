@@ -5,7 +5,7 @@ import { showsHelpBubble } from "./help";
 import { ACCOUNT_ITEMS, ADD_ITEMS, CREATE_ITEMS, WORKSPACE_ITEMS, helpHref, initialOf } from "./menus";
 import { closeFor, openAtFor, startIndex } from "./menu-keys";
 import { besideTrigger } from "./placement";
-import { ROUTE_ALIASES } from "./redirects";
+import { MOVED_PAGES, ROUTE_ALIASES } from "./redirects";
 import { AI_STUDIO_TABS, ORDERS_TABS } from "./tabs";
 import { UNKNOWN_WORKSPACE, loadWorkspace, workspaceOf } from "./workspace";
 
@@ -108,6 +108,15 @@ describe("the redirects", () => {
       expect(hasPage(alias.destination), alias.destination).toBe(true);
       expect(hasPage(alias.source), alias.source).toBe(false);
     }
+  });
+
+  it("move a rebuilt page for good: /studio is Recent on Projects (decision 0139)", () => {
+    expect(MOVED_PAGES).toContainEqual({ source: "/studio", destination: "/projects/recent", permanent: true });
+    for (const moved of MOVED_PAGES) {
+      expect(hasPage(moved.destination), moved.destination).toBe(true);
+      expect(hasPage(moved.source), moved.source).toBe(false);
+    }
+    expect(ROUTE_ALIASES.map((alias) => alias.source)).not.toContain("/projects");
   });
 });
 

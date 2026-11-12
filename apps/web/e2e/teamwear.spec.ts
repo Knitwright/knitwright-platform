@@ -22,7 +22,7 @@ import { createAccount, signIn, test } from "./support";
  */
 const openConfigurator = async (page: Page, email: string): Promise<void> => {
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   await page.goto("/teamwear");
   await expect(page.getByTestId("teamwear-configurator")).toBeVisible();
 };

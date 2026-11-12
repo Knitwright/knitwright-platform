@@ -25,7 +25,7 @@ import { createAccount, signIn, test } from "./support";
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
   // The session cookie arrives with the redirect: follow it before going anywhere else.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 /** A launch project with nothing behind it, which is enough to open every panel of the rail. */

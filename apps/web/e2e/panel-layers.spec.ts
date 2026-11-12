@@ -25,7 +25,7 @@ test.describe("panel layers prototype, flag off (the default)", () => {
 
   test("is a page that does not exist, and the design editor does not link to it", async ({ page }) => {
     await signIn(page, await createAccount("layers-off"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const design = await startDesign(page, "Layers off");
     await expect(page.locator('a[href$="/layers"]')).toHaveCount(0);
     const response = await page.goto(`${design}/layers`);
@@ -39,7 +39,7 @@ test.describe("panel layers prototype, flag on", () => {
 
   test("opens a canvas with the design's layers, adds text, saves a version and finds it again", async ({ page }) => {
     await signIn(page, await createAccount("layers-on"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const design = await startDesign(page, "Layers on");
 
     await page.goto(`${design}/layers`);

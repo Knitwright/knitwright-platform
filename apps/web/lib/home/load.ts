@@ -5,7 +5,7 @@ import { brandChartSet } from "@/lib/charts/service";
 import { quoteStatusSchema } from "@/lib/leads/quote";
 import type { PageRequest } from "@/lib/pagination/pages";
 import { PROJECT_COLUMNS, projectRowSchema } from "@/lib/projects/rows";
-import { listProjects, readSpec, summaryOf, throwIfFailed, type ProjectSummary } from "@/lib/projects/service";
+import { readSpec, summaryOf, throwIfFailed, type ProjectSummary } from "@/lib/projects/service";
 import { log } from "@/lib/server/log";
 import type { ChartSet } from "@/lib/sizing";
 import { cardFacts } from "./card";
@@ -50,11 +50,40 @@ interface StudioHome {
 
 type Brand = Readonly<{ id: string; name: string }>;
 
+/**
+ * A design in the Trash (decision 0139) is left out of Recent: `project_trash(id)` embeds its Trash
+ * row, if any, and `is null` keeps only the designs that have none.
+ */
+const NOT_TRASHED = `${PROJECT_COLUMNS}, project_trash(id)`;
+
+const countShown = async (client: SupabaseClient, brandId: string): Promise<number> => {
+  const { count, error } = await client.from("projects").select("id, project_trash(id)", { count: "exact", head: true }).eq("brand_id", brandId).is("project_trash", null);
+  throwIfFailed(error);
+  return count ?? 0;
+};
+
+/** One page of the brand's designs that are not in the Trash, newest first, with how many there are. */
+const listShown = async (client: SupabaseClient, brandId: string, request: PageRequest): Promise<HomeListing> => {
+  const { data, error, count } = await client
+    .from("projects")
+    .select(NOT_TRASHED, { count: "exact" })
+    .eq("brand_id", brandId)
+    .is("project_trash", null)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .range(request.offset, request.offset + request.perPage - 1);
+  // A page past the end of the list is a range the database cannot satisfy: it is empty.
+  if (error?.code === "PGRST103") return { projects: [], total: count ?? (await countShown(client, brandId)) };
+  throwIfFailed(error);
+  return { projects: z.array(projectRowSchema).parse(data ?? []).map(summaryOf), total: count ?? 0 };
+};
+
 const recentProjects = async (client: SupabaseClient, brandId: string): Promise<ProjectSummary[]> => {
   const { data, error } = await client
     .from("projects")
-    .select(PROJECT_COLUMNS)
+    .select(NOT_TRASHED)
     .eq("brand_id", brandId)
+    .is("project_trash", null)
     .order("updated_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(RECENT_DESIGNS);
@@ -250,7 +279,7 @@ async function loadDetails(client: SupabaseClient, brand: Brand, listing: Promis
  * streams the rest: each card's step and drawing, and the "Needs you" list.
  */
 export function loadStudioHome(client: SupabaseClient, brand: Brand, request: PageRequest, now: Date): StudioHome {
-  const listing = listProjects(client, brand.id, request.perPage, request.offset).then(({ projects, total }) => ({ projects, total }));
+  const listing = listShown(client, brand.id, request);
   const details = loadDetails(client, brand, listing, now);
   // A page past the end is sent elsewhere before anything reads the details, so a failure there
   // must not go unhandled. The parts of the page that read them still see it.

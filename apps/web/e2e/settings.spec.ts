@@ -11,7 +11,7 @@ test.describe("the settings console", () => {
     expect((await page.goto("/admin/settings"))?.status()).toBe(404);
     const email = await createAccount("settings-member");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto("/admin/settings"))?.status()).toBe(404);
   });
 
@@ -19,7 +19,7 @@ test.describe("the settings console", () => {
     const email = await createAccount("settings-admin");
     await makePlatformAdmin(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/admin/settings");
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();

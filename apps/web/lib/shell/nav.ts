@@ -59,8 +59,8 @@ export const RAIL: readonly ShellPlace[] = [
   { id: "marketing", label: "Marketing", href: "/marketing", icon: "megaphone", owns: ["/marketing"] },
   // The catalogue serves Products until P4 moves it (decision 0138's route table).
   { id: "products", label: "Products", href: "/catalogue", icon: "package", owns: ["/catalogue", "/products"] },
-  // The studio home serves Projects until P1 moves it.
-  { id: "projects", label: "Projects", href: "/studio", icon: "folder", owns: ["/studio", "/projects"] },
+  // Projects (P1, decision 0139): its own pages, and the design editor under /studio.
+  { id: "projects", label: "Projects", href: "/projects", icon: "folder", owns: ["/projects", "/studio"] },
 ];
 
 const ORDERS: ShellPlace = { id: "orders", label: "Orders", href: "/orders", icon: "truck", owns: ["/orders"] };

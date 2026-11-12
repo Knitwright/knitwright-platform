@@ -24,7 +24,7 @@ test.describe("inviting someone to a design", () => {
     // The address is unique per run: CI retries once, and a retry must not find its own leftover row.
     const chair = `chair-${Date.now()}-${Math.floor(Math.random() * 100000)}@northside.test`;
     await signIn(page, await createAccount("invite-owner", { brand: "Northside Hockey Club" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Away kit 2027");
 
     await page.getByRole("link", { name: "Share", exact: true }).click();
@@ -87,7 +87,7 @@ test.describe("inviting someone to a design", () => {
   test("inviting the same address again changes that invite rather than adding a second row", async ({ page }) => {
     const chair = `chair-${Date.now()}-${Math.floor(Math.random() * 100000)}@northside.test`;
     await signIn(page, await createAccount("invite-again", { brand: "Eastside Netball" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Training top 2027");
     await page.getByRole("link", { name: "Share", exact: true }).click();
     await expect(page).toHaveURL(/\?tool=share$/);
@@ -111,7 +111,7 @@ test.describe("inviting someone to a design", () => {
 
   test("refuses an address that is not one, and says so on the field", async ({ page }) => {
     await signIn(page, await createAccount("invite-bad", { brand: "Westside Rugby" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Match shirt 2027");
     await page.getByRole("link", { name: "Share", exact: true }).click();
     await expect(page).toHaveURL(/\?tool=share$/);

@@ -34,7 +34,7 @@ test.describe("every page", () => {
 test("the session is hidden from scripts in the page", async ({ page, context }) => {
   const email = await createAccount("cookies");
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 
   const session = (await context.cookies()).filter((cookie) => cookie.name.startsWith("sb-"));
   expect(session.length).toBeGreaterThan(0);

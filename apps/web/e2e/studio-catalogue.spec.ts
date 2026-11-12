@@ -14,7 +14,7 @@ import { createAccount, signIn, test } from "./support";
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label, { brand: `${label} club` }));
   // signIn only presses the button: the session cookie arrives with the redirect.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const accessible = async (page: Page): Promise<void> => {
@@ -30,37 +30,43 @@ const accessible = async (page: Page): Promise<void> => {
   expect(serious.map((entry) => `${entry.id}: ${entry.help} (${entry.nodes.slice(0, 3).map(where).join("; ")})`)).toEqual([]);
 };
 
-test.describe("the studio home", () => {
-  test("greets the workspace, offers the action cards, and never shows a dead link", async ({ page }) => {
+test.describe("Recent, the studio home moved to Projects (decision 0139)", () => {
+  test("greets the workspace, offers the start cards, and never shows a dead link", async ({ page }) => {
     await signedIn(page, "y1-home");
     await expect(page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), y1-home club$/ })).toBeVisible();
 
+    const cards = page.getByRole("region", { name: "Start here" });
+    await expect(cards.getByRole("heading", { level: 2 })).toHaveText([
+      "Start a new design",
+      "Browse products and templates",
+      "Mood board",
+      "Range plan",
+      "Repeat print",
+    ]);
+    await expect(cards.getByRole("link", { name: /^Browse products and templates/ })).toHaveAttribute("href", "/catalogue");
+    // The range plan opens the collection plan of F-S10 (plan v5 Z4, decision 0085).
+    await expect(cards.getByRole("link", { name: /^Range plan/ })).toHaveAttribute("href", "/studio/collections");
+    // A card that is not built still says so, and is not a link.
+    await expect(cards.getByRole("link", { name: /^Mood board/ })).toHaveCount(0);
+    await expect(cards.getByText("Coming in a later release").first()).toBeVisible();
+    await accessible(page);
+  });
+
+  test("keeps the studio sidebar on the catalogue, with Products opening Projects", async ({ page }) => {
+    await signedIn(page, "y1-sidebar");
+    await page.goto("/catalogue");
     const sidebar = page.getByRole("navigation", { name: "Studio sections" });
-    await expect(sidebar.getByRole("link", { name: /^Products/ })).toHaveAttribute("href", "/studio");
+    await expect(sidebar.getByRole("link", { name: /^Products/ })).toHaveAttribute("href", "/projects");
     await expect(sidebar.getByRole("link", { name: "Base products" })).toHaveAttribute("href", "/catalogue");
-    // Collections opens the collection plan of F-S10 (plan v5 Z4, decision 0085).
     await expect(sidebar.getByRole("link", { name: "Collections" })).toHaveAttribute("href", "/studio/collections");
-    // A Projects section that is not built still says so, and is not a link.
+    await expect(sidebar.getByRole("link", { name: "Trash" })).toHaveAttribute("href", "/projects/trash");
     await expect(sidebar.getByText("Moodboards", { exact: true })).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Moodboards" })).toHaveCount(0);
-    await expect(sidebar.getByText("Coming in a later release").first()).toBeVisible();
-
-    const cards = page.getByRole("region", { name: "Start here" });
-    await expect(cards.getByRole("heading", { level: 3 })).toHaveText([
-      "Start a new design",
-      "Browse bases and templates",
-      "Moodboard",
-      "Collection plan",
-      "Pattern fill",
-      "Launch pack",
-    ]);
-    await expect(cards.getByRole("link", { name: "Browse bases and templates" })).toHaveAttribute("href", "/catalogue");
-    await accessible(page);
   });
 
   test("opens the create-new modal, which offers no blank canvas, holds Tab and gives focus back", async ({ page }) => {
     await signedIn(page, "y1-modal");
-    const opener = page.getByRole("navigation", { name: "Studio sections" }).getByRole("button", { name: "+ New" });
+    const opener = page.getByRole("region", { name: "Start here" }).getByRole("button", { name: "Start designing" });
     await opener.click();
 
     const dialog = page.getByRole("dialog", { name: "Create a new design" });
@@ -87,7 +93,7 @@ test.describe("the studio home", () => {
     await signedIn(page, "y1-jump");
     const row = page.getByRole("region", { name: "Jump back in" });
     await row.getByRole("link", { name: /^Moodboards/ }).click();
-    await expect(page).toHaveURL(/\/studio\?jump=moodboards$/);
+    await expect(page).toHaveURL(/\/projects\/recent\?jump=moodboards$/);
     await expect(page.getByText("Moodboards: coming in a later release.")).toBeVisible();
     await expect(page.getByRole("list", { name: /^Designs of / })).toHaveCount(0);
   });
