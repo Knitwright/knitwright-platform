@@ -1,0 +1,35 @@
+import type { ReactNode } from "react";
+import { PRODUCT } from "@/lib/config/product";
+import { helpHref } from "@/lib/shell/menus";
+import type { Workspace } from "@/lib/shell/nav";
+import { HelpBubble } from "./HelpBubble";
+import { Rail } from "./Rail";
+import { ShellMain } from "./ShellMain";
+import { TopBar } from "./TopBar";
+
+/**
+ * The dashboard shell (09 "Global shell", 08 §3 as amended by 09, decision 0138): the 96 px rail on
+ * the left, and beside it the 76 px top bar over the page, with the gold help bubble bottom right.
+ * It replaces decision 0103's glass top bar. The data it draws is read once by the layout.
+ */
+
+export type ShellData = Readonly<{
+  email: string | null;
+  brandName: string;
+  workspace: Workspace;
+  credits: number | null;
+}>;
+
+export function AppShell({ data, children }: Readonly<{ data: ShellData; children: ReactNode }>) {
+  const help = helpHref(PRODUCT.contactEmail);
+  return (
+    <div className="flex min-h-dvh w-full bg-bg">
+      <Rail workspace={data.workspace} brandName={data.brandName} helpHref={help} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar email={data.email} brandName={data.brandName} workspace={data.workspace} credits={data.credits} helpHref={help} />
+        <ShellMain>{children}</ShellMain>
+      </div>
+      <HelpBubble href={help} />
+    </div>
+  );
+}

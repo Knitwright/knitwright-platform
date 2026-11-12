@@ -22,7 +22,7 @@ export const addProductAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const id = await createProduct(adminClient(), whoOf(session), input);
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return { id };
   },
 });
@@ -34,7 +34,7 @@ export const confirmStageAction = defineAction({
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const stage = await confirmStage(adminClient(), whoOf(session), input.productId, input.to);
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return { stage };
   },
 });
@@ -50,7 +50,7 @@ export const orderRunAction = defineAction({
       order: orderGate({ brandId: who.brandId, userId: who.userId }, "brand run order"),
       humanReview: humanReviewGate(),
     });
-    revalidatePath("/brand");
+    revalidatePath("/orders/runs");
     return sent;
   },
 });

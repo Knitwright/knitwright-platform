@@ -34,7 +34,7 @@ export function ProductsPanel({ products, designs, canEdit, selectedId }: Props)
       setNote({ tone: "ok", text: "The product is in your list." });
       setProjectId("");
       setName("");
-      router.push(`/brand?product=${reply.data.id}#builder`);
+      router.push(`/orders/runs?product=${reply.data.id}#builder`);
     });
 
   const confirm = (product: ProductView) =>
@@ -60,7 +60,7 @@ export function ProductsPanel({ products, designs, canEdit, selectedId }: Props)
                 <span className="text-muted"> · {STAGE_LABELS[product.stage]} · design version {product.designVersion} · added {date(product.createdAt)}</span>
               </p>
               <div className="flex flex-wrap gap-2">
-                <Link href={`/brand?product=${product.id}#builder`} className="text-[15px] text-cobalt-soft underline-offset-4 hover:underline" aria-current={selectedId === product.id ? "true" : undefined}>
+                <Link href={`/orders/runs?product=${product.id}#builder`} className="text-[15px] text-cobalt-soft underline-offset-4 hover:underline" aria-current={selectedId === product.id ? "true" : undefined}>
                   {selectedId === product.id ? "Open in the run builder" : "Plan a sample or run"}
                 </Link>
                 {canEdit && next && canConfirm(product.stage, sampleOrdered) ? (

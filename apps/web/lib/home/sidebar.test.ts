@@ -46,7 +46,7 @@ describe("the studio sidebar", () => {
 
   it("points Products, Brand kit and the library at pages that exist", () => {
     expect(hrefOf(sidebarItem("products")!.target)).toBe("/studio");
-    expect(hrefOf(sidebarItem("brand-kit")!.target)).toBe("/brand");
+    expect(hrefOf(sidebarItem("brand-kit")!.target)).toBe("/brand-studio");
     expect(hrefOf(sidebarItem("base-products")!.target)).toBe("/catalogue");
     expect(hrefOf(sidebarItem("templates")!.target)).toBe("/catalogue?tab=templates");
     expect(hrefOf(sidebarItem("fabrics")!.target)).toBe("/brands/fabrics");
