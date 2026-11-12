@@ -107,4 +107,6 @@ export const NAMES_OF_THINGS: readonly string[] = [
   "programme_fabric_colours", "factories", "country_rules", "brand_palettes", "brand_colours", "brand_assets",
   "golden_sample_colour_readings", "collections", "collection_frames", "collection_styles", "launch_projects",
   "boards", "flow_template_steps", "ops_couriers",
+  // Decision 0139: a brand's folders on the Projects page.
+  "project_folders",
 ];
