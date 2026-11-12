@@ -150,5 +150,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0136 | [Privacy and deploy housekeeping](0136-privacy-and-deploy-housekeeping.md) | Accepted; the erasure sweep reads name columns, rosters older than two seasons are purged by a daily cron, and `pnpm --filter web seed:templates` seeds the whole library |
 | 0137 | [The v3.9 design system and component library](0137-the-v39-design-system-and-component-library.md) | Accepted; light tokens from `10`, Inter, lucide-react, the component library in components/ui, /dev/ui, and one compatibility block for the v2.2 names |
 | 0138 | [The dashboard shell and the route map](0138-the-dashboard-shell-and-the-route-map.md) | Accepted; the 96 px rail, the 76 px top bar and the help bubble replace decision 0103's glass top bar, runs move to /orders/runs and /brand goes to Brand Studio, ten placeholder routes, every v2.2 page keeps a door |
+| 0139 | [The Projects page](0139-the-projects-page.md) | Accepted; /projects with Recent (the old studio home, /studio 308s to it), Projects, AI Creations, Folders, Shared and Trash; folders and the Trash kept beside the two project tables |
 
 <!-- End of the generated table. -->
