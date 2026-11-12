@@ -8,11 +8,11 @@ import { formOf } from "./forms";
 import { placeBoards, planCanvas, type PlannedBoard } from "./canvas-plan";
 
 const preset = (key: string, width: number, height: number, unit: "px" | "mm" = "px"): ArtboardPreset =>
-  ({ key, label: key, width, height, unit, dpi: unit === "px" ? 72 : 300, sort: 1, note: "test" }) as ArtboardPreset;
+  ({ key, label: key, width, height, unit, dpi: unit === "px" ? 72 : 300, ruleId: "R-GAP-000", note: "test" });
 
 const PRESETS = [preset("social-square-1-1", 1080, 1080), preset("story-9-16", 1080, 1920), preset("social-post-4-5", 1080, 1350), preset("a4-print", 210, 297, "mm")];
 
-const answersFor = (id: string, extra: Record<string, string> = {}) => ({ ...initialAnswers(formOf(id)!), product: "p", deadline: "2026-12-04", highlight: "Out now", headline: "Northfield", body: "Sat 3 pm", ...extra });
+const answersFor = (id: string, extra: Record<string, string> = {}): Record<string, string> => ({ ...initialAnswers(formOf(id)!), product: "p", deadline: "2026-12-04", highlight: "Out now", headline: "Northfield", body: "Sat 3 pm", ...extra });
 
 const boardsOf = (id: string, count = 1, extra: Record<string, string> = {}): readonly PlannedBoard[] => {
   const plan = planCanvas(id, answersFor(id, extra), count, PRESETS);
