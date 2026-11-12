@@ -142,5 +142,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0128 | [An unscreened picture warns; it does not hold the factory door shut](0128-an-unscreened-picture-warns.md) | Accepted; an unscreened picture warns and names itself rather than holding "Ready for the factory" shut |
 | 0129 | [The rulebook has a sign-off session, and it will not credit a review nobody did](0129-the-rulebook-has-a-sign-off-session.md) | Accepted; one name, one role and one press confirms the rules Knitwright owns, and the sixteen that defer to a factory, a supplier or a lawyer are offered unticked |
 | 0130 | [The rulebook's first sign-off names a title, because no person was given](0130-the-rulebooks-first-sign-off.md) | Accepted; the 29 rules Knitwright owns are signed off as "The pattern master" with no person named, and the 16 that defer stay drafts |
+| 0131 | [Build pack v3.9 and the Store comes in](0131-build-pack-v39-and-the-store-comes-in.md) | Accepted; the v2.2 UI is replaced by the Kittl shell of build pack v3.9, and checkout, team stores, storefronts, channels and payouts are built here; supersedes v5 owner decision 1 |
 
 <!-- End of the generated table. -->

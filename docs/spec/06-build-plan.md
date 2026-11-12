@@ -24,8 +24,8 @@ Phases are gated by evidence, not dates. Dates are targets. A phase does not sta
 | 0.6 | Two legal consults: UK payments (principal model, pre-orders) and IP/consumer (benchmarks, returns, AI labelling) | Written advice; adjust F-G1, F-L2 |
 | 0.7 | UK Ltd, Companies House ID verification, Stripe UK account, business bank | Live Stripe account |
 | 0.8 | Swatch book for F-POLY-INT and F-POLY-PQ printed by the chosen factory; measure Lab values | `fabric_colour` and colour reference data |
-| 0.10 | Start the rulebook with the factory's pattern master: construction, seam types, print rules, fit and tolerance rules for the jersey and shorts, written as short entries with an ID, a "why" and a best practice | 30–50 `rulebook_entry` rows (seed for F-S5) |
 | 0.9 | Collect each factory's pattern master for the jersey and shorts (size M + grading) | Inputs for parametric scripts |
+| 0.10 | Start the rulebook with the factory's pattern master: construction, seam types, print rules, fit and tolerance rules for the jersey and shorts, written as short entries with an ID, a "why" and a best practice | 30–50 `rulebook_entry` rows (seed for F-S5) |
 
 **Software tasks (CTO), in order**
 
@@ -116,6 +116,18 @@ Each item is gated by data from Phases 1–3:
 
 ## Working agreement for Claude Code
 
+- **UI (v3.7):** every screen copies Kittl's interface, following `08-ui-kittl-shell.md`, `09-screen-map.md` and `prototype/index.html`. That includes the Printify-style catalogue, product, order and store pages and the Fabra-style Garment Studio and tech pack. The Studio editor, launch tools and Flows are one Kittl-style canvas. Ignore UI layouts described in `02-features.md` where they differ; `02` still defines behaviour, data and rules. Rebuild order:
+  1. dashboard shell;
+  2. editor chrome (rail, flyouts, inspector, bottom dock, task bar, top-right cluster);
+  3. boards and connectors;
+  4. Garment board and inspector;
+  5. Products and Mockups panels;
+  6. AI panel;
+  7. Export, Share and Order;
+  8. Brand page;
+  9. AI Studio workflows.
+
+  Attach a side-by-side screenshot against the Kittl reference to every UI PR.
 - Read `01-product-direction.md` decisions before proposing architecture; raise conflicts as questions, don't silently change them.
 - Every feature PR names its feature ID, adds or updates acceptance tests from `02-features.md`, and keeps validator, renderer and DXF golden tests green.
 - Catalogue, prices, country rules and factory capabilities are data, never constants in code.
