@@ -6,6 +6,8 @@ import { getTeamOrder, type StoredOrder } from "@/lib/orders/service";
 import type { PrintFileBuilder } from "@/lib/production/contract";
 import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
+import { livePorts } from "@/lib/validation/live-ports";
+import { assertOrderable } from "@/lib/validation/order-gate";
 import { buildSnapshot } from "./build";
 import { compareToRelease, type ReorderReport } from "./reorder";
 import type { ReleaseBody, ReorderBody } from "./schemas";
@@ -32,6 +34,9 @@ export async function freezeRelease(clients: Clients, who: Who, projectId: strin
     throw new AppError("invalid_input", "The team list has problems. Fix them before the release is made.");
   }
   await checkFabricTestIds(clients.client, who.brandId, projectId, body.fabricTestIds);
+  // Spec F-0: a version with a blocker is not frozen for a factory (plan v6 D1, decision 0132). A release is what
+  // every order names, and the database refuses to order a version whose newest check failed.
+  await assertOrderable({ admin: clients.admin, ports: livePorts(clients.admin) }, who, { projectId, version: project.currentVersion, spec: project.spec });
   const roster = order?.rows ?? null;
   const snapshot = await buildSnapshot(
     { specVersion: project.currentVersion, patternBlockId: body.patternBlockId, patternBlockVersion: body.patternBlockVersion, fabricTestIds: body.fabricTestIds, printProfile: body.printProfile, roster, files: body.files },

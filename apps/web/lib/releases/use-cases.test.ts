@@ -9,6 +9,20 @@ import { checkReorder, freezeRelease, openRelease } from "./use-cases";
 const getProject = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/projects/service", () => ({ getProject }));
 
+/** The validation gate (plan v6 D1), as a double: what it was asked, and whether it refuses. */
+const gate = vi.hoisted(() => ({ refuse: false, asked: [] as unknown[] }));
+vi.mock("@/lib/validation/live-ports", () => ({ livePorts: () => ({}) }));
+vi.mock("@/lib/validation/order-gate", async () => {
+  const { AppError } = await import("@/lib/server/core/errors");
+  return {
+    assertOrderable: async (_deps: unknown, _who: unknown, target: { projectId: string; version: number }) => {
+      gate.asked.push({ projectId: target.projectId, version: target.version });
+      if (gate.refuse) throw new AppError("conflict", "This design has 1 blocker against the factory profile.");
+      return { orderable: true };
+    },
+  };
+});
+
 const BRAND = "11111111-1111-4111-8111-111111111111";
 const PROJECT = "22222222-2222-4222-8222-222222222222";
 const ORDER = "33333333-3333-4333-8333-333333333333";
@@ -16,7 +30,11 @@ const SO = "55555555-5555-4555-8555-555555555555";
 const REL = "44444444-4444-4444-8444-444444444444";
 const WHO = { brandId: BRAND, userId: BRAND };
 const spec = { sizing: { sizes: ["S", "M", "L", "XL", "2XL", "3XL"], baseSize: "M" }, namesAndNumbers: { places: [{ place: "back-name" }] } };
-beforeEach(() => getProject.mockResolvedValue({ currentVersion: 5, spec }));
+beforeEach(() => {
+  getProject.mockResolvedValue({ currentVersion: 5, spec });
+  gate.refuse = false;
+  gate.asked = [];
+});
 
 const lines = (rows = ROSTER_22.rows) => rows.map((r) => ({ name: r.name, number: r.number, size_label: r.sizeLabel, cut: r.cut, quantity: r.quantity }));
 const body = (over = {}) => ({ label: "Round 1", orderId: ORDER, patternBlockId: "jersey", patternBlockVersion: 2, fabricTestIds: [`strike-off-${SO}`], printProfile: PROFILE, files: [specFor("front"), specFor("back", "XL", "10")], ...over });
@@ -62,6 +80,22 @@ describe("freezeRelease", () => {
     const { client } = fakeClient(answers());
     const result = await freezeRelease({ client, admin: client }, WHO, PROJECT, body({ orderId: null, files: [specFor("front")] }), () => fakeBuilder());
     expect(result.files).toBe(1);
+  });
+
+  // Plan v6 D1 (decision 0132; spec F-0): a version with a blocker is not frozen for a factory.
+  it("checks the version it freezes, and makes no release when that version has a blocker", async () => {
+    const { client, calls } = fakeClient(answers());
+    gate.refuse = true;
+    await expect(freezeRelease({ client, admin: client }, WHO, PROJECT, body(), () => fakeBuilder())).rejects.toMatchObject({ code: "conflict", message: expect.stringContaining("blocker") });
+    expect(gate.asked).toEqual([{ projectId: PROJECT, version: 5 }]);
+    expect(calls.some((c) => c.name === "create_release")).toBe(false);
+  });
+
+  it("checks after the team list, so the cheaper refusal is said first", async () => {
+    const dup = [...ROSTER_22.rows.slice(0, 2), { ...ROSTER_22.rows[2]!, number: ROSTER_22.rows[0]!.number }];
+    const { client } = fakeClient(answers(dup));
+    await expect(freezeRelease({ client, admin: client }, WHO, PROJECT, body(), () => fakeBuilder())).rejects.toMatchObject({ code: "invalid_input" });
+    expect(gate.asked).toEqual([]);
   });
 });
 

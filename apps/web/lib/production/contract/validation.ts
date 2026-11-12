@@ -1,8 +1,13 @@
 import { z } from "zod";
 import { READINESS_ACTORS } from "./readiness";
 
-/** The states of a design version. "validated" only means: no blockers against one factory profile on one date. */
-export const DESIGN_STATUSES = ["draft", "validated", "ordered"] as const;
+/**
+ * The states of a design version (spec F-0: draft -> validated -> approved -> ordered). "validated" only means: no
+ * blockers against one factory profile on one date; "approved" means the brand accepted that version for ordering.
+ * The same four, in the same order, as `VERSION_STATUSES` in `lib/validation/status.ts` and the database's
+ * `design_statuses_status_check` (migration 20261101030000); `validation.test.ts` holds all three together.
+ */
+export const DESIGN_STATUSES = ["draft", "validated", "approved", "ordered"] as const;
 export const designStatusSchema = z.enum(DESIGN_STATUSES);
 export type DesignStatus = z.output<typeof designStatusSchema>;
 
