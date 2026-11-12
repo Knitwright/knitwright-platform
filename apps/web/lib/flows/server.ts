@@ -5,7 +5,8 @@ import { getEnv } from "@/lib/config/env";
 import { recordOutput, type Who } from "@/lib/launch/service";
 import { loadLaunchCanvas } from "@/lib/launch/server";
 import type { Graph } from "@/lib/launch";
-import { capabilityOf, EMPTY_REGISTRY, type FlowCapabilityRegistry } from "./capabilities";
+import { capabilityOf, type FlowCapabilityRegistry } from "./capabilities";
+import { liveNote } from "./real/server";
 import { estimateFlow, flowCostSource, type FlowEstimate } from "./cost";
 import { finishFlowRun, latestFlowRun, refundFlowSpend, setFlowRunBoard, spendFlowOutput, startFlowRun } from "./service";
 import { runFlow, type Charge, type FlowMeter, type FlowRecorder, type FlowRunReport } from "./run";
@@ -26,16 +27,21 @@ import { FLOW_GAP_RULE } from "./types";
  * all today: the meter then reports `charged: false` and `credits: 0`, and the run says "nothing was
  * charged" instead of pretending. The behaviour is written for the day it is turned on.
  *
- * **The run.** No model is called: `capabilityOf` hands every board to a deterministic stub until
- * L2 to L5 register their adapters. The run still goes through every check -- the order, the
- * garment lock, the branch check on artwork, the estimate and the refund -- so when a real adapter
- * arrives nothing here changes.
+ * **The run.** `capabilityOf` hands each board to the capability the caller's registry names --
+ * `productionRegistry` in every real run (decision 0133): the platform draws mockups and marketing
+ * posts, and AI scenes and clips go through L3's and L5's own runs behind their switches. The run
+ * goes through every check -- the order, the garment lock, the branch check on artwork, the
+ * estimate and the refund -- whichever capability answers.
  */
 
 export interface FlowRunDeps {
   readonly admin: SupabaseClient;
   readonly who: Who;
-  readonly registry?: FlowCapabilityRegistry;
+  /**
+   * Who makes each board: `productionRegistry` (`real/server.ts`) in every real run. Required, so no
+   * caller can quietly fall back to the stub again (decision 0133).
+   */
+  readonly registry: FlowCapabilityRegistry;
 }
 
 /**
@@ -134,7 +140,7 @@ export async function runFlowForBrand(
   const written: Promise<unknown>[] = [];
   const report = await runFlow(
     {
-      capability: capabilityOf(deps.registry ?? EMPTY_REGISTRY),
+      capability: capabilityOf(deps.registry),
       meter: flowMeter(deps.admin, deps.who, runId),
       recorder: flowRecorder(deps.admin, deps.who),
       onProgress: (line) => {
@@ -196,7 +202,7 @@ export async function loadFlowPanel(client: SupabaseClient, brandId: string, lau
     estimate,
     summary: run === null ? estimateSummary(estimate) : runSummary(graph, { ...run.report, estimate }),
     runId: run?.id ?? null,
-    note: EMPTY_REGISTRY.note,
+    note: liveNote(),
   };
 }
 
