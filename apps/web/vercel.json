@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "regions": ["icn1"],
-  "crons": [{ "path": "/api/cron/ops-cut-batches", "schedule": "0 * * * *" }]
+  "crons": [
+    { "path": "/api/cron/ops-cut-batches", "schedule": "0 * * * *" },
+    { "path": "/api/cron/roster-purge", "schedule": "30 3 * * *" }
+  ]
 }
