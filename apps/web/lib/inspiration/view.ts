@@ -60,7 +60,9 @@ export const cardView = (card: InspirationCard): CardView => ({
   notice: card.attribution.notice,
   aiLabel: card.aiLabel ?? null,
   openLabel: `Open "${card.title}" on ${card.sourceLabel}`,
-  suggestLabel: `Suggest from "${card.title}"`,
+  // Starts with the button's visible words, so a voice user can say what they see (WCAG 2.5.3, axe
+  // label-content-name-mismatch); the card's title follows so a screen reader knows which card it is.
+  suggestLabel: `Suggest from this: "${card.title}"`,
   unsaveable: card.unsaveable ?? null,
 });
 

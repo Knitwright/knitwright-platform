@@ -7,14 +7,16 @@ import { chooseModels } from "@/lib/providers/select";
 import { MODEL_IMAGE_TYPES, type ModelImage } from "@/lib/providers/text-model";
 import { adminClient, imageProvider, productionDeps } from "@/lib/server/deps";
 import { standardRegistry, specInput } from "@/lib/validation/spec-input";
-import { UNWIRED_PORTS } from "@/lib/validation/ports";
+import { livePorts } from "@/lib/validation/live-ports";
+import type { ValidationPorts } from "@/lib/validation/ports";
 import { validateDesign } from "@/lib/validation/validate";
 import { loadFactoryProfile } from "@/lib/validation/service";
 import { buildBoard, type BoardDeps } from "./board";
 import { buildContextQuery, designContext } from "./context-query";
-import { UNWIRED_INSPIRATION_PORTS, type DesignChecker, type InspirationPorts } from "./ports";
+import { inspirationPorts } from "./live-ports";
+import type { DesignChecker, InspirationPorts } from "./ports";
+import { DEFAULT_INSPIRATION_SETTINGS, NO_PINTEREST_LOGINS, pinterestEntry, type InspirationSettings, type PinterestAccessReader } from "./settings";
 import { aiMoodProvider } from "./sources/ai-mood";
-import { pinterestOn, pinterestProvider, type PinterestAccess } from "./sources/external";
 import { libraryProvider } from "./sources/library";
 import { linkPreviewProvider } from "./sources/link-preview";
 import { pexelsProvider, unsplashProvider } from "./sources/stock";
@@ -34,18 +36,16 @@ type Env = Readonly<Record<string, string | undefined>>;
 type Who = Readonly<{ brandId: string; userId: string }>;
 
 /** Every source, in the spec's order, each built only when its key is set. A missing key is a sentence, not a fault. */
-export function inspirationSources(
+export async function inspirationSources(
   env: Env,
-  deps: Readonly<{ who: Who; ports: InspirationPorts; productLinks: readonly string[]; withMoodImage: boolean; pinterest?: PinterestAccess | null }>,
-): readonly MaybeProvider[] {
+  deps: Readonly<{ who: Who; ports: InspirationPorts; productLinks: readonly string[]; withMoodImage: boolean; settings: InspirationSettings; pinterest: PinterestAccessReader }>,
+): Promise<readonly MaybeProvider[]> {
   const image = imageProvider();
   const unsplashKey = env["UNSPLASH_ACCESS_KEY"] ?? "";
   const pexelsKey = env["PEXELS_API_KEY"] ?? "";
   return [
     libraryProvider(deps.ports.library, deps.who.brandId),
-    deps.pinterest && pinterestOn(env)
-      ? pinterestProvider(deps.pinterest, fetch)
-      : { source: "pinterest-board" as const, unavailable: noKeySentence("Your Pinterest boards", "PINTEREST_APP_ID") },
+    await pinterestEntry(deps.settings, env, deps.pinterest, deps.who, fetch),
     unsplashKey === "" ? { source: "unsplash" as const, unavailable: noKeySentence("Unsplash", "UNSPLASH_ACCESS_KEY") } : unsplashProvider(unsplashKey, fetch),
     pexelsKey === "" ? { source: "pexels" as const, unavailable: noKeySentence("Pexels", "PEXELS_API_KEY") } : pexelsProvider(pexelsKey, fetch),
     linkPreviewProvider(deps.productLinks, fetch),
@@ -66,13 +66,20 @@ export async function queryFor(client: SupabaseClient, who: Who, projectId: stri
   return buildContextQuery(designContext(spec, { sports: article?.sportTags ?? [], articleName: article?.name ?? null, moodWords }), steer);
 }
 
-/** Validation (X4) over the design as it would be after a patch. Every suggestion goes through this before it is shown. */
+/**
+ * Validation (X4) over the design as it would be after a patch. Every suggestion goes through this before it is shown,
+ * with the same live ports as the design's own save (the catalogue's parameter ranges and the kept moderation results),
+ * so a suggestion is never held to less than the save that would store it (plan v6 D4, decision 0135).
+ */
 export const designChecker =
-  (client: SupabaseClient, brandId: string, profileId?: string): DesignChecker =>
+  (client: SupabaseClient, brandId: string, profileId?: string, ports: ValidationPorts = livePorts(adminClient())): DesignChecker =>
   async (after) => {
-    const [profile, extra] = await Promise.all([loadFactoryProfile(client, profileId), specInput(after, brandId, UNWIRED_PORTS)]);
+    const [profile, extra] = await Promise.all([loadFactoryProfile(client, profileId), specInput(after, brandId, ports)]);
     return validateDesign({ typeId: after.typeId, readiness: null, ...extra }, profile, standardRegistry());
   };
+
+/** The board's four ports over the member's own client, with the site's address for the library's links. */
+export const productionPorts = (client: SupabaseClient): InspirationPorts => inspirationPorts(client, getEnv().NEXT_PUBLIC_SITE_URL);
 
 /** The whole board for one design. */
 export async function boardFor(
@@ -80,16 +87,26 @@ export async function boardFor(
   who: Who,
   projectId: string,
   spec: GarmentSpec,
-  options: Readonly<{ productLinks: readonly string[]; withMoodImage: boolean; ports?: InspirationPorts; env?: Env; screen?: BoardDeps["screen"] }>,
+  options: Readonly<{
+    productLinks: readonly string[];
+    withMoodImage: boolean;
+    /** Required, so no caller can fall back to the unwired set: production passes `productionPorts(client)`. */
+    ports: InspirationPorts;
+    env?: Env;
+    screen?: BoardDeps["screen"];
+    settings?: InspirationSettings;
+    pinterest?: PinterestAccessReader;
+  }>,
 ): Promise<Board> {
-  const ports = options.ports ?? UNWIRED_INSPIRATION_PORTS;
+  const ports = options.ports;
   const query = await queryFor(client, who, projectId, spec, ports);
-  const sources = inspirationSources(options.env ?? process.env, {
+  const sources = await inspirationSources(options.env ?? process.env, {
     who,
     ports,
     productLinks: options.productLinks,
     withMoodImage: options.withMoodImage,
-    pinterest: null,
+    settings: options.settings ?? DEFAULT_INSPIRATION_SETTINGS,
+    pinterest: options.pinterest ?? NO_PINTEREST_LOGINS,
   });
   return buildBoard(query, { sources, screen: options.screen ?? ports.screen.screen });
 }
