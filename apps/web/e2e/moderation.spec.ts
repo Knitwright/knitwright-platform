@@ -15,7 +15,7 @@ import { createAccount, makePlatformAdmin, passBotCheck, signIn, summary, test }
 const signedIn = async (page: Page, label: string): Promise<string> => {
   const email = await createAccount(label);
   await signIn(page, email);
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
   return email;
 };
 

@@ -21,7 +21,7 @@ const CSV = "Name,Number,Size\nANA,10,M\nBO,11,M\nCY,10,L\n";
 test.describe("team orders (W4)", () => {
   test("a member reads a team list, sees the repeated number, saves it and downloads the manifest", async ({ page }) => {
     await signIn(page, await createAccount("team-orders"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Team order test");
     await page.goto(`${page.url().split("?")[0]}?tool=production`);
 
@@ -54,7 +54,7 @@ test.describe("team orders (W4)", () => {
 
   test("erasing a team list removes its names", async ({ page }) => {
     await signIn(page, await createAccount("team-orders-erase"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Erase test");
     await page.goto(`${page.url().split("?")[0]}?tool=production`);
 

@@ -23,7 +23,7 @@ import { createAccount, openTool, signIn, test } from "./support";
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const startDesign = async (page: Page, name: string, type = "Team jersey"): Promise<void> => {

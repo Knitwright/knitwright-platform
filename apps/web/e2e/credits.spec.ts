@@ -9,7 +9,7 @@ import { createAccount, signIn, test } from "./support";
 test.describe("credits", () => {
   test("a new brand sees its free credits, the placeholder notice and one line of history", async ({ page }) => {
     await signIn(page, await createAccount("credits-new", { brand: "Credit Rovers" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // The balance is beside "Add credits" in the top bar's ⊕ menu (decision 0138).
     await page.locator("header").getByRole("button", { name: "Invite or add credits" }).click();
@@ -30,7 +30,7 @@ test.describe("credits", () => {
 
   test("opening the page twice gives the month's credits once", async ({ page }) => {
     await signIn(page, await createAccount("credits-twice", { brand: "Credit Twice FC" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/credits");
     const first = await page.getByTestId("credit-balance-figure").innerText();
     await page.reload();

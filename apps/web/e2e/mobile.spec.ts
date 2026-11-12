@@ -88,7 +88,7 @@ const startDesign = async (page: Page): Promise<string> => {
 test.describe("the key screens on a phone", () => {
   test("studio home, a design, its factory file, templates, club and credits", async ({ page }) => {
     await signIn(page, await createAccount("phone"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await checkPage(page, "/studio");
     const design = await startDesign(page);
     await checkPage(page, design);
@@ -102,7 +102,7 @@ test.describe("the key screens on a phone", () => {
     const email = await createAccount("phone-ops");
     await makePlatformAdmin(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await checkPage(page, "/ops");
   });
 });

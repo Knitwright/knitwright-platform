@@ -18,7 +18,7 @@ const startDesign = async (page: Page, name: string): Promise<void> => {
 test.describe("the studio home", () => {
   test("a new brand sees the four steps and where its first design will go", async ({ page }) => {
     await signIn(page, await createAccount("home-empty", { brand: "Fresh Rovers" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const steps = page.getByRole("region", { name: "How a design gets made" });
     await expect(steps.getByRole("listitem")).toHaveText([/^1Design/, /^2Factory file/, /^3Committee/, /^4Quote/]);
@@ -28,10 +28,10 @@ test.describe("the studio home", () => {
 
   test("lists what needs the member, and moves a design on once it is shared", async ({ page }) => {
     await signIn(page, await createAccount("home-needs", { brand: "Harbour Hockey" }));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Home kit 2027");
 
-    await page.goto("/studio");
+    await page.goto("/projects/recent");
     const needs = page.getByRole("region", { name: "Needs you" });
     const finish = needs.getByRole("link", { name: /^Home kit 2027: \d+ things? to confirm for the factory Finish$/ });
     await expect(finish).toHaveAttribute("href", /\/studio\/[0-9a-f-]{36}\/tech-pack$/);
@@ -46,7 +46,7 @@ test.describe("the studio home", () => {
     await panel.getByRole("button", { name: "Make a share link" }).click();
     await expect(panel.getByTestId("share-link")).toHaveCount(1);
 
-    await page.goto("/studio");
+    await page.goto("/projects/recent");
     await expect(needs.getByRole("link", { name: "Home kit 2027: committee vote open, no votes yet See votes" })).toBeVisible();
     await expect(page.getByTestId("design-card")).toContainText("Step 3 of 4: Committee");
   });

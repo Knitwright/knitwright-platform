@@ -19,7 +19,7 @@ const admin = () =>
 test.describe("club workspace (V4)", () => {
   test("a season is made, a roster is imported, and next season starts with the same sizes", async ({ page }) => {
     await signIn(page, await createAccount("club"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     // A brand that has not said it is a club reaches its club page from the rail's ⋯ (decision 0138).
     await openShellPlace(page, "Club and members");
     await expect(page).toHaveURL(/\/club$/);
@@ -53,7 +53,7 @@ test.describe("club workspace (V4)", () => {
 
   test("erasing a season removes its players", async ({ page }) => {
     await signIn(page, await createAccount("club-erase"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/club");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("Gone");
@@ -74,7 +74,7 @@ test.describe("club workspace (V4)", () => {
     expect(error).toBeNull();
 
     await signIn(page, ownerEmail);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/club");
     const seasons = page.getByRole("region", { name: "Seasons and rosters" });
     await seasons.getByLabel("New season").fill("2026");
@@ -86,7 +86,7 @@ test.describe("club workspace (V4)", () => {
     const other = await browser.newContext();
     const viewerPage = await other.newPage();
     await signIn(viewerPage, viewerEmail);
-    await expect(viewerPage).toHaveURL(/\/studio$/);
+    await expect(viewerPage).toHaveURL(/\/projects\/recent$/);
     await viewerPage.goto("/club");
     const theirs = viewerPage.getByRole("region", { name: "Seasons and rosters" });
     // The newest season opens by itself.
@@ -99,7 +99,7 @@ test.describe("club workspace (V4)", () => {
 
   test("an owner saves the kit", async ({ page }) => {
     await signIn(page, await createAccount("club-kit"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/club");
     const kit = page.getByRole("region", { name: "Club kit" });
     await kit.getByLabel("Main colour, pick").fill("#0b3d91");

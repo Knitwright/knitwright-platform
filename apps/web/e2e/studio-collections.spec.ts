@@ -109,7 +109,7 @@ test.describe("the collection board", () => {
   test("plans a range, counts its styles, colourways and SKUs, and shows every card's figures", async ({ page }) => {
     const email = await createAccount("z4-board", { brand: "Z4 Board" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // The studio sidebar now opens the plan (plan v5 Z4): no dead entry.
     await page.getByRole("navigation", { name: "Studio sections" }).getByRole("link", { name: "Collections" }).click();
@@ -149,7 +149,7 @@ test.describe("the line plan", () => {
   test("prices every line from the tiers with freight and duty, and re-prices live as a quantity changes", async ({ page }) => {
     const email = await createAccount("z4-line", { brand: "Z4 Line" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const planId = await startPlan(page, `Line plan ${randomUUID().slice(0, 8)}`);
     await addStyle(page, { name: "Tier jersey", colourway: "Navy", sizes: "M:19" });
@@ -184,7 +184,7 @@ test.describe("the two actions", () => {
   test("creates a drop payload for the Store, and nothing else", async ({ page }) => {
     const email = await createAccount("z4-drop", { brand: "Z4 Drop" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const planId = await startPlan(page, `Drop plan ${randomUUID().slice(0, 8)}`);
     const actions = page.getByRole("region", { name: "Actions" });
@@ -207,7 +207,7 @@ test.describe("the two actions", () => {
   test("orders a sample for every approved style, and says why a style cannot be sampled", async ({ page }) => {
     const email = await createAccount("z4-samples", { brand: "Z4 Samples" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const product = await listedProduct(email, page, `Sample tee ${randomUUID().slice(0, 8)}`);
     const planId = await startPlan(page, `Sample plan ${randomUUID().slice(0, 8)}`);
