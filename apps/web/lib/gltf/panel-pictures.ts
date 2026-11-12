@@ -6,7 +6,8 @@ import { defaultsNoteFor, SHRINK_NOT_APPLIED } from "@/lib/print/inputs/notes";
 import { flattenScene } from "@/lib/print/render/raster";
 import { artItems, buildSvg, type SvgView } from "@/lib/print/render/svg";
 import { pageSizeMm, type PieceScene } from "@/lib/print/scene";
-import type { GradedPattern, PrintProfile, PrintRuleSet } from "@/lib/production/contract";
+import type { StoredPrintProfile } from "@/lib/print/profiles";
+import type { GradedPattern, PrintRuleSet } from "@/lib/production/contract";
 import type { PanelLayout } from "./layout";
 
 /*
@@ -30,7 +31,7 @@ export interface PanelPictureInput {
   readonly colourwayId: string;
   /** The garment type, which picks the print zones. */
   readonly garment: string;
-  readonly profile: PrintProfile;
+  readonly profile: StoredPrintProfile;
   readonly rules: PrintRuleSet;
   readonly assets: AssetReader;
   readonly generators?: readonly PatternGenerator[];
