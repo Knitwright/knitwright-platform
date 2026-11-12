@@ -43,7 +43,7 @@ export function FabricPanel() {
           ))}
         </ul>
       ) : null}
-      <Link href="/brands/fabrics" className="text-[13px] font-medium text-ink underline">
+      <Link href="/products/fabrics" className="text-[13px] font-medium text-ink underline">
         Open your fabric library
       </Link>
     </section>

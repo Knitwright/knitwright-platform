@@ -13,12 +13,9 @@ export interface Alias {
   readonly permanent: boolean;
 }
 
-const alias = (source: string, destination: string): Alias => ({ source, destination, permanent: false });
 const moved = (source: string, destination: string): Alias => ({ source, destination, permanent: true });
 
 export const ROUTE_ALIASES: readonly Alias[] = [
-  alias("/products", "/catalogue"),
-  alias("/products/:code", "/catalogue/:code"),
   // P6 (decision 0144): the club page and Collect are Team; Brand Studio is Brand.
   moved("/club", "/team"),
   moved("/collect", "/team?tab=approvals"),

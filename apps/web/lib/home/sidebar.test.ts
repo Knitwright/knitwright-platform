@@ -47,9 +47,9 @@ describe("the studio sidebar", () => {
   it("points Products, Brand kit and the library at pages that exist", () => {
     expect(hrefOf(sidebarItem("products")!.target)).toBe("/projects");
     expect(hrefOf(sidebarItem("brand-kit")!.target)).toBe("/brand");
-    expect(hrefOf(sidebarItem("base-products")!.target)).toBe("/catalogue");
-    expect(hrefOf(sidebarItem("templates")!.target)).toBe("/catalogue?tab=templates");
-    expect(hrefOf(sidebarItem("fabrics")!.target)).toBe("/brands/fabrics");
+    expect(hrefOf(sidebarItem("base-products")!.target)).toBe("/products");
+    expect(hrefOf(sidebarItem("templates")!.target)).toBe("/templates");
+    expect(hrefOf(sidebarItem("fabrics")!.target)).toBe("/products/fabrics");
     expect(hrefOf(sidebarItem("size-charts")!.target)).toBe("/studio/charts");
     // The collection plan of F-S10 is built (plan v5 Z4, decision 0085), so the entry is a link.
     expect(hrefOf(sidebarItem("collections")!.target)).toBe("/studio/collections");

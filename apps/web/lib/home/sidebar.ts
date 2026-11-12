@@ -59,9 +59,9 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     id: "library",
     label: "Library",
     items: [
-      { id: "base-products", label: "Base products", target: page("/catalogue") },
-      { id: "templates", label: "Templates", target: page("/catalogue?tab=templates") },
-      { id: "fabrics", label: "Fabrics", target: page("/brands/fabrics") },
+      { id: "base-products", label: "Base products", target: page("/products") },
+      { id: "templates", label: "Templates", target: page("/templates") },
+      { id: "fabrics", label: "Fabrics", target: page("/products/fabrics") },
       { id: "size-charts", label: "Size charts", target: page("/studio/charts") },
       // Benchmarks (plan v5 Z3, spec F-S2, decision 0084). This was the only entry, because the top bar had no
       // width for an eighth section; decision 0103 gave the bar an overflow menu, where a section costs no width,
