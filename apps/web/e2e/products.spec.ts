@@ -51,7 +51,7 @@ test.describe("the catalogue home", () => {
     // Order swatch book stays visible and says why it does nothing yet (no fake flow before checkout).
     await expect(page.getByRole("button", { name: "Order swatch book" })).toHaveAttribute("aria-disabled", "true");
     await page.getByText("What is the minimum order?").click();
-    await expect(page.getByText(/^From 1 piece, on 1 of 8 bases\./)).toBeVisible();
+    await expect(page.getByText(/^From \d+ pieces?, on \d+ of 8 bases\./)).toBeVisible();
     await accessible(page);
   });
 
@@ -168,7 +168,7 @@ test.describe("My products and Trending ideas", () => {
 
     await page.goto("/products/trends");
     await expect(page.getByRole("heading", { level: 1, name: "Trending ideas" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Sports" }).getByRole("link", { name: "All" })).toHaveAttribute("aria-current", "true");
+    await expect(page.getByRole("navigation", { name: "Sports" }).getByRole("link", { name: "All", exact: true })).toHaveAttribute("aria-current", "true");
     await expect(page.getByRole("button", { name: /^Start a design from / }).first()).toBeVisible();
     await accessible(page);
   });

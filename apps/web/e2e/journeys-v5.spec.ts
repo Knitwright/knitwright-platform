@@ -162,6 +162,8 @@ test.describe("the founder journey (R3)", () => {
     const configurator = page.getByRole("dialog", { name });
     await configurator.getByRole("button", { name: "Made for: Women" }).click();
     await configurator.getByRole("button", { name: /^Create my design/ }).click();
+    // The product page's own h1 carries the same name, so the editor is known by its address first.
+    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
     const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
     expect(projectId).not.toBe("");
