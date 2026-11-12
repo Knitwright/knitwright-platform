@@ -23,7 +23,7 @@ export const useTemplateAction = defineAction({
       userId: session.userId,
       templateId: input.templateId,
     });
-    revalidatePath("/studio");
+    revalidatePath("/projects/recent");
     redirect(editorAddress(id) as Route);
   },
 });

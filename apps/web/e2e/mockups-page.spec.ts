@@ -25,7 +25,7 @@ test.beforeAll(async () => {
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 /** A design of the brand's own, made from a starter, so the page has a product to show. */

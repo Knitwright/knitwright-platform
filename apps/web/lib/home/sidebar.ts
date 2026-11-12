@@ -38,7 +38,7 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     id: "yours",
     label: "Yours",
     items: [
-      { id: "products", label: "Products", target: page("/studio"), hint: "Your designs" },
+      { id: "products", label: "Products", target: page("/projects"), hint: "Your designs" },
       { id: "brand-kit", label: "Brand kit", target: page("/brand") },
     ],
   },
@@ -46,8 +46,8 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     id: "projects",
     label: "Projects",
     items: [
-      { id: "all", label: "All", target: page("/studio") },
-      { id: "designs", label: "Designs", target: page("/studio?jump=designs") },
+      { id: "all", label: "All", target: page("/projects/recent") },
+      { id: "designs", label: "Designs", target: page("/projects/recent?jump=designs") },
       { id: "collections", label: "Collections", target: page("/orders/plans") },
       { id: "moodboards", label: "Moodboards", target: later },
       { id: "pattern-fills", label: "Pattern fills", target: later },
@@ -75,7 +75,7 @@ export const SIDEBAR: readonly SidebarGroup[] = [
     label: "Help and Trash",
     items: [
       { id: "help", label: "Help", target: external(`mailto:${PRODUCT.contactEmail}`), hint: "Email the team" },
-      { id: "trash", label: "Trash", target: later },
+      { id: "trash", label: "Trash", target: page("/projects/trash") },
     ],
   },
 ];

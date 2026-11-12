@@ -49,7 +49,7 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
     const email = await createAccount("signup-manager", { brand: `Signup FC ${run}` });
     await signIn(page, email);
     // signIn only presses the button; the session cookie arrives with the redirect (plan v5 Lessons).
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await makeSeason(page, seasonName);
 
     await page.goto("/team?view=signup");
@@ -113,7 +113,7 @@ test.describe("collecting a squad's names, numbers and sizes", () => {
     const seasonName = `Refused ${run}`;
     const email = await createAccount("signup-refused", { brand: `Refused FC ${run}` });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await makeSeason(page, seasonName);
 
     await page.goto("/team?view=signup");

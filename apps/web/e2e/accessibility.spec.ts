@@ -8,7 +8,7 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 test.describe("keyboard", () => {
   test("the assistant sheet traps Tab, closes on Escape and returns focus to its button", async ({ page }) => {
     await signIn(page, await createAccount("a11y-sheet"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/studio/new");
     await page.getByLabel("Garment type").selectOption({ label: "Crew neck tee" });
     await page.getByLabel("Made for").selectOption({ label: "Women" });

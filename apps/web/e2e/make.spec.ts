@@ -65,7 +65,7 @@ test.describe("make (Y7)", () => {
     const email = await createAccount("make", { brand: "Fern Make" });
     await signIn(page, email);
     // The session cookie arrives with the redirect: follow it before asking for a guarded page.
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const name = `Make tee ${randomUUID().slice(0, 8)}`;
     const projectId = await startDesign(page, name);
@@ -148,7 +148,7 @@ test.describe("make (Y7)", () => {
   test("a Class B run outside 50 to 300 pieces is noted, not refused: only the golden sample stops it", async ({ page }) => {
     const email = await createAccount("make-class", { brand: "Oak Make" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     const name = `Class tee ${randomUUID().slice(0, 8)}`;
     const projectId = await startDesign(page, name);

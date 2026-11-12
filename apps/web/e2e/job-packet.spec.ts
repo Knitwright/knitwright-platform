@@ -61,7 +61,7 @@ test.describe("the factory's job packet", () => {
     const fabric = `mesh-packet-${Date.now()}`;
     await batchFor(email, ref, fabric);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/ops");
     await page.getByRole("link", { name: new RegExp(`crew-tee, ${fabric}`) }).first().click();
@@ -144,7 +144,7 @@ test.describe("the factory's job packet", () => {
   test("a photo a factory sent is for platform admins only", async ({ page }) => {
     const email = await createAccount("packet-member", { brand: "Bayside FC" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     expect((await page.request.get("/api/job/events/6f1c0a52-0a3e-4a39-8f0b-2f5d8f3c9a11/photo")).status()).toBe(404);
   });

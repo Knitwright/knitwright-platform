@@ -45,7 +45,7 @@ describe("the studio sidebar", () => {
   });
 
   it("points Products, Brand kit and the library at pages that exist", () => {
-    expect(hrefOf(sidebarItem("products")!.target)).toBe("/studio");
+    expect(hrefOf(sidebarItem("products")!.target)).toBe("/projects");
     expect(hrefOf(sidebarItem("brand-kit")!.target)).toBe("/brand");
     expect(hrefOf(sidebarItem("base-products")!.target)).toBe("/catalogue");
     expect(hrefOf(sidebarItem("templates")!.target)).toBe("/catalogue?tab=templates");
@@ -53,10 +53,12 @@ describe("the studio sidebar", () => {
     expect(hrefOf(sidebarItem("size-charts")!.target)).toBe("/studio/charts");
     // The collection plan of F-S10 is built (plan v5 Z4, decision 0085), so the entry is a link.
     expect(hrefOf(sidebarItem("collections")!.target)).toBe("/orders/plans");
+    // The Trash is built on the Projects page (decision 0139).
+    expect(hrefOf(sidebarItem("trash")!.target)).toBe("/projects/trash");
   });
 
   it("marks the Projects sections that are not built as coming later, never as a link", () => {
-    for (const id of ["moodboards", "pattern-fills", "mockups", "flows", "trash"]) {
+    for (const id of ["moodboards", "pattern-fills", "mockups", "flows"]) {
       const item = sidebarItem(id);
       expect(item, id).toBeDefined();
       expect(isLater(item!.target), id).toBe(true);

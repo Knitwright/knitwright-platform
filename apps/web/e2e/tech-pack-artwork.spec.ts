@@ -67,7 +67,7 @@ test.describe("the artwork and colour page of a design with an artwork stack (W5
   test("a design with the user's own uploaded picture lists the layer, its resolution and the repeat spec, and the factory list asks about a soft picture", async ({ page }) => {
     const email = await createAccount("pack-upload");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Upload test");
 
     // A 400 px crest printed 90 mm wide is about 113 dpi, below the default minimum of 150.
@@ -101,7 +101,7 @@ test.describe("the artwork and colour page of a design with an artwork stack (W5
   test("a design read from a picture shows the report, the limits and who accepted it, and says it is a close reading", async ({ page }) => {
     const email = await createAccount("pack-picture");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Picture test");
     const userId = await userOf(email);
     const brandId = await brandOf(userId);

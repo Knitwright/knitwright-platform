@@ -1049,6 +1049,38 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, collection_id: randomUUID(), version: 1, payload: { kind: "collection-drop" } }),
     change: { payload: { kind: "changed by a stranger" } },
   },
+  // Plan v6 P1 (decision 0139): the Projects page's folders, what is in them, and the Trash. A member
+  // reads their own brand's rows; only the six project-page functions write.
+  project_folders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedFolder(brandId, ownerId) }),
+    attempt: (brandId, userId) => ({ brand_id: brandId, name: "Made directly", created_by: userId }),
+    change: { name: "Changed by a stranger" },
+  },
+  project_folder_items: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const folderId = await seedFolder(brandId, ownerId);
+      const projectId = await seedProject(brandId, ownerId);
+      must(await adminClient().rpc("place_project_item", { p_brand_id: brandId, p_user_id: ownerId, p_kind: "design", p_item_id: projectId, p_folder_id: folderId }));
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, folder_id: randomUUID(), project_id: randomUUID(), added_by: userId }),
+    change: { folder_id: randomUUID() },
+  },
+  project_trash: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const projectId = await seedProject(brandId, ownerId);
+      must(await adminClient().rpc("trash_project_item", { p_brand_id: brandId, p_user_id: ownerId, p_kind: "design", p_item_id: projectId }));
+      return { project_id: projectId };
+    },
+    attempt: (brandId, userId) => ({ brand_id: brandId, project_id: randomUUID(), trashed_by: userId }),
+    change: { trashed_at: "2026-01-01T00:00:00Z" },
+  },
   // Plan v5 L1 (decision 0091): the launch canvases, their boards, their connectors and their saved
   // versions. A member reads their own brand's rows; only the launch functions write; a saved version
   // is append-only; and a generated board's output can never be artwork (spec decision 13).
@@ -1980,6 +2012,10 @@ const moodboardArgs = (brandId: string, ownerId: string, projectId: string) => (
   p_attribution: { creator: "Ada", creatorUrl: null, provider: "Unsplash", providerUrl: null, notice: "Photo by Ada on Unsplash" },
 });
 
+/** A folder of the brand's Projects page (decision 0139), with a name of its own each time. */
+const seedFolder = async (brandId: string, ownerId: string): Promise<string> =>
+  must(await adminClient().rpc("create_project_folder", { p_brand_id: brandId, p_user_id: ownerId, p_name: `Folder ${randomUUID().slice(0, 8)}` }));
+
 const seedProject = async (brandId: string, ownerId: string): Promise<string> =>
   must(
     await adminClient().rpc("create_project", {
@@ -2626,6 +2662,8 @@ const CALLABLE = {
     authenticated: true,
   },
   "public.admin_set_quote_status(p_quote_id uuid, p_status text)": { anon: false, authenticated: true },
+  // Decision 0139: the invites to other brands' designs sent to the caller's own confirmed address.
+  "public.shared_with_me()": { anon: false, authenticated: true },
   // Used inside access rules. They cannot be called through the API.
   "private.is_member(p_brand_id uuid)": { anon: false, authenticated: true },
   "private.brand_id_from(p_text text)": { anon: false, authenticated: true },

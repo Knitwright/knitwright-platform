@@ -64,7 +64,7 @@ test.describe("two-click reorder (W4-F)", () => {
   test("reorders in two clicks when nothing changed", async ({ page }) => {
     const email = await createAccount("reorder-same");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Reorder same");
     await seedRelease(email, projectId, EARLIER);
     await saveSeason(page, "Name,Number,Size,Cut\nAna Reyes,10,M,women\nCy Lowe,12,S,junior\n");
@@ -82,7 +82,7 @@ test.describe("two-click reorder (W4-F)", () => {
   test("flags a removed size and a player who left, and needs an answer for each", async ({ page }) => {
     const email = await createAccount("reorder-fix");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Reorder fix");
     await seedRelease(email, projectId, EARLIER);
     await saveSeason(page, "Name,Number,Size,Cut\nAna Reyes,10,M,women\nBo Tran,11,ZZ,men\n");

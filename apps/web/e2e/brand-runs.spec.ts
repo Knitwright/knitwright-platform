@@ -51,7 +51,7 @@ test.describe("brand workspace (W4-C)", () => {
   test("a product goes from idea to sample to run and both orders reach the ops queue", async ({ page }) => {
     const email = await createAccount("brand-runs", { brand: "Fern Apparel" });
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Fern hoodie");
     await freeze(email, projectId);
     // A crew tee is Class B, so a person at Knitwright has to have looked at the design before a
@@ -125,7 +125,7 @@ test.describe("brand workspace (W4-C)", () => {
     const email = await createAccount("brand-runs-ops", { brand: "Birch Apparel" });
     await makePlatformAdmin(email);
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Birch tee");
     await freeze(email, projectId);
     const db = service();
@@ -157,7 +157,7 @@ test.describe("brand workspace (W4-C)", () => {
   test("a viewer sees the list and cannot add or order", async ({ page, browser }) => {
     const ownerEmail = await createAccount("brand-runs-owner", { brand: "Cedar Apparel" });
     await signIn(page, ownerEmail);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const projectId = await startDesign(page, "Cedar tee");
     const viewerEmail = await createColleagueOf(ownerEmail, "brand-runs-viewer");
     const db = service();
@@ -173,7 +173,7 @@ test.describe("brand workspace (W4-C)", () => {
     const other = await browser.newContext();
     const viewerPage = await other.newPage();
     await signIn(viewerPage, viewerEmail);
-    await expect(viewerPage).toHaveURL(/\/studio$/);
+    await expect(viewerPage).toHaveURL(/\/projects\/recent$/);
     await viewerPage.goto(productUrl);
     await expect(viewerPage.getByRole("region", { name: "Product list" }).getByText("Cedar tee").first()).toBeVisible();
     await expect(viewerPage.getByRole("button", { name: "Add to product list" })).toHaveCount(0);

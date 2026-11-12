@@ -15,6 +15,8 @@ export const FULL_WIDTH: readonly string[] = [
   "/store",
   "/dev/orders",
   "/dev/pages",
+  "/projects",
+  "/dev/projects",
   "/dev/shell",
   "/team",
   "/brand",

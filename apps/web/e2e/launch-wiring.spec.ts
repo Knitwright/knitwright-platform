@@ -31,7 +31,7 @@ const admin = () =>
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
   // The session cookie arrives with the redirect: follow it before going anywhere else.
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 /** A launch project with nothing behind it, which is enough to open every panel. */
@@ -212,7 +212,7 @@ test.describe("L2's renderer, end to end", () => {
     test.setTimeout(180_000);
     const email = await createAccount("panels-render");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     // A design to launch. The mockup is drawn from this design's own flat drawing.
     const designName = `Render kit ${randomUUID().slice(0, 8)}`;

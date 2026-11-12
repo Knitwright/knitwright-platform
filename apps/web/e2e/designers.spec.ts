@@ -30,7 +30,7 @@ test.describe.configure({ mode: "serial" });
 test.describe("designer templates", () => {
   test("a designer offers a design, an admin accepts it, and the library shows the designer's name", async ({ page, browser }) => {
     await signIn(page, await createAccount("designer-e2e"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
 
     await page.goto("/designer");
     await expect(page.getByRole("heading", { level: 1, name: "Designer" })).toBeVisible();
@@ -69,7 +69,7 @@ test.describe("designer templates", () => {
     const adminEmail = await createAccount("designer-e2e-admin");
     await makePlatformAdmin(adminEmail);
     await signIn(adminPage, adminEmail);
-    await expect(adminPage).toHaveURL(/\/studio$/);
+    await expect(adminPage).toHaveURL(/\/projects\/recent$/);
     await adminPage.goto("/admin/templates");
     const queued = adminPage.getByTestId("queue-entry").filter({ hasText: TITLE });
     await expect(queued).toContainText("By Ada E2E");
@@ -90,7 +90,7 @@ test.describe("designer templates", () => {
   test("the review page does not exist for a visitor or a member", async ({ page }) => {
     expect((await page.goto("/admin/templates"))?.status()).toBe(404);
     await signIn(page, await createAccount("designer-e2e-member"));
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto("/admin/templates"))?.status()).toBe(404);
   });
 });

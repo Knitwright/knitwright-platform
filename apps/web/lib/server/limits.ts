@@ -45,6 +45,8 @@ export const LIMITS = {
   importChart: { name: "import-chart", limit: 30, windowSeconds: 10 * MINUTE },
   // Deleting cannot be undone and removes stored files, so a slip or a script can do little harm.
   deleteDesign: { name: "delete-design", limit: 20, windowSeconds: 10 * MINUTE },
+  // Decision 0139: folders, Trash and restore on the Projects page.
+  projectsPage: { name: "projects-page", limit: 60, windowSeconds: MINUTE },
   deleteAccount: { name: "delete-account", limit: 3, windowSeconds: HOUR },
   // The name shown as "Made by" in tech packs. Kept in the person's sign-in profile.
   changeProfile: { name: "change-profile", limit: 20, windowSeconds: 10 * MINUTE },

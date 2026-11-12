@@ -39,7 +39,7 @@ export const applyKitStyleAction = defineAction({
     if (!outcome.ok) throw new AppError("invalid_input", outcome.reason);
     revalidatePath(`/studio/${input.projectId}`);
     revalidatePath(`/studio/${input.projectId}/tech-pack`);
-    revalidatePath("/studio");
+    revalidatePath("/projects/recent");
     redirect((input.from === "guide" ? guideAddress(input.projectId, "start") : toolHref(input.projectId, "colours")) as Route);
   },
 });

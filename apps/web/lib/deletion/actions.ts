@@ -28,8 +28,8 @@ export const deleteDesignAction = defineAction({
       userId: session.userId,
       projectId: input.projectId,
     });
-    revalidatePath("/studio");
-    redirect("/studio");
+    revalidatePath("/projects/recent");
+    redirect("/projects/recent");
   },
 });
 

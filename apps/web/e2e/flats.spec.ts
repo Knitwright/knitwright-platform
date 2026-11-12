@@ -11,7 +11,7 @@ const NOT_TO_SCALE = "Not to scale. Some measurements are missing.";
 
 const signedIn = async (page: Page, label: string): Promise<void> => {
   await signIn(page, await createAccount(label));
-  await expect(page).toHaveURL(/\/studio$/);
+  await expect(page).toHaveURL(/\/projects\/recent$/);
 };
 
 const startDesign = async (page: Page, type: string, name = "Flat test"): Promise<void> => {
@@ -67,7 +67,7 @@ test.describe("the drawing", () => {
     const email = await createAccount("flat-scale");
     await leaveWithoutChart(email, "crew-tee", "women");
     await signIn(page, email);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Crew neck tee");
 
     await expect(front(page)).toBeVisible();

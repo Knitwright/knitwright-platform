@@ -38,7 +38,7 @@ export function RailView({ path, workspace, brandName, helpHref }: RailProps & R
       aria-label="Main"
       className="sticky top-0 z-40 hidden h-dvh w-24 shrink-0 flex-col items-center gap-0.5 overflow-y-auto border-r border-border bg-bg pt-4.5 pb-3.5 [scrollbar-width:none] md:flex"
     >
-      <Link href="/studio" className="mb-3.5 shrink-0 rounded-lg">
+      <Link href="/projects/recent" className="mb-3.5 shrink-0 rounded-lg">
         <LogoTile className="pointer-events-none" />
       </Link>
       <CreateMenu />

@@ -49,7 +49,7 @@ test.describe("the Orders area", () => {
     const orderId = await shippedOrder(member, ops, design);
 
     await signIn(page, member);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     await page.goto("/orders");
     await expect(page.getByRole("heading", { level: 1, name: "Orders" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Save on team and bulk orders" })).toBeVisible();
@@ -80,7 +80,7 @@ test.describe("the Orders area", () => {
 
     const stranger = await createAccount("orders-stranger", { brand: "Stranger FC" });
     await signIn(page, stranger);
-    await expect(page).toHaveURL(/\/studio$/);
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     expect((await page.goto(`/orders/${orderId}`))?.status()).toBe(404);
 
     for (const [tab, heading] of [["Samples", "No samples yet"], ["Collection plans", "No collection plan yet"], ["Quotes", "Nothing to quote yet"]] as const) {
