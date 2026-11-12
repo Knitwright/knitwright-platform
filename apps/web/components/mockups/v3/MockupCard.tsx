@@ -40,7 +40,7 @@ function Picture({ card, product }: Readonly<{ card: Card; product: ProductPictu
 
 function Actions({ card, product }: Readonly<{ card: Card; product: ProductPicture }>) {
   return (
-    <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
+    <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 max-md:opacity-100 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
       <StartLaunch source="mockup" slug={card.slug} designProjectId={product.id} colourwayId={product.colourwayId} variant="primary" icon={<Icon icon={Pencil} size={16} />} label={`Edit ${card.title}`} className="flex-1">
         Edit
       </StartLaunch>

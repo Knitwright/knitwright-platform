@@ -74,7 +74,7 @@ export function ConceptCard({ concept, garment, shape, caption = false }: CardPr
           </span>
         ) : null}
         {concept.premium ? <PremiumMark label="Uses credits" className="absolute top-3 right-3 grid size-6 rounded-full bg-bg shadow-e1" /> : null}
-        <div className="absolute inset-x-3 bottom-3 opacity-0 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
+        <div className="absolute inset-x-3 bottom-3 opacity-0 max-md:opacity-100 transition-opacity duration-fast group-hover:opacity-100 group-focus-within:opacity-100">
           <ConceptUse concept={concept} />
         </div>
       </div>
