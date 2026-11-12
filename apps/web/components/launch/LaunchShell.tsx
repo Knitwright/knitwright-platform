@@ -2,7 +2,7 @@
 
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
 import { Notice } from "@/components/ui/Notice";
-import { flowCostSource } from "@/lib/flows";
+import { boardFilePath, flowCostSource, offeredBar, TASK_STEPS } from "@/lib/flows";
 import {
   BOARDS,
   estimateRun,
@@ -75,7 +75,7 @@ const WRITE_FAILED = "Write for me could not be reached. Check your connection a
  *
  * Every garment-locked rule is on the screen and not only in the code: a board with no Design board
  * behind it says so in the inspector, its Run button says there is nothing to run, and the task
- * bar's Remove background and Remix are off on a picture the platform drew.
+ * bar's Remix is off on a picture the platform drew.
  */
 export function LaunchShell({ project, presets, credits, costs, state, canEdit, marketing }: LaunchShellProps) {
   const graph = { boards: project.boards, edges: project.edges };
@@ -167,14 +167,26 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
     watermarkRules: marketing.watermarkRules,
   };
 
+  /**
+   * Every task-bar button does its own thing (decision 0133, `lib/flows/task-actions.ts`): none of
+   * them only selects. The paid ones go through the flow run, so they are charged, refunded and
+   * recorded like any run; a button with nothing behind it is left off the bar (`offeredBar`).
+   */
   const action = (id: TaskAction) => {
     if (!selected) return;
-    if (id === "remove") return shell.commands.removeBoard(selected.id);
-    if (id === "duplicate") return shell.commands.addBoard(selected.kind, { x: selected.at.x + 40, y: selected.at.y + 40 });
-    // Flatten, Upscale, Reframe, Remove background, Remix, Generate video and Download are the
-    // panels' own work (L2 to L6). The shell offers them, says when they cannot be used, and hands
-    // them over; it never does one itself.
-    shell.commands.selectBoard(selected.id, true);
+    const step = TASK_STEPS[id];
+    if (step === null) return;
+    if (step.do === "remove") return shell.commands.removeBoard(selected.id);
+    if (step.do === "duplicate") return shell.commands.addBoard(selected.kind, { x: selected.at.x + 40, y: selected.at.y + 40 });
+    if (step.do === "remix") return shell.remix(selected.id);
+    if (step.do === "add") return shell.commands.addBoard(step.kind, { x: selected.at.x + selected.size.width + 80, y: selected.at.y }, selected.id);
+    if (step.do === "operation") return shell.runOperation(selected.id, step.operation, {});
+    if (step.do === "download") {
+      if (selected.outputFileId) window.open(boardFilePath(selected.outputFileId), "_blank", "noopener");
+      return;
+    }
+    // Reframe: the shapes to choose from are in the board's own panel, so the board is opened.
+    shell.commands.selectBoard(selected.id, false);
   };
 
   return (
@@ -206,7 +218,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
           <RailPanels open={shell.state.rail} panel={panel} />
 
           <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
-            {page.taskBar ? <TaskBar bar={page.taskBar} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
+            {page.taskBar ? <TaskBar bar={offeredBar(page.taskBar)} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
             <BoardCanvas graph={graph} selectedId={shell.state.boardId} zoom={shell.state.zoom} busy={busy} empty={page.empty} commands={shell.commands} />
             <BottomDock
               tool={shell.state.tool}

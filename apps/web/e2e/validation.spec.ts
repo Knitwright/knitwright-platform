@@ -26,6 +26,9 @@ test.describe("validation gate (V1)", () => {
     await expect(blocker).toBeVisible();
     await expect(blocker).toHaveAttribute("data-severity", "blocker");
     await expect(blocker).toContainText("Your print house");
+    // Spec F-0: each failing check has "Why?" and "Fix" links (plan v6 D1, decision 0132).
+    await expect(blocker.getByTestId("finding-fix")).toHaveAttribute("href", /\/studio\/[0-9a-f-]{36}\/tech-pack$/);
+    await expect(blocker.getByText("Why?")).toBeVisible();
     await expect(panel.getByTestId("validation-status")).toHaveAttribute("data-status", "draft");
     await expect(panel.getByTestId("validation-move-validated")).toBeDisabled();
 

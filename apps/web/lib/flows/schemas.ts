@@ -60,6 +60,14 @@ export const flowOperationBody = z.object({
 });
 export type FlowOperationBody = z.output<typeof flowOperationBody>;
 
+/** Remix on the task bar over a picture: the board, and the figure the person was shown. */
+export const remixFlowBoardBody = z.object({
+  launchProjectId: z.uuid(),
+  boardId: z.uuid(),
+  shownCredits: z.number().int().min(0).max(1_000_000),
+});
+export type RemixFlowBoardBody = z.output<typeof remixFlowBoardBody>;
+
 export const publishFlowListingBody = z.object({
   launchProjectId: z.uuid(),
   title: z.string().trim().min(1).max(120),

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { can, type ClubRole } from "@/lib/clubs/roles";
 import { NOT_ALLOWED } from "@/lib/clubs/errors";
 import { guardOrder, type OrderGuards } from "@/lib/moderation/before-order";
+import type { OrderValidationGate } from "@/lib/make/order-gate";
 import { AppError } from "@/lib/server/core/errors";
 import { moderationTargets } from "@/lib/validation/spec-input";
 import { checkBreakdown, numbersOf } from "./breakdown";
@@ -20,7 +21,7 @@ export const FLAGS_NOT_READ = "Read the notes about this quantity and tick the b
  * here in plain words; the database checks the role, the stage and the release again. A flagged quantity (under the minimum,
  * over 300) goes only after the brand has said it read the notes. The factory comes from the profile, never from the request.
  */
-export async function placeOrder(clients: Clients, who: Who, role: ClubRole, body: RunBody, guards: OrderGuards): Promise<SubmittedRun> {
+export async function placeOrder(clients: Clients, who: Who, role: ClubRole, body: RunBody, guards: OrderGuards, gate: OrderValidationGate): Promise<SubmittedRun> {
   if (!can(role, "manageKit")) throw new AppError("forbidden", NOT_ALLOWED);
   const product = await getProduct(clients.client, who.brandId, body.productId);
   const refusal = whyNotOrder(product.stage, body.kind);
@@ -33,17 +34,24 @@ export async function placeOrder(clients: Clients, who: Who, role: ClubRole, bod
   if (breakdown.errors.length > 0) throw new AppError("invalid_input", breakdown.errors.join(" "));
   if (breakdown.flags.length > 0 && !body.acknowledgeFlags) throw new AppError("conflict", FLAGS_NOT_READ);
 
-  // Before every order (spec F-G1; security review v5 H3, decision 0116). Last of the refusals, so
-  // a person is told the cheap things first, and immediately before the one write.
-  await guardOrder(guards, {
-    releaseId: body.releaseId,
-    label: context.designName,
-    assetIds: moderationTargets(context.spec).map((target) => target.id),
-    texts: [{ text: context.designName, context: "title" }],
-    // A sample is never Class B here: the class is a property of a run, and a sample is part of
-    // what the class is decided from. The make flow draws the same line.
-    classB: body.kind === "run" && context.productionClass === "B",
-  });
+  // The version's own checks first, then the screen before every order (spec F-G1; security review v5 H3,
+  // decision 0116), then the F-G2 checklist (plan v6 D1, decision 0132). Last of the refusals, so a person
+  // is told the cheap things first, and immediately before the one write.
+  const checklist = await gate(
+    { projectId: product.projectId, releaseId: body.releaseId, productionClass: context.productionClass, colourToleranceMax: null },
+    async () =>
+      (
+        await guardOrder(guards, {
+          releaseId: body.releaseId,
+          label: context.designName,
+          assetIds: moderationTargets(context.spec).map((target) => target.id),
+          texts: [{ text: context.designName, context: "title" }],
+          // A sample is never Class B here: the class is a property of a run, and a sample is part of
+          // what the class is decided from. The make flow draws the same line.
+          classB: body.kind === "run" && context.productionClass === "B",
+        })
+      ).result,
+  );
 
   return submitRun(clients.admin, who, {
     productId: product.id,
@@ -52,7 +60,7 @@ export async function placeOrder(clients: Clients, who: Who, role: ClubRole, bod
     factoryProfileId: context.factoryProfileId,
     fabricKey: body.fabricKey,
     sizes: breakdown.sizes,
-    flags: breakdown.flags,
+    flags: [...breakdown.flags, ...checklist],
     requestKey: body.requestKey,
   });
 }

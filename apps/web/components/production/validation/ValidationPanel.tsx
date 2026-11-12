@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
+import { WhyLink } from "@/components/rulebook/WhyLink";
 import type { Finding } from "@/lib/production/contract";
 // `moves.ts`, never `status.ts`: this is a client component and `status.ts` holds a zod schema.
 import { panelMoves, type PanelMove } from "@/lib/validation/moves";
@@ -44,7 +45,7 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
         {data.blockers === 0 ? "No blockers." : `${data.blockers} ${data.blockers === 1 ? "blocker" : "blockers"} to clear before this can be ordered.`}
         {data.warnings > 0 ? ` ${data.warnings} to be aware of.` : ""}
       </p>
-      <FindingList findings={data.findings} />
+      <FindingList findings={data.findings} projectId={projectId} why={(ruleId, context) => <WhyLink ruleId={ruleId} context={context} />} />
       {moveProblem ? <Notice tone="warn" role="alert">{moveProblem}</Notice> : null}
       {/* The moves this panel offers come from `lib/validation/moves.ts`, which a test holds to the
           status rules, so the panel cannot forget a status the route accepts: "Accept for ordering"

@@ -11,6 +11,8 @@ const CONFLICTS: Readonly<Record<string, string>> = {
   need_sample_order: "Order a sample before moving to the sample stage.",
   request_key_conflict: "That order was already sent for another product. Reload the page and try again.",
   external_ref_conflict: "That order was already sent. Reload the page and try again.",
+  // submit_order_for_production (plan v6 D1, decision 0132): the version's newest check found a blocker.
+  validation_blockers: "This design has blockers against the factory profile. Clear them in the Factory file before it is ordered.",
 };
 
 const INVALID: Readonly<Record<string, string>> = {

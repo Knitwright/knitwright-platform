@@ -18,7 +18,11 @@ import { FLOW_GAP_RULE } from "./types";
  * `transfer_design`, `composite_logo` are its paid operations -- and everything else goes through
  * the existing lifestyle adapters. Both are stubbed in tests, both are metered where the call is,
  * and neither is reached from this directory: `FILES_SERVICE_URL` is unset, every files-service
- * operation answers "not available", and the registry below is empty.
+ * operation answers "not available".
+ *
+ * **The registry a real run uses is `real/registry.ts`** (decision 0133), built per run by
+ * `real/server.ts` and required by `runFlowForBrand`. `EMPTY_REGISTRY` below is the engine's own
+ * default for its tests, and nothing in production is handed it.
  */
 
 /** The files-service operation a board kind's real capability would use, or null for one that is not its work. */

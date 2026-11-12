@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import {
   affordable,
-  BOARDS,
   canConnect,
   estimateRun,
   RAIL_ITEMS,
@@ -40,8 +39,8 @@ import {
   saveLaunchProjectAction,
   saveLaunchVersionAction,
 } from "@/lib/launch/actions";
-import { flowOperationAction, runFlowAction } from "@/lib/flows/actions";
-import type { OperationId } from "@/lib/flows";
+import { flowOperationAction, remixFlowBoardAction, runFlowAction } from "@/lib/flows/actions";
+import { estimateFlow, flowCostSource, type OperationId } from "@/lib/flows";
 import { freePlace } from "./placing";
 
 /**
@@ -71,6 +70,9 @@ interface Frame {
 }
 
 type Reply = { success: boolean; error?: { message: string } } | null;
+
+/** A flow run's answer: the first board that did not finish says why, or null when all did. */
+type FlowReply = { success: true; data: { reason: string | null } } | { success: false; error: { message: string } };
 
 const fieldsOf = (board: BoardView): BoardFields => ({
   name: board.name,
@@ -185,10 +187,34 @@ export function useLaunchShell(input: ShellInput) {
   );
 
   /**
+   * A flow run of one board or of everything it feeds (decision 0133). The figure sent is the flow's
+   * own estimate, which `runFlowAction` works out again and refuses to exceed; a board that did not
+   * finish is said in the shell's note with the run's own reason, rather than left for the canvas to
+   * show as a red dot nobody can read.
+   */
+  const sendFlowRun = useCallback(
+    (run: () => Promise<FlowReply>) => {
+      start(async () => {
+        const reply = await run().catch(() => null);
+        if (!reply) return setNote({ tone: "warn", text: "That run could not be started. Check your connection and try again." });
+        if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
+        setNote(reply.data.reason ? { tone: "warn", text: reply.data.reason } : null);
+        router.refresh();
+      });
+    },
+    [router],
+  );
+
+  const shownFor = useCallback(
+    (boardId: string, scope: "board" | "downstream") => estimateFlow(input.graph, { from: boardId, scope }, flowCostSource(input.costs)).credits,
+    [input.costs, input.graph],
+  );
+
+  /**
    * A run the shell has checked. The garment lock and the cost are the shell's; the call itself
-   * belongs to the workstream that owns the board's capability, which answers through `runner`. A
-   * kind nobody has wired yet is told the truth -- the cost, that nothing has been spent, and that
-   * the panel that would run it is not built -- rather than being left to look broken.
+   * belongs to the workstream that owns the board's capability. A mockup goes to L2's own run
+   * through `runner`; every other kind, and every "run downstream", goes to the flow run, whose
+   * registry hands AI scenes and clips to L3's and L5's own runs (decision 0133).
    */
   const askToRun = useCallback(
     (boardId: string, downstream: boolean) => {
@@ -201,12 +227,20 @@ export function useLaunchShell(input: ShellInput) {
       if (!purse.affordable) return setNote({ tone: "warn", text: purse.reason });
       const run = downstream ? null : runner?.(board) ?? null;
       if (run) return send(run);
-      setNote({
-        tone: "ok",
-        text: `This ${BOARDS[board.kind].label} board is ready to run for ${estimate.credits === 0 ? "nothing" : `${estimate.credits} credits`}, and nothing has been spent. The panel that runs it is not built yet.`,
-      });
+      const scope = downstream ? "downstream" : "board";
+      sendFlowRun(() => runFlowAction({ launchProjectId: input.launchProjectId, boardId, scope, shownCredits: shownFor(boardId, scope) }));
     },
-    [boardById, input.costs, input.credits, input.graph, runner, send],
+    [boardById, input.costs, input.credits, input.graph, input.launchProjectId, runner, send, sendFlowRun, shownFor],
+  );
+
+  /**
+   * Remix on the task bar over a generated picture: the same board made again with a new attempt
+   * (`lib/flows/remix.ts`). Charged, refunded and recorded as a run, with the shown figure held.
+   */
+  const remix = useCallback(
+    (boardId: string) =>
+      sendFlowRun(() => remixFlowBoardAction({ launchProjectId: input.launchProjectId, boardId, shownCredits: shownFor(boardId, "board") })),
+    [input.launchProjectId, sendFlowRun, shownFor],
   );
 
   const commands = {
@@ -326,8 +360,8 @@ export function useLaunchShell(input: ShellInput) {
    * disagrees -- so a run can never cost more than the number on the button.
    */
   const runCanvas = useCallback(
-    (shownCredits: number) => send(() => runFlowAction({ launchProjectId: input.launchProjectId, boardId: null, scope: "all", shownCredits })),
-    [input.launchProjectId, send],
+    (shownCredits: number) => sendFlowRun(() => runFlowAction({ launchProjectId: input.launchProjectId, boardId: null, scope: "all", shownCredits })),
+    [input.launchProjectId, sendFlowRun],
   );
 
   /**
@@ -343,7 +377,7 @@ export function useLaunchShell(input: ShellInput) {
     [input.launchProjectId, send],
   );
 
-  return { state, stack, commands, note, saveVersion, runCanvas, runOperation, prompt, setPrompt, setNote, busy: pending };
+  return { state, stack, commands, note, saveVersion, runCanvas, runOperation, remix, prompt, setPrompt, setNote, busy: pending };
 }
 
 export type LaunchShellState = ReturnType<typeof useLaunchShell>;
