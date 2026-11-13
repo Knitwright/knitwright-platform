@@ -234,6 +234,7 @@ export default defineConfig({
             "fabrics",
             "factory",
             "flows",
+            "garment-studio",
             "gltf",
             "guardrails",
             "home",

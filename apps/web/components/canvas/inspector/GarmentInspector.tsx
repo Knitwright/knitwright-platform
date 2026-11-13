@@ -139,7 +139,7 @@ export function GarmentInspector({ board, designId, canvasId, busy, commands, el
           Product info
         </Button>
         <LinkButton variant="secondary" href={fullEditor as Route}>
-          Open full editor
+          Open in Garment Studio
         </LinkButton>
       </div>
 

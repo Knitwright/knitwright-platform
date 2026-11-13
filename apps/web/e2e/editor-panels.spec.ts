@@ -92,10 +92,14 @@ const eachPanel = async (page: Page, work: (where: string) => Promise<void>): Pr
   await expect(page.getByTestId("techpack-view")).toBeVisible();
   await work("the tech pack view");
 
+  // Garment Studio's Export panel (decision 0150), then the full Export panel it opens in the right-hand panel.
   await page.getByTestId("export-button").click();
+  await expect(page.getByTestId("studio-export")).toBeVisible();
+  await work("the studio's Export panel");
+  await page.getByTestId("studio-export-all").click();
   await expect(page.getByTestId("editor-export-panel")).toBeVisible();
   await work("the Export panel");
-  await page.getByTestId("export-button").click();
+  await page.getByTestId("side-panel-back").click();
 
   await page.getByTestId("summary-empty-names-numbers").click();
   await expect(page.getByTestId("names-numbers-panel")).toBeVisible();
@@ -248,6 +252,7 @@ test.describe("the panels the shell never mounted", () => {
     await signedIn(page, "panels-export");
     const path = await startJersey(page, "Export kit");
     await page.getByTestId("export-button").click();
+    await page.getByTestId("studio-export-all").click();
 
     const panel = page.getByTestId("editor-export-panel");
     await expect(panel.getByRole("tablist", { name: "What to export" })).toBeVisible();

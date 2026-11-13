@@ -61,6 +61,30 @@ export const standInForBotCheck = async (context: BrowserContext): Promise<void>
   await context.route("https://challenges.cloudflare.com/turnstile/v0/api.js*", (route) =>
     route.fulfill({ contentType: "text/javascript", body: WIDGET_STAND_IN }),
   );
+  // Every context here has seen Garment Studio's beta welcome (decision 0150), so the modal does not
+  // cover the editor in specs about something else. `garment-studio.spec.ts` asks for it back with
+  // `showStudioWelcome`, for the rest of that tab's visit.
+  await context.addInitScript(
+    ([key, flag]) => {
+      if (window.sessionStorage.getItem(flag) === null) window.localStorage.setItem(key, "hidden");
+    },
+    [STUDIO_WELCOME_KEY, SHOW_WELCOME_FLAG] as const,
+  );
+};
+
+/** `lib/garment-studio/welcome.ts`'s key, written out: the browser tests do not import app code. */
+export const STUDIO_WELCOME_KEY = "kw.garment-studio.welcome";
+const SHOW_WELCOME_FLAG = "kw.e2e.show-studio-welcome";
+
+/** Forgets that this tab has seen the studio's welcome, and stops the stand-in hiding it, from the next load on. */
+export const showStudioWelcome = async (page: Page): Promise<void> => {
+  await page.evaluate(
+    ([key, flag]) => {
+      window.sessionStorage.setItem(flag, "1");
+      window.localStorage.removeItem(key);
+    },
+    [STUDIO_WELCOME_KEY, SHOW_WELCOME_FLAG] as const,
+  );
 };
 
 type Fixtures = Readonly<{ ownAddress: void; realBotCheck: boolean; botCheck: void }>;

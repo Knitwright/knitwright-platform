@@ -1,113 +1,85 @@
 "use client";
 
+import { ChevronRight, Shirt } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { CREATE_GROUPS, waysOf } from "@/lib/home/cards";
+import { useId, useState } from "react";
+import { BodyPortal } from "@/components/garment-studio/BodyPortal";
+import { Tag } from "@/components/ui/Chips";
+import { cx } from "@/components/ui/cx";
+import { Icon } from "@/components/ui/Icon";
+import { Modal } from "@/components/ui/Modal";
+import { CREATE_GROUPS, waysOf, type HomeCard } from "@/lib/home/cards";
 import { COMING_LATER, hrefOf } from "@/lib/home/targets";
-import { trapTarget } from "@/lib/workspace/focus-trap";
-import { FOCUSABLE, modalProps, newButtonProps } from "./create-new-a11y";
+import { newButtonProps } from "./create-new-a11y";
 
 /**
- * "+ New" and the create-new modal (spec F-S4). It offers Base products, Templates, From your crest
- * or logo and Your team. There is no blank canvas: a custom pattern goes through the pattern service
- * request (plan v5 Y1), and `lib/home/actions.test.ts` holds that rule.
+ * "Create a new design" (`08` v3.6, `09` screen 28, prototype d20; decisions 0074 and 0150): the
+ * Knitwright library (Products, Templates) and Start your own (Kit from your crest, Import your own
+ * pattern), each a row with a thumbnail and a ›. There is no blank canvas: every design starts from a
+ * block a factory can make, and `lib/home/cards.test.ts` holds that rule.
  *
- * Escape or Close closes it and gives focus back to the button; Tab goes round inside it.
+ * It is the design system's modal, drawn into the body: Esc or × closes it and gives focus back to the
+ * button, and Tab goes round inside it.
  */
 export function CreateNew({ label = "+ New", className }: Readonly<{ label?: string; className?: string }>) {
   const dialogId = useId();
   const titleId = useId();
-  const ids = { dialogId, titleId };
-  const button = useRef<HTMLButtonElement>(null);
-  const title = useRef<HTMLHeadingElement>(null);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (open) title.current?.focus();
-  }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    button.current?.focus();
-  };
-
-  const keys = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.stopPropagation();
-      close();
-      return;
-    }
-    if (event.key !== "Tab") return;
-    const controls = [...event.currentTarget.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((control) => control.offsetParent !== null);
-    const target = trapTarget(controls.length, controls.indexOf(document.activeElement as HTMLElement), event.shiftKey);
-    if (target === null) return;
-    event.preventDefault();
-    controls[target]?.focus();
-  };
-
   return (
     <>
       <button
-        ref={button}
-        {...newButtonProps(ids, open)}
+        {...newButtonProps({ dialogId, titleId }, open)}
         onClick={() => setOpen(true)}
-        className={className ?? "chip-btn inline-flex min-h-10 w-full items-center justify-center rounded-full border border-white/20 bg-white/[0.06] px-4 text-[15px] font-medium text-ink"}
+        className={className ?? "inline-flex min-h-10 w-full items-center justify-center rounded-md border border-border bg-bg px-4 text-body font-semibold text-text live:hover:bg-soft"}
       >
         {label}
       </button>
-      {open ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:items-center">
-          <div {...modalProps(ids)} onKeyDown={keys} className="glass-strong flex w-full max-w-2xl flex-col gap-5 rounded-[2rem] p-6 sm:p-8">
-            <div className="flex items-start gap-4">
-              <h2 id={titleId} ref={title} tabIndex={-1} className="flex-1 text-2xl font-medium tracking-[-0.02em] text-ink outline-none">
-                Create a new design
-              </h2>
-              <button type="button" onClick={close} className="chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-4 text-sm font-medium text-ink">
-                Close
-              </button>
-            </div>
+      <BodyPortal>
+        <Modal open={open} onClose={() => setOpen(false)} title="Create a new design" size="md">
+          <div id={dialogId} className="flex flex-col gap-6">
             {CREATE_GROUPS.map((group) => (
-              <section key={group.label} aria-label={group.label} className="flex flex-col gap-2">
-                <h3 className="font-mono text-xs uppercase tracking-[0.1em] text-muted">{group.label}</h3>
-                <ul className="grid gap-3 sm:grid-cols-2">
+              <section key={group.label} aria-label={group.label} className="flex flex-col gap-2.5">
+                <h3 className="text-small font-medium text-muted">{group.label}</h3>
+                <ul className="flex flex-col gap-2.5">
                   {waysOf(group).map((way) => (
                     <li key={way.id}>
-                      <WayTile way={way} />
+                      <WayRow way={way} />
                     </li>
                   ))}
                 </ul>
               </section>
             ))}
-            <p className="text-[13px] text-muted">
-              There is no blank canvas. A pattern Knitwright has no base for goes through a pattern service request, so
-              every design starts from a block a factory can make.
-            </p>
           </div>
-        </div>
-      ) : null}
+        </Modal>
+      </BodyPortal>
     </>
   );
 }
 
-const TILE = "flex h-full flex-col gap-1.5 rounded-[1.4rem] border border-white/12 bg-white/[0.04] p-4";
+const ROW = "flex min-h-21 items-center gap-6 rounded-xl border border-border px-6 py-4";
 
-/** One way into a new design. A way with nothing behind it yet says so and is not a link. */
-function WayTile({ way }: Readonly<{ way: ReturnType<typeof waysOf>[number] }>) {
+/** One way in: a row with its thumbnail, title, line and ›. A way with nothing behind it yet says so and is not a link. */
+function WayRow({ way }: Readonly<{ way: HomeCard }>) {
   const href = hrefOf(way.target);
-  if (href === null) {
-    return (
-      <div className={TILE}>
-        <span className="text-[15px] font-medium text-ink-2">{way.title}</span>
-        <span className="text-[13px] text-muted">{way.text}</span>
-        <span className="mt-auto pt-2 font-mono text-[11px] uppercase tracking-[0.08em] text-faint">{COMING_LATER}</span>
-      </div>
-    );
-  }
+  const body = (
+    <>
+      <Icon icon={Shirt} size={22} className="size-10 shrink-0 stroke-1 text-muted-2" />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-2 text-title text-text">
+          {way.title}
+          {way.tag ? <Tag tone="beta">{way.tag}</Tag> : null}
+        </span>
+        <span className="text-body text-muted">{way.text}</span>
+        {href === null ? <span className="text-caption text-muted">{COMING_LATER}</span> : null}
+      </span>
+      {href === null ? null : <Icon icon={ChevronRight} size={20} className="text-text-2" />}
+    </>
+  );
+  if (href === null) return <div className={ROW}>{body}</div>;
   return (
-    <Link href={href as Route} className={`${TILE} lift text-ink no-underline`}>
-      <span className="text-[15px] font-medium">{way.title}</span>
-      <span className="text-[13px] text-ink-2">{way.text}</span>
+    <Link href={href as Route} className={cx(ROW, "no-underline transition-colors duration-fast live:hover:bg-soft")}>
+      {body}
     </Link>
   );
 }
