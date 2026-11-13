@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { formatMoney } from "@/lib/factory/pricing";
-import { percentOf, type PayCurrency } from "./settings";
+import { percentOf } from "./amounts";
+import type { PayCurrency } from "./settings";
 
 /**
  * F-G4 FINANCIAL CONTROLS (plan v6 C1, decision 0152), as the ops finance page shows them. The figures are worked
@@ -75,11 +76,3 @@ export function figureLines(figures: FinanceFigures): readonly FigureLine[] {
     { id: "headroom", label: "Next deposit may be up to", value: money(depositHeadroom(figures)), note: "Collected, less refunds, the reserve and deposits already sent." },
   ];
 }
-
-/** An amount typed on the ops page ("1,250.50") in minor units, or null when it is not a positive amount. */
-export const minorFromText = (text: string): number | null => {
-  const cleaned = text.replace(/[,£$A\s]/g, "");
-  if (!/^\d{1,9}(\.\d{1,2})?$/.test(cleaned)) return null;
-  const value = Math.round(Number(cleaned) * 100);
-  return value > 0 ? value : null;
-};

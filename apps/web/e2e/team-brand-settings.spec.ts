@@ -17,7 +17,7 @@ const signedIn = async (page: Page, label: string): Promise<void> => {
 };
 
 test.describe("the plans modal", () => {
-  test("Upgrade opens Choose Your Plan, Annual by default, and choosing a plan buys nothing", async ({ page }) => {
+  test("Upgrade opens Choose Your Plan, Annual by default, and choosing a plan opens its checkout", async ({ page }) => {
     await signedIn(page, "p6-plans");
     await page.locator("header").getByRole("button", { name: "Upgrade" }).click();
     const modal = page.getByRole("dialog", { name: "Choose Your Plan" });
@@ -27,14 +27,19 @@ test.describe("the plans modal", () => {
     await expect(modal).toContainText("Prices are placeholders.");
     await accessible(page);
 
-    await modal.getByRole("radio", { name: "Monthly" }).click();
-    await expect(modal.getByTestId("plan-starter")).toContainText("billed monthly");
-    await modal.getByRole("button", { name: "Get Studio Pro" }).click();
-    await expect(modal.getByTestId("plans-checkout-coming")).toContainText("Nothing has been charged");
-
     await page.keyboard.press("Escape");
     await expect(modal).toBeHidden();
     await expect(page.locator("header").getByRole("button", { name: "Upgrade" })).toBeFocused();
+
+    // Plans billing (plan v6 C1, decision 0152): choosing a plan opens its checkout, the test checkout here.
+    await page.locator("header").getByRole("button", { name: "Upgrade" }).click();
+    await modal.getByRole("radio", { name: "Monthly" }).click();
+    await expect(modal.getByTestId("plan-starter")).toContainText("billed monthly");
+    await modal.getByRole("button", { name: "Get Studio Pro" }).click();
+    await expect(page).toHaveURL(/\/checkout\/test\/cs_test_kw_/);
+    await expect(page.getByRole("heading", { level: 1, name: "Knitwright Studio Pro, monthly" })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel and go back" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Checkout cancelled" })).toBeVisible();
   });
 });
 

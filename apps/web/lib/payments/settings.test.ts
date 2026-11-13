@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_SETTINGS } from "./fixtures/memory-store";
-import { bpsFromPercent, chargeFor, depositAllowed, depositOf, percentOf, settingsOf } from "./settings";
+import { bpsFromPercent, percentOf } from "./amounts";
+import { chargeFor, depositAllowed, depositOf, settingsOf } from "./settings";
 
 describe("the payment settings", () => {
   it("read the row, numbers as stored", () => {

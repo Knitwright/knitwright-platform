@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { CreditHistory } from "@/components/credits/CreditHistory";
 import { PageIntro } from "@/components/shell/PageIntro";
 import { PageSection } from "@/components/shell/PageSection";
+import { BuyCredits } from "@/components/payments/BuyCredits";
+import { can } from "@/lib/clubs/roles";
+import { CREDIT_PACK_LABEL, creditPacks } from "@/lib/payments/billing";
 import { OUTPUT_KINDS, OUTPUT_LABELS } from "@/lib/credits/kinds";
 import { creditSummaryFor } from "@/lib/credits/server";
 import { PLACEHOLDER_NOTICE } from "@/lib/credits/settings";
@@ -25,6 +28,10 @@ export default async function CreditsPage() {
         <p className="text-4xl font-semibold tabular-nums text-ink" data-testid="credit-balance-figure">
           {summary.balance} <span className="text-base font-normal text-muted">credits</span>
         </p>
+      </PageSection>
+
+      <PageSection id="buy" title="Get more credits" description="Paid by card through Stripe. The credits are added as soon as the payment is confirmed.">
+        <BuyCredits packs={creditPacks()} canBuy={can(brand.role, "manageMembers")} label={CREDIT_PACK_LABEL} />
       </PageSection>
 
       <PageSection

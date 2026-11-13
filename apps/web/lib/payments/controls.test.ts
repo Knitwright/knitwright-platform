@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { depositHeadroom, figureLines, minorFromText, toFigures } from "./controls";
+import { minorFromText } from "./amounts";
+import { depositHeadroom, figureLines, toFigures } from "./controls";
 import { linesForDatabase, toLine, toPayment } from "./store";
 import { intent, priced } from "./fixtures/intents";
 

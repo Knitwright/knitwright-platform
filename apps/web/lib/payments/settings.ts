@@ -76,12 +76,3 @@ export function chargeFor(
   }
   return { schedule: "full", amountMinor: valueMinor, balanceMinor: 0 };
 }
-
-/** A percentage typed on the ops page ("10" or "12.5") as basis points, or null when it is not one. */
-export const bpsFromPercent = (text: string): number | null => {
-  const value = Number(text.trim());
-  if (text.trim() === "" || !Number.isFinite(value) || value < 0 || value > 100) return null;
-  return Math.round(value * 100);
-};
-
-export const percentOf = (bps: number): string => `${(bps / 100).toLocaleString("en-GB", { maximumFractionDigits: 2 })}%`;
