@@ -25,6 +25,7 @@ const SECOND_PASS = [
   "components/studio/",
   "components/panel-layers/",
   "components/techpack/",
+  "components/techpack-editor/",
   "components/home/",
   "components/guided/",
   "components/garment3d/",

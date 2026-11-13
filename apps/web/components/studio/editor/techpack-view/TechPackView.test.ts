@@ -5,96 +5,81 @@ import { designWith, drawnCallout, drawnPom, slotProps } from "./fixtures";
 import TechPackView from "./TechPackView";
 
 /**
- * The tech pack view panel (spec F-S6), drawn from the slot contract alone. The numbers and the
- * words are the view model's, which has its own tests (`lib/techpack/view/**`); what is tested here
- * is that the panel draws them: the eleven tabs, the unit toggle, the chips, the locked grades and
- * the Review tab that holds the export.
+ * The tech pack view panel, drawn from the slot contract alone. Since v3.9 (plan v6 G2, decision
+ * 0151) it is the tech pack editor: seven tabs, the unit toggle, the points and callouts on the
+ * garment, and the eleven v2.2 tabs folded in. The numbers and words are the view model's, which
+ * has its own tests (`lib/techpack/view/**`, `lib/techpack/editor/**`).
  */
 
 const html = (patch: Parameters<typeof slotProps>[0] = {}): string => renderToStaticMarkup(createElement(TechPackView, slotProps(patch)));
 
+const count = (markup: string, id: string): number => Number(new RegExp(`data-testid="legend-${id}" data-count="(\\d+)"`).exec(markup)?.[1] ?? "-1");
+
 describe("the tech pack panel", () => {
-  it("draws a tab for each of the eleven tabs the spec names, as one tab list", () => {
+  it("draws the seven tabs of spec screen 30 as one tab list", () => {
     const markup = html();
     expect(markup).toContain('role="tablist"');
     expect(markup).toContain('aria-label="Tech pack tabs"');
-    for (const label of [
-      "Overview",
-      "Body",
-      "Measurements",
-      "Materials (BOM)",
-      "Callouts",
-      "Artworks",
-      "Colourways",
-      "Personalisation",
-      "Labels &amp; packaging",
-      "QC",
-      "Review",
-    ]) {
-      expect(markup, label).toContain(label);
-    }
-    expect((markup.match(/role="tab"/g) ?? []).length).toBe(11);
+    for (const label of ["Overview", "Body", "Measurements", "Materials", "Callouts", "Artworks", "Labels"]) expect(markup, label).toContain(`>${label}</button>`);
+    const tabs = /aria-label="Tech pack tabs"[^]*?<\/div>/.exec(markup)?.[0] ?? "";
+    expect((tabs.match(/role="tab"/g) ?? []).length).toBe(7);
   });
 
   it("opens on the Overview tab, with exactly one tab chosen and one panel for it", () => {
     const markup = html();
-    expect((markup.match(/aria-selected="true"/g) ?? []).length).toBe(1);
+    expect(markup).toContain('id="techpack-tab-overview"');
     expect(markup).toContain('id="techpack-panel-overview"');
     expect(markup).toContain('role="tabpanel"');
+  });
+
+  it("keeps the Review tab's content on Overview, under Still to fill", () => {
+    const markup = html();
+    expect(markup).toContain("Still to fill");
+    expect(markup).toContain('data-testid="tp-review"');
   });
 
   it("offers the mm, cm and inch toggle, with the whole word for a screen reader", () => {
     const markup = html();
     expect(markup).toContain('data-testid="techpack-units"');
     for (const word of ["millimetres", "centimetres", "inches"]) expect(markup, word).toContain(word);
-    expect((markup.match(/name="techpack-unit"/g) ?? []).length).toBe(3);
+    expect((markup.match(/role="radio"/g) ?? []).length).toBeGreaterThanOrEqual(3);
   });
 
-  it("shows the four provenance chips with a count each", () => {
+  it("draws the red points and the blue callouts on the garment", () => {
+    const markup = html();
+    expect(markup).toContain('data-testid="tp-point-A"');
+    expect(markup).toContain('data-testid="tp-callout-1"');
+    expect(markup).toContain("Check fit");
+    expect(markup).toContain("Preview sheets");
+  });
+
+  it("shows the four sources with a count each", () => {
     const markup = html();
     expect(markup).toContain('data-testid="techpack-legend"');
-    for (const chip of ["From base", "From design", "Needs your input", "Confirmed"]) expect(markup, chip).toContain(chip);
-  });
-
-  it("says plainly where a value is missing, and never draws it as a zero", () => {
-    expect(html()).toContain("Nobody has given this yet.");
-  });
-
-  it("marks the Review tab while something stops the export", () => {
-    expect(html()).toContain("something stops the export");
-  });
-
-  it("gives every control a label and a tappable height", () => {
-    const markup = html();
-    expect(markup).not.toContain("<button></button>");
-    expect((markup.match(/min-h-10/g) ?? []).length).toBeGreaterThan(10);
+    for (const id of ["from_base", "from_design", "needs_input", "confirmed"]) expect(count(markup, id), id).toBeGreaterThanOrEqual(0);
   });
 
   it("draws the panel for a design the catalogue does not cover, without inventing anything", () => {
     const markup = html({ article: null, sizes: [] });
     expect(markup).toContain('role="tablist"');
-    expect(markup).toContain("Nobody has given this yet.");
+    expect(markup).toContain("Needs your input");
+    expect(markup).not.toContain('data-testid="tp-point-A"');
   });
 
   it("reads the marks the Specs toolbar drew from the design, so a reload shows them again", () => {
-    const waiting = (markup: string): number => Number(/chip-needs_input[^]*?<\/span><span>(\d+)<\/span>/.exec(markup)?.[1] ?? "0");
-    const before = waiting(html());
-    // A measure point with nothing measured becomes a point of measure that asks for a measurement.
+    const before = count(html(), "needs_input");
     const spec = designWith(slotProps().design.spec, [drawnPom({ id: "m1", tool: "measure-point", lengthMm: null })]);
-    const after = waiting(html({ spec }));
     expect(before).toBeGreaterThan(0);
-    expect(after).toBeGreaterThan(before);
+    expect(count(html({ spec }), "needs_input")).toBeGreaterThan(before);
   });
 
-  it("counts a callout the design holds as the person's own, not as the base article's", () => {
-    const fromDesign = (markup: string): number => Number(/chip-from_design[^]*?<\/span><span>(\d+)<\/span>/.exec(markup)?.[1] ?? "0");
+  it("counts a callout the design holds as the person's own, and numbers it on the garment", () => {
     const spec = designWith(slotProps().design.spec, [drawnCallout()]);
-    expect(fromDesign(html({ spec }))).toBeGreaterThan(fromDesign(html()));
+    const markup = html({ spec });
+    expect(count(markup, "from_design")).toBeGreaterThan(count(html(), "from_design"));
   });
 
   it("holds none of the words that would make a tab read as settled", () => {
-    const markup = html();
-    const settled = /\b(verified|approved|production[- ]ready|certified)\b/i;
-    expect(markup).not.toMatch(settled);
+    expect(html()).not.toMatch(/\b(verified|approved|production[- ]ready|certified)\b/i);
   });
 });

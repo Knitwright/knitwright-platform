@@ -1,3 +1,6 @@
+import { baseArticleForType, getBaseArticle } from "@/lib/catalogue";
+import { getEnv } from "@/lib/config/env";
+import { editorAddress } from "@/lib/techpack/editor/from-project";
 import { recordDownload } from "@/lib/projects/export-record";
 import { serveExport } from "@/lib/projects/export-download";
 import { loadTechPackSource } from "@/lib/projects/tech-pack-load";
@@ -48,6 +51,12 @@ export const GET = defineRoute({
         record: (entry) => recordDownload(adminClient(), session.userId, entry),
         // The words of the language a PDF is asked for (decision 0104).
         translations: (language) => loadTranslations(client, language),
+        // The eight-sheet workbook of the sheets preview reads the base article (decision 0151).
+        article: async (garmentType) => {
+          const code = baseArticleForType(garmentType) ?? null;
+          return code === null ? null : getBaseArticle(client, code);
+        },
+        openIn: (id) => editorAddress(getEnv().NEXT_PUBLIC_SITE_URL, id),
       },
       { projectId, format, query: input.query },
     );
