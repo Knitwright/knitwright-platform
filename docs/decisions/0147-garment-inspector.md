@@ -19,9 +19,10 @@ component of its own that E2 hosts.
 1. **One component, chosen by the selection.** `components/canvas/inspector/SelectionInspector.tsx` reads the canvas
    store and draws, by `lib/inspector/selection.ts` (pure, tested): one garment or launch-era design board → the
    garment inspector (or one of its layers); one mockup board → the mockup inspector (edit mode after a
-   double-click); two or more boards → the group inspector; anything else → nothing, and the launch shell's
-   inspector and E2's and E4's panels answer as before. `ProjectCanvas` mounts it beside the plane (310 px from `lg`,
-   below the plane on a phone) with one wrapper and one line; E2 moves it into its right panel.
+   double-click); two or more boards → the group inspector; anything else → the `fallback` it is given. It is
+   hosted inside E2's right panel (decision 0146): the launch shell passes E2's project panel (nothing selected)
+   and the launch board inspector (any other board) as that fallback, so the canvas is never narrowed. The
+   launch inspector's own nothing-selected branch, unreachable since E2, is removed.
 2. **The store** gains `element: {boardId, id} | null` and `editing: string | null` with `selectElement` and
    `setEditing`. Both only hold while their board is the one selected (`staleFocus`): a click elsewhere finishes them.
 3. **The garment inspector reads, then writes through the editor.** It reads its view when the board is selected
@@ -76,7 +77,8 @@ component of its own that E2 hosts.
 
 - The client never loads zod: the view is plain data (`lib/inspector/types.ts`), the changes are built from it
   without the garment rules (`lib/inspector/edits.ts`) and checked again on the server.
-- Until E2 hosts it, the launch shell's own inspector still shows beside it for a garment or mockup board.
+- For a garment or mockup board (outside edit mode) the launch board inspector is still drawn under E3's sections,
+  so L2's scene, crop, roster and render controls and the garment board's run summary keep their doors.
 - Owner questions (defaults chosen): should a new design land on its canvas with the garment selected instead of in the
   full editor (default: unchanged, every `?focus=garment` landing and test kept)? Should option codes get a design
   field so they survive without the address (default: address, as the editor)? Mockup colour, "Match artboard colour"

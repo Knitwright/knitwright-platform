@@ -12,7 +12,6 @@ import { useCanvasStore } from "./CanvasStore";
 import { GarmentPreviewPanel } from "./GarmentPreviewPanel";
 import { InfiniteCanvas } from "./InfiniteCanvas";
 import { MockupEditFrame } from "./inspector/MockupInspector";
-import { SelectionInspector } from "./inspector/SelectionInspector";
 
 /**
  * The launch shell's boards on the infinite plane (decision 0145). It replaces L6's scrolling flow
@@ -173,8 +172,6 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
       <p aria-live="polite" className="sr-only" data-testid="flow-canvas-said">
         {said}
       </p>
-      {/* E3's inspector by selection sits beside the plane until E2's right panel hosts it (decision 0147). */}
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
       <InfiniteCanvas graph={graph} renderBoard={renderBoard} initialScale={zoom / 100}>
         <div
           onKeyDown={(event) => {
@@ -186,8 +183,6 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
           <BoardMenus graph={graph} menu={menu} connecting={connecting} onAdd={onAdd} onConnect={(board, target) => onConnect(board.id, target)} />
         </div>
       </InfiniteCanvas>
-      <SelectionInspector graph={graph} canvasId={canvasId} busy={busy} commands={commands} />
-      </div>
     </>
   );
 }

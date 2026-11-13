@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { inspectorTarget, staleFocus } from "@/lib/inspector/selection";
 import type { Graph, LaunchCommands } from "@/lib/launch";
 import { useCanvas, useCanvasStore } from "../CanvasStore";
@@ -13,15 +13,22 @@ import { MockupInspector } from "./MockupInspector";
  * THE RIGHT INSPECTOR BY SELECTION (plan v6 E3, decision 0147; `08` §5.3, e15–e26): reads the canvas
  * store's selection and draws the garment, element, mockup (and mockup edit mode) or group inspector.
  * For a selection none of those answer -- nothing, an AI board, a tech pack -- it draws nothing, and the
- * launch shell's inspector and E2's and E4's panels answer as before.
+ * `fallback` it is given -- E2's project panel or the launch shell's board panels -- answers instead.
  *
- * It is its own component so E2's right-panel shell can host it wherever that panel lands; until then
- * `ProjectCanvas` mounts it beside the plane, 310 px wide (`10` "Editor inspector (right)").
+ * E2's right panel (`components/editor-chrome/RightPanel.tsx`) hosts it, 310 px wide there
+ * (`10` "Editor inspector (right)"), so the canvas is never narrowed.
  */
 
-type Props = Readonly<{ graph: Graph; canvasId: string; busy: boolean; commands: LaunchCommands }>;
+type Props = Readonly<{
+  graph: Graph;
+  canvasId: string;
+  busy: boolean;
+  commands: LaunchCommands;
+  /** What the right panel shows when this inspector does not answer the selection (E2's panels). */
+  fallback: ReactNode;
+}>;
 
-export function SelectionInspector({ graph, canvasId, busy, commands }: Props) {
+export function SelectionInspector({ graph, canvasId, busy, commands, fallback }: Props) {
   const store = useCanvasStore();
   const fixture = useInspectorFixture();
   const selection = useCanvas((state) => state.selection);
@@ -45,7 +52,7 @@ export function SelectionInspector({ graph, canvasId, busy, commands }: Props) {
   }, [selection, element, editing, store]);
 
   const target = inspectorTarget({ selection, boards: graph.boards, element, editing });
-  if (target.kind === "none" || target.kind === "other") return null;
+  if (target.kind === "none" || target.kind === "other") return <>{fallback}</>;
 
   const boardOf = (id: string) => graph.boards.find((board) => board.id === id);
   const body = (() => {
@@ -78,13 +85,12 @@ export function SelectionInspector({ graph, canvasId, busy, commands }: Props) {
   })();
 
   return (
-    <aside
-      aria-label="Selection inspector"
-      data-testid="selection-inspector"
-      data-target={target.kind}
-      className="flex max-h-[60dvh] min-h-0 w-full shrink-0 flex-col overflow-y-auto rounded-3xl border border-border bg-bg shadow-e1 lg:max-h-none lg:w-77.5"
-    >
+    <section aria-label="Selection inspector" data-testid="selection-inspector" data-target={target.kind} className="flex min-h-0 flex-col">
       {body}
-    </aside>
+      {/* The board's own launch panel (L2's scene, crop and render for a mockup; the artboard and run for a
+          garment) stays under E3's sections, so every door it had is still there. Not in edit mode, an
+          element or a group, which are about something else. */}
+      {target.kind === "garment" || (target.kind === "mockup" && !target.editing) ? <div className="border-t border-border">{fallback}</div> : null}
+    </section>
   );
 }
