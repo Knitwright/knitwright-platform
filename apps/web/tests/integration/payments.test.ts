@@ -173,7 +173,9 @@ describe("who sees payments", () => {
     expect(must(await viewer.client.from("order_payments").select("id").eq("id", id))).toHaveLength(1);
     expect(must(await viewer.client.from("order_payment_lines").select("id").eq("payment_id", id))).toHaveLength(1);
     expect(must(await ben.client.from("order_payments").select("id").eq("id", id))).toEqual([]);
-    expect(must(await anonClient().from("order_payments").select("id").eq("id", id))).toEqual([]);
+    // A visitor with no session has no grant on the table at all: refused, or nothing.
+    const visitor = await anonClient().from("order_payments").select("id").eq("id", id);
+    expect(visitor.error !== null || visitor.data?.length === 0).toBe(true);
     expect(must(await ann.client.from("payment_events").select("provider_event_id").limit(1))).toEqual([]);
     expect((await ann.client.rpc("open_order_payment", {})).error).not.toBeNull();
   });

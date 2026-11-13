@@ -38,7 +38,6 @@ export function BuyCredits({ packs, canBuy, label }: Readonly<{ packs: readonly 
             <span className="text-body text-muted">{formatMoney(pack.priceMinor, "GBP")}</span>
             <Button
               variant="premium"
-              size="sm"
               pending={pending && chosen === pack.id}
               disabledReason={canBuy ? undefined : "Only owners and admins buy credits."}
               onClick={() => buy(pack.id)}

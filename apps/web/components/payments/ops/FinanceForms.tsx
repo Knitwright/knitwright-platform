@@ -116,7 +116,7 @@ export function RefundForm({ paymentId, leftMinor }: Readonly<{ paymentId: strin
     <form onSubmit={onSubmit} noValidate className="flex flex-wrap items-end gap-2">
       <Field name="amount" label="Refund" inputMode="decimal" defaultValue={(leftMinor / 100).toFixed(2)} />
       <Field name="reason" label="Why" maxLength={300} />
-      <Button type="submit" size="sm" variant="secondary" pending={pending}>
+      <Button type="submit" variant="secondary" pending={pending}>
         Refund
       </Button>
       <Said note={note} />
