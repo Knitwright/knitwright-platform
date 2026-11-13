@@ -1,5 +1,5 @@
 import type { ShipTo } from "./shopify/admin";
-import { readSku } from "./push";
+import { readSku } from "./sku";
 
 /**
  * API OR CSV (plan v6 C4, decision 0155; screen 24 "Push orders by API or upload a spreadsheet").

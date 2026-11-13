@@ -170,6 +170,14 @@ export default defineConfig({
         "lib/templates/feed/server.ts",
         "lib/mockups/gallery/server.ts",
         "lib/marketing/gallery/server.ts",
+        // Join the channel tables, the Shopify chosen by the environment, C1's payments, the order gates and the
+        // product reads (decision 0155); every rule they hand over is tested in lib/channels' own files, and the
+        // database and end-to-end tests cover these joins.
+        "lib/channels/db.ts",
+        "lib/channels/server.ts",
+        "lib/channels/terms.ts",
+        "lib/channels/exports.ts",
+        "lib/channels/fulfilment.ts",
       ],
       thresholds: {
         lines: 80,
@@ -211,6 +219,7 @@ export default defineConfig({
             "brand-studio",
             "canvas",
             "catalogue",
+            "channels",
             "collections",
             "colour",
             "comments",

@@ -1,4 +1,4 @@
-import { skuOf } from "./push";
+import { skuOf } from "./sku";
 import type { ChannelOrderRow, ListingRow } from "./store";
 
 /** The rows of the two CSV exports (plan v6 C4, decision 0155). Pure. Money as decimal pounds for a spreadsheet. */
