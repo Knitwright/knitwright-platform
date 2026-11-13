@@ -72,4 +72,17 @@ export const PUBLIC_ENTRY_POINTS = [
   // against the zone's length and the words against moderation (F-G1) before anything is kept. It
   // can only write that one browser's own answer, and it reads back nothing about anyone else.
   "lib/clubs/signup/actions.ts#rosterSignupAction",
+  // The team store run (plan v6 C2, decision 0153), every 15 minutes. The same door as the cut: the deploy's own
+  // CRON_SECRET in constant time, 503 without it, 404 for a wrong one. It takes no input; all it can do is close
+  // stores whose close time has come (one order, or refunds), refund payments that arrived after a close, and erase
+  // buyers' details 180 days after their store closed. Every step is idempotent.
+  "app/api/cron/team-stores/route.ts#GET",
+  // A player or parent buys from a team store without an account (F-T6, decision 0153). The store's code is the only
+  // key; the bot check runs first, then each piece is checked against the store and each shirt name screened (F-G1),
+  // and the database works the amount out from the store's own row. It reads back only its own checkout's address.
+  "lib/team-stores/actions.ts#buyFromStoreAction",
+  // The team store's test checkout buttons (decision 0153, on C1's test checkout). Only where the test checkout is the
+  // processor (never on a deploy), and only for a team store payment of the store named; it hands a signed test event
+  // to C1's webhook, as C1's own member-only buttons do.
+  "lib/team-stores/actions.ts#finishStoreTestCheckoutAction",
 ] as const;

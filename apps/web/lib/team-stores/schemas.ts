@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { cleanName } from "@/lib/orders/text";
-import { MARGIN_BPS, MAX_PIECES_PER_ORDER } from "./model";
+import { MARGIN_BPS, MAX_PIECES_PER_ORDER } from "./constants";
 
 /**
  * What the team store forms may send (plan v6 C2, decision 0153). The club's forms send the store's choices; a

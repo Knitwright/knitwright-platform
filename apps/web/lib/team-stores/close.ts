@@ -8,7 +8,7 @@ import type { TeamStoreStore } from "./store";
  * CLOSING A TEAM STORE (plan v6 C2, decision 0153; spec F-T6 "At close, the store becomes one order"; "If the store
  * closes below the minimum, buyers are refunded automatically").
  *
- * The team-store cron runs this for every store whose close time has come, and again for stores mid-close, so a
+ * The team-store cron (`/api/cron/team-stores`, every 15 minutes in vercel.json) runs this for every store whose close time has come, and again for stores mid-close, so a
  * failure part-way is finished by the next run. Each step is safe to repeat:
  *
  * 1. `begin_team_store_close` counts the purchases paid at that moment, once. Met the minimum: the store is

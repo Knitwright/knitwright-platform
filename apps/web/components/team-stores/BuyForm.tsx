@@ -12,7 +12,7 @@ import { Select, TextInput } from "@/components/ui/Inputs";
 import { CAPTCHA_FIELD } from "@/lib/auth/fields";
 import { formatMoney } from "@/lib/factory/pricing";
 import { buyFromStoreAction } from "@/lib/team-stores/actions";
-import { MAX_PIECES_PER_ORDER } from "@/lib/team-stores/model";
+import { MAX_PIECES_PER_ORDER } from "@/lib/team-stores/constants";
 
 export type BuyFormStore = Readonly<{
   code: string;

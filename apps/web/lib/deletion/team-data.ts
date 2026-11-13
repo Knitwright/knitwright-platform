@@ -69,6 +69,13 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   // through their keys; they were simply never written down here.
   { table: "share_responses", holds: "the name a visitor to a share link typed, their vote and their comment", erasableAlone: false },
   { table: "pattern_reviews", holds: "the name and role of the technician who reviewed a pattern, and their note", erasableAlone: false },
+  // Team stores and club pages (plan v6 C2, decision 0153). A buyer has no account, so the minimum is kept: a name and
+  // an email for the receipt and the refund, and per piece the shirt name. purge_team_store_buyers erases all three
+  // 180 days after the store closes (the team-store cron); everything goes with the club's brand before that.
+  { table: "team_store_orders", holds: "the name and email address of someone who bought from a team store without an account", erasableAlone: false },
+  { table: "team_store_order_lines", holds: "the name and number a buyer asked for on a shirt, and its size", erasableAlone: false },
+  { table: "team_stores", holds: "no names of people: a store's title, prices, dates and the order it became", erasableAlone: false },
+  { table: "club_pages", holds: "the contact line a club chose to publish, which may name a person", erasableAlone: false },
 ];
 
 /**

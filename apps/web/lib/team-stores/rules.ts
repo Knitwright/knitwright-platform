@@ -1,4 +1,5 @@
-import { MAX_PIECES_PER_ORDER, type PurchaseLine, type TeamStore } from "./model";
+import { MAX_PIECES_PER_ORDER } from "./constants";
+import type { PurchaseLine, TeamStore } from "./model";
 
 /**
  * THE RULES OF A TEAM STORE (plan v6 C2, decision 0153; spec F-T6), pure so every one is tested without a
@@ -76,7 +77,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export function whenText(store: Pick<TeamStore, "status" | "opensAt" | "closesAt">, now: Date): string {
   const state = windowState(store, now);
   const days = (iso: string) => Math.ceil((Date.parse(iso) - now.getTime()) / DAY_MS);
-  const inDays = (n: number) => (n <= 1 ? (n === 1 ? "in 1 day" : "today") : `in ${n} days`);
+  const inDays = (n: number) => (n <= 1 ? "within a day" : `in ${n} days`);
   if (state === "scheduled") return `Opens ${inDays(days(store.opensAt))}`;
   if (state === "open") return `Closes ${inDays(days(store.closesAt))}`;
   if (state === "due" || state === "closing") return "Closing now";

@@ -6,7 +6,7 @@ import { Checkbox, Select, TextInput } from "@/components/ui/Inputs";
 import { Notice } from "@/components/ui/Notice";
 import type { Ladder } from "@/lib/factory/pricing";
 import { openTeamStoreAction } from "@/lib/team-stores/actions";
-import { DEFAULT_MIN_PIECES, MARGIN_BPS } from "@/lib/team-stores/model";
+import { DEFAULT_MIN_PIECES, MARGIN_BPS } from "@/lib/team-stores/constants";
 import { defaultDates, previewPrice } from "@/lib/team-stores/preview";
 import { marginPercent } from "@/lib/team-stores/rules";
 

@@ -22,6 +22,7 @@ export const isClubSlug = (value: string): boolean => SLUG_PATTERN.test(value) &
 export const suggestSlug = (name: string): string =>
   name
     .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
