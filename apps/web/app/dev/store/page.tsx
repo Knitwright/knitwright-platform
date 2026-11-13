@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { AppShell } from "@/components/shell/AppShell";
 import { BrandingCards, StorefrontLook } from "@/components/store-pages/BrandingView";
-import { ChannelsPanel } from "@/components/store-pages/ChannelsSlot";
 import { MarginCalculator } from "@/components/store-pages/MarginCalculator";
 import { LiabilityCards } from "@/components/store-pages/OpsPayouts";
 import { OverviewCards, OverviewTiles, TopProducts } from "@/components/store-pages/OverviewView";
@@ -25,8 +24,8 @@ export const metadata: Metadata = { title: "Store fixture", robots: { index: fal
 
 /**
  * The Store tabs with made-up data (plan v6 C5, decision 0156), for the 1440 × 900 comparison with p14, p15, p17 and
- * p18 without a database. `?view=` picks one: overview (default), overview-empty, channels, branding, settings,
- * payouts, payouts-none, ops, loading. Buttons that would save do nothing useful here: there is no session.
+ * p18 without a database. `?view=` picks one: overview (default), overview-empty, branding, settings, payouts,
+ * payouts-none, ops, loading. The Sales channels tab is C4's screen, whose fixture is /dev/channels. Buttons that would save do nothing useful here: there is no session.
  */
 
 const NOW = new Date("2026-11-13T12:00:00.000Z");
@@ -86,13 +85,6 @@ function Body({ view }: Readonly<{ view: string }>) {
   switch (view) {
     case "loading":
       return <StoreLoading />;
-    case "channels":
-      return (
-        <div className="flex flex-col gap-8">
-          <StoreHeader title="Sales channels" current={CHANNELS_PATH} />
-          <ChannelsPanel />
-        </div>
-      );
     case "branding":
       return (
         <div className="flex flex-col gap-6">

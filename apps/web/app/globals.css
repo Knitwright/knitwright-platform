@@ -70,6 +70,13 @@
   --color-mark-measure: #d92d20;
   --color-mark-callout: #2f6bff;
 
+  /* Sales channel tiles (screen 24, decision 0155): a letter on a colour, never a logo. White text is AA on each. */
+  --color-channel-shopify: #3f7a2a;
+  --color-channel-etsy: #c2410c;
+  --color-channel-tiktok: #111318;
+  --color-channel-woo: #6b46a8;
+  --color-channel-api: #4b5563;
+
   /* §3 type scale */
   --text-display: 48px;
   --text-display--line-height: 56px;

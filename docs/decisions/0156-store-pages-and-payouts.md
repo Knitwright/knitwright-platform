@@ -1,7 +1,7 @@
 # 0156: Store pages, seller payouts through Stripe Connect Express, and the seller dashboard
 
 Status: Accepted (plan v6 C5). Test mode only. Payouts are built behind env; Stripe Connect itself is an owner action. Five owner questions are open (below); each has a labelled default and none blocks.
-Index: Accepted; /store has five tabs (Overview, Sales channels slot for C4, Branding, Settings, Payouts); sales recorded by the selling checkouts pay their margin weekly after delivery through Connect Express, reconciled in the database; margin calculator; payout liability on /ops/finance
+Index: Accepted; /store has five tabs (Overview, Sales channels with C4's screen, Branding, Settings, Payouts); sales recorded by the selling checkouts pay their margin weekly after delivery through Connect Express, reconciled in the database; margin calculator; payout liability on /ops/finance
 Index title: Store pages and payouts
 Date: 2026-11-13
 Plan step: v6 wave 5, C5 (`plans/platform-v6.md`). Builds on 0131 (the Store comes in), 0152 (payments core), 0143 (orders and delivery), 0085 (landed cost), 0071 (price ladder). Migration `20261228040000`.
@@ -23,9 +23,9 @@ sales channels are C4's. So this workstream had to define the seam those checkou
 1. **Five tabs, one page each** (`lib/store-pages/routes.ts`): Overview `/store`, Sales channels `/store/channels`,
    Branding `/store/branding`, Settings `/store/settings`, Payouts `/store/payouts`. `/store` keeps its address and
    its h1, so nothing moved and no redirect is needed. The v3.9 placeholder component retired with its last user.
-2. **Doors for the other Store workstreams are one line each.** The Sales channels tab renders `ChannelsPanel` from
-   `components/store-pages/ChannelsSlot.tsx`, an honest "on their way" state until C4 replaces that one export. The
-   Overview's storefront, drops and team-stores cards and the "New drop" button read `STOREFRONT_EDITOR_HREF`,
+2. **Doors for the other Store workstreams are one line each.** The Sales channels tab, `/store/channels`, is C4's
+   screen (`components/channels/ChannelsScreen.tsx`, decision 0155) under this Store header and tabs, mounted with
+   `heading={false}`; it is also where Shopify's install returns. The Overview's storefront, drops and team-stores cards and the "New drop" button read `STOREFRONT_EDITOR_HREF`,
    `NEW_DROP_HREF` and `TEAM_STORES_HREF` in `routes.ts`; null means "coming soon" text, never a dead link. C3 and
    C2 set them when their screens merge.
 3. **Sales are rows** (`seller_sales`), written only by `record_seller_sale` with every part of the sale: retail,
@@ -93,7 +93,7 @@ sales channels are C4's. So this workstream had to define the seam those checkou
 
 - C2 and C3 call `recordSellerSale` (and `attachSaleOrder`, `recordSaleRefund`) when their checkouts are paid,
   refunded or closed into an order; until they merge no sale exists and the pages show their empty states.
-- C4 replaces one export in `ChannelsSlot.tsx`; C2 and C3 set one constant each in `routes.ts`.
+- C2 and C3 set one constant each in `routes.ts`.
 - `docs/runbooks/stripe-test-mode.md` says how to run Connect in test mode.
 - `/dev/store?view=` shows every tab with made-up data for the p14, p15, p17 and p18 comparisons.
 - No dependency was added.

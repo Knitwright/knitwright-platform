@@ -65,6 +65,8 @@ export const PUBLIC_PAGES = [
   "app/dev/garment-studio/page.tsx",
   // C1's checkout return states, test checkout, credit packs and ops finance with made-up payments (decision 0152).
   "app/dev/payments/page.tsx",
+  // C4's Sales channels screen with made-up channels, products and orders (decision 0155). Same switch as /dev/ui.
+  "app/dev/channels/page.tsx",
   // G2's tech pack editor and sheets with made-up data (decision 0151), for s08–s15 and x01–x08. Same switch as /dev/ui.
   "app/dev/tech-pack/page.tsx",
   // C5's Store tabs with made-up sales and payouts (decision 0156), for p14, p15, p17 and p18. Same switch as /dev/ui.

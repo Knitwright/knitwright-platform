@@ -1032,6 +1032,26 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ payout_id: randomUUID(), brand_id: brandId, sale_id: randomUUID(), amount_minor: 100000 }),
     change: { amount_minor: 100000 },
   },
+  // Plan v6 C4 (decision 0155): a brand's listings on its connected shop and the order lines its channels sent. A
+  // member reads; only the server writes, through functions. The shop's token is in the private schema.
+  channel_listings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedChannelListing(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, connection_id: randomUUID(), product_id: randomUUID(), size_label: "M", external_product_id: "1", external_variant_id: "2", sku: "KW-x-M", price_minor: 1, currency: "GBP", release_id: randomUUID(), factory_profile_id: "f", fabric_key: "m" }),
+    change: { price_minor: 1 },
+  },
+  channel_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const { productId } = await seedBrandProduct(brandId, ownerId);
+      const rows = must(await adminClient().rpc("channel_receive_order_line", { p_brand_id: brandId, p_channel: "csv", p_connection_id: null, p_external_order_id: `o${Date.now()}`, p_external_line_id: "1", p_order_name: "CSV seeded", p_product_id: productId, p_size_label: "M", p_pieces: 1, p_ship_to: null })) as { id: string }[];
+      return { id: rows[0]!.id };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, channel: "csv", external_order_id: "x", external_line_id: "1", order_name: "Made directly", product_id: randomUUID(), size_label: "M", pieces: 1 }),
+    change: { state: "submitted", pieces: 99 },
+  },
   brand_subscriptions: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1798,6 +1818,22 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
     await paidRpc(adminClient(), "submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
   ) as { run_id: string }[];
   return rows[0]!.run_id;
+};
+
+/** A listing of a new product on a newly connected shop, recorded the way the server records one. Returns its id. */
+const seedChannelListing = async (brandId: string, ownerId: string): Promise<string> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const existing = must(await adminClient().rpc("channel_connections_of", { p_brand_id: brandId, p_user_id: ownerId })) as { id: string }[];
+  const sealed = { p_ciphertext: Buffer.from("c".repeat(40)).toString("base64"), p_nonce: Buffer.from("n".repeat(12)).toString("base64") };
+  const connectionId =
+    existing[0]?.id ??
+    (must(await adminClient().rpc("channel_connect", { p_brand_id: brandId, p_user_id: ownerId, p_channel: "shopify", p_shop: `seed-${randomUUID().slice(0, 8)}.myshopify.com`, ...sealed, p_scopes: "" })) as string);
+  return must(
+    await adminClient().rpc("channel_record_listing", { p_brand_id: brandId, p_user_id: ownerId, p_connection_id: connectionId, p_product_id: productId, p_size_label: "M", p_external_product_id: "1", p_external_variant_id: randomUUID(), p_sku: "KW-seed-M", p_price_minor: 100, p_currency: "GBP", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_flags: [] }),
+  ) as string;
 };
 
 /** A card payment for a sample of a new product, opened, checked out and paid the way the server does it. Returns its id. */
