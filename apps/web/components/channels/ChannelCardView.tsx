@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 import { Button, buttonClasses } from "@/components/ui/Button";
 import { cx } from "@/components/ui/cx";
 import { Icon } from "@/components/ui/Icon";
-import type { ChannelCard } from "@/lib/channels/catalogue";
+import { TEAM_STORE_HREF, type ChannelCard } from "@/lib/channels/catalogue";
 import type { ShopifyState } from "@/lib/channels/view";
 import { ChannelTile } from "./ChannelTile";
 
@@ -41,6 +41,14 @@ function Action({ card, shopify, canConnect, onConnect }: Props) {
     return (
       <a href="#api-csv" className={buttonClasses("primary", false, "no-underline")}>
         Open
+      </a>
+    );
+  }
+  // C2's team stores (decision 0153): opened from a design's Order drawer and listed on Team › Stores.
+  if (card.key === "team_store" && TEAM_STORE_HREF !== null) {
+    return (
+      <a href={TEAM_STORE_HREF} className={buttonClasses("primary", false, "no-underline")}>
+        Create team store
       </a>
     );
   }

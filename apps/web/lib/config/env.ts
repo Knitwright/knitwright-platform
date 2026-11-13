@@ -134,6 +134,9 @@ const envSchema = z.object({
   // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
   // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
   PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
+  // Club pages (plan v6 C2, decision 0153): the domain under which `<club>.<domain>` shows a club's page, such as
+  // "knitwright.com". Unset: no host is rewritten and a club page is reached at /clubs/<slug>.
+  CLUB_PAGES_DOMAIN: z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/).max(253).optional(),
   // Seller payouts through Stripe Connect Express (plan v6 C5, decision 0156). "on" only once Connect is switched on
   // in the Stripe account (an owner action); it also needs the Connect endpoint's own webhook signing secret, which
   // the same webhook route checks. Without both, payouts are shown as not switched on yet.

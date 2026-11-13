@@ -68,12 +68,12 @@ test.describe("Settings", () => {
 });
 
 test.describe("Team", () => {
-  test("has Roster, Approvals and Seasons, and an owner opts in to keeping old rosters", async ({ page }) => {
+  test("has Roster, Approvals, Seasons and Stores, and an owner opts in to keeping old rosters", async ({ page }) => {
     await signedIn(page, "p6-team");
     await page.goto("/team");
     await expect(page.getByRole("heading", { level: 1, name: /^Team · / })).toBeVisible();
     const tabs = page.getByRole("navigation", { name: "Team" });
-    await expect(tabs.getByRole("link")).toHaveText(["Roster", "Approvals", "Seasons"]);
+    await expect(tabs.getByRole("link")).toHaveText(["Roster", "Approvals", "Seasons", "Stores"]);
     await expect(page.getByText("No season yet")).toBeVisible();
     await accessible(page);
 

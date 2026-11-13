@@ -5,7 +5,8 @@
  * - Shopify: connect (OAuth), or "Connected · Manage", or "not set up on this deploy" without the Partner app;
  * - Etsy, TikTok Shop and WooCommerce: "Later". Spec F-L6 puts Etsy in Phase 4 and TikTok Shop later; no
  *   WooCommerce plugin exists. Their buttons are disabled with the reason, never a dead link;
- * - Knitwright team store: C2's team stores. Until they have a page this card says so (`TEAM_STORE_HREF`);
+ * - Knitwright team store: C2's team stores (decision 0153), opened from a design's Order drawer and listed on
+ *   Team › Stores, which `TEAM_STORE_HREF` names;
  * - API or CSV: product and order CSV export and order CSV import today; a push API is later.
  */
 
@@ -25,8 +26,8 @@ export type ChannelCard = Readonly<{
   laterReason?: string;
 }>;
 
-/** Where C2's team store builder lives once it is merged. Null: the card says it is on its way. */
-export const TEAM_STORE_HREF: string | null = null;
+/** Where C2's team stores live (decision 0153): Team › Stores. Null would say they are on their way. */
+export const TEAM_STORE_HREF: string | null = "/team?tab=stores";
 
 export const CHANNELS: readonly ChannelCard[] = [
   {

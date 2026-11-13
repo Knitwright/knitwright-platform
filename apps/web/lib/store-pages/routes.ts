@@ -28,4 +28,4 @@ export type StoreTab = (typeof STORE_TABS)[number]["href"];
  */
 export const STOREFRONT_EDITOR_HREF: Route | null = null;
 export const NEW_DROP_HREF: Route | null = null;
-export const TEAM_STORES_HREF: Route | null = null;
+export const TEAM_STORES_HREF: Route | null = "/team?tab=stores" as Route;
