@@ -85,7 +85,7 @@ test.describe("the garment inspector", () => {
 
     // The full editor stays one press away, in place on the canvas: the link names the canvas's own
     // id (the design's home canvas, which `/project/<design id>` opened) and the garment board.
-    await inspector.getByRole("link", { name: "Open full editor" }).click();
+    await inspector.getByRole("link", { name: "Open in Garment Studio" }).click();
     await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=[0-9a-f-]{36}/);
     await expect(page.getByTestId("canvas-focus-back")).toBeVisible();
   });

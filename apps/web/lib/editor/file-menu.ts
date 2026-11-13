@@ -21,6 +21,9 @@ export function fileMenu(projectId: string): readonly FileMenuItem[] {
     tool("details", "Design details", "garment"),
     tool("history", "Version history", "history"),
     tool("share", "Share…", "share"),
+    // Garment Studio's top bar has no room for the editor's old journey links (decision 0150): they live here.
+    tool("photoreal", "Photoreal picture", "photoreal"),
+    tool("quote", "Request a quote", "quote"),
     { kind: "page", id: "tech-pack", label: "Factory file", href: `${designPage(projectId)}/tech-pack` },
     // Plan v5 Y7: the make pages (sample, golden sample, run). One navigation entry, added by that workstream.
     { kind: "page", id: "make", label: "Make and order", href: `${designPage(projectId)}/make` },

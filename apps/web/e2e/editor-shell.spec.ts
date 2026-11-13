@@ -207,11 +207,20 @@ test.describe("the editor shell", () => {
     await signedIn(page, "shell-bottom");
     await startJersey(page, "Bottom kit");
 
-    await expect(page.getByLabel("Size shown")).toHaveValue("M");
+    // Garment Studio's pills (decision 0150; s17, s18): each opens its menu above it.
+    await expect(page.getByTestId("size-shown")).toContainText("Size M");
+    await page.getByTestId("size-shown").click();
+    await expect(page.getByRole("menuitemradio", { name: "Size M" })).toHaveAttribute("aria-checked", "true");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("size-shown")).toBeFocused();
+
+    await page.getByTestId("colourway-pill").click();
     await page.getByTestId("new-colourway").click();
 
     await expect(page.getByTestId("save-status")).toHaveText("Saved as version 2.");
-    await expect(page.getByLabel("Kit colourway")).toContainText("Home");
+    // The new colourway takes the first kit name the design has not used (spec F-S4).
+    await page.getByTestId("colourway-pill").click();
+    await expect(page.getByRole("menuitemradio", { name: "Home" })).toBeVisible();
   });
 
   test("says plainly that an article with no approved form on file has none", async ({ page }) => {
@@ -254,7 +263,7 @@ test.describe("the editor shell", () => {
 
     await page.getByTestId("file-menu-button").click();
     const menu = page.getByRole("list", { name: "File" });
-    await expect(menu.getByRole("link")).toHaveText(["Design details", "Version history", "Share…", "Factory file", "Make and order", "Move to trash…"]);
+    await expect(menu.getByRole("link")).toHaveText(["Design details", "Version history", "Share…", "Photoreal picture", "Request a quote", "Factory file", "Make and order", "Move to trash…"]);
 
     await menu.getByRole("link", { name: "Version history" }).click();
 

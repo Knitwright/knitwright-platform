@@ -71,8 +71,9 @@ test.describe("the lead engine", () => {
     await prompt.getByRole("button", { name: "Save organisation details" }).click();
     await expect(prompt.getByText("Thank you. The details are saved.")).toBeVisible();
 
-    // Quote is the last step of the journey at the top of the workspace.
-    await page.getByRole("navigation", { name: "Journey" }).getByRole("link", { name: "Quote" }).click();
+    // In Garment Studio the quote is in the File menu (decision 0150), where the journey's steps moved.
+    await page.getByTestId("file-menu-button").click();
+    await page.getByRole("list", { name: "File" }).getByRole("link", { name: "Request a quote" }).click();
     await expect(page).toHaveURL(/[?&]tool=quote(&[^#]*)?$/);
     const quote = page.getByTestId("quote-request");
     await quote.getByRole("button", { name: "Request a quote" }).click();
