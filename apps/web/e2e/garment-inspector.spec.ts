@@ -33,6 +33,8 @@ const selectGarment = async (page: Page): Promise<void> => {
 test.describe("the garment inspector", () => {
   test("shows the selected garment and keeps a change made there", async ({ page }) => {
     await signIn(page, await createAccount("garment-inspector"));
+    // Sign-in lands on the recent projects first; going on before it does races the session cookie.
+    await expect(page).toHaveURL(/\/projects\/recent$/);
     const id = await startDesign(page, `Inspector kit ${randomUUID().slice(0, 6)}`);
     await page.goto(`/project/${id}`);
     await selectGarment(page);
