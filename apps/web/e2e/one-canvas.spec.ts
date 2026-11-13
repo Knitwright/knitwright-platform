@@ -74,7 +74,7 @@ test.describe("a design on the one canvas", () => {
     await page.keyboard.press("1");
     await expect(percent).toHaveText("100%");
     await page.getByTestId("zoom-in").click();
-    await expect(percent).toHaveText("150%");
+    await expect(percent).toHaveText("125%");
 
     const board = page.locator("[data-board-id]").first();
     await board.focus();

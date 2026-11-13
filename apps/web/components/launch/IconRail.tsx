@@ -100,7 +100,7 @@ export function IconRail({ flyout, labels, onPress, menu }: Props) {
     >
       <Link
         href="/ai-studio"
-        aria-label="Back to the dashboard"
+        aria-label="KW, back to the dashboard"
         className="grid size-9 shrink-0 place-items-center rounded-md bg-navy text-caption font-black text-gold no-underline"
         data-testid="editor-home"
       >

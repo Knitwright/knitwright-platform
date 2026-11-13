@@ -95,8 +95,12 @@ export function useEditorInput(actions: EditorActions) {
     return () => window.removeEventListener("keydown", onKey);
   }, [actions, store]);
 
-  /** A board that takes focus is brought onto the screen. */
+  /**
+   * A board that takes focus from the keyboard is brought onto the screen. Not a focus from a press:
+   * moving the plane between a press and its release would land the click somewhere else.
+   */
   const onFocus = (event: FocusEvent<HTMLElement>) => {
+    if (!(event.target instanceof HTMLElement) || !event.target.matches(":focus-visible")) return;
     const id = boardOf(event.target);
     const board = id === null ? undefined : actions.boards.find((one) => one.id === id);
     if (board) store.reveal(boxOf(board));
