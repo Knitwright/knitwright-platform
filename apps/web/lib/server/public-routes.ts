@@ -72,4 +72,15 @@ export const PUBLIC_ENTRY_POINTS = [
   // against the zone's length and the words against moderation (F-G1) before anything is kept. It
   // can only write that one browser's own answer, and it reads back nothing about anyone else.
   "lib/clubs/signup/actions.ts#rosterSignupAction",
+  // A shopper buys from a brand's storefront without an account (spec F-L5, decision 0154). It opens one order and one
+  // checkout; the database prices it from the published listing and refuses anything not on sale, the name is
+  // screened (F-G1), and it is limited per address. It reads back only where to pay.
+  "lib/storefront/actions.ts#startShopCheckoutAction",
+  // The storefront's test checkout buttons (decision 0154): only where the test checkout is the processor (never where
+  // real people sign in), and only with the order's own random token, compared by its hash. Limited per address.
+  "lib/storefront/actions.ts#finishShopTestCheckoutAction",
+  // The storefront batches, run by the scheduler (spec F-L5, F-O1; decision 0154). The same door as the cut: the
+  // deploy's own CRON_SECRET in constant time, 503 without it, 404 for a wrong one. It takes no input, and all it can
+  // do is close drops whose window has passed and send their paid orders, and the week's, to production. Idempotent.
+  "app/api/cron/storefront-batches/route.ts#GET",
 ] as const;

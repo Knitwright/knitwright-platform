@@ -9,6 +9,8 @@ import { listProducts } from "@/lib/brand-runs/service";
 import { MY_PRODUCTS_PATH } from "@/lib/products/routes";
 import { productRows, stageChips, stageFromQuery } from "@/lib/products/mine";
 import { sessionClient } from "@/lib/server/deps";
+import { readListings } from "@/lib/storefront/db";
+import { CHANNEL_LABELS, STATUS_LABELS } from "@/lib/storefront/listing";
 import { requireMember } from "@/lib/server/page-guards";
 
 export const metadata: Metadata = { title: "My products" };
@@ -25,8 +27,10 @@ export default async function MyProductsPage({ searchParams }: PageProps<"/produ
   const query = await searchParams;
   const stage = stageFromQuery(query.stage);
   const search = (Array.isArray(query.q) ? query.q[0] : query.q)?.slice(0, 80) ?? "";
-  const products = await listProducts(await sessionClient(), brand.id);
-  const rows = productRows(products, stage, search);
+  const client = await sessionClient();
+  const [products, listings] = await Promise.all([listProducts(client, brand.id), readListings(client, brand.id)]);
+  const channels = new Map(listings.map((listing) => [listing.productId, `${CHANNEL_LABELS[listing.channel]} · ${STATUS_LABELS[listing.status]}`]));
+  const rows = productRows(products, stage, search, (id) => channels.get(id));
 
   return (
     <div className="flex flex-col gap-6 pb-16">

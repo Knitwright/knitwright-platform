@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/lib/config/env";
 import { redirectFor } from "@/lib/server/core/paths";
+import { brandHostRewrite } from "@/lib/storefront/host";
 import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
 
 const NEVER_STORED = "private, no-cache, no-store, must-revalidate, max-age=0";
@@ -13,6 +14,9 @@ const NEVER_STORED = "private, no-cache, no-store, must-revalidate, max-age=0";
  */
 export async function proxy(request: NextRequest) {
   const env = getEnv();
+  // Host rules: `<brand>.knitwright.com` is a brand storefront (decision 0154). One line per rule.
+  const shop = brandHostRewrite(request.headers.get("host"), request.nextUrl.pathname, env.STOREFRONT_ROOT_DOMAIN);
+  if (shop) return NextResponse.rewrite(new URL(`${shop}${request.nextUrl.search}`, request.url));
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(

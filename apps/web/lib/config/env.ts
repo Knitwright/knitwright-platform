@@ -134,6 +134,9 @@ const envSchema = z.object({
   // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
   // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
   PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
+  // Brand storefronts (plan v6 C3, decision 0154): `<slug>.<this domain>` is rewritten to `/shop/<slug>`. Needs a
+  // wildcard DNS record and certificate on the deploy. Without it, storefronts answer only at `/shop/<slug>`.
+  STOREFRONT_ROOT_DOMAIN: z.string().regex(/^[a-z0-9.-]{3,100}$/).default("knitwright.com"),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),

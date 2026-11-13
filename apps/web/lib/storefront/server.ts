@@ -11,7 +11,7 @@ import { renderOf } from "@/lib/products/render";
 import { adminClient } from "@/lib/server/deps";
 import { listPalettes } from "@/lib/brand-studio/service";
 import { dropsOfListing, publishedListings, readListing, readStorefront, storefrontBySlug, listingById } from "./db";
-import type { Drop } from "./drops";
+import { saleNote, type Drop } from "./drops";
 import { listingHealth, type HealthLine } from "./health";
 import { newListing, type Currency, type Listing, type MediaItem } from "./listing";
 import { fileIdsOf, mediaPool, poolFromHandOffs, stillInPool } from "./media";
@@ -131,6 +131,8 @@ export async function newestRelease(client: SupabaseClient, brandId: string, pro
 
 export interface ShopCard {
   readonly listing: Listing;
+  /** "Made to order", "Pre-order · Closes in 3 days", "Opens in 2 days". */
+  readonly note: string;
   readonly image: Readonly<{ src: string; aiLabel: string | null }> | null;
 }
 
@@ -163,17 +165,20 @@ async function imagesOf(admin: SupabaseClient, listing: Listing): Promise<readon
   });
 }
 
-export async function loadShop(slug: string): Promise<(Shop & Readonly<{ cards: readonly ShopCard[] }>) | null> {
+export async function loadShop(slug: string, now: Date = new Date()): Promise<(Shop & Readonly<{ cards: readonly ShopCard[] }>) | null> {
   const shop = await shopOf(slug);
   if (shop === null) return null;
   const listings = await publishedListings(adminClient(), shop.storefront.brandId);
   const cards = await Promise.all(
-    listings.map(async (listing) => {
+    listings.map(async (listing): Promise<ShopCard | null> => {
+      const drops = listing.mode === "drop" ? await dropsOfListing(adminClient(), listing.id) : [];
+      const note = saleNote(listing, drops, now);
+      if (note === null) return null;
       const first = (await imagesOf(adminClient(), { ...listing, media: listing.media.slice(0, 1) }))[0];
-      return { listing, image: first ? { src: first.src, aiLabel: first.aiLabel } : null };
+      return { listing, note, image: first ? { src: first.src, aiLabel: first.aiLabel } : null };
     }),
   );
-  return { ...shop, cards };
+  return { ...shop, cards: cards.filter((card): card is ShopCard => card !== null) };
 }
 
 export interface ShopProduct extends Shop {

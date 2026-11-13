@@ -91,6 +91,62 @@ export function dropFromPlan(plan: CollectionPlan, listingOf: ReadonlyMap<string
   return { listings: rows, left, targetUnits: total > 0 ? total : null };
 }
 
+const WHEN = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+
+/** "20 Nov, 10:00 – 27 Nov, 10:00 UTC". */
+export const windowLine = (drop: Pick<Drop, "opensAt" | "closesAt">): string => `${WHEN.format(new Date(drop.opensAt))} – ${WHEN.format(new Date(drop.closesAt))} UTC`;
+
+export interface DropCardView {
+  readonly id: string;
+  readonly name: string;
+  readonly state: string;
+  readonly when: string;
+  readonly progress: string;
+  readonly percent: number | null;
+  readonly cancellable: boolean;
+}
+
+/** The drop cards of the storefront page: state, countdown and window, pre-orders against the target. */
+export function dropCards(drops: readonly Drop[], sold: ReadonlyMap<string, number>, now: Date): readonly DropCardView[] {
+  return drops.map((drop) => {
+    const state = dropState(drop, now);
+    const count = sold.get(drop.id) ?? 0;
+    return {
+      id: drop.id,
+      name: drop.name,
+      state: DROP_STATE_LABELS[state],
+      when: `${countdown(drop, now)} · ${windowLine(drop)}`,
+      progress: progressLine(count, drop.targetUnits),
+      percent: progressPercent(count, drop.targetUnits),
+      cancellable: state === "upcoming",
+    };
+  });
+}
+
+/** True when a drop sells now: shoppers can buy a drop listing only then. */
+export const isOpen = (drop: Pick<Drop, "opensAt" | "closesAt" | "status">, now: Date): boolean => dropState(drop, now) === "open";
+
+/** The drop that matters to a shopper: the open one, else the next to open, else none. */
+export function currentDrop(drops: readonly Drop[], now: Date): Drop | null {
+  const open = drops.find((drop) => dropState(drop, now) === "open");
+  if (open) return open;
+  const upcoming = drops.filter((drop) => dropState(drop, now) === "upcoming").sort((a, b) => a.opensAt.localeCompare(b.opensAt));
+  return upcoming[0] ?? null;
+}
+
+/**
+ * What the storefront says under a product, or null to leave it out of the grid. A drop listing with "Hide in store
+ * until ready" is shown only while one of its drops is open; without it, it shows when its next drop opens.
+ */
+export function saleNote(listing: Readonly<{ mode: "made_to_order" | "drop"; hideUntilReady: boolean }>, drops: readonly Drop[], now: Date): string | null {
+  if (listing.mode === "made_to_order") return "Made to order";
+  const drop = currentDrop(drops, now);
+  if (drop === null) return listing.hideUntilReady ? null : "Not on sale yet";
+  const open = dropState(drop, now) === "open";
+  if (!open && listing.hideUntilReady) return null;
+  return open ? `Pre-order · ${countdown(drop, now)}` : countdown(drop, now);
+}
+
 const LONGEST_DROP_DAYS = 90;
 
 export const newDropBody = z

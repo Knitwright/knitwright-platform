@@ -185,8 +185,19 @@ export const shopOrderById = async (admin: SupabaseClient, id: string): Promise<
 export const shopOrderByPayment = async (admin: SupabaseClient, paymentId: string): Promise<ShopOrder | null> =>
   one(await admin.from("shop_orders").select(SHOP_ORDER_COLUMNS).eq("payment_id", paymentId).maybeSingle(), toShopOrder, "The order");
 
+/** The brand's paid storefront orders, newest first. A checkout never finished is not an order. */
 export const shopOrdersOfBrand = async (client: SupabaseClient, brandId: string, limit = 50): Promise<readonly ShopOrder[]> =>
-  rows(await client.from("shop_orders").select(SHOP_ORDER_COLUMNS).eq("brand_id", brandId).order("created_at", { ascending: false }).limit(limit), toShopOrder, "The orders");
+  rows(
+    await client
+      .from("shop_orders")
+      .select(`${SHOP_ORDER_COLUMNS}, order_payments!inner(status)`)
+      .eq("brand_id", brandId)
+      .in("order_payments.status", ["paid", "fulfilled", "refunded"])
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    toShopOrder,
+    "The orders",
+  );
 
 export const shopOrdersOfBatch = async (admin: SupabaseClient, batchId: string): Promise<readonly ShopOrder[]> =>
   rows(await admin.from("shop_orders").select(SHOP_ORDER_COLUMNS).eq("batch_id", batchId), toShopOrder, "The orders");
