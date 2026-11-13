@@ -33,6 +33,9 @@ const DONE: Readonly<Record<PaymentRow["purpose"], string>> = {
   plan: "Your plan is active.",
 };
 
+/** The person left the checkout: whether or not Stripe has closed it yet, nothing was charged. */
+const CANCELLED: PaymentHeadline = { title: "Checkout cancelled", body: "Nothing was charged. Nothing has gone to production.", tone: "info", waiting: false };
+
 /** The headline of the return page, from the payment's state and whether the person left the checkout. */
 export function headlineOf(payment: PaymentRow, cancelled: boolean, lines: readonly LineRow[] = []): PaymentHeadline {
   const refused = lines.filter((line) => line.status === "refused");
@@ -43,15 +46,13 @@ export function headlineOf(payment: PaymentRow, cancelled: boolean, lines: reado
         ? { title: payment.method === "invoice" ? "Sent to production" : "Paid", body: DONE[payment.purpose], tone: "ok", waiting: false }
         : { title: "Paid, with a refund", body: `${refused.length} of the orders could not go to production, and their share was refunded: ${refused.map((line) => line.message).join(" ")}`, tone: "warn", waiting: false };
     case "paid":
-      return { title: "Paid", body: "Your payment is confirmed. We are sending it on now.", tone: "ok", waiting: true };
+      return { title: "Paid", body: "Your payment went through. We are sending it on now.", tone: "ok", waiting: true };
     case "refunded":
       return { title: "Refunded", body: `${money(payment, payment.refundedMinor)} was given back to the card.`, tone: "info", waiting: false };
     case "expired":
-      return { title: "Checkout closed", body: "Nothing was charged. Start again from the order whenever you are ready.", tone: "info", waiting: false };
+      return cancelled ? CANCELLED : { title: "Checkout closed", body: "Nothing was charged. Start again from the order whenever you are ready.", tone: "info", waiting: false };
     case "open":
-      return cancelled
-        ? { title: "Checkout cancelled", body: "Nothing was charged. Your order has not gone to production.", tone: "info", waiting: false }
-        : { title: "Waiting for the payment", body: "Stripe has not confirmed the payment yet. This usually takes a few seconds.", tone: "info", waiting: true };
+      return cancelled ? CANCELLED : { title: "Waiting for the payment", body: "Stripe has not said the payment went through yet. This usually takes a few seconds.", tone: "info", waiting: true };
   }
 }
 

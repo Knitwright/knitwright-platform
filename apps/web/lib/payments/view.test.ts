@@ -42,7 +42,8 @@ describe("the return page's headline", () => {
     expect(headlineOf(payment({ status: "open" }), false)).toMatchObject({ title: "Waiting for the payment", waiting: true });
     expect(headlineOf(payment({ status: "paid" }), false)).toMatchObject({ title: "Paid", waiting: true });
     expect(headlineOf(payment({ status: "open" }), true)).toMatchObject({ title: "Checkout cancelled", waiting: false });
-    expect(headlineOf(payment({ status: "expired" }), true).body).toMatch(/Nothing was charged/);
+    expect(headlineOf(payment({ status: "expired" }), true)).toMatchObject({ title: "Checkout cancelled", body: expect.stringMatching(/Nothing was charged/) });
+    expect(headlineOf(payment({ status: "expired" }), false)).toMatchObject({ title: "Checkout closed" });
     expect(headlineOf(payment({ status: "refunded", refundedMinor: 8700 }), false).body).toBe("£87.00 was given back to the card.");
   });
 });
