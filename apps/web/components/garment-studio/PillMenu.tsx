@@ -59,7 +59,7 @@ export function PillMenu({ label, icon, value, choices, chosen, onChoose, extra,
       <button
         ref={trigger}
         type="button"
-        aria-label={label}
+        aria-label={`${label}: ${value}`}
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}

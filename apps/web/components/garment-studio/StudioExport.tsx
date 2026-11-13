@@ -48,7 +48,7 @@ export function StudioExport({ design, onClose, onAllFiles }: Props) {
   const input = { projectId: design.projectId, version: design.version, colourwayId: design.colourwayId, size: design.size, views: ["front", "back"] as const };
   const outputs = outputsFor(studioTab(tab).from, input, OPTIONS);
   return (
-    <section id="studio-export" aria-labelledby="studio-export-title" className="flex max-h-[calc(100dvh-6rem)] w-[min(34.5rem,calc(100vw-2rem))] flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-bg p-5 shadow-e3" data-testid="studio-export">
+    <section id="studio-export" aria-labelledby="studio-export-title" className="flex max-h-[calc(100dvh-6rem)] w-[min(34.5rem,calc(100vw-2rem))] flex-col gap-4 overflow-y-auto rounded-2xl border border-border bg-bg p-5 shadow-e3 *:shrink-0" data-testid="studio-export">
       <header className="flex items-center justify-between">
         <h2 id="studio-export-title" className="text-h2 text-text">
           Export

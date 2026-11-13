@@ -177,7 +177,8 @@ export function GarmentStudio(props: GarmentStudioProps) {
           assistantOpen={layout.sheetOpen}
           assistantButton={assistantButton}
         />
-        <div className="relative order-first flex min-h-[80dvh] flex-col bg-stage lg:order-none lg:min-h-0" data-testid="studio-stage">
+        {/* Grey for the 3D stage (s02); the drawing and the tech pack keep the light canvas their text was set on. */}
+        <div className={`relative order-first flex min-h-[80dvh] flex-col lg:order-none lg:min-h-0 ${shell.state.view === "3d" && shell.state.beside === null ? "bg-stage" : "bg-soft-2"}`} data-testid="studio-stage">
           <div className="flex justify-end p-4 pb-0">
             <StageTop
               fit={fitChip(validateChip(validate), simulation)}
@@ -190,7 +191,7 @@ export function GarmentStudio(props: GarmentStudioProps) {
               onPhotoreal={() => openTool("photoreal")}
             />
           </div>
-          <div className="flex min-h-0 flex-1 flex-col px-4">
+          <div className="flex min-h-0 flex-1 flex-col px-4 [&>section]:flex-1">
             <CanvasFrame
               data={data}
               view={shell.state.view}
@@ -224,7 +225,7 @@ export function GarmentStudio(props: GarmentStudioProps) {
             />
           </div>
         </div>
-        <div className="flex min-h-0 flex-col gap-3 border-border bg-bg p-4 lg:hidden xl:grid xl:grid-rows-[minmax(0,1fr)_auto] xl:border-l">
+        <div className="flex min-h-0 flex-col gap-3 border-border bg-bg p-4 lg:hidden xl:grid xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)] xl:border-l">
           <SidePanel side={side} sections={summary} slot={slot} onOpenSection={openSummary} onBack={() => setSide("summary")} />
           <AssistantDock
             projectId={data.projectId}

@@ -47,7 +47,7 @@ export function StudioTopBar(props: Props) {
     <header className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border bg-bg px-4 py-2 lg:flex-nowrap lg:py-0 lg:pr-4.5" data-testid="studio-top-bar">
       <Link
         href={props.backHref}
-        aria-label={`Back to canvas: ${props.canvasName}`}
+        aria-label={`KW, back to canvas: ${props.canvasName}`}
         title="Back to canvas"
         data-testid="canvas-focus-back"
         className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy text-body font-extrabold text-gold no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"

@@ -73,13 +73,13 @@ export function LibraryColumn(props: Props) {
 function ModeSwitch({ projectId }: Readonly<{ projectId: string }>) {
   return (
     <div className="flex items-center gap-1 rounded-full bg-soft p-1" role="group" aria-label="Library or tech pack">
-      <span aria-current="true" className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-navy px-3 text-small font-semibold text-on-dark">
+      <span aria-current="true" className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-navy px-2.5 text-small font-semibold whitespace-nowrap text-on-dark">
         <Icon icon={Library} size={16} />
         Library
       </span>
       <Link
         href={`/studio/${encodeURIComponent(projectId)}/tech-pack` as Route}
-        className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full px-3 text-small font-semibold text-text no-underline live:hover:bg-bg"
+        className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 text-small font-semibold whitespace-nowrap text-text no-underline live:hover:bg-bg"
         data-testid="studio-tech-pack-link"
       >
         <Icon icon={FileText} size={16} />

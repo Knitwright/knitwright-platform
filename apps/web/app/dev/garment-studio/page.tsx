@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { GarmentStudio } from "@/components/garment-studio/GarmentStudio";
+import { PlansHost } from "@/components/plans/PlansHost";
 import { DesignIdProvider } from "@/components/production/DesignId";
 import { devStudio } from "@/lib/garment-studio/fixtures/dev";
 import { parseShelf } from "@/lib/garment-studio/shelves";
@@ -49,6 +50,8 @@ export default async function GarmentStudioFixture({ searchParams }: PageProps<"
         checks={studio.checks}
         slots={{ kitStyles: null, photoreal: null, share: null, quote: null, organisation: null, designImport: null }}
       />
+      {/* The shell mounts the plans modal on a real page; the fixture has no shell (s19). */}
+      <PlansHost />
     </DesignIdProvider>
   );
 }

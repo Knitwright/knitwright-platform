@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Image as ImageIcon, Ruler, RotateCw, Shirt, UserRound } from "lucide-react";
+import { Columns2, FileText, Image as ImageIcon, Ruler, RotateCw, Shirt, UserRound } from "lucide-react";
 import { useId } from "react";
 import { ValidateChip } from "@/components/studio/editor/ValidateChip";
 import { Button } from "@/components/ui/Button";
@@ -37,7 +37,7 @@ type BarProps = Readonly<{
 export function StageBar(props: BarProps) {
   const chosen = props.colourways.find((choice) => choice.id === props.colourwayId);
   return (
-    <div className="flex flex-wrap items-center gap-2 p-4" data-testid="canvas-bottom-bar">
+    <div className="flex flex-wrap items-center gap-2 py-4" data-testid="canvas-bottom-bar">
       <PillMenu
         label="Kit colourway"
         icon={<Icon icon={Shirt} size={20} />}
@@ -94,17 +94,21 @@ function ViewSwitch({ view, beside, onView }: Readonly<{ view: CanvasView; besid
             </button>
           );
         })}
+        {/* Two views at once, as the editor always offered: a box and a glyph, to keep the bar on one line. */}
+        <span className="inline-flex h-9 items-center gap-1 border-l border-border pr-1 pl-2 text-text-2" title="Side by side">
+          <input
+            id={sideId}
+            type="checkbox"
+            checked={beside !== null}
+            onChange={(event) => (event.target.checked ? onView(partner(view), true) : onView(view, false))}
+            className="size-4 accent-navy"
+          />
+          <label htmlFor={sideId} className="inline-flex items-center">
+            <Icon icon={Columns2} size={16} />
+            <span className="sr-only">Side by side</span>
+          </label>
+        </span>
       </div>
-      <span className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-bg px-3 text-caption text-text-2 shadow-e1">
-        <input
-          id={sideId}
-          type="checkbox"
-          checked={beside !== null}
-          onChange={(event) => (event.target.checked ? onView(partner(view), true) : onView(view, false))}
-          className="size-4 accent-navy"
-        />
-        <label htmlFor={sideId}>Side by side</label>
-      </span>
     </div>
   );
 }
