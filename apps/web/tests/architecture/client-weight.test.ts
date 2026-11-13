@@ -23,6 +23,8 @@ const HEAVY = /from "(zod|three|read-excel-file|write-excel-file|@react-pdf\/ren
 
 const SECOND_PASS = [
   "components/studio/",
+  // Garment Studio is the design editor laid out again (decision 0150), so it needs the same rules.
+  "components/garment-studio/",
   "components/panel-layers/",
   "components/techpack/",
   "components/techpack-editor/",

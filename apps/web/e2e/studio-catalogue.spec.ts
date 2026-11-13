@@ -62,12 +62,12 @@ test.describe("Recent, the studio home moved to Projects (decision 0139)", () =>
     await expect(dialog).toBeVisible();
     await expect(dialog).toHaveAttribute("aria-modal", "true");
     await expect(opener).toHaveAttribute("aria-expanded", "true");
-    await expect(dialog.getByRole("heading", { level: 3 })).toHaveText(["Knitwright library", "Your own"]);
-    await expect(dialog.getByRole("link", { name: /^Base products/ })).toHaveAttribute("href", "/products");
+    await expect(dialog.getByRole("heading", { level: 3 })).toHaveText(["Knitwright library", "Start your own"]);
+    await expect(dialog.getByRole("link", { name: /^Products/ })).toHaveAttribute("href", "/products");
     await expect(dialog.getByRole("link", { name: /^Templates/ })).toHaveAttribute("href", "/templates");
-    await expect(dialog.getByText("Your team")).toBeVisible();
-    await expect(dialog.getByRole("link", { name: /Your team/ })).toHaveCount(0);
-    await expect(dialog).toContainText("There is no blank canvas");
+    await expect(dialog.getByText("Import your own pattern")).toBeVisible();
+    await expect(dialog.getByRole("link", { name: /Import your own pattern/ })).toHaveCount(0);
+    await expect(dialog.getByRole("link", { name: /^Kit from your crest/ })).toHaveAttribute("href", "/ai-studio/workflow/crest-to-kit");
 
     for (let press = 0; press < 12; press += 1) {
       await page.keyboard.press("Tab");

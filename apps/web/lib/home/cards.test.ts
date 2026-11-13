@@ -42,8 +42,8 @@ describe("the action cards", () => {
 });
 
 describe("the ways into a new design", () => {
-  it("offers Base products, Templates, From your crest or logo and Your team", () => {
-    expect(CREATE_WAYS.map((way) => way.title)).toEqual(["Base products", "Templates", "From your crest or logo", "Your team"]);
+  it("offers Products, Templates, Kit from your crest and Import your own pattern (d20)", () => {
+    expect(CREATE_WAYS.map((way) => way.title)).toEqual(["Products", "Templates", "Kit from your crest", "Import your own pattern"]);
   });
 
   it("offers no blank canvas and no way to draft a pattern from nothing", () => {
@@ -55,7 +55,7 @@ describe("the ways into a new design", () => {
     expect(words(CREATE_WAYS)).not.toMatch(/factory-approved|approved/);
   });
 
-  it("sends Base products and Templates to the catalogue's two tabs", () => {
+  it("sends Products and Templates to the catalogue and the templates", () => {
     expect(hrefOf(CREATE_WAYS[0]!.target)).toBe("/products");
     expect(hrefOf(CREATE_WAYS[1]!.target)).toBe("/templates");
   });
@@ -64,13 +64,14 @@ describe("the ways into a new design", () => {
     expect(hrefOf(CREATE_WAYS[2]!.target)).toBe("/ai-studio/workflow/crest-to-kit");
   });
 
-  it("marks shared team designs as coming later rather than opening nothing", () => {
+  it("marks the Class B pattern import as coming later rather than opening nothing", () => {
+    expect(CREATE_WAYS[3]!.tag).toBe("Class B");
     expect(isLater(CREATE_WAYS[3]!.target)).toBe(true);
   });
 
   it("draws every way in exactly one group", () => {
     const grouped = CREATE_GROUPS.flatMap((group) => waysOf(group));
     expect(grouped.map((way) => way.id)).toEqual(CREATE_WAYS.map((way) => way.id));
-    expect(CREATE_GROUPS.map((group) => group.label)).toEqual(["Knitwright library", "Your own"]);
+    expect(CREATE_GROUPS.map((group) => group.label)).toEqual(["Knitwright library", "Start your own"]);
   });
 });

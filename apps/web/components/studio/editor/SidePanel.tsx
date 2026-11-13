@@ -38,7 +38,7 @@ export function SidePanel({ side, sections, slot, onOpenSection, onBack }: Props
         type="button"
         onClick={onBack}
         data-testid="side-panel-back"
-        className="chip-btn inline-flex min-h-10 items-center self-start rounded-full border border-white/20 px-3.5 text-[13px] font-medium text-ink"
+        className="inline-flex min-h-10 items-center self-start rounded-md border border-border bg-bg px-3.5 text-small font-semibold text-text live:hover:bg-soft"
       >
         <span aria-hidden="true" className="mr-1">
           &#8592;

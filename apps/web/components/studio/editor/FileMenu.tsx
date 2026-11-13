@@ -3,6 +3,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
+import { buttonClasses } from "@/components/ui/Button";
 import { fileMenu } from "@/lib/editor";
 import type { ToolId } from "@/lib/workspace/tools";
 
@@ -25,12 +26,12 @@ export function FileMenu({ projectId, onTool }: Props) {
         aria-expanded={open}
         aria-controls="file-menu"
         data-testid="file-menu-button"
-        className="chip-btn inline-flex h-10 items-center rounded-full border border-white/20 bg-transparent px-4 text-sm font-medium text-ink"
+        className={buttonClasses("ghost", false, "max-lg:h-10", "sm")}
       >
         File
       </button>
       {open ? (
-        <ul id="file-menu" aria-label="File" className="glass absolute left-0 z-30 mt-2 flex w-56 flex-col rounded-2xl p-2 shadow-lg">
+        <ul id="file-menu" aria-label="File" className="absolute left-0 z-50 mt-2 flex w-56 flex-col rounded-2xl border border-border bg-bg p-2 shadow-e3">
           {items.map((item) => (
             <li key={item.id}>
               <Link
@@ -41,7 +42,7 @@ export function FileMenu({ projectId, onTool }: Props) {
                   event.preventDefault();
                   onTool(item.tool);
                 }}
-                className="flex min-h-10 items-center rounded-xl px-3 text-sm text-ink hover:bg-tile-2"
+                className="flex min-h-10 items-center rounded-md px-3 text-body-lg text-text-2 no-underline live:hover:bg-soft"
               >
                 {item.label}
               </Link>
