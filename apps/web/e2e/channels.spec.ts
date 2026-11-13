@@ -37,7 +37,8 @@ test.describe("sales channels", () => {
     await page.goto("/store/channels");
     await expect(page.getByRole("heading", { level: 1, name: "Sales channels" })).toBeVisible();
     for (const name of ["Shopify", "Etsy", "TikTok Shop", "Knitwright team store", "WooCommerce", "API or CSV"]) {
-      await expect(page.getByRole("heading", { level: 2, name, exact: true })).toBeVisible();
+      // The card's own title: the API or CSV panel below the cards has a heading of the same name.
+      await expect(page.locator(`section[id^="channel-"]`).getByRole("heading", { level: 2, name, exact: true })).toBeVisible();
     }
     // A channel that is not built says so: its button is disabled, never a link to nowhere.
     await expect(page.locator("#channel-etsy").getByRole("button", { name: "Later" })).toHaveAttribute("aria-disabled", "true");

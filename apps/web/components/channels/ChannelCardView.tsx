@@ -15,7 +15,7 @@ import { ChannelTile } from "./ChannelTile";
 
 const BADGE: Readonly<Record<"navy" | "info" | "ok", string>> = {
   navy: "bg-navy text-on-dark",
-  info: "bg-info-soft text-info",
+  info: "bg-info-soft text-link",
   ok: "bg-ok-soft text-ok",
 };
 
