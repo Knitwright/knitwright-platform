@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Store settings" };
 export default async function StoreSettingsPage() {
   const { brand } = await requireMember();
   const { settings } = await loadStoreSettings(await sessionClient(), brand.id);
-  const { branding: _branding, ...initial } = settings;
+  const initial = { euRpName: settings.euRpName, euRpAddress: settings.euRpAddress, euRpEmail: settings.euRpEmail, brandContact: settings.brandContact, lucidNumber: settings.lucidNumber };
   return (
     <div className="flex flex-col gap-6 pb-16">
       <StoreHeader title="Store settings" current={SETTINGS_PATH} />
