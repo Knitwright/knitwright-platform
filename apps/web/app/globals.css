@@ -51,6 +51,8 @@
   --color-muted-2: #9ca3af;
   --color-on-dark: #ffffff;
   --color-scrim: rgba(17, 19, 24, 0.45);
+  /* Garment Studio's grey stage (decision 0150; `10` §2 "dark backgrounds as content, not as a theme"). */
+  --color-stage: #7d838d;
 
   /* §2 status: text on its own fill */
   --color-ok: #067647;
