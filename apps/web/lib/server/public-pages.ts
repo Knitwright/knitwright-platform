@@ -61,4 +61,6 @@ export const PUBLIC_PAGES = [
   "app/dev/inspector/page.tsx",
   // E5's prompt bar, pickers and panels with made-up data (decision 0149). Same switch as /dev/ui.
   "app/dev/prompt-bar/page.tsx",
+  // Garment Studio with made-up data (decision 0150), for s01–s07 and s16–s19. Same switch as /dev/ui.
+  "app/dev/garment-studio/page.tsx",
 ] as const;

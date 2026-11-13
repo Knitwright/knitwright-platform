@@ -15,6 +15,8 @@ export interface HomeCard {
   readonly target: Target;
   /** The feature of docs/spec/02-features.md this card belongs to, for the PR trail. */
   readonly feature: string;
+  /** A small tag beside the title ("Class B"), or nothing. */
+  readonly tag?: string;
 }
 
 /** The six action cards, in the order the spec lists them. */
@@ -64,46 +66,52 @@ export const ACTION_CARDS: readonly HomeCard[] = [
 ];
 
 /**
- * The ways in the create-new modal. "Base products" does not call a base factory-approved: every
- * seeded article is a Knitwright draft until a factory reviews it (plan v5 X1, decision 0066).
+ * The ways in the create-new modal (`08` v3.6, `09` screen 28, d20; decision 0150). "Products" does
+ * not call a base factory-approved: every seeded article is a Knitwright draft until a factory
+ * reviews it (plan v5 X1, decision 0066). Products opens the catalogue, where **Design this** opens
+ * the product configurator, whose CREATE MY DESIGN opens Garment Studio.
+ *
+ * "Import your own pattern" is Class B and checked by the factory first. Its request is made from
+ * inside a design today (`/studio/<id>/pattern-service`), so the way in from here says it is coming.
+ * The shared-with-you way of v2.2 left the modal with the v3.6 layout; it had nothing behind it.
  */
 export const CREATE_WAYS: readonly HomeCard[] = [
   {
-    id: "base-products",
-    title: "Base products",
-    text: "Start from a Knitwright base article. Each one is a draft until a factory reviews it.",
+    id: "products",
+    title: "Products",
+    text: "Browse the Knitwright bases.",
     target: page("/products"),
-    feature: "F-S4",
+    feature: "F-S8",
   },
   {
     id: "templates",
     title: "Templates",
-    text: "Ready-made sportswear designs to remix.",
+    text: "Ready-made kits to remix.",
     target: page("/templates"),
     feature: "F-S4",
   },
   {
     id: "crest",
-    title: "From your crest or logo",
-    text: "Your club's colours, crest and sponsors, put on a design in one press.",
-    // Crest to kit is the screen F-T2 asks for. It opened the club page while that screen was
-    // being built (plan v5 Z6, decision 0105); it is live now, so the card goes straight there.
+    title: "Kit from your crest",
+    text: "We build kits from your crest and colours.",
+    // Crest to kit is the screen F-T2 asks for (plan v5 Z6, decision 0105).
     target: page("/ai-studio/workflow/crest-to-kit"),
     feature: "F-T2",
   },
   {
-    id: "team",
-    title: "Your team",
-    text: "Designs other people in your workspace have shared with you.",
+    id: "import-pattern",
+    title: "Import your own pattern",
+    text: "Class B · 50+ pieces · checked by the factory first.",
     target: later,
-    feature: "F-S4",
+    feature: "F-S3",
+    tag: "Class B",
   },
 ];
 
 /** The groups the modal draws, so the heading of each group lives with its ways. */
 export const CREATE_GROUPS: readonly Readonly<{ label: string; wayIds: readonly string[] }>[] = [
-  { label: "Knitwright library", wayIds: ["base-products", "templates"] },
-  { label: "Your own", wayIds: ["crest", "team"] },
+  { label: "Knitwright library", wayIds: ["products", "templates"] },
+  { label: "Start your own", wayIds: ["crest", "import-pattern"] },
 ];
 
 /** The ways of one group, in the group's order. */

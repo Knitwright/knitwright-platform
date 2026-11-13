@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Chips";
 import { Modal } from "@/components/ui/Modal";
 import { COMING_SOON, WORKS_WELL, rememberWelcome, shouldWelcome } from "@/lib/garment-studio/welcome";
+import { BodyPortal } from "./BodyPortal";
 
 /** The browser's stores, or null where there are none (the server, a blocked origin). */
 const stores = (): { local: Storage | null; session: Storage | null } => {
@@ -43,6 +44,7 @@ export function WelcomeModal({ forceOpen = false }: Readonly<{ forceOpen?: boole
   };
 
   return (
+    <BodyPortal>
     <Modal open={open} onClose={close} title="Welcome to Garment Studio" size="lg">
       <div className="flex flex-col gap-6" data-testid="studio-welcome">
         <Tag tone="beta" className="self-start">
@@ -66,6 +68,7 @@ export function WelcomeModal({ forceOpen = false }: Readonly<{ forceOpen?: boole
         </div>
       </div>
     </Modal>
+    </BodyPortal>
   );
 }
 
