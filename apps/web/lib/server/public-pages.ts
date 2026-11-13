@@ -65,4 +65,16 @@ export const PUBLIC_PAGES = [
   "app/dev/payments/page.tsx",
   // G2's tech pack editor and sheets with made-up data (decision 0151), for s08–s15 and x01–x08. Same switch as /dev/ui.
   "app/dev/tech-pack/page.tsx",
+  // A team store (F-T6, decision 0153): players and parents buy with no account. The code in the address is the
+  // only key: the pages read that store through the server's key and show its title, prices, sizes, dates and the
+  // club's size guide, never another buyer. The return page shows one payment's state by its id; the test checkout
+  // page exists only with PAYMENTS_TEST_CHECKOUT on. Buying is guarded by the bot check and a limit per address.
+  "app/t/[code]/page.tsx",
+  "app/t/[code]/done/page.tsx",
+  "app/t/[code]/pay/[sessionId]/page.tsx",
+  // A club's public page (F-T6, decision 0153): only a page its club published, with its name, kit colours and
+  // crest, open stores, size guide and the contact line the club chose. Shown at <club>.knitwright.com by proxy.ts.
+  "app/clubs/[slug]/page.tsx",
+  // C2's team store screens with made-up stores (decision 0153). Same switch as /dev/ui.
+  "app/dev/team-stores/page.tsx",
 ] as const;

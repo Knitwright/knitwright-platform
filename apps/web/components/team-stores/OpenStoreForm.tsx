@@ -4,7 +4,7 @@ import { useId, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox, Select, TextInput } from "@/components/ui/Inputs";
 import { Notice } from "@/components/ui/Notice";
-import type { MakeContext } from "@/lib/make/context";
+import type { Ladder } from "@/lib/factory/pricing";
 import { openTeamStoreAction } from "@/lib/team-stores/actions";
 import { DEFAULT_MIN_PIECES, MARGIN_BPS } from "@/lib/team-stores/model";
 import { defaultDates, previewPrice } from "@/lib/team-stores/preview";
@@ -13,7 +13,8 @@ import { marginPercent } from "@/lib/team-stores/rules";
 type Props = Readonly<{
   projectId: string;
   designName: string;
-  context: MakeContext;
+  sizeRun: readonly string[];
+  ladder: Ladder;
   seasons: readonly Readonly<{ id: string; name: string }>[];
   onOpened: () => void;
 }>;
@@ -26,7 +27,7 @@ const LABEL = "flex flex-col gap-1 text-small text-text";
  * design's own ladder as the kit manager types; the server works it out again and runs every order check before
  * the store opens.
  */
-export function OpenStoreForm({ projectId, designName, context, seasons, onOpened }: Props) {
+export function OpenStoreForm({ projectId, designName, sizeRun, ladder, seasons, onOpened }: Props) {
   const ids = { title: useId(), opens: useId(), closes: useId(), min: useId(), margin: useId(), season: useId(), sizes: useId() };
   const first = defaultDates(new Date());
   const [title, setTitle] = useState(designName.slice(0, 80));
@@ -36,12 +37,12 @@ export function OpenStoreForm({ projectId, designName, context, seasons, onOpene
   const [marginBps, setMarginBps] = useState<number>(0);
   const [namesNumbers, setNamesNumbers] = useState(true);
   const [seasonId, setSeasonId] = useState("");
-  const [sizes, setSizes] = useState<readonly string[]>(context.sizeRun);
+  const [sizes, setSizes] = useState<readonly string[]>(sizeRun);
   const [pending, setPending] = useState(false);
   const [note, setNote] = useState<string | null>(null);
-  const preview = previewPrice(context.factory.ladder, Number(minPieces), marginBps);
+  const preview = previewPrice(ladder, Number(minPieces), marginBps);
 
-  const toggleSize = (size: string, on: boolean) => setSizes((current) => (on ? context.sizeRun.filter((one) => one === size || current.includes(one)) : current.filter((one) => one !== size)));
+  const toggleSize = (size: string, on: boolean) => setSizes((current) => (on ? sizeRun.filter((one) => one === size || current.includes(one)) : current.filter((one) => one !== size)));
 
   const submit = async () => {
     setPending(true);
@@ -105,7 +106,7 @@ export function OpenStoreForm({ projectId, designName, context, seasons, onOpene
       <fieldset className="flex flex-col gap-1" aria-describedby={ids.sizes}>
         <legend className="text-small text-text">Sizes on offer</legend>
         <div className="flex flex-wrap gap-x-4 gap-y-1">
-          {context.sizeRun.map((size) => (
+          {sizeRun.map((size) => (
             <Checkbox key={size} label={size} checked={sizes.includes(size)} onChange={(event) => toggleSize(size, event.target.checked)} />
           ))}
         </div>

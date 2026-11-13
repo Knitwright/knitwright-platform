@@ -58,7 +58,7 @@ export function TeamStoreTab({ projectId, designName, context }: Readonly<{ proj
       ) : blocked !== null ? (
         <Notice tone="info">{blocked} A team store sells a run, so it opens once a run can be ordered.</Notice>
       ) : (
-        <OpenStoreForm projectId={projectId} designName={designName} context={context} seasons={seasons} onOpened={retry} />
+        <OpenStoreForm projectId={projectId} designName={designName} sizeRun={context.sizeRun} ladder={context.factory.ladder} seasons={seasons} onOpened={retry} />
       )}
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-small font-semibold">
         <Link href={"/team?tab=stores" as Route} className="text-link live:hover:underline">
