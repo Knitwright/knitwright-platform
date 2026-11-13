@@ -42,7 +42,7 @@ describe("which Shopify a deploy talks to", () => {
     expect(real?.authorizeUrl("club.myshopify.com", "a=1")).toBe("https://club.myshopify.com/admin/oauth/authorize?a=1");
     const stand = shopifyFrom({ ...base, SHOPIFY_APP_TEST_MODE: "on" });
     expect(stand).toMatchObject({ apiKey: STAND_IN_API_KEY, testMode: true, secret: standInSecret("server") });
-    expect(stand?.authorizeUrl("club.myshopify.com", "a=1")).toBe("/store/channels/test-install?a=1");
+    expect(stand?.authorizeUrl("club.myshopify.com", "a=1")).toBe("/store/channels/test-install?a=1&shop=club.myshopify.com");
     expect(shopifyFrom({ ...base, SHOPIFY_APP_API_KEY: "key12345", SHOPIFY_APP_TEST_MODE: "on" })).toBeNull();
     expect(shopifyFrom(base)).toBeNull();
   });

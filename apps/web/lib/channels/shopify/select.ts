@@ -42,7 +42,8 @@ export function shopifyFrom(env: ShopifyEnv): ShopifyApp | null {
       apiKey: STAND_IN_API_KEY,
       secret: standInSecret(env.SUPABASE_SECRET_KEY),
       admin: standInAdmin(),
-      authorizeUrl: (_shop, query) => `${TEST_INSTALL_PATH}?${query}`,
+      // Shopify's page knows its shop from its own address; the stand-in's is told it in the query.
+      authorizeUrl: (shop, query) => `${TEST_INSTALL_PATH}?${query}&shop=${encodeURIComponent(shop)}`,
       testMode: true,
     };
   }
