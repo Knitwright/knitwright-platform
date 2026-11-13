@@ -35,7 +35,7 @@ export async function StoresTab({ brand }: Readonly<{ brand: Brand }>) {
           Team stores
         </h2>
         {stores.length === 0 ? (
-          <EmptyState icon={<Icon icon={Store} size={24} />} title="No team store yet">
+          <EmptyState icon={<Icon icon={Store} size={22} />} title="No team store yet">
             Open one from a design: open the design, choose Order, then the Team store tab.{" "}
             <Link href={"/projects" as Route} className="font-semibold text-link live:hover:underline">
               Your designs
