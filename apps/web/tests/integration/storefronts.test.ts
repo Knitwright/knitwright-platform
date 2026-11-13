@@ -137,6 +137,38 @@ describe("a made-to-order batch", () => {
   });
 });
 
+describe("one namespace of names with the clubs (decision 0154 with 0153)", () => {
+  it("refuses a brand slug that is reserved or a club's, and a club slug that is a brand's", async () => {
+    const club = `club-${randomUUID().slice(0, 8)}`;
+    must(await rpc("set_club_page", { p_brand_id: benBrand, p_user_id: ben.userId, p_slug: club, p_contact: "", p_published: true }));
+    const carl = await person("shop-carl");
+    const carlBrand = await brandOf(carl, "Carl Shop");
+    for (const slug of [club, "shop", "www"]) {
+      const { error } = await adminClient().from("storefronts").insert({ brand_id: carlBrand, slug, name: "Carl", returns_policy: "Policy" });
+      expect(error?.hint, slug).toBe("slug_taken");
+    }
+    const { slug: annSlug } = must(await adminClient().from("storefronts").select("slug").eq("brand_id", annBrand).single()) as { slug: string };
+    expect((await rpc("set_club_page", { p_brand_id: carlBrand, p_user_id: carl.userId, p_slug: annSlug, p_contact: "", p_published: true })).error?.hint).toBe("slug_taken");
+    const free = `carl-${randomUUID().slice(0, 8)}`;
+    must(await adminClient().from("storefronts").insert({ brand_id: carlBrand, slug: free, name: "Carl", returns_policy: "Policy" }).select("brand_id"));
+    must(await adminClient().from("storefronts").update({ name: "Carl's shop" }).eq("brand_id", carlBrand).select("brand_id"));
+  });
+});
+
+describe("F-G4 with storefronts", () => {
+  it("holds the reserve on a paid storefront order until its batch's order ships", async () => {
+    const ops = await person("shop-ops");
+    must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+    const open = async () => Number((must(await rpc("ops_finance_figures", { p_actor: ops.userId })) as { currency: string; open_pre_order_minor: number }[]).find((row) => row.currency === "GBP")!.open_pre_order_minor);
+    const made = await published();
+    const before = await open();
+    await paidShopOrder(made.listingId);
+    expect((await open()) - before).toBe(5000);
+    must(await rpc("cut_storefront_batch", { p_listing_id: made.listingId, p_drop_id: null, p_cutoff: new Date(Date.now() + 1000).toISOString() }));
+    expect((await open()) - before).toBe(5000);
+  });
+});
+
 describe("who sees what", () => {
   it("shows a member their brand's storefront, listings and orders, and a stranger or a visitor nothing", async () => {
     const made = await published();

@@ -8,7 +8,8 @@
   at the run stage, a frozen release and a fabric; Listing health says what is missing.
 - With no Stripe keys and `PAYMENTS_TEST_CHECKOUT=on`, Buy opens `/shop/<slug>/pay/<session>`: "Pay with a test card"
   signs the event and hands it to C1's webhook, as Stripe would.
-- To try a host locally: `curl -H 'Host: <slug>.knitwright.com' http://localhost:3000/` is rewritten to `/shop/<slug>`.
+- To try a host locally: set `CLUB_PAGES_DOMAIN=localhost` and open `http://<slug>.localhost:3000/` (shared with
+  club pages: a club's name shows its club page).
 
 ## Batches
 
@@ -21,6 +22,6 @@
 
 ## On a deploy
 
-- Add a wildcard DNS record and certificate for `*.knitwright.com` pointing at the app. Set `STOREFRONT_ROOT_DOMAIN`
-  only if the storefronts live under another domain.
+- Add a wildcard DNS record and certificate for `*.knitwright.com` pointing at the app. Set `CLUB_PAGES_DOMAIN`
+  to that domain; brands and clubs share it.
 - Stripe: see `docs/runbooks/stripe-test-mode.md` (decision 0152). Shopper payments are ordinary order payments.

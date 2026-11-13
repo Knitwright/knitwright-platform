@@ -31,6 +31,7 @@ const DONE: Readonly<Record<PaymentRow["purpose"], string>> = {
   order: "Your order is on its way to production. It waits for the next weekly cut-off.",
   credits: "The credits are in your balance.",
   plan: "Your plan is active.",
+  team_store: "Your order is in. It is made with the rest of the club's order when the store closes.",
 };
 
 /** The person left the checkout: whether or not Stripe has closed it yet, nothing was charged. */

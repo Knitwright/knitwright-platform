@@ -31,6 +31,9 @@ const env = {
   // Checkout is the test checkout (decision 0152): a page of the app that pays with a test card and signs its own
   // webhook events. No Stripe key is ever set here; the environment check refuses this switch on a deploy.
   PAYMENTS_TEST_CHECKOUT: "on",
+  // Shopify is the stand-in (decision 0155): its install page and test orders are pages and signed events of the
+  // app itself. No Shopify app key is ever set here; the environment check refuses this switch on a deploy.
+  SHOPIFY_APP_TEST_MODE: "on",
 } as Record<
   string,
   string

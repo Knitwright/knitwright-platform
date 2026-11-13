@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { FIELD_CONTROL, TEXT_AREA } from "@/components/ui/field-styles";
 import { Notice } from "@/components/ui/Notice";
 import { saveStorefrontAction } from "@/lib/storefront/actions";
-import { DEFAULT_ROOT_DOMAIN } from "@/lib/storefront/host";
 import { RETURNS_POLICY_MAX } from "@/lib/storefront/policy";
 import { FieldLabel } from "./parts";
 
@@ -24,7 +23,7 @@ type Note = Readonly<{ tone: "ok" | "warn"; text: string }>;
 export const failureText = (error: Readonly<{ message: string; fields?: Readonly<Record<string, readonly string[]>> }>): string =>
   (error.fields ? Object.values(error.fields).flat().join(" ") : "") || error.message;
 
-export function StorefrontSettingsForm({ initial, canEdit }: Readonly<{ initial: StorefrontValues; canEdit: boolean }>) {
+export function StorefrontSettingsForm({ initial, canEdit, suffix }: Readonly<{ initial: StorefrontValues; canEdit: boolean; suffix: string }>) {
   const router = useRouter();
   const [values, setValues] = useState(initial);
   const [note, setNote] = useState<Note | null>(null);
@@ -53,7 +52,7 @@ export function StorefrontSettingsForm({ initial, canEdit }: Readonly<{ initial:
           <FieldLabel htmlFor={ids.slug}>Address</FieldLabel>
           <div className="flex items-center gap-2">
             <input id={ids.slug} className={`${FIELD_CONTROL} min-w-0 flex-1`} value={values.slug} maxLength={40} disabled={!canEdit} aria-describedby={`${ids.slug}-domain`} onChange={(event) => set({ slug: event.target.value.toLowerCase() })} />
-            <span id={`${ids.slug}-domain`} className="text-body text-muted">.{DEFAULT_ROOT_DOMAIN}</span>
+            <span id={`${ids.slug}-domain`} className="text-body text-muted">{suffix}</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 # 0154: Storefronts, drops, made-to-order batches and the listing editor
 
-Status: Accepted (plan v6 C3). Test mode only. Seven owner questions are open (below); each has a labelled default and none blocks.
-Index: Accepted; `<brand>.knitwright.com` storefronts (path fallback `/shop/<slug>`) sell published listings through C1's checkout; drops from collection plans; paid sales go to production as one order per listing per cut-off through submit_brand_run's payment and D1 gates; listing editor (screen 23) with AI Improve on the credits ledger; returns policy per brand
+Status: Accepted (plan v6 C3). Test mode only. Seven owner questions are open (C3-6 was resolved at integration) (below); each has a labelled default and none blocks.
+Index: Accepted; `<brand>.knitwright.com` storefronts (one namespace with clubs; path fallback `/shop/<slug>`) sell published listings through C1's checkout; drops from collection plans; paid sales go to production as one order per listing per cut-off through submit_brand_run's payment and D1 gates; listing editor (screen 23) with AI Improve on the credits ledger; returns policy per brand
 Index title: Storefronts, drops and the listing editor
 Date: 2026-11-13
 Plan step: v6 wave 5, C3 (`plans/platform-v6.md`). Builds on 0131 (the Store comes in), 0152 (payments core), 0132 (D1 order gate), 0143 (Orders area, collection plans), 0142 (Products area), 0085 (collection drops), 0096 (flow listings), 0051 (credits ledger), 0094 (metered AI copy). Migration `20261228030000`.
@@ -47,10 +47,14 @@ Until now `lib/collections/drop.ts` wrote a drop *payload* for an outside Store 
 6. **Storefronts** (`storefronts`, one per brand): slug (3–40, reserved names refused), name, draft | live, the
    returns policy (default: the spec's three rules, labelled as the platform's rule, not legal advice) and the EU
    responsible person for GPSR. Whoever puts it live is the person its batches are ordered as (`batch_owner`).
-7. **Host routing.** `lib/storefront/host.ts` is the brand host rule; `proxy.ts` gains one line that rewrites
-   `<slug>.<STOREFRONT_ROOT_DOMAIN>/…` to `/shop/<slug>/…` (default `knitwright.com`, reserved sub-domains such as
-   `app`, `www`, `api` never match). Everywhere else — locally, on previews, until the wildcard domain exists — the
-   storefront answers at `/shop/<slug>`. C2's club host rule goes in its own file beside it, with its own line.
+7. **Host routing, one namespace with the clubs.** Host rules live only in C2's `lib/hosts/rules.ts` (one per line;
+   `proxy.ts` calls `rewriteForHost`, which now keeps the query string). The brand rule (`lib/storefront/host.ts`,
+   `brandHost`) is listed first and rewrites `<name>.<CLUB_PAGES_DOMAIN>/…` to `/shop/<name>/…`, leaving C2's own paths
+   on that host (`/clubs/…`, `/t/…`) alone. **Brands and clubs share one namespace**: triggers in this migration
+   refuse a storefront slug that is reserved (`private.reserved_subdomain`) or a club's, and a club slug that is a
+   brand's, under a lock on the name. So a name is never both, and no precedence is needed: when a name has no live
+   storefront, `/shop/<name>` shows C2's club page (which is not found for neither). There is one root domain setting,
+   C2's `CLUB_PAGES_DOMAIN`; with it unset (locally, on previews) a storefront answers at `/shop/<slug>`.
 8. **A shopper's checkout** (`checkout.ts`, `open_shop_order`): no account, no cart; one size, a quantity (1–20), an
    optional name and number (screened, F-G1), email, country GB or AU, and both ticks. The database prices the order
    from the published listing and nothing the browser sends, refuses anything not on sale (`not_on_sale`,
@@ -73,6 +77,15 @@ Until now `lib/collections/drop.ts` wrote a drop *payload* for an outside Store 
     `submit_brand_run`'s payment gate decides it. That payment is an **invoice-method record with no charge** of its
     own: the shoppers' card payments hold the money, so nothing is counted twice in GMV. A batch the door refuses is
     marked refused and **every shopper is refunded in full** through C1's refunds.
+12. **Payouts (C5, 0156).** Every paid shop order is recorded as a seller sale through `lib/store-pages/sales.ts`, as
+    C2 does for team stores (`lib/storefront/payout.ts`, keyed `storefront:<order>`, so repeating it changes nothing):
+    C5's margin calculator at the listing's production cost, the `storefront` channel fee row and the Knitwright fee;
+    the batch's production order is attached once sent, and refunds are reported as their running total. It runs
+    after every batch run (hourly) and when a shopper finishes the test checkout. C5's Overview links the storefront
+    page and its drops (`STOREFRONT_EDITOR_HREF`, `NEW_DROP_HREF`).
+13. **F-G4.** `private.finance_figures()` is replaced once more (C2's version plus one term): a paid storefront order
+    is open pre-order money, so the refund reserve holds against it, until its batch is sent and that order ships —
+    the same rule C2 uses for team stores.
 11. Money tables (`shop_orders`, `storefront_batches`) are written only through the functions; the server's key holds
     SELECT on them. Listings, storefronts and drops are written by the server after its own permission check. Members
     read their brand's rows; visitors read nothing directly (the public pages read live, published rows with the
@@ -90,20 +103,19 @@ Until now `lib/collections/drop.ts` wrote a drop *payload* for an outside Store 
   the prototype says 2.
 - **C3-5.** Personalised names and numbers reach the factory how? Default: kept on each shop order and shown on the
   storefront page; the batch order carries sizes only. The ops roster hand-off is a follow-up.
-- **C3-6.** F-G4 open pre-orders: `private.finance_figures()` counts an order payment as open only through its lines,
-  so a paid storefront order counts in GMV and cash but not in the refund reserve's open pre-order value until its
-  batch is sent. Default: left as C1 wrote it, because C2 needs the same change for team stores; one replacement of
-  that function after C2 and C3 merge should cover both.
+- **C3-6.** Resolved at integration: storefront orders count as open pre-orders (decision 13).
 - **C3-7.** How long a shopper's email and printed name are kept, and how a shopper asks for erasure. Default: kept
   with the order as a money record (registered in `lib/deletion/team-data.ts` as personal data outside the brand
   register); erasure by ops on request.
-- Owner actions: a wildcard DNS record and certificate for `*.knitwright.com` on the hosted deployment (set
-  `STOREFRONT_ROOT_DOMAIN` if another domain is used); the Stripe account (0152).
+- **C3-8.** The EU responsible person is asked twice: on the storefront (this decision) and in C5's Store settings.
+  Default: both kept; the GPSR table reads the storefront's. One should read the other in a follow-up.
+- Owner actions: a wildcard DNS record and certificate for `*.knitwright.com` on the hosted deployment
+  (`CLUB_PAGES_DOMAIN`); the Stripe account (0152).
 
 ## Consequences
 
-- Shared files touched with one entry each: `proxy.ts` (one host rule), `lib/config/env.ts` and `.env.example`
-  (`STOREFRONT_ROOT_DOMAIN`), `lib/server/limits.ts` (`shopCheckout`), `lib/server/public-routes.ts`,
+- Shared files touched with one entry each: `lib/hosts/rules.ts` (one host rule; `proxy.ts` keeps the query string),
+  `lib/store-pages/routes.ts` (two doors), `lib/team-stores/host.test.ts` (the shared root's first rule), `lib/server/limits.ts` (`shopCheckout`), `lib/server/public-routes.ts`,
   `lib/server/public-pages.ts`, `vercel.json` (one cron), `vitest.config.mts`, the isolation test, My products (a
   listing link and the channel column), the collection plan's actions (a link to open a drop).
 - The Store contract's drop and listing payloads are untouched; C6 retires them.

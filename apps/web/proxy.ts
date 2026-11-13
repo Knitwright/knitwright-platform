@@ -1,8 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getEnv } from "@/lib/config/env";
+import { rewriteForHost } from "@/lib/hosts/rules";
 import { redirectFor } from "@/lib/server/core/paths";
-import { brandHostRewrite } from "@/lib/storefront/host";
 import { sessionCookieOptions } from "@/lib/supabase/cookie-options";
 
 const NEVER_STORED = "private, no-cache, no-store, must-revalidate, max-age=0";
@@ -14,9 +14,6 @@ const NEVER_STORED = "private, no-cache, no-store, must-revalidate, max-age=0";
  */
 export async function proxy(request: NextRequest) {
   const env = getEnv();
-  // Host rules: `<brand>.knitwright.com` is a brand storefront (decision 0154). One line per rule.
-  const shop = brandHostRewrite(request.headers.get("host"), request.nextUrl.pathname, env.STOREFRONT_ROOT_DOMAIN);
-  if (shop) return NextResponse.rewrite(new URL(`${shop}${request.nextUrl.search}`, request.url));
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -40,13 +37,25 @@ export async function proxy(request: NextRequest) {
   // Verifies the token and refreshes it when it is about to expire.
   const { data } = await supabase.auth.getClaims();
   const target = redirectFor(request.nextUrl.pathname, Boolean(data?.claims));
-  if (!target) return response;
+  if (!target) return hostRewrite(request, response, env.CLUB_PAGES_DOMAIN) ?? response;
 
   const redirect = NextResponse.redirect(new URL(target, request.url));
   for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
   // The redirect may carry refreshed session cookies, so it must not be stored either.
   redirect.headers.set("cache-control", NEVER_STORED);
   return redirect;
+}
+
+/**
+ * A `<name>.<domain>` address shown as another page of this app (lib/hosts/rules.ts): a club's page (decision
+ * 0153). The session cookies the response already carries go with the rewrite.
+ */
+function hostRewrite(request: NextRequest, response: NextResponse, rootDomain: string | undefined): NextResponse | null {
+  const path = rewriteForHost(request.headers.get("host"), request.nextUrl.pathname, rootDomain);
+  if (path === null) return null;
+  const rewrite = NextResponse.rewrite(new URL(`${path}${request.nextUrl.search}`, request.url), { request });
+  for (const cookie of response.cookies.getAll()) rewrite.cookies.set(cookie);
+  return rewrite;
 }
 
 export const config = {

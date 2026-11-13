@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RESERVED_SLUGS, SLUG } from "./host";
+import { RESERVED_SUBDOMAINS, SLUG_PATTERN } from "@/lib/team-stores/host";
 import { DEFAULT_RETURNS_POLICY, RETURNS_POLICY_MAX } from "./policy";
 import type { Storefront } from "./rows";
 
@@ -16,9 +16,9 @@ export const storefrontBody = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .regex(SLUG, "Use 3 to 40 lower-case letters, numbers and dashes, not starting or ending with a dash.")
+    .regex(SLUG_PATTERN, "Use 3 to 40 lower-case letters, numbers and dashes, not starting or ending with a dash.")
     .refine((slug) => !slug.includes("--"), "Use one dash at a time.")
-    .refine((slug) => !RESERVED_SLUGS.has(slug), "That address is kept for Knitwright. Choose another."),
+    .refine((slug) => !RESERVED_SUBDOMAINS.includes(slug), "That address is kept for Knitwright. Choose another."),
   status: z.enum(["draft", "live"]),
   returnsPolicy: z.string().trim().min(1, "Write the returns policy.").max(RETURNS_POLICY_MAX),
   euResponsiblePerson: z

@@ -29,6 +29,7 @@ import { applyDraft } from "./listing";
 import { listingDraftBody } from "./listing-schema";
 import { listingEditorPath } from "./routes";
 import { runStorefrontBatches } from "./run";
+import { syncShopSales } from "./sales-server";
 import { loadListingEditor, newestRelease } from "./server";
 import { SLUG_TAKEN, STOREFRONT_PATH, storefrontBody, storefrontWrite } from "./settings";
 
@@ -250,6 +251,7 @@ export const finishShopTestCheckoutAction = defineAction({
     );
     const answer = await handleWebhook(body, signatureHeader(chosen.webhookSecret, body, Math.floor(Date.now() / 1000)));
     if (answer?.status !== 200) throw new AppError("internal", "The test payment could not be recorded.");
+    if (input.outcome === "paid") await syncShopSales(storefront.brandId).catch(() => 0);
     return { url: `${orderPagePath(storefront.slug, order.id, input.token)}${input.outcome === "paid" ? "" : "&cancelled=1"}` };
   },
 });

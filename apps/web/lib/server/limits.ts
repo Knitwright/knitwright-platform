@@ -138,4 +138,13 @@ export const LIMITS = {
   paymentsOps: { name: "payments-ops", limit: 60, windowSeconds: 10 * MINUTE },
   // Storefronts (plan v6 C3, decision 0154). A shopper with no account opens an order and a checkout, per address.
   shopCheckout: { name: "shop-checkout", limit: 20, windowSeconds: 10 * MINUTE },
+  // Team stores (plan v6 C2, decision 0153). A buyer has no account: per address only, so a club's whole squad on
+  // one clubhouse Wi-Fi still gets through, and every purchase passes the bot check first.
+  teamStoreView: { name: "team-store-view", limit: 120, windowSeconds: MINUTE },
+  teamStoreBuy: { name: "team-store-buy", limit: 40, windowSeconds: 10 * MINUTE },
+  // Sales channels (plan v6 C4, decision 0155). Connecting, pushing and importing reach Shopify or run the order
+  // gates; Shopify's webhooks may burst after an outage and are each checked by their HMAC first.
+  channelWrite: { name: "channel-write", limit: 30, windowSeconds: 10 * MINUTE },
+  channelExport: { name: "channel-export", limit: 30, windowSeconds: 10 * MINUTE },
+  channelsWebhook: { name: "channels-webhook", limit: 600, windowSeconds: MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

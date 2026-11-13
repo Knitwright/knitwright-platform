@@ -96,7 +96,7 @@ describe("share pages keep their address to themselves", () => {
   // Every page that carries a token in its address, so a new one cannot be added without a rule.
   // `/join/:token` had none until security-v5 (M4): it was in the public list but in neither of the
   // two places that protect a token page.
-  const TOKEN_PAGES = ["/s/:token", "/job/:token", "/api/job/:token/:path*", "/join/:token"];
+  const TOKEN_PAGES = ["/s/:token", "/job/:token", "/api/job/:token/:path*", "/join/:token", "/t/:code", "/t/:code/:path*"];
 
   const rules = async () => (await nextConfig.headers?.()) ?? [];
   const valueOf = (headers: readonly { key: string; value: string }[], key: string) =>

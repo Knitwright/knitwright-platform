@@ -414,6 +414,128 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------------------------
+-- One namespace of names (decision 0154 with 0153): `<name>.knitwright.com` is a brand's storefront or a club's page,
+-- never both, and never a name Knitwright keeps (private.reserved_subdomain). Each side refuses the other's names;
+-- a lock on the name keeps two saves at once from both taking it.
+
+create function private.subdomain_is_free(p_slug text, p_kind text, p_brand_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended('subdomain:' || p_slug, 0));
+  if private.reserved_subdomain(p_slug) then
+    return false;
+  end if;
+  if p_kind = 'storefront' then
+    return not exists (select 1 from public.club_pages c where c.slug = p_slug);
+  end if;
+  return not exists (select 1 from public.storefronts s where s.slug = p_slug);
+end;
+$$;
+
+create function private.storefront_slug_free()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.subdomain_is_free(new.slug, 'storefront', new.brand_id) then
+    raise exception 'That address is kept for Knitwright or taken by a club. Choose another.' using errcode = '23505', hint = 'slug_taken';
+  end if;
+  return new;
+end;
+$$;
+
+create function private.club_page_slug_free()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.subdomain_is_free(new.slug, 'club', new.brand_id) then
+    raise exception 'A brand''s storefront has that address. Choose another.' using errcode = 'P0001', hint = 'slug_taken';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger storefronts_slug_free before insert or update of slug on public.storefronts
+  for each row execute function private.storefront_slug_free();
+create trigger club_pages_slug_free before insert or update of slug on public.club_pages
+  for each row execute function private.club_page_slug_free();
+
+revoke all on function private.subdomain_is_free(text, text, uuid) from public, anon, authenticated, service_role;
+revoke all on function private.storefront_slug_free() from public, anon, authenticated, service_role;
+revoke all on function private.club_page_slug_free() from public, anon, authenticated, service_role;
+
+-- ---------------------------------------------------------------------------------------------
+-- F-G4 with storefronts: a shopper's paid order is pre-order money until its batch's order ships, as a team store's
+-- is (migration 20261228020000). The shopper's payment has no order lines of its own, so the order-line term above
+-- never counts it; this one does. As migration 20261228020000 wrote it, with that one term added.
+
+create or replace function private.finance_figures()
+returns table (
+  currency text, gmv_minor bigint, collected_minor bigint, refunded_minor bigint, revenue_minor bigint,
+  open_pre_order_minor bigint, reserve_minor bigint, deposits_minor bigint, headroom_minor bigint, reserve_bps integer
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with c(currency) as (values ('GBP'), ('AUD')),
+  s as (select refund_reserve_bps from public.payment_settings where id),
+  paid as (
+    select p.* from public.order_payments p
+    where p.method = 'card' and p.status in ('paid', 'fulfilled', 'refunded')
+  ),
+  sums as (
+    select c.currency,
+      coalesce((select sum(p.order_value_minor) from paid p where p.currency = c.currency and p.purpose in ('order', 'team_store')), 0)::bigint as gmv,
+      coalesce((select sum(p.amount_minor) from paid p where p.currency = c.currency), 0)::bigint as collected,
+      coalesce((select sum(p.refunded_minor) from paid p where p.currency = c.currency), 0)::bigint as refunded,
+      coalesce((
+        select sum(greatest(p.order_value_minor - p.refunded_minor, 0)) from paid p
+        where p.currency = c.currency and p.purpose = 'order' and p.status <> 'refunded'
+          and exists (
+            select 1 from public.order_payment_lines l
+            where l.payment_id = p.id and l.status <> 'refused'
+              and (l.order_id is null or not exists (select 1 from public.ops_shipments sh where sh.order_id = l.order_id))
+          )
+      ), 0)::bigint
+      + coalesce((
+        select sum(greatest(p.order_value_minor - p.refunded_minor, 0)) from paid p
+        join public.team_store_orders o on o.payment_id = p.id
+        join public.team_stores t on t.id = o.store_id
+        where p.currency = c.currency and p.purpose = 'team_store' and p.status <> 'refunded'
+          and (t.order_id is null or not exists (select 1 from public.ops_shipments sh where sh.order_id = t.order_id))
+      ), 0)::bigint
+      + coalesce((
+        select sum(greatest(p.order_value_minor - p.refunded_minor, 0)) from paid p
+        join public.shop_orders o on o.payment_id = p.id
+        left join public.storefront_batches b on b.id = o.batch_id
+        where p.currency = c.currency and p.purpose = 'order' and p.status <> 'refunded'
+          and (b.id is null or b.status = 'open' or (b.status = 'sent' and (b.order_id is null
+               or not exists (select 1 from public.ops_shipments sh where sh.order_id = b.order_id))))
+      ), 0)::bigint as open_value,
+      coalesce((select sum(d.amount_minor) from public.factory_deposits d where d.currency = c.currency), 0)::bigint as deposits
+    from c
+  )
+  select sums.currency, sums.gmv, sums.collected, sums.refunded, sums.collected - sums.refunded, sums.open_value,
+         ceil(sums.open_value * s.refund_reserve_bps / 10000.0)::bigint,
+         sums.deposits,
+         sums.collected - sums.refunded - ceil(sums.open_value * s.refund_reserve_bps / 10000.0)::bigint - sums.deposits,
+         s.refund_reserve_bps
+  from sums cross join s
+  order by case sums.currency when 'GBP' then 0 else 1 end;
+$$;
+
 revoke all on function public.open_shop_order(uuid, text, integer, text, integer, text, text, boolean, boolean, text) from public, anon, authenticated;
 revoke all on function public.cut_storefront_batch(uuid, uuid, timestamptz) from public, anon, authenticated;
 revoke all on function public.open_storefront_batch_payment(uuid, uuid, jsonb) from public, anon, authenticated;

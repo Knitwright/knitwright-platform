@@ -101,6 +101,10 @@ const nextConfig: NextConfig = {
     // A club's roster sign-up link (plan v5 Z7, decision 0087) carries its token the same way, and
     // the page it opens writes a player's name. It was the one token page with no rule of its own.
     { source: "/join/:token", headers: SHARE_HEADERS },
+    // A team store's link (decision 0153) is shared with a squad and carries its code the same way; its return and
+    // test checkout pages carry a payment.
+    { source: "/t/:code", headers: SHARE_HEADERS },
+    { source: "/t/:code/:path*", headers: SHARE_HEADERS },
   ],
 };
 

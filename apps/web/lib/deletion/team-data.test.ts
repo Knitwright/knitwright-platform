@@ -5,7 +5,7 @@ import { NAMES_OF_THINGS, PERSONAL_DATA_OUTSIDE_THE_REGISTER, PERSONAL_DATA_TABL
 
 const MIGRATIONS = join(__dirname, "..", "..", "..", "..", "supabase", "migrations");
 const read = (name: string): string => readFileSync(join(MIGRATIONS, name), "utf8");
-const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}\n${read("20261028040000_design_comments.sql")}\n${read("20261210010000_ops_completion.sql")}\n${read("20261110030000_share_invites.sql")}\n${read("20261120050000_committee_signup.sql")}\n${read("20261011030000_share_links.sql")}\n${read("20261015010000_pattern_library.sql")}`;
+const SQL = `${read("20261015040000_team_orders.sql")}\n${read("20261015040100_releases_and_proofs.sql")}\n${read("20261025040000_club_workspace.sql")}\n${read("20261026040000_ops_qc.sql")}\n${read("20261028040000_design_comments.sql")}\n${read("20261210010000_ops_completion.sql")}\n${read("20261110030000_share_invites.sql")}\n${read("20261120050000_committee_signup.sql")}\n${read("20261011030000_share_links.sql")}\n${read("20261015010000_pattern_library.sql")}\n${read("20261228020000_team_stores.sql")}`;
 
 /** Every migration, for the sweeps that must not depend on a list someone has to remember to add to. */
 const EVERY_MIGRATION = readdirSync(MIGRATIONS)

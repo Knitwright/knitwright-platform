@@ -69,6 +69,13 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
   // through their keys; they were simply never written down here.
   { table: "share_responses", holds: "the name a visitor to a share link typed, their vote and their comment", erasableAlone: false },
   { table: "pattern_reviews", holds: "the name and role of the technician who reviewed a pattern, and their note", erasableAlone: false },
+  // Team stores and club pages (plan v6 C2, decision 0153). A buyer has no account, so the minimum is kept: a name and
+  // an email for the receipt and the refund, and per piece the shirt name. purge_team_store_buyers erases all three
+  // 180 days after the store closes (the team-store cron); everything goes with the club's brand before that.
+  { table: "team_store_orders", holds: "the name and email address of someone who bought from a team store without an account", erasableAlone: false },
+  { table: "team_store_order_lines", holds: "the name and number a buyer asked for on a shirt, and its size", erasableAlone: false },
+  { table: "team_stores", holds: "no names of people: a store's title, prices, dates and the order it became", erasableAlone: false },
+  { table: "club_pages", holds: "the contact line a club chose to publish, which may name a person", erasableAlone: false },
 ];
 
 /**
@@ -78,6 +85,10 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
  * cannot hold an address or a name unnoticed.
  */
 export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
+  {
+    table: "store_settings",
+    why: "A brand's GPSR contacts (decision 0156): the EU responsible person the law asks for and the brand's own contact, given by the brand for its listings, not for production. The row goes with its brand (brand_id on delete cascade), and an owner or admin clears or changes it on the Store settings page.",
+  },
   {
     table: "access_requests",
     why: "A request to be let in, made before any brand exists. It belongs to no brand, so no brand's deletion can take it; it is erased through the platform-admin screen instead.",
@@ -98,6 +109,10 @@ export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: 
     table: "shop_orders",
     why: "A shopper's purchase from a storefront (decision 0154): their email and the name printed on the shirt. Knitwright is merchant of record, so it is a money record that outlives the brand (brand_id set null) beside its C1 payment. Retention and a shopper's erasure request are an owner decision (0154, owner question C3-7).",
   },
+  {
+    table: "channel_orders",
+    why: "A shop's buyer's ship-to address on each order line a sales channel sent (decision 0155): the brand's customer, not a player. It goes with the brand (brand_id on delete cascade), and Shopify's customers/redact and shop/redact webhooks clear it (channel_redact_customer, channel_redact_shop). order_name is the shop's order number, not a person.",
+  },
 ];
 
 /**
@@ -115,4 +130,6 @@ export const NAMES_OF_THINGS: readonly string[] = [
   "project_folders",
   // Decision 0154: a storefront's and a drop's own names.
   "storefronts", "storefront_drops",
+  // Decision 0156: a seller's sale names the product sold; a branding option names a parcel insert.
+  "seller_sales", "store_branding_options",
 ];

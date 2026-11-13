@@ -1,6 +1,6 @@
 import type { Metadata, Route } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import ClubPage from "@/app/clubs/[slug]/page";
 import { ShopFrame } from "@/components/storefront/shop/ShopFrame";
 import { formatMoney } from "@/lib/factory/pricing";
 import { shopPath } from "@/lib/storefront/host";
@@ -14,10 +14,12 @@ export const metadata: Metadata = { title: "Shop" };
  * account. The proxy sends `<slug>.knitwright.com` here; locally the address is `/shop/<slug>`. Only a live storefront
  * answers, and it shows only its published listings; anything else is not found.
  */
-export default async function ShopPage({ params }: PageProps<"/shop/[store]">) {
+export default async function ShopPage({ params, searchParams }: PageProps<"/shop/[store]">) {
   const { store } = await params;
   const shop = await loadShop(store);
-  if (shop === null) notFound();
+  // Brands and clubs share one namespace of names (decision 0154), so a name with no live storefront may be a club's:
+  // its page answers, and is not found itself when it is no club's either.
+  if (shop === null) return <ClubPage params={Promise.resolve({ slug: store })} searchParams={searchParams} />;
   const { storefront, cards } = shop;
   return (
     <ShopFrame name={storefront.name} slug={storefront.slug} accent={shop.accent}>

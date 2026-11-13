@@ -326,6 +326,24 @@ describe("parseEnv", () => {
   });
 });
 
+describe("the Shopify app (plan v6 C4, decision 0155)", () => {
+  const deploy = { ...valid, VERCEL_ENV: "production", UNSUBSCRIBE_SECRET: UNSUBSCRIBE };
+  // Made up and assembled, so the secret scan has no literal to find.
+  const app = { SHOPIFY_APP_API_KEY: "k".repeat(12), SHOPIFY_APP_API_SECRET: "s".repeat(32) };
+
+  it("refuses the stand-in wherever real people sign in, and allows it on this machine", () => {
+    expect(parseEnv({ ...valid, SHOPIFY_APP_TEST_MODE: "on" }).SHOPIFY_APP_TEST_MODE).toBe("on");
+    expect(() => parseEnv({ ...deploy, SHOPIFY_APP_TEST_MODE: "on" })).toThrow(/SHOPIFY_APP_TEST_MODE is for browser tests and local runs/);
+  });
+
+  it("needs CHANNEL_TOKEN_KEY on a deploy with an app, and checks its shape", () => {
+    expect(() => parseEnv({ ...deploy, ...app })).toThrow(/CHANNEL_TOKEN_KEY is missing/);
+    expect(parseEnv({ ...deploy, ...app, CHANNEL_TOKEN_KEY: "ab".repeat(32) }).CHANNEL_TOKEN_KEY).toBe("ab".repeat(32));
+    expect(parseEnv({ ...valid, ...app }).SHOPIFY_APP_API_KEY).toBe(app.SHOPIFY_APP_API_KEY);
+    expect(() => parseEnv({ ...valid, CHANNEL_TOKEN_KEY: "short" })).toThrow(/CHANNEL_TOKEN_KEY is not valid/);
+  });
+});
+
 describe("provider settings (security review L3)", () => {
   it("are optional, and read through the contract when given", () => {
     const bare = parseEnv(valid);

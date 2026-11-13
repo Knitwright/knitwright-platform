@@ -14,6 +14,7 @@ import { paymentsFrom, type Payments } from "./select";
 import type { PayCurrency, Schedule } from "./settings";
 import type { LineRow } from "./store";
 import { receiveWebhook, type WebhookAnswer } from "./webhook";
+import { connect, onConnectEvent } from "@/lib/store-pages/server";
 
 /**
  * The payments code wired to the database, the processor chosen by the environment, the make and brand-run doors,
@@ -63,7 +64,17 @@ export async function handleWebhook(raw: string, signature: string | null): Prom
   const chosen = payments();
   if (chosen === null) return null;
   return receiveWebhook(
-    { secret: chosen.webhookSecret, provider: chosen.provider.name, nowSeconds: () => Math.floor(Date.now() / 1000), store: store(), fulfil, log },
+    {
+      secret: chosen.webhookSecret,
+      provider: chosen.provider.name,
+      nowSeconds: () => Math.floor(Date.now() / 1000),
+      store: store(),
+      fulfil,
+      log,
+      // Plan v6 C5 (decision 0156): seller payouts' Connect events, on the same endpoint.
+      connectSecret: connect()?.webhookSecret,
+      connect: onConnectEvent,
+    },
     raw,
     signature,
   );

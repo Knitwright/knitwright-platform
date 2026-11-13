@@ -12,7 +12,7 @@ import { formatMoney } from "@/lib/factory/pricing";
 import { BATCH_STATUS_LABELS, nextCutoff } from "@/lib/storefront/batching";
 import { batchesOfBrand, readDrops, readListings, shopOrdersOfBrand, soldInDrops } from "@/lib/storefront/db";
 import { dropCards } from "@/lib/storefront/drops";
-import { slugFrom, storefrontUrl } from "@/lib/storefront/host";
+import { domainSuffix, slugFrom, storefrontUrl } from "@/lib/storefront/host";
 import { CHANNEL_LABELS, STATUS_LABELS } from "@/lib/storefront/listing";
 import { listingEditorPath } from "@/lib/storefront/routes";
 import { loadStorefront } from "@/lib/storefront/server";
@@ -43,7 +43,7 @@ export default async function StorefrontPage() {
   const sold = await soldInDrops(client, drops.map((drop) => drop.id));
   const canEdit = can(brand.role, "manageKit");
   const titleOf = new Map(listings.map((listing) => [listing.id, listing.title || "Untitled listing"]));
-  const live = storefront?.status === "live" ? storefrontUrl(storefront.slug, getEnv().NEXT_PUBLIC_SITE_URL) : null;
+  const live = storefront?.status === "live" ? storefrontUrl(storefront.slug, getEnv().NEXT_PUBLIC_SITE_URL, getEnv().CLUB_PAGES_DOMAIN) : null;
 
   return (
     <div className="flex flex-col gap-6 pt-6 pb-16">
@@ -60,7 +60,7 @@ export default async function StorefrontPage() {
         ) : null}
       </header>
 
-      <StorefrontSettingsForm initial={storefrontDefaults(storefront, brand.name, slugFrom(brand.name))} canEdit={canEdit} />
+      <StorefrontSettingsForm initial={storefrontDefaults(storefront, brand.name, slugFrom(brand.name))} canEdit={canEdit} suffix={domainSuffix(getEnv().CLUB_PAGES_DOMAIN)} />
 
       <section aria-labelledby="listings-heading" className="flex flex-col gap-3 rounded-xl border border-border bg-bg p-5">
         <h2 id="listings-heading" className="text-h3 text-text">Listings</h2>

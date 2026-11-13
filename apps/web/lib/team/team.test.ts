@@ -11,6 +11,7 @@ describe("the Team page's address", () => {
     expect(teamTabFrom(undefined)).toBe("roster");
     expect(teamTabFrom("approvals")).toBe("approvals");
     expect(teamTabFrom("seasons")).toBe("seasons");
+    expect(teamTabFrom("stores")).toBe("stores");
     expect(teamTabFrom(["seasons"])).toBe("roster");
     expect(teamTabFrom("nope")).toBe("roster");
   });

@@ -9,6 +9,7 @@ import { AppError } from "@/lib/server/core/errors";
 import { adminClient } from "@/lib/server/deps";
 import { log } from "@/lib/server/log";
 import { latestCutoff, sendBatch, type BatchOutcome, type BatchToSend, type RunSummary } from "./batching";
+import { syncShopSales } from "./sales-server";
 import { closeDueDrops, cutBatch, dropListingIds, listingById, listingsWaiting, openBatchPayment, openBatches, readStorefront, roleOf, settleBatch, shopOrdersOfBatch } from "./db";
 
 /**
@@ -95,5 +96,7 @@ export async function runStorefrontBatches(now: Date, brandId?: string, cutoff: 
       log({ level: "error", message: "A storefront batch could not be sent; the next run tries again", where: `batch ${batch.id}`, error });
     }
   }
+  // C5's payouts: every paid sale, the order its batch went in, and any refund (decision 0156). Safe to repeat.
+  await syncShopSales(brandId).catch((error: unknown) => log({ level: "error", message: "Storefront sales could not be recorded for payouts", where: "storefront batches", error }));
   return { closedDrops: closed.length, batches: batches.length, sent, refused, failed };
 }

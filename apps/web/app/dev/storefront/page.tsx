@@ -61,7 +61,7 @@ function Settings() {
   const drops = [sampleDrop(), sampleDrop({ id: "2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a", name: "Away kit drop", opensAt: "2026-11-20T10:00:00.000Z", closesAt: "2026-11-27T10:00:00.000Z", targetUnits: null })];
   return (
     <div className="flex flex-col gap-6 pt-6">
-      <StorefrontSettingsForm initial={storefrontDefaults(sampleStorefront(), "Example FC", "example-fc")} canEdit />
+      <StorefrontSettingsForm initial={storefrontDefaults(sampleStorefront(), "Example FC", "example-fc")} canEdit suffix=".knitwright.com" />
       <section className="flex flex-col gap-4 rounded-xl border border-border bg-bg p-5">
         <h2 className="text-h3 text-text">Drops</h2>
         <NewDropForm plans={[{ id: "5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b", name: "2027 range" }]} canEdit />
