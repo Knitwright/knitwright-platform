@@ -328,7 +328,8 @@ describe("parseEnv", () => {
 
 describe("the Shopify app (plan v6 C4, decision 0155)", () => {
   const deploy = { ...valid, VERCEL_ENV: "production", UNSUBSCRIBE_SECRET: UNSUBSCRIBE };
-  const app = { SHOPIFY_APP_API_KEY: "abcd1234efgh", SHOPIFY_APP_API_SECRET: "s".repeat(32) };
+  // Made up and assembled, so the secret scan has no literal to find.
+  const app = { SHOPIFY_APP_API_KEY: "k".repeat(12), SHOPIFY_APP_API_SECRET: "s".repeat(32) };
 
   it("refuses the stand-in wherever real people sign in, and allows it on this machine", () => {
     expect(parseEnv({ ...valid, SHOPIFY_APP_TEST_MODE: "on" }).SHOPIFY_APP_TEST_MODE).toBe("on");
