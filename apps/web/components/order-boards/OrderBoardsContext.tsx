@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
-import { NO_ORDER_BOARDS, type OrderBoardsData } from "@/lib/order-boards/types";
+import { NO_ORDER_BOARDS, type OrderBoardsData, type ProjectPanelId } from "@/lib/order-boards/types";
 
 /**
  * The Tech pack and Order boards' data and the open/close state of the three project panels --
@@ -14,8 +14,7 @@ import { NO_ORDER_BOARDS, type OrderBoardsData } from "@/lib/order-boards/types"
  * puts focus back on whatever had it when the panel opened.
  */
 
-export const PROJECT_PANELS = ["share", "export", "order"] as const;
-export type ProjectPanelId = (typeof PROJECT_PANELS)[number];
+export { PROJECT_PANELS, type ProjectPanelId } from "@/lib/order-boards/types";
 
 /** Marks a button that toggles a panel, so a press on it is not also a press "outside" the panel. */
 export const PANEL_TRIGGER = "data-project-panel-trigger";

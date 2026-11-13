@@ -64,3 +64,7 @@ export interface OrderBoardsData {
 }
 
 export const NO_ORDER_BOARDS: OrderBoardsData = { brandName: "", canOrder: false, techPacks: {}, orders: {} };
+
+/** The three project panels: Share, Export and Order (`components/order-boards/OrderBoardsContext.tsx`). */
+export const PROJECT_PANELS = ["share", "export", "order"] as const;
+export type ProjectPanelId = (typeof PROJECT_PANELS)[number];
