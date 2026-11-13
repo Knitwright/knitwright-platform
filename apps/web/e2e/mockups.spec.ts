@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, openEditorPanel, signIn, test } from "./support";
 
 /**
  * Plan v5 L2 (spec F-L1's free part, decision 0092): the mockup studio inside the launch shell. The
@@ -34,7 +34,7 @@ const startLaunch = async (page: Page, label: string): Promise<string> => {
 };
 
 const openMockups = async (page: Page): Promise<void> => {
-  await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
+  await openEditorPanel(page, "Mockups");
   await expect(page.getByTestId("mockups-panel")).toBeVisible();
 };
 
@@ -110,7 +110,7 @@ test.describe("the photos panel", () => {
   test("shows a real empty state and opens the panel that fills it", async ({ page }) => {
     await signedIn(page, "mockup-photos");
     await startLaunch(page, "Photos kit");
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Photos" }).click();
+    await openEditorPanel(page, "Photos");
 
     await expect(page.getByTestId("photos-empty")).toContainText("No photograph yet");
     await page.getByTestId("photos-open-uploads").click();

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, openEditorPanel, signIn, test } from "./support";
 
 /**
  * Plan v5 L1 (spec Launch section, decision 0091): the launch shell. The icon rail with a labelled
@@ -66,49 +66,92 @@ test.describe("the launch shell", () => {
     await signedIn(page, "launch-chrome");
     await startLaunch(page, "Chrome kit");
 
-    await expect(page.getByRole("tablist", { name: "Panels" }).getByRole("tab")).toHaveCount(12);
+    await expect(page.getByRole("tablist", { name: "Panels" }).getByRole("tab")).toHaveCount(11);
     await expect(page.getByTestId("launch-canvas")).toBeVisible();
     await expect(page.getByTestId("launch-inspector")).toBeVisible();
     await expect(page.getByTestId("launch-dock")).toBeVisible();
     await expect(page.getByTestId("launch-menu-button")).toBeVisible();
-    await expect(page.getByTestId("launch-prompt")).toHaveAttribute("placeholder", /Describe what you want to create/);
+    await expect(page.getByTestId("prompt-bar")).toBeVisible();
     await expect(page.getByTestId("launch-shell").getByRole("heading", { level: 1 })).toHaveCount(1);
   });
 
-  test("moves between the rail panels with the arrow keys and names the workstream of each", async ({ page }) => {
+  test("moves between the rail's flyouts with the arrow keys, and closes one pressed again", async ({ page }) => {
     await signedIn(page, "launch-rail");
     await startLaunch(page, "Rail kit");
     const panels = page.getByRole("tablist", { name: "Panels" });
 
-    await expect(panels.getByRole("tab", { name: "Templates" })).toHaveAttribute("aria-selected", "true");
-    // The Templates panel is built now (decision 0108), so it shows the library rather than a
-    // placeholder. The placeholder is gone rather than hidden behind it.
+    // The editor opens on Products, as the reference does (decision 0146).
+    await expect(panels.getByRole("tab", { name: "Products" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("editor-products")).toBeVisible();
+
+    // The Templates panel is built (decision 0108), so it shows the library rather than a placeholder.
+    await openEditorPanel(page, "Templates");
     await expect(page.getByTestId("launch-templates-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-templates")).toHaveCount(0);
 
     await panels.getByRole("tab", { name: "Templates" }).focus();
     await page.keyboard.press("ArrowDown");
-
     await expect(panels.getByRole("tab", { name: "Text" })).toBeFocused();
-    // L4's Text panel is mounted now (decision 0094), so this one shows the panel itself. The
-    // placeholder is gone rather than hidden behind it.
+    // L4's Text panel is mounted (decision 0094), so this one shows the panel itself.
     await expect(page.getByTestId("marketing-panel-text")).toBeVisible();
     await expect(page.getByTestId("launch-panel-text")).toHaveCount(0);
     await expect(page).toHaveURL(/panel=text/);
 
     await page.keyboard.press("End");
-    await expect(panels.getByRole("tab", { name: "Layers" })).toHaveAttribute("aria-selected", "true");
+    await expect(panels.getByRole("tab", { name: "Help" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByTestId("editor-help")).toContainText("Zoom in");
 
-    // Mockups and Photos are built (L2, decision 0092), so those two show the panel itself rather
-    // than a placeholder, as Templates, Uploads and Brand now do (0108) and as L3's and L4's do.
-    await panels.getByRole("tab", { name: "Mockups" }).click();
+    // Mockups and Photos are built (L2, decision 0092); Photos is an app under More now.
+    await openEditorPanel(page, "Mockups");
     await expect(page.getByTestId("mockups-panel")).toBeVisible();
     await expect(page.getByTestId("launch-panel-mockups")).toHaveCount(0);
 
-    // Likes is the one panel of the rail still waiting: nothing records a like (0108's own owner
-    // question), so it says whose it is rather than showing an empty shelf with a heart on it.
-    await panels.getByRole("tab", { name: "Likes" }).click();
+    // Pressing the lit item closes its flyout.
+    await panels.getByRole("tab", { name: "Mockups" }).click();
+    await expect(page.getByTestId("editor-flyout")).toBeHidden();
+
+    // Likes is the one panel still waiting: nothing records a like (0108's own owner question).
+    await openEditorPanel(page, "Likes");
     await expect(page.getByTestId("launch-panel-likes")).toContainText("workstream L8");
+  });
+
+  test("lists every board in Layers and brings a chosen one onto the screen", async ({ page }) => {
+    await signedIn(page, "launch-layers");
+    await startLaunch(page, "Layers kit");
+    await page.getByTestId("launch-empty-action").click();
+    await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
+
+    await openEditorPanel(page, "Layers");
+    const row = page.getByTestId("editor-layers").getByRole("button", { name: /Design/ }).first();
+    await row.click();
+    await expect(row).toHaveAttribute("aria-pressed", "true");
+    await expect(page).toHaveURL(/board=/);
+    await expect(page.getByTestId("launch-task-bar")).toBeVisible();
+  });
+
+  test("answers the editor's shortcuts and opens a board's menu with the keyboard", async ({ page }) => {
+    await signedIn(page, "launch-keys");
+    await startLaunch(page, "Keys kit");
+    await page.getByTestId("launch-empty-action").click();
+    await expect(page.getByRole("article", { name: "Design board" })).toBeVisible();
+
+    await page.getByTestId("flow-canvas").focus();
+    await page.keyboard.press("t");
+    await expect(page).toHaveURL(/tool=text/);
+    await page.keyboard.press("v");
+    await expect(page).toHaveURL(/tool=select/);
+
+    await expect(page.getByTestId("zoom-percent")).toHaveText("100%");
+    await page.keyboard.press("ControlOrMeta+-");
+    await expect(page.getByTestId("zoom-percent")).toHaveText("75%");
+
+    const board = page.locator("[data-board-id]").first();
+    await board.focus();
+    await page.keyboard.press("Shift+F10");
+    const menu = page.getByRole("menu", { name: /menu$/ });
+    await expect(menu.getByRole("menuitem", { name: "Duplicate" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
   });
 
   test("has no Apps icon, because this platform has no store", async ({ page }) => {
@@ -187,7 +230,7 @@ test.describe("the canvas and the garment lock", () => {
     await board.getByRole("button", { name: "Select Design" }).click();
 
     const bar = page.getByTestId("launch-task-bar");
-    await expect(bar).toContainText("Design board");
+    await expect(bar).toHaveAttribute("aria-label", /Design board/);
     await expect(page.getByTestId("task-download")).toBeDisabled();
     await expect(page.getByTestId("task-download")).toHaveAttribute("title", /Run this board first/);
   });
@@ -261,7 +304,7 @@ test.describe("the inspector, the dock and the menu", () => {
 
     await page.getByTestId("launch-menu-button").click();
     await page.getByTestId("launch-menu-settings").click();
-    await page.getByTestId("launch-settings").getByLabel("Millimetres").check();
+    await page.getByTestId("launch-settings").getByRole("menuitemradio", { name: "Millimetres" }).click();
 
     await expect(page).toHaveURL(/unit=mm/);
     await page.reload();

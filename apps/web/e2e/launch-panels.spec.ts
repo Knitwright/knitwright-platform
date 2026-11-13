@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { accessible } from "./chrome";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, openEditorPanel, signIn, test } from "./support";
 
 /**
  * THE PANELS NO WORKSTREAM OWNED, ON A SCREEN (plan v5, decision 0108).
@@ -41,7 +41,7 @@ const startLaunch = async (page: Page, label: string): Promise<string> => {
 };
 
 const openRail = async (page: Page, label: string): Promise<void> => {
-  await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: label, exact: true }).click();
+  await openEditorPanel(page, label);
 };
 
 /** Nothing scrolls sideways, at whatever width the test is running. */

@@ -373,3 +373,33 @@ export const openTool = async (page: Page, label: string): Promise<void> => {
   await tab.click();
   await expect(tab).toHaveAttribute("aria-selected", "true");
 };
+
+/**
+ * Where each launch panel lives in the editor's labelled rail (decision 0146): renamed on the rail,
+ * or an app under More. A label not listed is a rail item of the same name.
+ */
+const EDITOR_PANELS: Readonly<Record<string, Readonly<{ rail: string; app?: string }>>> = {
+  Elements: { rail: "Illustrations" },
+  "AI image": { rail: "AI Gallery" },
+  Photos: { rail: "More", app: "photos" },
+  Likes: { rail: "More", app: "likes" },
+  Brand: { rail: "More", app: "brand" },
+  "Pattern fills": { rail: "More", app: "textures" },
+  "AI assistant": { rail: "More", app: "chat" },
+};
+
+/**
+ * Opens a panel of the editor's flyout by the name the launch rail gave it. Pressing a lit rail item
+ * closes its flyout, so an item already open is left alone.
+ */
+export const openEditorPanel = async (page: Page, label: string): Promise<void> => {
+  const route = EDITOR_PANELS[label] ?? { rail: label };
+  const tab = page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: route.rail, exact: true });
+  if ((await tab.getAttribute("aria-selected")) !== "true") await tab.click();
+  await expect(tab).toHaveAttribute("aria-selected", "true");
+  if (route.app === undefined) return;
+  const back = page.getByTestId("editor-flyout-back");
+  if (await back.isVisible()) await back.click();
+  await page.getByTestId(`editor-app-${route.app}`).click();
+  await expect(back).toBeVisible();
+};

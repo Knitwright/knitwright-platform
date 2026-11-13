@@ -1,14 +1,27 @@
 "use client";
 
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import { useRef, type ReactNode } from "react";
 import { CanvasStoreProvider, useCanvas, useCanvasStore } from "@/components/canvas/CanvasStore";
+import { BoardContextMenu } from "@/components/editor-chrome/BoardContextMenu";
+import { EditorLayout } from "@/components/editor-chrome/EditorLayout";
+import { HelpFlyout, LearnFlyout, MoreFlyout } from "@/components/editor-chrome/InfoFlyouts";
+import { LayersFlyout } from "@/components/editor-chrome/LayersFlyout";
+import { ProductsFlyout } from "@/components/editor-chrome/ProductsFlyout";
+import { ProjectPanel } from "@/components/editor-chrome/ProjectPanel";
+import { PromptPill } from "@/components/editor-chrome/PromptPill";
+import { RightPanel } from "@/components/editor-chrome/RightPanel";
+import { useEditorInput } from "@/components/editor-chrome/useEditorInput";
+import { useFlyout } from "@/components/editor-chrome/useFlyout";
+import FlowRunPanel from "@/components/flows/FlowRunPanel";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
 import { CanvasDoors } from "@/components/pickers/CanvasDoors";
-import { PromptBar } from "@/components/prompt-bar/PromptBar";
-import { zoomPercent, type GarmentPreview } from "@/lib/canvas";
 import { Notice } from "@/components/ui/Notice";
+import { boxOf, contentBounds, zoomPercent, type GarmentPreview, type Point } from "@/lib/canvas";
+import { EMPTY_SHELF, readFlyout, type ContextCommand, type Flyout, type ProductsShelf, type ZoomChoice } from "@/lib/editor-chrome";
 import { boardFilePath, flowCostSource, offeredBar, TASK_STEPS } from "@/lib/flows";
 import {
-  BOARDS,
   estimateRun,
   launchPageState,
   runLabel,
@@ -51,33 +64,26 @@ export type LaunchShellProps = Readonly<{
   marketing: MarketingShellData;
   /** What each garment board on the one canvas shows, by design id (decision 0145). */
   garments?: Readonly<Record<string, GarmentPreview | null>>;
+  /** The flyout the address opens with (`readFlyout`, decision 0146). Products when not given. */
+  flyout?: Flyout;
+  /** The Products flyout's shelves, read on the server (decision 0146). */
+  products?: ProductsShelf;
 }>;
-
-/* The breakout, as the editor shell has it: from lg up the shell is wider than the page column and
- * fills the screen below the studio header, so nothing scrolls but the panels. */
-const FRAME =
-  "flex flex-col gap-3 pb-28 lg:-mt-6 lg:mb-[-1.5rem] lg:h-[calc(100dvh-8rem)] lg:min-h-[30rem] lg:w-[min(var(--shell-vw,100vw)_-_2.5rem,96rem)] lg:ml-[calc(50%_-_min(var(--shell-vw,100vw)/2_-_1.25rem,48rem))] lg:pb-0";
-
-/*
- * Four columns from lg up: the rail, the open rail panel, the canvas with its task bar and dock,
- * and the inspector. The two side panels are narrower on a small laptop than on a wide screen, so
- * the inspector is never taken away -- an artboard size and a board's own panel are not optional.
- * Below lg everything stacks, the canvas first, and the rail becomes a bar along the bottom.
- */
-const COLUMNS =
-  "flex flex-col gap-3 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[4.75rem_17rem_minmax(0,1fr)_17rem] xl:grid-cols-[4.75rem_21rem_minmax(0,1fr)_21rem]";
 
 const WRITE_FAILED = "Write for me could not be reached. Check your connection and try again.";
 
+/** Where a duplicate lands: down and to the right of the board it copies. */
+const NUDGE = 40;
+
 /**
- * The launch shell of the spec's Launch section: the left icon rail with its twelve panels, the
- * canvas of boards, the right inspector, the contextual task bar and the bottom prompt pill and
- * tool dock, under a header with the project's name and the main menu.
+ * THE EDITOR (plan v6 E2, decision 0146; `08` §5, screen 12, prototype e01): the launch shell's
+ * boards, panels and commands in the Kittl chrome -- the labelled rail and its flyouts, the canvas
+ * with a floating task bar, the prompt pill and the four-group dock, and the right panel with Share,
+ * Export and Order over the inspector. `EditorLayout` is the frame; this file is the wiring.
  *
  * The rail panels and each board kind's inspector are panels other workstreams fill
- * (`lib/launch/panels.ts`). L2's mockups, L4's marketing panels, L5's AI video board and L6's info
- * card, run summary and canvas are mounted; L3's AI image boards, L7's uploads and brand and L8's
- * templates and likes still draw a labelled placeholder.
+ * (`lib/launch/panels.ts`); E3, E4 and E5 mount theirs through `components/editor-chrome/slots.ts`
+ * and `Inspector.tsx`.
  *
  * Every garment-locked rule is on the screen and not only in the code: a board with no Design board
  * behind it says so in the inspector, its Run button says there is nothing to run, and the task
@@ -85,7 +91,7 @@ const WRITE_FAILED = "Write for me could not be reached. Check your connection a
  */
 export function LaunchShell(props: LaunchShellProps) {
   // The one canvas's store (decision 0145): the view and the selection, for the canvas and for
-  // everything later built around it.
+  // everything built around it.
   return (
     <CanvasStoreProvider>
       <ShellBody {...props} />
@@ -93,9 +99,12 @@ export function LaunchShell(props: LaunchShellProps) {
   );
 }
 
-function ShellBody({ project, presets, credits, costs, state, canEdit, marketing, garments = {} }: LaunchShellProps) {
+function ShellBody({ project, presets, credits, costs, state, canEdit, marketing, garments = {}, flyout: opened, products = EMPTY_SHELF }: LaunchShellProps) {
   const store = useCanvasStore();
+  const stage = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const percent = useCanvas((now) => zoomPercent(now.viewport));
+  const hasSelection = useCanvas((now) => now.selection.length > 0);
   const graph = { boards: project.boards, edges: project.edges };
   const shell = useLaunchShell({
     launchProjectId: project.id,
@@ -111,11 +120,7 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
       // the design version behind the board, and it stores a drawn asset (decision 0092).
       board.kind === "mockup" ? () => renderMockupBoardAction({ launchProjectId: project.id, boardId: board.id }) : null,
   });
-  /** The dock's − and + move the store's view and keep the address's `zoom` in step. */
-  const onZoom = (next: number): void => {
-    store.zoomTo(next / 100);
-    shell.commands.setZoom(next);
-  };
+  const fly = useFlyout(opened ?? readFlyout({}), shell.commands);
   const page = launchPageState({
     query: {
       panel: shell.state.rail,
@@ -132,36 +137,36 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
   const estimate = selected ? estimateRun(graph, selected.id, costs) : null;
   const canRun = selected !== null && runnable(graph, selected.id).canRun;
   const busy = shell.busy || !canEdit;
+  const duplicate = (board: BoardView) => shell.commands.addBoard(board.kind, { x: board.at.x + NUDGE, y: board.at.y + NUDGE });
+
+  const input = useEditorInput({
+    boards: project.boards,
+    canEdit: canEdit && !shell.busy,
+    onTool: shell.commands.chooseTool,
+    onSave: shell.saveVersion,
+    onUndo: () => canUndo(shell.stack) && shell.commands.undo(),
+    onRedo: () => canRedo(shell.stack) && shell.commands.redo(),
+    onDuplicate: duplicate,
+    onRemove: (board) => shell.commands.removeBoard(board.id),
+    onZoomed: shell.commands.setZoom,
+  });
 
   const command = (id: MenuCommand) => {
     // Save keeps the canvas as a version; Duplicate copies the selected board, or adds a fresh
     // artboard when nothing is selected. Settings is handled inside the menu itself.
     if (id === "save") return shell.saveVersion();
-    if (id === "duplicate") {
-      return selected
-        ? shell.commands.addBoard(selected.kind, { x: selected.at.x + 40, y: selected.at.y + 40 })
-        : shell.commands.addBoard("artboard", { x: 0, y: 0 });
-    }
+    if (id === "duplicate") return selected ? duplicate(selected) : shell.commands.addBoard("artboard", { x: 0, y: 0 });
     return undefined;
   };
 
   /**
    * What a panel another workstream built is given, and all it is given: the project as read-only
-   * facts and the commands it may ask for (`lib/launch/panels.ts`). Built once here so the rail's
-   * panels and the selected board's inspector are handed the same thing.
+   * facts and the commands it may ask for (`lib/launch/panels.ts`). `openPanel` moves the flyout as
+   * well as the shell, so a panel that opens another panel opens it where a person can see it.
    */
   const panel: LaunchPanelProps = {
-    context: {
-      project,
-      selection: page.selection,
-      credits,
-      presets,
-      unit: shell.state.unit,
-      zoom: shell.state.zoom,
-      dockTool: shell.state.tool,
-      busy,
-    },
-    commands: shell.commands,
+    context: { project, selection: page.selection, credits, presets, unit: shell.state.unit, zoom: shell.state.zoom, dockTool: shell.state.tool, busy },
+    commands: { ...shell.commands, openPanel: fly.openPanel },
   };
 
   /**
@@ -200,7 +205,7 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
     const step = TASK_STEPS[id];
     if (step === null) return;
     if (step.do === "remove") return shell.commands.removeBoard(selected.id);
-    if (step.do === "duplicate") return shell.commands.addBoard(selected.kind, { x: selected.at.x + 40, y: selected.at.y + 40 });
+    if (step.do === "duplicate") return duplicate(selected);
     if (step.do === "remix") return shell.remix(selected.id);
     if (step.do === "add") return shell.commands.addBoard(step.kind, { x: selected.at.x + selected.size.width + 80, y: selected.at.y }, selected.id);
     if (step.do === "operation") return shell.runOperation(selected.id, step.operation, {});
@@ -212,88 +217,161 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
     shell.commands.selectBoard(selected.id, false);
   };
 
+  /** The context menu's rows, each to the command that already does it. */
+  const onContext = (board: BoardView, id: ContextCommand) => {
+    if (id === "duplicate") return duplicate(board);
+    if (id === "remove") return shell.commands.removeBoard(board.id);
+    if (id === "fit-selection") return store.fit(boxOf(board));
+    if (id === "add-artboard") return shell.commands.addBoard("artboard", { x: board.at.x + boxOf(board).width + 80, y: board.at.y });
+    if (id === "download" && board.outputFileId) return void window.open(boardFilePath(board.outputFileId), "_blank", "noopener");
+    if (id === "open-editor") router.push(`/project/${project.id}?focus=${board.id}` as Route);
+  };
+
+  const onZoomChoice = (choice: ZoomChoice) => {
+    if (choice.kind === "fit-content") store.fit(contentBounds(project.boards));
+    else if (choice.kind === "fit-selection") store.fit(contentBounds(project.boards.filter((one) => store.getState().selection.includes(one.id))));
+    else store.zoomTo(choice.scale);
+    shell.commands.setZoom(zoomPercent(store.getState().viewport));
+  };
+
+  const ownFlyout = (): ReactNode => {
+    if (fly.flyout.kind !== "own") return null;
+    switch (fly.flyout.id) {
+      case "products":
+        return <ProductsFlyout shelf={products} canEdit={canEdit} busy={busy} onPlace={(id, name) => shell.placeGarment(id, name, placeAfter(project.boards))} />;
+      case "more":
+        return <MoreFlyout onOpen={fly.show} />;
+      case "learn":
+        return <LearnFlyout onOpen={fly.show} />;
+      case "layers":
+        return <LayersFlyout panel={panel} />;
+      case "help":
+        return <HelpFlyout />;
+    }
+  };
+
+  const menuBoard = input.menu ? (project.boards.find((one) => one.id === input.menu?.boardId) ?? null) : null;
+  const flow = { costs: flowCostSource(costs), onRunAll: shell.runCanvas, graph, onOperation: shell.runOperation };
+
   return (
     <MarketingServicesProvider services={services}>
-      <div className={FRAME} data-testid="launch-shell">
-        <header className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[1.75rem] px-4 py-2.5 lg:pl-5">
-          <div className="min-w-0 flex-1 lg:flex-none lg:basis-72">
-            <h1 className="truncate text-base font-medium tracking-[-0.01em] text-ink">{project.name}</h1>
-            <p className="truncate font-mono text-xs text-ink-2">
-              {project.boards.length === 1 ? "1 board" : `${project.boards.length} boards`}
-              {selected ? ` · ${BOARDS[selected.kind].label} selected` : ""}
-            </p>
-          </div>
-          <CanvasDoors project={project} presets={presets} canEdit={canEdit} selectedId={shell.state.boardId} />
-          <MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} onUnit={shell.commands.setUnit} onCommand={command} />
-        </header>
-
-        {canEdit ? null : <Notice tone="info">You can look at this launch project. Only owners, admins and kit managers can change it.</Notice>}
-
-        {shell.note ? (
-          <div data-testid="launch-note">
-            <Notice tone={shell.note.tone} role={shell.note.tone === "warn" ? "alert" : "status"}>
-              {shell.note.text}
-            </Notice>
-          </div>
-        ) : null}
-
-        <div className={COLUMNS}>
-          <IconRail open={shell.state.rail} onOpen={shell.commands.openPanel} />
-          <RailPanels open={shell.state.rail} panel={panel} />
-
-          <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
-            {page.taskBar ? <TaskBar bar={offeredBar(page.taskBar)} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
-            <BoardCanvas
-              graph={graph}
-              selectedId={shell.state.boardId}
-              zoom={shell.state.zoom}
+      <EditorLayout
+        stage={stage}
+        onFocus={input.onFocus}
+        onContextMenu={input.onContextMenu}
+        onKeyDown={input.onKeyDown}
+        rail={
+          <IconRail
+            flyout={fly.flyout}
+            labels={fly.labels}
+            onPress={fly.press}
+            menu={<MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} labels={fly.labels} onUnit={shell.commands.setUnit} onLabels={fly.setLabels} onCommand={command} />}
+          />
+        }
+        flyout={<RailPanels flyout={fly.flyout} panel={panel} own={ownFlyout()} onClose={fly.close} onBack={() => fly.show({ kind: "own", id: "more" })} />}
+        notices={
+          <>
+            {canEdit ? null : <Notice tone="info">You can look at this project. Only owners, admins and kit managers can change it.</Notice>}
+            {shell.note ? (
+              <div data-testid="launch-note">
+                <Notice tone={shell.note.tone} role={shell.note.tone === "warn" ? "alert" : "status"}>
+                  {shell.note.text}
+                </Notice>
+              </div>
+            ) : null}
+          </>
+        }
+        canvas={
+          <BoardCanvas graph={graph} selectedId={shell.state.boardId} zoom={shell.state.zoom} busy={busy} empty={page.empty} commands={shell.commands} canvasId={project.id} garments={garments} />
+        }
+        taskBar={
+          page.taskBar && selected ? (
+            <TaskBar
+              bar={offeredBar(page.taskBar)}
               busy={busy}
-              empty={page.empty}
-              commands={shell.commands}
-              canvasId={project.id}
-              garments={garments}
+              box={boxOf(selected)}
+              stage={stage}
+              onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: selected.at.x + selected.size.width + 80, y: selected.at.y }, selected.id)}
+              onAction={action}
+              onMenu={(at: Point) => input.open(selected.id, at)}
             />
-            {/* E5's prompt bar (decision 0149): it opens upwards over the canvas, so the canvas keeps its size. */}
-            <div className="relative z-30 flex h-14 shrink-0 justify-center"><div className="absolute inset-x-0 bottom-0 flex justify-center"><PromptBar project={project} credits={credits} costs={costs} canEdit={canEdit} /></div></div>
-            <BottomDock
-              tool={shell.state.tool}
-              zoom={percent}
-              credits={credits}
-              estimate={estimate}
-              runLabel={estimate ? runLabel(estimate) : null}
-              canRun={canRun && !busy}
-              canUndo={canUndo(shell.stack)}
-              canRedo={canRedo(shell.stack)}
-              busy={busy}
-              prompt={shell.prompt}
-              onPrompt={shell.setPrompt}
-              onTool={shell.commands.chooseTool}
-              onZoom={onZoom}
-              onRun={() => selected && shell.commands.requestRun(selected.id)}
-              onUndo={shell.commands.undo}
-              onRedo={shell.commands.redo}
-            />
-          </div>
-
-          <div className="flex min-h-0 flex-col">
-            <Inspector
-              projectName={project.name}
-              colours={project.colours}
-              selection={page.selection}
-              unit={shell.state.unit}
-              presets={presets}
-              busy={busy}
-              lockNote={page.lockNote}
-              panel={panel}
-              flow={{ costs: flowCostSource(costs), onRunAll: shell.runCanvas, graph, onOperation: shell.runOperation }}
-              onUnit={shell.commands.setUnit}
-              onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
-              onColours={shell.commands.setProjectColours}
-              onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
-            />
-          </div>
-        </div>
-      </div>
+          ) : null
+        }
+        prompt={
+          <PromptPill
+            bar={{ project, credits, costs, canEdit }}
+            busy={busy}
+            runLabel={estimate ? runLabel(estimate) : null}
+            canRun={canRun && !busy}
+            note={estimate && estimate.credits > 0 ? estimate.note : null}
+            onRun={() => selected && shell.commands.requestRun(selected.id)}
+          />
+        }
+        dock={
+          <BottomDock
+            tool={shell.state.tool}
+            zoom={percent}
+            credits={credits}
+            canUndo={canUndo(shell.stack)}
+            canRedo={canRedo(shell.stack)}
+            busy={busy}
+            hasSelection={hasSelection}
+            onTool={shell.commands.chooseTool}
+            onZoomStep={(direction) => {
+              store.zoomStep(direction);
+              shell.commands.setZoom(zoomPercent(store.getState().viewport));
+            }}
+            onZoomChoice={onZoomChoice}
+            onUndo={shell.commands.undo}
+            onRedo={shell.commands.redo}
+          />
+        }
+        right={
+          <RightPanel
+            projectName={project.name}
+            panel={panel}
+            doors={<CanvasDoors project={project} presets={presets} canEdit={canEdit} selectedId={shell.state.boardId} />}
+          >
+            {page.selection === null ? (
+              <ProjectPanel
+                colours={project.colours}
+                busy={busy}
+                onColours={shell.commands.setProjectColours}
+                onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 })}
+                onBrowsePalettes={() => fly.show({ kind: "panel", id: "brand" })}
+                runSummary={project.boards.length === 0 ? null : <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />}
+              />
+            ) : (
+              <div className="flex min-h-0 flex-col p-3">
+                <Inspector
+                  projectName={project.name}
+                  colours={project.colours}
+                  selection={page.selection}
+                  unit={shell.state.unit}
+                  presets={presets}
+                  busy={busy}
+                  lockNote={page.lockNote}
+                  panel={panel}
+                  flow={flow}
+                  onUnit={shell.commands.setUnit}
+                  onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
+                  onColours={shell.commands.setProjectColours}
+                  onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
+                />
+              </div>
+            )}
+          </RightPanel>
+        }
+      />
+      {input.menu && menuBoard ? (
+        <BoardContextMenu board={menuBoard} at={input.menu.at} canEdit={canEdit && !shell.busy} onCommand={(id) => onContext(menuBoard, id)} onClose={() => input.setMenu(null)} />
+      ) : null}
     </MarketingServicesProvider>
   );
 }
+
+/** A new garment board goes to the right of everything on the canvas, so it never covers a board. */
+const placeAfter = (boards: readonly BoardView[]): Point => {
+  const bounds = contentBounds(boards);
+  return bounds === null ? { x: 0, y: 0 } : { x: bounds.x + bounds.width + 120, y: bounds.y };
+};

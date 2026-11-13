@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { accessible } from "./chrome";
-import { createAccount, signIn, test, userIdOf } from "./support";
+import { createAccount, openEditorPanel, signIn, test, userIdOf } from "./support";
 
 /**
  * WAVE 4 WIRED, ON A SCREEN (decisions 0092, 0093, 0094, 0095 and 0096).
@@ -47,7 +47,7 @@ const startLaunch = async (page: Page, label: string): Promise<string> => {
 };
 
 const openRail = async (page: Page, label: string): Promise<void> => {
-  await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: label, exact: true }).click();
+  await openEditorPanel(page, label);
 };
 
 /** Adds a board from the inspector's Tools list and selects it, so its own panel is on screen. */
@@ -234,12 +234,12 @@ test.describe("L2's renderer, end to end", () => {
 
     // A mockup board fed by it, then the scene on that board: the library adds the board first and
     // sets the scene on the second press, because `addBoard` hands no id back (decision 0092).
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
+    await openEditorPanel(page, "Mockups");
     await page.getByTestId("mockup-use-product-front").click();
     const board = page.getByRole("article", { name: "Mockup board" });
     await expect(board).toBeVisible();
     await board.getByRole("button", { name: "Select Mockup" }).click();
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
+    await openEditorPanel(page, "Mockups");
     await page.getByTestId("mockup-use-product-front").click();
     await expect(page.getByTestId("mockup-board-scene")).toHaveText("Front render");
 
@@ -277,7 +277,7 @@ test.describe("L2's renderer, end to end", () => {
 
     await page.getByTestId("add-mockup").click();
     await page.getByRole("article", { name: "Mockup board" }).getByRole("button", { name: "Select Mockup" }).click();
-    await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Mockups" }).click();
+    await openEditorPanel(page, "Mockups");
     await page.getByTestId("mockup-use-flat-lay-white").click();
 
     await page.getByTestId("mockup-board-render").click();
