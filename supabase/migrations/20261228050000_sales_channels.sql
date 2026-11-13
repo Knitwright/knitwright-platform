@@ -23,7 +23,7 @@ create table private.channel_connections (
   channel text not null check (channel in ('shopify')),
   shop_domain text not null check (shop_domain ~ '^[a-z0-9][a-z0-9-]{0,60}\.myshopify\.com$'),
   -- base64 of the AES-256-GCM ciphertext with its tag, and of the 12-byte nonce. Null once uninstalled.
-  token_ciphertext text check (token_ciphertext is null or token_ciphertext ~ '^[A-Za-z0-9+/=]{16,2048}$'),
+  token_ciphertext text check (token_ciphertext is null or (token_ciphertext ~ '^[A-Za-z0-9+/=]+$' and length(token_ciphertext) between 16 and 2048)),
   token_nonce text check (token_nonce is null or token_nonce ~ '^[A-Za-z0-9+/=]{16,32}$'),
   scopes text not null default '' check (length(scopes) <= 1000),
   -- The location Shopify made for Knitwright as a fulfilment service. Null until registered.
