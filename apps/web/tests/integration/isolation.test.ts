@@ -980,6 +980,54 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ payment_id: randomUUID(), brand_id: brandId, request_key: randomUUID(), door: "make", product_id: randomUUID(), project_id: randomUUID(), kind: "run", release_id: randomUUID(), factory_profile_id: "f", fabric_key: "m", sizes: { M: 300 }, pieces: 300 }),
     change: { sizes: { M: 300 }, pieces: 300 },
   },
+  // Plan v6 C3 (decision 0154): a brand's storefront, listings, drops, shoppers' orders and batches. A member reads;
+  // only the server writes, the money rows only through functions.
+  storefronts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => ({ brand_id: await seedStorefront(brandId) }),
+    attempt: (brandId) => ({ brand_id: brandId, slug: `made-${randomUUID().slice(0, 8)}`, name: "Made directly", returns_policy: "None" }),
+    change: { name: "Changed by a stranger", status: "draft" },
+  },
+  listings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedListing(brandId, ownerId)).listingId }),
+    attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), title: "Made directly" }),
+    change: { title: "Changed by a stranger", prices: { M: 1 } },
+  },
+  storefront_drops: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => ({ id: await seedDrop(brandId) }),
+    attempt: (brandId) => ({ brand_id: brandId, name: "Made directly", opens_at: "2026-01-01T00:00:00Z", closes_at: "2026-01-02T00:00:00Z" }),
+    change: { status: "cancelled" },
+  },
+  storefront_drop_listings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const [dropId, { listingId }] = await Promise.all([seedDrop(brandId), seedListing(brandId, ownerId)]);
+      must(await adminClient().from("storefront_drop_listings").insert({ drop_id: dropId, listing_id: listingId, brand_id: brandId }).select("drop_id"));
+      return { drop_id: dropId };
+    },
+    attempt: (brandId) => ({ drop_id: randomUUID(), listing_id: randomUUID(), brand_id: brandId }),
+    change: { target_units: 5 },
+  },
+  shop_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedShopOrder(brandId, ownerId)).shopOrderId }),
+    attempt: (brandId) => ({ brand_id: brandId, payment_id: randomUUID(), size: "M", qty: 1, unit_minor: 1, amount_minor: 1, currency: "GBP", buyer_email: "a@b.c", buyer_country: "GB", size_confirmed: true, returns_accepted: true, access_hash: "0".repeat(64) }),
+    change: { amount_minor: 1, unit_minor: 1 },
+  },
+  storefront_batches: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedStorefrontBatch(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, kind: "weekly", cutoff_at: "2026-01-01T00:00:00Z", sizes: { M: 1 }, pieces: 1 }),
+    change: { status: "sent", settled_at: "2026-01-01T00:00:00Z" },
+  },
   brand_subscriptions: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1749,6 +1797,39 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
 };
 
 /** A card payment for a sample of a new product, opened, checked out and paid the way the server does it. Returns its id. */
+/** The brand's live storefront, made (or kept) the way the server saves one (decision 0154). */
+const seedStorefront = async (brandId: string): Promise<string> => {
+  must(await adminClient().from("storefronts").upsert({ brand_id: brandId, slug: `iso-${randomUUID().slice(0, 8)}`, name: "Seeded shop", status: "live", returns_policy: "Seeded" }, { onConflict: "brand_id", ignoreDuplicates: true }).select("brand_id"));
+  return brandId;
+};
+
+/** A published listing of a new product with a frozen release. */
+const seedListing = async (brandId: string, ownerId: string): Promise<{ listingId: string }> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null })) as { id: string }[];
+  const row = must(await adminClient().from("listings").insert({ brand_id: brandId, product_id: productId, title: "Seeded", prices: { M: 2500 }, release_id: release[0]!.id, fabric_key: "mesh", status: "published", published_at: new Date().toISOString() }).select("id").single()) as { id: string };
+  return { listingId: row.id };
+};
+
+const seedDrop = async (brandId: string): Promise<string> =>
+  (must(await adminClient().from("storefront_drops").insert({ brand_id: brandId, name: "Seeded drop", opens_at: "2026-01-01T00:00:00Z", closes_at: "2026-01-02T00:00:00Z" }).select("id").single()) as { id: string }).id;
+
+/** A shopper's order on the brand's live storefront, opened and paid the way the server and the webhook do it. */
+const seedShopOrder = async (brandId: string, ownerId: string): Promise<{ shopOrderId: string; listingId: string }> => {
+  await seedStorefront(brandId);
+  const { listingId } = await seedListing(brandId, ownerId);
+  const [row] = must(await adminClient().rpc("open_shop_order", { p_listing_id: listingId, p_size: "M", p_qty: 1, p_name: null, p_number: null, p_email: "fan@example.test", p_country: "GB", p_size_confirmed: true, p_returns_accepted: true, p_access_hash: "0".repeat(64) })) as { shop_order_id: string; payment_id: string }[];
+  const session = `cs_test_${randomUUID()}`;
+  must(await adminClient().rpc("attach_payment_session", { p_payment_id: row!.payment_id, p_provider: "test", p_session_id: session }));
+  must(await adminClient().rpc("record_payment_paid", { p_session_id: session, p_provider_payment_id: `pi_${randomUUID()}`, p_amount_minor: 2500, p_currency: "GBP" }));
+  return { shopOrderId: row!.shop_order_id, listingId };
+};
+
+const seedStorefrontBatch = async (brandId: string, ownerId: string): Promise<string> => {
+  const { listingId } = await seedShopOrder(brandId, ownerId);
+  return must(await adminClient().rpc("cut_storefront_batch", { p_listing_id: listingId, p_drop_id: null, p_cutoff: new Date(Date.now() + 1000).toISOString() })) as string;
+};
+
 const seedPayment = async (brandId: string, ownerId: string): Promise<string> => {
   const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
   const release = must(

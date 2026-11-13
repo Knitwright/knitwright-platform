@@ -94,6 +94,10 @@ export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: 
     table: "rulebook_entries",
     why: "The platform's rulebook, which names the factory person who reviewed a rule as its attribution (owner decision 14). It belongs to no brand; a reviewer's name is replaced by a new version of the rule.",
   },
+  {
+    table: "shop_orders",
+    why: "A shopper's purchase from a storefront (decision 0154): their email and the name printed on the shirt. Knitwright is merchant of record, so it is a money record that outlives the brand (brand_id set null) beside its C1 payment. Retention and a shopper's erasure request are an owner decision (0154, owner question C3-7).",
+  },
 ];
 
 /**
@@ -109,4 +113,6 @@ export const NAMES_OF_THINGS: readonly string[] = [
   "boards", "flow_template_steps", "ops_couriers",
   // Decision 0139: a brand's folders on the Projects page.
   "project_folders",
+  // Decision 0154: a storefront's and a drop's own names.
+  "storefronts", "storefront_drops",
 ];

@@ -94,7 +94,7 @@ export function BuyForm({ slug, listingId, currency, prices, sizes, personalisat
       </div>
       <label className="flex items-start gap-2 text-body text-text-2">
         <input type="checkbox" className="mt-1 accent-navy" checked={form.sizeConfirmed} onChange={(event) => set({ sizeConfirmed: event.target.checked })} />
-        I have checked the size chart and my size is {form.size || "chosen"}.
+        I have compared the size chart with a shirt that fits me, and my size is {form.size || "chosen"}.
       </label>
       <label className="flex items-start gap-2 text-body text-text-2">
         <input type="checkbox" className="mt-1 accent-navy" checked={form.returnsAccepted} onChange={(event) => set({ returnsAccepted: event.target.checked })} />

@@ -23,6 +23,9 @@ export function EditorCard({ id, title, meta, action, children }: Readonly<{ id:
   );
 }
 
+const TRACK = "h-6 w-11 rounded-full transition-colors duration-fast peer-focus-visible:ring-3 peer-focus-visible:ring-electric-soft";
+const KNOB = "absolute top-0.5 left-0.5 size-5 rounded-full bg-bg shadow-e1 transition-transform duration-fast";
+
 /** An on/off switch: a checkbox with the switch role, so a keyboard and a screen reader both know it. */
 export function Switch({ checked, onChange, label, hideLabel = false, disabled = false }: Readonly<{ checked: boolean; onChange: (next: boolean) => void; label: string; hideLabel?: boolean; disabled?: boolean }>) {
   const id = useId();
@@ -31,8 +34,8 @@ export function Switch({ checked, onChange, label, hideLabel = false, disabled =
       <span className={hideLabel ? "sr-only" : "text-body text-text-2"}>{label}</span>
       <span className="relative inline-flex">
         <input id={id} type="checkbox" role="switch" className="peer sr-only" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
-        <span aria-hidden="true" className="h-6 w-11 rounded-full bg-border-strong transition-colors duration-fast peer-checked:bg-navy peer-focus-visible:ring-3 peer-focus-visible:ring-electric-soft" />
-        <span aria-hidden="true" className="absolute top-0.5 left-0.5 size-5 rounded-full bg-bg shadow-e1 transition-transform duration-fast peer-checked:translate-x-5" />
+        <span aria-hidden="true" className={cx(TRACK, checked ? "bg-navy" : "bg-border-strong")} />
+        <span aria-hidden="true" className={cx(KNOB, checked && "translate-x-5")} />
       </span>
     </label>
   );
