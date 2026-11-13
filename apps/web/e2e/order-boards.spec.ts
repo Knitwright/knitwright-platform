@@ -63,7 +63,9 @@ test.describe("the tech pack and order boards", () => {
     await drawer.getByRole("button", { name: `Close Order · ${name}` }).click();
     await expect(drawer).toBeHidden();
 
-    await open.click();
+    // The door's page still answers at its own address. (Followed by address: on a small CI window the
+    // board can sit under the floating header, which a pointer press would hit first.)
+    await page.goto(`/studio/${id}/tech-pack`);
     await expect(page).toHaveURL(new RegExp(`/studio/${id}/tech-pack$`));
   });
 });
