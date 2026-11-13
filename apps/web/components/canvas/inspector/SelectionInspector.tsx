@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { inspectorTarget, staleFocus } from "@/lib/inspector/selection";
 import type { Graph, LaunchCommands } from "@/lib/launch";
 import { useCanvas, useCanvasStore } from "../CanvasStore";
@@ -27,6 +27,15 @@ export function SelectionInspector({ graph, canvasId, busy, commands }: Props) {
   const selection = useCanvas((state) => state.selection);
   const element = useCanvas((state) => state.element);
   const editing = useCanvas((state) => state.editing);
+
+  // The fixture's opening selection, once (`/dev/inspector` only; a real canvas has no fixture).
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || fixture === null) return;
+    opened.current = true;
+    if (fixture.select) store.selectMany(fixture.select);
+    if (fixture.editing) store.setEditing(fixture.editing);
+  }, [fixture, store]);
 
   // A click elsewhere changes the selection; an element or an edit mode it no longer backs is finished.
   useEffect(() => {

@@ -15,6 +15,10 @@ export type InspectorFixture = Readonly<{
   openInfo?: boolean;
   /** Show this layer of the garment instead of the garment (e22, e23, e25). */
   elementId?: string;
+  /** Select these boards when the canvas opens (e24's group), the first as primary. */
+  select?: readonly string[];
+  /** Open this mockup board in edit mode when the canvas opens (e26). */
+  editing?: string;
 }>;
 
 const FixtureContext = createContext<InspectorFixture | null>(null);

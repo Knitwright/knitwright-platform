@@ -60,7 +60,7 @@ export function productInfo({ designId, spec, article, price, currency, factory 
     },
     file: {
       amount: `${DEFAULT_MIN_DPI} dpi or more`,
-      note: "At the printed size, or a vector. Colours are checked for print safety for you.",
+      note: "At the printed size, or a vector. The Checks section says whether the colours are print safe.",
     },
     guidelines: [
       "Keep text and crests inside the safe zones the drawing marks.",
