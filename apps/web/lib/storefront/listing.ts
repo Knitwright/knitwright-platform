@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 /**
  * THE LISTING MODEL (plan v6 C3, decision 0154; 09 screen 23; spec F-L5).
  *
@@ -32,15 +30,14 @@ export const DESCRIPTION_MAX = 5000;
  * `flow` is a picture or clip handed over from a Mockup studio or Flow run (`flow_listings`), carrying "AI-generated"
  * where a model made or touched it, so a storefront can never show an AI scene as a photograph.
  */
-export const mediaItem = z.object({
-  id: z.string().min(1).max(80),
-  source: z.enum(["render", "flow"]),
+export interface MediaItem {
+  readonly id: string;
+  readonly source: "render" | "flow";
   /** For a render, the view ("front"); for a flow item, the file id. */
-  ref: z.string().min(1).max(80),
-  label: z.string().max(120),
-  aiLabel: z.string().max(40).nullable(),
-});
-export type MediaItem = z.infer<typeof mediaItem>;
+  readonly ref: string;
+  readonly label: string;
+  readonly aiLabel: string | null;
+}
 
 export interface Personalisation {
   readonly enabled: boolean;
@@ -103,35 +100,23 @@ export function newListing(input: Readonly<{ brandId: string; productId: string;
   };
 }
 
-const minor = z.number().int().min(0).max(10_000_000);
-const tag = z.string().trim().min(1).max(MAX_TAG_LENGTH);
-
-/** What the editor saves. The brand and the product come from the server, never from the body. */
-export const listingDraftBody = z.object({
-  productId: z.uuid(),
-  title: z.string().trim().max(TITLE_MAX),
-  description: z.string().max(DESCRIPTION_MAX),
-  tags: z.array(tag).max(MAX_TAGS),
-  showSizeTable: z.boolean(),
-  media: z.array(mediaItem).max(MAX_MEDIA),
-  personalisation: z
-    .object({
-      enabled: z.boolean(),
-      nameMax: z.number().int().min(1).max(20),
-      numberMin: z.number().int().min(0).max(999),
-      numberMax: z.number().int().min(0).max(999),
-      extraMinor: z.number().int().min(0).max(100_000),
-    })
-    .refine((p) => p.numberMax >= p.numberMin, { message: "The highest number must not be below the lowest.", path: ["numberMax"] }),
-  currency: z.enum(CURRENCIES),
-  prices: z.record(z.string().min(1).max(16), minor).refine((p) => Object.keys(p).length <= 40, "At most 40 sizes."),
-  mode: z.enum(LISTING_MODES),
-  channel: z.enum(CHANNELS),
-  hideUntilReady: z.boolean(),
-  syncMockups: z.boolean(),
-  fabricKey: z.string().trim().min(1).max(120).nullable(),
-});
-export type ListingDraft = z.output<typeof listingDraftBody>;
+/** What the editor saves (`listing-schema.ts` checks it on the server). The brand and the product come from the server. */
+export interface ListingDraft {
+  readonly productId: string;
+  readonly title: string;
+  readonly description: string;
+  readonly tags: readonly string[];
+  readonly showSizeTable: boolean;
+  readonly media: readonly MediaItem[];
+  readonly personalisation: Personalisation;
+  readonly currency: Currency;
+  readonly prices: Readonly<Record<string, number>>;
+  readonly mode: ListingMode;
+  readonly channel: Channel;
+  readonly hideUntilReady: boolean;
+  readonly syncMockups: boolean;
+  readonly fabricKey: string | null;
+}
 
 /** Tags as a person types them: trimmed, lower-cased, without repeats, at most 13. */
 export function cleanTags(tags: readonly string[]): readonly string[] {

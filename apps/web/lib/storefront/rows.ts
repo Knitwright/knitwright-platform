@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Drop } from "./drops";
-import { CHANNELS, CURRENCIES, LISTING_MODES, LISTING_STATUSES, mediaItem, type Listing } from "./listing";
+import { CHANNELS, CURRENCIES, LISTING_MODES, LISTING_STATUSES, type Listing } from "./listing";
+import { mediaItem } from "./listing-schema";
 
 /**
  * The storefront tables' rows (migration 20261228030000) read into the models. Every row is parsed: a row this

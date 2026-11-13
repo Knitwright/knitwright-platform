@@ -25,7 +25,8 @@ import { cancelDrop, insertDrop, listingById, openShopOrder, readListings, readS
 import { dropFromPlan, newDropBody } from "./drops";
 import { blockersOf, canPublish } from "./health";
 import { improveListing } from "./improve";
-import { applyDraft, listingDraftBody } from "./listing";
+import { applyDraft } from "./listing";
+import { listingDraftBody } from "./listing-schema";
 import { listingEditorPath } from "./routes";
 import { runStorefrontBatches } from "./run";
 import { loadListingEditor, newestRelease } from "./server";
