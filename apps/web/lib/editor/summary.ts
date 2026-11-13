@@ -27,6 +27,8 @@ export interface SummaryRow {
   readonly detail: string;
   /** The rulebook entry behind the row, for a Why? link, or null where the row is the person's own choice. */
   readonly ruleId: string | null;
+  /** The screen colour of a colour row, for Garment Studio's swatch (decision 0150). Absent elsewhere. */
+  readonly swatch?: string;
 }
 
 export interface SummarySection {
@@ -88,7 +90,13 @@ const fabricRows = (spec: GarmentSpec): readonly SummaryRow[] =>
 const colourRows = (colours: readonly ColourRow[]): readonly SummaryRow[] =>
   colours
     .filter((row) => row.hasSwatch || row.colourText.length > 0)
-    .map((row) => ({ id: row.panelId, label: row.label, detail: [row.colourText, row.hasSwatch ? row.swatch : ""].filter(Boolean).join(" · "), ruleId: null }));
+    .map((row) => ({
+      id: row.panelId,
+      label: row.label,
+      detail: [row.colourText, row.hasSwatch ? row.swatch : ""].filter(Boolean).join(" · "),
+      ruleId: null,
+      ...(row.hasSwatch ? { swatch: row.swatch } : {}),
+    }));
 
 /** The chosen pattern-fill option of the base article, which is what a fill is on a sublimated garment. */
 function fillRows(article: BaseArticle | null, form: FormValues): readonly SummaryRow[] {

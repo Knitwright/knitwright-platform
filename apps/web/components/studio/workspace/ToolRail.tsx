@@ -14,6 +14,8 @@ type ToolRailProps = Readonly<{
   onAssistant: () => void;
   assistantOpen: boolean;
   assistantButton: Ref<HTMLButtonElement>;
+  /** Garment Studio (decision 0150): on a wide screen the tools wrap as a row of chips over the open panel instead of standing in a rail. */
+  compact?: boolean;
 }>;
 
 /**
@@ -21,7 +23,7 @@ type ToolRailProps = Readonly<{
  * each one, Home and End jump to the ends, and Tab moves on into the open panel. Upright on a
  * wide screen; a bar along the bottom on a phone and a tablet.
  */
-export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistantButton }: ToolRailProps) {
+export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistantButton, compact = false }: ToolRailProps) {
   const tabs = useRef(new Map<RailToolId, HTMLButtonElement>());
   const wide = useMedia(LG);
   const onRail = (RAIL_TOOLS as readonly ToolId[]).includes(tool);
@@ -37,14 +39,14 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
   const rail = (
     <nav
       aria-label="Design tools"
-      className="glass-strong fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-1 rounded-t-3xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:min-h-0 lg:flex-col lg:rounded-3xl lg:p-1.5"
+      className={`glass-strong fixed inset-x-0 bottom-0 z-40 flex items-stretch gap-1 rounded-t-3xl px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:static lg:z-auto lg:min-h-0 ${compact ? "lg:rounded-xl lg:p-1" : "lg:flex-col lg:rounded-3xl lg:p-1.5"}`}
     >
       <div
         role="tablist"
         aria-label="Tools"
-        aria-orientation={wide ? "vertical" : "horizontal"}
+        aria-orientation={wide && !compact ? "vertical" : "horizontal"}
         onKeyDown={move}
-        className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] lg:min-h-0 lg:flex-col lg:overflow-x-visible lg:overflow-y-auto"
+        className={`flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] lg:min-h-0 lg:overflow-x-visible ${compact ? "lg:flex-row lg:flex-wrap" : "lg:flex-col lg:overflow-y-auto"}`}
       >
         {RAIL_TOOLS.map((id, index) => {
           const selected = id === tool;
@@ -62,11 +64,11 @@ export function ToolRail({ tool, onChoose, onAssistant, assistantOpen, assistant
               aria-controls={panelId(id)}
               tabIndex={selected || (!onRail && index === 0) ? 0 : -1}
               onClick={() => onChoose(id)}
-              className={`group flex min-h-10 min-w-[4.25rem] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${
+              className={`group flex min-h-10 min-w-[4.25rem] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1.5 text-[11px] transition-[background-color,color,transform] duration-300 hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 lg:min-w-0 ${compact ? "lg:flex-row lg:gap-1.5 lg:rounded-xl lg:px-1.5 lg:py-1 lg:hover:translate-y-0" : ""} ${
                 selected ? "bg-tile-2 text-white" : "text-ink-2 hover:text-ink"
               }`}
             >
-              <span className={`grid size-8 place-items-center rounded-[10px] ${selected ? "bg-cobalt text-white" : "bg-tile-2"}`}>
+              <span className={`grid size-8 place-items-center rounded-[10px] ${compact ? "lg:size-6" : ""} ${selected ? "bg-cobalt text-white" : "bg-tile-2"}`}>
                 <ToolIcon tool={id} size={18} />
               </span>
               {TOOLS[id].label}

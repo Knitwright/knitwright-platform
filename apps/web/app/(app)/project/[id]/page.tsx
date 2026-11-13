@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { FocusedGarment } from "@/components/canvas/FocusedGarment";
 import { LaunchShell } from "@/components/launch/LaunchShell";
 import { OrderBoardsProvider } from "@/components/order-boards/OrderBoardsContext";
 import { GarmentEditor } from "@/components/studio/editor/GarmentEditor";
@@ -45,11 +44,9 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
 
   const focus = focusTarget(canvas.project.boards, record.studioProjectId, readFocus(query));
   if (focus !== null) {
-    return (
-      <FocusedGarment backHref={projectHref(id)} canvasName={canvas.project.name}>
-        <GarmentEditor brandId={brand.id} projectId={focus.designProjectId} query={query} />
-      </FocusedGarment>
-    );
+    // Garment Studio (plan v6 G1, decision 0150): the focused garment, full window, its KW logo the way back.
+    const place = { brandName: brand.name, backHref: projectHref(id), canvasName: canvas.project.name, credits: canvas.credits };
+    return <GarmentEditor brandId={brand.id} projectId={focus.designProjectId} query={query} place={place} />;
   }
 
   // The marketing panels' three outside reads (decision 0094), each falling back rather than taking

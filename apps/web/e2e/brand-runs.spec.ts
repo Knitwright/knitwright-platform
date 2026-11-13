@@ -61,7 +61,9 @@ test.describe("brand workspace (W4-C)", () => {
     await allowClassBRun(projectId, "brand-runs-reviewer");
 
     // Product runs moved from /brand to Orders (decision 0138): the rail's ⌄ opens Orders, whose
-    // header opens the runs (decision 0143).
+    // header opens the runs (decision 0143). Garment Studio fills the window with no shell (decision
+    // 0150), so the shell is reached from a dashboard page.
+    await page.goto("/projects/recent");
     await openShellPlace(page, "Orders");
     await expect(page).toHaveURL(/\/orders$/);
     await page.getByRole("link", { name: "Product runs", exact: true }).click();
