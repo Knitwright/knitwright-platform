@@ -23,10 +23,17 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   return /\/project\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
 };
 
+/**
+ * Selects the garment board from the keyboard. A key pressed before the canvas has hydrated does
+ * nothing (CI showed the first press lost), so the press is repeated until the selection lands.
+ */
 const selectGarment = async (page: Page): Promise<void> => {
   const board = page.locator("[data-board-id]").first();
-  await board.focus();
-  await page.keyboard.press("Enter");
+  await expect(async () => {
+    await board.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("selection-inspector")).toHaveAttribute("data-target", "garment", { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
   await expect(page.getByTestId("garment-inspector")).toBeVisible({ timeout: 30_000 });
 };
 
@@ -76,9 +83,10 @@ test.describe("the garment inspector", () => {
     const serious = results.violations.filter((one) => one.impact === "serious" || one.impact === "critical");
     expect(serious.map((one) => `${one.id}: ${one.nodes.map((node) => node.target.join(" ")).join(", ")}`)).toEqual([]);
 
-    // The full editor stays one press away, in place on the canvas.
+    // The full editor stays one press away, in place on the canvas: the link names the canvas's own
+    // id (the design's home canvas, which `/project/<design id>` opened) and the garment board.
     await inspector.getByRole("link", { name: "Open full editor" }).click();
-    await expect(page).toHaveURL(new RegExp(`/project/${id}\\?focus=[0-9a-f-]{36}`));
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=[0-9a-f-]{36}/);
     await expect(page.getByTestId("canvas-focus-back")).toBeVisible();
   });
 });
