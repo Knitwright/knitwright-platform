@@ -14,6 +14,7 @@ import type { ArtboardPreset, LaunchCostSource, LaunchProjectView } from "@/lib/
 import type { FontRow, PickedColour } from "@/lib/pickers";
 import type { DesignChoice, DesignHistory } from "@/lib/pickers/actions";
 import { runToast } from "@/lib/prompt-bar";
+import type { Show } from "./shows";
 
 /**
  * The E5 pieces with made-up data (decision 0149), one per `?show=`: prompt (open), video, ask,
@@ -22,8 +23,6 @@ import { runToast } from "@/lib/prompt-bar";
  * refusal. Nothing on this page is an output of any model.
  */
 
-export const SHOWS = ["prompt", "video", "ask", "styles", "builder", "prompts", "artboard", "history", "font", "colour", "toast"] as const;
-export type Show = (typeof SHOWS)[number];
 
 type Props = Readonly<{
   show: Show;

@@ -197,8 +197,8 @@ function Bar({ label, value, max, step, background, thumb, onChange }: BarProps)
   return (
     <span className="relative flex h-3.5 items-center">
       <span aria-hidden="true" className="absolute inset-0 rounded-full" style={{ background }} />
-      <input type="range" aria-label={label} min={0} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} className="relative h-3.5 w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric" />
-      <span aria-hidden="true" className="pointer-events-none absolute size-4 -translate-x-1/2 rounded-full border-2 border-bg shadow-e1" style={{ left: `${(value / max) * 100}%`, background: thumb }} />
+      <input type="range" aria-label={label} min={0} max={max} step={step} value={value} onChange={(event) => onChange(Number(event.target.value))} className="peer relative h-3.5 w-full cursor-pointer appearance-none bg-transparent opacity-0" />
+      <span aria-hidden="true" className="pointer-events-none absolute size-4 -translate-x-1/2 rounded-full border-2 border-bg shadow-e1 peer-focus-visible:ring-2 peer-focus-visible:ring-electric peer-focus-visible:ring-offset-1" style={{ left: `${(value / max) * 100}%`, background: thumb }} />
     </span>
   );
 }

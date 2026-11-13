@@ -172,7 +172,7 @@ export function PromptBar({ project, credits, costs, canEdit, initial }: PromptB
                 void onSend();
               }
             }}
-            className="min-h-12 w-full resize-none bg-transparent px-1 text-body-lg font-normal text-text outline-none placeholder:text-muted"
+            className="min-h-12 w-full resize-none bg-transparent px-1 text-body-lg font-normal text-text outline-none placeholder:text-muted focus-visible:outline-none"
             data-testid="prompt-text"
           />
           {problem ? (
@@ -247,7 +247,7 @@ function References({ reference, mode }: Readonly<{ reference: BoardView | null;
           <span className="absolute top-1 right-1 grid size-5 place-items-center rounded-sm bg-text text-on-dark" aria-hidden="true">
             <Icon icon={Lock} size={14} />
           </span>
-          <span className="absolute bottom-1 left-1.5 text-caption font-bold text-on-dark drop-shadow">1</span>
+          <span className={cx("absolute bottom-1 left-1.5 text-caption font-bold", reference.outputFileId ? "text-on-dark drop-shadow" : "text-text")}>1</span>
           <span className="sr-only">Reference 1: {reference.name || BOARDS[reference.kind].label}, garment locked</span>
         </div>
       ) : (

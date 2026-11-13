@@ -5,7 +5,8 @@ import { GARMENT_BOX } from "@/lib/canvas";
 import type { ArtboardPreset } from "@/lib/launch";
 import { board, link, project } from "@/lib/launch/fixtures/canvas";
 import { devRoutesEnabled } from "../dev-routes";
-import { Fixture, SHOWS, type Show } from "./Fixture";
+import { Fixture } from "./Fixture";
+import { SHOWS, type Show } from "./shows";
 
 export const metadata: Metadata = { title: "Prompt bar fixture", robots: { index: false, follow: false } };
 

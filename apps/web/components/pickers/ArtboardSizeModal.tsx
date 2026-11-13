@@ -144,7 +144,7 @@ export function ArtboardSizeModal({ open, onClose, launchProjectId, presets, boa
             onChange={(id) => setTab(id as ArtboardTab)}
             label="Artboard sizes"
             idBase={ID}
-            className="overflow-x-auto"
+            className="flex-wrap"
           />
           <div {...tabPanelProps(ID, tab)} className="min-h-0 flex-1">
             {tab === "pod" ? (
@@ -168,7 +168,7 @@ export function ArtboardSizeModal({ open, onClose, launchProjectId, presets, boa
                 {cards.map((preset) => (
                   <li key={preset.key}>
                     <button type="button" aria-pressed={picked === preset.key && design === null} onClick={() => pickPreset(preset)} title={preset.note} className={cx(CARD, "w-full", picked === preset.key && design === null ? "border-electric bg-bg" : "border-transparent bg-soft live:hover:border-border-strong")} data-preset={preset.key}>
-                      <Icon icon={preset.unit === "px" ? (preset.width === preset.height ? Square : Smartphone) : File} size={22} className="size-10 text-text" />
+                      <Icon icon={preset.unit !== "px" ? File : preset.width === preset.height ? Square : preset.width > preset.height ? RectangleHorizontal : Smartphone} size={22} className="size-10 text-text" />
                       <span className="text-body-lg font-semibold text-text">{preset.label}</span>
                       <span className="text-body text-muted">{sizeLine(preset.width, preset.height, preset.unit)}</span>
                     </button>

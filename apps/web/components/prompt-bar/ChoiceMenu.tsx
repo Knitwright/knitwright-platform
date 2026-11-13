@@ -65,7 +65,7 @@ export function ChoiceMenu({ label, trigger, items, onChoose, header, footer, wi
         ref={button}
         type="button"
         disabled={disabled}
-        aria-label={label}
+        aria-label={round ? label : undefined}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
@@ -81,6 +81,7 @@ export function ChoiceMenu({ label, trigger, items, onChoose, header, footer, wi
           round ? "w-9 justify-center rounded-full" : "rounded-md px-2",
         )}
       >
+        {round ? null : <span className="sr-only">{label}: </span>}
         {trigger}
       </button>
       {open ? (
