@@ -31,9 +31,11 @@ export const KIND_LABELS: Readonly<Record<ProjectKind, string>> = {
 
 export const isProjectKind = (value: unknown): value is ProjectKind => PROJECT_KINDS.some((kind) => kind === value);
 
-/** Where a card opens: the design editor, or the launch canvas. */
-export const itemHref = (item: Pick<ProjectItem, "kind" | "id">): Route =>
-  (item.kind === "design" ? `/studio/${item.id}` : `/launch/${item.id}`) as Route;
+/**
+ * Where a card opens: the one canvas (decision 0145). `/project/<id>` takes a design's id, which
+ * opens its home canvas, or a launch canvas's own id.
+ */
+export const itemHref = (item: Pick<ProjectItem, "kind" | "id">): Route => `/project/${item.id}` as Route;
 
 export const SORTS = ["recent", "name", "oldest"] as const;
 export type ProjectSort = (typeof SORTS)[number];

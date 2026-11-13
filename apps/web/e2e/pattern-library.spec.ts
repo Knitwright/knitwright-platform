@@ -19,7 +19,8 @@ const openMakeIt = async (page: Page, name: string): Promise<void> => {
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  await page.goto(`${new URL(page.url()).pathname}?tool=production`);
+  // The design's own address opens the editor on the one canvas (decision 0145).
+  await page.goto(`${new URL(page.url()).pathname.replace("/project/", "/studio/")}?tool=production`);
   await expect(page.getByRole("heading", { name: "Patterns" })).toBeVisible();
 };
 

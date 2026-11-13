@@ -97,7 +97,7 @@ test.describe("the tech pack page", () => {
     await expect(page.locator("#construction").getByText("To be confirmed").first()).toBeVisible();
 
     await page.getByRole("link", { name: "Back to the design" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
     await expect(page.getByRole("heading", { level: 1, name: "Tech pack test" })).toBeVisible();
   });
 
@@ -308,7 +308,8 @@ test.describe("the tech pack page", () => {
     const BUDGET_MS = 2_000;
     await signedIn(page, "pack-speed");
     await startDesign(page, "Crew neck tee");
-    const address = `${new URL(page.url()).pathname}/tech-pack`;
+    // The editor opens on the one canvas (decision 0145); the tech pack keeps its address under the design.
+    const address = `${new URL(page.url()).pathname.replace("/project/", "/studio/")}/tech-pack`;
 
     for (let visit = 0; visit < 3; visit += 1) {
       const response = await page.goto(address);

@@ -38,6 +38,7 @@ import {
   undoDesign,
   type SaveOutcome,
 } from "./service";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * Every action here takes the brand from the session and never from the form. The
@@ -51,7 +52,8 @@ const savedOrRefused = (outcome: SaveOutcome) => {
 };
 
 const refreshDesign = (projectId: string): void => {
-  revalidatePath(`/studio/${projectId}`);
+  // The design opens on the one canvas now (decision 0145); every canvas that shows it is re-read.
+  revalidatePath("/project/[id]", "page");
   revalidatePath(`/studio/${projectId}/tech-pack`);
   revalidatePath("/projects/recent");
 };
@@ -68,7 +70,7 @@ export const createProjectAction = defineAction({
       charts: await brandChartSet(await sessionClient(), session.brand.id),
     });
     revalidatePath("/projects/recent");
-    redirect(`/studio/${id}`);
+    redirect(garmentEditorHref(id));
   },
 });
 

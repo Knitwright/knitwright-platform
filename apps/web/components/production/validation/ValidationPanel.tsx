@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -12,6 +11,7 @@ import type { VersionStatus } from "@/lib/validation/status";
 import { call, projectUrl } from "../orders/call";
 import { useRemote } from "../orders/useRemote";
 import { FindingList } from "./FindingList";
+import { useDesignId } from "../DesignId";
 
 type Report = Readonly<{
   findings: readonly Finding[];
@@ -71,7 +71,7 @@ function Body({ projectId }: Readonly<{ projectId: string }>) {
 
 /** The "Factory file" readiness list: what stands between this design and an order. */
 export function ValidationPanel() {
-  const projectId = useParams<{ projectId?: string }>()?.projectId;
+  const projectId = useDesignId();
   return (
     <section aria-labelledby="validation-heading" className="flex flex-col gap-3" data-testid="validation-panel">
       <h3 id="validation-heading" className="text-[15px] font-medium text-ink">Factory file</h3>

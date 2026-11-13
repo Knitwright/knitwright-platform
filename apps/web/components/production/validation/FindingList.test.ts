@@ -28,7 +28,7 @@ describe("the finding list", () => {
     const html = renderToStaticMarkup(createElement(FindingList, { findings: listed, projectId: "p1", why }));
     expect(html).toContain('data-why="R-SUB-004"');
     expect(html).toContain('data-context="validation seam-cross"');
-    expect(html).toContain('href="/studio/p1?tool=logos"');
+    expect(html).toContain('href="/project/p1?focus=garment&amp;tool=logos"');
     expect(html).toContain('href="/studio/p1/tech-pack"');
     expect(html).toContain("Fix<span class=\"sr-only\">: Move the logo.</span>");
   });

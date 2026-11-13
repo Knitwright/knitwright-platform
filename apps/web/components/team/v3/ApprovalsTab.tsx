@@ -9,6 +9,7 @@ import { listProjects } from "@/lib/projects/service";
 import type { Brand } from "@/lib/server/core/guard";
 import { sessionClient } from "@/lib/server/deps";
 import { listCommittee } from "@/lib/share/committee/service";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * Team › Approvals (09 screen 17; F-T3): a committee link per design, its votes per version, the
@@ -51,7 +52,7 @@ export async function ApprovalsTab({ brand }: Readonly<{ brand: Brand }>) {
         {committee.map((design) => (
           <li key={design.projectId} className="flex flex-col gap-3 rounded-2xl border border-border p-5">
             <h3 className="text-title text-text">
-              <Link href={`/studio/${design.projectId}`} className="no-underline live:hover:underline">
+              <Link href={garmentEditorHref(design.projectId)} className="no-underline live:hover:underline">
                 {design.name}
               </Link>{" "}
               <span className="font-normal text-muted">· version {design.currentVersion}</span>

@@ -49,7 +49,8 @@ describe("the panels the shell leaves for other workstreams", () => {
       if (panel === null) continue;
       expect(LAUNCH_PANELS).toContain(panel);
     }
-    expect(BOARD_KINDS.filter((kind) => PANEL_OF_KIND[kind] === null)).toEqual(["design", "artboard"]);
+    // E3 builds the garment inspector, E4 the tech pack and order boards' panels (decision 0145).
+    expect(BOARD_KINDS.filter((kind) => PANEL_OF_KIND[kind] === null)).toEqual(["design", "artboard", "garment", "tech_pack", "order"]);
   });
 });
 

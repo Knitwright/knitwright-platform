@@ -37,6 +37,10 @@ export const OPERATION_OF_KIND: Readonly<Record<BoardKind, FilesServiceOperation
   ai_video: null,
   marketing: null,
   info_card: null,
+  // The one canvas (decision 0145): a garment is the design object, a tech pack and an order are views of it.
+  garment: null,
+  tech_pack: null,
+  order: null,
 };
 
 export interface FlowCapabilityRegistry {

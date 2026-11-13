@@ -31,7 +31,7 @@ const printAddress = (input: PanelInput, formats: readonly string[], size: strin
 };
 
 /** The marketing media screen, which the Mockups tab opens until the launch studio lands (wave 4). */
-export const mockupsAddress = (input: PanelInput): string => `/studio/${encodeURIComponent(input.projectId)}?tool=media`;
+export const mockupsAddress = (input: PanelInput): string => `/project/${encodeURIComponent(input.projectId)}?focus=garment&tool=media`;
 
 /** The pattern page, where a pattern is asked for and its DXF is kept. */
 const patternPage = (input: PanelInput): string => `/studio/${encodeURIComponent(input.projectId)}/pattern-service`;

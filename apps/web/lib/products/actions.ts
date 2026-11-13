@@ -1,6 +1,5 @@
 "use server";
 
-import type { Route } from "next";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getBaseArticle } from "@/lib/catalogue";
@@ -12,6 +11,7 @@ import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
 import { log } from "@/lib/server/log";
 import { designFromBase, designFromBaseSchema } from "./design";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * CREATE MY DESIGN in the product configurator (plan v6 P4, decision 0142). The brand and the user come from the
@@ -36,6 +36,6 @@ export const designFromBaseAction = defineAction({
       warn: (message) => log({ level: "warn", message, where: "action design-from-base" }),
     });
     revalidatePath("/studio");
-    redirect(`/studio/${id}` as Route);
+    redirect(garmentEditorHref(id));
   },
 });

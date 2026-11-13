@@ -87,7 +87,7 @@ test.describe("the template library", () => {
     // The three football shirts of plan v4, plus the white and maroon one of the launch starters (plan v5 L8).
     await expect(grid(page).getByRole("listitem")).toHaveCount(4);
     await page.getByRole("button", { name: "Use this template: Red football shirt, white trim" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
   });
 
@@ -95,7 +95,7 @@ test.describe("the template library", () => {
     await signedIn(page, "templates-use");
     await page.goto("/templates?sport=football&article=team-jersey");
     await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
 
     await page.goto("/studio");
@@ -120,14 +120,14 @@ test.describe("the template library", () => {
     await page.goto("/templates?tab=launch-packs");
     const pack = FLOW_TEMPLATES[0]!;
     await page.getByRole("button", { name: `Use template: ${pack.title}` }).click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}/);
   });
 
   test("opens a social layout as a marketing board on a new launch canvas", async ({ page }) => {
     await signedIn(page, "templates-social");
     await page.goto("/templates?tab=social");
     await grid(page).getByRole("button", { name: /^Use template: / }).first().click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
   });
 
   test("offers templates first on the start page, and the blank canvas second", async ({ page }) => {

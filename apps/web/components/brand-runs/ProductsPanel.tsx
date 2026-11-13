@@ -9,6 +9,7 @@ import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import { addProductAction, confirmStageAction } from "@/lib/brand-runs/actions";
 import type { ProductView } from "@/lib/brand-runs/service";
 import { canConfirm, nextStage, STAGE_LABELS } from "@/lib/brand-runs/stage";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 type DesignChoice = Readonly<{ id: string; label: string }>;
 type Note = Readonly<{ tone: "ok" | "warn"; text: string }>;
@@ -56,7 +57,7 @@ export function ProductsPanel({ products, designs, canEdit, selectedId }: Props)
           return (
             <li key={product.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <p className="min-w-0 text-[15px] text-ink">
-                <Link href={`/studio/${product.projectId}`} className="soft-link underline underline-offset-4">{product.name}</Link>
+                <Link href={garmentEditorHref(product.projectId)} className="soft-link underline underline-offset-4">{product.name}</Link>
                 <span className="text-muted"> · {STAGE_LABELS[product.stage]} · design version {product.designVersion} · added {date(product.createdAt)}</span>
               </p>
               <div className="flex flex-wrap gap-2">

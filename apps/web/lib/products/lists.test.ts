@@ -45,7 +45,7 @@ describe("My products", () => {
   it("lists rows for the stage and the words, with the newest run's date and no invented channel", () => {
     const rows = productRows(PRODUCTS, "all", "SHIRT");
     expect(rows.map((row) => row.name)).toEqual(["Home shirt", "Away shirt"]);
-    expect(rows[0]).toMatchObject({ detail: "Version 2 · 2 runs", updated: "4 Dec", channel: CHANNEL_NONE, editHref: "/studio/p-a", stageLabel: "Run" });
+    expect(rows[0]).toMatchObject({ detail: "Version 2 · 2 runs", updated: "4 Dec", channel: CHANNEL_NONE, editHref: "/project/p-a?focus=garment", stageLabel: "Run" });
     expect(rows[1]).toMatchObject({ detail: "Version 2 · no runs yet", updated: "4 Nov" });
     expect(productRows(PRODUCTS, "sample", "")[0]!.detail).toBe("Version 2 · 1 run");
     expect(shortDate("2026-01-31T23:00:00Z")).toBe("31 Jan");

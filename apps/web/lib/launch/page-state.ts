@@ -1,5 +1,5 @@
 import { artboardUnit, type ArtboardUnit } from "./artboard";
-import { BOARDS, LAUNCH_GAP_RULE } from "./boards";
+import { BOARDS, isGarmentKind, LAUNCH_GAP_RULE } from "./boards";
 import { readAddress, type Query } from "./address";
 import type { DockTool } from "./dock";
 import { garmentSource, type Graph } from "./graph";
@@ -60,7 +60,7 @@ export interface LaunchPageInput {
 /** The empty state of the canvas, or null when there is something to draw and a design behind it. */
 export function emptyStateOf(graph: Graph): EmptyState | null {
   if (graph.boards.length === 0) return EMPTY_CANVAS;
-  if (!graph.boards.some((board) => board.kind === "design")) return NO_DESIGN;
+  if (!graph.boards.some((board) => isGarmentKind(board.kind))) return NO_DESIGN;
   return null;
 }
 

@@ -79,6 +79,10 @@ export const PANEL_OF_KIND: Readonly<Record<BoardKind, LaunchPanelId | null>> = 
   ai_video: "board-ai-video",
   marketing: "board-marketing",
   info_card: "board-info-card",
+  // E3 builds the garment inspector and E4 the tech pack and order boards (decision 0145).
+  garment: null,
+  tech_pack: null,
+  order: null,
 };
 
 /** What the person has selected, which decides the inspector and the contextual task bar. */

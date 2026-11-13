@@ -14,11 +14,42 @@
  *      `boards_generated_output_is_never_artwork` constraint says the same in the database.
  */
 
-export const BOARD_KINDS = ["design", "artboard", "mockup", "ai_image", "ai_video", "marketing", "info_card"] as const;
+export const BOARD_KINDS = [
+  "design",
+  "artboard",
+  "mockup",
+  "ai_image",
+  "ai_video",
+  "marketing",
+  "info_card",
+  // The one canvas (plan v6 E1, decision 0145): the studio's design object, its tech pack and its order.
+  "garment",
+  "tech_pack",
+  "order",
+] as const;
 export type BoardKind = (typeof BOARD_KINDS)[number];
 
 /** The boards the platform draws itself, from the design, the catalogue or the person's own layout. */
-export const DETERMINISTIC_KINDS = ["design", "artboard", "mockup", "marketing", "info_card"] as const;
+export const DETERMINISTIC_KINDS = ["design", "artboard", "mockup", "marketing", "info_card", "garment", "tech_pack", "order"] as const;
+
+/**
+ * THE GARMENT KINDS (decision 0145). A Garment board references a studio project (`projects.id`) and
+ * shows its current spec version: it *is* the design object, validated by `lib/validation` exactly
+ * as the editor validates it. A launch-era `design` board is the same thing under its old name -- it
+ * points at a studio project through `settings.designProjectId` and the `design_project_id` column
+ * -- so every rule that asks "is there a garment behind this board?" asks it of both.
+ */
+export const GARMENT_KINDS = ["design", "garment"] as const;
+
+export const isGarmentKind = (kind: BoardKind): boolean => (GARMENT_KINDS as readonly BoardKind[]).includes(kind);
+
+/**
+ * Boards that are a *view* of their garment rather than something a run makes: the tech pack and
+ * the order (E4 fills them). They are linked to one garment board and are never run.
+ */
+export const LINKED_KINDS = ["tech_pack", "order"] as const;
+
+export const isLinkedKind = (kind: BoardKind): boolean => (LINKED_KINDS as readonly BoardKind[]).includes(kind);
 
 /** The boards whose picture comes out of a model. Their output is scenery and never artwork. */
 export const GENERATED_KINDS = ["ai_image", "ai_video"] as const;
@@ -86,7 +117,7 @@ export const BOARDS: Readonly<Record<BoardKind, BoardKindInfo>> = {
     id: "mockup",
     label: "Mockup",
     lead: "The design in a scene the platform draws. It follows the design: change the design and this changes with it.",
-    accepts: ["design"],
+    accepts: ["design", "garment"],
     maxInputs: 1,
     paid: false,
     ruleId: LAUNCH_GAP_RULE,
@@ -95,7 +126,7 @@ export const BOARDS: Readonly<Record<BoardKind, BoardKindInfo>> = {
     id: "ai_image",
     label: "AI image",
     lead: "A scene around the garment. The garment itself stays the picture the platform drew.",
-    accepts: ["design", "mockup", "ai_image"],
+    accepts: ["design", "garment", "mockup", "ai_image"],
     maxInputs: 4,
     paid: true,
     ruleId: LAUNCH_GAP_RULE,
@@ -113,7 +144,7 @@ export const BOARDS: Readonly<Record<BoardKind, BoardKindInfo>> = {
     id: "marketing",
     label: "Marketing",
     lead: "A post, story or banner built around the boards you feed it. The pictures stay as they are.",
-    accepts: ["design", "mockup", "ai_image", "ai_video", "info_card"],
+    accepts: ["design", "garment", "mockup", "ai_image", "ai_video", "info_card"],
     maxInputs: 6,
     paid: false,
     ruleId: LAUNCH_GAP_RULE,
@@ -122,7 +153,34 @@ export const BOARDS: Readonly<Record<BoardKind, BoardKindInfo>> = {
     id: "info_card",
     label: "Info card",
     lead: "A size chart, colour chart or care card, read from the factory file and the catalogue.",
-    accepts: ["design"],
+    accepts: ["design", "garment"],
+    maxInputs: 1,
+    paid: false,
+    ruleId: LAUNCH_GAP_RULE,
+  },
+  garment: {
+    id: "garment",
+    label: "Garment",
+    lead: "One of your designs on the canvas: the real garment, at its current version, checked as the editor checks it.",
+    accepts: [],
+    maxInputs: 0,
+    paid: false,
+    ruleId: LAUNCH_GAP_RULE,
+  },
+  tech_pack: {
+    id: "tech_pack",
+    label: "Tech pack",
+    lead: "The garment's tech pack, live-linked to it: change the design and the pages follow.",
+    accepts: ["garment"],
+    maxInputs: 1,
+    paid: false,
+    ruleId: LAUNCH_GAP_RULE,
+  },
+  order: {
+    id: "order",
+    label: "Order",
+    lead: "A sample or a run of the garment it is linked to, through the same checks as every order.",
+    accepts: ["garment"],
     maxInputs: 1,
     paid: false,
     ruleId: LAUNCH_GAP_RULE,
@@ -130,7 +188,7 @@ export const BOARDS: Readonly<Record<BoardKind, BoardKindInfo>> = {
 };
 
 /** The kinds the connector dot's Add… menu offers, in the order the spec lists them (F-L4). */
-export const ADD_MENU_KINDS: readonly BoardKind[] = ["mockup", "ai_image", "ai_video", "marketing", "info_card"];
+export const ADD_MENU_KINDS: readonly BoardKind[] = ["mockup", "ai_image", "ai_video", "marketing", "info_card", "tech_pack", "order"];
 
 const isKind = (value: string): value is BoardKind => (BOARD_KINDS as readonly string[]).includes(value);
 

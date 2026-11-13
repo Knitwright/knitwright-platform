@@ -65,6 +65,8 @@ export interface NeedsYou {
 const ORDER: readonly NeedsYouKind[] = ["quote-sent", "vote", "confirm", "share", "quote-waiting"];
 
 const designPath = (id: string): string => `/studio/${encodeURIComponent(id)}`;
+/** The design in the editor with one tool open, in place on its canvas (decision 0145). */
+const toolPath = (id: string, tool: string): string => `/project/${encodeURIComponent(id)}?focus=garment&tool=${tool}`;
 const count = (value: number): string => value.toLocaleString("en-GB");
 const things = (value: number): string => `${count(value)} ${value === 1 ? "thing" : "things"}`;
 
@@ -89,7 +91,7 @@ function designItems(design: DesignFacts): NeedsYouItem[] {
       kind: "share",
       text: `${design.name}: the factory file has no empty fields. Show it to your committee`,
       action: "Share",
-      href: `${designPath(design.id)}?tool=share#share-heading`,
+      href: `${toolPath(design.id, "share")}#share-heading`,
       at: design.updatedAt,
     },
   ];
@@ -102,7 +104,7 @@ const voteItem = (vote: OpenVote): NeedsYouItem => ({
     vote.yes + vote.notYet === 0 ? "no votes yet" : `${count(vote.yes)} yes, ${count(vote.notYet)} not yet`
   }`,
   action: "See votes",
-  href: `${designPath(vote.projectId)}?tool=share#share-heading`,
+  href: `${toolPath(vote.projectId, "share")}#share-heading`,
   at: vote.latestAt,
 });
 
@@ -117,7 +119,7 @@ function quoteItems(quote: QuoteFact): NeedsYouItem[] {
         ? `Quote for ${count(quote.quantity)} of ${quote.projectName} sent. Look in your email`
         : `Quote for ${count(quote.quantity)} of ${quote.projectName} asked for. We reply by email`,
       action: "Open",
-      href: `${designPath(quote.projectId)}?tool=quote#quote-request`,
+      href: `${toolPath(quote.projectId, "quote")}#quote-request`,
       at: quote.updatedAt,
     },
   ];

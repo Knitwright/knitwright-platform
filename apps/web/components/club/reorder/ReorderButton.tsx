@@ -8,6 +8,7 @@ import { FIELD_CONTROL } from "@/components/ui/field-styles";
 import { Notice } from "@/components/ui/Notice";
 import { resolutionsOf, type Answer, type Answers, type PreviewView } from "./model";
 import { ReorderReview } from "./ReorderReview";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 type Season = Readonly<{ id: string; name: string; players: number }>;
 type Props = Readonly<{ releaseId: string; seasons: readonly Season[] }>;
@@ -57,7 +58,7 @@ export function ReorderButton({ releaseId, seasons }: Props) {
       {made ? (
         <Notice tone="ok">
           The new team list is made with {made.players} {made.players === 1 ? "player" : "players"}{made.leftOut > 0 ? `, and ${made.leftOut} left out` : ""}.{" "}
-          <Link href={`/studio/${made.projectId}?tool=production`} className="soft-link">Open it on the design</Link>.
+          <Link href={garmentEditorHref(made.projectId, { tool: "production" })} className="soft-link">Open it on the design</Link>.
         </Notice>
       ) : (
         <div className="flex flex-wrap items-center justify-end gap-2">

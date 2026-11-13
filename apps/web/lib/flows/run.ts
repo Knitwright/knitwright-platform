@@ -1,4 +1,4 @@
-import { acceptAsset, garmentSource, inputsOf, isGeneratedKind, type BoardKind, type BoardView, type Graph, type LaunchAsset } from "@/lib/launch";
+import { acceptAsset, garmentSource, inputsOf, isGarmentKind, isGeneratedKind, type BoardKind, type BoardView, type Graph, type LaunchAsset } from "@/lib/launch";
 import { artworkVerdict } from "./artwork";
 import { boardAssets, boardFormat, boardGeneration, chargeUnits, estimateFlow, type FlowCostSource, type FlowEstimate } from "./cost";
 import { dependentsOf, type ScopeInput } from "./topology";
@@ -182,7 +182,7 @@ const nameOf = (graph: Graph, boardId: string): string => graph.boards.find((one
 
 /** Why this board cannot be run now, or null: a missing input is as real a refusal as a missing design. */
 function refusalFor(graph: Graph, inputs: readonly FlowInputRef[]): string | null {
-  const empty = inputs.filter((input) => input.kind !== "design" && input.fileId === null);
+  const empty = inputs.filter((input) => !isGarmentKind(input.kind) && input.fileId === null);
   if (empty.length === 0) return null;
   const names = empty.map((input) => nameOf(graph, input.boardId)).join(", ");
   return `The board that feeds this one has not been run yet (${names}). Run all, or run that board first.`;

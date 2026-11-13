@@ -51,7 +51,7 @@ test.describe("the marketing page", () => {
     await signedIn(page, "marketing-ad");
     await page.goto("/marketing");
     await page.getByRole("button", { name: "Create an ad" }).click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
   });
 
   test("Use this concept opens the layout on a launch canvas", async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe("the marketing page", () => {
     const card = page.getByRole("list", { name: "Ad gallery" }).getByRole("listitem").first();
     await card.hover();
     await card.getByRole("button", { name: /^Use this concept: / }).click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?board=[0-9a-f-]{36}/);
   });
 
   test("Plan a launch pack lists the packs, and planning one opens it on a canvas", async ({ page }) => {
@@ -70,6 +70,6 @@ test.describe("the marketing page", () => {
     await expect(page).toHaveURL(/\/marketing\/launch-packs$/);
     await expect(page.getByRole("list", { name: "Launch packs" }).getByRole("listitem")).toHaveCount(FLOW_TEMPLATES.length);
     await page.getByRole("button", { name: `Plan this pack: ${FLOW_TEMPLATES[0]!.title}` }).click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}/);
   });
 });

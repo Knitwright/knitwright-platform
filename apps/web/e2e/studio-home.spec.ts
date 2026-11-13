@@ -41,6 +41,8 @@ test.describe("the studio home", () => {
     await expect(card.locator("img")).toHaveAttribute("src", /^data:image\/svg\+xml;/);
 
     await card.click();
+    // A card opens the design's canvas (decision 0145); its garment board opens the editor in place.
+    await page.getByRole("article", { name: "Garment board" }).getByRole("link", { name: /^Open in editor/ }).click();
     await page.getByRole("link", { name: "Share", exact: true }).click();
     const panel = page.getByRole("region", { name: "Share with your committee" });
     await panel.getByRole("button", { name: "Make a share link" }).click();

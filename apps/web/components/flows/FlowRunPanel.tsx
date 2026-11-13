@@ -15,7 +15,7 @@ import {
   type FlowSummary,
   type SummaryRow,
 } from "@/lib/flows";
-import { affordable, type LaunchPanelProps } from "@/lib/launch";
+import { affordable, isGarmentKind, type LaunchPanelProps } from "@/lib/launch";
 
 /**
  * THE RUN SUMMARY (spec F-L4: "a side panel lists every output, its status and cost"), which is the
@@ -73,7 +73,7 @@ export default function FlowRunPanel({ context, commands, costs = null, report =
   const estimate = costs === null ? null : estimateFlow(graph, { from: null, scope: "all" }, costs);
   const summary: FlowSummary | null = report !== null ? runSummary(graph, report) : estimate === null ? null : estimateSummary(estimate);
   const money = estimate === null ? null : affordable({ ...estimate, lines: [] }, context.credits);
-  const design = context.project.boards.find((one) => one.kind === "design") ?? null;
+  const design = context.project.boards.find((one) => isGarmentKind(one.kind)) ?? null;
   const listing = listingVerdict(
     listingPayload(graph, {
       launchProjectId: context.project.id,

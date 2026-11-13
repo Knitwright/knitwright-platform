@@ -28,7 +28,7 @@ test.describe("inviting someone to a design", () => {
     await startDesign(page, "Away kit 2027");
 
     await page.getByRole("link", { name: "Share", exact: true }).click();
-    await expect(page).toHaveURL(/\?tool=share$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?$/);
     const panel = page.getByRole("region", { name: "Share with your committee" });
 
     // Nobody is invited yet.
@@ -90,7 +90,7 @@ test.describe("inviting someone to a design", () => {
     await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Training top 2027");
     await page.getByRole("link", { name: "Share", exact: true }).click();
-    await expect(page).toHaveURL(/\?tool=share$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?$/);
     const panel = page.getByRole("region", { name: "Share with your committee" });
 
     await panel.getByLabel("Invite by email").fill(chair);
@@ -114,7 +114,7 @@ test.describe("inviting someone to a design", () => {
     await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Match shirt 2027");
     await page.getByRole("link", { name: "Share", exact: true }).click();
-    await expect(page).toHaveURL(/\?tool=share$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?$/);
     const panel = page.getByRole("region", { name: "Share with your committee" });
 
     await panel.getByLabel("Invite by email").fill("chair");

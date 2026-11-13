@@ -32,7 +32,7 @@ const signedIn = async (page: Page, label: string): Promise<void> => {
 const withDesign = async (page: Page): Promise<void> => {
   await page.goto("/templates?sport=football&article=team-jersey");
   await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
 };
 
 test.describe("the mockups page", () => {
@@ -86,6 +86,6 @@ test.describe("the mockups page", () => {
     const card = page.getByRole("list", { name: "Mockups" }).getByRole("listitem").first();
     await card.hover();
     await card.getByRole("button", { name: /^Edit / }).click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}\?panel=mockups&board=[0-9a-f-]{36}/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?panel=mockups&board=[0-9a-f-]{36}/);
   });
 });

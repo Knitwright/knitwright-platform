@@ -32,8 +32,8 @@ describe("the boards a dashboard page puts on a new canvas", () => {
   });
 
   it("lands on the canvas with the new board selected", () => {
-    expect(landingPath("p 1", "b", "mockups")).toBe("/launch/p%201?panel=mockups&board=b");
-    expect(landingPath("p", null, null)).toBe("/launch/p");
+    expect(landingPath("p 1", "b", "mockups")).toBe("/project/p%201?panel=mockups&board=b");
+    expect(landingPath("p", null, null)).toBe("/project/p");
   });
 
   it("names the launch after what it started from", () => {

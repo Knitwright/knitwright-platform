@@ -55,4 +55,6 @@ export const PUBLIC_PAGES = [
   "app/dev/pages/page.tsx",
   // Same switch: P6's Team, Brand, Settings and plans fixtures (decision 0144).
   "app/dev/p6/page.tsx",
+  // The one canvas with made-up boards (decision 0145), for the comparison with e01. Same switch as /dev/ui.
+  "app/dev/canvas/page.tsx",
 ] as const;

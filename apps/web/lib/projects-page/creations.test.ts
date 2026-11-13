@@ -8,11 +8,11 @@ const lifestyle = lifestyleOf({ id: ID(4), file_id: ID(5), width: 1600, height: 
 
 describe("AI creations", () => {
   it("reads a shoot as a garment-locked scene that opens its launch canvas", () => {
-    expect(scene).toMatchObject({ source: "scene", shape: "tall", garmentLocked: true, href: `/launch/${ID(2)}`, fileId: ID(3) });
+    expect(scene).toMatchObject({ source: "scene", shape: "tall", garmentLocked: true, href: `/project/${ID(2)}`, fileId: ID(3) });
   });
 
   it("reads a lifestyle picture with the shape of its size, opening its design", () => {
-    expect(lifestyle).toMatchObject({ source: "lifestyle", shape: "wide", garmentLocked: false, href: `/studio/${ID(6)}` });
+    expect(lifestyle).toMatchObject({ source: "lifestyle", shape: "wide", garmentLocked: false, href: `/project/${ID(6)}` });
   });
 
   it("gives every size a shape, and square when the size is unknown", () => {

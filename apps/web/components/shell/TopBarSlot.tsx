@@ -18,7 +18,8 @@ export const TOP_SLOT_ID = "shell-top-slot";
 
 const noSubscription = () => () => undefined;
 
-function TopBarSlot({ children }: Readonly<{ children: ReactNode }>) {
+/** Puts anything into the top bar's centre slot: the one canvas's way back from focused mode (decision 0145). */
+export function TopBarSlot({ children }: Readonly<{ children: ReactNode }>) {
   const target = useSyncExternalStore(
     noSubscription,
     () => document.getElementById(TOP_SLOT_ID),

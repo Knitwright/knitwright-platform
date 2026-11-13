@@ -6,4 +6,5 @@ export const useTemplateSchema = z.object({
 });
 
 /** Where a person lands in the editor on a new design. */
-export const editorAddress = (projectId: string): string => `/studio/${encodeURIComponent(projectId)}`;
+/** The design in the editor, in place on its canvas (decision 0145). */
+export const editorAddress = (projectId: string): string => `/project/${encodeURIComponent(projectId)}?focus=garment`;

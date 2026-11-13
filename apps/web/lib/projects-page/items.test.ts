@@ -71,9 +71,9 @@ describe("the list", () => {
     expect(ids(visibleItems(ITEMS, { search: "", sort: "name", trashed: true }))).toEqual(["e", "d"]);
   });
 
-  it("opens a design in the editor and a launch project on its canvas", () => {
-    expect(itemHref({ kind: "design", id: "a" })).toBe("/studio/a");
-    expect(itemHref({ kind: "launch", id: "c" })).toBe("/launch/c");
+  it("opens a design and a launch project on the one canvas (decision 0145)", () => {
+    expect(itemHref({ kind: "design", id: "a" })).toBe("/project/a");
+    expect(itemHref({ kind: "launch", id: "c" })).toBe("/project/c");
     expect(isProjectKind("launch")).toBe(true);
     expect(isProjectKind("moodboard")).toBe(false);
   });

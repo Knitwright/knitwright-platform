@@ -37,7 +37,7 @@ describe("the main menu", () => {
 
 describe("the addresses of a launch project", () => {
   it("escapes an id, so nothing in it can be read as part of the path", () => {
-    expect(launchProjectPath("a/b")).toBe("/launch/a%2Fb");
+    expect(launchProjectPath("a/b")).toBe("/project/a%2Fb");
     expect(launchHistoryPath("a b")).toBe("/launch/a%20b/history");
   });
 });

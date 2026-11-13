@@ -12,7 +12,7 @@ const startJersey = async (page: Page): Promise<string> => {
   await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill("Media test");
   await page.getByRole("button", { name: "Create design" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
   await expect(page.getByRole("heading", { level: 1, name: "Media test" })).toBeVisible();
   return new URL(page.url()).pathname.split("/").pop() ?? "";
 };

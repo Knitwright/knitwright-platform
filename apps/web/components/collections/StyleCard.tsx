@@ -1,4 +1,4 @@
-import type { Route } from "next";
+import { garmentEditorHref } from "@/lib/canvas/address";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatusPill } from "@/components/ui/Chips";
@@ -63,7 +63,7 @@ export function StyleCard({ style, collectionId, currency, facts, canEdit, art }
         {style.projectId === null ? (
           <p className="text-muted">Not linked to a design yet.</p>
         ) : (
-          <Link href={`/studio/${style.projectId}` as Route} className="text-link">
+          <Link href={garmentEditorHref(style.projectId)} className="text-link">
             Open the design
           </Link>
         )}

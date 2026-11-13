@@ -74,7 +74,7 @@ export const sceneOf = (row: ShootRow): Creation => ({
   shape: ASPECTS[row.aspect] ?? "square",
   garmentLocked: true,
   createdAt: row.finished_at,
-  href: `/launch/${row.launch_project_id}` as Route,
+  href: `/project/${row.launch_project_id}` as Route,
   label: "AI scene",
 });
 
@@ -85,7 +85,7 @@ export const lifestyleOf = (row: LifestyleRow): Creation => ({
   shape: shapeOf(row.width, row.height),
   garmentLocked: false,
   createdAt: row.created_at,
-  href: `/studio/${row.media_sets.project_id}` as Route,
+  href: `/project/${row.media_sets.project_id}` as Route,
   label: "Lifestyle picture",
 });
 

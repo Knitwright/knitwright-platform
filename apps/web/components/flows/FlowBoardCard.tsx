@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { inputState, type AddItem, type ConnectTarget } from "@/lib/flows";
-import { BOARDS, type BoardView, type Graph } from "@/lib/launch";
+import { BOARDS, isLinkedKind, type BoardView, type Graph } from "@/lib/launch";
 import type { ArrowKey } from "@/lib/flows";
+import { AddList, ConnectList } from "./BoardLists";
 
 /**
  * One board on the flow canvas: what it is, what feeds it, what it is doing now, and the three
@@ -43,6 +45,10 @@ export type FlowBoardCardProps = Readonly<{
   onRun: () => void;
   onRunDownstream: () => void;
   onMove: (key: ArrowKey, shift: boolean) => void;
+  /** The one canvas's own doors on this board (decision 0145): "Open in editor", "Open tech pack". */
+  extra?: ReactNode;
+  /** True when the Add… and Connect lists are drawn by the canvas rather than under the card. */
+  detachedLists?: boolean;
 }>;
 
 export function FlowBoardCard(props: FlowBoardCardProps) {
@@ -90,7 +96,8 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
       </p>
 
       <div className="mt-auto flex flex-wrap items-center gap-1.5">
-        {info.maxInputs === 0 ? null : (
+        {/* A tech pack or an order follows its garment and is never run (decision 0145). */}
+        {info.maxInputs === 0 || isLinkedKind(board.kind) ? null : (
           <button
             type="button"
             disabled={busy}
@@ -115,6 +122,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         >
           Run all downstream
         </button>
+        {props.extra}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -170,61 +178,14 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
       </div>
 
       {/* Both lists are always rendered and hidden when closed, so each button's `aria-controls`
-          always names a panel that really exists -- the arrangement the launch shell's own rail
-          uses for the same reason. */}
-      <ul
-        id={`flow-add-${board.id}`}
-        hidden={!props.menuOpen}
-        aria-label={`Add a board after ${name}`}
-        className="glass absolute top-full right-0 z-30 mt-1 flex w-60 flex-col gap-0.5 rounded-2xl p-2 shadow-lg"
-      >
-        {props.addItems.map((item) => (
-          <li key={item.kind}>
-            <button
-              type="button"
-              onClick={() => props.onAdd(item)}
-              className="flex min-h-10 w-full flex-col items-start rounded-xl px-3 py-1.5 text-left hover:bg-tile-2"
-              data-testid={`flow-add-${item.kind}-${board.id}`}
-            >
-              <span className="flex w-full items-center justify-between gap-2 text-[13px] text-ink">
-                {item.label}
-                <span className="font-mono text-[10px] text-ink-2">{item.paid ? "credits" : "free"}</span>
-              </span>
-              <span className="text-[11px] leading-snug text-ink-2">{item.lead}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <ul
-        id={`flow-connect-${board.id}`}
-        hidden={!props.connectingOpen}
-        aria-label={`Connect ${name} into another board`}
-        className="glass absolute top-full right-0 z-30 mt-1 flex max-h-72 w-72 flex-col gap-0.5 overflow-y-auto rounded-2xl p-2 shadow-lg"
-      >
-          {props.targets.map((target) => (
-            <li key={target.boardId}>
-              <button
-                type="button"
-                disabled={target.blocked !== null}
-                aria-describedby={target.blocked === null ? undefined : `flow-blocked-${board.id}-${target.boardId}`}
-                onClick={() => props.onConnect(target)}
-                className="flex min-h-10 w-full flex-col items-start rounded-xl px-3 py-1.5 text-left hover:bg-tile-2 disabled:opacity-70"
-                data-testid={`flow-connect-${target.boardId}`}
-              >
-                <span className="text-[13px] text-ink">
-                  {target.name}
-                  {target.inputIndex === null ? "" : ` · input ${target.inputIndex}`}
-                </span>
-                {target.blocked === null ? null : (
-                  <span id={`flow-blocked-${board.id}-${target.boardId}`} className="text-[11px] leading-snug text-ink-2">
-                    {target.blocked}
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-      </ul>
+          always names a panel that really exists. The one canvas draws them over the plane instead
+          (`detachedLists`, decision 0145). */}
+      {props.detachedLists ? null : (
+        <>
+          <AddList boardId={board.id} name={name} open={props.menuOpen} items={props.addItems} onAdd={props.onAdd} className="absolute top-full right-0 mt-1" />
+          <ConnectList boardId={board.id} name={name} open={props.connectingOpen} targets={props.targets} onConnect={props.onConnect} className="absolute top-full right-0 mt-1" />
+        </>
+      )}
     </article>
   );
 }

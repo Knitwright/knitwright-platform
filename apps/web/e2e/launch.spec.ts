@@ -34,7 +34,7 @@ const startLaunch = async (page: Page, label: string): Promise<{ name: string; p
   await expect(page.getByRole("heading", { level: 1, name: "Launch projects" })).toBeVisible();
   await page.getByLabel("Name this launch").fill(name);
   await page.getByRole("button", { name: "Start the launch" }).click();
-  await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   return { name, path: new URL(page.url()).pathname };
 };
@@ -249,7 +249,8 @@ test.describe("the inspector, the dock and the menu", () => {
     // The shell says which version it wrote, so the history is read after the write has landed.
     await expect(page.getByTestId("launch-note")).toContainText("Version 1 saved");
 
-    await page.goto(`${path}/history`);
+    // The history stays under the launch address; the canvas itself is the one canvas (decision 0145).
+    await page.goto(`${path.replace("/project/", "/launch/")}/history`);
     await expect(page.getByRole("heading", { level: 1, name: "Version history" })).toBeVisible();
     await expect(page.getByText("Version 1")).toBeVisible();
   });

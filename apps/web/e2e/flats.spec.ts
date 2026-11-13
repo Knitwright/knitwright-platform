@@ -142,7 +142,7 @@ test.describe("the drawing", () => {
     await expect.poll(() => source(page)).not.toBe(before);
     expect(await svgOf(page)).toContain('fill="#1b2a49"');
     await page.reload();
-    await expect(page).toHaveURL(/\?tool=colours$/);
+    await expect(page).toHaveURL(/[?&]tool=colours(&[^#]*)?$/);
     await expect(page.getByLabel("Body front colour code")).toHaveValue("Navy 19-4052");
     await expect(page.getByLabel("Body back colour", { exact: true })).toHaveValue("#aa0000");
     await expect(front(page)).toHaveAttribute("alt", /Colours: Body front Navy 19-4052, Body back #aa0000\./);

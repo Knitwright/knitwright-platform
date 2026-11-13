@@ -24,7 +24,7 @@ test.describe("sharing a design with a committee", () => {
 
     // Share is pinned to the top of the workspace and opens its panel in place.
     await page.getByRole("link", { name: "Share", exact: true }).click();
-    await expect(page).toHaveURL(/\?tool=share$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?$/);
     const panel = page.getByRole("region", { name: "Share with your committee" });
     await panel.getByLabel("Link works for").selectOption("7");
     await panel.getByRole("button", { name: "Make a share link" }).click();

@@ -15,9 +15,10 @@ const startDesign = async (page: Page, type: string, name = "Home shirt"): Promi
   await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  return new URL(page.url()).pathname;
+  // The design's own address: it opens the editor on the one canvas (decision 0145), and its pages sit under it.
+  return new URL(page.url()).pathname.replace("/project/", "/studio/");
 };
 
 const choice = (page: Page, option: string, label: RegExp): Locator =>
@@ -83,7 +84,7 @@ test.describe("the editor", () => {
     // The address keeps the open tool, so the reload opens the same panel.
     await page.reload();
 
-    await expect(page).toHaveURL(/\?tool=sizes$/);
+    await expect(page).toHaveURL(/[?&]tool=sizes(&[^#]*)?$/);
     await expect(page.getByRole("tab", { name: "Sizes", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("version")).toHaveText("Version 4");
     await expect(chest(page)).toHaveValue("52.5");
@@ -461,7 +462,7 @@ test.describe("the one-screen workspace", () => {
     await page.keyboard.press("ArrowDown");
     await expect(tools.getByRole("tab", { name: "Colours" })).toBeFocused();
     await expect(tools.getByRole("tab", { name: "Colours" })).toHaveAttribute("aria-selected", "true");
-    await expect(page).toHaveURL(/\?tool=colours$/);
+    await expect(page).toHaveURL(/[?&]tool=colours(&[^#]*)?$/);
     await page.keyboard.press("End");
     await expect(tools.getByRole("tab", { name: "History" })).toBeFocused();
     await page.keyboard.press("Home");
@@ -486,7 +487,7 @@ test.describe("the one-screen workspace", () => {
     await expect(page.getByRole("tab", { name: "Logos", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByLabel("Logo or picture")).toBeVisible();
     await page.goto(`${path}#share-heading`);
-    await expect(page).toHaveURL(/\?tool=share#share-heading$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?#share-heading$/);
     await expect(page.getByRole("heading", { name: "Share with your committee" })).toBeVisible();
 
     const assistant = page.getByRole("complementary", { name: "Design assistant" });

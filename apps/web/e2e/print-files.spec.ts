@@ -28,7 +28,8 @@ async function startDesignWithPattern(page: Page, name: string): Promise<{ proje
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  const designPath = new URL(page.url()).pathname;
+  // The design's own address opens the editor on the one canvas (decision 0145).
+  const designPath = new URL(page.url()).pathname.replace("/project/", "/studio/");
   await page.goto(`${designPath}?tool=production`);
   await expect(page.getByRole("heading", { name: "Patterns" })).toBeVisible();
   const form = page.locator("form").filter({ has: page.getByRole("heading", { name: "Add a pattern from DXF files" }) });

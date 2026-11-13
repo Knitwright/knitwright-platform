@@ -158,8 +158,8 @@ describe("what each tab would produce", () => {
   });
 
   it("opens the marketing media screen for mockups until the launch studio lands", () => {
-    expect(addresses(outputsFor("mockups", input, options))).toEqual([`/studio/${PROJECT}?tool=media`]);
-    expect(mockupsAddress(input)).toBe(`/studio/${PROJECT}?tool=media`);
+    expect(addresses(outputsFor("mockups", input, options))).toEqual([`/project/${PROJECT}?focus=garment&tool=media`]);
+    expect(mockupsAddress(input)).toBe(`/project/${PROJECT}?focus=garment&tool=media`);
   });
 
   it("gives every tab something to show, and every address a route of this platform", () => {
@@ -169,7 +169,7 @@ describe("what each tab would produce", () => {
       for (const output of outputs) {
         expect(output.label.length, tab).toBeGreaterThan(2);
         if (output.address === null) expect(output.notYet, tab).not.toBeNull();
-        else expect(output.address, tab).toMatch(/^\/(api\/projects|studio)\//);
+        else expect(output.address, tab).toMatch(/^\/(api\/projects|studio|project)\//);
       }
     }
   });

@@ -39,4 +39,10 @@ export const MOVED_PAGES: readonly Moved[] = [
   // P3 AI Studio (decision 0141): crest to kit and the benchmarks list are workflow pages now.
   { source: "/crest-to-kit", destination: "/ai-studio/workflow/crest-to-kit", permanent: true },
   { source: "/studio/benchmarks", destination: "/ai-studio/workflow/benchmark-products", permanent: true },
+  // E1 (decision 0145): the design editor and the launch canvas are one canvas. Only an id moves --
+  // `/studio/new`, `/studio/charts` and the rest keep their pages, and so do the pages under a
+  // design (`/studio/<id>/tech-pack`, `make`, …) and a launch canvas (`history`, `delete`). The
+  // editor opens in place on the design's canvas, with its own query (view, colourway) carried.
+  { source: "/studio/:projectId([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})", destination: "/project/:projectId?focus=garment", permanent: true },
+  { source: "/launch/:launchProjectId([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})", destination: "/project/:launchProjectId", permanent: true },
 ];

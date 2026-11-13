@@ -75,6 +75,7 @@ describe("the small helpers", () => {
     expect(showsHelpBubble("/studio/charts")).toBe(true);
     expect(showsHelpBubble("/launch")).toBe(true);
     expect(showsHelpBubble("/studio/0b5c3e4a-1111-4222-8333-944445555666")).toBe(false);
+    expect(showsHelpBubble("/project/0b5c3e4a-1111-4222-8333-944445555666")).toBe(false);
     expect(showsHelpBubble("/launch/0b5c3e4a-1111-4222-8333-944445555666/history")).toBe(false);
   });
 

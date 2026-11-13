@@ -174,3 +174,20 @@ describe("what is on the canvas", () => {
     expect(kindsOnCanvas(launchPack()).toSorted()).toEqual(["ai_image", "ai_video", "design", "info_card", "marketing", "mockup"]);
   });
 });
+
+describe("the one canvas's kinds (decision 0145)", () => {
+  const garment = board("garment", "garment", { settings: { designProjectId: "project-9" }, inputVersion: 4 });
+
+  it("locks a picture to a garment board exactly as to a design board", () => {
+    const canvas = graph([garment, board("mock", "mockup")], [link("e1", "garment", "mock")]);
+    expect(garmentSource(canvas, "mock")).toEqual({ locked: true, boardId: "garment", designProjectId: "project-9", version: 4 });
+    expect(runnable(canvas, "mock")).toEqual({ canRun: true });
+  });
+
+  it("links a tech pack and an order to a garment, and never runs them", () => {
+    const canvas = graph([garment, board("pack", "tech_pack"), board("order", "order")], [link("e1", "garment", "pack")]);
+    expect(canConnect(canvas, "garment", "order", 1)).toEqual({ allowed: true });
+    expect(canConnect(canvas, "pack", "order", 1).allowed).toBe(false);
+    expect(runnable(canvas, "pack").canRun).toBe(false);
+  });
+});

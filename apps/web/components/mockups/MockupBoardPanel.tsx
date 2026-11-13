@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { FIELD_CONTROL } from "@/components/ui/field-styles";
-import type { LaunchPanelProps } from "@/lib/launch";
+import { isGarmentKind, type LaunchPanelProps } from "@/lib/launch";
 import {
   BOARD_PANEL_LEAD,
   BOARD_PANEL_TITLE,
@@ -66,7 +66,7 @@ export default function MockupBoardPanel({ context, commands }: LaunchPanelProps
 
   const scene = sceneBySlug(sceneSlugOf(board.settings) ?? "");
   const designFeedsIt = context.project.edges.some(
-    (edge) => edge.toBoardId === board.id && context.project.boards.some((one) => one.id === edge.fromBoardId && one.kind === "design"),
+    (edge) => edge.toBoardId === board.id && context.project.boards.some((one) => one.id === edge.fromBoardId && isGarmentKind(one.kind)),
   );
 
   const save = (next: MockupBoardSettings) => commands.setBoardSettings(board.id, settingsToStored(next));
