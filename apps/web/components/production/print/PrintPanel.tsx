@@ -1,21 +1,18 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { PriceNote } from "@/components/credits/PriceNote";
 import { useRemote } from "../orders/useRemote";
 import { ZoneOverlay } from "./ZoneOverlay";
+import { useDesignId } from "../DesignId";
 
-const projectIdFrom = (params: ReturnType<typeof useParams>): string | null => {
-  const value = params?.projectId;
-  return typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value) ? value : null;
-};
+const projectIdFrom = (value: string | null): string | null => (value !== null && /^[0-9a-f-]{36}$/i.test(value) ? value : null);
 
 type Orders = Readonly<{ orders: readonly Readonly<{ id: string; name: string; players: number }>[] }>;
 
 /** Print files: one file for every piece in every size, as a zip made when you ask for it. */
 export function PrintPanel() {
-  const projectId = projectIdFrom(useParams());
+  const projectId = projectIdFrom(useDesignId());
   const teamLists = useRemote<Orders>(projectId ? `/api/projects/${projectId}/orders` : "/api/projects/none/orders");
   const [order, setOrder] = useState("");
   const lists = projectId ? (teamLists.data?.orders ?? []) : [];

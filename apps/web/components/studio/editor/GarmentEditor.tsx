@@ -4,6 +4,7 @@ import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
 import { QuoteRequest } from "@/components/leads/QuoteRequest";
 import { ShareSection } from "@/components/share/ShareSection";
+import { DesignIdProvider } from "@/components/production/DesignId";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { baseArticleForType, getBaseArticle } from "@/lib/catalogue";
 import { brandChartSet } from "@/lib/charts/service";
@@ -68,6 +69,7 @@ export async function GarmentEditor({ brandId, projectId, query }: Readonly<{ br
   const state = editorPageState({ query, article, sizing: project.spec.sizing });
 
   return (
+    <DesignIdProvider projectId={projectId}>
     <EditorShell
       data={buildEditorData(project, history, charts, pictures, colourway)}
       assistant={{ available: assistantAvailable(), conversation }}
@@ -100,5 +102,6 @@ export async function GarmentEditor({ brandId, projectId, query }: Readonly<{ br
         designImport: designImportEnabled() ? <DesignImportPanel /> : null,
       }}
     />
+    </DesignIdProvider>
   );
 }

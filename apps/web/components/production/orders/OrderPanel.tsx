@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Notice } from "@/components/ui/Notice";
@@ -9,6 +8,7 @@ import { call, projectUrl } from "./call";
 import { OrderEditor } from "./OrderEditor";
 import { useRemote } from "./useRemote";
 import { blankRow, type Context, type OrderDraft, type OrderSummary, type Row } from "./types";
+import { useDesignId } from "../DesignId";
 
 type Listing = Readonly<{ orders: readonly OrderSummary[]; context: Context }>;
 type Opened = Readonly<{ id: string; name: string; rows: readonly Row[] }>;
@@ -64,7 +64,7 @@ function Orders({ projectId }: Readonly<{ projectId: string }>) {
 
 /** The team orders of the design, and the releases made from them. It needs a design open, so it reads the design from the address. */
 export function OrderPanel() {
-  const projectId = useParams<{ projectId?: string }>()?.projectId;
+  const projectId = useDesignId();
   return (
     <section aria-labelledby="team-orders-heading" data-testid="team-orders-panel" className="flex flex-col gap-3">
       <h3 id="team-orders-heading" className="text-[15px] font-medium text-ink">Team orders</h3>

@@ -19,6 +19,7 @@ import {
 } from "@/lib/media/video/copy";
 import { MAX_TURNTABLE_BYTES, TURNTABLE_SECONDS } from "@/lib/media/video/limits";
 import { recordCanvas } from "./record";
+import { useDesignId } from "@/components/production/DesignId";
 
 const MIME_TYPES = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"] as const;
 const BITS_PER_SECOND = 2_500_000;
@@ -28,7 +29,6 @@ const SET_POLL_LIMIT = 40;
 type Phase = "idle" | "preparing" | "recording" | "saving";
 type SetState = { id: string; status: string } | null;
 
-const projectIdFromPath = (): string | null => /\/studio\/([0-9a-f-]{36})/.exec(window.location.pathname)?.[1] ?? null;
 const find3dCanvas = (): HTMLCanvasElement | null => document.querySelector<HTMLCanvasElement>('[data-testid="garment-3d"] canvas, [data-testid="gltf-3d"] canvas');
 const readSet = async (url: string): Promise<SetState> => ((await (await fetch(url)).json()) as { data?: { set: SetState } }).data?.set ?? null;
 
@@ -54,12 +54,13 @@ async function finishedSetId(projectId: string): Promise<string | null> {
  * saves nothing. Holds markup and wiring only; the checks are on the server (lib/media/video).
  */
 export default function TurntableControl({ projectId }: Readonly<{ projectId?: string }>) {
+  const designId = useDesignId();
   const [phase, setPhase] = useState<Phase>("idle");
   const [message, setMessage] = useState<string | null>(null);
 
   async function run() {
     setMessage(null);
-    const id = projectId ?? projectIdFromPath();
+    const id = projectId ?? designId;
     const canvas = find3dCanvas();
     if (!id) return setMessage(NO_PROJECT_MESSAGE);
     if (!canvas) return setMessage(NO_VIEW_MESSAGE);
