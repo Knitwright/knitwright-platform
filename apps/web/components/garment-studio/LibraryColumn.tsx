@@ -120,7 +120,7 @@ function EntryButton({ entry, open, onShelf }: Readonly<{ entry: ShelfEntry; ope
     <button
       type="button"
       aria-pressed={open}
-      aria-controls="studio-shelf"
+      aria-controls={open ? "studio-shelf" : undefined}
       onClick={() => onShelf(entry.id)}
       data-testid={`studio-shelf-${entry.id}`}
       className={cx(

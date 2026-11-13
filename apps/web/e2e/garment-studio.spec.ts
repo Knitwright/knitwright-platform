@@ -61,7 +61,7 @@ test.describe("Garment Studio", () => {
     await startJersey(page, "Export kit");
 
     await expect(page.getByTestId("fit-checked")).toBeVisible();
-    await expect(page.getByTestId("colourway-pill")).toContainText("Home");
+    await expect(page.getByTestId("colourway-pill")).toContainText("Main colourway");
 
     await page.getByTestId("export-button").click();
     const panel = page.getByTestId("studio-export");

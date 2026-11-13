@@ -218,7 +218,9 @@ test.describe("the editor shell", () => {
     await page.getByTestId("new-colourway").click();
 
     await expect(page.getByTestId("save-status")).toHaveText("Saved as version 2.");
-    await expect(page.getByTestId("colourway-pill")).toContainText("Home");
+    // The new colourway takes the first kit name the design has not used (spec F-S4).
+    await page.getByTestId("colourway-pill").click();
+    await expect(page.getByRole("menuitemradio", { name: "Home" })).toBeVisible();
   });
 
   test("says plainly that an article with no approved form on file has none", async ({ page }) => {

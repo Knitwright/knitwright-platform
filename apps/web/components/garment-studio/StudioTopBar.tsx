@@ -47,29 +47,32 @@ export function StudioTopBar(props: Props) {
     <header className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border bg-bg px-4 py-2 lg:flex-nowrap lg:py-0 lg:pr-4.5" data-testid="studio-top-bar">
       <Link
         href={props.backHref}
-        aria-label={`KW, back to canvas: ${props.canvasName}`}
-        title="Back to canvas"
+        aria-label="KW, back to canvas"
+        title={`Back to canvas: ${props.canvasName}`}
         data-testid="canvas-focus-back"
         className="grid size-10 shrink-0 place-items-center rounded-lg bg-navy text-body font-extrabold text-gold no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric"
       >
         KW
       </Link>
-      <div className="flex min-w-0 flex-1 items-center gap-3 lg:flex-none lg:basis-auto">
-        <div className="min-w-0 lg:max-w-72">
-          <h1 className="truncate text-title text-text">{data.name}</h1>
-          <p className="truncate text-caption text-muted">
-            {autoName ? <span data-testid="auto-name">{autoName}</span> : <span>{data.typeLabel}</span>}
-            {" · "}
-            <span data-testid="version">Version {version}</span>
-          </p>
-        </div>
-        <FileMenu projectId={data.projectId} onTool={props.onTool} />
-        <Tag tone="beta">BETA</Tag>
+      {/* The name keeps the first row on a phone; File, BETA and undo wrap to a row of their own. */}
+      <div className="min-w-24 flex-1 lg:max-w-72 lg:flex-none">
+        <h1 className="truncate text-title text-text">{data.name}</h1>
+        <p className="truncate text-caption text-muted">
+          {autoName ? <span data-testid="auto-name">{autoName}</span> : <span>{data.typeLabel}</span>}
+          {" · "}
+          <span data-testid="version">Version {version}</span>
+        </p>
       </div>
-      <div className="order-last flex w-full items-center justify-center gap-1 lg:order-none lg:w-auto lg:flex-1">
+      <div className="order-last flex w-full items-center gap-1 lg:order-none lg:w-auto lg:flex-1">
+        <FileMenu projectId={data.projectId} onTool={props.onTool} />
+        <Tag tone="beta" className="mr-auto lg:mr-0">
+          BETA
+        </Tag>
+        <span className="hidden flex-1 lg:block" aria-hidden="true" />
         <Button variant="ghost" iconOnly aria-label="Undo" title="Undo" icon={<Icon icon={Undo2} size={20} />} disabled={!props.canUndo || busy} onClick={props.onUndo} />
         <Button variant="ghost" iconOnly aria-label="Redo" title="Redo" icon={<Icon icon={Redo2} size={20} />} disabled={!props.canRedo || busy} onClick={props.onRedo} />
         <SaveStatus busy={busy} status={status} className="min-h-4 max-w-56 truncate text-caption text-muted" />
+        <span className="hidden flex-1 lg:block" aria-hidden="true" />
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-3">
         <Credits credits={props.credits} />
@@ -78,7 +81,7 @@ export function StudioTopBar(props: Props) {
           variant="primary"
           onClick={props.onExport}
           aria-expanded={props.exportOpen}
-          aria-controls="studio-export"
+          aria-controls={props.exportOpen ? "studio-export" : undefined}
           data-testid="export-button"
         >
           Export
