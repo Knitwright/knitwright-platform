@@ -2,6 +2,8 @@
 
 import { CanvasStoreProvider, useCanvas, useCanvasStore } from "@/components/canvas/CanvasStore";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
+import { CanvasDoors } from "@/components/pickers/CanvasDoors";
+import { PromptBar } from "@/components/prompt-bar/PromptBar";
 import { zoomPercent, type GarmentPreview } from "@/lib/canvas";
 import { Notice } from "@/components/ui/Notice";
 import { boardFilePath, flowCostSource, offeredBar, TASK_STEPS } from "@/lib/flows";
@@ -221,6 +223,7 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
               {selected ? ` · ${BOARDS[selected.kind].label} selected` : ""}
             </p>
           </div>
+          <CanvasDoors project={project} presets={presets} canEdit={canEdit} selectedId={shell.state.boardId} />
           <MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} onUnit={shell.commands.setUnit} onCommand={command} />
         </header>
 
@@ -250,6 +253,8 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
               canvasId={project.id}
               garments={garments}
             />
+            {/* E5's prompt bar (decision 0149): it opens upwards over the canvas, so the canvas keeps its size. */}
+            <div className="relative z-30 flex h-14 shrink-0 justify-center"><div className="absolute inset-x-0 bottom-0 flex justify-center"><PromptBar project={project} credits={credits} costs={costs} canEdit={canEdit} /></div></div>
             <BottomDock
               tool={shell.state.tool}
               zoom={percent}
