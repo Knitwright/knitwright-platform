@@ -1,7 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { inputState, type AddItem, type ConnectTarget } from "@/lib/flows";
-import { BOARDS, type BoardView, type Graph } from "@/lib/launch";
+import { BOARDS, isLinkedKind, type BoardView, type Graph } from "@/lib/launch";
 import type { ArrowKey } from "@/lib/flows";
 
 /**
@@ -43,6 +44,8 @@ export type FlowBoardCardProps = Readonly<{
   onRun: () => void;
   onRunDownstream: () => void;
   onMove: (key: ArrowKey, shift: boolean) => void;
+  /** The one canvas's own doors on this board (decision 0145): "Open in editor", "Open tech pack". */
+  extra?: ReactNode;
 }>;
 
 export function FlowBoardCard(props: FlowBoardCardProps) {
@@ -90,7 +93,8 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
       </p>
 
       <div className="mt-auto flex flex-wrap items-center gap-1.5">
-        {info.maxInputs === 0 ? null : (
+        {/* A tech pack or an order follows its garment and is never run (decision 0145). */}
+        {info.maxInputs === 0 || isLinkedKind(board.kind) ? null : (
           <button
             type="button"
             disabled={busy}
@@ -115,6 +119,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         >
           Run all downstream
         </button>
+        {props.extra}
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createCanvasStore, marqueeRect, merged, primaryOf, toggled } from "./store";
+import { createCanvasStore, marqueeRect, merged, primaryOf, revealed, toggled } from "./store";
 import { screenToWorld } from "./viewport";
 
 describe("the canvas store's selection", () => {
@@ -62,10 +62,31 @@ describe("the canvas store's view", () => {
     expect(store.getState().viewport.scale).toBe(2);
     store.zoomWheel(200, { x: 0, y: 0 });
     expect(store.getState().viewport.scale).toBeLessThan(2);
-    store.fit({ x: 0, y: 0, width: 100, height: 100 }, { width: 400, height: 400 });
+    store.setScreen({ width: 400, height: 400 });
+    store.setScreen({ width: 400, height: 400 });
+    store.fit({ x: 0, y: 0, width: 100, height: 100 });
     expect(screenToWorld(store.getState().viewport, { x: 200, y: 200 })).toEqual({ x: 50, y: 50 });
     store.setViewport({ x: 1, y: 2, scale: 3 });
     expect(store.getState().viewport).toEqual({ x: 1, y: 2, scale: 3 });
+  });
+
+  it("zooms about the middle of the screen when no point is given", () => {
+    const store = createCanvasStore({ screen: { width: 200, height: 100 } });
+    store.zoomTo(2);
+    expect(screenToWorld(store.getState().viewport, { x: 100, y: 50 })).toEqual({ x: 100, y: 50 });
+    store.zoomStep(-1);
+    expect(store.getState().viewport.scale).toBe(1.5);
+  });
+
+  it("brings a board that is off the screen to its middle, and leaves one that is on it", () => {
+    const screen = { width: 200, height: 100 };
+    const view = { x: 0, y: 0, scale: 1 };
+    expect(revealed(view, screen, { x: 10, y: 10, width: 20, height: 20 })).toBe(view);
+    expect(revealed(view, screen, { x: 1000, y: 0, width: 20, height: 20 })).toEqual({ x: -910, y: 40, scale: 1 });
+    expect(revealed(view, { width: 0, height: 0 }, { x: 1000, y: 0, width: 20, height: 20 })).toBe(view);
+    const store = createCanvasStore({ screen });
+    store.reveal({ x: 1000, y: 0, width: 20, height: 20 });
+    expect(store.getState().viewport).toEqual({ x: -910, y: 40, scale: 1 });
   });
 
   it("opens and closes focused mode", () => {

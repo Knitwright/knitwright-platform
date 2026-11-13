@@ -313,6 +313,31 @@ create trigger projects_name_their_canvas
   after update of name on public.projects
   for each row execute function private.name_home_canvas();
 
+/*
+ * A design's home canvas goes with the design and only with it: removing the canvas on its own
+ * would leave a design with nowhere to open. Unchanged from 20261201010000 but for that refusal.
+ */
+create or replace function public.remove_launch_project(p_brand_id uuid, p_user_id uuid, p_launch_project_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.can_manage_kit(p_user_id, p_brand_id) then
+    raise exception 'You may not remove a launch project for this brand.' using errcode = '42501';
+  end if;
+  if exists (
+    select 1 from public.launch_projects l
+     where l.id = p_launch_project_id and l.brand_id = p_brand_id and l.studio_project_id is not null
+  ) then
+    raise exception 'This canvas is a design''s own. Remove the design and its canvas goes with it.'
+      using errcode = 'P0001', hint = 'home_canvas';
+  end if;
+  delete from public.launch_projects where id = p_launch_project_id and brand_id = p_brand_id;
+end;
+$$;
+
 -- ---------------------------------------------------------------------------------------------
 -- The existing rows. Nothing is removed and no board moves.
 

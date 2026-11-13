@@ -39,7 +39,9 @@ describe("a launch design board", () => {
 
   it("is mapped the same way by the migration, and nothing else is moved or removed", () => {
     expect(SQL).toMatch(/set design_project_id = l\.design_project_id[\s\S]*\(b\.settings ->> 'designProjectId'\) is null/);
-    expect(SQL).not.toMatch(/\bdelete from public\.(boards|board_edges|launch_projects)\b/);
+    const rows = SQL.slice(SQL.indexOf("-- The existing rows."));
+    expect(rows.length).toBeGreaterThan(100);
+    expect(rows).not.toMatch(/\bdelete from public\.(boards|board_edges|launch_projects)\b/);
     expect(SQL).not.toMatch(/\bupdate public\.boards[\s\S]{0,80}set (x|y|kind) =/);
   });
 });

@@ -14,6 +14,7 @@ import { withPlain } from "@/lib/copy/vocabulary";
 import { startLead, type StartMethod } from "@/lib/guided/flow";
 import { designActions } from "@/lib/projects/design-actions";
 import type { EditorData } from "@/lib/projects/editor-data";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 type Assistant = AssistantInfo;
 
@@ -82,7 +83,7 @@ export function AdjustStep({ data, editor, assistant }: AdjustProps) {
       <ChatPanel projectId={data.projectId} version={data.version} available={assistant.available} busy={editor.busy} conversation={assistant.conversation} />
       <p className="text-sm text-muted">
         To type measurements, colours or logos,{" "}
-        <Link href={`/studio/${data.projectId}` as Route} className="font-medium text-ink underline underline-offset-4">
+        <Link href={garmentEditorHref(data.projectId)} className="font-medium text-ink underline underline-offset-4">
           open the full editor
         </Link>
         .

@@ -19,6 +19,7 @@ import { recolourKit, retroRemix } from "./remix";
 import { makeVariants, saveVariant, type VariantMaker } from "./remix-service";
 import { startCanvas } from "./service";
 import { applyVariantBody, recolourBody, remixBody, startWorkflowBody, type ApplyVariantBody } from "./schemas";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * The AI Studio actions (decision 0141). The brand and the person come from the session, the role is
@@ -92,6 +93,6 @@ export const applyKitVariantAction = defineAction({
       source: input.kind === "remix" ? "Retro kit remix" : "Change kit colour",
     });
     revalidatePath(`/studio/${input.projectId}`);
-    return { version, href: `/studio/${input.projectId}` };
+    return { version, href: garmentEditorHref(input.projectId) };
   },
 });

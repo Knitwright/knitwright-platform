@@ -1,4 +1,4 @@
-import { fitTo, HOME, panBy, rectFromPoints, stepZoom, wheelZoom, zoomAt, type Point, type Rect, type Size, type Viewport } from "./viewport";
+import { fitTo, HOME, panBy, rectFromPoints, stepZoom, visibleRect, wheelZoom, zoomAt, type Point, type Rect, type Size, type Viewport } from "./viewport";
 
 /**
  * THE CANVAS STORE (decision 0145): the one place the canvas's view and selection live, for the
@@ -23,9 +23,11 @@ export interface CanvasState {
   readonly focus: string | null;
   /** The marquee being dragged, in world units, or null. */
   readonly marquee: Readonly<{ from: Point; to: Point }> | null;
+  /** The size of the canvas on screen, in screen pixels, kept by the canvas as it resizes. */
+  readonly screen: Size;
 }
 
-export const INITIAL_STATE: CanvasState = { viewport: HOME, selection: [], focus: null, marquee: null };
+export const INITIAL_STATE: CanvasState = { viewport: HOME, selection: [], focus: null, marquee: null, screen: { width: 0, height: 0 } };
 
 export type Listener = () => void;
 
@@ -40,14 +42,17 @@ export interface CanvasStore {
   selectMany(ids: readonly string[]): void;
   setViewport(viewport: Viewport): void;
   panBy(by: Point): void;
-  /** Zoom to a scale about a screen point. */
-  zoomTo(scale: number, about: Point): void;
-  /** One step of + or −, about a screen point. */
-  zoomStep(direction: 1 | -1, about: Point): void;
+  /** Zoom to a scale about a screen point, or about the middle of the screen. */
+  zoomTo(scale: number, about?: Point): void;
+  /** One step of + or −, about a screen point or the middle of the screen. */
+  zoomStep(direction: 1 | -1, about?: Point): void;
   /** Ctrl/⌘-wheel or pinch, about the pointer. */
   zoomWheel(deltaY: number, about: Point): void;
-  /** Fit these world bounds into a screen of this size. */
-  fit(bounds: Rect | null, screen: Size, padding?: number): void;
+  /** Fit these world bounds into the screen, with `padding` screen pixels round them. */
+  fit(bounds: Rect | null, padding?: number): void;
+  /** Bring a world rectangle onto the screen, at the zoom there is, if it is not on it already. */
+  reveal(box: Rect): void;
+  setScreen(screen: Size): void;
   beginMarquee(at: Point): void;
   moveMarquee(at: Point): void;
   /** Finish the marquee with the ids it caught; `additive` (Shift held) keeps what was selected. */
@@ -70,6 +75,17 @@ export const marqueeRect = (state: CanvasState): Rect | null => (state.marquee =
 
 /** The primary selected board, or null. */
 export const primaryOf = (state: CanvasState): string | null => state.selection[0] ?? null;
+
+export const centreOf = (screen: Size): Point => ({ x: screen.width / 2, y: screen.height / 2 });
+
+/** The view with `box` brought to the middle of the screen when any of it is off the screen. */
+export function revealed(view: Viewport, screen: Size, box: Rect): Viewport {
+  const shown = visibleRect(view, screen, 0);
+  const inside = box.x >= shown.x && box.y >= shown.y && box.x + box.width <= shown.x + shown.width && box.y + box.height <= shown.y + shown.height;
+  if (inside || screen.width === 0) return view;
+  const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  return { x: screen.width / 2 - centre.x * view.scale, y: screen.height / 2 - centre.y * view.scale, scale: view.scale };
+}
 
 const sameIds = (a: readonly string[], b: readonly string[]): boolean => a.length === b.length && a.every((id, at) => id === b[at]);
 
@@ -101,10 +117,14 @@ export function createCanvasStore(initial: Partial<CanvasState> = {}): CanvasSto
     selectMany: (ids) => setSelection([...new Set(ids)]),
     setViewport: view,
     panBy: (by) => view(panBy(state.viewport, by)),
-    zoomTo: (scale, about) => view(zoomAt(state.viewport, about, scale)),
-    zoomStep: (direction, about) => view(stepZoom(state.viewport, direction, about)),
+    zoomTo: (scale, about) => view(zoomAt(state.viewport, about ?? centreOf(state.screen), scale)),
+    zoomStep: (direction, about) => view(stepZoom(state.viewport, direction, about ?? centreOf(state.screen))),
     zoomWheel: (deltaY, about) => view(wheelZoom(state.viewport, deltaY, about)),
-    fit: (bounds, screen, padding = 64) => view(fitTo(bounds, screen, padding)),
+    fit: (bounds, padding = 64) => view(fitTo(bounds, state.screen, padding)),
+    reveal: (box) => view(revealed(state.viewport, state.screen, box)),
+    setScreen: (screen) => {
+      if (screen.width !== state.screen.width || screen.height !== state.screen.height) set({ ...state, screen });
+    },
     beginMarquee: (at) => set({ ...state, marquee: { from: at, to: at } }),
     moveMarquee: (at) => {
       if (state.marquee !== null) set({ ...state, marquee: { from: state.marquee.from, to: at } });

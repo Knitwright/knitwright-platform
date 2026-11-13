@@ -1,6 +1,8 @@
 "use client";
 
+import { CanvasStoreProvider, useCanvas, useCanvasStore } from "@/components/canvas/CanvasStore";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
+import { zoomPercent, type GarmentPreview } from "@/lib/canvas";
 import { Notice } from "@/components/ui/Notice";
 import { boardFilePath, flowCostSource, offeredBar, TASK_STEPS } from "@/lib/flows";
 import {
@@ -45,6 +47,8 @@ export type LaunchShellProps = Readonly<{
   canEdit: boolean;
   /** What the marketing panels need from outside the canvas (decision 0094, `marketing-services.ts`). */
   marketing: MarketingShellData;
+  /** What each garment board on the one canvas shows, by design id (decision 0145). */
+  garments?: Readonly<Record<string, GarmentPreview | null>>;
 }>;
 
 /* The breakout, as the editor shell has it: from lg up the shell is wider than the page column and
@@ -77,7 +81,19 @@ const WRITE_FAILED = "Write for me could not be reached. Check your connection a
  * behind it says so in the inspector, its Run button says there is nothing to run, and the task
  * bar's Remix is off on a picture the platform drew.
  */
-export function LaunchShell({ project, presets, credits, costs, state, canEdit, marketing }: LaunchShellProps) {
+export function LaunchShell(props: LaunchShellProps) {
+  // The one canvas's store (decision 0145): the view and the selection, for the canvas and for
+  // everything later built around it.
+  return (
+    <CanvasStoreProvider>
+      <ShellBody {...props} />
+    </CanvasStoreProvider>
+  );
+}
+
+function ShellBody({ project, presets, credits, costs, state, canEdit, marketing, garments = {} }: LaunchShellProps) {
+  const store = useCanvasStore();
+  const percent = useCanvas((now) => zoomPercent(now.viewport));
   const graph = { boards: project.boards, edges: project.edges };
   const shell = useLaunchShell({
     launchProjectId: project.id,
@@ -93,6 +109,11 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
       // the design version behind the board, and it stores a drawn asset (decision 0092).
       board.kind === "mockup" ? () => renderMockupBoardAction({ launchProjectId: project.id, boardId: board.id }) : null,
   });
+  /** The dock's − and + move the store's view and keep the address's `zoom` in step. */
+  const onZoom = (next: number): void => {
+    store.zoomTo(next / 100);
+    shell.commands.setZoom(next);
+  };
   const page = launchPageState({
     query: {
       panel: shell.state.rail,
@@ -219,10 +240,19 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
 
           <div className="order-first flex min-h-0 flex-col gap-3 lg:order-none">
             {page.taskBar ? <TaskBar bar={offeredBar(page.taskBar)} busy={busy} onAdd={(kind: BoardKind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)} onAction={action} /> : null}
-            <BoardCanvas graph={graph} selectedId={shell.state.boardId} zoom={shell.state.zoom} busy={busy} empty={page.empty} commands={shell.commands} />
+            <BoardCanvas
+              graph={graph}
+              selectedId={shell.state.boardId}
+              zoom={shell.state.zoom}
+              busy={busy}
+              empty={page.empty}
+              commands={shell.commands}
+              canvasId={project.id}
+              garments={garments}
+            />
             <BottomDock
               tool={shell.state.tool}
-              zoom={shell.state.zoom}
+              zoom={percent}
               credits={credits}
               estimate={estimate}
               runLabel={estimate ? runLabel(estimate) : null}
@@ -233,7 +263,7 @@ export function LaunchShell({ project, presets, credits, costs, state, canEdit, 
               prompt={shell.prompt}
               onPrompt={shell.setPrompt}
               onTool={shell.commands.chooseTool}
-              onZoom={shell.commands.setZoom}
+              onZoom={onZoom}
               onRun={() => selected && shell.commands.requestRun(selected.id)}
               onUndo={shell.commands.undo}
               onRedo={shell.commands.redo}

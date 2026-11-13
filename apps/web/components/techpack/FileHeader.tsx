@@ -4,6 +4,7 @@ import { JourneySteps } from "@/components/ui/JourneySteps";
 import type { TechPackCoreData } from "@/lib/projects/tech-pack-data";
 import { sectionSearch } from "@/lib/projects/tech-pack-sections";
 import { HeaderDownloads } from "./TechPackDownloads";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 type HeaderProps = Readonly<{
   data: TechPackCoreData;
@@ -17,7 +18,7 @@ type HeaderProps = Readonly<{
  * step it is, and the downloads.
  */
 export function FileHeader({ data, colourwayId, baseSearch }: HeaderProps) {
-  const design = `/studio/${data.projectId}` as Route;
+  const design = garmentEditorHref(data.projectId);
   const here = `/studio/${data.projectId}/tech-pack`;
   const steps = [
     { label: "Design", href: design },

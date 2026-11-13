@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { ProjectSummary } from "@/lib/projects/service";
+import { projectHref } from "@/lib/canvas/address";
 
 interface CardBasics extends ProjectSummary {
   /** When it was last changed, in words. */
@@ -24,7 +25,7 @@ export function DesignCard({ card, art, step }: DesignCardProps) {
 
   return (
     <Link
-      href={`/studio/${card.id}`}
+      href={projectHref(card.id)}
       className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-bg text-text no-underline transition-shadow duration-fast hover:shadow-e2"
       data-testid="design-card"
     >

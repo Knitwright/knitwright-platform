@@ -8,6 +8,7 @@ import { getKit } from "@/lib/clubs/service";
 import { listProjects } from "@/lib/projects/service";
 import type { Brand } from "@/lib/server/core/guard";
 import { sessionClient } from "@/lib/server/deps";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * The club kit on Brand › Sportswear (08 §4.6 "kit colours mapped to palette swatches"), moved from the
@@ -41,7 +42,7 @@ export async function KitSection({ brand }: Readonly<{ brand: Brand }>) {
           <ul className="flex flex-col divide-y divide-border">
             {designs.projects.map((design) => (
               <li key={design.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <Link href={`/studio/${design.id}`} className="block min-w-0 truncate py-2 text-body text-text no-underline live:hover:underline">
+                <Link href={garmentEditorHref(design.id)} className="block min-w-0 truncate py-2 text-body text-text no-underline live:hover:underline">
                   {design.name} <span className="text-muted">· {design.garmentLabel} · version {design.currentVersion}</span>
                 </Link>
                 {canEdit ? <UseKitButton projectId={design.id} version={design.currentVersion} /> : null}

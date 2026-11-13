@@ -117,6 +117,10 @@ export default defineConfig({
         // table, the canvas graph, the run estimate and the artboard maths are tested on their own, and the
         // database and end-to-end tests cover the joining (plan v5 L1, decision 0091).
         "lib/launch/server.ts",
+        // Joins the one canvas to the launch tables and the design reads; the address, the mapping, the boxes and
+        // the store are tested on their own, and the database and end-to-end tests cover the joining (plan v6 E1,
+        // decision 0145).
+        "lib/canvas/server.ts",
         // Joins the flow screens to the launch canvas, the credit ledger and the flow tables; the
         // order, the estimate, the refunds, the artwork check and the summary are tested on their
         // own, and the database and end-to-end tests cover the joining (plan v5 L6, decision 0096).

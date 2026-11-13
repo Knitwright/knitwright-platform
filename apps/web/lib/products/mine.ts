@@ -2,6 +2,7 @@ import type { Route } from "next";
 import type { ProductView } from "@/lib/brand-runs/service";
 import { STAGE_LABELS, STAGES, type Stage } from "@/lib/brand-runs/stage";
 import { MY_PRODUCTS_PATH } from "./routes";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * My products (09 screen 10, v3.5 "My products"; prototype p05): a row list over `brand_products` with status chips
@@ -73,7 +74,7 @@ const toRow = (product: ProductView): ProductRow => ({
   detail: runsLine(product),
   updated: shortDate(product.runs[0]?.createdAt ?? product.createdAt),
   channel: CHANNEL_NONE,
-  editHref: `/studio/${product.projectId}` as Route,
+  editHref: garmentEditorHref(product.projectId),
   runsHref: `/orders/runs?product=${product.id}` as Route,
 });
 

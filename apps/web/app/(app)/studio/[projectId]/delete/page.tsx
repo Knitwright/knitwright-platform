@@ -9,6 +9,7 @@ import { getProject } from "@/lib/projects/service";
 import { AppError } from "@/lib/server/core/errors";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 export const metadata: Metadata = { title: "Delete design" };
 
@@ -39,7 +40,7 @@ export default async function DeleteDesignPage({ params }: PageProps<"/studio/[p
           busyLabel="Deleting"
         />
         <p className="mt-4 text-sm">
-          <Link href={`/studio/${projectId}`} className="underline">
+          <Link href={garmentEditorHref(projectId)} className="underline">
             Keep it and go back
           </Link>
         </p>

@@ -2,7 +2,6 @@
 
 import { useId, useState, type ComponentType } from "react";
 import FlowRunPanel from "@/components/flows/FlowRunPanel";
-import { CANVAS_TOOLS } from "@/components/flows/FlowCanvas";
 import InfoCardPanel from "@/components/flows/InfoCardPanel";
 import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupBoardPanel from "@/components/mockups/MockupBoardPanel";
@@ -76,11 +75,11 @@ type Props = Readonly<{
 const CHIP = "chip-btn inline-flex min-h-10 items-center rounded-full border border-white/20 px-3.5 text-[13px] text-ink";
 
 /**
- * The tools the spec offers in the inspector with nothing selected. `CANVAS_TOOLS` is L6's own list
+ * The tools the spec offers in the inspector with nothing selected: L6's own list
  * of the kinds its canvas offers (decision 0096), so the inspector and the canvas cannot disagree
  * about which boards a person may add.
  */
-const TOOLS: readonly BoardKind[] = CANVAS_TOOLS;
+const TOOLS: readonly BoardKind[] = ["mockup", "ai_image", "ai_video", "marketing", "info_card"];
 
 /**
  * The right inspector (spec Launch shell).

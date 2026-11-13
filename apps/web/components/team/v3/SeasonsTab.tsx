@@ -8,6 +8,7 @@ import { sessionClient } from "@/lib/server/deps";
 import { setRosterRetentionAction } from "@/lib/team/actions";
 import { readRetention } from "@/lib/team/retention";
 import { RetentionForm } from "./RetentionForm";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * Team › Seasons (09 screen 17; F-T4, F-T8): one roster per season, each opening its players; the
@@ -57,7 +58,7 @@ export async function SeasonsTab({ brand }: Readonly<{ brand: Brand }>) {
           <ul className="flex flex-col divide-y divide-border">
             {history.map((entry) => (
               <li key={entry.releaseId} className="flex flex-wrap items-center justify-between gap-3 py-3 text-body">
-                <Link href={`/studio/${entry.projectId}`} className="min-w-0 truncate text-text no-underline live:hover:underline">
+                <Link href={garmentEditorHref(entry.projectId)} className="min-w-0 truncate text-text no-underline live:hover:underline">
                   {entry.designName} · {entry.label}
                 </Link>
                 <span className="font-mono text-small text-muted">

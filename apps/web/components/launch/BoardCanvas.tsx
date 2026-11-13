@@ -1,7 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { FlowCanvas } from "@/components/flows/FlowCanvas";
+import { ProjectCanvas } from "@/components/canvas/ProjectCanvas";
+import type { GarmentPreview } from "@/lib/canvas";
 import type { EmptyState, Graph, LaunchCommands } from "@/lib/launch";
 
 type Props = Readonly<{
@@ -12,6 +13,10 @@ type Props = Readonly<{
   empty: EmptyState | null;
   /** The contract's own commands, which is all the canvas is allowed to ask for. */
   commands: LaunchCommands;
+  /** The canvas's own id, for a garment board's door into the editor (decision 0145). */
+  canvasId: string;
+  /** What each garment board shows, by design id. */
+  garments: Readonly<Record<string, GarmentPreview | null>>;
 }>;
 
 /** The dotted canvas, drawn here rather than in the shared stylesheet, which this workstream does not own. */
@@ -23,6 +28,9 @@ const DOTS: CSSProperties = {
 /**
  * The canvas of boards (spec F-L4).
  *
+ * Since the one canvas (plan v6 E1, decision 0145) the boards are on an infinite plane with pan and
+ * zoom (`components/canvas/ProjectCanvas.tsx`), with L6's card on every board as before.
+ *
  * L1 drew the boards in a wrapping row and left the places, the curved connectors, the dragging and
  * the keyboard moves to the workstream that owns the flow canvas. **L6 built that canvas**
  * (`components/flows/FlowCanvas.tsx`, decision 0096) against the same `LaunchCommands` contract, so
@@ -33,7 +41,7 @@ const DOTS: CSSProperties = {
  * The empty state keeps its own dotted surface, so an empty canvas still looks like a canvas rather
  * than like a page with nothing on it.
  */
-export function BoardCanvas({ graph, selectedId, zoom, busy, empty, commands }: Props) {
+export function BoardCanvas({ graph, selectedId, zoom, busy, empty, commands, canvasId, garments }: Props) {
   const addDesign = () => commands.addBoard("design", { x: 0, y: 0 });
   return (
     <div data-testid="launch-canvas" className="flex min-h-0 flex-1 flex-col gap-3">
@@ -53,7 +61,7 @@ export function BoardCanvas({ graph, selectedId, zoom, busy, empty, commands }: 
           {/* Boards but no Design board: the boards are still shown, with the one action that
               gives them a garment to start from. Hiding them would hide the person's own work. */}
           {empty ? <MissingDesign empty={empty} busy={busy} onAdd={addDesign} /> : null}
-          <FlowCanvas graph={graph} selectedId={selectedId} zoom={zoom} busy={busy} commands={commands} />
+          <ProjectCanvas graph={graph} canvasId={canvasId} selectedId={selectedId} zoom={zoom} busy={busy} commands={commands} garments={garments} />
         </>
       )}
     </div>

@@ -1,9 +1,9 @@
 import { MessagesSquare } from "lucide-react";
-import type { Route } from "next";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState } from "@/components/ui/PageStates";
 import type { HistoryEntry } from "@/lib/ai-studio/agent";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 /**
  * The Creative Agent's History: the conversations kept for the brand's designs (decision 0141), one
@@ -22,7 +22,7 @@ export function AgentHistory({ entries }: Readonly<{ entries: readonly HistoryEn
       <ul className="flex flex-col">
         {entries.map((entry) => (
           <li key={entry.projectId}>
-            <Link href={`/studio/${entry.projectId}` as Route} className="flex flex-col gap-0.5 rounded-md px-3 py-2 text-text no-underline live:hover:bg-soft">
+            <Link href={garmentEditorHref(entry.projectId)} className="flex flex-col gap-0.5 rounded-md px-3 py-2 text-text no-underline live:hover:bg-soft">
               <span className="text-body font-semibold">{entry.projectName}</span>
               <span className="text-small text-muted">{entry.said}</span>
             </Link>

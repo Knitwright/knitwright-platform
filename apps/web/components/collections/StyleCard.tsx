@@ -1,4 +1,3 @@
-import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { formatMoney } from "@/lib/factory/pricing";
@@ -6,6 +5,7 @@ import type { Style } from "@/lib/collections/types";
 import { unitsOf } from "@/lib/collections/board";
 import { pieces, STYLE_STATUS_LABELS } from "@/lib/collections/vocabulary";
 import { RemoveStyle } from "./RemoveStyle";
+import { garmentEditorHref } from "@/lib/canvas/address";
 
 type Props = Readonly<{
   style: Style;
@@ -51,7 +51,7 @@ export function StyleCard({ style, collectionId, currency, canEdit, art }: Props
       {style.projectId === null ? (
         <p className="text-[13px] text-faint">Not linked to a design yet.</p>
       ) : (
-        <Link href={`/studio/${style.projectId}` as Route} className="soft-link text-[13px] text-cobalt-soft">
+        <Link href={garmentEditorHref(style.projectId)} className="soft-link text-[13px] text-cobalt-soft">
           Open the design
         </Link>
       )}
