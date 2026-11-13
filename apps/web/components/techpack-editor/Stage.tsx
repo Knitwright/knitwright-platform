@@ -64,13 +64,28 @@ export function Stage(props: Props) {
     setPicked(stagePointFrom(x, y));
   };
   return (
-    <section aria-label="Garment with measurement points and callouts" className="relative flex min-h-120 flex-1 flex-col overflow-hidden rounded-2xl bg-muted" data-testid="tp-stage">
+    <section
+      aria-label="Garment with measurement points and callouts"
+      className="relative flex min-h-120 flex-1 flex-col overflow-hidden rounded-2xl bg-muted"
+      data-testid="tp-stage"
+    >
       <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-end gap-3">
         {chip ? (
-          <span className="mr-auto ml-auto inline-flex h-10 items-center gap-2 rounded-lg bg-bg px-4 text-body font-semibold text-text shadow-e1" data-testid="tp-stage-chip">
+          <span
+            className="mr-auto ml-auto inline-flex h-10 items-center gap-2 rounded-lg bg-bg px-4 text-body font-semibold text-text shadow-e1"
+            data-testid="tp-stage-chip"
+          >
             {chip}
             {removable && props.onRemoveCallout ? (
-              <Button variant="ghost" size="xs" iconOnly aria-label={`Delete ${chip}`} icon={<Icon icon={Trash2} size={16} />} disabled={props.busy} onClick={() => props.onRemoveCallout?.(removable)} />
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
+                aria-label={`Delete ${chip}`}
+                icon={<Icon icon={Trash2} size={16} />}
+                disabled={props.busy}
+                onClick={() => props.onRemoveCallout?.(removable)}
+              />
             ) : null}
           </span>
         ) : null}
@@ -87,7 +102,20 @@ export function Stage(props: Props) {
         <Garment />
         <StageMarks points={points.drawn} callouts={callouts} selection={selection} onSelect={onSelect} />
       </svg>
-      {placing ? <PlaceCallout picked={picked} busy={props.busy} onKeep={(note) => { if (picked) props.onPlace(picked, note); setPicked(null); }} onCancel={() => { setPicked(null); props.onCancelPlace(); }} /> : null}
+      {placing ? (
+        <PlaceCallout
+          picked={picked}
+          busy={props.busy}
+          onKeep={(note) => {
+            if (picked) props.onPlace(picked, note);
+            setPicked(null);
+          }}
+          onCancel={() => {
+            setPicked(null);
+            props.onCancelPlace();
+          }}
+        />
+      ) : null}
       <div className="absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-2">
         <SizePicker sizes={props.sizes} size={props.size} onSize={props.onSize} />
         {points.notDrawn.length > 0 ? (
@@ -100,13 +128,26 @@ export function Stage(props: Props) {
   );
 }
 
-function SizePicker({ sizes, size, onSize }: Readonly<{ sizes: readonly string[]; size: string; onSize: (size: string) => void }>) {
+function SizePicker({
+  sizes,
+  size,
+  onSize,
+}: Readonly<{
+  sizes: readonly string[];
+  size: string;
+  onSize: (size: string) => void;
+}>) {
   if (sizes.length === 0) return <span />;
   return (
     <label className="inline-flex h-11 items-center gap-2 rounded-lg bg-bg px-3 text-body font-semibold text-text shadow-e1">
       <Icon icon={Ruler} size={16} />
       <span>Size</span>
-      <select value={size} onChange={(event) => onSize(event.target.value)} className="rounded-sm bg-transparent font-semibold outline-none focus-visible:ring-2 focus-visible:ring-electric" data-testid="tp-size">
+      <select
+        value={size}
+        onChange={(event) => onSize(event.target.value)}
+        className="rounded-sm bg-transparent font-semibold outline-none focus-visible:ring-2 focus-visible:ring-electric"
+        data-testid="tp-size"
+      >
         {sizes.map((entry) => (
           <option key={entry} value={entry}>
             {entry}
@@ -125,7 +166,11 @@ function FitCheck({ fit }: Readonly<{ fit: FitReport }>) {
         <ul className="flex max-h-80 flex-col gap-1.5 overflow-y-auto">
           {fit.lines.map((line) => (
             <li key={line.letter} className="flex gap-2 text-small text-text-2">
-              <span className={`grid size-5 shrink-0 place-items-center rounded-full text-micro font-bold text-on-dark ${line.state === "ok" ? "bg-ok" : "bg-warn"}`}>{line.letter}</span>
+              <span
+                className={`grid size-5 shrink-0 place-items-center rounded-full text-micro font-bold text-on-dark ${line.state === "ok" ? "bg-ok" : "bg-warn"}`}
+              >
+                {line.letter}
+              </span>
               <span>
                 <span className="font-semibold text-text">{line.description}</span> — {line.detail}
               </span>
@@ -138,7 +183,12 @@ function FitCheck({ fit }: Readonly<{ fit: FitReport }>) {
   );
 }
 
-type PlaceProps = Readonly<{ picked: PickedPoint | null; busy: boolean; onKeep: (note: string) => void; onCancel: () => void }>;
+type PlaceProps = Readonly<{
+  picked: PickedPoint | null;
+  busy: boolean;
+  onKeep: (note: string) => void;
+  onCancel: () => void;
+}>;
 
 function PlaceCallout({ picked, busy, onKeep, onCancel }: PlaceProps) {
   const [note, setNote] = useState("");
@@ -156,7 +206,15 @@ function PlaceCallout({ picked, busy, onKeep, onCancel }: PlaceProps) {
           <label htmlFor="tp-callout-note" className="sr-only">
             The callout&apos;s note
           </label>
-          <TextInput id="tp-callout-note" value={note} onChange={(event) => setNote(event.target.value)} maxLength={200} placeholder="What should the factory know here?" className="min-w-0 flex-1" autoFocus />
+          <TextInput
+            id="tp-callout-note"
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            maxLength={200}
+            placeholder="What should the factory know here?"
+            className="min-w-0 flex-1"
+            autoFocus
+          />
           <Button type="submit" size="sm" disabled={busy || note.trim() === ""}>
             Add callout
           </Button>

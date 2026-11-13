@@ -10,7 +10,7 @@ import { Modal } from "@/components/ui/Modal";
 import { cx } from "@/components/ui/cx";
 import { useRoving } from "@/components/ui/use-roving";
 import { openPlans } from "@/lib/plans/modal-store";
-import type { Sheet, SheetBlock, TechPackSheets } from "@/lib/techpack/editor/sheets";
+import type { Sheet, SheetBlock, SheetId, TechPackSheets } from "@/lib/techpack/editor/sheets";
 
 /**
  * The tech pack sheets modal (spec 09 screen 31, references x01–x08): a spreadsheet-style preview of
@@ -30,12 +30,19 @@ type Props = Readonly<{
   canExport: boolean;
   /** The Measurements sheet's front view with its points, drawn by the editor. */
   drawing?: ReactNode;
+  /** The sheet to open on; Overview when not given. */
+  sheet?: SheetId | undefined;
 }>;
 
 const COLUMNS = "ABCDEFGHIJKL".split("");
 
-export function SheetsModal({ open, onClose, sheets, fileName, downloads, canExport, drawing }: Props) {
-  const [at, setAt] = useState(0);
+export function SheetsModal({ open, onClose, sheets, fileName, downloads, canExport, drawing, sheet: first }: Props) {
+  const [at, setAt] = useState(() =>
+    Math.max(
+      0,
+      sheets.sheets.findIndex((entry) => entry.id === first),
+    ),
+  );
   const sheet = sheets.sheets[at] ?? sheets.sheets[0];
   if (!sheet) return null;
   return (
@@ -55,7 +62,14 @@ export function SheetsModal({ open, onClose, sheets, fileName, downloads, canExp
               </span>
             ))}
           </div>
-          <div role="tabpanel" id={`tp-sheet-panel-${sheet.id}`} aria-labelledby={`tp-sheet-tab-${sheet.id}`} tabIndex={0} className="max-h-[56vh] overflow-y-auto bg-bg p-6" data-testid={`tp-sheet-${sheet.id}`}>
+          <div
+            role="tabpanel"
+            id={`tp-sheet-panel-${sheet.id}`}
+            aria-labelledby={`tp-sheet-tab-${sheet.id}`}
+            tabIndex={0}
+            className="max-h-[56vh] overflow-y-auto bg-bg p-6"
+            data-testid={`tp-sheet-${sheet.id}`}
+          >
             <SheetHeader sheets={sheets} sheet={sheet} />
             {sheet.id === "measurements" && drawing ? <div className="mt-4 border border-text">{drawing}</div> : null}
             {sheet.blocks.map((entry, index) => (
@@ -69,7 +83,13 @@ export function SheetsModal({ open, onClose, sheets, fileName, downloads, canExp
   );
 }
 
-type DownloadProps = Readonly<{ label: string; icon: typeof Download; href: string | null; canExport: boolean; testId: string }>;
+type DownloadProps = Readonly<{
+  label: string;
+  icon: typeof Download;
+  href: string | null;
+  canExport: boolean;
+  testId: string;
+}>;
 
 function DownloadButton({ label, icon, href, canExport, testId }: DownloadProps) {
   const classes = buttonClasses("secondary", false, "relative", "sm", false);
@@ -82,7 +102,13 @@ function DownloadButton({ label, icon, href, canExport, testId }: DownloadProps)
     );
   }
   return (
-    <button type="button" onClick={() => openPlans({ kind: "techpack", plan: null })} className={classes} aria-label={`${label}, needs a plan with tech pack export`} data-testid={testId}>
+    <button
+      type="button"
+      onClick={() => openPlans({ kind: "techpack", plan: null })}
+      className={classes}
+      aria-label={`${label}, needs a plan with tech pack export`}
+      data-testid={testId}
+    >
       <Icon icon={icon} size={16} />
       {label}
       <PremiumMark label="Premium" />
@@ -92,7 +118,12 @@ function DownloadButton({ label, icon, href, canExport, testId }: DownloadProps)
 
 function SheetHeader({ sheets, sheet }: Readonly<{ sheets: TechPackSheets; sheet: Sheet }>) {
   const brand = sheets.header.rows.find(([label]) => label === "Brand")?.[1] ?? "";
-  const initials = brand.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase()).join("");
+  const initials = brand
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="flex border border-text text-caption">
@@ -142,7 +173,14 @@ function Block({ block }: Readonly<{ block: SheetBlock }>) {
         {block.rows.map((row, rowIndex) => (
           <tr key={rowIndex}>
             {row.map((text, index) => (
-              <td key={index} className={cx("border border-text px-1.5 py-0.5", index === block.highlight && "bg-gold-soft font-bold", text === "Needs your input" && "text-warn")}>
+              <td
+                key={index}
+                className={cx(
+                  "border border-text px-1.5 py-0.5",
+                  index === block.highlight && "bg-gold-soft font-bold",
+                  text === "Needs your input" && "text-warn",
+                )}
+              >
                 {text}
               </td>
             ))}
@@ -169,7 +207,15 @@ function Block({ block }: Readonly<{ block: SheetBlock }>) {
   );
 }
 
-function SheetTabs({ sheets, at, onAt }: Readonly<{ sheets: readonly Sheet[]; at: number; onAt: (index: number) => void }>) {
+function SheetTabs({
+  sheets,
+  at,
+  onAt,
+}: Readonly<{
+  sheets: readonly Sheet[];
+  at: number;
+  onAt: (index: number) => void;
+}>) {
   const roving = useRoving<HTMLButtonElement>(sheets.length, onAt);
   return (
     <div role="tablist" aria-label="Sheets" className="flex overflow-x-auto border-t border-border bg-soft">
@@ -185,7 +231,10 @@ function SheetTabs({ sheets, at, onAt }: Readonly<{ sheets: readonly Sheet[]; at
           tabIndex={index === at ? 0 : -1}
           onClick={() => onAt(index)}
           onKeyDown={roving.onKeyDown(index)}
-          className={cx("border-r border-border px-5 py-2.5 text-body whitespace-nowrap", index === at ? "border-b-2 border-b-ok bg-bg font-semibold text-ok" : "text-text-2 live:hover:bg-bg")}
+          className={cx(
+            "border-r border-border px-5 py-2.5 text-body whitespace-nowrap",
+            index === at ? "border-b-2 border-b-ok bg-bg font-semibold text-ok" : "text-text-2 live:hover:bg-bg",
+          )}
           data-testid={`tp-sheet-tab-${sheet.id}`}
         >
           {sheet.name}

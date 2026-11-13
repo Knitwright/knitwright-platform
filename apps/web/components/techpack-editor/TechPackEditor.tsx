@@ -5,7 +5,7 @@ import { usePreferredLengthUnit } from "@/components/units/LengthUnitContext";
 import type { BaseArticle } from "@/lib/catalogue";
 import type { GarmentSpec, SpecAction } from "@/lib/garment";
 import { checkFit } from "@/lib/techpack/editor/fit";
-import { buildSheets, sheetsFileName } from "@/lib/techpack/editor/sheets";
+import { buildSheets, sheetsFileName, type SheetId } from "@/lib/techpack/editor/sheets";
 import { stageCallouts, stagePoints } from "@/lib/techpack/editor/stage";
 import { foldTabs, type EditorTabId } from "@/lib/techpack/editor/tabs";
 import { makeMark, markSaveKey, marksOf, removeMarkAction, saveMarkAction, type PickedPoint } from "@/lib/techpack/view/marks";
@@ -48,6 +48,8 @@ export type TechPackEditorProps = Readonly<{
   /** The unit to open in; the person's own setting (decision 0144) when not given. */
   unit?: LengthUnit;
   tab?: EditorTabId;
+  /** Opens the sheets preview at once, on this sheet (a fixture, or a link from the Export panel). */
+  openSheet?: SheetId;
   /** Saves a change to the design, or null where nothing can be saved (a fixture). */
   onSave: ((key: string, action: SpecAction) => void) | null;
   busy: boolean;
@@ -84,12 +86,24 @@ export function TechPackEditor(props: TechPackEditorProps) {
   const [extras, setExtras] = useState<readonly ExtraPom[]>([]);
   const [selection, setSelection] = useState<StageSelection>(null);
   const [placing, setPlacing] = useState(false);
-  const [sheetsOpen, setSheetsOpen] = useState(false);
+  const [sheetsOpen, setSheetsOpen] = useState(props.openSheet !== undefined);
 
   const marks = useMemo(() => marksOf(spec), [spec]);
   const colourwayId = props.colourwayId ?? spec.colourways[0]?.id ?? "";
   const view = useMemo(
-    () => buildTechPackView({ spec, article, header: props.header, size, sizes, colourwayId, marks, extras, unit, mode }),
+    () =>
+      buildTechPackView({
+        spec,
+        article,
+        header: props.header,
+        size,
+        sizes,
+        colourwayId,
+        marks,
+        extras,
+        unit,
+        mode,
+      }),
     [spec, article, props.header, size, sizes, colourwayId, marks, extras, unit, mode],
   );
   const tabs = useMemo(() => foldTabs(view.tabs), [view.tabs]);
@@ -162,13 +176,20 @@ export function TechPackEditor(props: TechPackEditorProps) {
       />
       {sheetsOpen ? (
         <SheetsModal
-        open
-        onClose={() => setSheetsOpen(false)}
-        sheets={buildSheets({ view, header: props.header, article, date: props.sheets.date, openIn: props.sheets.openIn })}
-        fileName={sheetsFileName(props.header)}
-        downloads={props.sheets.downloads}
-        canExport={props.sheets.canExport}
-        drawing={drawing}
+          open
+          onClose={() => setSheetsOpen(false)}
+          sheets={buildSheets({
+            view,
+            header: props.header,
+            article,
+            date: props.sheets.date,
+            openIn: props.sheets.openIn,
+          })}
+          fileName={sheetsFileName(props.header)}
+          downloads={props.sheets.downloads}
+          canExport={props.sheets.canExport}
+          drawing={drawing}
+          sheet={props.openSheet}
         />
       ) : null}
     </div>

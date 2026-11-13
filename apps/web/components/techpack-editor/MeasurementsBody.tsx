@@ -41,12 +41,35 @@ export function MeasurementsBody({ tab, view, size, selection, onSelect, onMode,
   return (
     <div className="flex flex-col gap-4" data-testid="tp-measurements">
       <div className="flex flex-wrap items-center gap-2 px-3">
-        <Segmented label="What the table shows" value={view.mode} onChange={(mode) => onMode(mode as MeasurementMode)} options={MEASUREMENT_MODES.map((mode) => ({ id: mode, label: MODE_LABELS[mode] }))} />
-        <Button variant="secondary" size="sm" icon={<Icon icon={Plus} size={16} />} onClick={() => setAdding(!adding)} aria-expanded={adding} data-testid="tp-add-measurement">
+        <Segmented
+          label="What the table shows"
+          value={view.mode}
+          onChange={(mode) => onMode(mode as MeasurementMode)}
+          options={MEASUREMENT_MODES.map((mode) => ({
+            id: mode,
+            label: MODE_LABELS[mode],
+          }))}
+        />
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Icon icon={Plus} size={16} />}
+          onClick={() => setAdding(!adding)}
+          aria-expanded={adding}
+          data-testid="tp-add-measurement"
+        >
           Add measurement
         </Button>
       </div>
-      {adding ? <AddMeasurement unit={UNIT_LABELS[view.unit]} onAdd={(extra) => { onAdd(extra); setAdding(false); }} /> : null}
+      {adding ? (
+        <AddMeasurement
+          unit={UNIT_LABELS[view.unit]}
+          onAdd={(extra) => {
+            onAdd(extra);
+            setAdding(false);
+          }}
+        />
+      ) : null}
       {view.note ? <p className="px-3 text-small text-warn">{view.note}</p> : null}
       {view.rows.length > 0 ? (
         <Table caption={`Points of measure, in ${UNIT_LABELS[view.unit]}${grading ? ", step from the size before" : ""}`}>
@@ -58,7 +81,13 @@ export function MeasurementsBody({ tab, view, size, selection, onSelect, onMode,
               <Th>Point of measure</Th>
               <Th numeric>Tol ±</Th>
               {view.columns.map((column) => (
-                <Th key={column.size} numeric highlight={column.size === size} aria-current={column.size === size ? "true" : undefined} data-testid={`tp-size-${column.size}`}>
+                <Th
+                  key={column.size}
+                  numeric
+                  highlight={column.size === size}
+                  aria-current={column.size === size ? "true" : undefined}
+                  data-testid={`tp-size-${column.size}`}
+                >
                   {column.size}
                   {column.isSample ? <span className="sr-only"> (the sample size)</span> : null}
                 </Th>
@@ -67,7 +96,14 @@ export function MeasurementsBody({ tab, view, size, selection, onSelect, onMode,
           </thead>
           <tbody>
             {view.rows.map((row) => (
-              <PomLine key={row.letter} row={row} grading={grading} size={size} selected={selection?.kind === "point" && selection.letter === row.letter} onSelect={onSelect} />
+              <PomLine
+                key={row.letter}
+                row={row}
+                grading={grading}
+                size={size}
+                selected={selection?.kind === "point" && selection.letter === row.letter}
+                onSelect={onSelect}
+              />
             ))}
           </tbody>
         </Table>
@@ -79,7 +115,13 @@ export function MeasurementsBody({ tab, view, size, selection, onSelect, onMode,
   );
 }
 
-type LineProps = Readonly<{ row: PomRow; grading: boolean; size: string; selected: boolean; onSelect: (selection: StageSelection) => void }>;
+type LineProps = Readonly<{
+  row: PomRow;
+  grading: boolean;
+  size: string;
+  selected: boolean;
+  onSelect: (selection: StageSelection) => void;
+}>;
 
 function PomLine({ row, grading, size, selected, onSelect }: LineProps) {
   return (
@@ -129,7 +171,13 @@ function AddMeasurement({ unit, onAdd }: Readonly<{ unit: string; onAdd: (extra:
       className="flex flex-wrap items-end gap-2 px-3"
       onSubmit={(event) => {
         event.preventDefault();
-        if (valid) onAdd({ letter: "", description: description.trim(), sampleMm: millimetres, ruleId: null });
+        if (valid)
+          onAdd({
+            letter: "",
+            description: description.trim(),
+            sampleMm: millimetres,
+            ruleId: null,
+          });
       }}
       data-testid="tp-add-measurement-form"
     >

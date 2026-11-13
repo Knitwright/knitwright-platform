@@ -52,7 +52,14 @@ export function Panel(props: Props) {
         <UnitToggle unit={props.unit} onUnit={props.onUnit} />
       </div>
       {open ? (
-        <div role="tabpanel" id={panelIdOf(open.id)} aria-labelledby={tabIdOf(open.id)} tabIndex={0} className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-bg py-2 shadow-e1" data-testid={`tp-tab-${open.id}`}>
+        <div
+          role="tabpanel"
+          id={panelIdOf(open.id)}
+          aria-labelledby={tabIdOf(open.id)}
+          tabIndex={0}
+          className="min-h-0 flex-1 overflow-y-auto rounded-2xl bg-bg py-2 shadow-e1"
+          data-testid={`tp-tab-${open.id}`}
+        >
           <TabBody {...props} open={open} />
         </div>
       ) : null}
@@ -71,10 +78,30 @@ function TabBody(props: Props & Readonly<{ open: EditorTab }>) {
   const { open } = props;
   if (open.id === "overview") return <OverviewBody tab={open} review={props.view.review} onGo={props.onTab} />;
   if (open.id === "measurements") {
-    return <MeasurementsBody tab={open} view={props.view.measurements} size={props.size} selection={props.selection} onSelect={props.onSelect} onMode={props.onMode} onAdd={props.onAddMeasurement} />;
+    return (
+      <MeasurementsBody
+        tab={open}
+        view={props.view.measurements}
+        size={props.size}
+        selection={props.selection}
+        onSelect={props.onSelect}
+        onMode={props.onMode}
+        onAdd={props.onAddMeasurement}
+      />
+    );
   }
   if (open.id === "callouts") {
-    return <CalloutsBody tab={open} callouts={props.callouts} selection={props.selection} onSelect={props.onSelect} onAdd={props.onAddCallout} onRemove={props.onRemoveCallout} busy={props.busy} />;
+    return (
+      <CalloutsBody
+        tab={open}
+        callouts={props.callouts}
+        selection={props.selection}
+        onSelect={props.onSelect}
+        onAdd={props.onAddCallout}
+        onRemove={props.onRemoveCallout}
+        busy={props.busy}
+      />
+    );
   }
   return (
     <div className="flex flex-col gap-4">
@@ -85,7 +112,15 @@ function TabBody(props: Props & Readonly<{ open: EditorTab }>) {
   );
 }
 
-function TabBar({ tabs, tab, onTab }: Readonly<{ tabs: readonly EditorTab[]; tab: EditorTabId; onTab: (tab: EditorTabId) => void }>) {
+function TabBar({
+  tabs,
+  tab,
+  onTab,
+}: Readonly<{
+  tabs: readonly EditorTab[];
+  tab: EditorTabId;
+  onTab: (tab: EditorTabId) => void;
+}>) {
   const roving = useRoving<HTMLButtonElement>(tabs.length, (index) => {
     const next = tabs[index];
     if (next) onTab(next.id);
@@ -106,7 +141,10 @@ function TabBar({ tabs, tab, onTab }: Readonly<{ tabs: readonly EditorTab[]; tab
             tabIndex={on ? 0 : -1}
             onClick={() => onTab(entry.id)}
             onKeyDown={roving.onKeyDown(index)}
-            className={cx("h-8 rounded-md px-3 text-small font-semibold transition-colors duration-fast ease-out", on ? "bg-navy text-on-dark" : "text-text-2 live:hover:bg-soft")}
+            className={cx(
+              "h-8 rounded-md px-3 text-small font-semibold transition-colors duration-fast ease-out",
+              on ? "bg-navy text-on-dark" : "text-text-2 live:hover:bg-soft",
+            )}
             data-testid={tabIdOf(entry.id)}
           >
             {entry.label}

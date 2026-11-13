@@ -19,7 +19,12 @@ const BASE_REASON = "The base article fixes this.";
 /** One value, or what stands in for a missing one. */
 export function CellValue({ cell, from }: Readonly<{ cell: ViewCell; from: TechPackTabId }>) {
   if (isQcOnly(cell, from) && cell.text === null) return <span className="text-muted">{QC_FILLS}</span>;
-  if (cell.text === null) return <span className="text-warn" data-provenance={cell.provenance}>Needs your input</span>;
+  if (cell.text === null)
+    return (
+      <span className="text-warn" data-provenance={cell.provenance}>
+        Needs your input
+      </span>
+    );
   // Spec F-S6: every field says where it came from. The words are read out; the legend shows the counts.
   return (
     <span data-provenance={cell.provenance}>
@@ -50,7 +55,13 @@ export function ProvenanceLegend({ counts }: Readonly<{ counts: Readonly<Record<
 export const lockOf = (cell: ViewCell, from: TechPackTabId): string | undefined =>
   isQcOnly(cell, from) ? QC_ONLY_REASON : cell.locked ? BASE_REASON : undefined;
 
-type FieldsProps = Readonly<{ fields: readonly ViewCell[]; from: TechPackTabId; caption: string; numbered?: boolean; first?: number }>;
+type FieldsProps = Readonly<{
+  fields: readonly ViewCell[];
+  from: TechPackTabId;
+  caption: string;
+  numbered?: boolean;
+  first?: number;
+}>;
 
 /** The Field | Value table of the Overview and Labels references (s08, s14). */
 export function FieldTable({ fields, from, caption, numbered = false, first = 1 }: FieldsProps) {
@@ -59,7 +70,11 @@ export function FieldTable({ fields, from, caption, numbered = false, first = 1 
     <Table caption={caption}>
       <thead>
         <tr>
-          {numbered ? <Th className="w-10"><span className="sr-only">Row</span></Th> : null}
+          {numbered ? (
+            <Th className="w-10">
+              <span className="sr-only">Row</span>
+            </Th>
+          ) : null}
           <Th>Field</Th>
           <Th>Value</Th>
         </tr>

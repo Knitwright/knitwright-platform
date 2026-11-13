@@ -17,7 +17,15 @@ import type { StageSelection } from "./StageMarks";
  * Every other tab, and every folded part, is drawn by `PartView`.
  */
 
-export function OverviewBody({ tab, review, onGo }: Readonly<{ tab: EditorTab; review: ReviewView; onGo: (tab: EditorTabId) => void }>) {
+export function OverviewBody({
+  tab,
+  review,
+  onGo,
+}: Readonly<{
+  tab: EditorTab;
+  review: ReviewView;
+  onGo: (tab: EditorTabId) => void;
+}>) {
   const [own, ...folded] = tab.parts;
   if (!own) return null;
   const fields = own.sections.flatMap((section) => section.fields);
@@ -34,12 +42,22 @@ export function OverviewBody({ tab, review, onGo }: Readonly<{ tab: EditorTab; r
       {tables.map((table) => (
         <RowsTable key={table.id} table={table} from={own.from} />
       ))}
-      {folded.map((part) => (part.from === "review" ? <ReviewPart key={part.from} part={part} review={review} onGo={onGo} /> : <PartView key={part.from} part={part} />))}
+      {folded.map((part) =>
+        part.from === "review" ? <ReviewPart key={part.from} part={part} review={review} onGo={onGo} /> : <PartView key={part.from} part={part} />,
+      )}
     </div>
   );
 }
 
-function ReviewPart({ part, review, onGo }: Readonly<{ part: EditorTab["parts"][number]; review: ReviewView; onGo: (tab: EditorTabId) => void }>) {
+function ReviewPart({
+  part,
+  review,
+  onGo,
+}: Readonly<{
+  part: EditorTab["parts"][number];
+  review: ReviewView;
+  onGo: (tab: EditorTabId) => void;
+}>) {
   return (
     <div className="flex flex-col gap-3" data-testid="tp-review">
       <PartHeading part={part} />
@@ -111,17 +129,36 @@ export function CalloutsBody({ tab, callouts, selection, onSelect, onAdd, onRemo
         </thead>
         <tbody>
           {callouts.map((callout) => (
-            <CalloutRow key={callout.number} callout={callout} selected={selection?.kind === "callout" && selection.number === callout.number} onSelect={onSelect} onRemove={onRemove} busy={busy} />
+            <CalloutRow
+              key={callout.number}
+              callout={callout}
+              selected={selection?.kind === "callout" && selection.number === callout.number}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              busy={busy}
+            />
           ))}
         </tbody>
       </Table>
-      {callouts.length === 0 ? <p className="px-3 text-small text-muted">No construction table is on file for this base article yet, so it has no callouts.</p> : null}
+      {callouts.length === 0 ? (
+        <p className="px-3 text-small text-muted">No construction table is on file for this base article yet, so it has no callouts.</p>
+      ) : null}
       {onAdd ? (
-        <Button variant="secondary" size="sm" icon={<Icon icon={Plus} size={16} />} onClick={onAdd} disabled={busy} className="self-start" data-testid="tp-add-callout">
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Icon icon={Plus} size={16} />}
+          onClick={onAdd}
+          disabled={busy}
+          className="self-start"
+          data-testid="tp-add-callout"
+        >
           Add callout on the 3D view
         </Button>
       ) : null}
-      {own ? own.sections.filter((section) => section.id !== "callouts").map((section) => <PartView key={section.id} part={{ ...own, sections: [section] }} />) : null}
+      {own
+        ? own.sections.filter((section) => section.id !== "callouts").map((section) => <PartView key={section.id} part={{ ...own, sections: [section] }} />)
+        : null}
       {rest.map((part) => (
         <PartView key={part.from} part={part} />
       ))}
@@ -129,7 +166,13 @@ export function CalloutsBody({ tab, callouts, selection, onSelect, onAdd, onRemo
   );
 }
 
-type RowProps = Readonly<{ callout: StageCallout; selected: boolean; onSelect: (selection: StageSelection) => void; onRemove: ((markId: string) => void) | null; busy: boolean }>;
+type RowProps = Readonly<{
+  callout: StageCallout;
+  selected: boolean;
+  onSelect: (selection: StageSelection) => void;
+  onRemove: ((markId: string) => void) | null;
+  busy: boolean;
+}>;
 
 function CalloutRow({ callout, selected, onSelect, onRemove, busy }: RowProps) {
   return (
@@ -148,7 +191,15 @@ function CalloutRow({ callout, selected, onSelect, onRemove, busy }: RowProps) {
       <Td>{callout.text}</Td>
       <Td className="text-right">
         {callout.markId && onRemove ? (
-          <Button variant="ghost" size="xs" iconOnly aria-label={`Delete callout ${callout.number}`} icon={<Icon icon={Trash2} size={16} />} disabled={busy} onClick={() => callout.markId && onRemove(callout.markId)} />
+          <Button
+            variant="ghost"
+            size="xs"
+            iconOnly
+            aria-label={`Delete callout ${callout.number}`}
+            icon={<Icon icon={Trash2} size={16} />}
+            disabled={busy}
+            onClick={() => callout.markId && onRemove(callout.markId)}
+          />
         ) : callout.markId ? null : (
           <LockMark label="The base article fixes its construction." className="ml-auto" />
         )}
