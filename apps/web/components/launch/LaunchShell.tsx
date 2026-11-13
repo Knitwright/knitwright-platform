@@ -2,6 +2,7 @@
 
 import { CanvasStoreProvider, useCanvas, useCanvasStore } from "@/components/canvas/CanvasStore";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
+import { ProjectActions, ProjectPanels } from "@/components/order-boards/ProjectActions";
 import { zoomPercent, type GarmentPreview } from "@/lib/canvas";
 import { Notice } from "@/components/ui/Notice";
 import { boardFilePath, flowCostSource, offeredBar, TASK_STEPS } from "@/lib/flows";
@@ -222,6 +223,9 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
             </p>
           </div>
           <MainMenu projectId={project.id} unit={shell.state.unit} busy={busy} onUnit={shell.commands.setUnit} onCommand={command} />
+          {/* Share · Export · Order and the open panel (E4, decision 0148). */}
+          <div className="ml-auto"><ProjectActions graph={graph} garments={garments} /></div>
+          <ProjectPanels graph={graph} garments={garments} unit={shell.state.unit} />
         </header>
 
         {canEdit ? null : <Notice tone="info">You can look at this launch project. Only owners, admins and kit managers can change it.</Notice>}

@@ -10,6 +10,7 @@ import {
   GARMENT_BOX,
   hasOwnBox,
   inDot,
+  LINKED_BOX,
   marqueeHits,
   newBoardSize,
   nextInOrder,
@@ -28,13 +29,14 @@ describe("a board's box", () => {
 
   it("is the board's own size for a garment, a tech pack and an order, never smaller than a card", () => {
     expect(boxOf(board("g", "garment", { size: GARMENT_BOX }))).toEqual({ x: 0, y: 0, ...GARMENT_BOX });
-    expect(boxOf(board("t", "tech_pack", { size: { width: 16, height: 16 } }))).toEqual({ x: 0, y: 0, ...CARD_SIZE });
+    expect(boxOf(board("t", "tech_pack", { size: { width: 16, height: 16 } }))).toEqual({ x: 0, y: 0, ...LINKED_BOX });
+    expect(boxOf(board("g", "garment", { size: { width: 16, height: 16 } }))).toEqual({ x: 0, y: 0, ...CARD_SIZE });
     expect(["garment", "tech_pack", "order", "design"].map((kind) => hasOwnBox(kind as never))).toEqual([true, true, true, false]);
   });
 
   it("gives a new board of the canvas's own kinds the box it will be drawn in", () => {
     expect(newBoardSize("garment")).toEqual(GARMENT_BOX);
-    expect(newBoardSize("order")).toEqual({ width: 320, height: 220 });
+    expect(newBoardSize("order")).toEqual({ width: 320, height: 360 });
     expect(newBoardSize("mockup")).toBeNull();
   });
 });
