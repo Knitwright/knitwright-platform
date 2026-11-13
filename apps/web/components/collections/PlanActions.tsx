@@ -40,7 +40,10 @@ export function PlanActions({ plan, canEdit }: Props) {
       const reply = await orderSamplesAction({ collectionId: plan.id, requestKey: newKey() }).catch(() => null);
       if (!reply) return setNote({ tone: "warn", text: "The sample requests could not be sent. Check your connection and try again." });
       if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
-      setNote({ tone: "ok", text: `${reply.data.sent.length} sample ${reply.data.sent.length === 1 ? "request" : "requests"} sent to production, waiting for the next cut-off.` });
+      const answer = reply.data.reply;
+      if (answer.kind === "checkout") return window.location.assign(answer.url);
+      const refused = answer.refused === null ? "" : ` Not sent: ${answer.refused}`;
+      setNote({ tone: "ok", text: `${answer.sent} sample ${answer.sent === 1 ? "request" : "requests"} sent to production, waiting for the next cut-off.${refused}` });
       router.refresh();
     });
   };

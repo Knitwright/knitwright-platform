@@ -157,7 +157,7 @@ create table public.brand_subscriptions (
   brand_id uuid primary key references public.brands (id) on delete cascade,
   plan_id text not null check (plan_id ~ '^[a-z_]{1,40}$'),
   plan_interval text not null check (plan_interval in ('month', 'year')),
-  status text not null check (status in ('active', 'trialing', 'past_due', 'canceled', 'incomplete', 'unpaid')),
+  status text not null check (status in ('active', 'trialing', 'past_due', 'canceled', 'incomplete', 'incomplete_expired', 'unpaid', 'paused')),
   provider text not null check (provider in ('stripe', 'test')),
   provider_customer_id text check (provider_customer_id is null or length(provider_customer_id) between 1 and 255),
   provider_subscription_id text not null unique check (length(provider_subscription_id) between 1 and 255),

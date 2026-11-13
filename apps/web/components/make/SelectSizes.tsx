@@ -17,6 +17,7 @@ import {
   type Quantities,
 } from "@/lib/make/order-modal";
 import type { SellCurrency } from "@/lib/factory/schemas";
+import { sendLabel, sentNote } from "@/lib/payments/reply";
 
 type Props = Readonly<{ products: readonly OrderProduct[]; currency: SellCurrency; canOrder: boolean; deliveryText: string }>;
 type Note = Readonly<{ tone: "ok" | "warn"; text: string }>;
@@ -28,8 +29,9 @@ const newKey = (): string => crypto.randomUUID();
  * and type the pieces you want for each size. The tier price is read across every piece in the basket, so it
  * changes as the quantities do (spec F-T5).
  *
- * The footer shows the pieces, the total where every line has a price, and the delivery date. There is no
- * checkout: the button hands the order over to production (owner decision 1).
+ * The footer shows the pieces, the total where every line has a price, and the delivery date. With every line
+ * priced the button is Checkout, and the orders go to production once paid; a run over the deposit threshold may
+ * pay a deposit (plan v6 C1, decision 0152). With a line unpriced the orders are sent now for Knitwright to invoice.
  */
 export function SelectSizes({ products, currency, canOrder, deliveryText }: Props) {
   const router = useRouter();
@@ -40,6 +42,7 @@ export function SelectSizes({ products, currency, canOrder, deliveryText }: Prop
   const [typed, setTyped] = useState<Quantities>({});
   const [requestKey, setRequestKey] = useState(newKey);
   const [note, setNote] = useState<Note | null>(null);
+  const [deposit, setDeposit] = useState(false);
 
   const chips = useMemo(() => chipsFor(products), [products]);
   const shown = useMemo(() => filterProducts(products, query, chip), [products, query, chip]);
@@ -54,12 +57,13 @@ export function SelectSizes({ products, currency, canOrder, deliveryText }: Prop
     const lines = selection.products.flatMap((part) => part.rows.filter((row) => row.qty > 0).map((row) => ({ productId: row.productId, size: row.size, pieces: row.qty })));
     if (lines.length === 0) return setNote({ tone: "warn", text: "Type the pieces you want first." });
     start(async () => {
-      const reply = await selectSizesAction({ lines, requestKey }).catch(() => null);
+      const reply = await selectSizesAction({ lines, requestKey, schedule: deposit ? "deposit" : "full" }).catch(() => null);
       if (!reply) return setNote({ tone: "warn", text: "The order could not be sent. Check your connection and try again." });
-      if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
-      setNote({ tone: "ok", text: `Sent to production: ${reply.data.sent.length} order${reply.data.sent.length === 1 ? "" : "s"}, waiting for the next cut-off.` });
-      setTyped({});
       setRequestKey(newKey());
+      if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
+      if (reply.data.kind === "checkout") return window.location.assign(reply.data.url);
+      setNote({ tone: "ok", text: sentNote(reply.data) });
+      setTyped({});
       router.refresh();
     });
   };
@@ -132,10 +136,19 @@ export function SelectSizes({ products, currency, canOrder, deliveryText }: Prop
         <p className="text-muted">{deliveryText}</p>
       </div>
 
+      {selection.totalMinor !== null && selection.pieces > 0 ? (
+        <label className="flex items-start gap-2 text-sm text-muted">
+          <input type="checkbox" className="mt-0.5 size-4" checked={deposit} onChange={(event) => setDeposit(event.target.checked)} />
+          Pay a deposit now and the balance before shipping, where the run is large enough to allow one. Otherwise it is paid in full.
+        </label>
+      ) : null}
+
       {note ? <Notice tone={note.tone} role={note.tone === "warn" ? "alert" : "status"}>{note.text}</Notice> : null}
 
       <div>
-        <Button type="submit" pending={pending} disabled={!selection.canSend}>Hand this order to production</Button>
+        <Button type="submit" pending={pending} disabled={!selection.canSend}>
+          {sendLabel(selection.totalMinor !== null && selection.pieces > 0, "Hand this order to production")}
+        </Button>
       </div>
     </form>
   );

@@ -23,10 +23,10 @@ import { useLoaded } from "./useLoaded";
  *
  * Sample and Run are the make flow's own forms (`components/make`), so every send runs the same
  * actions, and with them the D1 validation gate, the content screen and the golden-sample rule
- * (`lib/make/actions.ts`): nothing here can order around them. Checkout is not built yet -- it comes
- * with payments (plan v6 C1) -- so the drawer says how an order is paid today instead of drawing a
- * Checkout button that goes nowhere. Team stores come with the Store (wave 5); the tab says so and
- * links to the roster on Team, which exists.
+ * (`lib/make/actions.ts`): nothing here can order around them. Each form ends in Checkout (plan v6 C1,
+ * decision 0152): Stripe Checkout for what the ladder prices, and the order goes to production once it is
+ * paid; where no price is on file it is sent now and invoiced. Team stores come with the Store (wave 5);
+ * the tab says so and links to the roster on Team, which exists.
  */
 
 const TABS = [
@@ -37,8 +37,8 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
-export const CHECKOUT_LATER =
-  "Card checkout arrives with payments. Today the order is handed to production and Knitwright invoices it outside the platform.";
+export const CHECKOUT_NOTE =
+  "Checkout is by card through Stripe, and the order goes to production once it is paid. Where no price is on file yet, the order is sent now and Knitwright invoices it.";
 
 export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDesign; onClose: () => void }>) {
   const idBase = useId();
@@ -82,7 +82,7 @@ export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDes
       </div>
       {tab === "sample" || tab === "run" ? (
         <p className="text-caption text-muted" data-testid="order-drawer-checkout">
-          {CHECKOUT_LATER}
+          {CHECKOUT_NOTE}
         </p>
       ) : null}
       <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-2 text-small font-semibold">

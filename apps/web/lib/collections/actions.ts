@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { requireAbility, whoOf } from "@/lib/clubs/guards";
 import { checkSampleRequest } from "@/lib/make/sample";
 import { loadMake } from "@/lib/make/server";
-import { submitMakeOrder } from "@/lib/make/service";
+import type { OrderLineIntent } from "@/lib/payments/checkout";
+import { samplePrice } from "@/lib/payments/pricing";
+import { replyOf } from "@/lib/payments/reply";
+import { checkoutOrders } from "@/lib/payments/server";
 import { AppError } from "@/lib/server/core/errors";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
@@ -20,8 +23,9 @@ import { createCollection, exportDrop, removeCollection, removeStyle, saveFrame,
  * The collection plan's actions (plan v5 Z4, decision 0085). The brand and the person come from the
  * session; the role is checked here for a clear answer and again inside every database function.
  *
- * Neither action takes a payment and neither reaches a storefront (owner decision 1). "Order samples"
- * goes through the make flow's one door, and "Create drop" writes a payload the Store collects.
+ * "Order samples" goes through the make flow's one door, and since plan v6 C1 (decision 0152) through checkout
+ * first: one checkout for every sample, priced from the ladder rows, or sent now and invoiced where no price is
+ * on file. "Create drop" writes a payload the Store collects.
  */
 
 const refresh = (collectionId: string): void => {
@@ -134,7 +138,7 @@ export const orderSamplesAction = defineAction({
     const { targets, skipped } = samplesForApproved(view.plan);
     if (targets.length === 0) throw new AppError("conflict", "No approved style in this plan can be sampled yet.");
 
-    const sent = [];
+    const lines: OrderLineIntent[] = [];
     for (const target of targets) {
       const style = view.plan.styles.find((one) => one.id === target.styleId);
       if (!style?.projectId) throw new AppError("conflict", `${target.name} has no design to sample.`);
@@ -143,20 +147,29 @@ export const orderSamplesAction = defineAction({
       if (!release) throw new AppError("conflict", `${target.name} has no frozen release to make yet.`);
       const check = checkSampleRequest({ sizes: target.sizes, sizeRun: context.sizeRun });
       if (!check.canSend) throw new AppError("invalid_input", check.findings.map((found) => found.message).join(" "));
-      sent.push(
-        await submitMakeOrder(adminClient(), whoOf(session), {
-          productId: target.productId,
-          kind: "sample",
-          releaseId: release.id,
-          factoryProfileId: context.factory.profileId,
-          fabricKey: style.fabricCode ?? context.fabricKey,
-          sizes: check.sizes,
-          flags: [],
-          requestKey: `${input.requestKey}:${target.styleId}`.slice(0, 64),
-        }),
-      );
+      const pieces = Object.keys(check.sizes).length;
+      lines.push({
+        door: "make",
+        productId: target.productId,
+        projectId: style.projectId,
+        kind: "sample",
+        releaseId: release.id,
+        factoryProfileId: context.factory.profileId,
+        fabricKey: style.fabricCode ?? context.fabricKey,
+        sizes: check.sizes,
+        flags: [],
+        pieces,
+        requestKey: `${input.requestKey}:${target.styleId}`.slice(0, 64),
+        price: samplePrice(context.factory.ladder, pieces, view.plan.currency),
+      });
     }
+    const reply = replyOf(
+      await checkoutOrders(
+        { ...whoOf(session), email: session.email ?? undefined },
+        { lines, currency: view.plan.currency, schedule: "full", description: `Samples for ${view.plan.name}` },
+      ),
+    );
     refresh(input.collectionId);
-    return { sent, skipped: skipped.map((one) => one.finding.message) };
+    return { reply, skipped: skipped.map((one) => one.finding.message) };
   },
 });

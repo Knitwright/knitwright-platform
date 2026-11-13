@@ -7,6 +7,10 @@ import { humanReviewGate, orderGate } from "@/lib/moderation/server";
 import { defineAction } from "@/lib/server/define-action";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { LIMITS } from "@/lib/server/limits";
+import { piecesOf } from "@/lib/payments/pricing";
+import { replyOf } from "@/lib/payments/reply";
+import { checkoutOrders } from "@/lib/payments/server";
+import { WILL_QUOTE } from "./quote";
 import { placeOrder } from "./place-order";
 import { productBody, runBody, stageBody } from "./schemas";
 import { confirmStage, createProduct } from "./service";
@@ -61,6 +65,15 @@ export const orderRunAction = defineAction({
       // The version's own checks and the F-G2 checklist (plan v6 D1, decision 0132). The brand workspace
       // works in GBP, so its pieces are labelled for the United Kingdom.
       orderValidationGate({ client, admin, who, brandName: session.brand.name, country: "GB" }),
+      // Plan v6 C1 (decision 0152): to production through checkout. The brand workspace's ladder is the factory
+      // profile's own, which names no currency, so its runs have no price to charge by card: they are invoiced.
+      async (run) =>
+        replyOf(
+          await checkoutOrders(
+            { ...who, email: session.email ?? undefined },
+            { lines: [{ ...run, door: "brand_run", pieces: piecesOf(run.sizes), price: { status: "unpriced", reason: `${WILL_QUOTE}.` } }], currency: "GBP", schedule: "full", description: `${input.kind === "run" ? "Run" : "Sample"} from the brand workspace` },
+          ),
+        ),
     );
     revalidatePath("/orders/runs");
     return sent;
