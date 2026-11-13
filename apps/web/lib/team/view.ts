@@ -9,7 +9,7 @@ import { countBySlot } from "@/lib/share/committee/tally";
  * roster, its sign-up grid and its committee links. Pure, so every line is tested apart from the page.
  */
 
-export const TEAM_TABS = ["roster", "approvals", "seasons"] as const;
+export const TEAM_TABS = ["roster", "approvals", "seasons", "stores"] as const;
 export type TeamTab = (typeof TEAM_TABS)[number];
 
 /** What the Roster tab shows under its table: the editor (Add player, Import CSV) or the sign-up link. */

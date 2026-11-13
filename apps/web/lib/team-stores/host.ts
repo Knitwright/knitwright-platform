@@ -18,6 +18,16 @@ export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/;
 
 export const isClubSlug = (value: string): boolean => SLUG_PATTERN.test(value) && !value.includes("--") && !RESERVED_SUBDOMAINS.includes(value);
 
+/** A first address for a club, from its name: "Lahore Lions FC" becomes "lahore-lions-fc". */
+export const suggestSlug = (name: string): string =>
+  name
+    .normalize("NFKD")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+    .replace(/-+$/g, "");
+
 /** The club page's own path. */
 export const clubPagePath = (slug: string): string => `/clubs/${slug}`;
 

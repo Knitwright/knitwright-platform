@@ -4,6 +4,7 @@ import { ApprovalsTab } from "@/components/team/v3/ApprovalsTab";
 import { LinkTabs } from "@/components/team/v3/LinkTabs";
 import { ROSTER_HREFS, RosterTab } from "@/components/team/v3/RosterTab";
 import { SeasonsTab } from "@/components/team/v3/SeasonsTab";
+import { StoresTab } from "@/components/team-stores/StoresTab";
 import { Icon } from "@/components/ui/Icon";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { can } from "@/lib/clubs/roles";
@@ -15,7 +16,7 @@ import { rosterViewFrom, teamTabFrom } from "@/lib/team/view";
 export const metadata: Metadata = { title: "Team" };
 
 /**
- * Team (09 screen 17, d18; plan v6 P6, decision 0144): tabs Roster · Approvals · Seasons, over the
+ * Team (09 screen 17, d18; plan v6 P6, decision 0144): tabs Roster · Approvals · Seasons · Stores (plan v6 C2, decision 0153), over the
  * club page and Collect, which it replaces (both redirect here). The tabs and the header's buttons
  * are links, so every state has an address and the page works without scripts.
  */
@@ -54,6 +55,7 @@ export default async function TeamPage({ searchParams }: PageProps<"/team">) {
           { id: "roster", href: "/team" as Route, label: newest ? `Roster ${newest}` : "Roster" },
           { id: "approvals", href: "/team?tab=approvals" as Route, label: "Approvals" },
           { id: "seasons", href: "/team?tab=seasons" as Route, label: "Seasons" },
+          { id: "stores", href: "/team?tab=stores" as Route, label: "Stores" },
         ]}
       />
 
@@ -61,6 +63,7 @@ export default async function TeamPage({ searchParams }: PageProps<"/team">) {
       {tab === "roster" ? <RosterTab brand={brand} view={view} /> : null}
       {tab === "approvals" ? <ApprovalsTab brand={brand} /> : null}
       {tab === "seasons" ? <SeasonsTab brand={brand} /> : null}
+      {tab === "stores" ? <StoresTab brand={brand} /> : null}
     </div>
   );
 }

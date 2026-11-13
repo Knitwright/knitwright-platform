@@ -14,6 +14,7 @@ import { loadOrderDrawerAction } from "@/lib/order-boards/actions";
 import { orderGate } from "@/lib/order-boards/canvas";
 import type { OrderableDesign } from "@/lib/order-boards/types";
 import { PanelFrame } from "./PanelFrame";
+import { TeamStoreTab } from "@/components/team-stores/TeamStoreTab";
 import { QuoteTab } from "./QuoteTab";
 import { useLoaded } from "./useLoaded";
 
@@ -25,8 +26,8 @@ import { useLoaded } from "./useLoaded";
  * actions, and with them the D1 validation gate, the content screen and the golden-sample rule
  * (`lib/make/actions.ts`): nothing here can order around them. Each form ends in Checkout (plan v6 C1,
  * decision 0152): Stripe Checkout for what the ladder prices, and the order goes to production once it is
- * paid; where no price is on file it is sent now and invoiced. Team stores come with the Store (wave 5);
- * the tab says so and links to the roster on Team, which exists.
+ * paid; where no price is on file it is sent now and invoiced. The Team store tab opens a store window for this
+ * design and lists its stores with link and QR code (plan v6 C2, decision 0153, `components/team-stores`).
  */
 
 const TABS = [
@@ -50,9 +51,7 @@ export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDes
     <PanelFrame title={`Order · ${design.name}`} onClose={onClose} width={480} testId="order-drawer">
       <Tabs items={TABS} value={tab} onChange={(id) => setTab(id as TabId)} label="Order" idBase={idBase} variant="pill" />
       <div {...tabPanelProps(idBase, tab)} className="flex flex-col gap-3 outline-none">
-        {tab === "store" ? (
-          <TeamStoreTab />
-        ) : loaded.state === "loading" ? (
+        {loaded.state === "loading" ? (
           <div role="status" className="flex flex-col gap-2">
             <span className="sr-only">Reading prices and dates</span>
             <SkeletonText lines={4} />
@@ -68,6 +67,8 @@ export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDes
           </div>
         ) : tab === "quote" ? (
           <QuoteTab articleCode={loaded.data.context.articleCode} designName={design.name} />
+        ) : tab === "store" ? (
+          <TeamStoreTab projectId={design.id} designName={design.name} context={loaded.data.context} />
         ) : !gate.open ? (
           <Notice tone="warn" role="alert">
             {gate.reason}
@@ -94,25 +95,5 @@ export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDes
         </Link>
       </div>
     </PanelFrame>
-  );
-}
-
-function TeamStoreTab() {
-  return (
-    <div className="flex flex-col gap-2" data-testid="order-drawer-store">
-      <p className="text-body text-text">Team stores open with the Store.</p>
-      <p className="text-small text-muted">
-        Open and close dates, the club&apos;s margin and a link with a QR code for players arrive when the Store is built. Your roster is already on
-        Team, so the store can read it on the day it opens.
-      </p>
-      <div className="flex flex-wrap gap-2">
-        <Link href={"/team" as Route} className={buttonClasses("secondary", false, "", "sm")}>
-          Open the roster
-        </Link>
-        <Link href={"/store" as Route} className={buttonClasses("ghost", false, "", "sm")}>
-          About the Store
-        </Link>
-      </div>
-    </div>
   );
 }

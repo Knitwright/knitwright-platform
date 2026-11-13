@@ -70,7 +70,9 @@ test.describe("the tech pack and order boards", () => {
     await expect(drawer.getByTestId("order-drawer-orders")).toHaveAttribute("href", "/orders");
     await expect(drawer.getByTestId("order-drawer-product")).toHaveAttribute("href", `/studio/${id}/make`);
     await drawer.getByRole("tab", { name: "Team store" }).click();
-    await expect(drawer.getByTestId("order-drawer-store")).toContainText("Team stores open with the Store");
+    // A fresh design cannot be made as a run yet, so its Team store tab lists no store and says why (decision 0153).
+    await expect(drawer.getByTestId("order-drawer-store")).toContainText(`${name} has no team store yet.`);
+    await expect(drawer.getByTestId("order-drawer-store")).toContainText("A team store sells a run");
     await drawer.getByRole("button", { name: `Close Order · ${name}` }).click();
     await expect(drawer).toBeHidden();
 
