@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { createAccount, signIn, test } from "./support";
 
 /**
@@ -30,12 +30,21 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   return id;
 };
 
+/**
+ * Presses a control on the canvas from the keyboard. The canvas floats under the header, the prompt
+ * bar and the dock, so on a small CI window a pointer press can land on one of those instead.
+ */
+const press = async (control: Locator): Promise<void> => {
+  await control.focus();
+  await control.press("Enter");
+};
+
 /** Adds a board of a kind after the garment board through its Add… menu. */
 const addAfterGarment = async (page: Page, kind: "tech_pack" | "order"): Promise<void> => {
   const garment = page.getByRole("article", { name: "Garment board" });
   const boardId = ((await garment.getAttribute("data-testid")) ?? "").replace("flow-board-", "");
-  await page.getByTestId(`flow-add-open-${boardId}`).click();
-  await page.getByTestId(`flow-add-${kind}-${boardId}`).click();
+  await press(page.getByTestId(`flow-add-open-${boardId}`));
+  await press(page.getByTestId(`flow-add-${kind}-${boardId}`));
 };
 
 test.describe("the tech pack and order boards", () => {
@@ -54,7 +63,7 @@ test.describe("the tech pack and order boards", () => {
     await expect(page.locator('[data-testid^="order-board-"]').filter({ hasText: "No order yet." })).toBeVisible();
 
     // The order board opens the Order drawer for its design, with the make flow's own forms behind it.
-    await page.locator('[data-testid^="canvas-open-order-"]').click();
+    await press(page.locator('[data-testid^="canvas-open-order-"]'));
     const drawer = page.getByRole("dialog", { name: `Order · ${name}` });
     await expect(drawer).toBeVisible();
     await expect(drawer.getByTestId("order-drawer-checkout")).toContainText("Card checkout arrives with payments");
