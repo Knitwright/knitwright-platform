@@ -70,13 +70,13 @@ test.describe("the tech pack editor (screens 30 and 31)", () => {
     await editor.getByTestId("tp-stage-drawing").click({ position: { x: 12, y: 12 } });
     await editor.getByLabel("The callout's note").fill("Crest centred on the chest");
     await editor.getByRole("button", { name: "Add callout", exact: true }).click();
-    await expect(editor.getByRole("cell", { name: "Crest centred on the chest" })).toBeVisible();
+    await expect(editor.getByRole("cell", { name: "Crest centred on the chest", exact: true })).toBeVisible();
 
     await page.reload();
-    await expect(editor.getByRole("cell", { name: "Crest centred on the chest" })).toBeVisible();
+    await expect(editor.getByRole("cell", { name: "Crest centred on the chest", exact: true })).toBeVisible();
     const added = before + 1;
     await editor.getByRole("button", { name: `Delete callout ${added}` }).click();
-    await expect(editor.getByRole("cell", { name: "Crest centred on the chest" })).toHaveCount(0);
+    await expect(editor.getByRole("cell", { name: "Crest centred on the chest", exact: true })).toHaveCount(0);
   });
 
   test("previews the eight sheets, and the eight-sheet .xlsx carries them under one header", async ({ page }) => {

@@ -52,7 +52,7 @@ export function MeasurementsBody({ tab, view, size, selection, onSelect, onMode,
         />
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           icon={<Icon icon={Plus} size={16} />}
           onClick={() => setAdding(!adding)}
           aria-expanded={adding}
@@ -132,10 +132,10 @@ function PomLine({ row, grading, size, selected, onSelect }: LineProps) {
           onClick={() => onSelect({ kind: "point", letter: row.letter })}
           aria-label={`Show point ${row.letter} on the garment`}
           aria-pressed={selected}
-          className="grid size-6 place-items-center rounded-full bg-mark-measure text-caption font-bold text-on-dark"
+          className="-my-2 -ml-2 grid size-10 place-items-center rounded-full"
           data-testid={`tp-pom-${row.letter}`}
         >
-          {row.letter}
+          <span className="grid size-6 place-items-center rounded-full bg-mark-measure text-caption font-bold text-on-dark">{row.letter}</span>
         </button>
       </Td>
       <Td className="font-medium">
@@ -189,7 +189,7 @@ function AddMeasurement({ unit, onAdd }: Readonly<{ unit: string; onAdd: (extra:
         On the sample, in mm (optional)
         <TextInput inputMode="decimal" value={value} onChange={(event) => setValue(event.target.value)} />
       </label>
-      <Button type="submit" size="sm" disabled={!valid}>
+      <Button type="submit" size="md" disabled={!valid}>
         Add
       </Button>
       <span className="sr-only">Shown in {unit}.</span>

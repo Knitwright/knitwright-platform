@@ -86,7 +86,7 @@ function ReviewPart({
                 <Td>{item.tabLabel}</Td>
                 <Td>{item.label}</Td>
                 <Td className="text-right">
-                  <Button variant="link" size="xs" onClick={() => onGo(editorTabOf(item.tabId))} aria-label={`Go to ${item.label}`}>
+                  <Button variant="link" size="xs" className="min-h-10 min-w-10" onClick={() => onGo(editorTabOf(item.tabId))} aria-label={`Go to ${item.label}`}>
                     Go to
                   </Button>
                 </Td>
@@ -146,7 +146,7 @@ export function CalloutsBody({ tab, callouts, selection, onSelect, onAdd, onRemo
       {onAdd ? (
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           icon={<Icon icon={Plus} size={16} />}
           onClick={onAdd}
           disabled={busy}
@@ -183,9 +183,9 @@ function CalloutRow({ callout, selected, onSelect, onRemove, busy }: RowProps) {
           onClick={() => onSelect({ kind: "callout", number: callout.number })}
           aria-label={`Show callout ${callout.number} on the garment`}
           aria-pressed={selected}
-          className="grid size-6 place-items-center rounded-full bg-mark-callout text-caption font-bold text-on-dark"
+          className="-my-2 -ml-2 grid size-10 place-items-center rounded-full"
         >
-          {callout.number}
+          <span className="grid size-6 place-items-center rounded-full bg-mark-callout text-caption font-bold text-on-dark">{callout.number}</span>
         </button>
       </Td>
       <Td>{callout.text}</Td>
@@ -193,7 +193,7 @@ function CalloutRow({ callout, selected, onSelect, onRemove, busy }: RowProps) {
         {callout.markId && onRemove ? (
           <Button
             variant="ghost"
-            size="xs"
+            size="md"
             iconOnly
             aria-label={`Delete callout ${callout.number}`}
             icon={<Icon icon={Trash2} size={16} />}

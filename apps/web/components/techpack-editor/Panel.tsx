@@ -66,7 +66,7 @@ export function Panel(props: Props) {
       <ProvenanceLegend counts={props.view.counts} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-small text-muted">{props.footnote}</p>
-        <Button variant="secondary" size="sm" icon={<Icon icon={Sheet} size={16} />} onClick={props.onPreview} data-testid="tp-preview-sheets">
+        <Button variant="secondary" size="md" icon={<Icon icon={Sheet} size={16} />} onClick={props.onPreview} data-testid="tp-preview-sheets">
           Preview sheets
         </Button>
       </div>
@@ -142,7 +142,7 @@ function TabBar({
             onClick={() => onTab(entry.id)}
             onKeyDown={roving.onKeyDown(index)}
             className={cx(
-              "h-8 rounded-md px-3 text-small font-semibold transition-colors duration-fast ease-out",
+              "h-10 rounded-md px-3 text-small font-semibold transition-colors lg:h-8 duration-fast ease-out",
               on ? "bg-navy text-on-dark" : "text-text-2 live:hover:bg-soft",
             )}
             data-testid={tabIdOf(entry.id)}
@@ -174,7 +174,7 @@ function UnitToggle({ unit, onUnit }: Readonly<{ unit: LengthUnit; onUnit: (unit
             tabIndex={on ? 0 : -1}
             onClick={() => onUnit(id)}
             onKeyDown={roving.onKeyDown(index)}
-            className={cx("h-8 rounded-md px-2.5 text-small font-semibold", on ? "bg-bg text-text shadow-e1" : "text-text-2 live:hover:text-text")}
+            className={cx("h-10 min-w-10 rounded-md px-2.5 text-small font-semibold lg:h-8", on ? "bg-bg text-text shadow-e1" : "text-text-2 live:hover:text-text")}
             data-testid={`techpack-unit-${id}`}
           >
             <span aria-hidden="true">{UNIT_LABELS[id]}</span>

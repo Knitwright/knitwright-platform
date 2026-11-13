@@ -79,7 +79,7 @@ export function Stage(props: Props) {
             {removable && props.onRemoveCallout ? (
               <Button
                 variant="ghost"
-                size="xs"
+                size="md"
                 iconOnly
                 aria-label={`Delete ${chip}`}
                 icon={<Icon icon={Trash2} size={16} />}
@@ -163,7 +163,7 @@ function FitCheck({ fit }: Readonly<{ fit: FitReport }>) {
     <Popover label="Check fit" title="Fit of the size run" variant="primary" icon={<Icon icon={Play} size={16} />} width={400}>
       <div className="flex flex-col gap-3 p-4" data-testid="tp-fit">
         <p className="text-body font-semibold text-text">{fit.summary}</p>
-        <ul className="flex max-h-80 flex-col gap-1.5 overflow-y-auto">
+        <ul tabIndex={0} aria-label="Each point of measure" className="flex max-h-80 flex-col gap-1.5 overflow-y-auto rounded-sm focus-visible:ring-2 focus-visible:ring-electric">
           {fit.lines.map((line) => (
             <li key={line.letter} className="flex gap-2 text-small text-text-2">
               <span
@@ -215,14 +215,14 @@ function PlaceCallout({ picked, busy, onKeep, onCancel }: PlaceProps) {
             className="min-w-0 flex-1"
             autoFocus
           />
-          <Button type="submit" size="sm" disabled={busy || note.trim() === ""}>
+          <Button type="submit" size="md" disabled={busy || note.trim() === ""}>
             Add callout
           </Button>
         </>
       ) : (
         <p className="flex-1 text-small text-text-2">Press the garment where the callout goes.</p>
       )}
-      <Button variant="secondary" size="sm" onClick={onCancel}>
+      <Button variant="secondary" size="md" onClick={onCancel}>
         Cancel
       </Button>
     </form>
