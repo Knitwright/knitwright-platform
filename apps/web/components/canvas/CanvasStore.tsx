@@ -10,7 +10,8 @@ import { createCanvasStore, type CanvasState, type CanvasStore } from "@/lib/can
  *   const scale = useCanvas((state) => state.viewport.scale);
  *   const store = useCanvasStore();   // the commands: select, toggle, zoomTo, fit, reveal…
  *
- * A selector must return a part of the state, or a primitive: the store replaces only what changed,
+ * A selector must return a part of the state, or a primitive -- never a new object or array, which
+ * would never settle (`useSyncExternalStore` compares by identity): the store replaces only what changed,
  * so a selector over an unchanged part returns the same object and nothing re-renders.
  */
 

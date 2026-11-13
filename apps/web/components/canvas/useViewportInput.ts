@@ -66,6 +66,8 @@ export function useViewportInput(ref: RefObject<HTMLElement | null>, { store, ca
       const empty = event.button === 0 && event.target === event.currentTarget;
       if (!pan && !empty) return;
       event.preventDefault();
+      // Preventing the default also keeps focus where it was; the canvas takes it, so its keys work.
+      event.currentTarget.focus({ preventScroll: true });
       event.currentTarget.setPointerCapture(event.pointerId);
       const at = local(event.currentTarget, event);
       drag.current = { mode: pan ? "pan" : "marquee", last: at, moved: false, additive: event.shiftKey };

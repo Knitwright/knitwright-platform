@@ -6,7 +6,7 @@ import {
   connectorsBetween,
   contentBounds,
   marqueeHits,
-  marqueeRect,
+  rectFromPoints,
   nextInOrder,
   visibleBoards,
   visibleConnectors,
@@ -56,7 +56,10 @@ export function InfiniteCanvas({ graph, renderBoard, initialScale = 1, children 
   const viewport = useCanvas((state) => state.viewport);
   const screen = useCanvas((state) => state.screen);
   const selection = useCanvas((state) => state.selection);
-  const marquee = useCanvas(marqueeRect);
+  // The drag itself is read (a stable part of the state); its rectangle is worked out here, because a
+  // selector that built a new object on every read would never settle.
+  const dragged = useCanvas((state) => state.marquee);
+  const marquee = dragged === null ? null : rectFromPoints(dragged.from, dragged.to);
   const opened = useRef(false);
 
   const fit = () => store.fit(contentBounds(graph.boards), PAD);

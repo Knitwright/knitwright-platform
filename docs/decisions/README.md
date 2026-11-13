@@ -155,5 +155,6 @@ here is superseded. Owner questions are collected in `docs/owner/questionnaire-2
 | 0141 | [AI Studio](0141-ai-studio.md) | Accepted; /ai-studio is the workflows hub, every launch workflow of `09` has a page wired to what exists, three deterministic workflows added, paid ones honest when off, crest to kit and benchmarks moved with 308s |
 | 0142 | [The Products area](0142-the-products-area.md) | Accepted; /products replaces /catalogue, /catalogue/[code] and /brands/fabrics (308), Design this opens a configurator that makes the design on that base with its options, nothing priced or dated that no row holds |
 | 0144 | [Team, Brand, Settings and the plans modal](0144-team-brand-settings-and-the-plans-modal.md) | Accepted; /club and /collect become /team (Roster · Approvals · Seasons, with the roster-retention opt-in), /brand-studio becomes /brand (empty and filled Kittl layouts), /settings gets its cards and a stored garment unit, and Upgrade and every ♛ gate open Choose Your Plan from placeholder plan rows |
+| 0145 | [One infinite canvas](0145-one-infinite-canvas.md) | Accepted; /project/<id> for every design and launch canvas (/studio/<id> and /launch/<id> 308 to it); infinite plane with pan, zoom, culling and marquee; the canvas store E2–E5 read; garment, tech_pack and order kinds; a home canvas per design |
 
 <!-- End of the generated table. -->
