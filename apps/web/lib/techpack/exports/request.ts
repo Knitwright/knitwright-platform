@@ -31,9 +31,15 @@ export function exportQuerySchema(format: ExportFormat) {
   const shared = { version: versionSchema.optional(), colourway: colourwaySchema.optional() };
   if (format === "svg") return z.strictObject({ ...shared, view: z.enum(EXPORT_VIEWS) });
   if (format === "pdf") return z.strictObject({ ...shared, language: z.enum(LANGUAGES).optional() });
-  return z.strictObject(shared);
+  // `layout=sheets` asks for the eight-sheet workbook of the sheets preview (spec screen 31, decision 0151).
+  return z.strictObject({ ...shared, layout: z.enum(EXPORT_LAYOUTS).optional() });
 }
+/** The Excel layouts: the eight sheets of the v3.9 preview. Left out, the eleven-tab factory workbook. */
+export const EXPORT_LAYOUTS = ["sheets"] as const;
+export type ExportLayout = (typeof EXPORT_LAYOUTS)[number];
+
 export type ExportQuery = Readonly<{
+  layout?: ExportLayout;
   version?: number;
   colourway?: string;
   view?: (typeof EXPORT_VIEWS)[number];
