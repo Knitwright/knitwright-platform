@@ -1,5 +1,7 @@
+import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { DesignImportPanel } from "@/components/design-import/DesignImportPanel";
+import { GarmentStudio } from "@/components/garment-studio/GarmentStudio";
 import { KitStylesLink } from "@/components/kit-styles/KitStylesLink";
 import { OrganisationPrompt } from "@/components/leads/OrganisationPrompt";
 import { QuoteRequest } from "@/components/leads/QuoteRequest";
@@ -8,9 +10,12 @@ import { DesignIdProvider } from "@/components/production/DesignId";
 import { PhotorealPanel } from "@/components/studio/PhotorealPanel";
 import { baseArticleForType, getBaseArticle } from "@/lib/catalogue";
 import { brandChartSet } from "@/lib/charts/service";
+import { loadRecord } from "@/lib/brand-studio/service";
 import { getEnv } from "@/lib/config/env";
 import { designImportEnabled } from "@/lib/design-import/switch";
 import { editorPageState } from "@/lib/editor";
+import { clubLibrary } from "@/lib/garment-studio/library";
+import { parseShelf } from "@/lib/garment-studio/shelves";
 import { loadIllustrations } from "@/lib/images/illustrations";
 import { latestImages } from "@/lib/images/service";
 import { countryOptions } from "@/lib/leads/organisation";
@@ -27,7 +32,6 @@ import { log } from "@/lib/server/log";
 import { createFileReader } from "@/lib/storage/read";
 import { shrinkForDrawing } from "@/lib/storage/thumbnail";
 import { readValidationResults } from "@/lib/validation/results";
-import { EditorShell } from "./EditorShell";
 
 /**
  * The design editor for one garment, read on the server (moved here from the old
@@ -44,7 +48,10 @@ const orNotFound = (error: unknown): never => {
   throw error;
 };
 
-export async function GarmentEditor({ brandId, projectId, query }: Readonly<{ brandId: string; projectId: string; query: Query }>) {
+/** Where the studio sits: the canvas it goes back to, the brand it belongs to and its credits. */
+type Place = Readonly<{ brandName: string; backHref: Route; canvasName: string; credits: number | null }>;
+
+export async function GarmentEditor({ brandId, projectId, query, place }: Readonly<{ brandId: string; projectId: string; query: Query; place: Place }>) {
   const colourway = colourwayParam(query.colourway);
   const client = await sessionClient();
 
@@ -56,7 +63,7 @@ export async function GarmentEditor({ brandId, projectId, query }: Readonly<{ br
 
   const reader = createFileReader(client, brandId);
   const articleCode = project.spec.article?.baseArticleCode ?? baseArticleForType(project.spec.typeId) ?? null;
-  const [pictures, illustrations, leads, conversation, article, results] = await Promise.all([
+  const [pictures, illustrations, leads, conversation, article, results, brandRecord] = await Promise.all([
     loadArtworkImages(reader, shrinkForDrawing, project.spec),
     latestImages(client, brandId, projectId).then((latest) => loadIllustrations(reader, latest)),
     loadDesignLeads(client, brandId, projectId, new Date()),
@@ -64,13 +71,21 @@ export async function GarmentEditor({ brandId, projectId, query }: Readonly<{ br
     // A catalogue the design cannot be read against must not stop the editor opening.
     articleCode ? getBaseArticle(client, articleCode).catch(() => null) : Promise.resolve(null),
     readValidationResults(client, brandId, projectId, project.currentVersion).catch(() => []),
+    // The club's palettes and uploads for the studio's library (decision 0150). A brand kit that
+    // cannot be read leaves those panels saying so; it never stops the studio opening.
+    loadRecord(client, { id: brandId, name: place.brandName }).catch(() => null),
   ]);
 
   const state = editorPageState({ query, article, sizing: project.spec.sizing });
 
   return (
     <DesignIdProvider projectId={projectId}>
-    <EditorShell
+    <GarmentStudio
+      backHref={place.backHref}
+      canvasName={place.canvasName}
+      credits={place.credits}
+      club={clubLibrary(brandRecord, place.brandName)}
+      shelf={parseShelf(query.shelf)}
       data={buildEditorData(project, history, charts, pictures, colourway)}
       assistant={{ available: assistantAvailable(), conversation }}
       show3d={getEnv().SHOW_3D}
