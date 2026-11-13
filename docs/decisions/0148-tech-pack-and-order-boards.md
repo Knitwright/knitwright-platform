@@ -24,16 +24,18 @@ E2 builds the right panel's header with Share · Export · Order in parallel, so
      area): "Sample order · KW-…", pieces, price or "price on the invoice", ready date or "not set", the status
      chip and F-T7's seven steps, **Tracking** (`/orders/<id>`) and **Order again**; before any order, "No order
      yet" and **Order**, which opens the drawer.
-2. **The open/close API** (`OrderBoardsContext.tsx`). `OrderBoardsProvider` (mounted by `/project/[id]` and
-   `/dev/canvas` around the launch shell) carries the boards' data and `useProjectPanels()` →
-   `{ panel, open(id), toggle(id), close() }` for `share | export | order`. `ProjectPanels` draws the open one,
-   fixed under the top-right cluster, so any button anywhere can open it; `ProjectActions` is the three buttons,
-   mounted in the launch shell's header with one line until E2's right panel takes them (E2 may mount
-   `ProjectActions` or call `toggle` from its own buttons). Esc, × or a press outside closes; focus returns to
-   where it was. A button marked `data-project-panel-trigger` toggles without counting as "outside".
+2. **Mounting and the open/close API.** E2's right panel (0146) owns the Share · Export · Order buttons; E4 fills
+   its slots (`components/editor-chrome/slots.ts`: `ShareSlot`, `ExportSlot`, `OrderSlot`), and a filled slot
+   draws E4's own framed dialog instead of E2's box. `OrderBoardsProvider` (mounted by `/project/[id]` and
+   `/dev/canvas` around the launch shell) carries the boards' data, the garment previews, and
+   `useProjectPanels()` → `{ panel, open(id), toggle(id), close() }` for `share | export | order`, which an Order
+   board's button and `/dev/canvas?panel=` use; `ProjectPanels` (one line in the launch shell) draws that one.
+   Every panel is fixed under the right panel's buttons. Esc, × or a press outside closes it; the button that
+   opened it toggles it.
 3. **Which design.** The selected garment board's design, or the garment feeding a selected tech pack or order
-   board, else the canvas's first design (`designFor`). The **Order** button is disabled with a tooltip until
-   that design's last stored validation passed (`orderGate`, `08` §5.1). That is the early word only.
+   board, else the canvas's first design (`designFor`). Until that design's last stored validation passed
+   (`orderGate`, `08` §5.1) the drawer's Sample and Run tabs say why instead of showing the forms. That is the
+   early word only; the server's gate is the check.
 4. **The Order drawer** (`OrderDrawer.tsx`). Tabs Sample · Run · Team store · Quote PDF. Its data is read when it
    opens (`loadOrderDrawerAction`: `loadMake` + this design's order products), with loading, error/Try again,
    and no-permission states. **Sample** and **Run** are the make flow's `SampleForm` and `SelectSizes`, so every
@@ -63,7 +65,7 @@ E2 builds the right panel's header with Share · Export · Order in parallel, so
 ## Consequences
 
 - No table, no migration, no new route; `lib/order-boards` is held to 90% coverage.
-- E2 mounts or replaces the three buttons; the panels stay where they are. The tech pack and order inspectors
+- E2's buttons open E4's panels through its slots. The tech pack and order inspectors
   (e20, e21 right panel) are left to whoever builds the inspector by selection; the boards carry the same facts.
 - Owner questions (defaults in brackets): should the factory desk be a real invitee with tech-pack-only access
   [no: a fixed row, the order is the hand-over]; should Order open for a design whose checks were never run

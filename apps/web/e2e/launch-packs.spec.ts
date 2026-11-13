@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { accessible, settled } from "./chrome";
-import { createAccount, signIn, test } from "./support";
+import { createAccount, openEditorPanel, signIn, test } from "./support";
 
 /**
  * THE LAUNCH PACKS, AND GETTING RID OF A LAUNCH PROJECT (decision 0124).
@@ -48,7 +48,7 @@ const deleteRow = (page: Page, name: string): Locator =>
     .getByRole("link", { name: /^Delete row/ });
 
 const openTemplates = async (page: Page): Promise<void> => {
-  await page.getByRole("tablist", { name: "Panels" }).getByRole("tab", { name: "Templates", exact: true }).click();
+  await openEditorPanel(page, "Templates");
 };
 
 /** Settled first, so a width is the width a person sees rather than the entrance's (see `settled`). */
@@ -100,7 +100,7 @@ test.describe("the launch packs", () => {
     // And the boards are really there when the canvas is read again.
     await page.reload();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-    await expect(page.getByTestId("launch-shell")).toContainText(/\d+ boards/);
+    await expect(page.getByTestId("canvas-boards")).not.toHaveAttribute("data-count", "0");
   });
 
   test("works at phone width, where the rail and the panel stack", async ({ page }) => {

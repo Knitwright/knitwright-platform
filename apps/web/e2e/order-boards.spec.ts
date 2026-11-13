@@ -83,7 +83,7 @@ test.describe("the project panels", () => {
   test("Export offers the garment's files and Share has Link, Invite and the factory desk", async ({ page }) => {
     const id = await startDesign(page, `Panel kit ${randomUUID().slice(0, 6)}`);
 
-    await page.getByTestId("project-export").click();
+    await page.getByTestId("editor-export").click();
     const exporting = page.getByRole("dialog", { name: "Export" });
     await expect(exporting).toBeVisible();
     await expect(exporting.getByTestId("export-techpack-xlsx")).toHaveAttribute("href", new RegExp(`/api/projects/${id}/exports/xlsx\\?version=\\d+$`));
@@ -91,7 +91,7 @@ test.describe("the project panels", () => {
     await page.keyboard.press("Escape");
     await expect(exporting).toBeHidden();
 
-    await page.getByTestId("project-share").click();
+    await page.getByTestId("editor-share").click();
     const sharing = page.getByRole("dialog", { name: "Share project" });
     await expect(sharing.getByRole("button", { name: "Make a share link" })).toBeVisible();
     await sharing.getByRole("radio", { name: "Invite" }).click();

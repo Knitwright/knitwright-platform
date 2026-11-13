@@ -694,3 +694,16 @@ a.text-cobalt-soft {
   color: var(--color-text);
 }
 
+
+/*
+ * The editor fills the window (plan v6 E2, decision 0146; 08 §5.1 "no full-width top bar"): on a
+ * page that draws the editor chrome the dashboard top bar is not drawn and the page has no padding.
+ * The bar is display:none rather than covered, so it is out of the tab order as well as out of sight;
+ * the rail's KW logo and its main menu are the way back.
+ */
+header:has(+ main [data-editor-chrome]) {
+  display: none;
+}
+main:has([data-editor-chrome]) {
+  padding: 0;
+}

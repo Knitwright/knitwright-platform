@@ -89,7 +89,7 @@ describe("the made-up data and the words", () => {
     const data = madeUpOrderBoards(D);
     expect(data.techPacks[D]?.needsInput).toBe(1);
     expect(data.orders[D]?.status).toBe("In production");
-    expect(NO_ORDER_BOARDS).toEqual({ brandName: "", canOrder: false, techPacks: {}, orders: {} });
+    expect(NO_ORDER_BOARDS).toEqual({ brandName: "", canOrder: false, techPacks: {}, orders: {}, garments: {} });
   });
 
   it("never promises the factory desk more than the tech pack, and says what is not built", () => {

@@ -37,7 +37,8 @@ export function PanelFrame({ title, onClose, onBack, width = 400, testId, childr
     const onPointer = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      if (panel.current?.contains(target) || target.closest(`[${PANEL_TRIGGER}]`)) return;
+      // The open panel's own trigger (ours, or E2's right-panel button) toggles it on its own press.
+      if (panel.current?.contains(target) || target.closest(`[${PANEL_TRIGGER}], [aria-haspopup="dialog"][aria-expanded="true"]`)) return;
       onClose();
     };
     const onKey = (event: KeyboardEvent) => {

@@ -377,7 +377,22 @@ export function useLaunchShell(input: ShellInput) {
     [input.launchProjectId, send],
   );
 
-  return { state, stack, commands, note, saveVersion, runCanvas, runOperation, remix, prompt, setPrompt, setNote, busy: pending };
+  /**
+   * The editor's Products flyout (E2, decision 0146): one of the brand's designs placed on the
+   * canvas as a Garment board. Not part of the panel contract, whose `addBoard` makes an empty board;
+   * the board is saved with the design it shows, as E1's mapping reads it (`settings.designProjectId`).
+   */
+  const placeGarment = useCallback(
+    (designProjectId: string, name: string, at: Point) => {
+      const place = freePlace(input.boards, at);
+      structural(() =>
+        saveBoardAction({ launchProjectId: input.launchProjectId, boardId: null, kind: "garment", name, x: place.x, y: place.y, settings: { designProjectId }, inputVersion: null }),
+      );
+    },
+    [input.boards, input.launchProjectId, structural],
+  );
+
+  return { state, stack, commands, note, saveVersion, runCanvas, runOperation, remix, placeGarment, prompt, setPrompt, setNote, busy: pending };
 }
 
 export type LaunchShellState = ReturnType<typeof useLaunchShell>;

@@ -11,6 +11,7 @@ export function madeUpOrderBoards(designId: string): OrderBoardsData {
   return {
     brandName: "Lahore Lions (made up)",
     canOrder: true,
+    garments: {},
     techPacks: {
       [designId]: techPackSummary({
         designProjectId: designId,

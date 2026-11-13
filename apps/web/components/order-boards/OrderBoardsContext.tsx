@@ -8,8 +8,8 @@ import { NO_ORDER_BOARDS, type OrderBoardsData, type ProjectPanelId } from "@/li
  * Share, Export and Order (plan v6 E4, decision 0148).
  *
  * THE OPEN/CLOSE API. Anything inside the provider opens a panel with `useProjectPanels().open(id)`
- * and closes it with `close()`: the buttons in `ProjectActions`, an Order board's "Order" button, and
- * E2's right-panel header when it lands. The panel itself is drawn once, by `ProjectPanels`, fixed to
+ * and closes it with `close()`: E2's right-panel buttons (through its slots), an Order board's "Order" button and
+ * `/dev/canvas?panel=`. The panel is drawn by `ProjectPanels` (or an E2 slot), fixed to
  * the top right of the window, so it does not matter where the button that opened it sits. Closing
  * puts focus back on whatever had it when the panel opened.
  */

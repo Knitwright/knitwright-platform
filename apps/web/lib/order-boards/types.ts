@@ -1,3 +1,5 @@
+import type { GarmentPreview } from "@/lib/canvas/types";
+
 /**
  * What the Tech pack and Order boards of the one canvas show (plan v6 E4, decision 0148). Read on the
  * server by `server.ts`, handed to the canvas through `OrderBoardsProvider`, and plain data all the
@@ -61,9 +63,11 @@ export interface OrderBoardsData {
   readonly canOrder: boolean;
   readonly techPacks: Readonly<Record<string, TechPackSummary | null>>;
   readonly orders: Readonly<Record<string, OrderStateSummary | null>>;
+  /** What every garment board shows, by design id (`lib/canvas/server.ts`): which design the panels act on. */
+  readonly garments: Readonly<Record<string, GarmentPreview | null>>;
 }
 
-export const NO_ORDER_BOARDS: OrderBoardsData = { brandName: "", canOrder: false, techPacks: {}, orders: {} };
+export const NO_ORDER_BOARDS: OrderBoardsData = { brandName: "", canOrder: false, techPacks: {}, orders: {}, garments: {} };
 
 /** The three project panels: Share, Export and Order (`components/order-boards/OrderBoardsContext.tsx`). */
 export const PROJECT_PANELS = ["share", "export", "order"] as const;

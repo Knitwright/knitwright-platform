@@ -72,5 +72,6 @@ export async function loadOrderBoards(
     Promise.all(techIds.map(async (id) => [id, await techPackOf(client, member.brandId, id)] as const)).then((pairs) => Object.fromEntries(pairs)),
     ordersOf(client, member.brandId, designsLinkedBy(graph, "order")),
   ]);
-  return { brandName: member.brandName, canOrder: member.canOrder, techPacks, orders };
+  // `garments` is the page's own `garmentPreviews`, laid over this by the page so it is read once.
+  return { brandName: member.brandName, canOrder: member.canOrder, techPacks, orders, garments: {} };
 }
