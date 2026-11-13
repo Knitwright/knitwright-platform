@@ -69,4 +69,6 @@ export const PUBLIC_PAGES = [
   "app/dev/channels/page.tsx",
   // G2's tech pack editor and sheets with made-up data (decision 0151), for s08–s15 and x01–x08. Same switch as /dev/ui.
   "app/dev/tech-pack/page.tsx",
+  // C5's Store tabs with made-up sales and payouts (decision 0156), for p14, p15, p17 and p18. Same switch as /dev/ui.
+  "app/dev/store/page.tsx",
 ] as const;

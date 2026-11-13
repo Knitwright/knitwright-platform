@@ -134,6 +134,11 @@ const envSchema = z.object({
   // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
   // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
   PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
+  // Seller payouts through Stripe Connect Express (plan v6 C5, decision 0156). "on" only once Connect is switched on
+  // in the Stripe account (an owner action); it also needs the Connect endpoint's own webhook signing secret, which
+  // the same webhook route checks. Without both, payouts are shown as not switched on yet.
+  STRIPE_CONNECT: z.enum(["on", "off"]).optional(),
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().regex(/^whsec_\S{8,240}$/).optional(),
   // Sales channels (plan v6 C4, decision 0155). Server only. The Shopify app's client id and secret from the
   // owner's Shopify Partner app (docs/runbooks/shopify-app.md); both or neither. The secret checks every OAuth
   // return and webhook (HMAC). Never set where tests run.

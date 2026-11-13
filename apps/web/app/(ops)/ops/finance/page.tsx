@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { DepositForm, PaymentSettingsForm } from "@/components/payments/ops/FinanceForms";
 import { FigureCard, PaymentList } from "@/components/payments/ops/FinanceView";
+import { LiabilityCards, RunPayouts, WaitingSales } from "@/components/store-pages/OpsPayouts";
 import { loadFinance } from "@/lib/payments/ops-read";
 import { percentOf } from "@/lib/payments/amounts";
+import { loadPayoutsOps } from "@/lib/store-pages/ops-read";
 import { adminClient, sessionClient } from "@/lib/server/deps";
 import { requirePlatformAdmin } from "@/lib/server/page-guards";
 
@@ -15,7 +17,8 @@ export const metadata: Metadata = { title: "Ops: finance", robots: { index: fals
  */
 export default async function OpsFinancePage() {
   const session = await requirePlatformAdmin();
-  const view = await loadFinance(await sessionClient(), adminClient(), session.userId);
+  const client = await sessionClient();
+  const [view, payouts] = await Promise.all([loadFinance(client, adminClient(), session.userId), loadPayoutsOps(client, adminClient(), session.userId)]);
   return (
     <main id="main" className="rise flex flex-col gap-8">
       <header>
@@ -34,6 +37,17 @@ export default async function OpsFinancePage() {
             <FigureCard key={figures.currency} figures={figures} />
           ))}
         </div>
+      </section>
+      {/* Plan v6 C5 (decision 0156): what Knitwright holds that is the sellers', reported apart from the figures above. */}
+      <section aria-labelledby="seller-payouts" className="flex flex-col gap-3">
+        <h2 id="seller-payouts" className="text-h3 text-text">
+          Seller payouts
+        </h2>
+        <p className="text-body text-muted">Sellers are paid weekly for delivered sales: their margin less refunds, less what earlier payouts paid.</p>
+        <LiabilityCards liability={payouts.liability} />
+        <RunPayouts />
+        <h3 className="text-body font-semibold text-text">Waiting for delivery</h3>
+        <WaitingSales sales={payouts.waiting} />
       </section>
       <section aria-labelledby="deposit" className="flex flex-col gap-3">
         <h2 id="deposit" className="text-h3 text-text">

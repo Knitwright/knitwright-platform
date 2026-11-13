@@ -980,6 +980,58 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ payment_id: randomUUID(), brand_id: brandId, request_key: randomUUID(), door: "make", product_id: randomUUID(), project_id: randomUUID(), kind: "run", release_id: randomUUID(), factory_profile_id: "f", fabric_key: "m", sizes: { M: 300 }, pieces: 300 }),
     change: { sizes: { M: 300 }, pieces: 300 },
   },
+  // Plan v6 C5 (decision 0156): a brand's store settings, its Stripe Connect account, its sales and the weekly payouts
+  // with what each paid per sale. A member reads; only the server writes, through functions.
+  store_settings: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("set_store_settings", { p_actor: ownerId, p_brand_id: brandId, p_eu_rp_name: "EU Rep", p_eu_rp_address: "Berlin", p_eu_rp_email: "rep@example.com", p_brand_contact: "", p_lucid_number: "" }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, eu_rp_name: "Made directly" }),
+    change: { eu_rp_name: "Changed by a stranger" },
+  },
+  seller_accounts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedSellerPayout(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, provider: "test", provider_account_id: `acct_${randomUUID()}`, country: "GB", payouts_enabled: true }),
+    change: { payouts_enabled: false, provider_account_id: "acct_stolen" },
+  },
+  seller_sales: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedSellerPayout(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, channel: "storefront", source_ref: randomUUID(), product_name: "Made directly", quantity: 1, currency: "GBP", retail_minor: 100, base_minor: 0, shipping_minor: 0, duty_minor: 0, channel_fee_minor: 0, knitwright_fee_minor: 0, margin_minor: 100 }),
+    change: { refunded_minor: 0, delivered_at: "2026-01-01T00:00:00Z", delivered_by: "ops" },
+  },
+  seller_payouts: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedSellerPayout(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, currency: "GBP", amount_minor: 100000, provider: "test", provider_account_id: "acct_x" }),
+    change: { amount_minor: 100000 },
+  },
+  seller_payout_lines: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      await seedSellerPayout(brandId, ownerId);
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ payout_id: randomUUID(), brand_id: brandId, sale_id: randomUUID(), amount_minor: 100000 }),
+    change: { amount_minor: 100000 },
+  },
   // Plan v6 C4 (decision 0155): a brand's listings on its connected shop and the order lines its channels sent. A
   // member reads; only the server writes, through functions. The shop's token is in the private schema.
   channel_listings: {
@@ -1800,6 +1852,25 @@ const seedPayment = async (brandId: string, ownerId: string): Promise<string> =>
   return id;
 };
 
+/** Plan v6 C5 (decision 0156): a platform admin to confirm deliveries, made once. */
+let payoutOps: Promise<string> | null = null;
+const payoutOpsId = (): Promise<string> =>
+  (payoutOps ??= person("payout-ops").then(async (ops) => {
+    must(await adminClient().from("platform_admins").insert({ user_id: ops.userId }).select("user_id"));
+    return ops.userId;
+  }));
+
+/** A sale of the brand, delivered, with a Connect account that can be paid, and this week's payout prepared. */
+const seedSellerPayout = async (brandId: string, ownerId: string): Promise<void> => {
+  const account = must(await adminClient().rpc("open_seller_account", { p_actor: ownerId, p_brand_id: brandId, p_provider: "test", p_account_id: `acct_test_kw_${randomUUID().replaceAll("-", "")}`, p_country: "GB" })) as string;
+  must(await adminClient().rpc("update_seller_account", { p_account_id: account, p_details_submitted: true, p_charges_enabled: true, p_payouts_enabled: true, p_requirements_due: 0, p_disabled_reason: null }));
+  const sale = must(
+    await adminClient().rpc("record_seller_sale", { p_brand_id: brandId, p_channel: "storefront", p_source_ref: `iso-${randomUUID()}`, p_product_id: null, p_product_name: "Seeded shirt", p_quantity: 1, p_currency: "GBP", p_retail_minor: 4500, p_base_minor: 2500, p_shipping_minor: 120, p_duty_minor: 314, p_channel_fee_minor: 88, p_knitwright_fee_minor: 0, p_order_id: null }),
+  ) as string;
+  must(await adminClient().rpc("confirm_seller_sale_delivered", { p_actor: await payoutOpsId(), p_sale_id: sale }));
+  must(await adminClient().rpc("prepare_seller_payouts", { p_as_of: new Date().toISOString() }));
+};
+
 /**
  * A golden sample of a product, judged the way the server judges one (plan v5 Y7, decision 0080). The release
  * carries a design version, because a golden sample records which version it was cut from. With `signedOff` it
@@ -2229,6 +2300,26 @@ const SHARED_TABLES: Readonly<Record<string, SharedTableSpec>> = {
     change: { text: "Made directly" },
   },
   // Plan v5 Z4 (decision 0085): freight per piece to a destination, and the basis duty is charged on.
+  // Plan v6 C5 (decision 0156): the payout settings, each channel's fee and the parcel branding options, labelled
+  // placeholders read by the margin calculator and the Branding tab. Nobody writes them from a browser.
+  seller_payout_settings: {
+    privileges: ["SELECT"],
+    row: { id: true },
+    attempt: { id: false, label: "Made directly" },
+    change: { knitwright_fee_bps: 5000 },
+  },
+  seller_channel_fees: {
+    privileges: ["SELECT"],
+    row: { channel: "storefront", currency: "GBP" },
+    attempt: { channel: "api", currency: "GBP", percent_bps: 0, fixed_minor: 0, label: "Made directly" },
+    change: { percent_bps: 0 },
+  },
+  store_branding_options: {
+    privileges: ["SELECT"],
+    row: { id: "neck_labels" },
+    attempt: { id: "made_directly", name: "Made", description: "Made", details: "Made", sort: 9 },
+    change: { cost_from_minor: 0 },
+  },
   collection_freight_rates: {
     privileges: ["SELECT"],
     row: { country: "GB" },

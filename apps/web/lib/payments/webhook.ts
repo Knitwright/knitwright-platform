@@ -5,6 +5,7 @@ import { parseEvent, type PaymentEvent } from "./events";
 import type { ProviderName } from "./provider";
 import { verifySignature } from "./signature";
 import type { PaymentRow, PaymentsStore } from "./store";
+import type { ConnectEvent } from "@/lib/store-pages/connect-events";
 
 /**
  * THE WEBHOOK (plan v6 C1, decision 0152). One function for Stripe's endpoint and the test checkout:
@@ -27,6 +28,12 @@ export type WebhookDeps = Readonly<{
   store: PaymentsStore;
   fulfil: (paymentId: string) => Promise<unknown>;
   log: (event: LogEvent) => void;
+  /**
+   * Plan v6 C5 (decision 0156): seller payouts. Stripe signs events from connected accounts at its separate Connect
+   * endpoint with that endpoint's own secret; either secret is accepted. The handler acts on a Connect event.
+   */
+  connectSecret?: string;
+  connect?: (event: ConnectEvent) => Promise<string>;
 }>;
 
 export type WebhookAnswer = Readonly<{ status: 200 | 400 | 500; message: string }>;
@@ -103,13 +110,16 @@ async function act(deps: WebhookDeps, event: PaymentEvent): Promise<string> {
       return "subscription";
     case "invoice_paid":
       return onInvoicePaid(deps, event);
+    case "connect":
+      return deps.connect ? deps.connect(event.event) : "ignored";
     case "ignored":
       return "ignored";
   }
 }
 
 export async function receiveWebhook(deps: WebhookDeps, raw: string, signature: string | null): Promise<WebhookAnswer> {
-  const check = verifySignature(signature, raw, deps.secret, deps.nowSeconds());
+  const first = verifySignature(signature, raw, deps.secret, deps.nowSeconds());
+  const check = first.ok || !deps.connectSecret ? first : verifySignature(signature, raw, deps.connectSecret, deps.nowSeconds());
   if (!check.ok) return { status: 400, message: `Signature ${check.reason}.` };
   const parsed = parseEvent(raw);
   if (parsed === null) return { status: 400, message: "Not an event this endpoint reads." };
