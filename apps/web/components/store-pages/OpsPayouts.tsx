@@ -12,7 +12,7 @@ import type { SaleRow } from "@/lib/store-pages/store";
 /**
  * Seller payouts on /ops/finance (plan v6 C5, decision 0156; F-G4 "every payout is reconciled against delivered
  * orders"): what Knitwright holds that is the sellers', per currency, beside C1's figures and never added to them;
- * the weekly run, pressable by hand; and the oldest sales waiting for delivery, which ops may confirm.
+ * the weekly run, pressable by hand; and the newest sales waiting for delivery, which ops may confirm.
  */
 
 function useRun() {
@@ -79,11 +79,11 @@ export function RunPayouts() {
 
 export function WaitingSales({ sales }: Readonly<{ sales: readonly SaleRow[] }>) {
   const { pending, note, run } = useRun();
-  if (sales.length === 0) return <p className="text-body text-muted">No sale is waiting for delivery.</p>;
   return (
     <div className="flex flex-col gap-3">
       <Said note={note} />
-      <ul className="flex flex-col gap-2" aria-label="Sales waiting for delivery">
+      {sales.length === 0 ? <p className="text-body text-muted">No sale is waiting for delivery.</p> : null}
+      <ul hidden={sales.length === 0} className="flex flex-col gap-2" aria-label="Sales waiting for delivery">
         {sales.map((sale) => (
           <li key={sale.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border p-3">
             <span className="text-body text-text">
