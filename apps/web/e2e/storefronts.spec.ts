@@ -122,7 +122,7 @@ test.describe("storefronts (C3)", () => {
     await shopper.getByLabel("Size", { exact: true }).selectOption("L");
     await shopper.getByLabel("Email").fill(`fan-${Date.now()}@example.test`);
     await shopper.getByRole("button", { name: /^Buy/ }).click();
-    await expect(shopper.getByRole("alert")).toContainText("Tick to confirm the size.");
+    await expect(shopper.getByRole("form", { name: "Buy" }).getByRole("alert")).toContainText("Tick to confirm the size.");
     await shopper.getByLabel(/I have compared the size chart/).check();
     await shopper.getByLabel(/I have read the/).check();
     await shopper.getByRole("button", { name: "Buy · £28.00" }).click();
