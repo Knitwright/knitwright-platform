@@ -69,7 +69,7 @@ export function Stage(props: Props) {
       className="relative flex min-h-120 flex-1 flex-col overflow-hidden rounded-2xl bg-muted"
       data-testid="tp-stage"
     >
-      <div className="absolute inset-x-4 top-4 z-10 flex items-start justify-end gap-3">
+      <div className="pointer-events-none absolute inset-x-4 top-4 z-10 flex items-start justify-end gap-3 [&>*]:pointer-events-auto">
         {chip ? (
           <span
             className="mr-auto ml-auto inline-flex h-10 items-center gap-2 rounded-lg bg-bg px-4 text-body font-semibold text-text shadow-e1"
@@ -116,7 +116,7 @@ export function Stage(props: Props) {
           }}
         />
       ) : null}
-      <div className="absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-2">
+      <div className="pointer-events-none absolute inset-x-4 bottom-4 flex flex-wrap items-end justify-between gap-2 [&>*]:pointer-events-auto">
         <SizePicker sizes={props.sizes} size={props.size} onSize={props.onSize} />
         {points.notDrawn.length > 0 ? (
           <p className="rounded-md bg-bg px-3 py-1.5 text-caption text-text-2" data-testid="tp-not-drawn">
