@@ -104,7 +104,10 @@ begin
   else
     new.design_project_id := null;
   end if;
-  if new.kind = 'garment' and new.design_project_id is null then
+  -- Only a board being made, or re-pointed, must name a design. A design being removed nulls the
+  -- reference through the foreign key; the board stays (on another canvas) and says the design is gone.
+  if new.kind = 'garment' and new.design_project_id is null
+     and (tg_op = 'INSERT' or new.settings is distinct from old.settings or new.kind is distinct from old.kind) then
     raise exception 'A garment board shows one of your designs. Choose the design first.'
       using errcode = 'P0001', hint = 'garment_without_design';
   end if;
