@@ -30,7 +30,7 @@ export default async function CreditsPage() {
         </p>
       </PageSection>
 
-      <PageSection id="buy" title="Get more credits" description="Paid by card through Stripe. The credits are added as soon as the payment is confirmed.">
+      <PageSection id="buy" title="Get more credits" description="Paid by card through Stripe. The credits are added as soon as Stripe says the payment went through.">
         <BuyCredits packs={creditPacks()} canBuy={can(brand.role, "manageMembers")} label={CREDIT_PACK_LABEL} />
       </PageSection>
 
