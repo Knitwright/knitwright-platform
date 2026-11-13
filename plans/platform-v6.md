@@ -334,6 +334,13 @@ page it replaces, with a redirect.
 - **Articles:** the seven remaining articles stay blocked on the factory's pattern master (v5 decision 10). Not a
   workstream until it arrives.
 
+## Round 6 follow-ups (parallel with C6, before A2)
+
+- **X1. Commerce follow-ups** · 0158: the loose ends C1–C6 left (their decision records' "left" lists, and the gaps
+  0157 names).
+- **X2. Editor polish** · 0159: the editor and tech pack editor's open defects (the callout reload flake among them).
+- **X3. Visual verification** · 0160: screenshot the /dev fixtures and each screen at 1440×900 against the references.
+
 ## Assigned identifiers (do not change)
 
 | Decision | Workstream | Migration |
@@ -346,3 +353,9 @@ page it replaces, with a redirect.
 | 0150, 0151 | G1, G2 | `20261226010000`, `20261226020000`, only if needed |
 | 0152–0157 | C1–C6 | as listed above |
 | 0155 | C4 | `20261228050000`, assigned by the orchestrator because channel connections need storage |
+| 0157 | C6 | — |
+| 0158 | X1 commerce follow-ups | `20261230010000`, only if needed |
+| 0159 | X2 editor polish | — |
+| 0160 | X3 visual verification | — |
+| 0161 | A2 mockup scenes | `20261230020000`, only if needed |
+| 0162 | A1 live-provider verification | — |

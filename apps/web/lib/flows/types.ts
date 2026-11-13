@@ -12,7 +12,7 @@ import type { BoardKind } from "@/lib/launch";
  *      every failure;
  *   3. the three board operations the spec's task bar names -- Flatten, Upscale and Reframe;
  *   4. what a finished run hands on: a run summary, a zip with a folder per format, and a listing
- *      payload the Store (wave 5, O2) collects. A flow never publishes anything itself.
+ *      payload the listing editor reads as pictures (decision 0154). A flow never publishes anything itself.
  *
  * THE GARMENT IS ALWAYS LOCKED, AND A FLOW IS WHERE THAT IS EASIEST TO LOSE. A chain of boards is
  * the one place a generated picture could be passed hop by hop until something forgot where it came

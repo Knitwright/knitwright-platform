@@ -9,8 +9,9 @@ import { FLOW_GAP_RULE, type FlowFormat } from "./types";
  * Owner decision 1 keeps the Store out of this platform. There is no cart, no checkout, no price,
  * no payment and no storefront here, and there is no column in this workstream's tables that could
  * hold one. What the button does is write a **listing payload**: a plain, versioned record of which
- * finished pictures and clips of this run belong to a listing, which wave 5's Store contract (O2)
- * collects, exactly as a collection drop is collected (decision 0085).
+ * finished pictures and clips of this run belong to a listing. The listing editor's mockup library reads
+ * it as a picture source (`lib/storefront/media.ts`, decision 0154); the outside Store contract that
+ * once collected it is retired (decision 0157).
  *
  * Two rules of the spec travel inside the payload rather than being left for the Store to remember:
  *

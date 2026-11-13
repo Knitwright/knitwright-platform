@@ -2,14 +2,13 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
 
 /**
- * The Store contract's reads, against the real database (plan v5 O2, decision 0106).
+ * The tables the Store contract used to read, against the real database (plan v5 O2, decision 0106).
  *
- * The endpoints answer a service and read **across brands**, which no member's session may do. The
- * route test proves the door — a signed-in member's own session opens nothing without the signed
- * token. This proves the other half, which only a database can: the tables behind those endpoints
- * are under row security, a member sees only their own brand's rows, a visitor with no session sees
- * nothing, and the rows the factory's figures come from are not reachable from a browser at all. So
- * even a caller who found the data path could not get the answer the service gets.
+ * The contract's endpoints are retired (decision 0157): the platform sells through its own storefronts
+ * and team stores now (decisions 0153, 0154). The database half of what it proved still matters and is
+ * kept: these tables are under row security, a member sees only their own brand's rows, a visitor with
+ * no session sees nothing, and the rows the factory's figures come from are not reachable from a browser
+ * at all. It also reads back the facts the storefront relies on (no AUD tier figure, no delivery date).
  *
  * Every test here reads. Nothing is inserted into a table the service role holds only SELECT on, so
  * running this suite leaves the shared database as it found it.

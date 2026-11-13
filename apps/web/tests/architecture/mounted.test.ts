@@ -72,7 +72,7 @@ const COMPONENT_GROUPS: readonly Group[] = [
 const ACTION_GROUPS: readonly Group[] = [
   {
     kind: "helper",
-    why: "The Store hand-off, and deliberately not ours: owner decision 1 keeps the Store out of this platform. 'Publish to store' publishes nothing -- the action appends a listing payload to flow_listings for wave 5's Store contract (O2) to collect, as a collection drop is collected. The door belongs to that contract, so no button in this repository may call it, and this entry is here so the next sweep does not re-find it as a bug.",
+    why: "The Flow run's 'Publish to store' hand-off: it appends a listing payload to flow_listings, which C3's listing editor reads as mockup pictures (lib/storefront/media.ts, decision 0154). The outside Store contract (O2) that once collected it is retired (decision 0157). FlowRunPanel's button takes an onPublishListing handler, but LaunchShell does not pass one yet, so nothing calls this action: a gap recorded in decision 0157 for the commerce follow-ups (X1).",
     pr: null,
     paths: ["lib/flows/actions.ts: publishFlowListingAction"],
   },

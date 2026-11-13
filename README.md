@@ -5,10 +5,11 @@ and the ops console behind Knitwright's made-to-order teamwear. A person describ
 configures a design; the platform turns it into a factory-ready package with a source on every value;
 and ops takes the order through a weekly batch to the factory, quality control, packing and shipping.
 
-This repository is the platform only. The Store and Sell storefronts (cart, checkout, payment, team
-stores, club sites) are separate. There are two doors between them: the database function
-`submit_order_for_production` (`docs/decisions/0043-ops-console-batches.md`) and the read-only Store
-contract (`docs/store-contract-v2.md`).
+Since plan v6 the Store is built here (decision 0131): checkout and payments, team stores and club
+pages, storefronts and drops, sales channels, and seller payouts (decisions 0152 to 0156). The
+read-only Store contract an outside Store would have read is retired
+(`docs/decisions/0157-retire-the-store-contract.md`). Production is still entered through
+`submit_order_for_production` (`docs/decisions/0043-ops-console-batches.md`).
 
 **The platform cannot place a real order today**, for six reasons, four of which are purchases or
 decisions only the owner can make. They are set out at the top of
@@ -21,7 +22,7 @@ know what state this is actually in.
 |---|---|
 | New to the code | [`docs/architecture.md`](docs/architecture.md): apps, code areas and the workstream that built each, data flow, the two panel contracts, stubbed providers, how the repository is worked on, CI |
 | **The owner** | [`docs/owner/README.md`](docs/owner/README.md): what is blocked and why, then [`docs/owner/open-questions-v5.md`](docs/owner/open-questions-v5.md), the 252 open questions grouped by what kind of answer each needs |
-| Building the Store | [`docs/store-contract-v2.md`](docs/store-contract-v2.md) |
+| Working on selling | [`docs/decisions/0157-retire-the-store-contract.md`](docs/decisions/0157-retire-the-store-contract.md): where each part of the Store now lives |
 | Running production | [`docs/runbook/ops.md`](docs/runbook/ops.md) |
 | Setting up hosting | [`docs/runbooks/supabase-hosted.md`](docs/runbooks/supabase-hosted.md) |
 | Preparing to launch | [`docs/launch-checklist.md`](docs/launch-checklist.md) |

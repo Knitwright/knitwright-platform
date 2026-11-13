@@ -10,7 +10,7 @@ import { designStep, EXPORT_NOTE, step, SWAP_NOTE, TEMPLATE_NOTE, tutorialFor } 
  * `07`'s video table.
  *
  * This pack makes files. It does not connect a store, push a product or set a price: that is
- * wave 5's hand-off (O2), and "Publish to store" here only writes a payload for it to collect.
+ * the listing editor's job (decision 0154), and "Publish to store" here only hands it the pictures.
  */
 
 const SECTIONS = ["1 PICK YOUR DESIGN", "2 LISTING IMAGES", "3 SIZE CHART", "4 CAROUSEL"] as const;

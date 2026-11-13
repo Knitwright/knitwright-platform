@@ -23,10 +23,9 @@ Two doors connect them, both read or called from outside:
 
 - `public.submit_order_for_production` — the Store hands a release and its quantities to ops
   (decision 0043). `public.submit_make_order` is the studio's own equivalent for a brand's run.
-- the **Store contract**, a read-only payload of published products, media, sizes, tier prices in GBP
-  and AUD, delivery dates, personalisation rules and size charts, under `app/api/store/**`. It is
-  specified in [`store-contract-v2.md`](store-contract-v2.md) (decision 0106) — give that document to
-  whoever builds the Store; it is not restated here.
+- the **Store contract** (decision 0106) was a read-only payload for an outside Store. It is retired
+  (decision [0157](decisions/0157-retire-the-store-contract.md)): the Store is built here now, and that
+  record maps each thing the contract carried to the workstream that now holds it.
 
 `Sportswear/`, `kitwright/` and `supabase/config.toml` are not changed by platform work.
 
@@ -125,10 +124,10 @@ the three invalid results it makes impossible:
 
 L2 to L6 code against this file; five workstreams depend on it.
 
-### `docs/store-contract-v2.md` — the payload the Store reads (O2, decision 0106)
+### The Store contract (O2, decision 0106): retired
 
-Written up in full in its own document, because it is a contract with a separate product. Read it
-there.
+Removed by decision [0157](decisions/0157-retire-the-store-contract.md) once the Store moved into the
+platform (decisions 0152 to 0156).
 
 ## Code areas under `apps/web/lib/`, by workstream
 
@@ -215,7 +214,7 @@ for the first five tables and `plans/platform-v5.md` for the rest.
 | Workstream | Area | Decision |
 |---|---|---|
 | O1 ops completion: the scheduled cut, the AQL table, ΔE at QC, the commercial invoice, couriers, status emails, the factory scorecard | `ops/*` (extended), `ops/aql`, `ops/inspection`, `ops/notify`, `app/api/cron/ops-cut-batches` | 0100 |
-| O2 the Store contract v2 | `store-contract`, `app/api/store` | 0106 |
+| O2 the Store contract v2 (retired by 0157) | removed | 0106, 0157 |
 | O3 Australia and Translate: the AUD ladder, the GST trigger as data, Australia's labels, the tech pack in Urdu | `markets`, `translate` | 0104 |
 | — the studio top bar | `shell`, `components/shell` | 0103 |
 | — the option-code map, the bill of materials | `option-codes`, `kpp/sources/consumption.ts` | 0099, 0101 |

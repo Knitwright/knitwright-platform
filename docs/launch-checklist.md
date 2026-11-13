@@ -19,7 +19,6 @@ the line says what changed. It does not replace the detail:
   (decision 0116).
 - Dependency licences: [`launch/licences.md`](launch/licences.md)
 - Hosted setup: [`runbooks/supabase-hosted.md`](runbooks/supabase-hosted.md)
-- The payload the separate Store reads: [`store-contract-v2.md`](store-contract-v2.md)
 - How the repository is worked on: [`architecture.md#how-this-repository-is-worked-on`](architecture.md#how-this-repository-is-worked-on)
 
 **Where this list is weaker than the sources.** "Built" means the code and its tests exist and the
@@ -75,7 +74,7 @@ Nothing below depends on a file being found.
 | **Compliance** | **One** F-G2 pre-export checklist read through three adapters (Review tab, package, ordering); labels per market printed only from a sourced row; PFAS-free only; OEKO-TEX only where a fabric holds one; US and youth sizes blocked until CPSIA testing exists; the AQL table | 0089 |
 | **The Launch surface** | The canvas shell with its boards and its **eighteen panel slots** (`lib/launch/panels.ts`), deterministic mockups, AI scenes with the garment locked, the marketing studio, the video studio, flows, 60 design templates and 15 kit bundles | 0091 to 0096, 0098, 0108 |
 | **Ops, complete** | Batches cut by a cron route at the cut-off, the factory sheet, status, the AQL table, typed ΔE readings, third-party inspection (stubbed), packing, shipping, exceptions, the commercial invoice, customer status emails, the per-factory scorecard, pattern requests | 0043, 0050, 0060, 0100 |
-| **The Store contract v2** | A read-only payload of published products, media, sizes, tier prices in GBP and AUD, delivery dates, personalisation rules and size charts, under `app/api/store/**`, behind a signed service token | 0106 |
+| **The Store contract v2** | Retired: the Store is built in the platform now (0152 to 0156), so the read-only payload for an outside Store was removed | 0106, 0157 |
 | **Australia and Translate** | AU country rules, the GST trigger as data, Australia's label rules, the Australian starters, and the tech pack in Urdu (Noto Naskh Arabic under the OFL, right to left). **Every AUD price is null** | 0104 |
 | Factory files (earlier) | Validation gate, print files, pattern library, fabrics, releases, sign-offs | 0028 to 0033, 0039 |
 | Images and 3D | Photoreal images as jobs, media sets, lifestyle, clips, picture checker, 3D trial (off behind `SHOW_3D`) | 0014, 0018, 0054 to 0059 |
@@ -211,8 +210,8 @@ These are the Store and Sell storefronts and the host. This repository does not 
 build, any of them.
 
 - [ ] The Store: cart, checkout, payment, prices, order confirmation emails
-- [ ] The Store's two doors into the platform: `submit_order_for_production` (decision 0043) and the
-      read side specified in [`store-contract-v2.md`](store-contract-v2.md) (decision 0106)
+- [ ] The door into production: `submit_order_for_production` (decision 0043). The read-only Store
+      contract (decision 0106) is retired by [decision 0157](decisions/0157-retire-the-store-contract.md)
 - [ ] Selling credits (Q1: "Selling credits is the Store's job")
 - [ ] Team-store links and club sites
 - [ ] Hosting: the Vercel login and project, the hosted Supabase project, Resend, Google sign-in, the

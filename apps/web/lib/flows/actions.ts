@@ -247,7 +247,7 @@ export const publishFlowListingAction = defineAction({
     refuseIfBlocked(screened, "title");
     const id = await publishFlowListing(adminClient(), whoOf(session), input.launchProjectId, payload);
     refresh(input.launchProjectId);
-    // Nothing has been published: this is a hand-off the separate Store collects (wave 5, O2).
+    // Nothing has been published: the pictures join the listing editor's mockup library (decision 0154).
     return { id, media: payload.media.length, published: false };
   },
 });

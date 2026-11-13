@@ -1,8 +1,8 @@
 # 0106: The Store contract v2 — what the separate Store reads, and what it is told we do not have
 
-Status: Proposed; every gap in the payload is a gap because the platform really holds nothing there, nothing is
+Status: Superseded by decision 0157 (the Store is built in the platform, so the contract is removed). Was: Proposed; every gap in the payload is a gap because the platform really holds nothing there, nothing is
 sellable today, and the AUD and delivery gaps are the two the owner's own decisions put there; owner questions listed
-Index: Proposed; five read endpoints behind a signed service token, a 247-field document locked to the shape by a
+Index: Superseded by 0157; was proposed; five read endpoints behind a signed service token, a 247-field document locked to the shape by a
 test, every absent value sent as an explicit gap instead of a null, no AUD figure and no delivery date anywhere, and
 nothing sellable today because the care label refuses every order
 Index title: The Store contract v2: read endpoints, a documented payload and explicit gaps

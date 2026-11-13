@@ -9,8 +9,8 @@ import { GAP_RULE_ID } from "./vocabulary";
  * The platform builds everything up to the order and hands it over; it never takes money. So this
  * is a hand-off and not an Add to cart: there is no basket here, no checkout, no payment and no
  * storefront. What the button produces is a reference to a saved design version with its
- * quantities and the price the configurator showed, which the Store reads through its own contract
- * (wave 5, O2). Nothing is stored by this file.
+ * quantities and the price the configurator showed. (The outside Store contract this once pointed at is
+ * retired, decision 0157; team stores are decision 0153.) Nothing is stored by this file.
  */
 
 /** What the button says. It is never "Add to cart", and the words say where the money is taken. */

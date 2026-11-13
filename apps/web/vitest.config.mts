@@ -145,10 +145,6 @@ export default defineConfig({
         // over is tested on its own, and the route test and the end-to-end test cover the joining (plan v5 Z6,
         // decision 0106).
         "lib/quotes/server.ts",
-        // Joins the Store contract to the brand's products, the two hand-off tables, the factory's tiers and
-        // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
-        // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0106).
-        "lib/store-contract/server.ts",
         // Joins the Orders area to the factory rows; the discounts, the delivery date and the summary are tested
         // on their own, and the database and end-to-end tests cover the joining (plan v6 P5, decision 0143).
         "lib/order-desk/server.ts",
@@ -294,7 +290,6 @@ export default defineConfig({
             "settings",
             "shell",
             "shoots",
-            "store-contract",
             "store-pages",
             "storefront",
             "team",

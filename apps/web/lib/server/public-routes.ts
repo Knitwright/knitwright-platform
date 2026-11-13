@@ -63,16 +63,6 @@ export const PUBLIC_ENTRY_POINTS = [
   // Tracking back to Shopify, run by the scheduler (decision 0155). The same door as the weekly cut: CRON_SECRET in
   // constant time, 503 without it, 404 for a wrong one. No input; it can only send shipped parcels' tracking, once.
   "app/api/cron/channels-tracking/route.ts#GET",
-  // The Store contract (plan v5 O2, decision 0106). The separate Store is a service, not a person: there is no
-  // session, and the only door is a token signed with the deploy's own STORE_SERVICE_TOKEN over the payload kind
-  // and the call's query, compared in constant time. Without the secret set every one answers 503 and reads
-  // nothing; a token that does not verify answers 404. Every one is a read, rate limited per address, and the
-  // reads go through the server's own key because the answer crosses brands, which no session may do.
-  "app/api/store/route.ts#GET",
-  "app/api/store/products/route.ts#GET",
-  "app/api/store/drops/route.ts#GET",
-  "app/api/store/listings/route.ts#GET",
-  "app/api/store/team-stores/route.ts#GET",
   // A committee comments, votes and approves without an account (F-T3, decision 0087). The token in
   // the form is the only key; the database hashes it and answers only for a link that is open (not
   // expired, not withdrawn). Each is limited per address and per link, and guarded by the bot check.
