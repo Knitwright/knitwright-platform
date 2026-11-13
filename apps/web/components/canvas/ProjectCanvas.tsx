@@ -4,7 +4,8 @@ import { useEffect, useState, type KeyboardEvent } from "react";
 import { FlowBoardCard } from "@/components/flows/FlowBoardCard";
 import { boxOf, primaryOf, type GarmentPreview, type Point } from "@/lib/canvas";
 import { addMenuFor, connectTargets, isArrowKey, nudge, placeOf, type AddItem, type ConnectTarget } from "@/lib/flows";
-import { BOARDS, type BoardView, type Graph, type LaunchCommands } from "@/lib/launch";
+import { BOARDS, isLinkedKind, type BoardView, type Graph, type LaunchCommands } from "@/lib/launch";
+import { LinkedBoardBody } from "@/components/order-boards/LinkedBoardBody";
 import { BoardDoors } from "./BoardDoors";
 import { BoardMenus } from "./BoardMenus";
 import { CanvasBoard } from "./CanvasBoard";
@@ -155,6 +156,11 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
         {garment ? (
           <div className="flex h-full flex-col gap-2 rounded-2xl bg-bg p-2 shadow-sm">
             <GarmentPreviewPanel preview={design ? (garments[design] ?? null) : null} editHref={`/project/${canvasId}?focus=${board.id}` as never} />
+            <div className="h-44 shrink-0">{card(board)}</div>
+          </div>
+        ) : isLinkedKind(board.kind) ? (
+          <div className="flex h-full flex-col gap-2 rounded-2xl bg-bg p-2 shadow-sm">
+            <LinkedBoardBody board={board} graph={graph} />
             <div className="h-44 shrink-0">{card(board)}</div>
           </div>
         ) : board.kind === "mockup" ? (

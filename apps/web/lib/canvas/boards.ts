@@ -16,8 +16,8 @@ import { boundsOf, intersects, visibleRect, type Point, type Rect, type Size, ty
 
 /** The box a new garment board gets, in world units. The migration uses the same figures. */
 export const GARMENT_BOX: Size = { width: 320, height: 380 };
-/** Tech pack and order boards: a card a little larger than a launch one, for their pages. */
-export const LINKED_BOX: Size = { width: 320, height: 220 };
+/** Tech pack and order boards: their pages or their order above the card (E4, decision 0148). */
+export const LINKED_BOX: Size = { width: 320, height: 360 };
 
 const OWN_BOX_KINDS: readonly BoardKind[] = ["garment", "tech_pack", "order"];
 
@@ -25,8 +25,10 @@ export const hasOwnBox = (kind: BoardKind): boolean => OWN_BOX_KINDS.includes(ki
 
 /** The board's box in world units. */
 export function boxOf(board: BoardView): Rect {
+  // A tech pack or order board stored before E4 at 320 × 220 grows to the box its body needs.
+  const least = board.kind === "tech_pack" || board.kind === "order" ? LINKED_BOX : CARD_SIZE;
   const size = hasOwnBox(board.kind)
-    ? { width: Math.max(CARD_SIZE.width, board.size.width), height: Math.max(CARD_SIZE.height, board.size.height) }
+    ? { width: Math.max(least.width, board.size.width), height: Math.max(least.height, board.size.height) }
     : CARD_SIZE;
   return { x: board.at.x, y: board.at.y, width: size.width, height: size.height };
 }

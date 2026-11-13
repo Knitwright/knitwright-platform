@@ -62,7 +62,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
       // can both ask for "the Mockup board" rather than for the third card on the canvas.
       aria-label={`${info.label} board`}
       data-testid={`flow-board-${board.id}`}
-      className={`relative flex h-full flex-col gap-1.5 rounded-2xl border bg-tile-2/95 p-3 ${selected ? "border-cobalt" : "border-white/15"}`}
+      className={`relative flex h-full flex-col gap-1 rounded-2xl border bg-tile-2/95 p-3 ${selected ? "border-cobalt" : "border-white/15"}`}
     >
       {/*
         The kind is an eyebrow over the name, and it sits **outside** the button on purpose. Inside
@@ -84,7 +84,7 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
           aria-label={`Select ${name}`}
           disabled={busy}
           onClick={props.onSelect}
-          className="flex min-h-9 items-start rounded-xl px-1 text-left"
+          className="flex min-h-7 items-start rounded-xl px-1 text-left"
         >
           <span className="truncate text-[14px] font-medium text-ink">{name}</span>
         </button>
@@ -153,7 +153,9 @@ export function FlowBoardCard(props: FlowBoardCardProps) {
         >
           Connect from here
         </button>
-        <span className="flex gap-1">
+        {/* The nudge buttons take no room until one is reached with Tab (the arrow keys on a board do
+            the same), so the card's controls fit its box on the one canvas (decision 0148). */}
+        <span className="flex gap-1 not-focus-within:sr-only">
           {(
             [
               ["ArrowLeft", "left"],

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fakeClient } from "@/lib/orders/fixtures/fake-client";
-import { getOrder, listGolden, listOrders, NO_TRACKING, OrdersUnreadable, trackingOf } from "./service";
+import { getOrder, listGolden, listOrders, listOrdersOfProjects, NO_TRACKING, OrdersUnreadable, trackingOf } from "./service";
 
 const BRAND = "00000000-0000-4000-8000-0000000000b1";
 const ORDER = "3f9a21c0-1111-4000-8000-000000000001";
@@ -51,6 +51,21 @@ describe("the brand's orders", () => {
     expect(await listOrders(fakeClient(answers({ ops_orders: { data: [] } })).client, BRAND)).toEqual([]);
     await expect(listOrders(fakeClient(answers({ ops_orders: { error: { message: "down" } } })).client, BRAND)).rejects.toBeInstanceOf(OrdersUnreadable);
     await expect(listOrders(fakeClient(answers({ ops_orders: { data: [{ id: "x" }] } })).client, BRAND)).rejects.toBeInstanceOf(OrdersUnreadable);
+  });
+});
+
+describe("the orders of some designs (the canvas's Order boards)", () => {
+  it("reads only the designs asked for, joined like the list, and nothing for none", async () => {
+    const { client, calls } = fakeClient(answers());
+    const [order] = await listOrdersOfProjects(client, BRAND, [PROJECT]);
+    expect(order).toMatchObject({ projectId: PROJECT, kind: "sample", status: "qc_passed" });
+    expect(calls.find((c) => c.name === "ops_orders")!.steps).toContainEqual(["in", ["project_id", [PROJECT]]]);
+    expect(await listOrdersOfProjects(client, BRAND, [])).toEqual([]);
+  });
+
+  it("says so when the read fails or a row is not an order", async () => {
+    await expect(listOrdersOfProjects(fakeClient(answers({ ops_orders: { error: { message: "down" } } })).client, BRAND, [PROJECT])).rejects.toBeInstanceOf(OrdersUnreadable);
+    await expect(listOrdersOfProjects(fakeClient(answers({ ops_orders: { data: [{ id: "x" }] } })).client, BRAND, [PROJECT])).rejects.toBeInstanceOf(OrdersUnreadable);
   });
 });
 

@@ -16,6 +16,7 @@ import { useEditorInput } from "@/components/editor-chrome/useEditorInput";
 import { useFlyout } from "@/components/editor-chrome/useFlyout";
 import FlowRunPanel from "@/components/flows/FlowRunPanel";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
+import { ProjectPanels } from "@/components/order-boards/ProjectPanels";
 import { CanvasDoors } from "@/components/pickers/CanvasDoors";
 import { Notice } from "@/components/ui/Notice";
 import { boxOf, contentBounds, zoomPercent, type GarmentPreview, type Point } from "@/lib/canvas";
@@ -375,6 +376,8 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
       {input.menu && menuBoard ? (
         <BoardContextMenu board={menuBoard} at={input.menu.at} canEdit={canEdit && !shell.busy} onCommand={(id) => onContext(menuBoard, id)} onClose={() => input.setMenu(null)} />
       ) : null}
+      {/* A panel an Order board or the address opened (E4, decision 0148); the right panel's own buttons use its slots. */}
+      <ProjectPanels graph={graph} unit={shell.state.unit} />
     </MarketingServicesProvider>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { FocusedGarment } from "@/components/canvas/FocusedGarment";
 import { LaunchShell } from "@/components/launch/LaunchShell";
+import { OrderBoardsProvider } from "@/components/order-boards/OrderBoardsContext";
 import { GarmentEditor } from "@/components/studio/editor/GarmentEditor";
 import { loadRecord } from "@/lib/brand-studio/service";
 import { focusTarget, projectHref, readFocus } from "@/lib/canvas";
@@ -12,6 +13,7 @@ import { loadShelf, readFlyout, SHELF_DESIGNS } from "@/lib/editor-chrome";
 import { listProjects } from "@/lib/projects/service";
 import { launchPageState } from "@/lib/launch";
 import { loadLaunchCanvas } from "@/lib/launch/server";
+import { loadOrderBoards } from "@/lib/order-boards/server";
 import { SEEDED_EXPORT_TARGETS, SEEDED_WATERMARK_RULES, voiceFromRecord } from "@/lib/marketing";
 import { listExportTargets, listWatermarkRules } from "@/lib/marketing/service";
 import { sessionClient } from "@/lib/server/deps";
@@ -52,7 +54,7 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
 
   // The marketing panels' three outside reads (decision 0094), each falling back rather than taking
   // the canvas down; and what every garment board shows.
-  const [targets, watermarkRules, brandRecord, garments, products] = await Promise.all([
+  const [targets, watermarkRules, brandRecord, garments, products, orderBoards] = await Promise.all([
     listExportTargets(client).catch(() => SEEDED_EXPORT_TARGETS),
     listWatermarkRules(client).catch(() => SEEDED_WATERMARK_RULES),
     loadRecord(client, { id: brand.id, name: brand.name }).catch(() => null),
@@ -62,11 +64,14 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
       async () => (await listProjects(client, brand.id, SHELF_DESIGNS)).projects,
       () => listBaseArticles(client),
     ),
+    // The Tech pack and Order boards' summaries (E4, decision 0148).
+    loadOrderBoards(client, { brandId: brand.id, brandName: brand.name, canOrder: can(brand.role, "manageKit") }, { boards: canvas.project.boards, edges: canvas.project.edges }),
   ]);
 
   const state = launchPageState({ query, project: canvas.project });
 
   return (
+    <OrderBoardsProvider data={{ ...orderBoards, garments }}>
     <LaunchShell
       project={canvas.project}
       presets={canvas.presets}
@@ -79,5 +84,6 @@ export default async function ProjectPage({ params, searchParams }: PageProps<"/
       flyout={readFlyout(query)}
       products={products}
     />
+    </OrderBoardsProvider>
   );
 }

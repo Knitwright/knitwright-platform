@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { LaunchShell } from "@/components/launch/LaunchShell";
+import { OrderBoardsProvider } from "@/components/order-boards/OrderBoardsContext";
 import { GARMENT_BOX, LINKED_BOX, type GarmentPreview } from "@/lib/canvas";
 import { readFlyout, type ProductsShelf } from "@/lib/editor-chrome";
 import { start } from "@/lib/garment/fixtures/specs";
 import { board, link, project } from "@/lib/launch/fixtures/canvas";
+import { madeUpOrderBoards } from "@/lib/order-boards/fixtures";
+import { PROJECT_PANELS } from "@/lib/order-boards/types";
 import { SEEDED_EXPORT_TARGETS, SEEDED_WATERMARK_RULES } from "@/lib/marketing";
 import { flatPreview } from "@/lib/projects/flat-preview";
 import { MADE_UP_CHART_SET } from "@/lib/sizing/fixtures/made-up-charts";
@@ -22,7 +25,7 @@ export const metadata: Metadata = { title: "Canvas fixture", robots: { index: fa
 
 const DESIGN = "00000000-0000-4000-8000-0000000000d1";
 
-const garmentPreview = (): GarmentPreview => {
+const garmentPreview = (passed = false): GarmentPreview => {
   const front = flatPreview(start("crew-tee"), new Map(), MADE_UP_CHART_SET)?.views[0] ?? null;
   return {
     designProjectId: DESIGN,
@@ -30,7 +33,7 @@ const garmentPreview = (): GarmentPreview => {
     version: 7,
     src: front?.src ?? null,
     alt: front?.alt ?? "Home kit v7",
-    checks: { passed: false, count: 1 },
+    checks: passed ? { passed: true, count: 0 } : { passed: false, count: 1 },
   };
 };
 
@@ -47,6 +50,9 @@ const fixture = () => {
   const edges = [link("e1", id(1), id(2)), link("e2", id(1), id(3)), link("e3", id(2), id(4)), link("e4", id(3), id(4), 2), link("e5", id(1), id(5)), link("e6", id(1), id(6))];
   return project(boards, edges, { id: "00000000-0000-4000-8000-0000000000c1", name: "Lahore Lions · Home kit launch", designProjectId: DESIGN });
 };
+
+/** `?panel=share|export|order` opens that panel (E4, decision 0148). */
+const panelOf = (value: unknown) => PROJECT_PANELS.find((one) => one === value) ?? null;
 
 /** `?stack=1`: four boards added from the inspector's tools, each a row below the last (`placing.ts`). */
 const stacked = () =>
@@ -75,6 +81,7 @@ export default async function DevCanvasPage({ searchParams }: PageProps<"/dev/ca
   const query = await searchParams;
   return (
     <main className="min-h-dvh bg-bg">
+      <OrderBoardsProvider data={{ ...madeUpOrderBoards(DESIGN), garments: { [DESIGN]: garmentPreview(query.checks === "pass") } }} initial={panelOf(query.panel)}>
       <LaunchShell
         project={query.stack ? stacked() : fixture()}
         presets={[]}
@@ -83,10 +90,11 @@ export default async function DevCanvasPage({ searchParams }: PageProps<"/dev/ca
         state={{ rail: "templates", boardId: null, image: false, tool: "select", unit: "px", zoom: 75 }}
         canEdit
         marketing={{ voice: null, targets: SEEDED_EXPORT_TARGETS, watermarkRules: SEEDED_WATERMARK_RULES }}
-        garments={{ [DESIGN]: garmentPreview() }}
+        garments={{ [DESIGN]: garmentPreview(query.checks === "pass") }}
         flyout={readFlyout(query)}
         products={SHELF}
       />
+      </OrderBoardsProvider>
     </main>
   );
 }

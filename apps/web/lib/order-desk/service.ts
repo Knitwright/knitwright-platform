@@ -117,6 +117,23 @@ export async function listOrders(client: SupabaseClient, brandId: string): Promi
   return withJoins(client, brandId, rows.data);
 }
 
+/** The brand's newest orders of some designs (the one canvas's Order boards, decision 0148). */
+export async function listOrdersOfProjects(client: SupabaseClient, brandId: string, projectIds: readonly string[], limit = 50): Promise<readonly CustomerOrder[]> {
+  if (projectIds.length === 0) return [];
+  const { data, error } = await client
+    .from("ops_orders")
+    .select(ORDER_COLUMNS)
+    .eq("brand_id", brandId)
+    .in("project_id", [...projectIds])
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) fail(error);
+  const rows = z.array(orderRow).safeParse(data ?? []);
+  if (!rows.success) return fail(rows.error);
+  return withJoins(client, brandId, rows.data);
+}
+
 /** One order of the brand, or null when there is none by that id. */
 export async function getOrder(client: SupabaseClient, brandId: string, orderId: string): Promise<CustomerOrder | null> {
   if (!z.uuid().safeParse(orderId).success) return null;

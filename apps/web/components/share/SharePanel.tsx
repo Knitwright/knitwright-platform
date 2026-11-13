@@ -51,7 +51,7 @@ function NewLink({ address }: Readonly<{ address: string }>) {
   );
 }
 
-function CreateLink({ projectId }: Readonly<{ projectId: string }>) {
+export function CreateLink({ projectId }: Readonly<{ projectId: string }>) {
   const { form, state, submit, pending, summary, fieldErrors } = useFormAction(createShareLinkAction);
   return (
     <div className="flex flex-col gap-3">

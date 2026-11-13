@@ -1,13 +1,9 @@
 "use client";
 
-import type { Route } from "next";
-import Link from "next/link";
 import { useCallback, useId, useRef, useState, type ReactNode } from "react";
-import { linkedDesign } from "@/components/canvas/BoardDoors";
 import { cx } from "@/components/ui/cx";
 import { useDismiss } from "@/components/ui/use-dismiss";
-import { boardFilePath } from "@/lib/flows";
-import { isGarmentKind, type BoardView, type LaunchPanelProps } from "@/lib/launch";
+import type { LaunchPanelProps } from "@/lib/launch";
 import { POPOVER_SLOTS, type PopoverSlot } from "./slots";
 
 /**
@@ -16,9 +12,9 @@ import { POPOVER_SLOTS, type PopoverSlot } from "./slots";
  * the inspector -- the project's colours and tools with nothing selected (`ProjectPanel`), or the
  * selected board's own inspector (`components/launch/Inspector.tsx`, E3's to fill).
  *
- * The three buttons open popovers E4 builds (`slots.ts`). Until then each opens a short popover
- * with the doors that already exist -- the tech pack, the Make page, the board's file, the
- * members' settings -- so none of them is a dead button.
+ * The three buttons open E4's Share popover, Export popover and Order drawer (`slots.ts`, decision
+ * 0148). The doors the interim popovers offered -- the tech pack page, the Make page, the board's
+ * file, the members' settings, the Orders area -- are kept inside them.
  */
 
 type Props = Readonly<{
@@ -76,80 +72,12 @@ function ChromePopover({ slot, label, tone, panel }: Readonly<{ slot: PopoverSlo
       >
         {label}
       </button>
-      {open ? (
-        <div
-          ref={box}
-          id={id}
-          role="dialog"
-          aria-label={label}
-          tabIndex={-1}
-          className="absolute top-[calc(100%+8px)] right-0 z-[70] flex w-90 max-w-[calc(100vw-32px)] flex-col gap-3 rounded-2xl border border-border bg-bg p-4.5 text-body text-text shadow-e3 motion-safe:pop-in"
-          data-testid={`editor-${slot}-popover`}
-        >
-          {Filled ? <Filled {...panel} close={close} /> : <Doors slot={slot} board={panel.context.selection?.board ?? null} panel={panel} />}
+      {open && Filled ? (
+        // E4's panels bring their own frame and dialog (decision 0148); this box only keeps them "inside".
+        <div ref={box} id={id} className="contents" data-testid={`editor-${slot}-popover`}>
+          <Filled {...panel} close={close} />
         </div>
       ) : null}
     </span>
   );
 }
-
-const DOOR = "self-start text-body font-semibold text-link hover:underline";
-
-/** What each button offers until E4's popover lands: the real doors, and a line saying what is coming. */
-function Doors({ slot, board, panel }: Readonly<{ slot: PopoverSlot; board: BoardView | null; panel: LaunchPanelProps }>) {
-  const graph = { boards: panel.context.project.boards, edges: panel.context.project.edges };
-  const design = board === null ? panel.context.project.designProjectId : isGarmentKind(board.kind) ? designOf(board) : linkedDesign(graph, board);
-  if (slot === "share") {
-    return (
-      <>
-        <h2 className="text-title text-text">Share</h2>
-        <p className="text-small text-muted">Everyone in your brand can already open this project. Invite people to the brand from Settings.</p>
-        <Link href="/settings" className={DOOR}>
-          Members in Settings
-        </Link>
-      </>
-    );
-  }
-  if (slot === "export") {
-    return (
-      <>
-        <h2 className="text-title text-text">Export</h2>
-        {board?.outputFileId ? (
-          <a href={boardFilePath(board.outputFileId)} target="_blank" rel="noopener" className={DOOR}>
-            Download {board.name || "this board"}
-          </a>
-        ) : (
-          <p className="text-small text-muted">Select a board that has run to download its picture.</p>
-        )}
-        {design ? (
-          <Link href={`/studio/${design}/tech-pack` as Route} className={DOOR}>
-            Tech pack and production files
-          </Link>
-        ) : null}
-      </>
-    );
-  }
-  return (
-    <>
-      <h2 className="text-title text-text">Order</h2>
-      {design ? (
-        <>
-          <p className="text-small text-muted">A sample or a run of this garment goes through the same checks as every order.</p>
-          <Link href={`/studio/${design}/make` as Route} className={DOOR}>
-            Order a sample or a run
-          </Link>
-        </>
-      ) : (
-        <p className="text-small text-muted">Select a garment board to order it.</p>
-      )}
-      <Link href="/orders" className={DOOR}>
-        Your orders
-      </Link>
-    </>
-  );
-}
-
-const designOf = (board: BoardView): string | null => {
-  const value = board.settings["designProjectId"];
-  return typeof value === "string" && value.length > 0 ? value : null;
-};
