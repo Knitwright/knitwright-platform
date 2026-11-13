@@ -54,7 +54,7 @@ export function CsvPanel({ orders, canList }: Readonly<{ orders: readonly Channe
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-title text-text">Import orders</h3>
-          <p className="text-small text-muted">Columns order_ref, sku, quantity and the ship_ address columns of the template. Up to {MAX_IMPORT_ROWS} rows; each product must be ready to sell.</p>
+          <p className="text-small text-muted">Columns order_ref, sku and quantity; fabric where the product is not listed yet; and the ship_ address columns of the template. Up to {MAX_IMPORT_ROWS} rows; each product must be ready to sell.</p>
           <label className="text-small font-medium text-text" htmlFor="orders-csv">Orders file</label>
           <input id="orders-csv" type="file" accept=".csv,text/csv" disabled={!canList} onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="text-small text-text-2 file:mr-3 file:h-8 file:rounded-sm file:border file:border-border file:bg-bg file:px-3 file:font-semibold" />
           <div>

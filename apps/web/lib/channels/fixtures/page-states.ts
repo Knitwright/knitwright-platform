@@ -8,7 +8,7 @@ import type { ChannelsPage } from "../view";
 const CONNECTION = { id: "00000000-0000-4000-8000-0000000000c4", channel: "shopify" as const, shop: "riverside-fc.myshopify.com", scopes: "write_products,read_orders", hasLocation: true, connectedBy: "u", connectedAt: "2026-11-13T09:00:00Z" };
 
 const PRODUCTS: ChannelsPage["products"] = [
-  { productId: "00000000-0000-4000-8000-0000000000a1", name: "Home shirt 26/27", sizes: ["S", "M", "L", "XL"], unitCostMinor: 1450, costNote: "Tier 1", listing: { priceMinor: 3500, currency: "GBP", pushedAt: "2026-11-13T09:05:00Z", sizes: 4 }, blocked: null },
+  { productId: "00000000-0000-4000-8000-0000000000a1", name: "Home shirt 26/27", sizes: ["S", "M", "L", "XL"], unitCostMinor: 1450, costNote: "Tier 1", listing: { priceMinor: 3500, currency: "GBP", pushedAt: "2026-11-13T09:05:00Z", sizes: 4, fabricKey: "mesh-140" }, blocked: null },
   { productId: "00000000-0000-4000-8000-0000000000a2", name: "Training top", sizes: ["S", "M", "L"], unitCostMinor: null, costNote: "No price ladder for this article. Knitwright invoices the making.", listing: null, blocked: null },
   { productId: "00000000-0000-4000-8000-0000000000a3", name: "Away shirt draft", sizes: ["M"], unitCostMinor: null, costNote: "", listing: null, blocked: "Not ready to sell: approve its golden sample first, so it can be made in runs." },
 ];

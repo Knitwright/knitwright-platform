@@ -19,7 +19,7 @@ export type ChannelProduct = Readonly<{
   /** The production price of one piece, where the ladder has one. */
   unitCostMinor: number | null;
   costNote: string;
-  listing: Readonly<{ priceMinor: number; currency: "GBP" | "AUD"; pushedAt: string; sizes: number }> | null;
+  listing: Readonly<{ priceMinor: number; currency: "GBP" | "AUD"; pushedAt: string; sizes: number; fabricKey: string }> | null;
   /** Why it cannot be listed, or null when it can. */
   blocked: string | null;
 }>;
@@ -54,7 +54,7 @@ export function channelProducts(products: readonly ProductInput[], listings: rea
       name: product.name,
       sizes: product.sizes,
       ...costOf(product.ladder, currency),
-      listing: newest ? { priceMinor: newest.priceMinor, currency: newest.currency, pushedAt: newest.pushedAt, sizes: mine.length } : null,
+      listing: newest ? { priceMinor: newest.priceMinor, currency: newest.currency, pushedAt: newest.pushedAt, sizes: mine.length, fabricKey: newest.fabricKey } : null,
       blocked: product.stage !== "run" ? NOT_READY : product.sizes.length === 0 ? NO_SIZES : null,
     };
   });

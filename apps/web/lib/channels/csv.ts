@@ -7,13 +7,14 @@ import { readSku } from "./sku";
  * - Export: the brand's products (one row per product and size, with the SKU a shop or club system sends back)
  *   and its channel orders, as RFC 4180 CSV. A cell that a spreadsheet would run as a formula is written as text.
  * - Import: orders as rows of `order_ref, sku, quantity` and the ship-to columns, checked whole before any is
- *   taken in; a file with any bad row is refused with every row's problem, so nothing half-arrives.
+ *   taken in; a file with any bad row is refused with every row's problem, so nothing half-arrives. `fabric` is
+ *   optional: without it a product is made in the fabric it was listed in, or the factory's first.
  */
 
 export const MAX_IMPORT_ROWS = 200;
 export const MAX_IMPORT_BYTES = 256 * 1024;
 
-export const IMPORT_COLUMNS = ["order_ref", "sku", "quantity", "ship_name", "ship_address1", "ship_address2", "ship_city", "ship_region", "ship_postcode", "ship_country", "ship_phone"] as const;
+export const IMPORT_COLUMNS = ["order_ref", "sku", "quantity", "fabric", "ship_name", "ship_address1", "ship_address2", "ship_city", "ship_region", "ship_postcode", "ship_country", "ship_phone"] as const;
 
 const FORMULA = /^[=+\-@\t\r]/;
 
@@ -60,7 +61,7 @@ export function parseCsv(text: string): string[][] {
   return rows.filter((one) => one.some((value) => value.trim() !== ""));
 }
 
-export type ImportedLine = Readonly<{ orderRef: string; lineNo: number; productId: string; size: string; quantity: number; shipTo: ShipTo | null }>;
+export type ImportedLine = Readonly<{ orderRef: string; lineNo: number; productId: string; size: string; quantity: number; fabric: string | null; shipTo: ShipTo | null }>;
 
 export type ImportResult = Readonly<{ ok: true; lines: readonly ImportedLine[] }> | Readonly<{ ok: false; problems: readonly string[] }>;
 
@@ -104,11 +105,11 @@ export function readOrdersCsv(text: string): ImportResult {
     if (problems.length > 0 || sku === null) return;
     const lineNo = (perOrder.get(orderRef) ?? 0) + 1;
     perOrder.set(orderRef, lineNo);
-    lines.push({ orderRef, lineNo, productId: sku.productId, size: sku.size, quantity, shipTo: shipToOf(get) });
+    lines.push({ orderRef, lineNo, productId: sku.productId, size: sku.size, quantity, fabric: get("fabric").slice(0, 120) || null, shipTo: shipToOf(get) });
   });
   return problems.length > 0 ? { ok: false, problems: problems.slice(0, 20) } : { ok: true, lines };
 }
 
 /** The template a brand fills in. */
 export const importTemplate = (exampleSku: string): string =>
-  toCsv(IMPORT_COLUMNS, [["1001", exampleSku, 2, "Sam Player", "1 High Street", "", "Leeds", "", "LS1 1AA", "GB", ""]]);
+  toCsv(IMPORT_COLUMNS, [["1001", exampleSku, 2, "", "Sam Player", "1 High Street", "", "Leeds", "", "LS1 1AA", "GB", ""]]);

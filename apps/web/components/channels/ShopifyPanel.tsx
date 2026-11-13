@@ -47,6 +47,7 @@ const intakeText = (result: Intake): string =>
 
 function ProductRow({ product, canList }: Readonly<{ product: ChannelProduct; canList: boolean }>) {
   const [price, setPrice] = useState(product.listing ? (product.listing.priceMinor / 100).toFixed(2) : "");
+  const [fabric, setFabric] = useState(product.listing?.fabricKey ?? "");
   const { pending, said, run } = useRun();
   const priceMinor = minorOf(price);
   const margin = priceMinor === null ? null : marginOf(priceMinor, product.unitCostMinor);
@@ -66,10 +67,14 @@ function ProductRow({ product, canList }: Readonly<{ product: ChannelProduct; ca
         <label className="sr-only" htmlFor={`price-${product.productId}`}>Retail price of {product.name} in pounds</label>
         <input id={`price-${product.productId}`} inputMode="decimal" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="0.00" disabled={Boolean(product.blocked) || !canList} className="h-9 w-24 rounded-sm border border-border bg-bg px-2.5 text-right tabular-nums disabled:bg-soft" />
       </Td>
+      <Td>
+        <label className="sr-only" htmlFor={`fabric-${product.productId}`}>Fabric of {product.name}</label>
+        <input id={`fabric-${product.productId}`} value={fabric} onChange={(event) => setFabric(event.target.value)} placeholder="Factory's first" maxLength={120} disabled={Boolean(product.blocked) || !canList} className="h-9 w-32 rounded-sm border border-border bg-bg px-2.5 disabled:bg-soft" />
+      </Td>
       <Td numeric>{margin ? `${formatMoney(margin.profitMinor, "GBP")} · ${margin.marginPercent}%` : <span className="text-muted">—</span>}</Td>
       <Td>{product.listing ? `Listed, ${product.listing.sizes} sizes` : "Not listed"}</Td>
       <Td>
-        <Button size="sm" pending={pending} disabledReason={reason} onClick={() => run(() => pushToShopifyAction({ productId: product.productId, priceMinor: priceMinor ?? 0 }), (data: { sizes: number; fabric: string }) => `Pushed ${data.sizes} sizes, made in ${data.fabric}.`)}>
+        <Button size="sm" pending={pending} disabledReason={reason} onClick={() => run(() => pushToShopifyAction({ productId: product.productId, priceMinor: priceMinor ?? 0, fabricKey: fabric.trim() === "" ? null : fabric.trim() }), (data: { sizes: number; fabric: string }) => `Pushed ${data.sizes} sizes, made in ${data.fabric}.`)}>
           {product.listing ? "Update" : "Push"}<span className="sr-only"> {product.name}</span>
         </Button>
       </Td>
@@ -112,6 +117,7 @@ export function ShopifyPanel({ page }: Readonly<{ page: ChannelsPage }>) {
                 <Th>Sizes</Th>
                 <Th numeric>Cost per piece</Th>
                 <Th>Retail price (£)</Th>
+                <Th>Fabric</Th>
                 <Th numeric>Profit per piece</Th>
                 <Th>On Shopify</Th>
                 <Th><span className="sr-only">Action</span></Th>

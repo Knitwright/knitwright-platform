@@ -9,6 +9,7 @@ import { humanReviewGate, orderGate } from "@/lib/moderation/server";
 import { AppError } from "@/lib/server/core/errors";
 import { moderationTargets } from "@/lib/validation/spec-input";
 import type { OrderTerms } from "./push";
+import { fabricFor } from "./fabric";
 import { NOT_READY } from "./view";
 
 /**
@@ -20,7 +21,6 @@ import { NOT_READY } from "./view";
  */
 
 export const NO_RELEASE = "This product has no frozen release to make yet. Freeze one from its tech pack first.";
-export const NO_FABRIC = "The factory lists no fabric for this product yet, so it cannot be sold.";
 
 export type ProductTerms = Readonly<{ projectId: string; name: string; sizes: readonly string[]; terms: OrderTerms }>;
 
@@ -29,14 +29,14 @@ export async function termsForProduct(
   who: Readonly<{ brandId: string; userId: string }>,
   brandName: string,
   productId: string,
+  fabricAsked: string | null,
 ): Promise<ProductTerms> {
   const product = await getProduct(clients.client, who.brandId, productId);
   if (product.stage !== "run") throw new AppError("conflict", NOT_READY);
   const context = await loadRunContext(clients.client, who.brandId, product.projectId);
   const release = context.releases[0];
   if (!release) throw new AppError("conflict", NO_RELEASE);
-  const fabricKey = context.fabrics[0];
-  if (!fabricKey) throw new AppError("conflict", NO_FABRIC);
+  const fabricKey = fabricFor(context.fabrics, fabricAsked);
 
   const gate = orderValidationGate({ client: clients.client, admin: clients.admin, who, brandName, country: "GB" });
   const flags = await gate({ projectId: product.projectId, releaseId: release.id, productionClass: context.productionClass, colourToleranceMax: null }, async () =>
@@ -69,3 +69,4 @@ async function articleSizes(client: SupabaseClient, garmentType: string): Promis
   if (!code) return [];
   return (await getBaseArticle(client, code))?.sizeRange ?? [];
 }
+

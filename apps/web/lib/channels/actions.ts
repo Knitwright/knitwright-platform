@@ -50,6 +50,11 @@ async function connectionOf(brandId: string, userId: string) {
   return secret;
 }
 
+/** The fabric a product was last listed in on a channel, so a CSV order of it is made the same way. */
+async function listedFabric(brandId: string, productId: string): Promise<string | null> {
+  return (await channelsStore().listings(brandId)).find((listing) => listing.productId === productId)?.fabricKey ?? null;
+}
+
 /** CONNECT: owners and admins. Sets the signed state cookie and answers where to send the browser. */
 export const startShopifyConnectAction = defineAction({
   auth: "member",
@@ -84,13 +89,13 @@ export const disconnectChannelAction = defineAction({
 export const pushToShopifyAction = defineAction({
   auth: "member",
   rateLimit: LIMITS.channelWrite,
-  schema: z.object({ productId: z.uuid(), priceMinor: z.number().int().min(100).max(10_000_000) }),
+  schema: z.object({ productId: z.uuid(), priceMinor: z.number().int().min(100).max(10_000_000), fabricKey: z.string().max(120).nullable() }),
   handler: async ({ input, session }) => {
     requireAbility(session, "manageKit");
     const app = appOrRefuse();
     const who = whoOf(session);
     const connection = await connectionOf(who.brandId, who.userId);
-    const product = await termsForProduct({ client: await sessionClient(), admin: adminClient() }, who, session.brand.name, input.productId);
+    const product = await termsForProduct({ client: await sessionClient(), admin: adminClient() }, who, session.brand.name, input.productId, input.fabricKey);
     const store = channelsStore();
     const sizes = await pushProduct(installDeps(app), who, connection, { productId: input.productId, name: product.name, sizes: product.sizes, terms: product.terms }, { priceMinor: input.priceMinor, currency: "GBP" }, await store.listings(who.brandId));
     revalidatePath(PATH);
@@ -146,7 +151,7 @@ export const importOrdersCsvAction = defineAction({
     const terms = new Map<string, ProductTerms>();
     const byOrder = new Map<string, ResolvedLine[]>();
     for (const line of read.lines) {
-      if (!terms.has(line.productId)) terms.set(line.productId, await termsForProduct(clients, who, session.brand.name, line.productId));
+      if (!terms.has(line.productId)) terms.set(line.productId, await termsForProduct(clients, who, session.brand.name, line.productId, line.fabric ?? (await listedFabric(who.brandId, line.productId))));
       const product = terms.get(line.productId)!;
       const size = product.sizes.find((one) => skuOf(line.productId, one) === skuOf(line.productId, line.size));
       if (!size) throw new AppError("invalid_input", `Order ${line.orderRef}: ${product.name} is not made in size ${line.size}.`);
