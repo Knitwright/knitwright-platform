@@ -15,7 +15,7 @@ export function StoreHeader({ title, current, actions }: Readonly<{ title: strin
         <h1 className="text-h1 text-text">{title}</h1>
         {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
       </div>
-      <nav aria-label="Store" className="flex items-center gap-6 overflow-x-auto border-b border-border">
+      <nav aria-label="Store" className="flex items-center gap-6 overflow-x-auto overflow-y-hidden border-b border-border">
         {STORE_TABS.map((tab) => {
           const on = tab.href === current;
           return (
