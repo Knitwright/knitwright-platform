@@ -136,4 +136,9 @@ export const LIMITS = {
   checkout: { name: "checkout", limit: 30, windowSeconds: 10 * MINUTE },
   paymentsWebhook: { name: "payments-webhook", limit: 600, windowSeconds: MINUTE },
   paymentsOps: { name: "payments-ops", limit: 60, windowSeconds: 10 * MINUTE },
+  // Sales channels (plan v6 C4, decision 0155). Connecting, pushing and importing reach Shopify or run the order
+  // gates; Shopify's webhooks may burst after an outage and are each checked by their HMAC first.
+  channelWrite: { name: "channel-write", limit: 30, windowSeconds: 10 * MINUTE },
+  channelExport: { name: "channel-export", limit: 30, windowSeconds: 10 * MINUTE },
+  channelsWebhook: { name: "channels-webhook", limit: 600, windowSeconds: MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

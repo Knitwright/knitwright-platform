@@ -94,6 +94,10 @@ export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: 
     table: "rulebook_entries",
     why: "The platform's rulebook, which names the factory person who reviewed a rule as its attribution (owner decision 14). It belongs to no brand; a reviewer's name is replaced by a new version of the rule.",
   },
+  {
+    table: "channel_orders",
+    why: "A shop's buyer's ship-to address on each order line a sales channel sent (decision 0155): the brand's customer, not a player. It goes with the brand (brand_id on delete cascade), and Shopify's customers/redact and shop/redact webhooks clear it (channel_redact_customer, channel_redact_shop). order_name is the shop's order number, not a person.",
+  },
 ];
 
 /**
