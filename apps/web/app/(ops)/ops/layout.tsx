@@ -19,6 +19,7 @@ export default async function OpsLayout({ children }: LayoutProps<"/">) {
           <Link href="/ops/factories" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Factories</Link>
           <Link href="/ops/scorecard" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Scorecard</Link>
           <Link href="/ops/review" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Review</Link>
+          <Link href="/ops/finance" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Finance</Link>
           <Link href="/ops/settings" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Settings</Link>
           <Link href="/admin/rulebook" className="inline-flex min-h-10 items-center font-medium text-ink hover:underline">Rulebook</Link>
         </nav>

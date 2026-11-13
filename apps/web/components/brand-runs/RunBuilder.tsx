@@ -54,8 +54,11 @@ function useRunOrder(product: ProductView, context: RunContext) {
     start(async () => {
       const reply = await orderRunAction({ productId: product.id, kind, releaseId, fabricKey: fabric, quantities: numbersOf(typed), acknowledgeFlags: acknowledged, requestKey }).catch(() => null);
       if (!reply) return setNote({ tone: "warn", text: "The order could not be sent. Check your connection and try again." });
+      // A key answers once (decision 0152): the next attempt, after a refusal too, is a new order.
+      setRequestKey(newKey());
       if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
-      setNote({ tone: "ok", text: `Sent to ops. The order is ${reply.data.status}, waiting for the next cut-off.` });
+      if (reply.data.kind === "checkout") return window.location.assign(reply.data.url);
+      setNote({ tone: "ok", text: reply.data.refused === null ? "Sent to ops, waiting for the next cut-off. Knitwright invoices it." : `Not sent: ${reply.data.refused}` });
       setTyped({});
       setAcknowledged(false);
       setRequestKey(newKey());

@@ -131,4 +131,9 @@ export const LIMITS = {
   // its pictures, and reaches a vision model once, so it is held tighter than a read. The per-brand counts the spec
   // asks for are kept beside the engine in lib/brand-studio/import/settings.ts, where an admin row can change them.
   brandImport: { name: "brand-import", limit: 10, windowSeconds: HOUR },
+  // Payments (plan v6 C1, decision 0152). Starting a checkout opens a payment and asks Stripe for a page; Stripe's
+  // webhook may burst after an outage, from a few addresses, and every request is checked by its signature first.
+  checkout: { name: "checkout", limit: 30, windowSeconds: 10 * MINUTE },
+  paymentsWebhook: { name: "payments-webhook", limit: 600, windowSeconds: MINUTE },
+  paymentsOps: { name: "payments-ops", limit: 60, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

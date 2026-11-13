@@ -68,9 +68,13 @@ describe("the words of the make flow", () => {
     expect(all).not.toMatch(/\b20\d{2}-\d{2}-\d{2}\b/);
   });
 
-  it("names the Store as the one that publishes, and offers no payment of its own", () => {
+  // Plan v6 C1 (decision 0152) replaced "offers no payment of its own": the make flow now ends in checkout, whose
+  // amounts and processor lib/payments owns. The make flow says the order is paid at checkout, names the Store as
+  // the one that publishes, and holds no cart, processor or payout of its own.
+  it("names the Store as the one that publishes, and says the order is paid by card at checkout", () => {
     const all = SOURCES.flatMap(sentencesIn).join("\n");
     expect(all).toContain("Handled by the Knitwright Store");
-    expect(all).not.toMatch(/\b(checkout|cart|stripe|payout|deposit)\b/i);
+    expect(all).toContain("paid by card at checkout");
+    expect(all).not.toMatch(/\b(cart|stripe|payout)\b/i);
   });
 });

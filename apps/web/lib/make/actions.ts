@@ -11,7 +11,11 @@ import { LIMITS } from "@/lib/server/limits";
 import { checkRun } from "./run";
 import { checkSampleRequest } from "./sample";
 import { changesBody, goldenSamplePhotoBody, goldenSamplePomBody, goldenSampleReadingBody, runBody, sampleBody, selectSizesBody, signOffBody, startGoldenSampleBody } from "./schemas";
-import { addPhoto, addPom, addReading, carryOver, requestChanges, signOff, startGoldenSample, submitMakeOrder } from "./service";
+import { addPhoto, addPom, addReading, carryOver, requestChanges, signOff, startGoldenSample } from "./service";
+import type { OrderLineIntent } from "@/lib/payments/checkout";
+import { runPrice, samplePrice } from "@/lib/payments/pricing";
+import { replyOf, type OrderReply } from "@/lib/payments/reply";
+import { checkoutOrders } from "@/lib/payments/server";
 import type { MakeContext } from "./context";
 import type { OrderProduct } from "./order-modal";
 import { loadMake, loadOrderProducts } from "./server";
@@ -21,8 +25,11 @@ import { GAP_RULE_ID } from "./vocabulary";
 
 /**
  * The make flow's actions (plan v5 Y7, decision 0080). The brand and the person come from the session; the role is
- * checked here for a clear answer and again inside every database function. None of these takes a payment: there
- * is no money in the make flow at all (owner decision 1).
+ * checked here for a clear answer and again inside every database function.
+ *
+ * Since plan v6 C1 (decision 0152) a sample, a run and the order modal each end in CHECKOUT, after every refusal of
+ * their own: the orders are priced from the ladder rows and paid by card before they go to production, or, where no
+ * price is on file, sent now for Knitwright to invoice (`lib/payments/checkout.ts`). The answer is an `OrderReply`.
  */
 
 const refresh = (projectId: string): void => {
@@ -40,18 +47,24 @@ export const requestSampleAction = defineAction({
     const check = checkSampleRequest({ sizes: input.sizes, sizeRun: context.sizeRun });
     if (!check.canSend) throw new AppError("invalid_input", check.findings.map((found) => found.message).join(" "));
     const flags = await gateBeforeHandOff(session, context, input.releaseId, "sample");
-    const sent = await submitMakeOrder(adminClient(), whoOf(session), {
+    const pieces = Object.keys(check.sizes).length;
+    const line: OrderLineIntent = {
+      door: "make",
       productId: input.productId,
+      projectId: context.projectId,
       kind: "sample",
       releaseId: input.releaseId,
       factoryProfileId: context.factory.profileId,
       fabricKey: input.fabricKey,
       sizes: check.sizes,
       flags,
+      pieces,
       requestKey: input.requestKey,
-    });
+      price: samplePrice(context.factory.ladder, pieces, MONEY),
+    };
+    const reply = await pay(session, [line], `Sample of ${context.product?.name ?? context.designName}`, "full");
     refresh(input.projectId);
-    return sent;
+    return reply;
   },
 });
 
@@ -67,18 +80,24 @@ export const orderRunAction = defineAction({
     if (!check.canSend) throw new AppError("invalid_input", check.findings.filter((found) => found.severity === "blocker").map((found) => found.message).join(" "));
     refuseWithoutGoldenSample(context);
     const flags = await gateBeforeHandOff(session, context, input.releaseId, "run");
-    const sent = await submitMakeOrder(adminClient(), whoOf(session), {
+    const pieces = Object.values(check.sizes).reduce((sum, count) => sum + count, 0);
+    const line: OrderLineIntent = {
+      door: "make",
       productId: input.productId,
+      projectId: context.projectId,
       kind: "run",
       releaseId: input.releaseId,
       factoryProfileId: context.factory.profileId,
       fabricKey: input.fabricKey,
       sizes: check.sizes,
       flags: [...check.findings.filter((found) => found.severity === "warning").map((found) => ({ code: found.code, text: found.message })), ...flags],
+      pieces,
       requestKey: input.requestKey,
-    });
+      price: runPrice(context.factory.ladder, pieces, MONEY),
+    };
+    const reply = await pay(session, [line], `Run of ${context.product?.name ?? context.designName}`, input.schedule);
     refresh(input.projectId);
-    return sent;
+    return reply;
   },
 });
 
@@ -167,14 +186,18 @@ export const selectSizesAction = defineAction({
     const client = await sessionClient();
     const products = await loadOrderProducts(client, session.brand.id, "GBP");
     const wanted = [...new Set(input.lines.map((line) => line.productId))];
-    const sent = [];
-    for (const productId of wanted) {
+    const chosen = wanted.map((productId) => {
       const product = products.find((one) => one.productId === productId);
       if (!product) throw new AppError("not_found", "That product does not exist.");
       const sizes = Object.fromEntries(input.lines.filter((line) => line.productId === productId).map((line) => [line.size, line.pieces]));
-      sent.push(await handOver(session, product, sizes, input.requestKey));
-    }
-    return { sent };
+      return { product, sizes };
+    });
+    // The tier is read across every piece in the basket (spec F-T5), as the modal showed it.
+    const basket = input.lines.reduce((sum, line) => sum + line.pieces, 0);
+    const lines: OrderLineIntent[] = [];
+    for (const one of chosen) lines.push(await handOver(session, one.product, one.sizes, input.requestKey, basket));
+    const name = lines.length === 1 ? chosen[0]!.product.name : `${lines.length} products`;
+    return pay(session, lines, `Order of ${name}`, input.schedule);
   },
 });
 
@@ -244,22 +267,36 @@ async function carryOverIfNeeded(session: Session, context: MakeContext): Promis
   });
 }
 
-/** One product's own order, with the pieces of every size chosen for it in the modal. */
-async function handOver(session: Session, product: OrderProduct, sizes: Readonly<Record<string, number>>, requestKey: string) {
+/** One product's own order, with the pieces of every size chosen for it in the modal, gated and priced. */
+async function handOver(session: Session, product: OrderProduct, sizes: Readonly<Record<string, number>>, requestKey: string, basket: number): Promise<OrderLineIntent> {
   const client = await sessionClient();
   const context = await loadMake(client, session.brand.id, product.projectId, "GBP");
   const release = context.releases[0];
   if (!release) throw new AppError("conflict", `${product.name} has no frozen release to make yet.`);
   refuseWithoutGoldenSample(context);
   const flags = await gateBeforeHandOff(session, context, release.id, "run");
-  return submitMakeOrder(adminClient(), whoOf(session), {
+  const pieces = Object.values(sizes).reduce((sum, count) => sum + count, 0);
+  return {
+    door: "make",
     productId: product.productId,
+    projectId: product.projectId,
     kind: "run",
     releaseId: release.id,
     factoryProfileId: context.factory.profileId,
     fabricKey: context.fabricKey,
     sizes,
     flags,
+    pieces,
     requestKey: `${requestKey}:${product.productId}`.slice(0, 64),
-  });
+    price: runPrice(product.ladder, pieces, MONEY, Math.max(basket, pieces)),
+  };
+}
+
+/** The currency the make pages price in today: they read GBP (the United Kingdom, `MARKET`). */
+const MONEY = "GBP" as const;
+
+/** Checkout for the orders, or the invoice path where no price is on file (decision 0152). */
+async function pay(session: Session, lines: readonly OrderLineIntent[], description: string, schedule: "full" | "deposit"): Promise<OrderReply> {
+  const buyer = { ...whoOf(session), email: session.email ?? undefined };
+  return replyOf(await checkoutOrders(buyer, { lines, currency: MONEY, schedule, description }));
 }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { goToPlanCheckout } from "@/components/payments/plan-checkout";
 import { Modal } from "@/components/ui/Modal";
 import { Notice } from "@/components/ui/Notice";
 import { Segmented } from "@/components/ui/Tabs";
-import { CHECKOUT_COMING, PLAN_PLACEHOLDER_NOTICE, PLAN_SETTINGS, type PlanId, type PlanRow, type PlanSettings } from "@/lib/plans/catalogue";
+import { CHECKOUT_OPENING, PLAN_PLACEHOLDER_NOTICE, PLAN_SETTINGS, type PlanId, type PlanRow, type PlanSettings } from "@/lib/plans/catalogue";
 import type { PlansKind } from "@/lib/plans/modal-store";
 import { bestSaving, bestSavingPercent, money, plansOf, type Billing } from "@/lib/plans/view";
 import { PlanCard } from "./PlanCard";
@@ -18,8 +19,8 @@ import { PlanCard } from "./PlanCard";
  *   Starter and Studio Pro with their tech pack export limits, and the note that ordering through
  *   Knitwright needs no export.
  *
- * Choosing a plan buys nothing: checkout arrives with C1 (Stripe Billing). The button says so and
- * nothing is sent anywhere.
+ * Choosing a plan opens its Stripe Billing checkout (plan v6 C1, decision 0152) through
+ * `goToPlanCheckout`, the one entry point every upgrade button uses.
  */
 
 type PlansModalProps = Readonly<{
@@ -49,6 +50,13 @@ const COPY: Readonly<Record<PlansKind, Readonly<{ title: string; annual: string;
 export function PlansModal({ open, onClose, kind, asked = null, settings = PLAN_SETTINGS, initialBilling = "annual" }: PlansModalProps) {
   const [billing, setBilling] = useState<Billing>(kind === "techpack" ? "monthly" : initialBilling);
   const [chosen, setChosen] = useState<PlanRow | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+  const [, start] = useTransition();
+  const choose = (plan: PlanRow) => {
+    setChosen(plan);
+    setProblem(null);
+    start(async () => setProblem(await goToPlanCheckout(plan.id, billing)));
+  };
   const plans = plansOf(kind === "techpack" ? settings.techPackPlans : settings.choosePlans, settings);
   const copy = COPY[kind];
   const pill = kind === "plans" ? `Save up to ${money(bestSaving(plans))}` : null;
@@ -80,9 +88,9 @@ export function PlansModal({ open, onClose, kind, asked = null, settings = PLAN_
           </p>
         ) : null}
         {chosen ? (
-          <div className="w-full" data-testid="plans-checkout-coming">
-            <Notice tone="info">
-              <strong className="font-semibold">{chosen.name}.</strong> {CHECKOUT_COMING}
+          <div className="w-full" data-testid="plans-checkout">
+            <Notice tone={problem ? "warn" : "info"} role={problem ? "alert" : "status"}>
+              <strong className="font-semibold">{chosen.name}.</strong> {problem ?? CHECKOUT_OPENING}
             </Notice>
           </div>
         ) : null}
@@ -95,7 +103,7 @@ export function PlansModal({ open, onClose, kind, asked = null, settings = PLAN_
               kind={kind}
               current={plan.id === settings.currentPlan}
               asked={plan.id === asked}
-              onChoose={setChosen}
+              onChoose={choose}
             />
           ))}
         </div>

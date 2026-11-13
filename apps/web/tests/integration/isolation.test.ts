@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { adminClient, anonClient, brandOf, must, person, type Person } from "./support";
+import { adminClient, anonClient, brandOf, must, paidRpc, person, type Person } from "./support";
 
 /**
  * The isolation suite. Plan step 3, task 7, and acceptance criterion M5: one brand can
@@ -964,6 +964,32 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, product_id: randomUUID(), kind: "run", release_id: randomUUID(), article_id: "crew-tee", factory_profile_id: "f", fabric_key: "m", sizes: { M: 1 }, pieces: 1, order_id: randomUUID(), request_key: randomUUID() }),
     change: { pieces: 99 },
   },
+  // Plan v6 C1 (decision 0152): a brand's payments, the orders each pays for, and its plan. A member reads; only the
+  // server writes, through functions, after the processor has said so.
+  order_payments: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: await seedPayment(brandId, ownerId) }),
+    attempt: (brandId) => ({ brand_id: brandId, purpose: "order", method: "card", status: "paid", currency: "GBP", order_value_minor: 1, amount_minor: 1, description: "Made directly" }),
+    change: { status: "refunded", refunded_minor: 1 },
+  },
+  order_payment_lines: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ payment_id: await seedPayment(brandId, ownerId) }),
+    attempt: (brandId) => ({ payment_id: randomUUID(), brand_id: brandId, request_key: randomUUID(), door: "make", product_id: randomUUID(), project_id: randomUUID(), kind: "run", release_id: randomUUID(), factory_profile_id: "f", fabric_key: "m", sizes: { M: 300 }, pieces: 300 }),
+    change: { sizes: { M: 300 }, pieces: 300 },
+  },
+  brand_subscriptions: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId) => {
+      must(await adminClient().rpc("record_brand_subscription", { p_brand_id: brandId, p_plan_id: "starter", p_plan_interval: "month", p_status: "active", p_provider: "test", p_customer_id: null, p_subscription_id: `sub_${randomUUID()}`, p_current_period_end: null }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, plan_id: "club_scale", plan_interval: "year", status: "active", provider: "test", provider_subscription_id: randomUUID() }),
+    change: { plan_id: "club_scale" },
+  },
   brand_product_events: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1717,9 +1743,25 @@ const seedBrandRun = async (brandId: string, ownerId: string): Promise<string> =
     await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
   ) as { id: string }[];
   const rows = must(
-    await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
+    await paidRpc(adminClient(), "submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: "mesh", p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
   ) as { run_id: string }[];
   return rows[0]!.run_id;
+};
+
+/** A card payment for a sample of a new product, opened, checked out and paid the way the server does it. Returns its id. */
+const seedPayment = async (brandId: string, ownerId: string): Promise<string> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const line = { request_key: randomUUID(), door: "make", product_id: productId, project_id: projectId, kind: "sample", release_id: release[0]!.id, factory_profile_id: "f1", fabric_key: "mesh", sizes: { M: 1 }, flags: [], pieces: 1, value_minor: 2900, price_label: "Seeded" };
+  const id = must(
+    await adminClient().rpc("open_order_payment", { p_brand_id: brandId, p_user_id: ownerId, p_purpose: "order", p_method: "card", p_currency: "GBP", p_order_value_minor: 2900, p_amount_minor: 2900, p_schedule: "full", p_description: "Seeded", p_credits: null, p_plan_id: null, p_plan_interval: null, p_lines: [line] }),
+  ) as string;
+  const session = `cs_test_${randomUUID()}`;
+  must(await adminClient().rpc("attach_payment_session", { p_payment_id: id, p_provider: "test", p_session_id: session }));
+  must(await adminClient().rpc("record_payment_paid", { p_session_id: session, p_provider_payment_id: `pi_${randomUUID()}`, p_amount_minor: 2900, p_currency: "GBP" }));
+  return id;
 };
 
 /**
@@ -1845,7 +1887,7 @@ const seedGoldenSample = async (
     await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: { specVersion: 1 }, p_file_specs: [], p_order_id: null }),
   ) as { id: string }[];
   const runs = must(
-    await adminClient().rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: `golden-${randomUUID()}`, p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
+    await paidRpc(adminClient(), "submit_brand_run", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_kind: "sample", p_release_id: release[0]!.id, p_factory_profile_id: "f1", p_fabric_key: `golden-${randomUUID()}`, p_sizes: { M: 1 }, p_flags: [], p_request_key: randomUUID() }),
   ) as { run_id: string }[];
   const runId = runs[0]!.run_id;
   const id = must(await adminClient().rpc("start_golden_sample", { p_brand_id: brandId, p_user_id: ownerId, p_product_id: productId, p_run_id: runId })) as string;
@@ -2262,6 +2304,48 @@ const PLATFORM_TABLES: Readonly<Record<string, PlatformTableSpec>> = {
     },
     attempt: () => ({ email: "intruder@example.com", name: "Intruder" }),
     change: { name: "Changed by a member" },
+  },
+  // Plan v6 C1 (decision 0152): the processor's events, refunds, deposits to factories and the payment settings.
+  // Platform admins read them; only the server writes, through functions.
+  payment_settings: {
+    privileges: ["SELECT"],
+    seed: async () => ({ id: true }),
+    attempt: () => ({ id: false, label: "Made directly" }),
+    change: { refund_reserve_bps: 0 },
+  },
+  payment_events: {
+    privileges: ["SELECT"],
+    seed: async () => {
+      const id = `evt_${randomUUID()}`;
+      must(await adminClient().rpc("record_payment_event", { p_event_id: id, p_type: "checkout.session.completed" }));
+      return { provider_event_id: id };
+    },
+    attempt: () => ({ provider_event_id: `evt_${randomUUID()}`, type: "made.directly" }),
+    change: { type: "changed.by.a.member" },
+  },
+  payment_refunds: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const owner = must(await adminClient().from("brands").select("created_by").eq("id", brandId).single()) as { created_by: string };
+      const paymentId = await seedPayment(brandId, owner.created_by);
+      must(await adminClient().rpc("record_payment_refund", { p_payment_id: paymentId, p_amount_minor: 100, p_provider_refund_id: `re_${randomUUID()}`, p_reason: "Seeded", p_actor: null }));
+      return { payment_id: paymentId };
+    },
+    attempt: () => ({ payment_id: randomUUID(), amount_minor: 1, currency: "GBP", reason: "Made directly" }),
+    change: { amount_minor: 99_999 },
+  },
+  factory_deposits: {
+    privileges: ["SELECT"],
+    seed: async (brandId) => {
+      const owner = must(await adminClient().from("brands").select("created_by").eq("id", brandId).single()) as { created_by: string };
+      await seedPayment(brandId, owner.created_by);
+      const admin = await person("deposit-admin");
+      must(await adminClient().from("platform_admins").insert({ user_id: admin.userId }).select("user_id"));
+      const id = must(await adminClient().rpc("record_factory_deposit", { p_actor: admin.userId, p_factory_profile_id: "f1", p_currency: "GBP", p_amount_minor: 1, p_note: "Seeded" })) as string;
+      return { id };
+    },
+    attempt: () => ({ factory_profile_id: "f1", currency: "GBP", amount_minor: 1, note: "Made directly" }),
+    change: { amount_minor: 99_999 },
   },
   ops_settings: {
     privileges: ["SELECT"],

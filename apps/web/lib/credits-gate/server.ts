@@ -36,8 +36,9 @@ export const versionOf = async (
  *
  * Since plan v6 D1 (decision 0132) a version is marked `ordered` by `submit_order_for_production`
  * itself, in the same transaction as the order, so every order path does it and none can forget. A
- * version that is already ordered refuses `writeDesignStatus(..., "ordered", ...)`, so whoever wires
- * the refund (owner question D1-3 of decision 0132) calls `refundForOrder` alone, after the order.
+ * version that is already ordered refuses `writeDesignStatus(..., "ordered", ...)`, so the refund
+ * (owner question D1-3 of decision 0132) is wired by plan v6 C1 (decision 0152) in
+ * `lib/payments/server.ts` `creditsBack`, which calls `refundForOrder` alone after each order.
  */
 export const orderDesignVersion = (
   who: Readonly<{ brandId: string; userId: string }>,
