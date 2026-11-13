@@ -25,9 +25,19 @@ export interface CanvasState {
   readonly marquee: Readonly<{ from: Point; to: Point }> | null;
   /** The size of the canvas on screen, in screen pixels, kept by the canvas as it resizes. */
   readonly screen: Size;
+  /** The element (a layer on a garment board) the inspector shows, or null for the board itself (E3, decision 0147). */
+  readonly element: CanvasElement | null;
+  /** The mockup board in mockup edit mode (double-click), or null (E3, decision 0147). */
+  readonly editing: string | null;
 }
 
-export const INITIAL_STATE: CanvasState = { viewport: HOME, selection: [], focus: null, marquee: null, screen: { width: 0, height: 0 } };
+/** One layer of one board, as the inspector selects it. */
+export interface CanvasElement {
+  readonly boardId: string;
+  readonly id: string;
+}
+
+export const INITIAL_STATE: CanvasState = { viewport: HOME, selection: [], focus: null, marquee: null, screen: { width: 0, height: 0 }, element: null, editing: null };
 
 export type Listener = () => void;
 
@@ -58,6 +68,10 @@ export interface CanvasStore {
   /** Finish the marquee with the ids it caught; `additive` (Shift held) keeps what was selected. */
   endMarquee(caught: readonly string[], additive: boolean): void;
   setFocus(id: string | null): void;
+  /** Show one layer of a board in the inspector, or the board again with null (E3). */
+  selectElement(element: CanvasElement | null): void;
+  /** Open a mockup board in mockup edit mode, or finish with null (E3). */
+  setEditing(id: string | null): void;
 }
 
 /** The selection with one id taken out or put in at the end, the primary staying first. */
@@ -135,6 +149,13 @@ export function createCanvasStore(initial: Partial<CanvasState> = {}): CanvasSto
     },
     setFocus: (id) => {
       if (id !== state.focus) set({ ...state, focus: id });
+    },
+    selectElement: (element) => {
+      const now = state.element;
+      if (element?.boardId !== now?.boardId || element?.id !== now?.id) set({ ...state, element });
+    },
+    setEditing: (id) => {
+      if (id !== state.editing) set({ ...state, editing: id });
     },
   };
 }
