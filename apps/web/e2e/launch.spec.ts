@@ -71,7 +71,7 @@ test.describe("the launch shell", () => {
     await expect(page.getByTestId("launch-inspector")).toBeVisible();
     await expect(page.getByTestId("launch-dock")).toBeVisible();
     await expect(page.getByTestId("launch-menu-button")).toBeVisible();
-    await expect(page.getByTestId("launch-prompt")).toHaveAttribute("placeholder", /Describe what you want to create/);
+    await expect(page.getByTestId("prompt-bar")).toBeVisible();
     await expect(page.getByTestId("launch-shell").getByRole("heading", { level: 1 })).toHaveCount(1);
   });
 

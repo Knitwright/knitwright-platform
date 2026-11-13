@@ -16,6 +16,7 @@ import { useEditorInput } from "@/components/editor-chrome/useEditorInput";
 import { useFlyout } from "@/components/editor-chrome/useFlyout";
 import FlowRunPanel from "@/components/flows/FlowRunPanel";
 import { MarketingServicesProvider, type MarketingServices } from "@/components/marketing/services";
+import { CanvasDoors } from "@/components/pickers/CanvasDoors";
 import { Notice } from "@/components/ui/Notice";
 import { boxOf, contentBounds, zoomPercent, type GarmentPreview, type Point } from "@/lib/canvas";
 import { EMPTY_SHELF, readFlyout, type ContextCommand, type Flyout, type ProductsShelf, type ZoomChoice } from "@/lib/editor-chrome";
@@ -298,13 +299,11 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
         }
         prompt={
           <PromptPill
-            panel={panel}
-            prompt={shell.prompt}
+            bar={{ project, credits, costs, canEdit }}
             busy={busy}
             runLabel={estimate ? runLabel(estimate) : null}
             canRun={canRun && !busy}
             note={estimate && estimate.credits > 0 ? estimate.note : null}
-            onPrompt={shell.setPrompt}
             onRun={() => selected && shell.commands.requestRun(selected.id)}
           />
         }
@@ -328,7 +327,11 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
           />
         }
         right={
-          <RightPanel projectId={project.id} projectName={project.name} panel={panel}>
+          <RightPanel
+            projectName={project.name}
+            panel={panel}
+            doors={<CanvasDoors project={project} presets={presets} canEdit={canEdit} selectedId={shell.state.boardId} />}
+          >
             {page.selection === null ? (
               <ProjectPanel
                 colours={project.colours}

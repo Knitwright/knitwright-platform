@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import { PromptBar, type PromptBarProps } from "@/components/prompt-bar/PromptBar";
 import type { LaunchPanelProps } from "@/lib/launch";
 
 /**
@@ -8,8 +9,8 @@ import type { LaunchPanelProps } from "@/lib/launch";
  *   * **E4** fills the right panel's **Share**, **Export** and **Order** popovers (e27–e30) by
  *     setting `share`, `export` and `order` below to its own component. Until it does, each button
  *     opens a short popover with the real doors that exist today, so none of them is a dead link.
- *   * **E5** replaces the prompt pill over the dock (e34) by setting `PROMPT_BAR`. Until it does,
- *     the pill is the launch shell's prompt field and its Run button.
+ *   * **E5**'s prompt bar (e34, decision 0149) is `PROMPT_BAR`, mounted over the dock; the selected
+ *     board's Run button and its cost sit beside it (`PromptPill.tsx`).
  *   * **E3** fills the inspector of each selection in `components/launch/Inspector.tsx` as before;
  *     the right panel mounts it under the Share · Export · Order row whenever a board is selected.
  *
@@ -27,7 +28,7 @@ export const POPOVER_SLOTS: Partial<Record<PopoverSlot, ComponentType<PopoverSlo
   // order: OrderDrawer,    (E4)
 };
 
-/** What the prompt bar is given: the contract's props and the dock's credit balance. */
-export type PromptSlotProps = LaunchPanelProps;
+/** What the prompt bar is given: E5's own props (decision 0149). */
+export type PromptSlotProps = PromptBarProps;
 
-export const PROMPT_BAR: ComponentType<PromptSlotProps> | null = null; // (E5)
+export const PROMPT_BAR: ComponentType<PromptSlotProps> = PromptBar; // E5, decision 0149

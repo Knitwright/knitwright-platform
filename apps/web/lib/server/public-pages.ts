@@ -57,4 +57,6 @@ export const PUBLIC_PAGES = [
   "app/dev/p6/page.tsx",
   // The one canvas with made-up boards (decision 0145), for the comparison with e01. Same switch as /dev/ui.
   "app/dev/canvas/page.tsx",
+  // E5's prompt bar, pickers and panels with made-up data (decision 0149). Same switch as /dev/ui.
+  "app/dev/prompt-bar/page.tsx",
 ] as const;

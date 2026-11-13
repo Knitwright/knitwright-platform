@@ -1,15 +1,13 @@
 "use client";
 
-import { History } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useCallback, useId, useRef, useState, type ReactNode } from "react";
 import { linkedDesign } from "@/components/canvas/BoardDoors";
 import { cx } from "@/components/ui/cx";
-import { Icon } from "@/components/ui/Icon";
 import { useDismiss } from "@/components/ui/use-dismiss";
 import { boardFilePath } from "@/lib/flows";
-import { isGarmentKind, launchHistoryPath, type BoardView, type LaunchPanelProps } from "@/lib/launch";
+import { isGarmentKind, type BoardView, type LaunchPanelProps } from "@/lib/launch";
 import { POPOVER_SLOTS, type PopoverSlot } from "./slots";
 
 /**
@@ -24,25 +22,24 @@ import { POPOVER_SLOTS, type PopoverSlot } from "./slots";
  */
 
 type Props = Readonly<{
-  projectId: string;
   projectName: string;
   panel: LaunchPanelProps;
+  /** E5's doors by the project's name (decision 0149): Add board and the version-history clock. */
+  doors: ReactNode;
   children: ReactNode;
 }>;
 
-export function RightPanel({ projectId, projectName, panel, children }: Props) {
+export function RightPanel({ projectName, panel, doors, children }: Props) {
   return (
-    <div className="relative flex w-full shrink-0 flex-col overflow-y-auto border-l lg:h-full lg:w-77.5 border-border bg-bg text-body" data-testid="editor-right-panel">
+    <div className="relative flex w-full shrink-0 flex-col overflow-y-auto border-l border-border bg-bg text-body lg:h-full lg:w-77.5" data-testid="editor-right-panel">
       <div role="group" aria-label="Share, export and order" className="flex items-center justify-end gap-2 px-4 pt-3.5 pb-1">
         <ChromePopover slot="share" label="Share" tone="plain" panel={panel} />
         <ChromePopover slot="export" label="Export" tone="ink" panel={panel} />
         <ChromePopover slot="order" label="Order" tone="gold" panel={panel} />
       </div>
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 pt-3.5 pb-4.5 text-body-lg text-muted">
-        <h1 className="truncate text-body-lg font-medium text-muted">{projectName}</h1>
-        <Link href={launchHistoryPath(projectId) as Route} aria-label="Version history" className="grid size-8 place-items-center rounded-sm text-text-2 hover:bg-soft" data-testid="editor-history">
-          <Icon icon={History} />
-        </Link>
+        <h1 className="min-w-0 truncate text-body-lg font-medium text-muted">{projectName}</h1>
+        {doors}
       </div>
       {children}
     </div>
