@@ -594,8 +594,9 @@ as $$
   );
 $$;
 
--- submit_brand_run as migration 20261028030000 wrote it, with one check added after the replay answer:
--- the payment. A retry of an order already sent still answers with that order.
+-- submit_brand_run as migration 20261028030000 wrote it, with one check added immediately before the order is
+-- handed to submit_order_for_production: the payment. A retry of an order already sent still answers with that
+-- order, and every malformed order is refused for what is wrong with it first.
 create or replace function public.submit_brand_run(
   p_brand_id uuid,
   p_user_id uuid,
@@ -648,12 +649,6 @@ begin
     return;
   end if;
 
-  -- Plan v6 C1 (decision 0152): not to production until paid.
-  if not private.order_is_paid(p_brand_id, p_request_key, p_product_id, p_kind, p_release_id, p_factory_profile_id, p_fabric_key, p_sizes) then
-    raise exception 'This order is not paid yet. It goes to production once its checkout is paid.'
-      using errcode = 'P0001', hint = 'payment_required';
-  end if;
-
   if (p_kind = 'sample' and v_product.stage = 'run') or (p_kind = 'run' and v_product.stage <> 'run') then
     raise exception 'This product is not at the right stage for that order.' using errcode = 'P0001', hint = 'stage_blocks';
   end if;
@@ -678,6 +673,13 @@ begin
   where r.id = p_release_id and r.brand_id = p_brand_id and r.project_id = v_product.project_id;
   if not found then
     raise exception 'That release does not exist.' using errcode = 'P0002', hint = 'release_not_found';
+  end if;
+
+  -- Plan v6 C1 (decision 0152): not to production until paid. Asked last of this function's own checks, so a
+  -- malformed order is told what is wrong with it, and before the D1 gate in submit_order_for_production.
+  if not private.order_is_paid(p_brand_id, p_request_key, p_product_id, p_kind, p_release_id, p_factory_profile_id, p_fabric_key, p_sizes) then
+    raise exception 'This order is not paid yet. It goes to production once its checkout is paid.'
+      using errcode = 'P0001', hint = 'payment_required';
   end if;
 
   select o.* into v_order from public.submit_order_for_production(

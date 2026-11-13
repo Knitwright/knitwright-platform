@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { adminClient, brandOf, must, person, type Person } from "./support";
+import { adminClient, brandOf, must, paidRpc, person, type Person } from "./support";
 
 /**
  * Make: golden samples and the one door a make order goes through (plan v5 Y7, F-S7; decision 0080), against
@@ -50,8 +50,9 @@ const makeRelease = async (owner: Person, brandId: string, projectId: string, sp
 const listProduct = async (owner: Person, brandId: string, projectId: string): Promise<string> =>
   must(await rpc("create_brand_product", { p_brand_id: brandId, p_user_id: owner.userId, p_project_id: projectId, p_name: "Make tee" })) as string;
 
+// Paid first: an order reaches production only once a payment names it (plan v6 C1, decision 0152).
 const order = (who: Person, brandId: string, productId: string, releaseId: string, over: Record<string, unknown> = {}) =>
-  rpc("submit_make_order", {
+  paidRpc(adminClient(), "submit_make_order", {
     p_brand_id: brandId, p_user_id: who.userId, p_product_id: productId, p_kind: "sample", p_release_id: releaseId,
     p_factory_profile_id: "knitwright-default", p_fabric_key: fabric(), p_sizes: { S: 1, M: 1 }, p_flags: [],
     p_request_key: randomUUID(), ...over,
