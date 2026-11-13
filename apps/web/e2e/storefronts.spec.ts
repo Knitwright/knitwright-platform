@@ -65,8 +65,8 @@ test.describe("storefronts (C3)", () => {
     await expect(health).toContainText("Approve the golden sample before selling");
     await accessible(page);
 
-    await page.getByLabel("Title").fill("Rovers Home Tee 2027");
-    await page.getByLabel("Description").fill("Our home tee for 2027.");
+    await page.getByLabel("Title", { exact: true }).fill("Rovers Home Tee 2027");
+    await page.getByLabel("Description", { exact: true }).fill("Our home tee for 2027.");
     await page.getByPlaceholder("Add a tag, then press Enter").fill("home kit");
     await page.getByPlaceholder("Add a tag, then press Enter").press("Enter");
     const retail = page.getByRole("textbox", { name: /^Retail price for / }).first();
@@ -76,7 +76,7 @@ test.describe("storefronts (C3)", () => {
     await expect(page.getByText("Saved as a draft.")).toBeVisible();
 
     await page.reload();
-    await expect(page.getByLabel("Title")).toHaveValue("Rovers Home Tee 2027");
+    await expect(page.getByLabel("Title", { exact: true })).toHaveValue("Rovers Home Tee 2027");
     await expect(page.getByRole("list", { name: "Tags" })).toContainText("home kit");
     await expect(page.getByRole("textbox", { name: /^Retail price for / }).first()).toHaveValue("45.00");
     await expect(page.getByTestId("listing-status")).toHaveText("Draft");
@@ -103,7 +103,7 @@ test.describe("storefronts (C3)", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Storefront" })).toBeVisible();
     await accessible(page);
     await page.getByLabel("Name", { exact: true }).fill("Rovers shop");
-    await page.getByLabel("Address").fill(slug);
+    await page.getByLabel("Address", { exact: true }).fill(slug);
     await page.getByLabel("Live: anyone with the address").check();
     await page.getByRole("button", { name: "Save storefront" }).click();
     await expect(page.getByText("Saved. Your storefront is live.")).toBeVisible();

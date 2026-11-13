@@ -12,10 +12,12 @@ export function EditorCard({ id, title, meta, action, children }: Readonly<{ id:
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="flex scroll-mt-24 flex-col gap-4 rounded-xl border border-border bg-bg p-5">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id={`${id}-title`} className="flex items-baseline gap-2 text-h3 text-text">
-          {title}
-          {meta ? <span className="text-small font-normal text-muted">{meta}</span> : null}
-        </h2>
+        <div className="flex items-baseline gap-2">
+          <h2 id={`${id}-title`} className="text-h3 text-text">
+            {title}
+          </h2>
+          {meta ? <span className="text-small text-muted">{meta}</span> : null}
+        </div>
         {action}
       </header>
       {children}
