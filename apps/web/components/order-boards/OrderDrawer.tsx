@@ -85,6 +85,14 @@ export function OrderDrawer({ design, onClose }: Readonly<{ design: OrderableDes
           {CHECKOUT_LATER}
         </p>
       ) : null}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border pt-2 text-small font-semibold">
+        <Link href={`/studio/${design.id}/make` as Route} className="text-link live:hover:underline" data-testid="order-drawer-product">
+          Product page
+        </Link>
+        <Link href={"/orders" as Route} className="text-link live:hover:underline" data-testid="order-drawer-orders">
+          Your orders
+        </Link>
+      </div>
     </PanelFrame>
   );
 }

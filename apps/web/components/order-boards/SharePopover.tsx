@@ -130,6 +130,9 @@ function InviteTab({ design }: Readonly<{ design: OrderableDesign }>) {
   return (
     <div className="flex flex-col gap-3" data-testid="share-invite-tab">
       <InviteForm projectId={design.id} />
+      <Link href={"/settings" as Route} className="self-start text-small font-semibold text-link live:hover:underline" data-testid="share-members">
+        Brand members in Settings
+      </Link>
       <ul className="flex flex-col gap-1" aria-label="Members">
         <Member name={brandName === "" ? "Anyone in your brand" : `Anyone at ${brandName}`} access="Can access" />
         <Member name="You" access="Owner" />

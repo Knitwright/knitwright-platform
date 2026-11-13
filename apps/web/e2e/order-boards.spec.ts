@@ -67,6 +67,8 @@ test.describe("the tech pack and order boards", () => {
     const drawer = page.getByRole("dialog", { name: `Order · ${name}` });
     await expect(drawer).toBeVisible();
     await expect(drawer.getByTestId("order-drawer-checkout")).toContainText("Card checkout arrives with payments");
+    await expect(drawer.getByTestId("order-drawer-orders")).toHaveAttribute("href", "/orders");
+    await expect(drawer.getByTestId("order-drawer-product")).toHaveAttribute("href", `/studio/${id}/make`);
     await drawer.getByRole("tab", { name: "Team store" }).click();
     await expect(drawer.getByTestId("order-drawer-store")).toContainText("Team stores open with the Store");
     await drawer.getByRole("button", { name: `Close Order · ${name}` }).click();
@@ -88,6 +90,7 @@ test.describe("the project panels", () => {
     await expect(exporting).toBeVisible();
     await expect(exporting.getByTestId("export-techpack-xlsx")).toHaveAttribute("href", new RegExp(`/api/projects/${id}/exports/xlsx\\?version=\\d+$`));
     await expect(exporting.getByTestId("export-production-package")).toHaveAttribute("href", `/api/projects/${id}/production-package`);
+    await expect(exporting.getByTestId("export-techpack-page")).toHaveAttribute("href", `/studio/${id}/tech-pack`);
     await page.keyboard.press("Escape");
     await expect(exporting).toBeHidden();
 
@@ -96,6 +99,7 @@ test.describe("the project panels", () => {
     await expect(sharing.getByRole("button", { name: "Make a share link" })).toBeVisible();
     await sharing.getByRole("radio", { name: "Invite" }).click();
     await expect(sharing.getByTestId("share-factory-desk")).toContainText("Tech pack only");
+    await expect(sharing.getByTestId("share-members")).toHaveAttribute("href", "/settings");
     await expect(sharing.getByLabel("Invite by email")).toBeVisible();
 
     const results = await new AxeBuilder({ page }).include('[data-testid="share-popover"]').analyze();

@@ -1,12 +1,15 @@
 "use client";
 
 import { Crown, Download } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useId, useState } from "react";
 import { NOT_WIRED, useMarketingServices } from "@/components/marketing/services";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Checkbox, Select } from "@/components/ui/Inputs";
 import { Notice } from "@/components/ui/Notice";
+import { boardFilePath } from "@/lib/flows";
 import { ARTBOARD_UNITS, UNIT_SUFFIX, writeLength, type ArtboardUnit, type BoardView } from "@/lib/launch";
 import {
   COLOUR_SPACES,
@@ -41,8 +44,9 @@ export function ExportPopover({
   boards,
   design,
   unit: projectUnit,
+  selectedId = null,
   onClose,
-}: Readonly<{ boards: readonly BoardView[]; design: OrderableDesign | null; unit: ArtboardUnit; onClose: () => void }>) {
+}: Readonly<{ boards: readonly BoardView[]; design: OrderableDesign | null; unit: ArtboardUnit; selectedId?: string | null; onClose: () => void }>) {
   const { targets, watermarkRules, plan, cmykProfile, onExport } = useMarketingServices();
   const ids = { list: useId(), unit: useId(), format: useId(), dpi: useId(), space: useId() };
   const artboards = artboardsOf(boards);
@@ -173,6 +177,7 @@ export function ExportPopover({
         </>
       )}
 
+      <BoardFile board={boards.find((board) => board.id === selectedId) ?? null} />
       <GarmentBlock design={design} />
 
       {artboards.length === 0 ? null : (
@@ -224,6 +229,19 @@ function GarmentBlock({ design }: Readonly<{ design: OrderableDesign | null }>) 
           </li>
         ))}
       </ul>
+      <Link href={`/studio/${design.id}/tech-pack` as Route} className="self-start text-small font-semibold text-link live:hover:underline" data-testid="export-techpack-page">
+        Open the tech pack and production files
+      </Link>
     </section>
+  );
+}
+
+/** The selected board's own file, once it has run (E2's interim Export door, kept). */
+function BoardFile({ board }: Readonly<{ board: BoardView | null }>) {
+  if (board?.outputFileId == null) return null;
+  return (
+    <a href={boardFilePath(board.outputFileId)} target="_blank" rel="noopener" className="self-start text-small font-semibold text-link live:hover:underline" data-testid="export-board-file">
+      Download {board.name || "this board"} as it last ran
+    </a>
   );
 }

@@ -7,9 +7,9 @@ import type { LaunchPanelProps } from "@/lib/launch";
  * THE EDITOR CHROME'S MOUNT POINTS (plan v6 E2, decision 0146), for the three workstreams that build
  * beside it in the same wave:
  *
- *   * **E4** fills the right panel's **Share**, **Export** and **Order** popovers (e27–e30) by
- *     setting `share`, `export` and `order` below to its own component. Until it does, each button
- *     opens a short popover with the real doors that exist today, so none of them is a dead link.
+ *   * **E4** fills the right panel's **Share**, **Export** and **Order** popovers (e27–e30) with its
+ *     Share popover, Export popover and Order drawer (decision 0148), which keep every door the
+ *     interim popovers offered.
  *   * **E5**'s prompt bar (e34, decision 0149) is `PROMPT_BAR`, mounted over the dock; the selected
  *     board's Run button and its cost sit beside it (`PromptPill.tsx`).
  *   * **E3** fills the inspector of each selection in `components/launch/Inspector.tsx` as before;
@@ -23,7 +23,7 @@ export type PopoverSlotProps = LaunchPanelProps & Readonly<{ close: () => void }
 
 export type PopoverSlot = "share" | "export" | "order";
 
-export const POPOVER_SLOTS: Partial<Record<PopoverSlot, ComponentType<PopoverSlotProps>>> = {
+export const POPOVER_SLOTS: Readonly<Record<PopoverSlot, ComponentType<PopoverSlotProps>>> = {
   share: ShareSlot, // E4, decision 0148
   export: ExportSlot, // E4, decision 0148
   order: OrderSlot, // E4, decision 0148

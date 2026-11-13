@@ -46,6 +46,7 @@ import { renderMockupBoardAction } from "@/lib/mockups/actions";
 import { BoardCanvas } from "./BoardCanvas";
 import { BottomDock } from "./BottomDock";
 import { IconRail } from "./IconRail";
+import { SelectionInspector } from "@/components/canvas/inspector/SelectionInspector";
 import { Inspector } from "./Inspector";
 import { MainMenu } from "./MainMenu";
 import { drawnPictures, type MarketingShellData } from "./marketing-services";
@@ -333,34 +334,42 @@ function ShellBody({ project, presets, credits, costs, state, canEdit, marketing
             panel={panel}
             doors={<CanvasDoors project={project} presets={presets} canEdit={canEdit} selectedId={shell.state.boardId} />}
           >
-            {page.selection === null ? (
-              <ProjectPanel
-                colours={project.colours}
-                busy={busy}
-                onColours={shell.commands.setProjectColours}
-                onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 })}
-                onBrowsePalettes={() => fly.show({ kind: "panel", id: "brand" })}
-                runSummary={project.boards.length === 0 ? null : <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />}
-              />
-            ) : (
-              <div className="flex min-h-0 flex-col p-3">
-                <Inspector
-                  projectName={project.name}
-                  colours={project.colours}
-                  selection={page.selection}
-                  unit={shell.state.unit}
-                  presets={presets}
-                  busy={busy}
-                  lockNote={page.lockNote}
-                  panel={panel}
-                  flow={flow}
-                  onUnit={shell.commands.setUnit}
-                  onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
-                  onColours={shell.commands.setProjectColours}
-                  onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
-                />
-              </div>
-            )}
+            <SelectionInspector
+              graph={graph}
+              canvasId={project.id}
+              busy={busy}
+              commands={shell.commands}
+              fallback={
+                page.selection === null ? (
+                  <ProjectPanel
+                    colours={project.colours}
+                    busy={busy}
+                    onColours={shell.commands.setProjectColours}
+                    onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 })}
+                    onBrowsePalettes={() => fly.show({ kind: "panel", id: "brand" })}
+                    runSummary={project.boards.length === 0 ? null : <FlowRunPanel {...panel} costs={flow.costs} onRunAll={flow.onRunAll} />}
+                  />
+                ) : (
+                  <div className="flex min-h-0 flex-col p-3">
+                    <Inspector
+                      projectName={project.name}
+                      colours={project.colours}
+                      selection={page.selection}
+                      unit={shell.state.unit}
+                      presets={presets}
+                      busy={busy}
+                      lockNote={page.lockNote}
+                      panel={panel}
+                      flow={flow}
+                      onUnit={shell.commands.setUnit}
+                      onSize={(size) => selected && shell.commands.resizeBoard(selected.id, size)}
+                      onColours={shell.commands.setProjectColours}
+                      onAddBoard={(kind) => shell.commands.addBoard(kind, { x: 0, y: 0 }, selected?.id)}
+                    />
+                  </div>
+                )
+              }
+            />
           </RightPanel>
         }
       />

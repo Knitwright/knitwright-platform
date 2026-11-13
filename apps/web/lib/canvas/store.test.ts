@@ -123,3 +123,25 @@ describe("the canvas store's subscription", () => {
     expect(store.getState().selection).toBe(selection);
   });
 });
+
+describe("the canvas store's element and mockup edit mode (E3, decision 0147)", () => {
+  it("selects one layer of a board and lets it go, telling listeners once per change", () => {
+    const store = createCanvasStore();
+    const heard = vi.fn();
+    store.subscribe(heard);
+    store.selectElement({ boardId: "g", id: "crest" });
+    store.selectElement({ boardId: "g", id: "crest" });
+    expect(store.getState().element).toEqual({ boardId: "g", id: "crest" });
+    store.selectElement(null);
+    expect(store.getState().element).toBeNull();
+    expect(heard).toHaveBeenCalledTimes(2);
+  });
+
+  it("opens a mockup board in edit mode and finishes it", () => {
+    const store = createCanvasStore();
+    store.setEditing("m");
+    expect(store.getState().editing).toBe("m");
+    store.setEditing(null);
+    expect(store.getState().editing).toBeNull();
+  });
+});

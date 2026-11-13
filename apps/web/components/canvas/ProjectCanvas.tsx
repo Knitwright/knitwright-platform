@@ -12,6 +12,7 @@ import { CanvasBoard } from "./CanvasBoard";
 import { useCanvasStore } from "./CanvasStore";
 import { GarmentPreviewPanel } from "./GarmentPreviewPanel";
 import { InfiniteCanvas } from "./InfiniteCanvas";
+import { MockupEditFrame } from "./inspector/MockupInspector";
 
 /**
  * The launch shell's boards on the infinite plane (decision 0145). It replaces L6's scrolling flow
@@ -162,6 +163,8 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
             <LinkedBoardBody board={board} graph={graph} />
             <div className="h-44 shrink-0">{card(board)}</div>
           </div>
+        ) : board.kind === "mockup" ? (
+          <MockupEditFrame board={board}>{card(board)}</MockupEditFrame>
         ) : (
           card(board)
         )}

@@ -32,13 +32,16 @@ function useDesign(graph: Graph, selected: string | null): OrderableDesign | nul
 /** The panel `useProjectPanels().open(id)` asked for, fixed under the right panel's buttons. */
 export function ProjectPanels({ graph, unit }: Readonly<{ graph: Graph; unit: ArtboardUnit }>) {
   const { panel, close } = useProjectPanels();
-  const design = useDesign(graph, useCanvas(primaryOf));
-  return <Panel id={panel} graph={graph} unit={unit} design={design} close={close} />;
+  const selectedId = useCanvas(primaryOf);
+  const design = useDesign(graph, selectedId);
+  return <Panel id={panel} graph={graph} unit={unit} design={design} selectedId={selectedId} close={close} />;
 }
 
-function Panel({ id, graph, unit, design, close }: Readonly<{ id: string | null; graph: Graph; unit: ArtboardUnit; design: OrderableDesign | null; close: () => void }>) {
+type PanelProps = Readonly<{ id: string | null; graph: Graph; unit: ArtboardUnit; design: OrderableDesign | null; selectedId: string | null; close: () => void }>;
+
+function Panel({ id, graph, unit, design, selectedId, close }: PanelProps) {
   if (id === "share") return <SharePopover design={design} onClose={close} />;
-  if (id === "export") return <ExportPopover boards={graph.boards} design={design} unit={unit} onClose={close} />;
+  if (id === "export") return <ExportPopover boards={graph.boards} design={design} unit={unit} selectedId={selectedId} onClose={close} />;
   if (id !== "order") return null;
   return design === null ? (
     <PanelFrame title="Order" onClose={close} testId="order-drawer">
@@ -53,8 +56,9 @@ function Panel({ id, graph, unit, design, close }: Readonly<{ id: string | null;
 const slot = (id: "share" | "export" | "order") =>
   function Slot({ context, close }: PopoverSlotProps) {
     const graph = { boards: context.project.boards, edges: context.project.edges };
-    const design = useDesign(graph, context.selection?.board.id ?? null);
-    return <Panel id={id} graph={graph} unit={context.unit} design={design} close={close} />;
+    const selectedId = context.selection?.board.id ?? null;
+    const design = useDesign(graph, selectedId);
+    return <Panel id={id} graph={graph} unit={context.unit} design={design} selectedId={selectedId} close={close} />;
   };
 
 export const ShareSlot = slot("share");
