@@ -176,8 +176,9 @@ describe("closing", () => {
     const [sent] = must(await send({ M: 2, L: 1 })) as { order_id: string; run_id: string }[];
     must(await rpc("finish_team_store_close", { p_store_id: id, p_status: "closed", p_order_id: sent!.order_id, p_run_id: sent!.run_id, p_message: null }));
     expect(await storeRow(id)).toMatchObject({ status: "closed", order_id: sent!.order_id });
-    // A closed store's key pays for nothing else.
-    expect((await send({ M: 2, L: 2 })).error?.hint).toBe("payment_required");
+    // The store's key answers with its one order however often it is sent: never a second order.
+    const [repeat] = must(await send({ M: 2, L: 1 })) as { order_id: string; created: boolean }[];
+    expect(repeat).toMatchObject({ order_id: sent!.order_id, created: false });
   });
 
   it("refunds a cancelled store's buyers through C1's refund record", async () => {
