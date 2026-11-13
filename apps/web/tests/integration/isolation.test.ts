@@ -990,6 +990,43 @@ const TABLES: Readonly<Record<string, TableSpec>> = {
     attempt: (brandId) => ({ brand_id: brandId, plan_id: "club_scale", plan_interval: "year", status: "active", provider: "test", provider_subscription_id: randomUUID() }),
     change: { plan_id: "club_scale" },
   },
+  // Plan v6 C2 (decision 0153): a club's team stores, what its buyers bought, and its club page. A member reads; only
+  // the server writes, through functions, and a buyer with no account writes only through the store's own checkout.
+  team_stores: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ id: (await seedTeamStore(brandId, ownerId)).id }),
+    attempt: (brandId) => ({ brand_id: brandId, code: "Zz9zZz9zZz", title: "Made directly", project_id: randomUUID(), product_id: randomUUID(), release_id: randomUUID(), factory_profile_id: "f", fabric_key: "m", currency: "GBP", unit_minor: 1, price_label: "x", margin_minor: 0, sizes: ["M"], name_max: 12, opens_at: new Date().toISOString(), closes_at: new Date(Date.now() + 86_400_000).toISOString() }),
+    change: { status: "closed", unit_minor: 1 },
+  },
+  team_store_orders: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => ({ payment_id: await seedTeamStorePurchase(brandId, ownerId) }),
+    attempt: (brandId) => ({ store_id: randomUUID(), brand_id: brandId, payment_id: randomUUID(), request_key: randomUUID(), buyer_name: "Made directly", buyer_email: "made@example.test", pieces: 1, amount_minor: 1 }),
+    change: { buyer_email: "changed@example.test" },
+  },
+  team_store_order_lines: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      const paymentId = await seedTeamStorePurchase(brandId, ownerId);
+      const order = must(await adminClient().from("team_store_orders").select("id").eq("payment_id", paymentId).single()) as { id: string };
+      return { order_id: order.id };
+    },
+    attempt: (brandId) => ({ order_id: randomUUID(), store_id: randomUUID(), brand_id: brandId, position: 1, size_label: "M" }),
+    change: { print_name: "CHANGED" },
+  },
+  club_pages: {
+    privileges: ["SELECT"],
+    brandColumn: "brand_id",
+    seed: async (brandId, ownerId) => {
+      must(await adminClient().rpc("set_club_page", { p_brand_id: brandId, p_user_id: ownerId, p_slug: `iso-${randomUUID().slice(0, 8)}`, p_contact: "", p_published: false }));
+      return { brand_id: brandId };
+    },
+    attempt: (brandId) => ({ brand_id: brandId, slug: `made-${randomUUID().slice(0, 8)}` }),
+    change: { published: true },
+  },
   brand_product_events: {
     privileges: ["SELECT"],
     brandColumn: "brand_id",
@@ -1734,6 +1771,28 @@ const seedBrandProduct = async (brandId: string, ownerId: string): Promise<{ pro
   const projectId = await seedProject(brandId, ownerId);
   const productId = must(await adminClient().rpc("create_brand_product", { p_brand_id: brandId, p_user_id: ownerId, p_project_id: projectId, p_name: "Seeded product" })) as string;
   return { productId, projectId };
+};
+
+/** A team store of a listed design with a frozen release, opened the way the server opens one (decision 0153). */
+const seedTeamStore = async (brandId: string, ownerId: string): Promise<{ id: string; code: string }> => {
+  const { productId, projectId } = await seedBrandProduct(brandId, ownerId);
+  const release = must(
+    await adminClient().rpc("create_release", { p_project_id: projectId, p_brand_id: brandId, p_user_id: ownerId, p_label: "Seeded release", p_snapshot: {}, p_file_specs: [], p_order_id: null }),
+  ) as { id: string }[];
+  const code = randomBytes(8).toString("hex").slice(0, 10);
+  const id = must(await adminClient().rpc("open_team_store", {
+    p_brand_id: brandId, p_user_id: ownerId, p_code: code, p_title: "Seeded store", p_project_id: projectId, p_product_id: productId, p_release_id: release[0]!.id,
+    p_factory_profile_id: "f1", p_fabric_key: "mesh", p_flags: [], p_currency: "GBP", p_unit_minor: 2900, p_price_label: "Seeded", p_margin_bps: 0, p_sizes: ["M"],
+    p_names_numbers: true, p_name_max: 12, p_min_pieces: 10, p_season_id: null, p_opens_at: new Date(Date.now() - 60_000).toISOString(), p_closes_at: new Date(Date.now() + 86_400_000).toISOString(),
+  })) as string;
+  return { id, code };
+};
+
+/** One purchase from a seeded team store, as a buyer with no account makes it. Returns its payment's id. */
+const seedTeamStorePurchase = async (brandId: string, ownerId: string): Promise<string> => {
+  const store = await seedTeamStore(brandId, ownerId);
+  const rows = must(await adminClient().rpc("open_team_store_payment", { p_code: store.code, p_request_key: randomUUID(), p_buyer_name: "Seeded buyer", p_buyer_email: "buyer@example.test", p_lines: [{ size_label: "M", print_name: "SEEDED", print_number: "9" }] })) as { payment_id: string }[];
+  return rows[0]!.payment_id;
 };
 
 /** A sample of a product sent to ops the way the server sends one. Returns the run id. */
