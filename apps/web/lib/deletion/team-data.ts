@@ -79,6 +79,10 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
  */
 export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
   {
+    table: "store_settings",
+    why: "A brand's GPSR contacts (decision 0156): the EU responsible person the law asks for and the brand's own contact, given by the brand for its listings, not for production. The row goes with its brand (brand_id on delete cascade), and an owner or admin clears or changes it on the Store settings page.",
+  },
+  {
     table: "access_requests",
     why: "A request to be let in, made before any brand exists. It belongs to no brand, so no brand's deletion can take it; it is erased through the platform-admin screen instead.",
   },
@@ -109,4 +113,6 @@ export const NAMES_OF_THINGS: readonly string[] = [
   "boards", "flow_template_steps", "ops_couriers",
   // Decision 0139: a brand's folders on the Projects page.
   "project_folders",
+  // Decision 0156: a seller's sale names the product sold; a branding option names a parcel insert.
+  "seller_sales", "store_branding_options",
 ];

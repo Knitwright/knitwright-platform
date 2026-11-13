@@ -86,6 +86,12 @@ const ACTION_GROUPS: readonly Group[] = [
 const ROUTE_GROUPS: readonly Group[] = [
   {
     kind: "helper",
+    why: "The scheduler's door to the weekly seller payout run (decision 0156), named in vercel.json's crons beside the cut and the roster purge; the scheduler calls it, nothing in the app does.",
+    pr: null,
+    paths: ["/api/cron/seller-payouts"],
+  },
+  {
+    kind: "helper",
     why: "Named as a door in plans/production-outputs.md (W3's print profiles: `apps/web/app/api/print-profiles/**`), so the caller is outside this app.",
     pr: null,
     paths: ["/api/print-profiles", "/api/print-profiles/rules", "/api/print-profiles/rules/[ruleId]"],
