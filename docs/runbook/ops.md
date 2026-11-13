@@ -204,3 +204,20 @@ members; a failed job shows a safe sentence.
 - A "differs from the release" line.
 - Anything that needs a row edited by hand. The tables that matter are append-only on purpose.
 - A platform admin needs to be added or removed (done in the database by hand).
+
+## 13. Payments and finance (decision 0152)
+
+Since plan v6 C1 an order reaches production only once it is paid, or, where its article has no price on file, once
+it is recorded as an invoice order for Knitwright to invoice. `/ops/finance` shows, per currency:
+
+- **GMV and revenue on separate lines.** GMV is the whole value of orders paid by card. Revenue is the cash
+  collected, less refunds.
+- **The refund reserve.** By default it is 10% of open pre-orders. It and the deposit rule are settings on the same
+  page, and saving them clears the placeholder label.
+- **The deposit headroom.** Record a deposit sent to a factory there. The database refuses one larger than collected
+  cash, less the reserve and the deposits already sent (F-G4).
+- **The newest payments**, each with a Refund form while something is left to give back. A refund made in the
+  Stripe Dashboard is picked up from Stripe's webhook and counted once.
+
+A paid order that the database refuses on its way to production is refunded automatically. It shows "Not sent" with
+the reason. To run payments locally with Stripe test keys, see `docs/runbooks/stripe-test-mode.md`.
