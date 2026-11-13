@@ -90,7 +90,7 @@ create table public.team_stores (
   sizes jsonb not null check (jsonb_typeof(sizes) = 'array' and jsonb_array_length(sizes) between 1 and 30),
   names_numbers boolean not null default true,
   -- The longest shirt name the design's name zone fits (shirt_zone_limits), and the number range (F-T4 0-99).
-  name_max integer not null default 12 check (name_max between 1 and 40),
+  name_max integer not null check (name_max between 1 and 40),
   number_min integer not null default 0 check (number_min between 0 and 999),
   number_max integer not null default 99 check (number_max between 0 and 999),
   -- F-T6: "a minimum to proceed (default 10 pieces)".

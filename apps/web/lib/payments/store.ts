@@ -10,7 +10,7 @@ import type { PayCurrency, PaymentSettings, Schedule } from "./settings";
 
 export const PAYMENT_STATUSES = ["open", "paid", "fulfilled", "invoice", "expired", "refunded"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
-export type Purpose = "order" | "credits" | "plan";
+export type Purpose = "order" | "credits" | "plan" | "team_store";
 export type Door = "make" | "brand_run";
 
 export interface PaymentRow {
@@ -115,7 +115,7 @@ const minor = z.coerce.number().int().min(0);
 export const paymentRow = z.object({
   id: z.uuid(),
   brand_id: z.uuid().nullable(),
-  purpose: z.enum(["order", "credits", "plan"]),
+  purpose: z.enum(["order", "credits", "plan", "team_store"]),
   method: z.enum(["card", "invoice"]),
   status: z.enum(PAYMENT_STATUSES),
   currency: z.enum(["GBP", "AUD"]),

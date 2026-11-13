@@ -134,6 +134,9 @@ const envSchema = z.object({
   // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
   // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
   PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
+  // Club pages (plan v6 C2, decision 0153): the domain under which `<club>.<domain>` shows a club's page, such as
+  // "knitwright.com". Unset: no host is rewritten and a club page is reached at /clubs/<slug>.
+  CLUB_PAGES_DOMAIN: z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/).max(253).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),

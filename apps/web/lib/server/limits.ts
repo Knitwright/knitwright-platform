@@ -136,4 +136,8 @@ export const LIMITS = {
   checkout: { name: "checkout", limit: 30, windowSeconds: 10 * MINUTE },
   paymentsWebhook: { name: "payments-webhook", limit: 600, windowSeconds: MINUTE },
   paymentsOps: { name: "payments-ops", limit: 60, windowSeconds: 10 * MINUTE },
+  // Team stores (plan v6 C2, decision 0153). A buyer has no account: per address only, so a club's whole squad on
+  // one clubhouse Wi-Fi still gets through, and every purchase passes the bot check first.
+  teamStoreView: { name: "team-store-view", limit: 120, windowSeconds: MINUTE },
+  teamStoreBuy: { name: "team-store-buy", limit: 40, windowSeconds: 10 * MINUTE },
 } as const satisfies Record<string, RateLimitRule>;
