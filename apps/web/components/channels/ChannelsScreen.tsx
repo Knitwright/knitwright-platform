@@ -2,6 +2,7 @@
 
 import { Plug } from "lucide-react";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { Notice } from "@/components/ui/Notice";
@@ -70,7 +71,10 @@ export function ChannelsScreen({ page, outcome = null, heading = true }: Props) 
       <ShopifyPanel page={page} />
       <CsvPanel orders={page.orders} canList={page.canList} />
 
-      {modal ? <ConnectChannelModal open initial={modal.key} direct={modal.direct} shopify={page.shopify} canConnect={page.canConnect} onClose={() => setModal(null)} /> : null}
+      {/* Into the body, so the shell's own layers cannot trap the fixed scrim inside the page's frame. */}
+      {modal
+        ? createPortal(<ConnectChannelModal open initial={modal.key} direct={modal.direct} shopify={page.shopify} canConnect={page.canConnect} onClose={() => setModal(null)} />, document.body)
+        : null}
     </div>
   );
 }
