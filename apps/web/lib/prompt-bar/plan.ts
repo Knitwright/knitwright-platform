@@ -72,7 +72,8 @@ export function settingsFor(choices: PromptChoices, existing: Readonly<Record<st
 
 const byId = (graph: Graph, id: string | undefined): BoardView | null => (id === undefined ? null : graph.boards.find((one) => one.id === id) ?? null);
 
-const accepts = (kind: BoardKind, board: BoardView | null): board is BoardView => board !== null && BOARDS[kind].accepts.includes(board.kind);
+/** The board, when the kind takes it as an input; else null. */
+const takes = (kind: BoardKind, board: BoardView | null): BoardView | null => (board !== null && BOARDS[kind].accepts.includes(board.kind) ? board : null);
 
 const firstGarment = (graph: Graph): BoardView | null => graph.boards.find((one) => isGarmentKind(one.kind)) ?? null;
 
@@ -85,8 +86,7 @@ export const placeAfter = (board: BoardView, rowOffset = 0): Point => {
 const boardSize = (kind: BoardKind, aspect: string): Size => newBoardSize(kind) ?? sizeForAspect(aspect === "match" ? "1:1" : aspect);
 
 function imagePlan(graph: Graph, selection: readonly string[], choices: PromptChoices): GenerationPlan {
-  const picked = byId(graph, selection[0]);
-  const reference = accepts("ai_image", picked) ? picked : firstGarment(graph);
+  const reference = takes("ai_image", byId(graph, selection[0])) ?? firstGarment(graph);
   if (reference === null) return { ok: false, reason: NO_GARMENT };
   const board: NewBoard = {
     key: "image",
@@ -104,17 +104,18 @@ function videoPlan(graph: Graph, selection: readonly string[], choices: PromptCh
   const picked = byId(graph, selection[0]);
   const size = boardSize("ai_video", choices.videoAspect);
   const clip = (at: Point, feeds: NewBoard["feeds"]): NewBoard => ({ key: "clip", kind: "ai_video", name: "", at, size, settings: settingsFor(choices), feeds });
+  const first = takes("ai_video", picked);
   if (choices.referenceMode === "frames") {
-    const end = byId(graph, selection[1]);
-    if (!accepts("ai_video", picked) || !accepts("ai_video", end)) return { ok: false, reason: NEEDS_END_FRAME };
-    const board = clip(placeAfter(picked), [
-      { from: picked.id, inputIndex: 1 },
+    const end = takes("ai_video", byId(graph, selection[1]));
+    if (first === null || end === null) return { ok: false, reason: NEEDS_END_FRAME };
+    const board = clip(placeAfter(first), [
+      { from: first.id, inputIndex: 1 },
       { from: end.id, inputIndex: 2 },
     ]);
     return { ok: true, action: "add", boards: [board], runKey: board.key, scope: "board" };
   }
-  if (accepts("ai_video", picked)) {
-    const board = clip(placeAfter(picked), [{ from: picked.id, inputIndex: 1 }]);
+  if (first !== null) {
+    const board = clip(placeAfter(first), [{ from: first.id, inputIndex: 1 }]);
     return { ok: true, action: "add", boards: [board], runKey: board.key, scope: "board" };
   }
   const garment = picked !== null && isGarmentKind(picked.kind) ? picked : firstGarment(graph);
@@ -160,7 +161,7 @@ export function referenceOf(graph: Graph, selection: readonly string[], mode: Pr
     const edge = graph.edges.find((one) => one.toBoardId === picked.id && one.inputIndex === 1);
     return byId(graph, edge?.fromBoardId);
   }
-  if (accepts(kind, picked)) return picked;
+  if (takes(kind, picked)) return picked;
   if (picked !== null && isGarmentKind(picked.kind)) return picked;
   return firstGarment(graph);
 }

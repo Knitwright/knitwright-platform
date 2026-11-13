@@ -78,3 +78,19 @@ export const shownRows = (rows: readonly VersionRow[], showAutosaves: boolean): 
 
 /** The panel's footnote, word for word. */
 export const LOCK_NOTE = "Versions sent to the factory are locked. Restoring makes a new version; it never changes an order.";
+
+type DesignBoard = Readonly<{ id: string; kind: string; settings: Readonly<Record<string, unknown>> }>;
+
+const designOf = (board: DesignBoard | undefined): string | null => {
+  const value = board?.settings["designProjectId"];
+  return (board?.kind === "garment" || board?.kind === "design") && typeof value === "string" && value !== "" ? value : null;
+};
+
+/**
+ * Whose history the panel shows: the selected garment board's design, else the canvas's own design
+ * (a design's home canvas, or the design a launch canvas launches), else the first garment on it.
+ */
+export function historyDesign(boards: readonly DesignBoard[], selection: readonly string[], canvasDesign: string | null): string | null {
+  const picked = designOf(boards.find((board) => board.id === selection[0]));
+  return picked ?? canvasDesign ?? boards.map(designOf).find((id) => id !== null) ?? null;
+}

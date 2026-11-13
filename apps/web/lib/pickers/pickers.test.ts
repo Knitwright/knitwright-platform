@@ -16,7 +16,21 @@ import {
 } from "./artboard";
 import { clampOpacity, cssColour, fromSquare, hexLabel, hexToHsv, hexToRgb, hsvToHex, hueHex, nudge, parseHex, parseRgb, printWarning, rgbText } from "./colour";
 import { ALL_FONTS, chipsFor, filterFonts, KIT_SAFE, unpickableReason, type FontRow } from "./fonts";
-import { LOCK_NOTE, shownRows, versionRows, whenLine } from "./versions";
+import { historyDesign, LOCK_NOTE, shownRows, versionRows, whenLine } from "./versions";
+
+describe("whose history the panel shows", () => {
+  const boards = [
+    { id: "a", kind: "artboard", settings: {} },
+    { id: "g1", kind: "garment", settings: { designProjectId: "d1" } },
+    { id: "g2", kind: "design", settings: { designProjectId: "d2" } },
+  ];
+  it("prefers the selected garment, then the canvas's design, then the first garment", () => {
+    expect(historyDesign(boards, ["g2"], "home")).toBe("d2");
+    expect(historyDesign(boards, ["a"], "home")).toBe("home");
+    expect(historyDesign(boards, [], null)).toBe("d1");
+    expect(historyDesign([{ id: "x", kind: "garment", settings: { designProjectId: "" } }], [], null)).toBeNull();
+  });
+});
 
 describe("the colour picker's maths", () => {
   it("reads what a person types as #rrggbb", () => {
