@@ -28,7 +28,7 @@ type Props = Readonly<{
  */
 export function EditorLayout({ rail, flyout, notices, canvas, taskBar, prompt, dock, right, stage, onFocus, onContextMenu, onKeyDown }: Props) {
   return (
-    <div data-testid="launch-shell" data-editor-chrome="" className="flex w-full flex-col bg-soft-2 pb-24 lg:h-dvh lg:flex-row lg:overflow-hidden lg:pb-0">
+    <div data-testid="launch-shell" data-editor-chrome="" className="relative flex w-full flex-col bg-soft-2 pb-24 lg:h-dvh lg:flex-row lg:overflow-hidden lg:pb-0">
       {rail}
       {flyout}
       <div

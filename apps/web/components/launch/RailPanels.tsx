@@ -61,7 +61,7 @@ export function RailPanels({ flyout, panel, own, onClose, onBack }: Props) {
       aria-label={lit ? undefined : "Panel"}
       hidden={flyout.kind === "closed"}
       data-testid="editor-flyout"
-      className="flex w-full shrink-0 flex-col gap-3.5 overflow-y-auto border-r lg:h-full lg:w-80 border-border bg-bg px-3.5 py-4 text-small"
+      className="relative flex w-full shrink-0 flex-col gap-3.5 overflow-y-auto border-r lg:h-full lg:w-80 border-border bg-bg px-3.5 py-4 text-small"
     >
       <header className="flex items-center gap-3 text-text-2">
         {isMoreApp(flyout) ? (

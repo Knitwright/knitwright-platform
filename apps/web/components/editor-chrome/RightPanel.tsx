@@ -32,7 +32,7 @@ type Props = Readonly<{
 
 export function RightPanel({ projectId, projectName, panel, children }: Props) {
   return (
-    <div className="flex w-full shrink-0 flex-col overflow-y-auto border-l lg:h-full lg:w-77.5 border-border bg-bg text-body" data-testid="editor-right-panel">
+    <div className="relative flex w-full shrink-0 flex-col overflow-y-auto border-l lg:h-full lg:w-77.5 border-border bg-bg text-body" data-testid="editor-right-panel">
       <div role="group" aria-label="Share, export and order" className="flex items-center justify-end gap-2 px-4 pt-3.5 pb-1">
         <ChromePopover slot="share" label="Share" tone="plain" panel={panel} />
         <ChromePopover slot="export" label="Export" tone="ink" panel={panel} />
