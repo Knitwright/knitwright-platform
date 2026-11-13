@@ -345,3 +345,4 @@ page it replaces, with a redirect.
 | 0145–0149 | E1–E5 | E1 `20261224010000`; E2–E5 `202612240[2-5]0000`, only if needed |
 | 0150, 0151 | G1, G2 | `20261226010000`, `20261226020000`, only if needed |
 | 0152–0157 | C1–C6 | as listed above |
+| 0155 | C4 | `20261228050000`, assigned by the orchestrator because channel connections need storage |

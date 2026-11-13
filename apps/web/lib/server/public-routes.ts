@@ -46,10 +46,23 @@ export const PUBLIC_ENTRY_POINTS = [
   // the deploy's own CRON_SECRET in constant time, 503 without it, 404 for a wrong one. It takes no input, and all
   // it can do is remove rosters older than two seasons for clubs that did not opt in to keep them. Idempotent.
   "app/api/cron/roster-purge/route.ts#GET",
+  // The weekly seller payout run (plan v6 C5, decision 0156). The same door as the cut: the deploy's own CRON_SECRET
+  // in constant time, 503 without it, 404 for a wrong one. It takes no input, and all it can do is pay sellers what
+  // delivered sales owe them; each payout is its own idempotency key at Stripe, so a second run pays nothing twice.
+  "app/api/cron/seller-payouts/route.ts#GET",
   // Stripe's webhook (plan v6 C1, decision 0152). Stripe has no session. Nothing is read until the raw body's
   // Stripe-Signature checks against this deploy's webhook secret (lib/payments/signature.ts), and every event is
   // acted on once. Without a processor configured it answers 503 and reads nothing.
   "app/api/payments/webhook/route.ts#POST",
+  // Shopify's webhooks and the fulfilment-service callback (plan v6 C4, decision 0155). Shopify has no session.
+  // Nothing is read until the raw body's X-Shopify-Hmac-Sha256 checks against the app secret
+  // (lib/channels/shopify/hmac.ts); taking an order in is idempotent per order line. Without a Shopify app
+  // configured both answer 503 and read nothing.
+  "app/api/channels/shopify/webhooks/route.ts#POST",
+  "app/api/channels/shopify/fulfilment/fulfillment_order_notification/route.ts#POST",
+  // Tracking back to Shopify, run by the scheduler (decision 0155). The same door as the weekly cut: CRON_SECRET in
+  // constant time, 503 without it, 404 for a wrong one. No input; it can only send shipped parcels' tracking, once.
+  "app/api/cron/channels-tracking/route.ts#GET",
   // The Store contract (plan v5 O2, decision 0106). The separate Store is a service, not a person: there is no
   // session, and the only door is a token signed with the deploy's own STORE_SERVICE_TOKEN over the payload kind
   // and the call's query, compared in constant time. Without the secret set every one answers 503 and reads

@@ -25,6 +25,8 @@ export const FULL_WIDTH: readonly string[] = [
   "/dev/p6",
   "/products",
   "/dev/products",
+  "/dev/store",
+  "/dev/channels",
 ];
 
 export type Frame = "full" | "column";

@@ -86,6 +86,10 @@ export const PERSONAL_DATA_TABLES: readonly PersonalDataTable[] = [
  */
 export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: string }[] = [
   {
+    table: "store_settings",
+    why: "A brand's GPSR contacts (decision 0156): the EU responsible person the law asks for and the brand's own contact, given by the brand for its listings, not for production. The row goes with its brand (brand_id on delete cascade), and an owner or admin clears or changes it on the Store settings page.",
+  },
+  {
     table: "access_requests",
     why: "A request to be let in, made before any brand exists. It belongs to no brand, so no brand's deletion can take it; it is erased through the platform-admin screen instead.",
   },
@@ -100,6 +104,10 @@ export const PERSONAL_DATA_OUTSIDE_THE_REGISTER: readonly { table: string; why: 
   {
     table: "rulebook_entries",
     why: "The platform's rulebook, which names the factory person who reviewed a rule as its attribution (owner decision 14). It belongs to no brand; a reviewer's name is replaced by a new version of the rule.",
+  },
+  {
+    table: "channel_orders",
+    why: "A shop's buyer's ship-to address on each order line a sales channel sent (decision 0155): the brand's customer, not a player. It goes with the brand (brand_id on delete cascade), and Shopify's customers/redact and shop/redact webhooks clear it (channel_redact_customer, channel_redact_shop). order_name is the shop's order number, not a person.",
   },
 ];
 
@@ -116,4 +124,6 @@ export const NAMES_OF_THINGS: readonly string[] = [
   "boards", "flow_template_steps", "ops_couriers",
   // Decision 0139: a brand's folders on the Projects page.
   "project_folders",
+  // Decision 0156: a seller's sale names the product sold; a branding option names a parcel insert.
+  "seller_sales", "store_branding_options",
 ];

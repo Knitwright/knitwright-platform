@@ -160,6 +160,14 @@ export default defineConfig({
         "lib/payments/db.ts",
         "lib/payments/server.ts",
         "lib/payments/ops-read.ts",
+        // Join the seller payout tables, the Connect processor and the factory rows to the Store pages (decision
+        // 0156); the margin, the reconciliation's words and the payout run are tested on their own, and the
+        // database and end-to-end tests cover these joins.
+        "lib/store-pages/db.ts",
+        "lib/store-pages/server.ts",
+        "lib/store-pages/read.ts",
+        "lib/store-pages/ops-read.ts",
+        "lib/store-pages/sales.ts",
         // Joins the Products pages to the catalogue's rows, the factory model and the production settings; every
         // rule it hands over is pure and tested on its own, and the end-to-end tests cover the joining (plan v6 P4,
         // decision 0142).
@@ -175,6 +183,14 @@ export default defineConfig({
         "lib/team-stores/db.ts",
         "lib/team-stores/reads.ts",
         "lib/team-stores/server.ts",
+        // Join the channel tables, the Shopify chosen by the environment, C1's payments, the order gates and the
+        // product reads (decision 0155); every rule they hand over is tested in lib/channels' own files, and the
+        // database and end-to-end tests cover these joins.
+        "lib/channels/db.ts",
+        "lib/channels/server.ts",
+        "lib/channels/terms.ts",
+        "lib/channels/exports.ts",
+        "lib/channels/fulfilment.ts",
       ],
       thresholds: {
         lines: 80,
@@ -216,6 +232,7 @@ export default defineConfig({
             "brand-studio",
             "canvas",
             "catalogue",
+            "channels",
             "collections",
             "colour",
             "comments",
@@ -272,6 +289,7 @@ export default defineConfig({
             "shell",
             "shoots",
             "store-contract",
+            "store-pages",
             "team",
             "team-stores",
             "teamwear",

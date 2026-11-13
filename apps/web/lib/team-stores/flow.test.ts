@@ -64,23 +64,26 @@ const closeSetUp = (store = fixtureStore({ closesAt: "2020-01-01T00:00:00Z", min
     await memory.payments.store.recordRefund(payment.id, amountMinor, `re_${payment.id}`, reason, null);
   });
   const submit = vi.fn<CloseDeps["submit"]>(async () => ({ orderId: "00000000-0000-4000-8000-0000000000aa", runId: "00000000-0000-4000-8000-0000000000bb" }));
-  const deps: CloseDeps = { stores: memory.store, submit, payment: memory.payments.store.payment, refund, log: vi.fn() };
+  const sales = { record: vi.fn<CloseDeps["sales"]["record"]>(async () => undefined), refund: vi.fn<CloseDeps["sales"]["refund"]>(async () => undefined) };
+  const deps: CloseDeps = { stores: memory.store, submit, payment: memory.payments.store.payment, refund, sales, log: vi.fn() };
   const buy = async (lines = [line()]) => {
     const opened = await memory.store.openPurchase(order(lines));
     await memory.pay(opened.paymentId);
     return opened.paymentId;
   };
-  return { memory, deps, submit, refund, buy, provider, storeId: store.id };
+  return { memory, deps, submit, refund, sales, buy, provider, storeId: store.id };
 };
 
 describe("closing a team store", () => {
   it("makes every paid piece one run order, sent as the person who opened the store", async () => {
-    const { deps, submit, buy, storeId, memory } = closeSetUp();
+    const { deps, submit, buy, storeId, memory, sales } = closeSetUp();
     await buy([line("M"), line("L")]);
     await buy([line("M")]);
     await memory.store.openPurchase(order([line("S")]));
     const result = await closeStore(deps, storeId);
     expect(result).toMatchObject({ status: "closed", refunded: 0 });
+    // The club's margin goes to C5's payouts: each counted purchase as a sale, then with the order attached.
+    expect(sales.record.mock.calls.map((call) => call[2])).toEqual([null, null, "00000000-0000-4000-8000-0000000000aa", "00000000-0000-4000-8000-0000000000aa"]);
     const [sent, who] = submit.mock.calls[0]!;
     expect(sent.closeSizes).toEqual({ M: 2, L: 1 });
     expect(who).toEqual({ brandId: fixtureStore().brandId, userId: fixtureStore().createdBy });
@@ -97,11 +100,13 @@ describe("closing a team store", () => {
   });
 
   it("refunds everyone when production refuses the order, in production's words", async () => {
-    const { deps, submit, buy, storeId, memory } = closeSetUp();
+    const { deps, submit, buy, storeId, memory, sales } = closeSetUp();
     submit.mockRejectedValueOnce(new AppError("conflict", "This design no longer passes its checks."));
     await buy([line("M"), line("M")]);
     expect(await closeStore(deps, storeId)).toMatchObject({ status: "refunded", refunded: 1 });
     expect(memory.rows.get(storeId)?.closeMessage).toBe("Production refused the order: This design no longer passes its checks.");
+    expect(sales.refund).toHaveBeenCalledTimes(1);
+    expect(sales.refund.mock.calls[0]![1]).toBe(6380);
   });
 
   it("leaves a fault for the next run, and refunds when nobody is left to order", async () => {

@@ -52,21 +52,31 @@ and the order is created at close." Until now the Order drawer's Team store tab 
    - A purchase paid after the count (a checkout finished after the close) is refunded on the next run.
 5. **F-G4**: `private.finance_figures` counts team store payments in GMV and as open pre-order money until the
    store's order ships, so the refund reserve and the deposit headroom include them. Revenue stays collected less
-   refunded; the club's margin is inside GMV and owed to the club (payout is C5's).
-6. **Club pages**: `set_club_page` (owners, admins, kit managers) sets the address, contact line and whether it is
+   refunded; the club's margin is inside GMV and owed to the club (paid through C5's payouts, 6).
+6. **The club's margin reaches C5's payouts** (0156): when a store starts closing, every counted purchase is recorded
+   through `record_seller_sale` (channel `team_store`, reference `team-store:<payment>`), with figures from C5's own
+   calculator (`saleParts(marginFor(...), pieces)`) over the store's fixed prices: retail is what the buyer paid a
+   piece, the base is the store's base price, no freight or duty (one delivery to the club, inside the base), the
+   `team_store` channel fee row and the payout setting's Knitwright fee. The order is attached once it is sent
+   (`attach_seller_sale_order`), and a refund of a counted purchase is reported (`record_seller_sale_refund`), so
+   C5 pays the club after delivery and nets off refunds. A store with no margin, or one the fees would take below
+   nothing, records no sale. Note: the margin shown when the store opens is before C5's card-fee placeholder.
+   C4's Knitwright team store card and C5's Overview tile link to Team › Stores.
+7. **Club pages**: `set_club_page` (owners, admins, kit managers) sets the address, contact line and whether it is
    public; addresses are unique and platform names are refused (`private.reserved_subdomain`, mirrored in
    `lib/team-stores/host.ts`). `/clubs/<slug>` shows the crest (a minute-long signed link), kit colours, the open
    stores, the club's size guide (the sign-up page's own, 0087) and the contact line. **Host routing**: `proxy.ts`
-   asks `lib/hosts/rules.ts`, one rule per line in its owner's file; C2's `clubHost` rewrites the root of
+   asks `lib/hosts/rules.ts`, the one place host rules live, one rule per line in its owner's file (C3 adds its
+   brand rule there, never in `proxy.ts`); C2's `clubHost` rewrites the root of
    `<slug>.<CLUB_PAGES_DOMAIN>` to `/clubs/<slug>`. Unset `CLUB_PAGES_DOMAIN`: no rewrite. **Locally**: open
    `/clubs/<slug>` (the path fallback), or set `CLUB_PAGES_DOMAIN=localhost` and open `http://<slug>.localhost:3000/`.
-7. **Where it shows**: the Order drawer's Team store tab opens a store and lists the design's stores (link, copy, QR,
+8. **Where it shows**: the Order drawer's Team store tab opens a store and lists the design's stores (link, copy, QR,
    state, pieces against the minimum, price, margin, Close now, Cancel and refund); Team › Stores (P6's page, new
    tab) lists all the club's stores with the names and numbers collected, and the club page settings.
-8. **Privacy** (0136): a buyer gives a name and email (receipt, refund) and per piece a size and optional shirt name
+9. **Privacy** (0136): a buyer gives a name and email (receipt, refund) and per piece a size and optional shirt name
    and number; nothing else. All are in the erasure register; `purge_team_store_buyers` erases the name, email and
    shirt names 180 days after close, keeping the money record. The public pages never show a buyer.
-9. **Dependency**: `qrcode-generator` 2.0.4 (MIT, no dependencies) draws the QR code as one SVG path.
+10. **Dependency**: `qrcode-generator` 2.0.4 (MIT, no dependencies) draws the QR code as one SVG path.
 
 ## Owner questions (labelled defaults; none blocks)
 

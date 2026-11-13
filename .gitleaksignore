@@ -6,3 +6,7 @@
 # every open branch at once. It happened. The literal is therefore no longer written in
 # `log.test.ts` at all: it is assembled there, so no future commit can produce a finding and this
 # list should never need a second entry.
+# A made-up Shopify app key in a test of the environment check (decision 0155), in one commit of the C4
+# branch. The fingerprint names that commit, which is never rewritten, so the entry cannot go stale; the
+# test now assembles its value, so no later commit carries a literal.
+6dee2b6a3362cf977fb6c136b0651c1f4cc9c05f:apps/web/lib/config/env.test.ts:generic-api-key:331

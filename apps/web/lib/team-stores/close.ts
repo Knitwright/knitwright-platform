@@ -18,6 +18,10 @@ import type { TeamStoreStore } from "./store";
  *    production: `refunding`, with production's words.
  * 3. `refunding`: every paid purchase is refunded in full through C1's refund path, then `refunded`.
  * 4. Always: a purchase paid after the count (a checkout finished after the close) is refunded.
+ *
+ * The club's margin reaches C5's payouts (decision 0156): every counted purchase is recorded as a seller sale when
+ * the store starts closing, the order is attached to each once it is sent, and a refund of a counted purchase is
+ * reported against its sale (`payout.ts`, `lib/store-pages/sales.ts`). Each of those is keyed and safe to repeat.
  */
 
 export type SentRun = Readonly<{ orderId: string; runId: string }>;
@@ -29,6 +33,11 @@ export type CloseDeps = Readonly<{
   payment: (paymentId: string) => Promise<PaymentRow | null>;
   /** Gives back what is left of a card payment (C1's `refundPayment`). */
   refund: (payment: PaymentRow, amountMinor: number, reason: string) => Promise<void>;
+  /** C5's seller sales for the club's margin. Each is keyed by the purchase and safe to repeat. */
+  sales: Readonly<{
+    record: (store: TeamStore, purchase: StorePurchase, orderId: string | null) => Promise<void>;
+    refund: (purchase: StorePurchase, refundedTotalMinor: number) => Promise<void>;
+  }>;
   log: (event: LogEvent) => void;
 }>;
 
@@ -42,7 +51,15 @@ async function refundPurchase(deps: CloseDeps, purchase: StorePurchase, reason: 
   const left = payment.amountMinor - payment.refundedMinor;
   if (left <= 0) return false;
   await deps.refund(payment, left, reason.slice(0, 300));
+  if (purchase.counted) await deps.sales.refund(purchase, payment.amountMinor);
   return true;
+}
+
+/** Records every counted, paid purchase as a sale of the club, with the order once it exists. */
+async function recordSales(deps: CloseDeps, store: TeamStore, orderId: string | null): Promise<void> {
+  for (const purchase of await deps.stores.purchases(store.id)) {
+    if (purchase.counted && isPaid(purchase)) await deps.sales.record(store, purchase, orderId);
+  }
 }
 
 async function refundWhere(deps: CloseDeps, store: TeamStore, which: (purchase: StorePurchase) => boolean, reason: string): Promise<number> {
@@ -80,7 +97,10 @@ const LATE = "Paid after the store closed, so it was not in the club's order.";
 export async function closeStore(deps: CloseDeps, storeId: string): Promise<CloseResult> {
   let store = await deps.stores.beginClose(storeId);
   let status = store.status;
-  if (status === "closing") status = await sendOrder(deps, store);
+  if (status === "closing") {
+    await recordSales(deps, store, null);
+    status = await sendOrder(deps, store);
+  }
   let refunded = 0;
   if (status === "refunding") {
     store = (await deps.stores.storeById(storeId)) ?? store;
@@ -92,6 +112,10 @@ export async function closeStore(deps: CloseDeps, storeId: string): Promise<Clos
     }
   } else if (status === "closed" || status === "refunded") {
     refunded += await refundWhere(deps, store, (purchase) => !purchase.counted || status === "refunded", LATE);
+  }
+  if (status === "closed") {
+    const closed = (await deps.stores.storeById(storeId)) ?? store;
+    await recordSales(deps, closed, closed.orderId);
   }
   return { storeId, status, refunded };
 }

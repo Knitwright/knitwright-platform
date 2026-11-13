@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { readConnectEvent, type ConnectEvent } from "@/lib/store-pages/connect-events";
 
 /**
  * The Stripe events the platform acts on (plan v6 C1, decision 0152), read into plain shapes. Fields are read
@@ -45,7 +46,7 @@ const invoice = z.object({
   parent: z.object({ subscription_details: z.object({ subscription: nullableId }).loose().nullable().optional() }).loose().nullable().optional(),
 });
 
-const envelope = z.object({ id, type: z.string().min(1).max(120), data: z.object({ object: z.unknown() }) });
+const envelope = z.object({ id, type: z.string().min(1).max(120), account: z.string().min(1).max(255).nullable().optional(), data: z.object({ object: z.unknown() }) });
 
 export type PaymentEvent =
   | Readonly<{ kind: "checkout_paid"; sessionId: string; mode: "payment" | "subscription"; amountMinor: number; currency: string; paymentIntent: string | null; subscription: string | null; customer: string | null; metadata: Readonly<Record<string, string>> }>
@@ -53,6 +54,7 @@ export type PaymentEvent =
   | Readonly<{ kind: "charge_refunded"; chargeId: string; paymentIntent: string; refundedMinor: number }>
   | Readonly<{ kind: "subscription_changed"; subscriptionId: string; status: string; periodEnd: Date | null }>
   | Readonly<{ kind: "invoice_paid"; invoiceId: string; subscriptionId: string; first: boolean }>
+  | Readonly<{ kind: "connect"; event: ConnectEvent }>
   | Readonly<{ kind: "ignored" }>;
 
 export type ParsedEvent = Readonly<{ id: string; type: string; event: PaymentEvent }>;
@@ -114,6 +116,9 @@ export function parseEvent(raw: string): ParsedEvent | null {
   }
   const outer = envelope.safeParse(json);
   if (!outer.success) return null;
+  const connect = readConnectEvent(outer.data.type, outer.data.data.object, outer.data.account ?? null);
+  if (connect === null) return null;
+  if (connect !== undefined) return { id: outer.data.id, type: outer.data.type, event: { kind: "connect", event: connect } };
   const reader = READERS[outer.data.type];
   if (!reader) return { id: outer.data.id, type: outer.data.type, event: { kind: "ignored" } };
   try {

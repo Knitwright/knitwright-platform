@@ -140,4 +140,9 @@ export const LIMITS = {
   // one clubhouse Wi-Fi still gets through, and every purchase passes the bot check first.
   teamStoreView: { name: "team-store-view", limit: 120, windowSeconds: MINUTE },
   teamStoreBuy: { name: "team-store-buy", limit: 40, windowSeconds: 10 * MINUTE },
+  // Sales channels (plan v6 C4, decision 0155). Connecting, pushing and importing reach Shopify or run the order
+  // gates; Shopify's webhooks may burst after an outage and are each checked by their HMAC first.
+  channelWrite: { name: "channel-write", limit: 30, windowSeconds: 10 * MINUTE },
+  channelExport: { name: "channel-export", limit: 30, windowSeconds: 10 * MINUTE },
+  channelsWebhook: { name: "channels-webhook", limit: 600, windowSeconds: MINUTE },
 } as const satisfies Record<string, RateLimitRule>;

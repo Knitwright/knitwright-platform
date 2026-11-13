@@ -137,6 +137,22 @@ const envSchema = z.object({
   // Club pages (plan v6 C2, decision 0153): the domain under which `<club>.<domain>` shows a club's page, such as
   // "knitwright.com". Unset: no host is rewritten and a club page is reached at /clubs/<slug>.
   CLUB_PAGES_DOMAIN: z.string().regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/).max(253).optional(),
+  // Seller payouts through Stripe Connect Express (plan v6 C5, decision 0156). "on" only once Connect is switched on
+  // in the Stripe account (an owner action); it also needs the Connect endpoint's own webhook signing secret, which
+  // the same webhook route checks. Without both, payouts are shown as not switched on yet.
+  STRIPE_CONNECT: z.enum(["on", "off"]).optional(),
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().regex(/^whsec_\S{8,240}$/).optional(),
+  // Sales channels (plan v6 C4, decision 0155). Server only. The Shopify app's client id and secret from the
+  // owner's Shopify Partner app (docs/runbooks/shopify-app.md); both or neither. The secret checks every OAuth
+  // return and webhook (HMAC). Never set where tests run.
+  SHOPIFY_APP_API_KEY: z.string().regex(/^[A-Za-z0-9_-]{8,100}$/).optional(),
+  SHOPIFY_APP_API_SECRET: z.string().regex(/^\S{16,200}$/).optional(),
+  // Browser tests and local runs only: "on" makes Shopify a stand-in inside this app (no network), whose install
+  // page and test orders are signed like Shopify's. Refused wherever real people sign in.
+  SHOPIFY_APP_TEST_MODE: z.enum(["on", "off"]).optional(),
+  // The AES-256-GCM key a shop's access token is encrypted with before it is stored: 64 hex characters
+  // (openssl rand -hex 32). Required on a deploy with SHOPIFY_APP_API_KEY set; elsewhere derived from the server key.
+  CHANNEL_TOKEN_KEY: z.string().regex(/^[0-9a-fA-F]{64}$/).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),
@@ -217,6 +233,12 @@ const guardedSchema = envSchema.superRefine((env, context) => {
   if (env.PAYMENTS_TEST_CHECKOUT === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["PAYMENTS_TEST_CHECKOUT"], message: "test key" });
   }
+  if (env.SHOPIFY_APP_TEST_MODE === "on" && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["SHOPIFY_APP_TEST_MODE"], message: "test key" });
+  }
+  if (env.SHOPIFY_APP_API_KEY && !env.CHANNEL_TOKEN_KEY && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["CHANNEL_TOKEN_KEY"], message: "missing" });
+  }
   if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });
   }
@@ -261,6 +283,7 @@ const describeIssue = (issue: z.core.$ZodIssue): string => {
   if (issue.code === "custom" && name === "PATTERN_PROVIDER") return `${name}=claude-bridge needs OWNER_EMAIL on a deploy, so only the owner can use it`;
   if (issue.code === "custom" && name === "NEXT_PUBLIC_SUPABASE_URL") return `${name} is not valid: give only the address, such as https://abc.supabase.co, with nothing after it`;
   if (issue.code === "custom" && name === "PAYMENTS_TEST_CHECKOUT") return `${name} is for browser tests and local runs, which a deploy may not use`;
+  if (issue.code === "custom" && name === "SHOPIFY_APP_TEST_MODE") return `${name} is for browser tests and local runs, which a deploy may not use`;
   if (issue.code === "custom" && name === "AI_PROVIDER_STUB") return `${name} is for browser tests, which a deploy may not use`;
   if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;
