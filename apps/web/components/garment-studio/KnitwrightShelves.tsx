@@ -39,7 +39,7 @@ export function FabricsShelf(slot: ShelfProps) {
       <Said applier={applier} />
       <ShelfSection title="Recommended">
         {section.empty ? <Empty>{section.empty}</Empty> : null}
-        {section.items.length > 0 && shown.length === 0 ? <Empty>No approved fabric matches. Clear the search to see them all.</Empty> : null}
+        {section.items.length > 0 && shown.length === 0 ? <Empty>No fabric on this base&apos;s list matches. Clear the search to see them all.</Empty> : null}
         <ul className="grid grid-cols-2 gap-x-2.5 gap-y-4" data-testid="studio-fabrics">
           {shown.map((item) => (
             <Tile key={item.id} item={item} busy={slot.design.busy} onApply={applier.apply} />
@@ -99,7 +99,7 @@ export function RepeatsShelf(slot: ShelfProps) {
       <TargetPicker applier={applier} busy={slot.design.busy} />
       <Said applier={applier} />
       {approved.length > 0 ? (
-        <ShelfSection title="Approved for this base">
+        <ShelfSection title="On this base's option list">
           <ul className="grid grid-cols-2 gap-x-2.5 gap-y-4">
             {approved.map((item) => (
               <Tile key={item.id} item={item} busy={slot.design.busy} onApply={applier.apply} locked={item.card[0]?.value === "Not yet sampled"} />

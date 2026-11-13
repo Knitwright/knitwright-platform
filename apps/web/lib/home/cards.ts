@@ -101,7 +101,7 @@ export const CREATE_WAYS: readonly HomeCard[] = [
   {
     id: "import-pattern",
     title: "Import your own pattern",
-    text: "Class B · 50+ pieces · checked by the factory first.",
+    text: "Class B · 50+ pieces · the factory reviews it first.",
     target: later,
     feature: "F-S3",
     tag: "Class B",
