@@ -47,8 +47,8 @@ export default async function ShopOrderPage({ params, searchParams }: PageProps<
         <dd className="text-text">{formatMoney(order.amountMinor, order.currency)}</dd>
       </dl>
       <div className="flex flex-wrap gap-3">
-        {headline.waiting && token ? <Link href={orderPagePath(storefront.slug, order.id, token) as Route} className="text-link">Check again</Link> : null}
-        <Link href={shopPath(storefront.slug) as Route} className="text-link">Back to the shop</Link>
+        {headline.waiting && token ? <Link href={orderPagePath(storefront.slug, order.id, token) as Route} className="text-link underline underline-offset-4">Check again</Link> : null}
+        <Link href={shopPath(storefront.slug) as Route} className="text-link underline underline-offset-4">Back to the shop</Link>
       </div>
     </ShopFrame>
   );

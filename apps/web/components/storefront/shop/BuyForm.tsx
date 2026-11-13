@@ -99,7 +99,7 @@ export function BuyForm({ slug, listingId, currency, prices, sizes, personalisat
       <label className="flex items-start gap-2 text-body text-text-2">
         <input type="checkbox" className="mt-1 accent-navy" checked={form.returnsAccepted} onChange={(event) => set({ returnsAccepted: event.target.checked })} />
         <span>
-          I have read the <Link href={shopPath(slug, "/returns") as Route} className="text-link">returns policy</Link>.
+          I have read the <Link href={shopPath(slug, "/returns") as Route} className="text-link underline underline-offset-4">returns policy</Link>.
         </span>
       </label>
       {problem ? <Notice tone="warn" role="alert">{problem}</Notice> : null}

@@ -67,7 +67,7 @@ export default async function StorefrontPage() {
         {listings.length === 0 ? (
           <p className="text-body text-muted">
             No listings yet. Open a product from{" "}
-            <Link href="/products/mine" className="text-link">My products</Link> and choose its listing.
+            <Link href="/products/mine" className="text-link underline underline-offset-4">My products</Link> and choose its listing.
           </p>
         ) : (
           <Table caption="Listings">
