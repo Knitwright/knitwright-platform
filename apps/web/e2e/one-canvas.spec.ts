@@ -34,7 +34,7 @@ test.describe("a design on the one canvas", () => {
     const name = `Canvas kit ${randomUUID().slice(0, 6)}`;
     const id = await startDesign(page, name);
 
-    await expect(page.getByTestId("canvas-focus")).toBeVisible();
+    await expect(page.getByTestId("canvas-focus-back")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
 
     await page.getByTestId("canvas-focus-back").click();

@@ -120,7 +120,7 @@ describe("the kit the address carries", () => {
 describe("Design in Studio", () => {
   it("opens the saved design in the editor, on the 3D canvas with the Form toolbar open", () => {
     const href = studioHref(PROJECT, startingKit("football", articleBook()).parts.shirt!);
-    expect(href.startsWith(`/studio/${PROJECT}?`)).toBe(true);
+    expect(href.startsWith(`/project/${PROJECT}?focus=garment&`)).toBe(true);
     const address = readAddress(Object.fromEntries(new URLSearchParams(href.split("?")[1])), "2d");
     expect(address.segment).toBe("form");
     expect(address.view).toBe("3d");

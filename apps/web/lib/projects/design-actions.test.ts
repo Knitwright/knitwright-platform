@@ -19,9 +19,9 @@ describe("what to do once a design is drawn", () => {
   it("opens the panel of the design workspace that does each thing", () => {
     const hrefs = Object.fromEntries(designActions(ID).map((action) => [action.id, action.href]));
     expect(hrefs).toEqual({
-      share: `/studio/${ID}?tool=share`,
-      photoreal: `/studio/${ID}?tool=photoreal`,
-      quote: `/studio/${ID}?tool=quote`,
+      share: `/project/${ID}?focus=garment&tool=share`,
+      photoreal: `/project/${ID}?focus=garment&tool=photoreal`,
+      quote: `/project/${ID}?focus=garment&tool=quote`,
       editor: `/studio/${ID}`,
       "tech-pack": `/studio/${ID}/tech-pack`,
     });

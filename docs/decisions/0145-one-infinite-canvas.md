@@ -68,8 +68,9 @@ bar on top of what this record fixes: the route, the plane, the store and the bo
    grid that moves with it; wheel pans, Ctrl/⌘-wheel and pinch zoom about the pointer; Space-drag and the middle
    button pan; a drag on empty canvas draws a marquee (Shift adds); + / − / 0 / 1 zoom in, out, to fit, to 100%
    (10%–400%); from `CULL_FROM` (24) boards, culling draws only boards and connectors within the screen plus
-   240 px, always keeping the selected boards (a smaller canvas is drawn whole); a board just added is brought on
-   screen. Boards (`CanvasBoard`) sit at their box with a 13 px label above that keeps its screen size; click
+   240 px, always keeping the selected boards (a smaller canvas is drawn whole). The plane never scrolls: when the
+   browser scrolls the canvas to show something (a control reached with Tab, a found word), that scroll is turned
+   into a pan. Boards (`CanvasBoard`) sit at their box with a 13 px label above that keeps its screen size; click
    selects, Shift-click toggles, a drag moves every selected board; Tab / Shift-Tab on a board go to the next board
    in reading order and bring it on screen, Enter selects it and moves into its controls, arrows nudge as before.
    Connectors are L6's curves between the real boxes (fan-in and fan-out), 1.5 px electric with an arrow. L6's card

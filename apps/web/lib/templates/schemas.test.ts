@@ -14,6 +14,6 @@ describe("using a template", () => {
   });
 
   it("opens the editor on the new design", () => {
-    expect(editorAddress("abc")).toBe("/studio/abc");
+    expect(editorAddress("abc")).toBe("/project/abc?focus=garment");
   });
 });

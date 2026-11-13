@@ -216,4 +216,4 @@ export function configuratorHref(state: ConfiguratorAddress): string {
  * toolbar open and the configurator's own option codes and parameters in the address.
  */
 export const studioHref = (projectId: string, choice: PartChoice): string =>
-  `/studio/${projectId}${withEditorState("", { segment: "form", view: "3d", beside: null, size: null, form: choice.form })}`;
+  `/project/${projectId}${withEditorState("?focus=garment", { segment: "form", view: "3d", beside: null, size: null, form: choice.form })}`;

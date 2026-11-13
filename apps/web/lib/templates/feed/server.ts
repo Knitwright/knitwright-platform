@@ -71,7 +71,7 @@ async function loadTechpacks(client: SupabaseClient): Promise<readonly FeedItem[
 
 /** Where a video template is made: the 3D view of the brand's newest design, or a new design. */
 export const studioHrefFor = (latestDesignId: string | null): string =>
-  latestDesignId === null ? "/studio/start" : `/studio/${encodeURIComponent(latestDesignId)}?view=3d`;
+  latestDesignId === null ? "/studio/start" : `/project/${encodeURIComponent(latestDesignId)}?focus=garment&view=3d`;
 
 /** Every card the page can show, without pictures. */
 export async function loadFeed(client: SupabaseClient, designs: readonly DesignRow[], latestDesignId: string | null): Promise<readonly FeedItem[]> {

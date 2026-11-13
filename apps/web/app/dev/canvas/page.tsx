@@ -47,13 +47,21 @@ const fixture = () => {
   return project(boards, edges, { id: "00000000-0000-4000-8000-0000000000c1", name: "Lahore Lions · Home kit launch", designProjectId: DESIGN });
 };
 
-export default async function DevCanvasPage() {
+/** `?stack=1`: four boards added from the inspector's tools, each a row below the last (`placing.ts`). */
+const stacked = () =>
+  project(
+    (["ai_image", "marketing", "ai_video", "info_card"] as const).map((kind, n) => board(`00000000-0000-4000-8000-00000000001${n}`, kind, { at: { x: 0, y: n * 200 } })),
+    [],
+    { id: "00000000-0000-4000-8000-0000000000c2", name: "Stacked boards" },
+  );
+
+export default async function DevCanvasPage({ searchParams }: PageProps<"/dev/canvas">) {
   await connection();
   if (!devRoutesEnabled(process.env)) notFound();
   return (
     <main className="min-h-dvh bg-bg p-4">
       <LaunchShell
-        project={fixture()}
+        project={(await searchParams).stack ? stacked() : fixture()}
         presets={[]}
         credits={1240}
         costs={{ perGeneratedBoard: 20, note: "Made-up prices for the fixture.", ruleId: "R-GAP-000" }}

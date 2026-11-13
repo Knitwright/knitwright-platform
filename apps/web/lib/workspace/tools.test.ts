@@ -50,7 +50,7 @@ describe("the tools of the design workspace", () => {
   it("calls the production tool \"Make it\" and opens it from the address", () => {
     expect(TOOLS.production.label).toBe("Make it");
     expect(parseTool("production")).toBe("production");
-    expect(toolHref(ID, "production")).toBe(`/studio/${ID}?tool=production`);
+    expect(toolHref(ID, "production")).toBe(`/project/${ID}?focus=garment&tool=production`);
   });
 
   it("names nothing settled or approved", () => {
@@ -83,8 +83,8 @@ describe("reading the open tool from the address", () => {
 
 describe("writing the open tool into the address", () => {
   it("links to a tool of a design", () => {
-    expect(toolHref(ID, "share")).toBe(`/studio/${ID}?tool=share`);
-    expect(toolHref("a b", "sizes")).toBe("/studio/a%20b?tool=sizes");
+    expect(toolHref(ID, "share")).toBe(`/project/${ID}?focus=garment&tool=share`);
+    expect(toolHref("a b", "sizes")).toBe("/project/a%20b?focus=garment&tool=sizes");
   });
 
   it("keeps the other parts of the address, such as the colourway", () => {
@@ -130,10 +130,10 @@ describe("the four steps of the journey in the header", () => {
 
   it("links each step to its place", () => {
     expect(journeySteps(ID, "garment").map((step) => step.href)).toEqual([
-      `/studio/${ID}?tool=garment`,
+      `/project/${ID}?focus=garment&tool=garment`,
       `/studio/${ID}/tech-pack`,
-      `/studio/${ID}?tool=share`,
-      `/studio/${ID}?tool=quote`,
+      `/project/${ID}?focus=garment&tool=share`,
+      `/project/${ID}?focus=garment&tool=quote`,
     ]);
   });
 

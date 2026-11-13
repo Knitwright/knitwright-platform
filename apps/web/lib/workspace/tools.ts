@@ -177,7 +177,8 @@ const designPage = (projectId: string): string => `/studio/${encodeURIComponent(
 
 /** The address of a design with one tool open. */
 export function toolHref(projectId: string, tool: ToolId): string {
-  return `${designPage(projectId)}?tool=${tool}`;
+  // The editor is a design's garment board opened in place on its canvas (decision 0145).
+  return `/project/${encodeURIComponent(projectId)}?focus=garment&tool=${tool}`;
 }
 
 /** The query of an address with one value set and the others kept, starting with "?". */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import {
   boxOf,
   connectorsBetween,
@@ -61,17 +61,6 @@ export function InfiniteCanvas({ graph, renderBoard, initialScale = 1, children 
   const dragged = useCanvas((state) => state.marquee);
   const marquee = dragged === null ? null : rectFromPoints(dragged.from, dragged.to);
   const opened = useRef(false);
-  const known = useRef<ReadonlySet<string> | null>(null);
-
-  // A board just added -- from a panel, the task bar, the Add… menu -- is brought onto the screen,
-  // so what a person made is where they can see it.
-  useEffect(() => {
-    const before = known.current;
-    known.current = new Set(graph.boards.map((board) => board.id));
-    if (before === null) return;
-    const added = graph.boards.filter((board) => !before.has(board.id));
-    if (added.length === 1 && added[0]) store.reveal(boxOf(added[0]));
-  }, [graph.boards, store]);
 
   const fit = () => store.fit(contentBounds(graph.boards), PAD);
   const input = useViewportInput(ref, { store, catches: (rect) => marqueeHits(graph.boards, rect), fit });
@@ -135,6 +124,16 @@ export function InfiniteCanvas({ graph, renderBoard, initialScale = 1, children 
         input.onKeyDown(event);
       }}
       onKeyUp={input.onKeyUp}
+      // The plane is moved by the store, never by scrolling. When the browser scrolls the canvas to
+      // bring something into view -- a control reached with Tab, a word found on the page -- that
+      // scroll becomes a pan, so the thing stays where the browser put it and the view stays true.
+      onScroll={(event) => {
+        const element = event.currentTarget;
+        if (element.scrollLeft === 0 && element.scrollTop === 0) return;
+        store.panBy({ x: -element.scrollLeft, y: -element.scrollTop });
+        element.scrollLeft = 0;
+        element.scrollTop = 0;
+      }}
       className="relative min-h-80 flex-1 touch-none overflow-hidden rounded-3xl border border-border bg-soft-2 select-none"
     >
       <div

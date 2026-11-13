@@ -13,14 +13,14 @@ describe("where a finding is fixed", () => {
 
   it("sends artwork and content findings to the logos tool", () => {
     for (const code of ["seam-cross", "min-dpi", "bleed-short", "safe-zone", "moderation-blocked", "repeat-min-dpi"]) {
-      expect(fixHref(ID, code), code).toBe(`/studio/${ID}?tool=logos`);
+      expect(fixHref(ID, code), code).toBe(`/project/${ID}?focus=garment&tool=logos`);
     }
   });
 
   it("sends colour to the colours tool and the article's parameters to the garment tool", () => {
-    expect(fixHref(ID, "gamut-approx")).toBe(`/studio/${ID}?tool=colours`);
-    expect(fixHref(ID, "parameter-out-of-range")).toBe(`/studio/${ID}?tool=garment`);
-    expect(fixHref(ID, "article-not-made")).toBe(`/studio/${ID}?tool=garment`);
+    expect(fixHref(ID, "gamut-approx")).toBe(`/project/${ID}?focus=garment&tool=colours`);
+    expect(fixHref(ID, "parameter-out-of-range")).toBe(`/project/${ID}?focus=garment&tool=garment`);
+    expect(fixHref(ID, "article-not-made")).toBe(`/project/${ID}?focus=garment&tool=garment`);
   });
 
   it("offers no link for a term only the factory or Knitwright can set", () => {
