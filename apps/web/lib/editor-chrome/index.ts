@@ -4,6 +4,7 @@
  * and functions; the screens are in `components/editor-chrome`.
  */
 export * from "./menus";
+export * from "./products";
 export * from "./rail";
 export * from "./shortcuts";
 export * from "./task-bar";

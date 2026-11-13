@@ -1,37 +1,36 @@
+"use client";
+
+import { ChevronLeft, X } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 import { MARKETING_PANEL_COMPONENTS } from "@/components/marketing/panels";
 import MockupsPanel from "@/components/mockups/MockupsPanel";
 import PhotosPanel from "@/components/mockups/PhotosPanel";
 import ShootsPanel from "@/components/shoots/ShootsPanel";
-import { panelPlaceholder, RAIL, RAIL_ITEMS, railPanelId, railTabId, type LaunchPanelId, type LaunchPanelProps, type RailId } from "@/lib/launch";
+import { Icon } from "@/components/ui/Icon";
+import { cx } from "@/components/ui/cx";
+import { entryFor, FLYOUT_ID, flyoutTitle, isMoreApp, railTab, type Flyout } from "@/lib/editor-chrome";
+import { panelPlaceholder, RAIL_ITEMS, railPanelId, type LaunchPanelId, type LaunchPanelProps, type RailId } from "@/lib/launch";
 import { LAUNCH_PANEL_COMPONENTS } from "./panels/panels";
 import { PanelPlaceholder } from "./PanelPlaceholder";
 
 /**
- * The panels of the icon rail. All twelve are drawn and only the open one shows, so every tab's
- * `aria-controls` names a panel that really exists and a hidden panel keeps whatever was typed in
- * it -- the same arrangement the editor shell uses for its three toolbars.
+ * THE FLYOUT BESIDE THE RAIL (plan v6 E2, decision 0146; `08` §5.1 "flyout panel (320 px)",
+ * prototype e03–e14): a title with ✕, and under it whichever the rail opened -- one of the editor's
+ * own flyouts (Products, More, Learn, Layers, Help), handed in as `own`, or a launch panel.
  *
- * A panel another workstream has built is mounted here and given exactly `LaunchPanelProps`
- * (`lib/launch/panels.ts`); the rest still draw a labelled placeholder. **Mockups and Photos are
- * L2's** (decision 0092), **AI image is L3's** (0093), **Text, Elements, Pattern fills, AI
- * assistant and Layers are L4's** (0094) and **Templates, Uploads and Brand** are the panels whose
- * workstreams were given a library and no component path (0108). Each of those three workstreams
- * keeps its own registry and this file spreads them in, so none of them has to edit the others'.
- *
- * What L4's five need from outside the canvas -- the brand's voice, the pictures the platform drew,
- * the export rows and "Write for me" -- reaches them through `MarketingServicesProvider`, which
- * `LaunchShell` wraps the whole shell in.
- *
- * **`likes` is the one placeholder left.** Nothing in the platform records a like (decision 0108's
- * owner question), and an empty grid with a heart on it would be a feature that looks real.
+ * Every launch panel is drawn and only the open one shows, so a hidden panel keeps whatever was
+ * typed in it -- the arrangement the launch rail had. A panel another workstream has built is
+ * mounted here and given exactly `LaunchPanelProps` (`lib/launch/panels.ts`): **Mockups and Photos
+ * are L2's** (decision 0092), **AI image is L3's** (0093), **Text, Elements, Pattern fills, AI
+ * assistant and Layers are L4's** (0094), and **Templates, Uploads and Brand** came with their
+ * libraries (0108). **`likes` is the one placeholder left**: nothing records a like (0108's owner
+ * question).
  */
 
 /**
  * Every panel that is built, by its id: L2's two, L3's one, and three workstreams' own registries
  * spread in rather than listed again. One map, made once, so nothing is looked up by calling a
- * function while the shell renders (`react-hooks/static-components`). The map is only ever indexed
- * by a `RailId` from here, so the board panels in it are never reached.
+ * function while the shell renders (`react-hooks/static-components`).
  */
 export const RAIL_PANELS: Partial<Record<LaunchPanelId, ComponentType<LaunchPanelProps>>> = {
   "ai-image": ShootsPanel,
@@ -41,35 +40,58 @@ export const RAIL_PANELS: Partial<Record<LaunchPanelId, ComponentType<LaunchPane
   ...LAUNCH_PANEL_COMPONENTS,
 };
 
-export function RailPanels({ open, panel }: Readonly<{ open: RailId; panel: LaunchPanelProps }>) {
+type Props = Readonly<{
+  flyout: Flyout;
+  panel: LaunchPanelProps;
+  /** The editor's own flyout, when one is open. */
+  own: ReactNode;
+  onClose: () => void;
+  /** Back to More, from an app More opened. */
+  onBack: () => void;
+}>;
+
+export function RailPanels({ flyout, panel, own, onClose, onBack }: Props) {
+  const lit = entryFor(flyout);
+  const shown: RailId | null = flyout.kind === "panel" ? flyout.id : null;
   return (
-    <div className="grid gap-3 lg:min-h-0 lg:grid-rows-[minmax(0,1fr)]">
-      {RAIL_ITEMS.map((id) => (
-        <RailPanel key={id} id={id} hidden={id !== open} panel={panel} />
+    <section
+      id={FLYOUT_ID}
+      role="tabpanel"
+      aria-labelledby={lit ? railTab(lit) : undefined}
+      aria-label={lit ? undefined : "Panel"}
+      hidden={flyout.kind === "closed"}
+      data-testid="editor-flyout"
+      className="flex w-full shrink-0 flex-col gap-3.5 overflow-y-auto border-r lg:h-full lg:w-80 border-border bg-bg px-3.5 py-4 text-small"
+    >
+      <header className="flex items-center gap-3 text-text-2">
+        {isMoreApp(flyout) ? (
+          <button type="button" onClick={onBack} aria-label="Back to More" className="grid size-8 place-items-center rounded-sm hover:bg-soft" data-testid="editor-flyout-back">
+            <Icon icon={ChevronLeft} />
+          </button>
+        ) : null}
+        <h2 className="flex-1 text-h3 font-semibold text-text">{flyoutTitle(flyout)}</h2>
+        <button type="button" onClick={onClose} aria-label="Close panel" className="grid size-8 place-items-center rounded-sm hover:bg-soft" data-testid="editor-flyout-close">
+          <Icon icon={X} />
+        </button>
+      </header>
+      {flyout.kind === "own" ? own : null}
+      {RAIL_ITEMS.filter((id) => id !== "layers").map((id) => (
+        <RailPanel key={id} id={id} hidden={id !== shown} panel={panel} />
       ))}
-    </div>
+    </section>
   );
 }
 
-function RailPanel({ id, hidden, panel }: Readonly<{ id: RailId; hidden: boolean; panel: LaunchPanelProps }>): ReactNode {
-  const placeholder = panelPlaceholder(id);
+/** One launch panel, or its labelled placeholder. Also used by the Layers flyout for L4's layer list. */
+export function RailPanel({ id, hidden, panel, className }: Readonly<{ id: RailId; hidden: boolean; panel: LaunchPanelProps; className?: string }>): ReactNode {
   const Built = RAIL_PANELS[id];
   return (
-    <div
-      id={railPanelId(id)}
-      role="tabpanel"
-      aria-labelledby={railTabId(id)}
-      hidden={hidden}
-      className="glass flex min-h-0 flex-col gap-3 overflow-y-auto rounded-3xl p-4 lg:row-start-1"
-    >
+    <div id={railPanelId(id)} hidden={hidden} className={cx("flex min-h-0 flex-col gap-3", className)} data-testid={`editor-panel-${id}`}>
       {Built ? (
         <Built {...panel} />
       ) : (
         <>
-          <header className="flex flex-col gap-1">
-            <h2 className="text-lg font-medium tracking-[-0.02em] text-ink">{RAIL[id].label}</h2>
-            <p className="text-[13px] leading-relaxed text-ink-2">{placeholder.note}</p>
-          </header>
+          <p className="text-small leading-relaxed text-muted">{panelPlaceholder(id).note}</p>
           <PanelPlaceholder id={id} />
         </>
       )}

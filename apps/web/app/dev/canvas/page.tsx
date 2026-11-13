@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { LaunchShell } from "@/components/launch/LaunchShell";
 import { GARMENT_BOX, LINKED_BOX, type GarmentPreview } from "@/lib/canvas";
+import { readFlyout, type ProductsShelf } from "@/lib/editor-chrome";
 import { start } from "@/lib/garment/fixtures/specs";
 import { board, link, project } from "@/lib/launch/fixtures/canvas";
 import { SEEDED_EXPORT_TARGETS, SEEDED_WATERMARK_RULES } from "@/lib/marketing";
@@ -55,13 +56,27 @@ const stacked = () =>
     { id: "00000000-0000-4000-8000-0000000000c2", name: "Stacked boards" },
   );
 
+/** The Products flyout's shelves, made up (decision 0146). `?fly=` opens any of the editor's flyouts. */
+const SHELF: ProductsShelf = {
+  designs: [
+    { id: DESIGN, name: "Home kit v7" },
+    { id: "00000000-0000-4000-8000-0000000000d2", name: "Away kit v2" },
+  ],
+  bases: [
+    { code: "JSY-SS-01", name: "Short-sleeve jersey", sportTags: ["football", "rugby"] },
+    { code: "JSY-LS-01", name: "Long-sleeve jersey", sportTags: ["football"] },
+    { code: "CRK-SS-01", name: "Cricket shirt", sportTags: ["cricket"] },
+  ],
+};
+
 export default async function DevCanvasPage({ searchParams }: PageProps<"/dev/canvas">) {
   await connection();
   if (!devRoutesEnabled(process.env)) notFound();
+  const query = await searchParams;
   return (
-    <main className="min-h-dvh bg-bg p-4">
+    <main className="min-h-dvh bg-bg">
       <LaunchShell
-        project={(await searchParams).stack ? stacked() : fixture()}
+        project={query.stack ? stacked() : fixture()}
         presets={[]}
         credits={1240}
         costs={{ perGeneratedBoard: 20, note: "Made-up prices for the fixture.", ruleId: "R-GAP-000" }}
@@ -69,6 +84,8 @@ export default async function DevCanvasPage({ searchParams }: PageProps<"/dev/ca
         canEdit
         marketing={{ voice: null, targets: SEEDED_EXPORT_TARGETS, watermarkRules: SEEDED_WATERMARK_RULES }}
         garments={{ [DESIGN]: garmentPreview() }}
+        flyout={readFlyout(query)}
+        products={SHELF}
       />
     </main>
   );

@@ -29,6 +29,12 @@ export type Flyout = Readonly<{ kind: "own"; id: OwnFlyout }> | Readonly<{ kind:
 
 export const CLOSED: Flyout = { kind: "closed" };
 
+/** The Layers flyout, which also holds the launch shell's own layers panel. */
+export const LAYERS: Flyout = { kind: "own", id: "layers" };
+
+/** The flyout a launch panel opens in: its own, except Layers, which lives inside the editor's Layers. */
+export const panelFlyout = (id: RailId): Flyout => (id === "layers" ? LAYERS : { kind: "panel", id });
+
 /** The rail's items, in order. `group` is where the hairline falls: after Uploads, and Help sits at the bottom. */
 export const RAIL_ENTRIES = [
   { id: "products", label: "Products", opens: { kind: "own", id: "products" }, group: "make" },
@@ -109,7 +115,10 @@ export function railMove(current: RailEntryId, key: string): RailEntryId | null 
 }
 
 const OWN = new Set<string>(OWN_FLYOUTS);
-const PANELS = new Set<string>(RAIL_ENTRIES.flatMap((entry) => (entry.opens.kind === "panel" ? [entry.opens.id] : [])).concat(MORE_APPS.flatMap((app) => ("opens" in app ? [app.opens.id] : []))));
+const PANELS = new Set<string>([
+  ...RAIL_ENTRIES.flatMap((entry): string[] => (entry.opens.kind === "panel" ? [entry.opens.id] : [])),
+  ...MORE_APPS.flatMap((app): string[] => ("opens" in app ? [app.opens.id] : [])),
+]);
 
 const firstOf = (value: string | readonly string[] | undefined): string | undefined => (typeof value === "string" ? value : value?.[0]);
 
@@ -123,6 +132,7 @@ export function readFlyout(query: Readonly<Record<string, string | readonly stri
   if (fly === "none") return CLOSED;
   if (fly !== undefined && OWN.has(fly)) return { kind: "own", id: fly as OwnFlyout };
   const panel = firstOf(query["panel"]);
+  if (panel === "layers") return LAYERS;
   if (panel !== undefined && PANELS.has(panel)) return { kind: "panel", id: panel as RailId };
   return { kind: "own", id: "products" };
 }

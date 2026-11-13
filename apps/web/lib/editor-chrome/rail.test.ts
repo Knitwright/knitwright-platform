@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RAIL_ITEMS } from "@/lib/launch";
-import { CLOSED, entryFor, flyoutTitle, isMoreApp, MORE_APPS, pressed, RAIL_ENTRIES, railMove, railTab, readFlyout } from "./index";
+import { CLOSED, entryFor, flyoutTitle, isMoreApp, MORE_APPS, panelFlyout, pressed, RAIL_ENTRIES, railMove, railTab, readFlyout } from "./index";
 
 describe("the editor's labelled rail", () => {
   it("is the screen map's eleven items, in its order", () => {
@@ -68,6 +68,9 @@ describe("the editor's labelled rail", () => {
     expect(readFlyout({ fly: "none" })).toEqual(CLOSED);
     expect(readFlyout({ fly: ["layers"] })).toEqual({ kind: "own", id: "layers" });
     expect(readFlyout({ panel: "mockups" })).toEqual({ kind: "panel", id: "mockups" });
+    expect(readFlyout({ panel: "layers" })).toEqual({ kind: "own", id: "layers" });
+    expect(panelFlyout("layers")).toEqual({ kind: "own", id: "layers" });
+    expect(panelFlyout("brand")).toEqual({ kind: "panel", id: "brand" });
     expect(readFlyout({ panel: "pattern-fills" })).toEqual({ kind: "panel", id: "pattern-fills" });
     expect(readFlyout({ fly: "nonsense", panel: "nonsense" })).toEqual({ kind: "own", id: "products" });
   });

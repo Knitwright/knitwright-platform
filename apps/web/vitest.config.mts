@@ -211,6 +211,7 @@ export default defineConfig({
             "design-import",
             "design-object",
             "designers",
+            "editor-chrome",
             "fabrics",
             "factory",
             "flows",
