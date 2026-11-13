@@ -40,5 +40,21 @@ export function garmentEditorHref(designId: string, extra: Readonly<Record<strin
   return `/project/${designId}?${query.toString()}` as Route;
 }
 
+/**
+ * Where an old address lands (decision 0145), with its whole query carried: `/studio/<id>` opens the
+ * design in the editor in place, `/launch/<id>` the canvas. Used by the old pages themselves, which
+ * catch what the 308 in `next.config` does not: a server action's or the client router's own redirect.
+ */
+export function movedHref(id: string, query: Query, focusGarment: boolean): Route {
+  const params = new URLSearchParams();
+  if (focusGarment) params.set("focus", OWN_GARMENT);
+  for (const [key, value] of Object.entries(query)) {
+    if (key === "focus" && focusGarment) continue;
+    for (const one of Array.isArray(value) ? value : value === undefined ? [] : [value as string]) params.append(key, one);
+  }
+  const text = params.toString();
+  return `/project/${encodeURIComponent(id)}${text ? `?${text}` : ""}` as Route;
+}
+
 /** The canvas's address with the focus taken off, keeping nothing else: "Back to canvas". */
 export const canvasHref = (id: string): Route => projectHref(id);

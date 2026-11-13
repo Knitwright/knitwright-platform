@@ -14,7 +14,7 @@ export function FocusedGarment({ backHref, canvasName, children }: Readonly<{ ba
       <nav aria-label="Canvas" className="flex flex-wrap items-center gap-3 text-small text-muted">
         <Link
           href={backHref}
-          className="inline-flex min-h-9 items-center rounded-full border border-border bg-bg px-4 font-semibold text-text hover:bg-soft"
+          className="inline-flex min-h-11 items-center rounded-full border border-border bg-bg px-4 font-semibold text-text hover:bg-soft"
           data-testid="canvas-focus-back"
         >
           ← Back to canvas

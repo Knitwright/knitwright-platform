@@ -73,7 +73,7 @@ test.describe("the lead engine", () => {
 
     // Quote is the last step of the journey at the top of the workspace.
     await page.getByRole("navigation", { name: "Journey" }).getByRole("link", { name: "Quote" }).click();
-    await expect(page).toHaveURL(/\?tool=quote$/);
+    await expect(page).toHaveURL(/[?&]tool=quote(&[^#]*)?$/);
     const quote = page.getByTestId("quote-request");
     await quote.getByRole("button", { name: "Request a quote" }).click();
     await quote.getByLabel("How many pieces?").fill("0");
@@ -90,7 +90,7 @@ test.describe("the lead engine", () => {
     // The prompt is not shown again once the details are given.
     // An older link to the quote section opens its panel as well.
     await page.goto(`${design}#quote-request`);
-    await expect(page).toHaveURL(/\?tool=quote#quote-request$/);
+    await expect(page).toHaveURL(/[?&]tool=quote(&[^#]*)?#quote-request$/);
     await expect(page.getByRole("region", { name: "Your design is saved. Who is it for?" })).toHaveCount(0);
     await expect(page.getByTestId("quote-request").getByText(/Waiting for a reply/)).toBeVisible();
   });

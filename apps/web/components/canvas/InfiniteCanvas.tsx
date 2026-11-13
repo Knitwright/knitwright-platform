@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import {
   boxOf,
   connectorsBetween,
@@ -61,6 +61,17 @@ export function InfiniteCanvas({ graph, renderBoard, initialScale = 1, children 
   const dragged = useCanvas((state) => state.marquee);
   const marquee = dragged === null ? null : rectFromPoints(dragged.from, dragged.to);
   const opened = useRef(false);
+  const known = useRef<ReadonlySet<string> | null>(null);
+
+  // A board just added -- from a panel, the task bar, the Add… menu -- is brought onto the screen,
+  // so what a person made is where they can see it.
+  useEffect(() => {
+    const before = known.current;
+    known.current = new Set(graph.boards.map((board) => board.id));
+    if (before === null) return;
+    const added = graph.boards.filter((board) => !before.has(board.id));
+    if (added.length === 1 && added[0]) store.reveal(boxOf(added[0]));
+  }, [graph.boards, store]);
 
   const fit = () => store.fit(contentBounds(graph.boards), PAD);
   const input = useViewportInput(ref, { store, catches: (rect) => marqueeHits(graph.boards, rect), fit });

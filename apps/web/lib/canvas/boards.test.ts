@@ -5,6 +5,7 @@ import {
   boxOf,
   connectorsBetween,
   contentBounds,
+  CULL_FROM,
   curve,
   GARMENT_BOX,
   hasOwnBox,
@@ -68,10 +69,15 @@ describe("culling", () => {
   const near = board("near", "mockup", at(10, 10));
   const far = board("far", "mockup", at(50_000, 0));
 
-  it("draws only the boards the screen shows, and always the selected ones", () => {
+  it("draws a small canvas whole", () => {
+    expect(visibleBoards([near, far], HOME, { width: 1000, height: 600 }).map((one) => one.id)).toEqual(["near", "far"]);
+  });
+
+  it("draws only the boards the screen shows on a large canvas, and always the selected ones", () => {
     const screen = { width: 1000, height: 600 };
-    expect(visibleBoards([near, far], HOME, screen).map((one) => one.id)).toEqual(["near"]);
-    expect(visibleBoards([near, far], HOME, screen, ["far"]).map((one) => one.id)).toEqual(["near", "far"]);
+    const many = [near, ...Array.from({ length: CULL_FROM }, (_, n) => board(`far-${n}`, "mockup", at(50_000 + n * 400, 0)))];
+    expect(visibleBoards(many, HOME, screen).map((one) => one.id)).toEqual(["near"]);
+    expect(visibleBoards(many, HOME, screen, ["far-3"]).map((one) => one.id)).toEqual(["near", "far-3"]);
   });
 
   it("draws only the connectors that could cross the screen, a long one from far away included", () => {

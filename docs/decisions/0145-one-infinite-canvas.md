@@ -31,11 +31,14 @@ bar on top of what this record fixes: the route, the plane, the store and the bo
    launch canvas (`history`, `delete`) keep their addresses. Links that open a design now use
    `garmentEditorHref(id)`; Projects cards, AI Creations and the launch paths use `/project/<id>`. A few helpers
    that build `/studio/<id>` strings for tests' sake (file menu, needs-you, workspace tools, templates) still do and
-   are served by the 308.
+   are served by the redirect. The old addresses keep a page each that only `permanentRedirect`s to the same place
+   (`movedHref`): the `next.config` rule answers a browser's request, but a server action's `redirect()` and the
+   client router's navigation never reach it (CI showed both landing on a missing page).
 3. **The board model.** `lib/launch/boards.ts` adds `garment`, `tech_pack`, `order` (deterministic, free):
    - **garment** references a studio project (`settings.designProjectId` and the typed column
      `boards.design_project_id`, kept equal by the trigger `boards_garment_reference`, which refuses a garment board
-     with no design or another brand's: hint `garment_without_design`). It shows the design's **current** spec
+     with no design or another brand's when it is made or re-pointed: hint `garment_without_design`; a design's
+     removal only nulls the reference, and the card says the design is gone). It shows the design's **current** spec
      version: the board read embeds `projects(current_version)` and a garment board's `inputVersion` is that, so it
      is live-linked. It is still the design object: it holds a reference, never a copy; every write and check goes
      through the editor and `lib/validation`, and the order gate (D1) is untouched. The card shows the platform's
@@ -64,8 +67,9 @@ bar on top of what this record fixes: the route, the plane, the store and the bo
 5. **The plane.** `components/canvas/InfiniteCanvas.tsx`: one CSS transform; `soft-2` ground with a 24-unit dot
    grid that moves with it; wheel pans, Ctrl/⌘-wheel and pinch zoom about the pointer; Space-drag and the middle
    button pan; a drag on empty canvas draws a marquee (Shift adds); + / − / 0 / 1 zoom in, out, to fit, to 100%
-   (10%–400%); culling draws only boards and connectors within the screen plus 240 px, always keeping the selected
-   boards. Boards (`CanvasBoard`) sit at their box with a 13 px label above that keeps its screen size; click
+   (10%–400%); from `CULL_FROM` (24) boards, culling draws only boards and connectors within the screen plus
+   240 px, always keeping the selected boards (a smaller canvas is drawn whole); a board just added is brought on
+   screen. Boards (`CanvasBoard`) sit at their box with a 13 px label above that keeps its screen size; click
    selects, Shift-click toggles, a drag moves every selected board; Tab / Shift-Tab on a board go to the next board
    in reading order and bring it on screen, Enter selects it and moves into its controls, arrows nudge as before.
    Connectors are L6's curves between the real boxes (fan-in and fan-out), 1.5 px electric with an arrow. L6's card

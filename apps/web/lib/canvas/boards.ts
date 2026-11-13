@@ -84,10 +84,18 @@ export const contentBounds = (boards: readonly BoardView[]): Rect | null => boun
 export const CULL_MARGIN = 240;
 
 /**
- * Culling: the boards whose box the screen (plus the margin) shows. The selected boards are always
- * kept, so the one a person is working on never leaves the page -- and with it its keyboard focus.
+ * Below this many boards nothing is culled: a small canvas costs nothing to draw whole, and every
+ * board stays in the page for search, assistive technology and a person's Find.
+ */
+export const CULL_FROM = 24;
+
+/**
+ * Culling: on a canvas of `CULL_FROM` boards or more, the boards whose box the screen (plus the
+ * margin) shows. The selected boards are always kept, so the one a person is working on never
+ * leaves the page -- and with it its keyboard focus.
  */
 export function visibleBoards(boards: readonly BoardView[], view: Viewport, screen: Size, keep: readonly string[] = []): readonly BoardView[] {
+  if (boards.length < CULL_FROM) return boards;
   const shown = visibleRect(view, screen, CULL_MARGIN);
   return boards.filter((board) => keep.includes(board.id) || intersects(boxOf(board), shown));
 }

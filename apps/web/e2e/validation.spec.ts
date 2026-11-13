@@ -18,7 +18,7 @@ test.describe("validation gate (V1)", () => {
     await signIn(page, await createAccount("validation"));
     await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Validation test");
-    await page.goto(`${page.url().split("?")[0]}?tool=production`);
+    await page.goto(`${page.url().split("?")[0]}?focus=garment&tool=production`);
 
     const panel = page.getByTestId("validation-panel");
     await expect(panel.getByTestId("validation-profile")).toHaveText("Knitwright default profile, not agreed with a factory");

@@ -80,7 +80,7 @@ export default async function LaunchPage() {
                      * (`components/production/orders/RosterTable.tsx`).
                      */}
                     {canEdit ? (
-                      <Link href={`${launchProjectPath(one.id)}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
+                      <Link href={`/launch/${encodeURIComponent(one.id)}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
                         Delete<span className="sr-only"> row {at + 1}</span>
                       </Link>
                     ) : null}

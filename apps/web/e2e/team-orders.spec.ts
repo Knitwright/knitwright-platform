@@ -23,7 +23,7 @@ test.describe("team orders (W4)", () => {
     await signIn(page, await createAccount("team-orders"));
     await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Team order test");
-    await page.goto(`${page.url().split("?")[0]}?tool=production`);
+    await page.goto(`${page.url().split("?")[0]}?focus=garment&tool=production`);
 
     const panel = page.getByTestId("team-orders-panel");
     await expect(panel.getByText("No team lists yet.")).toBeVisible();
@@ -56,7 +56,7 @@ test.describe("team orders (W4)", () => {
     await signIn(page, await createAccount("team-orders-erase"));
     await expect(page).toHaveURL(/\/projects\/recent$/);
     await startDesign(page, "Erase test");
-    await page.goto(`${page.url().split("?")[0]}?tool=production`);
+    await page.goto(`${page.url().split("?")[0]}?focus=garment&tool=production`);
 
     const panel = page.getByTestId("team-orders-panel");
     await panel.getByRole("button", { name: "Add a team list" }).click();

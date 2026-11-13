@@ -84,7 +84,7 @@ test.describe("the editor", () => {
     // The address keeps the open tool, so the reload opens the same panel.
     await page.reload();
 
-    await expect(page).toHaveURL(/\?tool=sizes$/);
+    await expect(page).toHaveURL(/[?&]tool=sizes(&[^#]*)?$/);
     await expect(page.getByRole("tab", { name: "Sizes", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByTestId("version")).toHaveText("Version 4");
     await expect(chest(page)).toHaveValue("52.5");
@@ -462,7 +462,7 @@ test.describe("the one-screen workspace", () => {
     await page.keyboard.press("ArrowDown");
     await expect(tools.getByRole("tab", { name: "Colours" })).toBeFocused();
     await expect(tools.getByRole("tab", { name: "Colours" })).toHaveAttribute("aria-selected", "true");
-    await expect(page).toHaveURL(/\?tool=colours$/);
+    await expect(page).toHaveURL(/[?&]tool=colours(&[^#]*)?$/);
     await page.keyboard.press("End");
     await expect(tools.getByRole("tab", { name: "History" })).toBeFocused();
     await page.keyboard.press("Home");
@@ -487,7 +487,7 @@ test.describe("the one-screen workspace", () => {
     await expect(page.getByRole("tab", { name: "Logos", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByLabel("Logo or picture")).toBeVisible();
     await page.goto(`${path}#share-heading`);
-    await expect(page).toHaveURL(/\?tool=share#share-heading$/);
+    await expect(page).toHaveURL(/[?&]tool=share(&[^#]*)?#share-heading$/);
     await expect(page.getByRole("heading", { name: "Share with your committee" })).toBeVisible();
 
     const assistant = page.getByRole("complementary", { name: "Design assistant" });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canvasHref, garmentEditorHref, isUuid, OWN_GARMENT, projectHref, readFocus } from "./address";
+import { canvasHref, garmentEditorHref, isUuid, movedHref, OWN_GARMENT, projectHref, readFocus } from "./address";
 
 const ID = "11111111-1111-4111-8111-111111111111";
 
@@ -19,6 +19,13 @@ describe("the one canvas's address", () => {
     expect(readFocus({ focus: [ID, "x"] })).toBe(ID);
     expect(readFocus({ focus: "<script>" })).toBeNull();
     expect(readFocus({})).toBeNull();
+  });
+
+  it("moves an old address to the canvas with its whole query", () => {
+    expect(movedHref(ID, { view: "pattern", opt: ["a:1", "b:2"], none: undefined }, true)).toBe(`/project/${ID}?focus=garment&view=pattern&opt=a%3A1&opt=b%3A2`);
+    expect(movedHref(ID, { focus: "x" }, true)).toBe(`/project/${ID}?focus=garment`);
+    expect(movedHref(ID, { panel: "mockups" }, false)).toBe(`/project/${ID}?panel=mockups`);
+    expect(movedHref(ID, {}, false)).toBe(`/project/${ID}`);
   });
 
   it("knows an id when it sees one", () => {

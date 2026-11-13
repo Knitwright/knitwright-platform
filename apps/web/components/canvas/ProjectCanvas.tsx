@@ -75,14 +75,15 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
   };
 
   const onKey = (board: BoardView) => (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (busy || event.target !== event.currentTarget) {
+    if (event.target !== event.currentTarget) {
       if (event.key === "Escape") {
         setMenu(null);
         setConnecting(null);
       }
       return;
     }
-    if (isArrowKey(event.key)) {
+    // Selecting is never held up by a save in flight; moving waits for it, as a drag does.
+    if (isArrowKey(event.key) && !busy) {
       event.preventDefault();
       move(board, nudge(board, event.key, event.shiftKey), event.shiftKey ? "ten steps" : "one step");
       return;
