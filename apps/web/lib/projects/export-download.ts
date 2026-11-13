@@ -1,6 +1,9 @@
 import { fieldErrors } from "@/lib/server/core/guard";
 import { AppError, MESSAGES } from "@/lib/server/core/errors";
 import type { View } from "@/lib/flat/model";
+import type { BaseArticle } from "@/lib/catalogue";
+import { sheetsOfDesign } from "@/lib/techpack/editor/from-project";
+import { buildSheetsWorkbook } from "@/lib/techpack/editor/workbook";
 import { buildWorkbook } from "@/lib/techpack/exports/excel/workbook";
 import { NoDrawing } from "@/lib/techpack/exports/errors";
 import { exportFileName } from "@/lib/techpack/exports/file-names";
@@ -38,6 +41,14 @@ export interface ExportDeps {
    * page that nobody has read it — so a library that cannot be read never stops a download.
    */
   readonly translations?: (language: Language) => Promise<readonly TranslationRow[]>;
+  /**
+   * The base article of a garment type, for the eight-sheet workbook (`layout=sheets`, decision
+   * 0151), whose measurements are the article's. Left out, or failing, the sheets say the design is
+   * not on a base article rather than refusing the download.
+   */
+  readonly article?: (garmentType: string) => Promise<BaseArticle | null>;
+  /** The tech pack editor's full address, written on every sheet as "Open in Knitwright". */
+  readonly openIn?: (projectId: string) => string;
 }
 
 interface ExportInput {
@@ -112,6 +123,7 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     ...(query.colourway === undefined ? {} : { colourwayId: query.colourway }),
   });
   const view = query.view ?? null;
+  if (input.format === "xlsx" && query.layout === "sheets") return serveSheets(deps, input, source);
   const language = query.language ?? SOURCE_LANGUAGE;
   const translations = await translationsFor(deps, language);
   let content: Uint8Array<ArrayBuffer> | string;
@@ -132,4 +144,21 @@ export async function serveExport(deps: ExportDeps, input: ExportInput): Promise
     language,
   });
   return downloadResponse(input.format, name, content);
+}
+
+/** The eight-sheet workbook of the sheets preview (spec screen 31), recorded and named as any Excel export is. */
+async function serveSheets(deps: ExportDeps, input: ExportInput, source: TechPackSource): Promise<Response> {
+  const { project } = source;
+  const article = deps.article ? await deps.article(project.garmentType).catch(() => null) : null;
+  const sheets = sheetsOfDesign({
+    design: project,
+    brandName: deps.brandName,
+    article,
+    now: deps.now(),
+    openIn: deps.openIn?.(input.projectId) ?? `/studio/${input.projectId}/tech-pack`,
+  });
+  const content = await buildSheetsWorkbook(sheets);
+  await deps.record({ projectId: input.projectId, version: project.currentVersion, format: "xlsx", view: null });
+  const name = exportFileName({ styleNumber: project.styleNumber, designName: project.name, version: project.currentVersion, format: "xlsx", view: null });
+  return downloadResponse("xlsx", name, content);
 }

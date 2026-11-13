@@ -33,6 +33,8 @@ type DocumentProps = Readonly<{
   patterns: ReactNode;
   /** Asking for a quote. */
   quote: ReactNode;
+  /** The v3.9 tech pack editor (decision 0151), drawn under the header and above the file's sections. */
+  editor?: ReactNode;
 }>;
 
 /** The sections of the document itself, each with its forms and its list of things to confirm. */
@@ -100,7 +102,7 @@ const keepColourway = (colourwayId: string | undefined): string => (colourwayId 
  * The factory file on screen: a header with the downloads, a list of sections with what each still
  * needs, and one section at a time, with the forms to fill in what is missing.
  */
-export function TechPackDocument({ data, pictures, colourwayId, section, illustrations, patterns, quote }: DocumentProps) {
+export function TechPackDocument({ data, pictures, colourwayId, section, illustrations, patterns, quote, editor }: DocumentProps) {
   const sections = fileSections(data.report, data.confirmables, { illustrations: illustrations !== null }, data.pack.readiness);
   const available: FileSectionId[] = [...sections.map((entry) => entry.id), "left"];
   const initial = parseSection(section, available);
@@ -130,6 +132,7 @@ export function TechPackDocument({ data, pictures, colourwayId, section, illustr
   return (
     <div className="flex flex-col gap-4">
       <FileHeader data={data} colourwayId={colourwayId} baseSearch={baseSearch} />
+      {editor}
       <FormOpener />
       {data.staleNote ? <Notice tone="warn">{data.staleNote}</Notice> : null}
       <FileTabs

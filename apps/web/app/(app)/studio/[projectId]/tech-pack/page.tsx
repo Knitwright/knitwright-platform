@@ -7,6 +7,12 @@ import { TechPackDocument } from "@/components/techpack/TechPackDocument";
 import { TechPackEdit } from "@/components/techpack/TechPackEdit";
 import { PatternServiceLink } from "@/components/pattern-service/PatternServiceLink";
 import { PatternSection } from "@/components/techpack/PatternSection";
+import { TechPackEditorOnPage } from "@/components/techpack-editor/OnPage";
+import { baseArticleForType, getBaseArticle } from "@/lib/catalogue";
+import { getEnv } from "@/lib/config/env";
+import { editorAddress, headerOfDesign, sheetDate } from "@/lib/techpack/editor/from-project";
+import { canExportTechPacks, sheetsDownloads } from "@/lib/techpack/editor/plan";
+import { editorTabOr } from "@/lib/techpack/editor/tabs";
 import { loadDesignLeads } from "@/lib/leads/service";
 import { slotFor } from "@/lib/pattern-library/slots";
 import { sizeChoices } from "@/lib/patterns/request";
@@ -52,6 +58,24 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
   const leads = quietly(loadDesignLeads(client, brand.id, projectId, now));
   const { project, history, charts, memberNames, production, latest } = await readTechPack(client, brand.id, projectId).catch(orNotFound);
   const data = buildTechPackCore({ project, history, brandName: brand.name, now, colourwayId, charts, memberNames, production });
+  // The v3.9 editor reads the base article the design sits on (decision 0151). One that cannot be
+  // read leaves the editor saying the design is not on one, and never stops the factory file.
+  const articleCode = baseArticleForType(project.garmentType) ?? null;
+  const article = articleCode === null ? null : await getBaseArticle(client, articleCode).catch(() => null);
+  const editor = (
+    <TechPackEditorOnPage
+      article={article}
+      header={headerOfDesign(project, brand.name)}
+      tab={editorTabOr(typeof search.tab === "string" ? search.tab : null)}
+      {...(colourwayId === undefined ? {} : { colourwayId })}
+      sheets={{
+        date: sheetDate(now),
+        openIn: editorAddress(getEnv().NEXT_PUBLIC_SITE_URL, projectId),
+        downloads: sheetsDownloads(projectId),
+        canExport: canExportTechPacks(),
+      }}
+    />
+  );
   const pictures = quietly(
     readArtworkPictures(client, brand.id, project.spec, { shrink: shrinkForDrawing }).then((loaded) =>
       techPackPictures(data.pack, loaded.images, picturesNote(loaded.skipped)),
@@ -71,6 +95,7 @@ export default async function TechPackPage({ params, searchParams }: PageProps<"
         colourwayId={colourwayId}
         section={search.section}
         illustrations={illustrations}
+        editor={editor}
         patterns={
           <>
             <PatternSection projectId={projectId} sizes={sizeChoices(project.spec)} currentVersion={project.currentVersion} />
