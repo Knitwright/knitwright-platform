@@ -8,7 +8,7 @@ export const GET = defineRoute({
   auth: "member",
   rateLimit: LIMITS.channelExport,
   schema: {},
-  handler: async ({ session }) => csvResponse("knitwright-products.csv", await productsCsv(await sessionClient(), session.brand.id, session.userId)),
+  handler: async ({ session }) => csvResponse("knitwright-products.csv", await productsCsv(await sessionClient(), session.brand.id)),
 });
 
 const csvResponse = (name: string, body: string) =>

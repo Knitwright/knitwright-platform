@@ -14,7 +14,7 @@ import { productRows, orderRows, PRODUCT_HEADER, ORDER_HEADER } from "./export-r
 
 const READ_FAILED = "The export could not be read. Try again.";
 
-export async function productsCsv(client: SupabaseClient, brandId: string, _userId: string): Promise<string> {
+export async function productsCsv(client: SupabaseClient, brandId: string): Promise<string> {
   const [products, orderProducts, listings] = await Promise.all([
     listProducts(client, brandId),
     loadOrderProducts(client, brandId, "GBP"),
