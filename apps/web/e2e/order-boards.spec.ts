@@ -9,7 +9,8 @@ import { createAccount, signIn, test } from "./support";
  *
  *   * a Tech pack board added after a garment summarises its design's tech pack and opens the tech
  *     pack page, which keeps its address;
- *   * an Order board with no order says so, and the Order button waits for the garment's checks;
+ *   * an Order board with no order says so and opens the Order drawer (Sample · Run · Team store ·
+ *     Quote PDF), which says how an order is paid until checkout lands;
  *   * Export offers the garment's tech pack and production package; Share has Link and Invite, with
  *     the Knitwright factory desk as a tech-pack-only member.
  */
@@ -52,9 +53,15 @@ test.describe("the tech pack and order boards", () => {
     await addAfterGarment(page, "order");
     await expect(page.locator('[data-testid^="order-board-"]').filter({ hasText: "No order yet." })).toBeVisible();
 
-    // The garment has never been checked, so the Order button waits and says why.
-    const order = page.getByTestId("project-order");
-    await expect(order).toHaveAttribute("aria-disabled", "true");
+    // The order board opens the Order drawer for its design, with the make flow's own forms behind it.
+    await page.locator('[data-testid^="canvas-open-order-"]').click();
+    const drawer = page.getByRole("dialog", { name: `Order · ${name}` });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByTestId("order-drawer-checkout")).toContainText("Card checkout arrives with payments");
+    await drawer.getByRole("tab", { name: "Team store" }).click();
+    await expect(drawer.getByTestId("order-drawer-store")).toContainText("Team stores open with the Store");
+    await drawer.getByRole("button", { name: `Close Order · ${name}` }).click();
+    await expect(drawer).toBeHidden();
 
     await open.click();
     await expect(page).toHaveURL(new RegExp(`/studio/${id}/tech-pack$`));
