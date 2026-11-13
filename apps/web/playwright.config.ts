@@ -28,6 +28,9 @@ const env = {
   DESIGN_IMPORT: "on",
   // The component library page at /dev/ui (decision 0137): a production build serves it only with this on.
   DEV_UI_ROUTES: "on",
+  // Checkout is the test checkout (decision 0152): a page of the app that pays with a test card and signs its own
+  // webhook events. No Stripe key is ever set here; the environment check refuses this switch on a deploy.
+  PAYMENTS_TEST_CHECKOUT: "on",
 } as Record<
   string,
   string
