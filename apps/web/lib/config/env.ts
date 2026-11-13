@@ -134,6 +134,11 @@ const envSchema = z.object({
   // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
   // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
   PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
+  // Seller payouts through Stripe Connect Express (plan v6 C5, decision 0156). "on" only once Connect is switched on
+  // in the Stripe account (an owner action); it also needs the Connect endpoint's own webhook signing secret, which
+  // the same webhook route checks. Without both, payouts are shown as not switched on yet.
+  STRIPE_CONNECT: z.enum(["on", "off"]).optional(),
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().regex(/^whsec_\S{8,240}$/).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),

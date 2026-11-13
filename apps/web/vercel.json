@@ -3,6 +3,7 @@
   "regions": ["icn1"],
   "crons": [
     { "path": "/api/cron/ops-cut-batches", "schedule": "0 * * * *" },
-    { "path": "/api/cron/roster-purge", "schedule": "30 3 * * *" }
+    { "path": "/api/cron/roster-purge", "schedule": "30 3 * * *" },
+    { "path": "/api/cron/seller-payouts", "schedule": "0 9 * * 5" }
   ]
 }
