@@ -61,10 +61,10 @@ test.describe("brand workspace (W4-C)", () => {
     await allowClassBRun(projectId, "brand-runs-reviewer");
 
     // Product runs moved from /brand to Orders (decision 0138): the rail's ⌄ opens Orders, whose
-    // empty state opens the runs.
+    // header opens the runs (decision 0143).
     await openShellPlace(page, "Orders");
     await expect(page).toHaveURL(/\/orders$/);
-    await page.getByRole("link", { name: "Open product runs" }).click();
+    await page.getByRole("link", { name: "Product runs", exact: true }).click();
     await expect(page).toHaveURL(/\/orders\/runs$/);
     // The first accessibility scan of this page, with the run builder still empty: its one line of
     // prose holds a link that colour alone used to carry, which axe reads at 1.64:1 against the

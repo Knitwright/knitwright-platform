@@ -1,53 +1,55 @@
-import type { CSSProperties, ReactNode } from "react";
+import { Plus } from "lucide-react";
+import type { ReactNode } from "react";
+import { Icon } from "@/components/ui/Icon";
 import { countersText, groups } from "@/lib/collections/board";
 import type { CollectionPlan } from "@/lib/collections/types";
+import { styleWord } from "@/lib/collections/vocabulary";
 
 type Props = Readonly<{
   plan: CollectionPlan;
   /** One card per style, by style id, so the page can stream each render in. */
   cards: Readonly<Record<string, ReactNode>>;
+  /** Owners, admins and kit managers see "+ Add style" at the foot of every column. */
+  canEdit: boolean;
 }>;
 
-/** The dotted canvas, drawn here rather than in the shared stylesheet, which this workstream does not own. */
-const DOTS: CSSProperties = {
-  backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.12) 1px, transparent 1px)",
-  backgroundSize: "18px 18px",
-};
-
 /**
- * The collection board (spec F-S10): an infinite dotted canvas with the founder's own frames on it,
- * each frame showing Styles · Style-colourways · SKUs over the cards inside it.
- *
- * The canvas scrolls rather than panning with a mouse drag: a plan is read and changed on a phone as
- * well as a desktop, and a scrollable region works with a keyboard and a screen reader as it is.
+ * The range plan board (09 screen 32, p13; 08 v3.7 "Fabra-like"): one column per drop or group, its
+ * name and count on top, its style cards below, and "+ Add style" at the foot, which goes to the
+ * add-a-style form under the board. Each column is a region named with its counters (spec F-S10).
  */
-export function Board({ plan, cards }: Props) {
-  const frames = groups(plan);
+export function Board({ plan, cards, canEdit }: Props) {
+  const columns = groups(plan);
   return (
-    <section aria-label={`The board of ${plan.name}`} style={DOTS} className="overflow-x-auto rounded-3xl border border-hairline p-4 sm:p-6">
-      {frames.length === 0 ? (
-        <p className="py-10 text-center text-[15px] text-muted">No groups yet. Add a group, then put style cards in it.</p>
+    <section aria-label={`The board of ${plan.name}`} className="overflow-x-auto">
+      {columns.length === 0 ? (
+        <p className="py-10 text-center text-body text-muted">No groups yet. Add a group, then put style cards in it.</p>
       ) : (
-        <div className="flex min-w-max items-start gap-6">
-          {frames.map((frame) => (
-            <section
-              key={frame.frameId ?? "loose"}
-              aria-label={`${frame.name}, ${countersText(frame)}`}
-              className="flex flex-col gap-3 rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-4"
-            >
-              <header className="flex flex-col gap-0.5">
-                <h3 className="text-base font-medium text-ink">{frame.name}</h3>
-                <p className="font-mono text-[11px] uppercase tracking-wider text-muted">{countersText(frame)}</p>
+        <div className="grid auto-cols-[minmax(16rem,1fr)] grid-flow-col gap-5">
+          {columns.map((column) => (
+            <section key={column.frameId ?? "loose"} aria-label={`${column.name}, ${countersText(column)}`} className="flex flex-col gap-3">
+              <header className="flex items-baseline justify-between gap-2">
+                <h3 className="text-title text-text">{column.name}</h3>
+                <p className="text-body text-muted" title={countersText(column)}>
+                  {styleWord(column.styles)}
+                </p>
               </header>
-              {frame.styleCards.length === 0 ? (
-                <p className="w-60 text-[13px] text-faint">No styles in this group yet.</p>
-              ) : (
-                <ul className="flex flex-col gap-3">
-                  {frame.styleCards.map((style) => (
-                    <li key={style.id}>{cards[style.id]}</li>
-                  ))}
-                </ul>
-              )}
+              <ul className="flex flex-col gap-4">
+                {column.styleCards.map((style) => (
+                  <li key={style.id}>{cards[style.id]}</li>
+                ))}
+                {canEdit ? (
+                  <li>
+                    <a
+                      href="#add-style"
+                      className="grid h-16 place-items-center rounded-xl border border-dashed border-border-strong text-muted no-underline transition-colors duration-fast live:hover:bg-soft"
+                    >
+                      <Icon icon={Plus} size={20} />
+                      <span className="sr-only">Add style to {column.name}</span>
+                    </a>
+                  </li>
+                ) : null}
+              </ul>
             </section>
           ))}
         </div>

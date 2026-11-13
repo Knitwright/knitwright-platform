@@ -146,6 +146,9 @@ export default defineConfig({
         // dates, the personalisation rows and the club's kit. Every rule it hands over is pure and tested on
         // its own; the database test and the route tests cover the joining (plan v5 O2, decision 0106).
         "lib/store-contract/server.ts",
+        // Joins the Orders area to the factory rows; the discounts, the delivery date and the summary are tested
+        // on their own, and the database and end-to-end tests cover the joining (plan v6 P5, decision 0143).
+        "lib/order-desk/server.ts",
         // Joins the Products pages to the catalogue's rows, the factory model and the production settings; every
         // rule it hands over is pure and tested on its own, and the end-to-end tests cover the joining (plan v6 P4,
         // decision 0142).
@@ -227,6 +230,7 @@ export default defineConfig({
             "mockups",
             "moderation",
             "ops",
+            "order-desk",
             "orders",
             "panel-layers",
             "parametric",

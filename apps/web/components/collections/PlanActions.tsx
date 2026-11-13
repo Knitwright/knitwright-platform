@@ -94,7 +94,7 @@ export function PlanActions({ plan, canEdit }: Props) {
       {canEdit ? (
         <p className="text-sm text-muted">
           Finished with this range?{" "}
-          <Link href={`/studio/collections/${plan.id}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
+          <Link href={`/orders/plan/${plan.id}/delete` as Route} className="soft-link text-ink underline underline-offset-4">
             Delete this plan
           </Link>
           . The designs behind its style cards are not touched.

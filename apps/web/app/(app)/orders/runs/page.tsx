@@ -6,14 +6,12 @@ import { RunBuilder } from "@/components/brand-runs/RunBuilder";
 import { RunHistory } from "@/components/brand-runs/RunHistory";
 import { PageIntro } from "@/components/shell/PageIntro";
 import { PageSection } from "@/components/shell/PageSection";
-import { TopBarTabs } from "@/components/shell/TopBarSlot";
 import { loadRunContext } from "@/lib/brand-runs/run-context";
 import { listProducts } from "@/lib/brand-runs/service";
 import { can, ROLE_LABELS } from "@/lib/clubs/roles";
 import { listProjects } from "@/lib/projects/service";
 import { sessionClient } from "@/lib/server/deps";
 import { requireMember } from "@/lib/server/page-guards";
-import { ORDERS_TABS } from "@/lib/shell/tabs";
 
 export const metadata: Metadata = { title: "Product runs" };
 
@@ -33,7 +31,7 @@ export default async function ProductRunsPage({ searchParams }: PageProps<"/orde
 
   return (
     <div className="flex flex-col gap-8">
-      <TopBarTabs label="Orders" tabs={ORDERS_TABS} />
+      <Link href="/orders" className="soft-link w-fit text-sm text-muted">← Orders</Link>
       <PageIntro
         eyebrow={`Brand · you are ${ROLE_LABELS[brand.role].toLowerCase()}`}
         title={brand.name}
