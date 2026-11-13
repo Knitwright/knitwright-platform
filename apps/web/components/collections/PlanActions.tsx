@@ -85,6 +85,9 @@ export function PlanActions({ plan, canEdit }: Props) {
           <Button type="button" variant="secondary" pending={pendingDrop} disabled={!canEdit || !dropAllowed} onClick={drop}>
             Create drop
           </Button>
+          <Link href={"/store/storefront#drops-heading" as Route} className="soft-link text-sm text-ink underline underline-offset-4">
+            Sell it on your storefront: open a drop from this plan
+          </Link>
           {dropNotes.length > 0 ? (
             <ul className="flex flex-col gap-1 text-[13px] text-muted">
               {dropNotes.map((found) => (

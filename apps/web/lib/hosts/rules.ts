@@ -1,3 +1,4 @@
+import { brandHost } from "@/lib/storefront/host";
 import { clubHost } from "@/lib/team-stores/host";
 
 /**
@@ -12,6 +13,8 @@ import { clubHost } from "@/lib/team-stores/host";
 export type HostRule = (host: string, pathname: string, rootDomain: string) => string | null;
 
 export const HOST_RULES: readonly HostRule[] = [
+  // Decision 0154: brands and clubs share the names, so this claims every one; a club's name shows the club page.
+  brandHost,
   clubHost,
 ];
 

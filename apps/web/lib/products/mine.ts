@@ -37,6 +37,8 @@ export interface ProductRow {
   readonly channel: string;
   readonly editHref: Route;
   readonly runsHref: Route;
+  /** The product's listing editor (plan v6 C3, decision 0154). */
+  readonly listingHref: Route;
 }
 
 const SHORT = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -66,23 +68,27 @@ const runsLine = (product: ProductView): string => {
   return `Version ${product.designVersion} · ${count === 0 ? "no runs yet" : `${count} run${count === 1 ? "" : "s"}`}`;
 };
 
-const toRow = (product: ProductView): ProductRow => ({
+/** What the sales-channel column says, from the product's listing (decision 0154), or none yet. */
+export type ChannelOf = (productId: string) => string | undefined;
+
+const toRow = (product: ProductView, channelOf: ChannelOf): ProductRow => ({
   id: product.id,
   name: product.name,
   stage: product.stage,
   stageLabel: STAGE_LABELS[product.stage],
   detail: runsLine(product),
   updated: shortDate(product.runs[0]?.createdAt ?? product.createdAt),
-  channel: CHANNEL_NONE,
+  channel: channelOf(product.id) ?? CHANNEL_NONE,
   editHref: garmentEditorHref(product.projectId),
   runsHref: `/orders/runs?product=${product.id}` as Route,
+  listingHref: `/products/${product.id}/listing` as Route,
 });
 
 /** The rows for the chosen stage and search words. */
-export function productRows(products: readonly ProductView[], stage: StageFilter, search: string): readonly ProductRow[] {
+export function productRows(products: readonly ProductView[], stage: StageFilter, search: string, channelOf: ChannelOf = () => undefined): readonly ProductRow[] {
   const words = search.trim().toLowerCase();
   return products
     .filter((product) => stage === "all" || product.stage === stage)
     .filter((product) => words === "" || product.name.toLowerCase().includes(words))
-    .map(toRow);
+    .map((product) => toRow(product, channelOf));
 }

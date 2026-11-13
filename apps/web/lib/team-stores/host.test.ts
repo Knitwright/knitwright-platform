@@ -16,7 +16,10 @@ describe("a club's subdomain", () => {
 
   it("goes through the shared matcher, which does nothing without a domain or host", () => {
     expect(HOST_RULES.length).toBeGreaterThan(0);
-    expect(rewriteForHost("lions.knitwright.com", "/", "knitwright.com")).toBe("/clubs/lions");
+    // Decision 0154: brands and clubs share one namespace, so the brand rule answers first; `/shop/<name>` shows the
+    // club's page when the name is a club's. A club's own paths on its host are left as they are.
+    expect(rewriteForHost("lions.knitwright.com", "/", "knitwright.com")).toBe("/shop/lions");
+    expect(rewriteForHost("lions.knitwright.com", "/t/Ab3dEf7hJk", "knitwright.com")).toBeNull();
     expect(rewriteForHost("lions.knitwright.com", "/", undefined)).toBeNull();
     expect(rewriteForHost(null, "/", "knitwright.com")).toBeNull();
     expect(rewriteForHost("evil.example", "/", "knitwright.com")).toBeNull();

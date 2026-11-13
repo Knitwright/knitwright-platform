@@ -26,6 +26,6 @@ export type StoreTab = (typeof STORE_TABS)[number]["href"];
  * storefront editor and the new-drop flow, C2 team stores. Null means the screen is not built yet, and the page
  * says so instead of linking nowhere.
  */
-export const STOREFRONT_EDITOR_HREF: Route | null = null;
-export const NEW_DROP_HREF: Route | null = null;
+export const STOREFRONT_EDITOR_HREF: Route | null = "/store/storefront";
+export const NEW_DROP_HREF: Route | null = "/store/storefront#drops-heading" as Route;
 export const TEAM_STORES_HREF: Route | null = "/team?tab=stores" as Route;

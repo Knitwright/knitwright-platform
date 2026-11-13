@@ -69,6 +69,17 @@ export const PUBLIC_PAGES = [
   "app/dev/channels/page.tsx",
   // G2's tech pack editor and sheets with made-up data (decision 0151), for s08–s15 and x01–x08. Same switch as /dev/ui.
   "app/dev/tech-pack/page.tsx",
+  // A brand's storefront (spec F-L5, decision 0154): a shopper has no account. Each page reads with the server's key
+  // and shows only a LIVE storefront's PUBLISHED listings, the brand's name, first colour and returns policy.
+  "app/shop/[store]/page.tsx",
+  "app/shop/[store]/[listingId]/page.tsx",
+  "app/shop/[store]/returns/page.tsx",
+  // The shopper's own order and its test checkout (decision 0154): the random token in the address is the only key,
+  // compared by its hash, and each shows only that one order. The test checkout exists only where it is the processor.
+  "app/shop/[store]/order/[orderId]/page.tsx",
+  "app/shop/[store]/pay/[sessionId]/page.tsx",
+  // C3's listing editor and storefront with fixture data (decision 0154), for the comparison with p06. Same switch as /dev/ui.
+  "app/dev/storefront/page.tsx",
   // A team store (F-T6, decision 0153): players and parents buy with no account. The code in the address is the
   // only key: the pages read that store through the server's key and show its title, prices, sizes, dates and the
   // club's size guide, never another buyer. The return page shows one payment's state by its id; the test checkout

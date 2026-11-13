@@ -53,7 +53,7 @@ export async function proxy(request: NextRequest) {
 function hostRewrite(request: NextRequest, response: NextResponse, rootDomain: string | undefined): NextResponse | null {
   const path = rewriteForHost(request.headers.get("host"), request.nextUrl.pathname, rootDomain);
   if (path === null) return null;
-  const rewrite = NextResponse.rewrite(new URL(path, request.url), { request });
+  const rewrite = NextResponse.rewrite(new URL(`${path}${request.nextUrl.search}`, request.url), { request });
   for (const cookie of response.cookies.getAll()) rewrite.cookies.set(cookie);
   return rewrite;
 }

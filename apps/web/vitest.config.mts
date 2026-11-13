@@ -178,6 +178,12 @@ export default defineConfig({
         "lib/templates/feed/server.ts",
         "lib/mockups/gallery/server.ts",
         "lib/marketing/gallery/server.ts",
+        // Join the storefront tables, the run context, the factory ladder, the file store and C1's payments (decision
+        // 0154); the rules are in lib/storefront's tested files, and the database and end-to-end tests cover these joins.
+        "lib/storefront/db.ts",
+        "lib/storefront/server.ts",
+        "lib/storefront/run.ts",
+        "lib/storefront/sales-server.ts",
         // Join the team store tables, C1's processor and refunds, the make flow's door and moderation (plan v6 C2,
         // decision 0153); the rules are lib/team-stores' tested files, and the database and end-to-end tests cover these.
         "lib/team-stores/db.ts",
@@ -290,6 +296,7 @@ export default defineConfig({
             "shoots",
             "store-contract",
             "store-pages",
+            "storefront",
             "team",
             "team-stores",
             "teamwear",

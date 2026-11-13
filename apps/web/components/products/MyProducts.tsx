@@ -1,4 +1,4 @@
-import { Package, Pencil, Truck } from "lucide-react";
+import { Package, Pencil, Store, Truck } from "lucide-react";
 import Link from "next/link";
 import { StatusPill } from "@/components/ui/Chips";
 import { cx } from "@/components/ui/cx";
@@ -89,6 +89,9 @@ export function ProductTable({ rows }: Readonly<{ rows: readonly ProductRow[] }>
                 </Link>
                 <Link href={row.runsHref} aria-label={`Samples and runs of ${row.name}`} className="grid size-9 place-items-center rounded-md text-text-2 hover:bg-soft">
                   <Icon icon={Truck} size={20} />
+                </Link>
+                <Link href={row.listingHref} aria-label={`Listing of ${row.name}`} className="grid size-9 place-items-center rounded-md text-text-2 hover:bg-soft">
+                  <Icon icon={Store} size={20} />
                 </Link>
               </span>
             </Td>
