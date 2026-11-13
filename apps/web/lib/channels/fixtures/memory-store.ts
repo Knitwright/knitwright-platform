@@ -36,7 +36,7 @@ export function memoryChannels(seed: Readonly<{ projectOf?: (productId: string) 
     },
     async setLocation(connectionId, locationId) {
       const row = connections.find((one) => one.id === connectionId && active(one));
-      if (row) row.locationId = locationId;
+      if (row) Object.assign(row, { locationId });
     },
     async disconnect(brandId, _userId, connectionId) {
       const row = connections.find((one) => one.id === connectionId && one.brandId === brandId && active(one));
@@ -90,7 +90,7 @@ export function memoryChannels(seed: Readonly<{ projectOf?: (productId: string) 
     },
     async markTrackingSynced(lineId) {
       const row = orders.find((one) => one.id === lineId);
-      if (row) row.trackingSyncedAt = "2026-11-14T10:00:00Z";
+      if (row) Object.assign(row, { trackingSyncedAt: "2026-11-14T10:00:00Z" });
     },
     async redactCustomer(shop, orderIds) {
       const ids = new Set(connections.filter((one) => one.shop === shop).map((one) => one.id));
