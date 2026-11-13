@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { adminClient, brandOf, must, person, type Person } from "./support";
+import { adminClient, brandOf, must, paidRpc, person, type Person } from "./support";
 
 /**
  * Migration 20261220010000 (plan v6 D1, decision 0132; spec F-0, F-T7): the one door every order goes
@@ -101,7 +101,8 @@ describe("the gate on the one door", () => {
     const release = await releaseOf(project);
     await record(project, false);
     const product = must(await rpc("create_brand_product", { p_brand_id: annBrand, p_user_id: ann.userId, p_project_id: project, p_name: "Gate tee" })) as string;
-    const { error } = await rpc("submit_brand_run", {
+    // Paid first (plan v6 C1, decision 0152), so the refusal is the validation gate's and not the payment's.
+    const { error } = await paidRpc(adminClient(), "submit_brand_run", {
       p_brand_id: annBrand, p_user_id: ann.userId, p_product_id: product, p_kind: "sample", p_release_id: release,
       p_factory_profile_id: PROFILE, p_fabric_key: "mesh", p_sizes: { S: 1 }, p_flags: [], p_request_key: randomUUID(),
     });

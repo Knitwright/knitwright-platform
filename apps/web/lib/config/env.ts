@@ -124,6 +124,16 @@ const envSchema = z.object({
   PATTERN_PROVIDER: z.enum(["claude-bridge"]).optional(),
   // Which image provider to use when both keys are set. Without it Google directly comes first.
   IMAGE_PROVIDER: z.enum(["gemini", "fal"]).optional(),
+  // Payments (plan v6 C1, decision 0152). Server only. Stripe in TEST MODE only: a live key (sk_live_) is refused
+  // until the owner decides to go live, which is a code change on purpose. Both or neither: with one missing,
+  // card checkout is shown as not set up (lib/payments/select.ts). Never set where tests run.
+  STRIPE_SECRET_KEY: z.string().regex(/^(sk|rk)_test_\S{8,240}$/).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().regex(/^whsec_\S{8,240}$/).optional(),
+  // "on" asks Stripe to work out VAT/GST at checkout (Stripe Tax must be set up in the account first).
+  STRIPE_AUTOMATIC_TAX: z.enum(["on", "off"]).optional(),
+  // Browser tests and local runs only: "on" makes checkout a page of this app that pays with a test card and
+  // signs its own webhook events (lib/payments/test-provider.ts). Refused wherever real people sign in.
+  PAYMENTS_TEST_CHECKOUT: z.enum(["on", "off"]).optional(),
   // Browser tests only: "on" answers the assistant with a stand-in that never reaches the
   // network (lib/providers/stand-in.ts). Refused wherever real people sign in.
   AI_PROVIDER_STUB: z.enum(["on", "off"]).optional(),
@@ -201,6 +211,9 @@ const guardedSchema = envSchema.superRefine((env, context) => {
     // On a live site the bridge is the owner's own test, so it needs to know who the owner is.
     context.addIssue({ code: "custom", path: ["PATTERN_PROVIDER"], message: "needs OWNER_EMAIL" });
   }
+  if (env.PAYMENTS_TEST_CHECKOUT === "on" && servesRealPeople(env)) {
+    context.addIssue({ code: "custom", path: ["PAYMENTS_TEST_CHECKOUT"], message: "test key" });
+  }
   if (env.AI_PROVIDER_STUB === "on" && servesRealPeople(env)) {
     context.addIssue({ code: "custom", path: ["AI_PROVIDER_STUB"], message: "test key" });
   }
@@ -244,6 +257,7 @@ const describeIssue = (issue: z.core.$ZodIssue): string => {
   if (issue.code === "custom" && issue.message === "missing") return `${name} is missing`;
   if (issue.code === "custom" && name === "PATTERN_PROVIDER") return `${name}=claude-bridge needs OWNER_EMAIL on a deploy, so only the owner can use it`;
   if (issue.code === "custom" && name === "NEXT_PUBLIC_SUPABASE_URL") return `${name} is not valid: give only the address, such as https://abc.supabase.co, with nothing after it`;
+  if (issue.code === "custom" && name === "PAYMENTS_TEST_CHECKOUT") return `${name} is for browser tests and local runs, which a deploy may not use`;
   if (issue.code === "custom" && name === "AI_PROVIDER_STUB") return `${name} is for browser tests, which a deploy may not use`;
   if (issue.code === "custom") return `${name} is a test key, which a deploy may not use`;
   const missing = issue.code === "invalid_type" && issue.input === undefined;

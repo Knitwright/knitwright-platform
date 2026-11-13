@@ -46,6 +46,10 @@ export const PUBLIC_ENTRY_POINTS = [
   // the deploy's own CRON_SECRET in constant time, 503 without it, 404 for a wrong one. It takes no input, and all
   // it can do is remove rosters older than two seasons for clubs that did not opt in to keep them. Idempotent.
   "app/api/cron/roster-purge/route.ts#GET",
+  // Stripe's webhook (plan v6 C1, decision 0152). Stripe has no session. Nothing is read until the raw body's
+  // Stripe-Signature checks against this deploy's webhook secret (lib/payments/signature.ts), and every event is
+  // acted on once. Without a processor configured it answers 503 and reads nothing.
+  "app/api/payments/webhook/route.ts#POST",
   // The Store contract (plan v5 O2, decision 0106). The separate Store is a service, not a person: there is no
   // session, and the only door is a token signed with the deploy's own STORE_SERVICE_TOKEN over the payload kind
   // and the call's query, compared in constant time. Without the secret set every one answers 503 and reads

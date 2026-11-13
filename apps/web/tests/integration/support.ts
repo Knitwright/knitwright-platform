@@ -161,3 +161,34 @@ export const person = async (label: string): Promise<Person> => {
 /** Creates a brand as this person and returns its id. */
 export const brandOf = async (owner: Person, name: string): Promise<string> =>
   must(await owner.client.rpc("create_brand", { p_name: name }));
+
+/**
+ * Plan v6 C1 (decision 0152): `submit_brand_run` (and so `submit_make_order`) sends an order to production only when
+ * a paid or invoice payment line names exactly that order. This opens an invoice payment for the arguments a test
+ * is about to send, the way the app does for an order with no price on file, so a test of something else can
+ * reach production as before. It never throws: a payment the database will not open (a viewer, a product of
+ * another brand, a malformed order) is left unopened, and the door then refuses the order for its own reason.
+ */
+export const payFor = async (args: Readonly<Record<string, unknown>>): Promise<void> => {
+  const db = adminClient();
+  const { data: product } = await db.from("brand_products").select("project_id").eq("id", args.p_product_id as string).maybeSingle();
+  const sizes = args.p_sizes;
+  if (!product || sizes === null || typeof sizes !== "object" || Array.isArray(sizes)) return;
+  const pieces = Object.values(sizes as Record<string, unknown>).reduce<number>((sum, value) => sum + (typeof value === "number" && value > 0 ? value : 0), 0);
+  await db.rpc("open_order_payment", {
+    p_brand_id: args.p_brand_id, p_user_id: args.p_user_id, p_purpose: "order", p_method: "invoice", p_currency: "GBP",
+    p_order_value_minor: null, p_amount_minor: 0, p_schedule: "full", p_description: "Order sent by a database test",
+    p_credits: null, p_plan_id: null, p_plan_interval: null,
+    p_lines: [{
+      request_key: args.p_request_key, door: "make", product_id: args.p_product_id, project_id: (product as { project_id: string }).project_id,
+      kind: args.p_kind, release_id: args.p_release_id, factory_profile_id: args.p_factory_profile_id, fabric_key: args.p_fabric_key,
+      sizes, flags: [], pieces: Math.min(Math.max(pieces, 1), 1_000_000), value_minor: null, price_label: null,
+    }],
+  });
+};
+
+/** Sends an order through a door that needs a payment, paying for it first (`payFor`). */
+export const paidRpc = async (client: SupabaseClient, fn: string, args: Readonly<Record<string, unknown>>) => {
+  await payFor(args);
+  return client.rpc(fn, args);
+};

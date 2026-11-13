@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, it } from "vitest";
-import { adminClient, brandOf, must, person, type Person } from "./support";
+import { adminClient, brandOf, must, paidRpc, person, type Person } from "./support";
 
 /**
  * Brand workspace (plan W4-C, decision 0062): the product list, samples and runs, against local Supabase. Needs `pnpm db:start`.
@@ -30,8 +30,9 @@ const makeRelease = async (owner: Person, brandId: string, projectId: string, la
 const listProduct = async (owner: Person, brandId: string, projectId: string, name = "Hoodie"): Promise<string> =>
   must(await rpc("create_brand_product", { p_brand_id: brandId, p_user_id: owner.userId, p_project_id: projectId, p_name: name })) as string;
 
+// Paid first: an order reaches production only once a payment names it (plan v6 C1, decision 0152).
 const send = (who: Person, brandId: string, productId: string, releaseId: string, over: Record<string, unknown> = {}) =>
-  rpc("submit_brand_run", { p_brand_id: brandId, p_user_id: who.userId, p_product_id: productId, p_kind: "sample", p_release_id: releaseId, p_factory_profile_id: "knitwright-default", p_fabric_key: "mesh", p_sizes: { S: 1, M: 1 }, p_flags: [], p_request_key: randomUUID(), ...over });
+  paidRpc(adminClient(), "submit_brand_run", { p_brand_id: brandId, p_user_id: who.userId, p_product_id: productId, p_kind: "sample", p_release_id: releaseId, p_factory_profile_id: "knitwright-default", p_fabric_key: "mesh", p_sizes: { S: 1, M: 1 }, p_flags: [], p_request_key: randomUUID(), ...over });
 
 let ann: Person;
 let ben: Person;

@@ -3,12 +3,14 @@ import { RATING_MAX, RATING_MIN, SAMPLE_MAX_SIZES } from "./vocabulary";
 
 /**
  * What the make pages may send (plan v5 Y7, decision 0080). The brand and the person are never in a body: they
- * come from the session. Nothing here carries a price, a currency as money, or a payment of any kind: the
- * platform takes none (owner decision 1).
+ * come from the session. Nothing here carries a price or an amount: the server prices every order from the
+ * ladder rows (plan v6 C1, decision 0152). A run may ask to pay a deposit; the server decides whether it may.
  */
 
 const sizeLabel = z.string().trim().min(1).max(16);
 const requestKey = z.string().min(8).max(64);
+/** Pay in full, or ask for the deposit (F-S7). The server charges in full where a deposit is not allowed. */
+const schedule = z.enum(["full", "deposit"]).default("full");
 const ruleId = z.string().regex(/^R-[A-Z]{2,5}-\d{3}$/, "Use a rule id such as R-GAP-000.");
 const mm = z.number().int().min(0).max(100_000);
 const tolerance = z.number().int().min(0).max(1000).nullable();
@@ -35,6 +37,7 @@ export const runBody = z.object({
   /** Pieces per size, as typed. The rules in `run.ts` read them. */
   quantities: z.record(sizeLabel, z.string().max(8)),
   requestKey,
+  schedule,
 });
 export type RunBody = z.output<typeof runBody>;
 
@@ -45,6 +48,7 @@ export const selectSizesBody = z.object({
     .min(1)
     .max(200),
   requestKey,
+  schedule,
 });
 export type SelectSizesBody = z.output<typeof selectSizesBody>;
 

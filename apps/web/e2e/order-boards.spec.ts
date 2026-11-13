@@ -66,7 +66,7 @@ test.describe("the tech pack and order boards", () => {
     await press(page.locator('[data-testid^="canvas-open-order-"]'));
     const drawer = page.getByRole("dialog", { name: `Order · ${name}` });
     await expect(drawer).toBeVisible();
-    await expect(drawer.getByTestId("order-drawer-checkout")).toContainText("Card checkout arrives with payments");
+    await expect(drawer.getByTestId("order-drawer-checkout")).toContainText("Checkout is by card through Stripe");
     await expect(drawer.getByTestId("order-drawer-orders")).toHaveAttribute("href", "/orders");
     await expect(drawer.getByTestId("order-drawer-product")).toHaveAttribute("href", `/studio/${id}/make`);
     await drawer.getByRole("tab", { name: "Team store" }).click();

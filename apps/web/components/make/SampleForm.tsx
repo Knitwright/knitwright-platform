@@ -9,6 +9,8 @@ import { requestSampleAction } from "@/lib/make/actions";
 import type { MakeContext } from "@/lib/make/context";
 import { checkSampleRequest, describeSample } from "@/lib/make/sample";
 import { SAMPLE_MAX_SIZES } from "@/lib/make/vocabulary";
+import { describePrice, samplePrice } from "@/lib/payments/pricing";
+import { sendLabel, sentNote } from "@/lib/payments/reply";
 
 type Props = Readonly<{ context: MakeContext; canOrder: boolean }>;
 type Note = Readonly<{ tone: "ok" | "warn"; text: string }>;
@@ -17,8 +19,8 @@ const newKey = (): string => crypto.randomUUID();
 
 /**
  * The sample request (F-S7): up to three sizes, one piece of each, with the price and the delivery date shown
- * before anything is sent. There is no payment here: the order is handed to production and Knitwright invoices
- * it outside the platform (owner decision 1).
+ * before payment. With a price on file the button is Checkout and the order goes to production once paid (plan v6
+ * C1, decision 0152); with none, it is sent now and Knitwright invoices it.
  */
 export function SampleForm({ context, canOrder }: Props) {
   const router = useRouter();
@@ -32,6 +34,7 @@ export function SampleForm({ context, canOrder }: Props) {
 
   const check = useMemo(() => checkSampleRequest({ sizes: chosen, sizeRun: context.sizeRun }), [chosen, context.sizeRun]);
   const product = context.product;
+  const price = samplePrice(context.factory.ladder, Math.max(chosen.length, 1), "GBP");
 
   const toggle = (size: string) => {
     setNote(null);
@@ -45,9 +48,10 @@ export function SampleForm({ context, canOrder }: Props) {
     start(async () => {
       const reply = await requestSampleAction({ projectId: context.projectId, productId: product.id, releaseId, fabricKey: fabric.trim(), sizes: [...chosen], requestKey }).catch(() => null);
       if (!reply) return setNote({ tone: "warn", text: "The request could not be sent. Check your connection and try again." });
-      if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
-      setNote({ tone: "ok", text: `Sent to production. The order is ${reply.data.status}, waiting for the next cut-off.` });
       setRequestKey(newKey());
+      if (!reply.success) return setNote({ tone: "warn", text: reply.error.message });
+      if (reply.data.kind === "checkout") return window.location.assign(reply.data.url);
+      setNote({ tone: "ok", text: sentNote(reply.data) });
       router.refresh();
     });
   };
@@ -96,7 +100,10 @@ export function SampleForm({ context, canOrder }: Props) {
       </div>
 
       <div className="flex flex-col gap-1 text-[15px]" aria-live="polite">
-        <p className="text-muted">Price: {context.prices[0]?.text}</p>
+        <p className="text-muted" data-testid="sample-price">
+          Price: {price.status === "priced" ? `${describePrice(price, "GBP")} for ${chosen.length || 1} piece${chosen.length > 1 ? "s" : ""}, paid by card at checkout` : context.prices[0]?.text}
+        </p>
+        {price.status === "priced" ? <p className="text-sm text-faint">{price.label}</p> : null}
         <p className="text-muted">{context.delivery.text}</p>
         {context.delivery.note === "" ? null : <p className="text-sm text-faint">{context.delivery.note}</p>}
       </div>
@@ -106,7 +113,9 @@ export function SampleForm({ context, canOrder }: Props) {
       {note ? <Notice tone={note.tone} role={note.tone === "warn" ? "alert" : "status"}>{note.text}</Notice> : null}
 
       <div>
-        <Button type="submit" pending={pending} disabled={!check.canSend || releaseId === "" || product === null}>Send the sample request</Button>
+        <Button type="submit" pending={pending} disabled={!check.canSend || releaseId === "" || product === null}>
+          {sendLabel(price.status === "priced", "Send the sample request")}
+        </Button>
       </div>
     </form>
   );

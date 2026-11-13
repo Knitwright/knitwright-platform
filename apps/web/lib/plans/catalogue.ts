@@ -7,7 +7,8 @@
  * one place, as plan v5's "data, not constants" asks, so no component holds a price. When C1 brings
  * Stripe Billing, its prices replace these rows and `isPlaceholder` goes false.
  *
- * Nothing here is bought. The modal's choose button says checkout is coming and records nothing.
+ * Since plan v6 C1 (decision 0152) choosing a plan opens its Stripe Billing checkout at these prices (test mode
+ * only until the owner sets prices and goes live).
  */
 
 export type PlanId = "free" | "starter" | "studio_pro" | "club_scale";
@@ -127,5 +128,4 @@ export const PLAN_SETTINGS: PlanSettings = {
 };
 
 export const PLAN_PLACEHOLDER_NOTICE = "Prices are placeholders.";
-export const CHECKOUT_COMING =
-  "Checkout is coming soon. Nothing has been charged and nothing is recorded: you stay on your current plan.";
+export const CHECKOUT_OPENING = "Opening the secure checkout. Nothing is charged until you pay there.";

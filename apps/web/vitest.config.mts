@@ -155,6 +155,11 @@ export default defineConfig({
         // Joins the Tech pack and Order boards to the design, catalogue and order reads; the summaries and the
         // canvas rules are tested on their own, and the end-to-end tests cover the joining (plan v6 E4, decision 0148).
         "lib/order-boards/server.ts",
+        // Join the payment tables, the processor, the order doors and the ledger (decision 0152); the rules are in
+        // lib/payments' tested files, and the database and end-to-end tests cover these joins.
+        "lib/payments/db.ts",
+        "lib/payments/server.ts",
+        "lib/payments/ops-read.ts",
         // Joins the Products pages to the catalogue's rows, the factory model and the production settings; every
         // rule it hands over is pure and tested on its own, and the end-to-end tests cover the joining (plan v6 P4,
         // decision 0142).
@@ -245,6 +250,7 @@ export default defineConfig({
             "parametric",
             "pattern-library",
             "pattern-service",
+            "payments",
             "pickers",
             "plans",
             "print",
