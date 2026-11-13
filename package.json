@@ -20,6 +20,6 @@
     "db:env": "node scripts/write-local-env.mjs"
   },
   "devDependencies": {
-    "supabase": "2.122.0"
+    "supabase": "3.0.0"
   }
 }
