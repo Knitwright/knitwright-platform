@@ -70,7 +70,7 @@ function ViewSwitch({ view, beside, onView }: Readonly<{ view: CanvasView; besid
   const sideId = useId();
   return (
     <div className="ml-auto flex items-center gap-2">
-      <div role="group" aria-label="Canvas views" className="flex h-11 items-center gap-1 rounded-lg border border-border bg-bg p-1 shadow-e1" data-testid="view-toggle">
+      <div role="group" aria-label="Canvas views" className="flex h-12 items-center gap-1 rounded-lg border border-border bg-bg p-1 shadow-e1" data-testid="view-toggle">
         {CANVAS_VIEWS.map((id) => {
           const on = showing(view, beside, id);
           const glyph = VIEW_ICON[id];
@@ -81,7 +81,7 @@ function ViewSwitch({ view, beside, onView }: Readonly<{ view: CanvasView; besid
               aria-pressed={on}
               title={VIEWS[id].label}
               onClick={(event) => onView(id, event.shiftKey)}
-              className={cx("inline-flex h-9 min-w-10 items-center justify-center rounded-md px-2.5 text-body font-semibold", on ? "bg-soft text-text" : "text-text-2 live:hover:bg-soft")}
+              className={cx("inline-flex h-10 min-w-10 items-center justify-center rounded-md px-2.5 text-body font-semibold", on ? "bg-soft text-text" : "text-text-2 live:hover:bg-soft")}
             >
               {glyph ? (
                 <>
@@ -95,7 +95,7 @@ function ViewSwitch({ view, beside, onView }: Readonly<{ view: CanvasView; besid
           );
         })}
         {/* Two views at once, as the editor always offered: a box and a glyph, to keep the bar on one line. */}
-        <span className="inline-flex h-9 items-center gap-1 border-l border-border pr-1 pl-2 text-text-2" title="Side by side">
+        <label htmlFor={sideId} className="inline-flex h-10 items-center gap-1 border-l border-border pr-1 pl-2 text-text-2" title="Side by side">
           <input
             id={sideId}
             type="checkbox"
@@ -103,11 +103,9 @@ function ViewSwitch({ view, beside, onView }: Readonly<{ view: CanvasView; besid
             onChange={(event) => (event.target.checked ? onView(partner(view), true) : onView(view, false))}
             className="size-4 accent-navy"
           />
-          <label htmlFor={sideId} className="inline-flex items-center">
-            <Icon icon={Columns2} size={16} />
-            <span className="sr-only">Side by side</span>
-          </label>
-        </span>
+          <Icon icon={Columns2} size={16} />
+          <span className="sr-only">Side by side</span>
+        </label>
       </div>
     </div>
   );
@@ -138,10 +136,10 @@ export function StageTop({ fit, findings, simulate, onSimulate, onPhotoreal }: T
       <div className={cx("rounded-lg bg-bg shadow-e1", FIT_TONES[fit.tone])} data-testid="fit-checked" data-tone={fit.tone}>
         <ValidateChip chip={fit.chip} findings={findings} />
       </div>
-      <div className="flex h-11 items-center gap-0.5 rounded-lg bg-bg px-1 shadow-e1">
-        <Button variant="ghost" size="sm" iconOnly aria-label="Simulate" title="Simulate: build the 3D model again" icon={<Icon icon={RotateCw} size={20} />} disabled={!simulate.canSimulate} onClick={onSimulate} data-testid="simulate" />
-        <Button variant="ghost" size="sm" iconOnly aria-label="Photoreal picture" title="Photoreal picture" icon={<Icon icon={ImageIcon} size={20} />} onClick={onPhotoreal} />
-        <Button variant="ghost" size="sm" iconOnly aria-label="Fit on a player" icon={<Icon icon={UserRound} size={20} />} disabledReason="Fit on your own player measurements is coming soon." />
+      <div className="flex h-12 items-center gap-0.5 rounded-lg bg-bg px-1 shadow-e1">
+        <Button variant="ghost" iconOnly aria-label="Simulate" title="Simulate: build the 3D model again" icon={<Icon icon={RotateCw} size={20} />} disabled={!simulate.canSimulate} onClick={onSimulate} data-testid="simulate" />
+        <Button variant="ghost" iconOnly aria-label="Photoreal picture" title="Photoreal picture" icon={<Icon icon={ImageIcon} size={20} />} onClick={onPhotoreal} />
+        <Button variant="ghost" iconOnly aria-label="Fit on a player" icon={<Icon icon={UserRound} size={20} />} disabledReason="Fit on your own player measurements is coming soon." />
       </div>
       <span role="status" className="sr-only" data-testid="simulate-chip">
         {simulate.label}

@@ -48,7 +48,7 @@ export function RailSegments({ segment, onChoose }: Props) {
             aria-controls={segmentPanelId(id)}
             tabIndex={selected || (segment === null && index === 0) ? 0 : -1}
             onClick={() => onChoose(id)}
-            className={`inline-flex h-8 min-w-0 flex-1 items-center justify-center rounded-sm px-2 text-small font-medium transition-colors duration-fast ${
+            className={`inline-flex h-10 min-w-0 flex-1 lg:h-8 items-center justify-center rounded-sm px-2 text-small font-medium transition-colors duration-fast ${
               selected ? "bg-bg text-text shadow-e1" : "text-text-2 live:hover:text-text"
             }`}
           >

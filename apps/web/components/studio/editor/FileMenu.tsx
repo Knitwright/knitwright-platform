@@ -26,7 +26,7 @@ export function FileMenu({ projectId, onTool }: Props) {
         aria-expanded={open}
         aria-controls="file-menu"
         data-testid="file-menu-button"
-        className={buttonClasses("ghost", false, "", "sm")}
+        className={buttonClasses("ghost", false, "max-lg:h-10", "sm")}
       >
         File
       </button>
