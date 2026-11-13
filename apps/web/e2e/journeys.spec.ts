@@ -36,7 +36,7 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  const id = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1];
+  const id = /\/(?:studio|project)\/([0-9a-f-]{36})/.exec(page.url())?.[1];
   if (!id) throw new Error(`No design id in ${page.url()}`);
   return id;
 };
@@ -68,9 +68,9 @@ test.describe("role journeys (W5-C)", () => {
     // A starter template becomes the club's design, at version 1.
     await page.goto("/templates?sport=football&article=team-jersey");
     await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
     await expect(page.getByTestId("version")).toHaveText("Version 1");
-    const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
+    const projectId = /\/(?:studio|project)\/([0-9a-f-]{36})/.exec(page.url())?.[1] ?? "";
 
     // The season's roster is read from a file and saved.
     await page.goto("/team?tab=seasons");
@@ -227,7 +227,7 @@ test.describe("role journeys (W5-C)", () => {
 
     await page.goto("/templates?sport=football&article=team-jersey");
     await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
 
     await page.goto("/designer/new");
     await page.getByLabel("Design to offer").selectOption({ label: "Navy and gold hoops" });

@@ -74,7 +74,7 @@ async function listedProduct(email: string, page: Page, name: string): Promise<s
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  const projectId = /\/studio\/([0-9a-f-]{36})/.exec(page.url())?.[1];
+  const projectId = /\/(?:studio|project)\/([0-9a-f-]{36})/.exec(page.url())?.[1];
   if (!projectId) throw new Error(`No design id in ${page.url()}`);
 
   const db = service();

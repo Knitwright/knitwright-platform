@@ -15,9 +15,10 @@ const startDesign = async (page: Page, type: string, name = "Home shirt"): Promi
   await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  return new URL(page.url()).pathname;
+  // The design's own address: it opens the editor on the one canvas (decision 0145), and its pages sit under it.
+  return new URL(page.url()).pathname.replace("/project/", "/studio/");
 };
 
 const choice = (page: Page, option: string, label: RegExp): Locator =>

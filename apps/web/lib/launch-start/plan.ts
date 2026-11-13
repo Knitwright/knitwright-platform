@@ -103,7 +103,7 @@ export function landingPath(launchProjectId: string, boardId: string | null, pan
   if (panel !== null) query.set("panel", panel);
   if (boardId !== null) query.set("board", boardId);
   const text = query.toString();
-  return `/launch/${encodeURIComponent(launchProjectId)}${text ? `?${text}` : ""}`;
+  return `/project/${encodeURIComponent(launchProjectId)}${text ? `?${text}` : ""}`;
 }
 
 /** The launch project's name: the thing it was started from. */

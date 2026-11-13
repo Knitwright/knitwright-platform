@@ -42,7 +42,7 @@ test.describe("designer templates", () => {
     // A design to offer: a copy of a starter template.
     await page.goto("/templates?sport=football&article=team-jersey");
     await page.getByRole("button", { name: "Use this template: Navy and gold hoops" }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
 
     await page.goto("/designer/new");
     await page.getByLabel("Design to offer").selectOption({ label: "Navy and gold hoops" });

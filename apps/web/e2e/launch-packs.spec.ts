@@ -30,7 +30,7 @@ const startLaunch = async (page: Page, label: string): Promise<string> => {
   await expect(page.getByRole("heading", { level: 1, name: "Launch projects" })).toBeVisible();
   await page.getByLabel("Name this launch").fill(name);
   await page.getByRole("button", { name: "Start the launch" }).click();
-  await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
   return name;
 };

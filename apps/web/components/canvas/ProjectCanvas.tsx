@@ -6,6 +6,7 @@ import { boxOf, primaryOf, type GarmentPreview, type Point } from "@/lib/canvas"
 import { addMenuFor, connectTargets, isArrowKey, nudge, placeOf, type AddItem, type ConnectTarget } from "@/lib/flows";
 import { BOARDS, type BoardView, type Graph, type LaunchCommands } from "@/lib/launch";
 import { BoardDoors } from "./BoardDoors";
+import { BoardMenus } from "./BoardMenus";
 import { CanvasBoard } from "./CanvasBoard";
 import { useCanvasStore } from "./CanvasStore";
 import { GarmentPreviewPanel } from "./GarmentPreviewPanel";
@@ -126,6 +127,7 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
       onRunDownstream={() => commands.requestRunDownstream(board.id)}
       onMove={(key, shift) => move(board, nudge(board, key, shift), shift ? "ten steps" : "one step")}
       extra={<BoardDoors board={board} graph={graph} canvasId={canvasId} />}
+      detachedLists
     />
   );
 
@@ -166,7 +168,17 @@ export function ProjectCanvas({ graph, canvasId, selectedId, zoom, busy, command
       <p aria-live="polite" className="sr-only" data-testid="flow-canvas-said">
         {said}
       </p>
-      <InfiniteCanvas graph={graph} renderBoard={renderBoard} initialScale={zoom / 100} />
+      <InfiniteCanvas graph={graph} renderBoard={renderBoard} initialScale={zoom / 100}>
+        <div
+          onKeyDown={(event) => {
+            if (event.key !== "Escape") return;
+            setMenu(null);
+            setConnecting(null);
+          }}
+        >
+          <BoardMenus graph={graph} menu={menu} connecting={connecting} onAdd={onAdd} onConnect={(board, target) => onConnect(board.id, target)} />
+        </div>
+      </InfiniteCanvas>
     </>
   );
 }

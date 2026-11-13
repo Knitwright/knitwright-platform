@@ -27,8 +27,9 @@ const newDesign = async (page: Page): Promise<string> => {
   await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill("Home shirt");
   await page.getByRole("button", { name: "Create design" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
-  return new URL(page.url()).pathname;
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
+  // The design's own address: it opens the editor on the one canvas (decision 0145), and its pages sit under it.
+  return new URL(page.url()).pathname.replace("/project/", "/studio/");
 };
 
 test.describe("the lead engine", () => {

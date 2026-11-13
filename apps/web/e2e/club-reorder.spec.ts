@@ -20,7 +20,7 @@ const startDesign = async (page: Page, name: string): Promise<string> => {
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
   await expect(page.getByRole("heading", { level: 1, name })).toBeVisible();
-  const id = page.url().match(/\/studio\/([0-9a-f-]{36})/)?.[1];
+  const id = page.url().match(/\/(?:studio|project)\/([0-9a-f-]{36})/)?.[1];
   if (!id) throw new Error("No design id in the address.");
   return id;
 };

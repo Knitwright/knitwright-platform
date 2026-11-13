@@ -152,7 +152,7 @@ test.describe("the product page", () => {
     await expect(configurator.getByRole("button", { name: /^V-neck, locked: Not yet sampled/ })).toHaveAttribute("aria-disabled", "true");
     await accessible(page);
     await configurator.getByRole("button", { name: /^Create my design/ }).click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
     await expect(page.getByRole("heading", { level: 1, name: /Short-sleeve sublimated jersey/ })).toBeVisible();
   });
 });

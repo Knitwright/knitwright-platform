@@ -131,7 +131,7 @@ test.describe("the teamwear configurator", () => {
 
     // "Design in Studio" then opens that design in the editor, with the configurator's own form.
     await page.getByTestId("teamwear-studio").click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}\?.*opt=collar%3AC02/);
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?.*opt=collar%3AC02/);
     await expect(page).toHaveURL(/rail=form/);
     await expect(page).toHaveURL(/view=3d/);
   });

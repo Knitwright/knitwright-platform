@@ -22,7 +22,7 @@ const newDesign = async (page: Page, name: string): Promise<void> => {
   await page.getByLabel("Made for").selectOption({ label: "Women" });
   await page.getByLabel("Design name").fill(name);
   await page.getByRole("button", { name: "Create design" }).click();
-  await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/);
+  await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/);
 };
 
 test.describe("AI Studio", () => {
@@ -79,7 +79,7 @@ test.describe("AI Studio", () => {
     await expect(generate).not.toHaveAttribute("aria-disabled", "true");
     await accessible(page);
     await generate.click();
-    await expect(page).toHaveURL(/\/launch\/[0-9a-f-]{36}$/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}$/, { timeout: 30_000 });
   });
 
   test("Retro kit remix makes validated variants of a design and saves the one picked", async ({ page }) => {
@@ -92,7 +92,7 @@ test.describe("AI Studio", () => {
     const variants = page.getByTestId("ai-studio-variants");
     await expect(variants.getByRole("listitem")).toHaveCount(4, { timeout: 30_000 });
     await variants.getByRole("button", { name: "Use this design" }).first().click();
-    await expect(page).toHaveURL(/\/studio\/[0-9a-f-]{36}$/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/project\/[0-9a-f-]{36}\?focus=garment$/, { timeout: 30_000 });
   });
 
   test("the Creative Agent answers a question from the rulebook and starts a design from a request", async ({ page }) => {

@@ -15,9 +15,10 @@ export type MenuItem =
 
 export const LAUNCH_HOME = "/launch";
 
-export const launchProjectPath = (projectId: string): string => `${LAUNCH_HOME}/${encodeURIComponent(projectId)}`;
+/** A canvas opens on the one canvas (decision 0145); its history and its delete stay under `/launch`. */
+export const launchProjectPath = (projectId: string): string => `/project/${encodeURIComponent(projectId)}`;
 
-export const launchHistoryPath = (projectId: string): string => `${launchProjectPath(projectId)}/history`;
+export const launchHistoryPath = (projectId: string): string => `${LAUNCH_HOME}/${encodeURIComponent(projectId)}/history`;
 
 /** The menu for one launch project, in the order a person reaches for it. */
 export function mainMenu(projectId: string): readonly MenuItem[] {
